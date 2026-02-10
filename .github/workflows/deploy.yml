@@ -70,8 +70,9 @@ jobs:
               console.log('Patched ' + pkg);
             }"
 
-            # Build sandbox examples
+            # Build sandbox examples and benchmarks
             bun run build:sandbox
+            bun run build:bench
 
             # Restore package.json (keep git clean for next pull)
             git checkout -- package.json
