@@ -9,6 +9,7 @@ The scroll module handles all scrolling functionality in vlist, including:
 - **Native Scrolling**: Standard browser scrolling for smaller lists
 - **Compressed Scrolling**: Manual wheel-based scrolling for large lists (1M+ items)
 - **Window Scrolling**: Document-level scrolling where the list participates in the page flow
+- **Horizontal Scrolling**: Left-to-right scrolling with axis-aware scroll position and wheel handling
 - **Custom Scrollbar**: Visual scrollbar for compressed mode
 - **Velocity Tracking**: Smooth scroll momentum detection
 - **Scroll Save/Restore**: `getScrollSnapshot()` / `restoreScroll()` for SPA navigation (see [methods.md](./methods.md#snapshot-methods))
@@ -45,6 +46,7 @@ The scroll controller operates in three modes:
 | **Native** | Small lists (< ~333K items @ 48px) | `overflow: auto`, browser handles scrolling |
 | **Compressed** | Large lists (> browser limit) | `overflow: hidden`, manual wheel handling |
 | **Window** | `scrollElement: window` config option | `overflow: visible`, browser scrolls the page |
+| **Horizontal** | `direction: 'horizontal'` config option | `overflow-x: auto`, reads `scrollLeft` instead of `scrollTop` |
 
 ### Mode Switching
 

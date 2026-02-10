@@ -31,10 +31,14 @@ vlist is a high-performance virtual list library designed to handle massive data
 
 - **Zero Dependencies** - Pure TypeScript, no external libraries
 - **Blazing Fast** - Only renders visible items with element pooling
+- **Grid Layout** - 2D virtualized grid with configurable columns and gap
+- **Horizontal Scrolling** - Carousels and timelines with `direction: 'horizontal'`
 - **Variable Heights** - Fixed or per-item height via function, with prefix-sum based lookups
 - **Infinite Scroll** - Built-in async adapter support for lazy loading
 - **Selection** - Single and multiple selection modes with keyboard navigation
 - **Reverse Mode** - Chat UI support with auto-scroll on append, scroll-preserving prepend
+- **Sticky Headers** - Grouped lists with sticky section headers
+- **Window Scrolling** - Document-level scrolling with `scrollElement: window`
 - **Sparse Storage** - Chunk-based memory management for huge datasets
 - **Accessible** - Full keyboard navigation and ARIA support
 - **Scroll Save/Restore** - `getScrollSnapshot()` / `restoreScroll()` for SPA navigation
@@ -150,11 +154,13 @@ interface VListConfig<T extends VListItem> {
   // Required
   container: HTMLElement | string;  // Container element or CSS selector
   item: {
-    height: number;                 // Fixed height of each item in pixels
+    height?: number | ((index: number) => number); // Item height (required for vertical)
+    width?: number | ((index: number) => number);   // Item width (required for horizontal)
     template: ItemTemplate<T>;      // Function to render each item
   };
 
   // Optional
+  direction?: 'vertical' | 'horizontal'; // Scroll direction (default: 'vertical')
   items?: T[];                      // Static items array
   adapter?: VListAdapter<T>;        // Async data adapter for infinite scroll
   overscan?: number;                // Extra items to render (default: 3)
@@ -167,6 +173,10 @@ interface VListConfig<T extends VListItem> {
   reverse?: boolean;                // Reverse mode for chat UIs (default: false)
 }
 ```
+
+**Direction:**
+- `'vertical'` (default) — Standard top-to-bottom scrolling. Requires `item.height`.
+- `'horizontal'` — Left-to-right scrolling (carousels, timelines). Requires `item.width`. Cannot be combined with grid, groups, or window scrolling.
 
 ### Item Interface
 
@@ -455,7 +465,8 @@ When selection is enabled:
 
 | Key | Action |
 |-----|--------|
-| `↑` / `↓` | Move focus up/down |
+| `↑` / `↓` | Move focus up/down (vertical mode) |
+| `←` / `→` | Move focus left/right (horizontal mode) |
 | `Home` | Move focus to first item |
 | `End` | Move focus to last item |
 | `Space` / `Enter` | Toggle selection on focused item |
@@ -806,14 +817,109 @@ list.scrollToIndex(50, { align: 'center', behavior: 'smooth' });
 
 ---
 
+## Horizontal Scrolling
+
+By default, vlist scrolls vertically (top-to-bottom). Set `direction: 'horizontal'` for left-to-right scrolling — ideal for carousels, timelines, and horizontal menus.
+
+### Basic Usage
+
+```javascript
+const carousel = createVList({
+  container: '#carousel',
+  direction: 'horizontal',
+  item: {
+    width: 200,  // use width instead of height
+    template: (item) => `
+      <div class="card">
+        <img src="${item.thumbnail}" />
+        <span>${item.title}</span>
+      </div>
+    `,
+  },
+  items: cards,
+});
+```
+
+### How It Works
+
+Internally, horizontal mode swaps all axis-dependent operations:
+
+| Vertical (default) | Horizontal |
+|---------------------|------------|
+| `item.height` | `item.width` |
+| `scrollTop` | `scrollLeft` |
+| `translateY` | `translateX` |
+| Content height | Content width |
+| `overflow-y: auto` | `overflow-x: auto` |
+| `ArrowUp` / `ArrowDown` | `ArrowLeft` / `ArrowRight` |
+
+All internal calculations (height cache, compression, viewport state) work identically — only the DOM read/write layer is axis-aware.
+
+### Variable Widths
+
+Just like variable heights, you can use a function for per-item widths:
+
+```javascript
+const timeline = createVList({
+  container: '#timeline',
+  direction: 'horizontal',
+  item: {
+    width: (index) => events[index].type === 'milestone' ? 300 : 180,
+    template: (item) => `<div class="event">${item.title}</div>`,
+  },
+  items: events,
+});
+```
+
+### Keyboard Navigation
+
+When selection is enabled in horizontal mode, keyboard navigation uses:
+
+| Key | Action |
+|-----|--------|
+| `←` / `→` | Move focus left/right |
+| `Home` | Move focus to first item |
+| `End` | Move focus to last item |
+| `Space` / `Enter` | Toggle selection |
+
+### Accessibility
+
+Horizontal lists automatically set `aria-orientation="horizontal"` on the root element and add the `.vlist--horizontal` CSS modifier class.
+
+### CSS Styling
+
+The `.vlist--horizontal` modifier adjusts the layout:
+
+- Items are positioned along the X axis with `translateX` instead of `translateY`
+- Items stretch to full container height instead of full width
+- Borders are on the right side instead of the bottom
+- The custom scrollbar (compressed mode) appears at the bottom instead of the right
+
+### Compression
+
+Compression works identically on the horizontal axis. For very large horizontal lists (where total width exceeds ~16M pixels), the same virtual-to-actual mapping is applied automatically.
+
+### Restrictions
+
+Horizontal mode cannot be combined with:
+
+- **Grid layout** — grid is already a 2D layout
+- **Groups / sticky headers** — sticky headers are inherently vertical
+- **Window scrolling** — horizontal document-level scrolling is not supported
+
+Attempting to combine these will throw a descriptive error at creation time.
+
+---
+
 ## Styling
 
 ### Default CSS Classes
 
 ```css
 .vlist                    /* Root container */
+.vlist--horizontal        /* Horizontal scrolling modifier */
 .vlist-viewport           /* Scrollable viewport */
-.vlist-content            /* Content container (sets total height) */
+.vlist-content            /* Content container (sets total height/width) */
 .vlist-items              /* Items container */
 .vlist-item               /* Individual item */
 .vlist-item--selected     /* Selected item */

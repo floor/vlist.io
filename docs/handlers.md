@@ -308,14 +308,20 @@ function handleKeydownInternal(event: KeyboardEvent) {
   let newState = ctx.state.selectionState;
   let handled = false;
   
-  // 2. Process key
+  // 2. Determine navigation keys based on direction
+  // In horizontal mode, ArrowLeft/ArrowRight replace ArrowUp/ArrowDown
+  const isHorizontal = ctx.config.isHorizontal;
+  const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
+  const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
+  
+  // 3. Process key
   switch (event.key) {
-    case 'ArrowUp':
+    case prevKey:   // ArrowUp (vertical) or ArrowLeft (horizontal)
       newState = moveFocusUp(newState, totalItems);
       handled = true;
       break;
       
-    case 'ArrowDown':
+    case nextKey:   // ArrowDown (vertical) or ArrowRight (horizontal)
       newState = moveFocusDown(newState, totalItems);
       handled = true;
       break;

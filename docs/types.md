@@ -96,24 +96,36 @@ Item-specific configuration for height and rendering.
 ```typescript
 interface ItemConfig<T extends VListItem = VListItem> {
   /**
-   * Item height in pixels.
+   * Item height in pixels (required for vertical scrolling).
    *
    * - `number` — Fixed height for all items (fast path, zero overhead)
    * - `(index: number) => number` — Variable height per item (prefix-sum based lookups)
    */
-  height: number | ((index: number) => number);
+  height?: number | ((index: number) => number);
+
+  /**
+   * Item width in pixels (required for horizontal scrolling).
+   *
+   * - `number` — Fixed width for all items (fast path, zero overhead)
+   * - `(index: number) => number` — Variable width per item (prefix-sum based lookups)
+   */
+  width?: number | ((index: number) => number);
 
   /** Template function to render each item */
   template: ItemTemplate<T>;
 }
 ```
 
-**Fixed height** (number): All items have the same height. This is the fastest path — internally uses simple multiplication for O(1) offset calculations with zero overhead.
+**Which property to use:**
+- `height` — Required when `direction` is `'vertical'` (the default). Ignored in horizontal mode.
+- `width` — Required when `direction` is `'horizontal'`. Ignored in vertical mode.
 
-**Variable height** (function): Each item can have a different height. The function receives the item index and returns the height in pixels. Internally, vlist builds a prefix-sum array for O(1) offset lookups and O(log n) binary search for scroll-position-to-index mapping.
+**Fixed size** (number): All items have the same size. This is the fastest path — internally uses simple multiplication for O(1) offset calculations with zero overhead.
+
+**Variable size** (function): Each item can have a different size. The function receives the item index and returns the size in pixels. Internally, vlist builds a prefix-sum array for O(1) offset lookups and O(log n) binary search for scroll-position-to-index mapping.
 
 ```typescript
-// Fixed height — all items 48px
+// Fixed height — all items 48px (vertical mode)
 item: { height: 48, template: myTemplate }
 
 // Variable height — headers are taller
@@ -125,6 +137,15 @@ item: {
 // Variable height — based on content
 item: {
   height: (index: number) => items[index].expanded ? 120 : 48,
+  template: myTemplate,
+}
+
+// Fixed width — all items 200px (horizontal mode)
+item: { width: 200, template: myTemplate }
+
+// Variable width — milestones are wider
+item: {
+  width: (index: number) => items[index].type === 'milestone' ? 300 : 180,
   template: myTemplate,
 }
 ```
@@ -149,6 +170,14 @@ interface VListConfig<T extends VListItem = VListItem> {
   /** Async data adapter for infinite scroll */
   adapter?: VListAdapter<T>;
   
+  /**
+   * Scroll direction (default: 'vertical').
+   * - 'vertical' — Standard top-to-bottom scrolling. Requires item.height.
+   * - 'horizontal' — Left-to-right scrolling (carousels, timelines). Requires item.width.
+   *   Cannot be combined with grid, groups, or window scrolling.
+   */
+  direction?: 'vertical' | 'horizontal';
+
   /** Number of extra items to render outside viewport (default: 3) */
   overscan?: number;
   

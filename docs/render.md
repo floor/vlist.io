@@ -6,9 +6,9 @@
 
 The render module is responsible for all DOM-related operations in vlist. It handles:
 
-- **Height Cache**: Efficient height management for fixed and variable item heights
-- **DOM Structure**: Creating and managing the vlist DOM hierarchy
-- **Element Rendering**: Efficiently rendering items using an element pool
+- **Height Cache**: Efficient size management for fixed and variable item heights (or widths in horizontal mode)
+- **DOM Structure**: Creating and managing the vlist DOM hierarchy (axis-aware for horizontal scrolling)
+- **Element Rendering**: Efficiently rendering items using an element pool with axis-aware positioning
 - **Virtual Scrolling**: Calculating visible ranges and viewport state
 - **Compression**: Handling large lists (1M+ items) that exceed browser limits
 
@@ -17,10 +17,10 @@ The render module is responsible for all DOM-related operations in vlist. It han
 ```
 src/render/
 ├── index.ts        # Module exports
-├── dom.ts          # DOM structure, container resolution, content height (shared with core)
+├── dom.ts          # DOM structure, container resolution, content height/width (shared with core)
 ├── pool.ts         # Element pool for DOM element recycling (shared with core)
-├── heights.ts      # Height cache for fixed and variable item heights (shared with core)
-├── renderer.ts     # DOM rendering with compression support
+├── heights.ts      # Height/width cache for fixed and variable item sizes (shared with core)
+├── renderer.ts     # DOM rendering with compression support (axis-aware)
 ├── virtual.ts      # Virtual scrolling calculations
 └── compression.ts  # Large list compression logic
 ```

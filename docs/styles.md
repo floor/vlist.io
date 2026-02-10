@@ -67,7 +67,7 @@ import 'vlist/styles/extras';
 |-------|---------|-------------|
 | `.vlist` | Root | Container element, sets dimensions and overflow |
 | `.vlist-viewport` | Scrollable area | Handles scroll with native scrollbar |
-| `.vlist-content` | Content wrapper | Sets total height for scroll |
+| `.vlist-content` | Content wrapper | Sets total height (or width in horizontal mode) for scroll |
 | `.vlist-items` | Items container | Holds rendered item elements |
 | `.vlist-item` | Individual item | Positioned absolutely with transforms |
 
@@ -79,6 +79,14 @@ import 'vlist/styles/extras';
 | `.vlist-item--focused` | Applied to keyboard-focused item |
 | `.vlist-item--enter` | Applied briefly for fade-in animation |
 | `.vlist--scrolling` | Applied to root during active scroll (suppresses CSS transitions) |
+
+### Layout Modifier Classes
+
+| Class | Description |
+|-------|-------------|
+| `.vlist--horizontal` | Applied to root when `direction: 'horizontal'`. Swaps scroll axis, item positioning, and border direction. Sets `aria-orientation="horizontal"`. |
+| `.vlist--grid` | Applied to root when `layout: 'grid'` |
+| `.vlist--grouped` | Applied to root when `groups` config is present |
 
 ### Custom Scrollbar Classes
 
