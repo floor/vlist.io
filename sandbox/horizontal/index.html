@@ -18,9 +18,10 @@
                 <h1>Horizontal Scrolling</h1>
                 <p class="description">
                     A horizontal virtual list rendering 10,000 cards with
-                    <code>wheelScroll: false</code> — mouse wheel disabled,
-                    scrollbar hidden. Navigate using the buttons below or
-                    trackpad swipe. Only visible items are in the DOM.
+                    <code>direction: 'horizontal'</code> and
+                    <code>scroll.wheel: true</code>. Scroll with mouse wheel,
+                    trackpad swipe, or the buttons below. Only visible items are
+                    in the DOM.
                 </p>
             </header>
 
@@ -38,10 +39,11 @@
             <footer>
                 <p>
                     Uses <code>direction: 'horizontal'</code> with
-                    <code>item.width</code> instead of <code>item.height</code>.
-                    <code>wheelScroll: false</code> disables the mouse wheel and
-                    <code>scrollbar: { enabled: false }</code> hides the
-                    scrollbar — navigation is button-only. ✨
+                    <code>item.width</code> for the main axis and
+                    <code>item.height</code> for the cross axis.
+                    <code>scroll.wheel: true</code> maps vertical mouse wheel to
+                    horizontal scroll. Custom scrollbar renders at the bottom
+                    automatically. ✨
                 </p>
             </footer>
         </div>

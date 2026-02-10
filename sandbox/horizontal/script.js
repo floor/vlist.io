@@ -34,9 +34,10 @@ const items = Array.from({ length: 10000 }, (_, i) => {
 const list = createVList({
   container: "#list-container",
   direction: "horizontal",
-  scroll: { wheel: false, scrollbar: "none" },
+  scroll: { wheel: true },
   ariaLabel: "Horizontal card carousel",
   item: {
+    height: 220,
     width: 180,
     template: (item) => `
       <div class="card" style="background: linear-gradient(135deg, ${item.gradientStart} 0%, ${item.gradientEnd} 100%);">

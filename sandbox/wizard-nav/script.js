@@ -1,5 +1,5 @@
 // Wizard Navigation Example
-// Demonstrates wheelScroll: false with button-only navigation
+// Demonstrates scroll.wheel: false with button-only navigation
 
 import { createVList } from "vlist";
 
