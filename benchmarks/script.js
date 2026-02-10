@@ -766,6 +766,8 @@ const getViewportContainer = (suiteId) => {
 
 /**
  * Show the live viewport for a suite (makes it visible so browser renders at 60fps).
+ * Scrolls the card into the browser's visual viewport — Chrome throttles rAF
+ * for elements that are off-screen, which would artificially cap FPS at ~30.
  * @param {string} suiteId
  */
 const showViewport = (suiteId) => {
@@ -773,6 +775,11 @@ const showViewport = (suiteId) => {
   if (!ref) return;
   ref.viewport.classList.add("bench-viewport--active");
   ref.viewportInner.innerHTML = "";
+
+  // Scroll the card into the browser's visible viewport so Chrome
+  // delivers full-rate rAF (60fps+). Without this, off-screen elements
+  // get throttled to ~30fps.
+  ref.card.scrollIntoView({ behavior: "instant", block: "nearest" });
 };
 
 /**

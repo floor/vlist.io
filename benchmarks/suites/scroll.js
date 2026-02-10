@@ -25,6 +25,7 @@ import {
 const ITEM_HEIGHT = 48;
 const SCROLL_DURATION_MS = 5_000;
 const SCROLL_SPEED_PX_PER_FRAME = 120; // ~7200 px/s at 60fps — fast sustained scroll
+const PREFLIGHT_DURATION_MS = 1_000; // 1s rAF rate check before real benchmark
 
 // =============================================================================
 // Core measurement
@@ -147,6 +148,46 @@ const measureScrollFPS = async (container, items) => {
 };
 
 // =============================================================================
+// Pre-flight: measure the browser's raw rAF delivery rate
+// =============================================================================
+
+/**
+ * Measure the browser's actual rAF frame rate for a short duration.
+ * This detects Chrome throttling (off-screen elements, power saving, etc.)
+ * BEFORE running the real benchmark, so we can report it as a diagnostic.
+ *
+ * @param {number} durationMs
+ * @returns {Promise<number>} measured FPS
+ */
+const measureRawRAFRate = (durationMs) => {
+  return new Promise((resolve) => {
+    let frames = 0;
+    let startTime = 0;
+
+    const tick = (timestamp) => {
+      if (startTime === 0) {
+        startTime = timestamp;
+        frames = 0;
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      frames++;
+
+      if (timestamp - startTime >= durationMs) {
+        const elapsed = timestamp - startTime;
+        resolve(round(frames / (elapsed / 1000), 1));
+        return;
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+  });
+};
+
+// =============================================================================
 // Suite
 // =============================================================================
 
@@ -158,6 +199,12 @@ defineSuite({
 
   run: async ({ itemCount, container, onStatus }) => {
     const items = generateItems(itemCount);
+
+    // Pre-flight: check that the browser is delivering full rAF rate.
+    // Chrome throttles rAF for off-screen or hidden elements to ~30fps.
+    // If we detect throttling here, the scroll results would be meaningless.
+    onStatus("Checking rAF rate...");
+    const rawRate = await measureRawRAFRate(PREFLIGHT_DURATION_MS);
 
     // Warmup — one short scroll to let JIT optimize
     onStatus("Warming up...");
@@ -225,6 +272,13 @@ defineSuite({
         unit: "fps",
         better: "higher",
         rating: rateHigher(avgFps, 55, 40),
+      },
+      {
+        label: "rAF rate",
+        value: rawRate,
+        unit: "fps",
+        better: "higher",
+        rating: rateHigher(rawRate, 55, 40),
       },
       {
         label: "p5 FPS",
