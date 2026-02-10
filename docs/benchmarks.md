@@ -1,4 +1,4 @@
-# vlist - Benchmarks
+# Benchmarks
 
 The benchmark page (`/benchmarks/`) runs four live performance suites directly in the browser against a real vlist instance. Each suite creates a vlist, exercises it programmatically, and reports measured metrics with quality ratings.
 

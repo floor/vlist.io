@@ -1,4 +1,4 @@
-# vlist Compression System
+# Compression System
 
 > Documentation for handling large lists (1M+ items) that exceed browser height limits.
 

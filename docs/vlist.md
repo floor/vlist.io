@@ -1,4 +1,4 @@
-# vlist Documentation
+# Documentation
 
 > Lightweight, high-performance virtual list with zero dependencies
 

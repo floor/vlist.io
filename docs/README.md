@@ -1,4 +1,4 @@
-# vlist Documentation
+# Documentation
 
 > Comprehensive documentation for the vlist virtual list library.
 

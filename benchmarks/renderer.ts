@@ -31,7 +31,7 @@ export const BENCH_GROUPS: BenchGroup[] = [
         slug: "render",
         name: "Initial Render",
         icon: "⚡",
-        desc: "Time to create a vlist and paint the first frame",
+        desc: "Time to create a VList and paint the first frame",
       },
       {
         slug: "scroll",
@@ -183,11 +183,11 @@ function assemblePage(
 ): string {
   const shell = loadShell();
 
-  const title = item ? `vlist — ${item.name} Benchmark` : "vlist — Benchmarks";
+  const title = item ? `VList — ${item.name} Benchmark` : "VList — Benchmarks";
 
   const description = item
-    ? `vlist ${item.name.toLowerCase()} benchmark — ${item.desc}`
-    : "vlist performance benchmarks — scroll FPS, initial render, memory stability, and bundle size comparisons.";
+    ? `VList ${item.name.toLowerCase()} benchmark — ${item.desc}`
+    : "VList performance benchmarks — scroll FPS, initial render, memory stability, and bundle size comparisons.";
 
   const sidebar = buildSidebar(slug);
 

@@ -277,11 +277,11 @@ function assemblePage(
 ): string {
   const shell = loadShell();
 
-  const title = example ? `vlist — ${example.name}` : "vlist — Sandbox";
+  const title = example ? `VList — ${example.name}` : "VList — Sandbox";
 
   const description = example
-    ? `vlist ${example.name.toLowerCase()} example — ${example.desc}`
-    : "Interactive examples for the vlist virtual list library — from basic lists to million-item stress tests.";
+    ? `VList ${example.name.toLowerCase()} example — ${example.desc}`
+    : "Interactive examples for the VList virtual list library — from basic lists to million-item stress tests.";
 
   const sidebar = buildSidebar(slug);
   const extraHead = buildExtraHead(slug, example);

@@ -1,4 +1,4 @@
-# vlist - Performance Optimization Guide
+# Performance Optimization Guide
 
 This document outlines performance optimizations for the vlist virtual scrolling component. Many optimizations are already implemented, with concrete remaining opportunities organized by category.
 

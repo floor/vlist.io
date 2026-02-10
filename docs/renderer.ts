@@ -459,8 +459,8 @@ export function renderDocsPage(slug: string | null): Response | null {
     const html = assemblePage(
       null,
       content,
-      "vlist — Docs",
-      "vlist documentation — API reference, configuration, events, methods, styling, and more.",
+      "VList — Docs",
+      "VList documentation — API reference, configuration, events, methods, styling, and more.",
     );
     return new Response(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },
@@ -484,10 +484,10 @@ export function renderDocsPage(slug: string | null): Response | null {
 
   // Extract title from first h1
   const h1Title = extractTitle(parsedHtml);
-  const title = h1Title ? `${h1Title} — vlist docs` : "vlist — Docs";
+  const title = h1Title ? `${h1Title} — VList docs` : "VList — Docs";
   const description = h1Title
-    ? `vlist ${h1Title.toLowerCase()} — documentation and API reference.`
-    : "vlist documentation — API reference, configuration, events, methods, styling, and more.";
+    ? `VList ${h1Title.toLowerCase()} — documentation and API reference.`
+    : "VList documentation — API reference, configuration, events, methods, styling, and more.";
 
   const html = assemblePage(slug, content, title, description);
 
