@@ -6,7 +6,7 @@
 
 set -e
 
-APP_DIR="/var/www/vlist.dev"
+APP_DIR="/home/floor/vlist.dev"
 REPO="git@github.com:floor/vlist.dev.git"
 
 echo "🚀 Setting up vlist.dev on $(hostname)"

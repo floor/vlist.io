@@ -29,7 +29,10 @@ jobs:
           script: |
             set -e
 
-            APP_DIR="/var/www/vlist.dev"
+            # Load fnm (node), bun, pm2 into PATH
+            source ~/.zshrc
+
+            APP_DIR="/home/floor/vlist.dev"
 
             echo "📦 Deploying vlist.dev..."
 
@@ -47,6 +50,25 @@ jobs:
 
             # Install dependencies (regenerate lockfile with npm versions)
             bun install
+
+            # Patch mtrl packages: remove "development" export condition
+            # (points to src/ which isn't shipped in npm packages)
+            node -e "
+            const fs = require('fs');
+            for (const pkg of ['mtrl', 'mtrl-addons']) {
+              const p = 'node_modules/' + pkg + '/package.json';
+              if (!fs.existsSync(p)) continue;
+              const j = JSON.parse(fs.readFileSync(p, 'utf8'));
+              const clean = (obj) => {
+                if (obj && typeof obj === 'object') {
+                  delete obj.development;
+                  Object.values(obj).forEach(clean);
+                }
+              };
+              clean(j.exports);
+              fs.writeFileSync(p, JSON.stringify(j, null, 2));
+              console.log('Patched ' + pkg);
+            }"
 
             # Build sandbox examples
             bun run build:sandbox

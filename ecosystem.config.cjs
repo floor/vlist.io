@@ -7,7 +7,7 @@ module.exports = {
       name: "vlist.dev",
       script: "server.ts",
       interpreter: "bun",
-      cwd: "/var/www/vlist.dev",
+      cwd: "/home/floor/vlist.dev",
       env: {
         NODE_ENV: "production",
         PORT: 3338,
