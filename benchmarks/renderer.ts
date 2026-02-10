@@ -122,8 +122,7 @@ function buildSidebar(activeSlug: string | null): string {
     lines.push(`<div class="sidebar__group">`);
     lines.push(`  <div class="sidebar__label">${group.label}</div>`);
     for (const item of group.items) {
-      const active =
-        item.slug === activeSlug ? " sidebar__link--active" : "";
+      const active = item.slug === activeSlug ? " sidebar__link--active" : "";
       lines.push(
         `  <a href="/benchmarks/${item.slug}" class="sidebar__link${active}">${item.name}</a>`,
       );
@@ -149,23 +148,17 @@ function buildOverviewContent(): string {
 
   for (const group of BENCH_GROUPS) {
     lines.push(`  <div class="overview__section">`);
-    lines.push(
-      `    <div class="overview__section-title">${group.label}</div>`,
-    );
+    lines.push(`    <div class="overview__section-title">${group.label}</div>`);
     lines.push(`    <div class="overview__grid">`);
     for (const item of group.items) {
       lines.push(
         `      <a href="/benchmarks/${item.slug}" class="overview__card">`,
       );
-      lines.push(
-        `        <div class="overview__card-icon">${item.icon}</div>`,
-      );
+      lines.push(`        <div class="overview__card-icon">${item.icon}</div>`);
       lines.push(
         `        <div class="overview__card-title">${item.name}</div>`,
       );
-      lines.push(
-        `        <div class="overview__card-desc">${item.desc}</div>`,
-      );
+      lines.push(`        <div class="overview__card-desc">${item.desc}</div>`);
       lines.push(`      </a>`);
     }
     lines.push(`    </div>`);
@@ -188,9 +181,7 @@ function assemblePage(
 ): string {
   const shell = loadShell();
 
-  const title = item
-    ? `vlist — ${item.name} Benchmark`
-    : "vlist — Benchmarks";
+  const title = item ? `vlist — ${item.name} Benchmark` : "vlist — Benchmarks";
 
   const description = item
     ? `vlist ${item.name.toLowerCase()} benchmark — ${item.desc}`

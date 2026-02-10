@@ -164,21 +164,20 @@ function buildSidebar(activeSlug: string | null): string {
   const lines: string[] = [];
 
   // Overview link
-  const overviewActive = activeSlug === null ? " sb-sidebar__link--active" : "";
-  lines.push(`<div class="sb-sidebar__group">`);
+  const overviewActive = activeSlug === null ? " sidebar__link--active" : "";
+  lines.push(`<div class="sidebar__group">`);
   lines.push(
-    `  <a href="/sandbox/" class="sb-sidebar__link${overviewActive}">Overview</a>`,
+    `  <a href="/sandbox/" class="sidebar__link${overviewActive}">Overview</a>`,
   );
   lines.push(`</div>`);
 
   for (const group of EXAMPLE_GROUPS) {
-    lines.push(`<div class="sb-sidebar__group">`);
-    lines.push(`  <div class="sb-sidebar__label">${group.label}</div>`);
+    lines.push(`<div class="sidebar__group">`);
+    lines.push(`  <div class="sidebar__label">${group.label}</div>`);
     for (const item of group.items) {
-      const active =
-        item.slug === activeSlug ? " sb-sidebar__link--active" : "";
+      const active = item.slug === activeSlug ? " sidebar__link--active" : "";
       lines.push(
-        `  <a href="/sandbox/${item.slug}" class="sb-sidebar__link${active}">${item.name}</a>`,
+        `  <a href="/sandbox/${item.slug}" class="sidebar__link${active}">${item.name}</a>`,
       );
     }
     lines.push(`</div>`);
@@ -194,27 +193,27 @@ function buildSidebar(activeSlug: string | null): string {
 function buildOverviewContent(): string {
   const sections: string[] = [];
 
-  sections.push(`<div class="sb-overview">`);
-  sections.push(`  <h1 class="sb-overview__title">Sandbox</h1>`);
+  sections.push(`<div class="overview">`);
+  sections.push(`  <h1 class="overview__title">Sandbox</h1>`);
   sections.push(
-    `  <p class="sb-overview__tagline">Interactive examples exploring every vlist feature — from basic lists to million-item stress tests.</p>`,
+    `  <p class="overview__tagline">Interactive examples exploring every vlist feature — from basic lists to million-item stress tests.</p>`,
   );
 
   for (const group of EXAMPLE_GROUPS) {
-    sections.push(`  <div class="sb-overview__section">`);
+    sections.push(`  <div class="overview__section">`);
     sections.push(
-      `    <div class="sb-overview__section-title">${group.label}</div>`,
+      `    <div class="overview__section-title">${group.label}</div>`,
     );
-    sections.push(`    <div class="sb-overview__grid">`);
+    sections.push(`    <div class="overview__grid">`);
     for (const item of group.items) {
       sections.push(
-        `      <a href="/sandbox/${item.slug}" class="sb-overview__card">`,
+        `      <a href="/sandbox/${item.slug}" class="overview__card">`,
       );
       sections.push(
-        `        <div class="sb-overview__card-title">${item.name}</div>`,
+        `        <div class="overview__card-title">${item.name}</div>`,
       );
       sections.push(
-        `        <div class="sb-overview__card-desc">${item.desc}</div>`,
+        `        <div class="overview__card-desc">${item.desc}</div>`,
       );
       sections.push(`      </a>`);
     }
