@@ -152,10 +152,13 @@ const serveFromPackage = (
  *   2. /dist/*                      → vlist package dist/
  *   3. /node_modules/mtrl/*         → mtrl package root
  *   4. /node_modules/mtrl-addons/*  → mtrl-addons package root
- *   5. /sandbox/*                   → local sandbox/
- *   6. /docs/*                      → local docs/
- *   7. /*                           → local root (landing page, etc.)
+ *   5. /docs/*.md                   → raw markdown (for client fetch)
+ *   6. /docs/*                      → docs shell (index.html renders md)
+ *   7. /sandbox/*                   → local sandbox/
+ *   8. /*                           → local root (landing page, etc.)
  */
+const DOCS_SHELL = join(ROOT, "docs", "index.html");
+
 const resolveStatic = (pathname: string): Response | null => {
   // /dist/* → vlist package dist directory
   if (pathname.startsWith("/dist/")) {
@@ -173,6 +176,21 @@ const resolveStatic = (pathname: string): Response | null => {
   if (pathname.startsWith("/node_modules/mtrl-addons/")) {
     const subpath = pathname.replace("/node_modules/mtrl-addons/", "/");
     return serveFromPackage(MTRL_ADDONS_ROOT, subpath);
+  }
+
+  // /docs/*.md → serve raw markdown (client fetches these)
+  if (pathname.startsWith("/docs/") && pathname.endsWith(".md")) {
+    return serveStatic(pathname);
+  }
+
+  // /docs/ or /docs/<slug> (no extension) → serve docs shell
+  // The shell loads the corresponding .md file client-side
+  if (
+    pathname === "/docs" ||
+    pathname === "/docs/" ||
+    pathname.match(/^\/docs\/[a-zA-Z0-9_-]+$/)
+  ) {
+    return serveFile(DOCS_SHELL);
   }
 
   // Everything else — serve from project root
