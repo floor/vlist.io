@@ -11,11 +11,15 @@ const isWatch = process.argv.includes("--watch");
 const BENCHMARKS_DIR = "./benchmarks";
 
 const BUILD_OPTIONS = {
-  minify: true,
   format: "esm" as const,
   target: "browser" as const,
-  sourcemap: "none" as const,
 };
+
+const buildOptions = () => ({
+  ...BUILD_OPTIONS,
+  minify: !isWatch,
+  sourcemap: isWatch ? ("inline" as const) : ("none" as const),
+});
 
 function minifyCss(css: string): string {
   return css
@@ -51,7 +55,7 @@ async function build(): Promise<void> {
     const result = await Bun.build({
       entrypoints: [entrypoint],
       outdir,
-      ...BUILD_OPTIONS,
+      ...buildOptions(),
     });
 
     if (!result.success) {

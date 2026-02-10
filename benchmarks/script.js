@@ -131,27 +131,6 @@ const dom = {
 };
 
 // =============================================================================
-// Page Router
-// =============================================================================
-
-const root = document.getElementById("content");
-if (root) {
-  const page = root.dataset.page || "overview";
-
-  if (page === "bundle") {
-    buildBundlePage(root);
-  } else if (page === "features") {
-    buildFeaturesPage(root);
-  } else {
-    // Suite page (render, scroll, memory, scrollto)
-    const suite = getSuite(page);
-    if (suite) {
-      buildSuitePage(root, suite);
-    }
-  }
-}
-
-// =============================================================================
 // Suite Page
 // =============================================================================
 
@@ -731,3 +710,24 @@ const getVlistVersion = () => {
     return "";
   }
 };
+
+// =============================================================================
+// Boot
+// =============================================================================
+
+const root = document.getElementById("content");
+if (root) {
+  const page = root.dataset.page || "overview";
+
+  if (page === "bundle") {
+    buildBundlePage(root);
+  } else if (page === "features") {
+    buildFeaturesPage(root);
+  } else {
+    // Suite page (render, scroll, memory, scrollto)
+    const suite = getSuite(page);
+    if (suite) {
+      buildSuitePage(root, suite);
+    }
+  }
+}
