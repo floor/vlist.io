@@ -5,6 +5,7 @@
 ## Quick Links
 
 - **[Main Documentation](./vlist.md)** - Getting started, configuration, and usage
+- **[Benchmarks](./benchmarks.md)** - Live performance suites (scroll FPS, render, memory, scrollToIndex)
 - **[Optimization Guide](./optimization.md)** - Performance optimizations and tuning
 - **[Styles Guide](./styles.md)** - CSS tokens, variants, dark mode, split core/extras CSS, and customization
 - **[Compression Guide](./compression.md)** - Handling large lists (1M+ items)
