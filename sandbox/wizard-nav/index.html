@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="Button-only navigation vlist example — wheel scrolling disabled, items navigated via prev/next buttons like a step-by-step wizard."
+        />
+        <title>vlist - Wizard Navigation</title>
+        <link rel="stylesheet" href="/dist/vlist.css" />
+        <link rel="stylesheet" href="/sandbox/wizard-nav/dist/styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <a href="/sandbox/" class="back-link">← Back to Sandbox</a>
+                <h1>Wizard Navigation</h1>
+                <p class="description">
+                    A step-by-step record viewer with
+                    <code>wheelScroll: false</code> — the mouse wheel is
+                    completely disabled. Navigation happens exclusively through
+                    buttons, ideal for guided flows, kiosks, or controlled
+                    interfaces.
+                </p>
+            </header>
+
+            <div class="stats" id="stats">Loading...</div>
+
+            <div class="wizard">
+                <button class="nav-btn nav-prev" id="btn-prev" disabled>
+                    <span class="nav-icon">‹</span>
+                </button>
+
+                <div class="list-wrapper">
+                    <div id="list-container"></div>
+                    <div class="step-indicator" id="step-indicator"></div>
+                </div>
+
+                <button class="nav-btn nav-next" id="btn-next">
+                    <span class="nav-icon">›</span>
+                </button>
+            </div>
+
+            <div class="controls">
+                <button id="btn-first">⏮ First</button>
+                <button id="btn-last">⏭ Last</button>
+                <button id="btn-random">🎲 Random</button>
+            </div>
+
+            <footer>
+                <p>
+                    Uses <code>wheelScroll: false</code> to disable mouse wheel
+                    and <code>scrollbar: { enabled: false }</code> to hide the
+                    scrollbar. Navigation is button-only — try scrolling with
+                    your mouse wheel, nothing happens. Use the arrows or
+                    keyboard (← →) to navigate.
+                </p>
+            </footer>
+        </div>
+
+        <script type="module" src="/sandbox/wizard-nav/dist/script.js"></script>
+    </body>
+</html>

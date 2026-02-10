@@ -34,6 +34,7 @@ const items = Array.from({ length: 10000 }, (_, i) => {
 const list = createVList({
   container: "#list-container",
   direction: "horizontal",
+  scroll: { wheel: false, scrollbar: "none" },
   ariaLabel: "Horizontal card carousel",
   item: {
     width: 180,
@@ -88,5 +89,9 @@ document.getElementById("btn-end")?.addEventListener("click", () => {
 document.getElementById("btn-smooth")?.addEventListener("click", () => {
   const current = list.getScrollPosition();
   const targetIndex = current < 100 ? 500 : 0;
-  list.scrollToIndex(targetIndex, { align: "start", behavior: "smooth", duration: 800 });
+  list.scrollToIndex(targetIndex, {
+    align: "start",
+    behavior: "smooth",
+    duration: 800,
+  });
 });

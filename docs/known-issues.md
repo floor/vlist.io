@@ -12,7 +12,9 @@ vlist is a well-optimized, batteries-included virtual list with zero dependencie
 - ✅ Built-in selection (single/multi/keyboard) — competitors say "BYO"
 - ✅ Built-in infinite scroll with adapter, placeholders, velocity-based loading
 - ✅ Variable item heights via `height: (index) => number` (Mode A)
-- ✅ Window/document scrolling via `scrollElement: window`
+- ✅ Window/document scrolling via `scroll: { element: window }`
+- ✅ Custom scrollbar by default, native or none via `scroll: { scrollbar }`
+- ✅ Wheel control — enable/disable mouse wheel via `scroll: { wheel }`
 - ✅ Grid layout with O(1) row/column mapping and compression support
 - ✅ Sticky headers / grouped lists with push-out transitions
 - ✅ Horizontal scrolling via `direction: 'horizontal'` (carousels, timelines)
@@ -212,6 +214,8 @@ const list = createVList({
 - Axis-aware scroll controller: `scrollLeft` ↔ `scrollTop`, `deltaX` ↔ `deltaY`
 - Axis-aware renderer: `translateX` ↔ `translateY`, width sizing ↔ height sizing
 - Axis-aware DOM structure: `overflow-x` ↔ `overflow-y`, content width ↔ height
+- Mouse wheel translation: vertical `deltaY` automatically translated to horizontal scroll (configurable via `scroll: { wheel }`)
+- Custom scrollbar renders along bottom edge with horizontal thumb (`translateX`, `clientX` drag)
 - `.vlist--horizontal` CSS modifier with horizontal item layout and scrollbar
 - Keyboard navigation: ArrowLeft/ArrowRight instead of ArrowUp/ArrowDown
 - `aria-orientation="horizontal"` for accessibility
@@ -263,16 +267,16 @@ const grid = createVList({
 
 ### 6. ✅ Window (Document) Scrolling
 
-**Status:** ✅ **Shipped** — `scrollElement: window` option implemented.
+**Status:** ✅ **Shipped** — `scroll: { element: window }` option implemented.
 
 **What shipped:**
 
-Pass `scrollElement: window` to make the list participate in normal page flow instead of scrolling inside its own container:
+Pass `scroll: { element: window }` to make the list participate in normal page flow instead of scrolling inside its own container:
 
 ```typescript
 const list = createVList({
   container: '#results',
-  scrollElement: window,  // list scrolls with the page
+  scroll: { element: window },  // list scrolls with the page
   item: { height: 48, template: myTemplate },
   items: searchResults,
 });

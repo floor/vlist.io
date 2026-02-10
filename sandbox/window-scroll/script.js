@@ -89,7 +89,7 @@ const itemTemplate = (item, index) => {
 const list = createVList({
   container: "#list-container",
   ariaLabel: "User directory",
-  scrollElement: window,
+  scroll: { element: window },
   item: {
     height: 88,
     template: itemTemplate,

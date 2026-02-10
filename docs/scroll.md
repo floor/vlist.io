@@ -1,29 +1,247 @@
 # Scroll Module
 
-> Scroll controller and custom scrollbar for vlist.
+> Scroll controller, custom scrollbar, and wheel behavior for vlist.
 
 ## Overview
 
 The scroll module handles all scrolling functionality in vlist, including:
 
-- **Native Scrolling**: Standard browser scrolling for smaller lists
-- **Compressed Scrolling**: Manual wheel-based scrolling for large lists (1M+ items)
-- **Window Scrolling**: Document-level scrolling where the list participates in the page flow
-- **Horizontal Scrolling**: Left-to-right scrolling with axis-aware scroll position and wheel handling
-- **Custom Scrollbar**: Visual scrollbar for compressed mode
-- **Velocity Tracking**: Smooth scroll momentum detection
-- **Scroll Save/Restore**: `getScrollSnapshot()` / `restoreScroll()` for SPA navigation (see [methods.md](./methods.md#snapshot-methods))
+- **Scroll Configuration** — unified `scroll` config with wheel, scrollbar, window, and idle settings
+- **Custom Scrollbar** — cross-browser consistent scrollbar (the default), with auto-hide and drag support
+- **Native Scrolling** — standard browser scrolling with native scrollbar
+- **Compressed Scrolling** — manual wheel-based scrolling for large lists (1M+ items)
+- **Window Scrolling** — document-level scrolling where the list participates in the page flow
+- **Horizontal Scrolling** — left-to-right scrolling with axis-aware positioning and wheel translation
+- **Wheel Control** — enable/disable mouse wheel scrolling independently from the scrollbar
+- **Velocity Tracking** — smooth scroll momentum detection for smart data loading
+- **Scroll Save/Restore** — `getScrollSnapshot()` / `restoreScroll()` for SPA navigation (see [methods.md](./methods.md#snapshot-methods))
 
 ## Module Structure
 
 ```
 src/scroll/
 ├── index.ts       # Module exports
-├── controller.ts  # Scroll controller (native + compressed modes)
-└── scrollbar.ts   # Custom scrollbar component
+├── controller.ts  # Scroll controller (native + compressed + window + horizontal modes)
+└── scrollbar.ts   # Custom scrollbar component (vertical + horizontal)
+```
+
+## Scroll Configuration
+
+All scroll-related settings live under a single `scroll` config object on `VListConfig`:
+
+```typescript
+createVList({
+  container: '#app',
+  item: { height: 48, template: (item) => item.name },
+  scroll: {
+    wheel: true,                     // enable/disable mouse wheel
+    scrollbar: ...,                  // 'native' | 'none' | { options }
+    element: window,                 // external scroll element
+    idleTimeout: 150,                // idle detection timeout (ms)
+  },
+});
+```
+
+### `scroll.wheel`
+
+**Type:** `boolean`
+**Default:** `true`
+
+Controls whether mouse wheel scrolling is enabled.
+
+| Direction | `wheel: true` (default) | `wheel: false` |
+|-----------|-------------------------|-----------------|
+| **Vertical** | Normal browser wheel scrolling | Wheel events blocked entirely |
+| **Horizontal** | Vertical wheel (deltaY) translated to horizontal scroll | Wheel events blocked entirely |
+
+When `true` in horizontal mode, vlist intercepts vertical mouse wheel events (`deltaY`) and translates them into horizontal scroll — so users don't need Shift or a trackpad to scroll. If the user is already producing `deltaX` (trackpad swipe), the browser handles it natively.
+
+When `false`, all wheel events are intercepted and `preventDefault()`'d. The native scrollbar is also hidden (via CSS) to prevent scrollbar-drag scrolling. Navigation must happen through programmatic means — buttons, keyboard, or custom UI.
+
+```typescript
+// Default — wheel scrolling enabled
+createVList({
+  container: '#app',
+  item: { height: 48, template },
+  // scroll.wheel defaults to true
+});
+
+// Disable wheel — button-only navigation
+createVList({
+  container: '#app',
+  item: { height: 48, template },
+  scroll: { wheel: false, scrollbar: 'none' },
+});
+```
+
+### `scroll.scrollbar`
+
+**Type:** `'native' | 'none' | ScrollbarOptions`
+**Default:** custom scrollbar (when omitted)
+
+Controls which scrollbar is displayed. The three modes:
+
+| Value | Scrollbar shown | Native hidden | Notes |
+|-------|----------------|---------------|-------|
+| *omitted* | **Custom** | Yes | Default — consistent cross-browser styling |
+| `'native'` | **Browser native** | No | Falls back to custom in compressed mode |
+| `'none'` | **None** | Yes | No scrollbar at all |
+| `{ autoHide: false }` | **Custom** (configured) | Yes | Object form for fine-tuning |
+
+#### Custom Scrollbar (default)
+
+When `scrollbar` is omitted or an options object is passed, vlist renders its own scrollbar overlay and hides the browser's native scrollbar via CSS. This gives a consistent look across browsers and full control over styling via CSS variables.
+
+The custom scrollbar works in **all modes** — native scroll, compressed scroll, and horizontal scroll.
+
+```typescript
+// Default — custom scrollbar with default options
+createVList({ container, item });
+
+// Custom scrollbar, always visible (no auto-hide)
+createVList({
+  container,
+  item,
+  scroll: { scrollbar: { autoHide: false } },
+});
+
+// Custom scrollbar with slow fade
+createVList({
+  container,
+  item,
+  scroll: { scrollbar: { autoHide: true, autoHideDelay: 3000 } },
+});
+```
+
+**Custom scrollbar options (ScrollbarOptions):**
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `autoHide` | `boolean` | `true` | Auto-hide scrollbar after idle |
+| `autoHideDelay` | `number` | `1000` | Auto-hide delay in milliseconds |
+| `minThumbSize` | `number` | `30` | Minimum thumb size in pixels |
+
+#### Native Scrollbar
+
+When `scrollbar: 'native'` is set, the browser's built-in scrollbar is used. This is useful when you want the OS-native look and feel, or when your app already has a scrollbar styling strategy.
+
+In compressed mode (large lists where `overflow: hidden` is required), native scrollbar is not available — vlist automatically falls back to the custom scrollbar.
+
+```typescript
+createVList({
+  container,
+  item,
+  scroll: { scrollbar: 'native' },
+});
+```
+
+#### No Scrollbar
+
+When `scrollbar: 'none'` is set, no scrollbar is shown at all — neither custom nor native. The native scrollbar is hidden via CSS. Useful for:
+
+- Button-only navigation (wizards, step-by-step flows)
+- Drag-to-scroll interfaces
+- Kiosk or embedded UIs where scroll chrome is unwanted
+
+```typescript
+createVList({
+  container,
+  item,
+  scroll: { wheel: false, scrollbar: 'none' },
+});
+```
+
+### `scroll.element`
+
+**Type:** `Window`
+**Default:** `undefined`
+
+When set, the list scrolls with this element instead of its own container. Pass `window` for document-level scrolling (the most common use case).
+
+In window mode:
+- The list participates in the normal page flow (no inner scrollbar)
+- The browser's native scrollbar controls scrolling
+- Compression still works (purely mathematical — no overflow or wheel changes)
+- Custom scrollbar is disabled (the browser scrollbar is used)
+- Cannot be combined with `direction: 'horizontal'`
+
+```typescript
+createVList({
+  container: '#list',
+  item: { height: 48, template },
+  scroll: { element: window },
+});
+```
+
+See [Window Scrolling](#window-scrolling) for detailed behavior.
+
+### `scroll.idleTimeout`
+
+**Type:** `number`
+**Default:** `150`
+
+Milliseconds after the last scroll event before the list is considered "idle". When idle is detected, vlist:
+
+- Loads any pending data ranges skipped during fast scrolling
+- Re-enables CSS transitions (removes `.vlist--scrolling` class)
+- Resets the velocity tracker
+
+```typescript
+createVList({
+  container: '#list',
+  item: { height: 48, template },
+  scroll: { idleTimeout: 200 },
+});
+```
+
+**Tuning tips:**
+- **Mobile/touch devices:** Increase to 200–300ms (scroll events have larger gaps)
+- **Desktop with smooth scroll:** Default 150ms works well
+- **Aggressive loading:** Decrease to 100ms (loads data sooner after scroll stops)
+
+### Full `ScrollConfig` Interface
+
+```typescript
+interface ScrollConfig {
+  /** Enable mouse wheel scrolling (default: true) */
+  wheel?: boolean;
+
+  /** Scrollbar mode (default: custom scrollbar) */
+  scrollbar?: 'native' | 'none' | ScrollbarOptions;
+
+  /** External scroll element for window scrolling */
+  element?: Window;
+
+  /** Scroll idle detection timeout in ms (default: 150) */
+  idleTimeout?: number;
+}
+
+interface ScrollbarOptions {
+  /** Auto-hide scrollbar after idle (default: true) */
+  autoHide?: boolean;
+
+  /** Auto-hide delay in milliseconds (default: 1000) */
+  autoHideDelay?: number;
+
+  /** Minimum thumb size in pixels (default: 30) */
+  minThumbSize?: number;
+}
 ```
 
 ## Key Concepts
+
+### Independence of Wheel and Scrollbar
+
+`wheel` and `scrollbar` are fully independent — any combination is valid:
+
+| `wheel` | `scrollbar` | Use case |
+|---------|-------------|----------|
+| `true` | *(default)* | Standard list — wheel + custom scrollbar |
+| `true` | `'native'` | Wheel + browser-native scrollbar |
+| `true` | `'none'` | Wheel scrolling, no visible scrollbar |
+| `false` | *(default)* | Custom scrollbar drag only, no wheel |
+| `false` | `'native'` | Native scrollbar drag only, no wheel |
+| `false` | `'none'` | Button-only / programmatic navigation |
 
 ### Scroll Transition Suppression
 
@@ -39,32 +257,32 @@ Scroll stops (idle detected) → remove .vlist--scrolling (transitions re-enable
 
 ### Scroll Modes
 
-The scroll controller operates in three modes:
+The scroll controller operates in multiple modes:
 
 | Mode | Trigger | Behavior |
 |------|---------|----------|
 | **Native** | Small lists (< ~333K items @ 48px) | `overflow: auto`, browser handles scrolling |
 | **Compressed** | Large lists (> browser limit) | `overflow: hidden`, manual wheel handling |
-| **Window** | `scrollElement: window` config option | `overflow: visible`, browser scrolls the page |
-| **Horizontal** | `direction: 'horizontal'` config option | `overflow-x: auto`, reads `scrollLeft` instead of `scrollTop` |
+| **Window** | `scroll.element: window` | `overflow: visible`, browser scrolls the page |
+| **Horizontal** | `direction: 'horizontal'` | `overflow-x: auto`, reads `scrollLeft` instead of `scrollTop` |
 
 ### Mode Switching
 
 ```
 List Created
     ↓
-scrollElement: window?
+scroll.element: window?
     ↓
 Yes → Window Mode (window scroll events)
 No  → Check: totalItems × itemHeight > 16M?
         ↓
-      Yes → Compressed Mode (wheel events)
-      No  → Native Mode (scroll events)
+      Yes → Compressed Mode (wheel events + custom scrollbar)
+      No  → Native Mode (scroll events + scrollbar per config)
 ```
 
 ### Window Scrolling
 
-When `scrollElement: window` is set, the list participates in the normal page flow instead of scrolling inside its own container. This is ideal for search results, feeds, landing pages, and any UI where the list should scroll with the document.
+When `scroll.element: window` is set, the list participates in the normal page flow instead of scrolling inside its own container. This is ideal for search results, feeds, landing pages, and any UI where the list should scroll with the document.
 
 **How it works:**
 
@@ -94,28 +312,34 @@ Page Layout (Window Mode)
      ↕ browser scrollbar scrolls the whole page
 ```
 
-### Configurable Idle Timeout
+### Horizontal Scrolling
 
-The idle timeout controls how long after the last scroll event before the list is considered "idle". This is configurable via the `idleTimeout` option on both `VListConfig` and `ScrollControllerConfig`:
+When `direction: 'horizontal'` is set, the scroll controller adapts all axis-dependent behavior:
 
-```typescript
-const list = createVList({
-  container: '#list',
-  item: { height: 50, template: myTemplate },
-  adapter: myAdapter,
-  idleTimeout: 200, // ms (default: 150)
-});
-```
+| Aspect | Vertical (default) | Horizontal |
+|--------|-------------------|------------|
+| Scroll property | `scrollTop` | `scrollLeft` |
+| Overflow | `overflow: auto` | `overflow-x: auto` |
+| Content sizing | `height` set dynamically | `width` set dynamically |
+| Item positioning | `translateY` | `translateX` |
+| Wheel event | `deltaY` (native) | `deltaY` → `scrollLeft` (translated) |
+| Custom scrollbar | Right edge, vertical thumb | Bottom edge, horizontal thumb |
 
-When idle is detected, vlist:
-- Loads any pending data ranges skipped during fast scrolling
-- Re-enables CSS transitions (removes `.vlist--scrolling` class)
-- Resets the velocity tracker
+The custom scrollbar automatically adjusts for horizontal mode — it renders along the bottom edge with a horizontal thumb, using `translateX` for positioning and `clientX` for drag tracking.
 
-**Tuning tips:**
-- **Mobile/touch devices:** Increase to 200-300ms (scroll events have larger gaps)
-- **Desktop with smooth scroll:** Default 150ms works well
-- **Aggressive loading:** Decrease to 100ms (loads data sooner after scroll stops)
+### Wheel Event Handling
+
+vlist intercepts wheel events in several scenarios:
+
+| Scenario | What happens |
+|----------|-------------|
+| Vertical + `wheel: true` | No interception — browser handles it natively |
+| Vertical + `wheel: false` | Intercept + `preventDefault()` — block all wheel scroll |
+| Horizontal + `wheel: true` | Intercept `deltaY` → translate to `scrollLeft`; pass through `deltaX` |
+| Horizontal + `wheel: false` | Intercept + `preventDefault()` — block all wheel scroll |
+| Compressed mode (any) | Intercept + manual scroll position tracking |
+
+When `wheel: false`, the wheel listener uses `{ passive: false }` to allow `preventDefault()`.
 
 ### Velocity Tracking
 
@@ -157,7 +381,7 @@ The circular buffer pre-allocates 8 sample slots and overwrites the oldest sampl
 
 #### `createScrollController`
 
-Creates a scroll controller for a viewport element.
+Creates a scroll controller for a viewport element. This is the internal scroll engine — `VListConfig.scroll` is the public-facing configuration that feeds into this.
 
 ```typescript
 function createScrollController(
@@ -168,29 +392,39 @@ function createScrollController(
 interface ScrollControllerConfig {
   /** Enable compressed scroll mode (manual wheel handling) */
   compressed?: boolean;
-  
+
   /** Compression state for calculating bounds */
   compression?: CompressionState;
-  
+
   /**
    * External scroll element for window/document scrolling.
    * When set, the controller listens to this element's scroll events
    * and computes list-relative positions from the viewport's bounding rect.
    */
   scrollElement?: Window;
-  
+
+  /** Enable horizontal scrolling mode */
+  horizontal?: boolean;
+
+  /**
+   * Enable mouse wheel scrolling (default: true).
+   * In horizontal mode, translates deltaY → scrollLeft.
+   * When false, blocks all wheel events.
+   */
+  wheelScroll?: boolean;
+
   /** Wheel sensitivity multiplier (default: 1) */
   sensitivity?: number;
-  
+
   /** Enable smooth scrolling interpolation */
   smoothing?: boolean;
-  
+
   /** Idle timeout in milliseconds (default: 150) */
   idleTimeout?: number;
-  
+
   /** Callback when scroll position changes */
   onScroll?: (data: ScrollEventData) => void;
-  
+
   /** Callback when scrolling becomes idle */
   onIdle?: () => void;
 }
@@ -202,56 +436,56 @@ interface ScrollControllerConfig {
 interface ScrollController {
   /** Get current scroll position */
   getScrollTop: () => number;
-  
+
   /** Set scroll position */
   scrollTo: (position: number, smooth?: boolean) => void;
-  
+
   /** Scroll by delta */
   scrollBy: (delta: number) => void;
-  
+
   /** Check if at top */
   isAtTop: () => boolean;
-  
+
   /** Check if at bottom */
   isAtBottom: (threshold?: number) => boolean;
-  
+
   /** Get scroll percentage (0-1) */
   getScrollPercentage: () => number;
-  
+
   /** Get current scroll velocity (px/ms, absolute value) */
   getVelocity: () => number;
-  
+
   /**
    * Check if the velocity tracker is actively tracking with enough samples.
    * Returns false during ramp-up (first few frames of a new scroll gesture)
    * when the tracker doesn't have enough samples yet.
    */
   isTracking: () => boolean;
-  
+
   /** Check if currently scrolling */
   isScrolling: () => boolean;
-  
+
   /** Update configuration */
   updateConfig: (config: Partial<ScrollControllerConfig>) => void;
-  
+
   /** Enable compressed mode */
   enableCompression: (compression: CompressionState) => void;
-  
+
   /** Disable compressed mode (revert to native scroll) */
   disableCompression: () => void;
-  
+
   /** Check if compressed mode is active */
   isCompressed: () => boolean;
-  
+
   /** Check if in window scroll mode */
   isWindowMode: () => boolean;
-  
+
   /**
    * Update the container height used for scroll calculations.
    * In window mode, call this when the window resizes.
    */
   updateContainerHeight: (height: number) => void;
-  
+
   /** Destroy and cleanup */
   destroy: () => void;
 }
@@ -271,32 +505,35 @@ interface ScrollEventData {
 
 #### `createScrollbar`
 
-Creates a custom scrollbar for compressed mode.
+Creates a custom scrollbar for a viewport. Works in both compressed and native scroll modes, and supports both vertical and horizontal orientation.
 
 ```typescript
 function createScrollbar(
   viewport: HTMLElement,
   onScroll: ScrollCallback,
   config?: ScrollbarConfig,
-  classPrefix?: string
+  classPrefix?: string,
+  horizontal?: boolean
 ): Scrollbar;
 
 type ScrollCallback = (position: number) => void;
 
 interface ScrollbarConfig {
-  /** Enable scrollbar (default: true when compressed) */
+  /** Enable scrollbar (default: true) */
   enabled?: boolean;
-  
+
   /** Auto-hide scrollbar after idle (default: true) */
   autoHide?: boolean;
-  
+
   /** Auto-hide delay in milliseconds (default: 1000) */
   autoHideDelay?: number;
-  
+
   /** Minimum thumb size in pixels (default: 30) */
   minThumbSize?: number;
 }
 ```
+
+The `horizontal` parameter (default `false`) switches the scrollbar to horizontal orientation — rendering along the bottom edge, using `translateX` for thumb positioning, and tracking `clientX` during drag.
 
 #### Scrollbar Interface
 
@@ -304,19 +541,19 @@ interface ScrollbarConfig {
 interface Scrollbar {
   /** Show the scrollbar */
   show: () => void;
-  
+
   /** Hide the scrollbar */
   hide: () => void;
-  
+
   /** Update scrollbar dimensions */
-  updateBounds: (totalHeight: number, containerHeight: number) => void;
-  
+  updateBounds: (totalSize: number, containerSize: number) => void;
+
   /** Update thumb position */
   updatePosition: (scrollTop: number) => void;
-  
+
   /** Check if scrollbar is visible */
   isVisible: () => boolean;
-  
+
   /** Destroy and cleanup */
   destroy: () => void;
 }
@@ -373,176 +610,194 @@ function isRangeVisible(
 
 ## Usage Examples
 
-### Basic Scroll Controller
+### Default — Custom Scrollbar
+
+The default experience: custom scrollbar, wheel enabled, everything automatic.
 
 ```typescript
-import { createScrollController } from './scroll';
+import { createVList } from 'vlist';
 
-const controller = createScrollController(viewport, {
-  onScroll: ({ scrollTop, direction, velocity }) => {
-    console.log(`Scrolled ${direction} to ${scrollTop}px`);
-    console.log(`Velocity: ${velocity}px/ms`);
+const list = createVList({
+  container: '#app',
+  item: { height: 48, template: (item) => `<div>${item.name}</div>` },
+  items: myData,
+});
+```
+
+### Custom Scrollbar with Options
+
+Fine-tune the custom scrollbar — disable auto-hide so it's always visible:
+
+```typescript
+const list = createVList({
+  container: '#app',
+  item: { height: 48, template },
+  items: myData,
+  scroll: {
+    scrollbar: { autoHide: false },
   },
-  onIdle: () => {
-    console.log('Scrolling stopped');
-  }
+});
+```
+
+### Native Browser Scrollbar
+
+Opt into the browser's built-in scrollbar:
+
+```typescript
+const list = createVList({
+  container: '#app',
+  item: { height: 48, template },
+  items: myData,
+  scroll: {
+    scrollbar: 'native',
+  },
+});
+```
+
+### Button-Only Navigation (Wizard)
+
+Disable wheel and hide all scrollbars — navigation is entirely programmatic:
+
+```typescript
+const list = createVList({
+  container: '#wizard',
+  item: { height: 400, template: renderStep },
+  items: wizardSteps,
+  scroll: { wheel: false, scrollbar: 'none' },
 });
 
-// Programmatic scrolling
-controller.scrollTo(500);
-controller.scrollTo(1000, true);  // smooth scroll
-controller.scrollBy(100);         // relative scroll
+// Navigate with buttons
+document.getElementById('next').addEventListener('click', () => {
+  currentStep++;
+  list.scrollToIndex(currentStep, { align: 'start', behavior: 'smooth', duration: 350 });
+});
 
-// Query scroll state
-const position = controller.getScrollTop();
-const percentage = controller.getScrollPercentage();
-const atBottom = controller.isAtBottom();
-const atTop = controller.isAtTop();
-
-// Cleanup
-controller.destroy();
+document.getElementById('prev').addEventListener('click', () => {
+  currentStep--;
+  list.scrollToIndex(currentStep, { align: 'start', behavior: 'smooth', duration: 350 });
+});
 ```
 
-### Enabling Compression
+### Horizontal Carousel
+
+Horizontal list with wheel translation and no visible scrollbar:
 
 ```typescript
-import { createScrollController } from './scroll';
-import { getCompressionState } from './render';
-
-const controller = createScrollController(viewport);
-
-// When list grows large
-const compression = getCompressionState(1_000_000, 48);
-
-if (compression.isCompressed) {
-  controller.enableCompression(compression);
-  // Now uses manual wheel handling
-}
-
-// When list shrinks
-controller.disableCompression();
-// Back to native scrolling
+const list = createVList({
+  container: '#carousel',
+  direction: 'horizontal',
+  item: { width: 200, template: renderCard },
+  items: cards,
+  scroll: { scrollbar: 'none' },
+  // wheel defaults to true — deltaY is translated to horizontal scroll
+});
 ```
 
-### Custom Scrollbar
+### Horizontal — Buttons Only
+
+Horizontal list with no wheel, no scrollbar — arrow buttons only:
 
 ```typescript
-import { createScrollbar } from './scroll';
+const list = createVList({
+  container: '#carousel',
+  direction: 'horizontal',
+  item: { width: 200, template: renderCard },
+  items: cards,
+  scroll: { wheel: false, scrollbar: 'none' },
+});
 
-const scrollbar = createScrollbar(
-  viewport,
-  (position) => {
-    // Called when user interacts with scrollbar
-    scrollController.scrollTo(position);
-  },
-  {
-    autoHide: true,
-    autoHideDelay: 1500,
-    minThumbSize: 40
-  },
-  'vlist'
-);
-
-// Update scrollbar when content changes
-scrollbar.updateBounds(totalHeight, containerHeight);
-
-// Update position on scroll
-scrollbar.updatePosition(scrollTop);
-
-// Manual show/hide
-scrollbar.show();
-scrollbar.hide();
-
-// Cleanup
-scrollbar.destroy();
+// Prev / Next buttons
+btnPrev.addEventListener('click', () => list.scrollToIndex(current - 1));
+btnNext.addEventListener('click', () => list.scrollToIndex(current + 1));
 ```
 
 ### Window Scrolling
 
+The list scrolls with the page — no inner container scrollbar:
+
 ```typescript
-import { createScrollController } from './scroll';
-
-// The list scrolls with the page instead of inside its own container
-const controller = createScrollController(viewport, {
-  scrollElement: window,
-  onScroll: ({ scrollTop, direction, velocity }) => {
-    console.log(`Page scrolled ${direction}, list at ${scrollTop}px`);
+const list = createVList({
+  container: '#list',
+  item: { height: 88, template: renderUser },
+  scroll: { element: window },
+  adapter: {
+    read: async ({ offset, limit }) => fetchUsers(offset, limit),
   },
-  onIdle: () => {
-    console.log('Page scrolling stopped');
-  }
 });
-
-// scrollTo delegates to window.scrollTo with the correct document offset
-controller.scrollTo(5000);
-
-// isAtBottom / getScrollPercentage work using tracked maxScroll
-const atBottom = controller.isAtBottom();
-const pct = controller.getScrollPercentage();
-
-// Update container height when window resizes
-window.addEventListener('resize', () => {
-  controller.updateContainerHeight(window.innerHeight);
-});
-
-// Cleanup removes the window scroll listener
-controller.destroy();
 ```
 
-### Complete Integration
+### Scrollbar Drag Only (No Wheel)
+
+Custom scrollbar visible for dragging, but wheel is disabled — useful for embedded contexts where the wheel should scroll the parent page:
 
 ```typescript
-import { createScrollController, createScrollbar } from './scroll';
-import { getCompressionState } from './render';
+const list = createVList({
+  container: '#sidebar-list',
+  item: { height: 36, template: renderMenuItem },
+  items: menuItems,
+  scroll: { wheel: false },
+  // scrollbar defaults to custom — user can drag the scrollbar
+});
+```
 
-function createScrollSystem(
-  viewport: HTMLElement,
-  totalItems: number,
-  itemHeight: number
-) {
+### Aggressive Idle Detection
+
+Load data as soon as scrolling stops (100ms instead of default 150ms):
+
+```typescript
+const list = createVList({
+  container: '#feed',
+  item: { height: 120, template: renderPost },
+  adapter: myAdapter,
+  scroll: { idleTimeout: 100 },
+});
+```
+
+### Complete Manual Integration
+
+Using the low-level scroll controller and scrollbar directly:
+
+```typescript
+import { createScrollController, createScrollbar } from 'vlist';
+import { getCompressionState } from 'vlist';
+
+function createScrollSystem(viewport, totalItems, itemHeight) {
   const compression = getCompressionState(totalItems, itemHeight);
-  
-  // Create scroll controller
+
   const controller = createScrollController(viewport, {
     compressed: compression.isCompressed,
     compression: compression.isCompressed ? compression : undefined,
     onScroll: handleScroll,
-    onIdle: handleIdle
+    onIdle: handleIdle,
   });
-  
-  // Create scrollbar if compressed
-  let scrollbar: Scrollbar | null = null;
-  
-  if (compression.isCompressed) {
-    scrollbar = createScrollbar(
-      viewport,
-      (position) => controller.scrollTo(position),
-      { autoHide: true }
-    );
-    
-    scrollbar.updateBounds(compression.virtualHeight, viewport.clientHeight);
-  }
-  
+
+  const scrollbar = createScrollbar(
+    viewport,
+    (position) => controller.scrollTo(position),
+    { autoHide: true },
+    'vlist',
+    false // vertical
+  );
+
+  scrollbar.updateBounds(compression.virtualHeight, viewport.clientHeight);
+
   function handleScroll({ scrollTop }) {
-    // Update scrollbar position
-    scrollbar?.updatePosition(scrollTop);
-    scrollbar?.show();
-    
-    // Trigger render
+    scrollbar.updatePosition(scrollTop);
+    scrollbar.show();
     updateViewport(scrollTop);
   }
-  
+
   function handleIdle() {
-    // Scrollbar will auto-hide
+    // scrollbar auto-hides via its own timer
   }
-  
+
   return {
     controller,
     scrollbar,
     destroy: () => {
       controller.destroy();
-      scrollbar?.destroy();
-    }
+      scrollbar.destroy();
+    },
   };
 }
 ```
@@ -551,7 +806,10 @@ function createScrollSystem(
 
 ### CSS Classes
 
+The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
+
 ```css
+/* Track — positioned absolutely inside the viewport */
 .vlist-scrollbar {
   position: absolute;
   top: 0;
@@ -563,14 +821,17 @@ function createScrollSystem(
   transition: opacity 0.2s;
 }
 
+/* Visible state */
 .vlist-scrollbar--visible {
   opacity: 1;
 }
 
+/* During drag */
 .vlist-scrollbar--dragging {
   opacity: 1;
 }
 
+/* Thumb */
 .vlist-scrollbar-thumb {
   position: absolute;
   width: 100%;
@@ -584,7 +845,55 @@ function createScrollSystem(
 }
 ```
 
+#### Horizontal Scrollbar CSS
+
+When `direction: 'horizontal'` is set, the scrollbar renders along the bottom edge:
+
+```css
+/* Horizontal track — along the bottom */
+.vlist--horizontal .vlist-scrollbar {
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: var(--vlist-scrollbar-width);
+}
+
+/* Horizontal thumb */
+.vlist--horizontal .vlist-scrollbar-thumb {
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: auto;
+  height: 100%;
+}
+```
+
+#### Hidden Native Scrollbar CSS
+
+When the custom scrollbar is active or `wheel: false` / `scrollbar: 'none'`, the native scrollbar is hidden:
+
+```css
+.vlist-viewport--custom-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.vlist-viewport--custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Override for horizontal webkit scrollbar */
+.vlist--horizontal .vlist-viewport--custom-scrollbar::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
+```
+
 ### CSS Variables
+
+Customize the scrollbar appearance with CSS custom properties:
 
 ```css
 :root {
@@ -612,11 +921,15 @@ In native mode, the controller listens to the standard scroll event:
 
 ```typescript
 // Native mode setup
-viewport.style.overflow = 'auto';
+viewport.style.overflow = 'auto';       // vertical
+// or
+viewport.style.overflow = 'hidden';     // horizontal
+viewport.style.overflowX = 'auto';
+
 viewport.addEventListener('scroll', handleNativeScroll, { passive: true });
 
 function handleNativeScroll() {
-  const scrollTop = viewport.scrollTop;
+  const scrollTop = viewport[scrollProp]; // scrollTop or scrollLeft
   // Update state, trigger callbacks
 }
 ```
@@ -644,10 +957,10 @@ function handleWindowScroll() {
 | Aspect | Native/Compressed | Window |
 |--------|-------------------|--------|
 | Scroll listener | `viewport.scroll` / `viewport.wheel` | `window.scroll` |
-| `getScrollTop()` | `viewport.scrollTop` / tracked position | tracked `scrollPosition` (viewport has no scrollTop) |
+| `getScrollTop()` | `viewport.scrollTop` / tracked position | tracked `scrollPosition` |
 | `scrollTo(pos)` | `viewport.scrollTop = pos` / tracked | `window.scrollTo(listDocumentTop + pos)` |
 | Compression | Changes overflow, intercepts wheel | Purely mathematical (no overflow/wheel changes) |
-| Custom scrollbar | Enabled when compressed | Disabled (browser scrollbar used) |
+| Custom scrollbar | Per config (default: custom) | Disabled (browser scrollbar used) |
 
 ### Compressed Mode
 
@@ -660,17 +973,41 @@ viewport.addEventListener('wheel', handleWheel, { passive: false });
 
 function handleWheel(event: WheelEvent) {
   event.preventDefault();  // Prevent page scroll
-  
+
   const delta = event.deltaY * sensitivity;
   scrollPosition = clamp(scrollPosition + delta, 0, maxScroll);
-  
+
   // Trigger callbacks with virtual scroll position
+}
+```
+
+### Wheel Interception (Native Mode)
+
+In native mode, an optional wheel listener handles two scenarios:
+
+```typescript
+const handleWheelScroll = (event: WheelEvent): void => {
+  if (horizontal && wheelScroll) {
+    // Translate deltaY → scrollLeft (skip if deltaX is already present)
+    if (event.deltaX !== 0 || event.deltaY === 0) return;
+    event.preventDefault();
+    viewport.scrollLeft += event.deltaY * sensitivity;
+  } else {
+    // wheelScroll disabled — block all wheel events
+    event.preventDefault();
+  }
+};
+
+// Attached when: horizontal mode OR wheelScroll is false
+const needsWheelListener = horizontal || !wheelScroll;
+if (needsWheelListener) {
+  viewport.addEventListener('wheel', handleWheelScroll, { passive: false });
 }
 ```
 
 ### Scroll Position Conversion
 
-When switching modes, scroll position is converted:
+When switching between native and compressed modes, scroll position is converted:
 
 ```typescript
 // Native → Compressed
@@ -684,6 +1021,16 @@ viewport.scrollTop = ratio * (actualHeight - viewport.clientHeight);
 
 > **Note:** In window mode, `enableCompression` and `disableCompression` skip overflow and wheel changes entirely — compression is purely mathematical. The content div height is set to the virtual height by `vlist.ts`, and the browser scrolls natively.
 
+### Native Scrollbar Hiding
+
+The `vlist-viewport--custom-scrollbar` CSS class is added to the viewport in these scenarios:
+
+1. **Custom scrollbar is active** — hides native to avoid double scrollbar
+2. **`scrollbar: 'none'`** — hides native, no custom is created
+3. **`wheel: false`** — hides native to prevent scrollbar-drag scrolling
+
+This class uses `scrollbar-width: none` (Firefox), `-ms-overflow-style: none` (IE/Edge), and `::-webkit-scrollbar { display: none }` (Chrome/Safari) to hide the native scrollbar while keeping `overflow: auto` for programmatic scroll support.
+
 ### Idle Detection
 
 The controller detects when scrolling stops using a configurable timeout (default: 150ms):
@@ -693,25 +1040,25 @@ let idleTimer: number | null = null;
 
 function scheduleIdleCheck() {
   if (idleTimer) clearTimeout(idleTimer);
-  
+
   idleTimer = setTimeout(() => {
     isScrolling = false;
     onIdle?.();  // Triggers pending loads, removes .vlist--scrolling, resets velocity
-  }, config.idleTimeout ?? 150);  // Configurable via idleTimeout option
+  }, config.idleTimeout ?? 150);  // Configurable via scroll.idleTimeout
 }
 ```
-
-The idle timeout can be tuned per device/use case via `VListConfig.idleTimeout` or `ScrollControllerConfig.idleTimeout`.
 
 ## Performance Considerations
 
 ### Passive Event Listeners
 
-Native scroll uses passive listeners for better performance:
+Native scroll and window scroll use passive listeners for better performance:
 
 ```typescript
 viewport.addEventListener('scroll', handler, { passive: true });
 ```
+
+Wheel interception (compressed mode, horizontal translation, wheel blocking) uses `{ passive: false }` to allow `preventDefault()`.
 
 ### RAF Throttling
 
@@ -793,18 +1140,18 @@ This approach:
 
 ### Track Click
 
-Click on track jumps to position:
+Click on track jumps to position (works for both vertical and horizontal):
 
 ```typescript
 function handleTrackClick(event: MouseEvent) {
   const trackRect = track.getBoundingClientRect();
-  const clickY = event.clientY - trackRect.top;
-  
+  const clickPos = event[clientPosProp] - trackRect[rectPosProp]; // clientY/clientX
+
   // Center thumb at click position
-  const thumbTop = clickY - thumbHeight / 2;
+  const thumbTop = clickPos - thumbSize / 2;
   const scrollRatio = thumbTop / maxThumbTravel;
   const scrollPosition = scrollRatio * maxScroll;
-  
+
   onScroll(scrollPosition);
 }
 ```
@@ -815,25 +1162,76 @@ Drag thumb to scroll proportionally:
 
 ```typescript
 function handleMouseMove(event: MouseEvent) {
-  const deltaY = event.clientY - dragStartY;
-  const scrollDelta = (deltaY / maxThumbTravel) * maxScroll;
+  const delta = event[clientPosProp] - dragStartPos; // clientY/clientX delta
+  const scrollDelta = (delta / maxThumbTravel) * maxScroll;
   const newPosition = dragStartScrollPosition + scrollDelta;
-  
+
+  // Update thumb immediately for responsive feel
+  thumb.style.transform = translateFn(newPosition / maxScroll * maxThumbTravel);
+
+  // Throttle scroll callback with RAF
   onScroll(clamp(newPosition, 0, maxScroll));
 }
 ```
 
+## Migration from Old API
+
+The `scroll` config replaces four root-level options:
+
+| Old API | New API |
+|---------|---------|
+| `scrollElement: window` | `scroll: { element: window }` |
+| `idleTimeout: 200` | `scroll: { idleTimeout: 200 }` |
+| `wheelScroll: false` | `scroll: { wheel: false }` |
+| `scrollbar: { enabled: true }` | `scroll: { scrollbar: { autoHide: true } }` |
+| `scrollbar: { enabled: false }` | `scroll: { scrollbar: 'none' }` |
+
+**Before:**
+```typescript
+createVList({
+  container: '#app',
+  item: { height: 48, template },
+  scrollElement: window,
+  idleTimeout: 200,
+  wheelScroll: false,
+  scrollbar: { enabled: true, autoHide: false },
+});
+```
+
+**After:**
+```typescript
+createVList({
+  container: '#app',
+  item: { height: 48, template },
+  scroll: {
+    element: window,
+    idleTimeout: 200,
+    wheel: false,
+    scrollbar: { autoHide: false },
+  },
+});
+```
+
+**Scrollbar mode mapping:**
+
+| Old | New | Behavior |
+|-----|-----|----------|
+| *(omitted)* | *(omitted)* | Custom scrollbar (now the default for all lists) |
+| `scrollbar: { enabled: true }` | *(omitted)* or `{ autoHide: ... }` | Custom scrollbar |
+| `scrollbar: { enabled: false }` | `scrollbar: 'none'` | No scrollbar |
+| *(no equivalent)* | `scrollbar: 'native'` | Browser's native scrollbar |
+
 ## Related Modules
 
-- [methods.md](./methods.md#snapshot-methods) - Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
-- [compression.md](./compression.md) - Compression state for large lists
-- [render.md](./render.md) - Viewport state management
-- [handlers.md](./handlers.md) - Scroll event handler
-- [context.md](./context.md) - Context holds scroll controller
-- [optimization.md](./optimization.md) - Full list of scroll-related optimizations
-- [styles.md](./styles.md) - `.vlist--scrolling` class and CSS containment
-- [vlist.md](./vlist.md) - Main vlist documentation (window scrolling, scroll save/restore)
+- [methods.md](./methods.md#snapshot-methods) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
+- [compression.md](./compression.md) — Compression state for large lists
+- [render.md](./render.md) — Viewport state management
+- [handlers.md](./handlers.md) — Scroll event handler
+- [context.md](./context.md) — Context holds scroll controller
+- [optimization.md](./optimization.md) — Full list of scroll-related optimizations
+- [styles.md](./styles.md) — `.vlist--scrolling` class and CSS containment
+- [vlist.md](./vlist.md) — Main vlist documentation (window scrolling, scroll save/restore)
 
 ---
 
-*The scroll module provides seamless scrolling for lists of any size — inside a container or with the page.*
+*The scroll module provides seamless scrolling for lists of any size — custom scrollbar by default, native as an option, or no scrollbar at all.*
