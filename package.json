@@ -1,0 +1,24 @@
+{
+  "name": "vlist.dev",
+  "version": "0.1.0",
+  "description": "vlist.dev — documentation, sandbox, and API for the vlist library",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run build:sandbox && bun run --watch server.ts",
+    "start": "bun run server.ts",
+    "build:sandbox": "bun run sandbox/build.ts",
+    "build:sandbox:watch": "bun run sandbox/build.ts --watch",
+    "typecheck": "tsc --noEmit",
+    "link:libs": "cd ~/Code/floor/vlist && bun link && cd ~/Code/mtrl && bun link && cd ~/Code/mtrl-addons && bun link && cd ~/Code/floor/vlist.dev && bun link vlist && bun link mtrl && bun link mtrl-addons"
+  },
+  "dependencies": {
+    "mtrl": "file:../../mtrl",
+    "mtrl-addons": "file:../../mtrl-addons",
+    "vlist": "file:../vlist"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "sass": "^1.85.0",
+    "typescript": "^5.8.0"
+  }
+}

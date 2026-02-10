@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="vlist — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more."
+        />
+        <title>vlist — Virtual List for the Web</title>
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                --text: #e8e8ed;
+                --text-muted: #7a7a88;
+                --text-dim: #55555f;
+                --bg: #0c0c10;
+                --bg-card: #141418;
+                --bg-card-hover: #1a1a1f;
+                --border: #1e1e25;
+                --border-hover: #2e2e38;
+                --accent: #667eea;
+                --accent-dim: rgba(102, 126, 234, 0.12);
+                --accent-glow: rgba(102, 126, 234, 0.06);
+                --radius: 12px;
+                --radius-sm: 8px;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, Oxygen, Ubuntu, sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+
+            /* ============================================================
+               Layout
+               ============================================================ */
+
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 0 24px;
+            }
+
+            /* ============================================================
+               Hero
+               ============================================================ */
+
+            .hero {
+                padding: 80px 0 56px;
+                text-align: center;
+            }
+
+            .hero__name {
+                font-size: 64px;
+                font-weight: 700;
+                letter-spacing: -2px;
+                line-height: 1;
+                margin-bottom: 16px;
+                color: #fff;
+            }
+
+            .hero__tagline {
+                font-size: 18px;
+                color: var(--text-muted);
+                line-height: 1.5;
+                max-width: 480px;
+                margin: 0 auto 32px;
+            }
+
+            .hero__badges {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-bottom: 36px;
+            }
+
+            .badge {
+                font-size: 12px;
+                padding: 5px 12px;
+                border-radius: 16px;
+                border: 1px solid var(--border);
+                color: var(--text-muted);
+                letter-spacing: 0.2px;
+            }
+
+            .badge--accent {
+                border-color: var(--accent);
+                color: var(--accent);
+                background: var(--accent-dim);
+            }
+
+            .hero__actions {
+                display: flex;
+                justify-content: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 22px;
+                border-radius: var(--radius-sm);
+                font-size: 14px;
+                font-weight: 500;
+                font-family: inherit;
+                text-decoration: none;
+                cursor: pointer;
+                border: 1px solid var(--border);
+                transition: all 0.2s ease;
+            }
+
+            .btn--primary {
+                background: var(--accent);
+                color: #fff;
+                border-color: var(--accent);
+            }
+
+            .btn--primary:hover {
+                background: #5a6fd6;
+                border-color: #5a6fd6;
+            }
+
+            .btn--ghost {
+                background: transparent;
+                color: var(--text-muted);
+            }
+
+            .btn--ghost:hover {
+                background: var(--bg-card);
+                border-color: var(--border-hover);
+                color: var(--text);
+            }
+
+            /* ============================================================
+               Install
+               ============================================================ */
+
+            .install {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                margin-bottom: 56px;
+            }
+
+            .install__cmd {
+                font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+                font-size: 14px;
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 10px 18px;
+                color: var(--text-muted);
+            }
+
+            .install__cmd span {
+                color: var(--accent);
+            }
+
+            /* ============================================================
+               Sections
+               ============================================================ */
+
+            .section {
+                margin-bottom: 56px;
+            }
+
+            .section__title {
+                font-size: 13px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: var(--text-dim);
+                margin-bottom: 16px;
+                padding-left: 2px;
+            }
+
+            /* ============================================================
+               Feature Grid
+               ============================================================ */
+
+            .features {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .feature {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 20px;
+                transition: border-color 0.2s ease;
+            }
+
+            .feature:hover {
+                border-color: var(--border-hover);
+            }
+
+            .feature__icon {
+                font-size: 20px;
+                margin-bottom: 10px;
+                display: block;
+            }
+
+            .feature__name {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text);
+                margin-bottom: 4px;
+            }
+
+            .feature__desc {
+                font-size: 12px;
+                color: var(--text-muted);
+                line-height: 1.5;
+            }
+
+            /* ============================================================
+               Navigation Cards
+               ============================================================ */
+
+            .nav-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+
+            .nav-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 24px 20px;
+                text-decoration: none;
+                color: inherit;
+                transition: all 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .nav-card:hover {
+                background: var(--bg-card-hover);
+                border-color: var(--border-hover);
+            }
+
+            .nav-card__icon {
+                font-size: 24px;
+            }
+
+            .nav-card__title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #fff;
+            }
+
+            .nav-card__desc {
+                font-size: 13px;
+                color: var(--text-muted);
+                line-height: 1.5;
+            }
+
+            .nav-card__link {
+                font-size: 12px;
+                color: var(--accent);
+                margin-top: auto;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            /* ============================================================
+               Sandbox List
+               ============================================================ */
+
+            .sandbox-grid {
+                display: grid;
+                gap: 6px;
+            }
+
+            .sandbox-item {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 14px 18px;
+                text-decoration: none;
+                color: inherit;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                transition: all 0.15s ease;
+            }
+
+            .sandbox-item:hover {
+                background: var(--bg-card-hover);
+                border-color: var(--border-hover);
+            }
+
+            .sandbox-item__name {
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--text);
+                min-width: 160px;
+            }
+
+            .sandbox-item__desc {
+                font-size: 12px;
+                color: var(--text-dim);
+                flex: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .sandbox-item__arrow {
+                color: var(--text-dim);
+                font-size: 14px;
+                transition: transform 0.15s ease, color 0.15s ease;
+                flex-shrink: 0;
+            }
+
+            .sandbox-item:hover .sandbox-item__arrow {
+                transform: translateX(3px);
+                color: var(--text-muted);
+            }
+
+            /* ============================================================
+               Code Sample
+               ============================================================ */
+
+            .code {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 24px;
+                overflow-x: auto;
+            }
+
+            .code pre {
+                font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+                font-size: 13px;
+                line-height: 1.7;
+                color: var(--text-muted);
+            }
+
+            .code .kw { color: #c792ea; }
+            .code .fn { color: #82aaff; }
+            .code .str { color: #c3e88d; }
+            .code .cm { color: #555; }
+            .code .num { color: #f78c6c; }
+            .code .prop { color: #f07178; }
+            .code .par { color: #89ddff; }
+            .code .op { color: #89ddff; }
+
+            /* ============================================================
+               Footer
+               ============================================================ */
+
+            footer {
+                text-align: center;
+                padding: 48px 0 40px;
+                color: var(--text-dim);
+                font-size: 13px;
+                border-top: 1px solid var(--border);
+            }
+
+            footer a {
+                color: var(--text-muted);
+                text-decoration: none;
+            }
+
+            footer a:hover {
+                color: var(--text);
+            }
+
+            .footer__links {
+                display: flex;
+                justify-content: center;
+                gap: 24px;
+                margin-bottom: 12px;
+            }
+
+            /* ============================================================
+               Responsive
+               ============================================================ */
+
+            @media (max-width: 640px) {
+                .hero {
+                    padding: 56px 0 40px;
+                }
+
+                .hero__name {
+                    font-size: 48px;
+                }
+
+                .hero__tagline {
+                    font-size: 16px;
+                }
+
+                .features {
+                    grid-template-columns: 1fr 1fr;
+                }
+
+                .nav-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .sandbox-item__desc {
+                    display: none;
+                }
+
+                .sandbox-item__name {
+                    min-width: 0;
+                }
+            }
+
+            @media (max-width: 420px) {
+                .features {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- ========================================================
+                 Hero
+                 ======================================================== -->
+
+            <section class="hero">
+                <h1 class="hero__name">vlist</h1>
+                <p class="hero__tagline">
+                    Lightweight, high-performance virtual list for the web.
+                    Zero dependencies.
+                </p>
+
+                <div class="hero__badges">
+                    <span class="badge badge--accent">v0.3</span>
+                    <span class="badge">TypeScript</span>
+                    <span class="badge">Zero Dependencies</span>
+                    <span class="badge">MIT</span>
+                    <span class="badge">~7 KB core</span>
+                </div>
+
+                <div class="hero__actions">
+                    <a href="/sandbox/" class="btn btn--primary">
+                        Sandbox →
+                    </a>
+                    <a
+                        href="https://github.com/floor/vlist"
+                        class="btn btn--ghost"
+                        target="_blank"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        GitHub
+                    </a>
+                    <a href="https://www.npmjs.com/package/vlist" class="btn btn--ghost" target="_blank">
+                        npm
+                    </a>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Install
+                 ======================================================== -->
+
+            <div class="install">
+                <div class="install__cmd">
+                    <span>npm</span> install vlist
+                </div>
+            </div>
+
+            <!-- ========================================================
+                 Features
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Features</h2>
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature__icon">⚡</span>
+                        <div class="feature__name">Blazing Fast</div>
+                        <div class="feature__desc">DOM recycling, RAF batching, binary search for O(log n) lookups</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📦</span>
+                        <div class="feature__name">Zero Dependencies</div>
+                        <div class="feature__desc">Pure TypeScript. Core weighs ~7 KB, full bundle ~42 KB</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📏</span>
+                        <div class="feature__name">Variable Heights</div>
+                        <div class="feature__desc">Per-item height function with DOM measurement support</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">♾️</span>
+                        <div class="feature__name">Infinite Scroll</div>
+                        <div class="feature__desc">Async adapter with placeholders, velocity-aware loading</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🔀</span>
+                        <div class="feature__name">Reverse Mode</div>
+                        <div class="feature__desc">Chat UIs — start at bottom, prepend history, auto-scroll</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">☑️</span>
+                        <div class="feature__name">Selection</div>
+                        <div class="feature__desc">Single &amp; multi-select with full keyboard navigation</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🔲</span>
+                        <div class="feature__name">Grid Layout</div>
+                        <div class="feature__desc">Virtualized 2D grid with configurable columns and gap</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📌</span>
+                        <div class="feature__name">Sticky Headers</div>
+                        <div class="feature__desc">Grouped lists with sticky section headers (iOS Contacts–style)</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🗜️</span>
+                        <div class="feature__name">Compression</div>
+                        <div class="feature__desc">Handle millions of items by compressing scroll space</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Explore
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Explore</h2>
+                <div class="nav-grid">
+                    <a href="/sandbox/" class="nav-card">
+                        <span class="nav-card__icon">🧪</span>
+                        <div class="nav-card__title">Sandbox</div>
+                        <div class="nav-card__desc">
+                            12 interactive examples — from basic lists to million-item stress tests
+                        </div>
+                        <span class="nav-card__link">Browse examples →</span>
+                    </a>
+                    <a href="/docs/" class="nav-card">
+                        <span class="nav-card__icon">📖</span>
+                        <div class="nav-card__title">Documentation</div>
+                        <div class="nav-card__desc">
+                            API reference, configuration, events, methods, styling, and more
+                        </div>
+                        <span class="nav-card__link">Read docs →</span>
+                    </a>
+                    <a href="/api" class="nav-card">
+                        <span class="nav-card__icon">🔌</span>
+                        <div class="nav-card__title">API</div>
+                        <div class="nav-card__desc">
+                            Deterministic user data endpoint for demos — 1M+ items, zero storage
+                        </div>
+                        <span class="nav-card__link">View endpoints →</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Quick Start
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Quick Start</h2>
+                <div class="code"><pre><span class="kw">import</span> { <span class="fn">createVList</span> } <span class="kw">from</span> <span class="str">"vlist"</span>
+
+<span class="kw">const</span> list = <span class="fn">createVList</span>({
+  <span class="prop">container</span><span class="par">:</span> document.<span class="fn">getElementById</span>(<span class="str">"list"</span>),
+  <span class="prop">item</span><span class="par">:</span> {
+    <span class="prop">height</span><span class="par">:</span> <span class="num">48</span>,
+    <span class="prop">template</span><span class="par">:</span> (item) <span class="op">=></span> {
+      <span class="kw">const</span> el = document.<span class="fn">createElement</span>(<span class="str">"div"</span>)
+      el.textContent = item.name
+      <span class="kw">return</span> el
+    }
+  },
+  <span class="prop">items</span><span class="par">:</span> Array.<span class="fn">from</span>({ <span class="prop">length</span><span class="par">:</span> <span class="num">10_000</span> }, (_, i) <span class="op">=></span> ({
+    <span class="prop">id</span><span class="par">:</span> i,
+    <span class="prop">name</span><span class="par">:</span> <span class="str">`Item ${i}`</span>
+  }))
+})</pre></div>
+            </section>
+
+            <!-- ========================================================
+                 Sandbox Examples
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Sandbox Examples</h2>
+                <div class="sandbox-grid">
+                    <a href="/sandbox/basic/" class="sandbox-item">
+                        <span class="sandbox-item__name">Basic</span>
+                        <span class="sandbox-item__desc">Pure vanilla JS — 10K items, no dependencies</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/core/" class="sandbox-item">
+                        <span class="sandbox-item__name">Core (7 KB)</span>
+                        <span class="sandbox-item__desc">Lightweight build — 83% smaller, same result</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/variable-heights/" class="sandbox-item">
+                        <span class="sandbox-item__name">Variable Heights</span>
+                        <span class="sandbox-item__desc">Chat feed with DOM-measured item heights</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/reverse-chat/" class="sandbox-item">
+                        <span class="sandbox-item__name">Reverse Chat</span>
+                        <span class="sandbox-item__desc">Chat UI — reverse mode, prepend history, auto-scroll</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/selection/" class="sandbox-item">
+                        <span class="sandbox-item__name">Selection</span>
+                        <span class="sandbox-item__desc">Single &amp; multi-select with keyboard navigation</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/infinite-scroll/" class="sandbox-item">
+                        <span class="sandbox-item__name">Infinite Scroll</span>
+                        <span class="sandbox-item__desc">Async loading with simulated API calls</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/million-items/" class="sandbox-item">
+                        <span class="sandbox-item__name">Million Items</span>
+                        <span class="sandbox-item__desc">1–5M items with compression and FPS monitoring</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/velocity-loading/" class="sandbox-item">
+                        <span class="sandbox-item__name">Velocity Loading</span>
+                        <span class="sandbox-item__desc">Smart loading — skips when scrolling fast</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/grid/" class="sandbox-item">
+                        <span class="sandbox-item__name">Grid</span>
+                        <span class="sandbox-item__desc">Virtualized photo gallery with real images</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/sticky-headers/" class="sandbox-item">
+                        <span class="sandbox-item__name">Sticky Headers</span>
+                        <span class="sandbox-item__desc">A–Z contact list with sticky section headers</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/window-scroll/" class="sandbox-item">
+                        <span class="sandbox-item__name">Window Scroll</span>
+                        <span class="sandbox-item__desc">Document-level scrolling — no inner scrollbar</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                    <a href="/sandbox/scroll-restore/" class="sandbox-item">
+                        <span class="sandbox-item__name">Scroll Restore</span>
+                        <span class="sandbox-item__desc">Save &amp; restore scroll position across navigations</span>
+                        <span class="sandbox-item__arrow">→</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================================================
+             Footer
+             ============================================================ -->
+
+        <footer>
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+                    <a href="https://www.npmjs.com/package/vlist" target="_blank">npm</a>
+                    <a href="/sandbox/">Sandbox</a>
+                    <a href="/docs/">Docs</a>
+                    <a href="/api">API</a>
+                </div>
+                <p></p>Built by <a href="https://floor.io" target="_blank">Floor IO</a></p>
+            </div>
+        </footer>
+    </body>
+</html>

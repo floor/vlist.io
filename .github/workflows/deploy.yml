@@ -1,0 +1,60 @@
+# GitHub Actions — Deploy vlist.dev to floor.io
+# Triggers on push to main branch
+# SSHs into the server and runs deploy commands
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to floor.io
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+
+            APP_DIR="/var/www/vlist.dev"
+
+            echo "📦 Deploying vlist.dev..."
+
+            # Pull latest
+            cd $APP_DIR
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Replace file: dependencies with npm registry versions
+            # (file: paths are for local dev only — they don't exist on the server)
+            echo "🔗 Resolving production dependencies..."
+            sed -i 's|"vlist": "file:../vlist"|"vlist": "^0.4.0"|' package.json
+            sed -i 's|"mtrl": "file:../../mtrl"|"mtrl": "^0.6.3"|' package.json
+            sed -i 's|"mtrl-addons": "file:../../mtrl-addons"|"mtrl-addons": "^0.6.0"|' package.json
+
+            # Install dependencies (regenerate lockfile with npm versions)
+            bun install
+
+            # Build sandbox examples
+            bun run build:sandbox
+
+            # Restore package.json (keep git clean for next pull)
+            git checkout -- package.json
+
+            # Restart PM2 process
+            pm2 reload vlist.dev --update-env || pm2 start ecosystem.config.cjs
+
+            echo "✅ Deployed successfully"
