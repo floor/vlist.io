@@ -44,7 +44,7 @@
                ============================================================ */
 
             .container {
-                max-width: 800px;
+                max-width: 920px;
                 margin: 0 auto;
                 padding: 0 24px;
             }
@@ -95,7 +95,7 @@
             }
 
             .hero__name {
-                font-size: 64px;
+                font-size: 78px;
                 font-weight: 700;
                 letter-spacing: -2px;
                 line-height: 1;
@@ -104,7 +104,7 @@
             }
 
             .hero__tagline {
-                font-size: 18px;
+                font-size: 22px;
                 color: var(--text-muted);
                 line-height: 1.5;
                 max-width: 480px;
@@ -120,7 +120,7 @@
             }
 
             .badge {
-                font-size: 12px;
+                font-size: 15px;
                 padding: 5px 12px;
                 border-radius: 16px;
                 border: 1px solid var(--border);
@@ -147,7 +147,7 @@
                 gap: 8px;
                 padding: 10px 22px;
                 border-radius: var(--radius-sm);
-                font-size: 14px;
+                font-size: 17px;
                 font-weight: 500;
                 font-family: inherit;
                 text-decoration: none;
@@ -192,7 +192,7 @@
 
             .install__cmd {
                 font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-                font-size: 14px;
+                font-size: 17px;
                 background: var(--bg-card);
                 border: 1px solid var(--border);
                 border-radius: var(--radius-sm);
@@ -213,7 +213,7 @@
             }
 
             .section__title {
-                font-size: 13px;
+                font-size: 16px;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 1px;
@@ -245,20 +245,20 @@
             }
 
             .feature__icon {
-                font-size: 20px;
+                font-size: 24px;
                 margin-bottom: 10px;
                 display: block;
             }
 
             .feature__name {
-                font-size: 14px;
+                font-size: 17px;
                 font-weight: 600;
                 color: var(--text);
                 margin-bottom: 4px;
             }
 
             .feature__desc {
-                font-size: 12px;
+                font-size: 15px;
                 color: var(--text-muted);
                 line-height: 1.5;
             }
@@ -292,23 +292,23 @@
             }
 
             .nav-card__icon {
-                font-size: 24px;
+                font-size: 30px;
             }
 
             .nav-card__title {
-                font-size: 16px;
+                font-size: 20px;
                 font-weight: 600;
                 color: #fff;
             }
 
             .nav-card__desc {
-                font-size: 13px;
+                font-size: 16px;
                 color: var(--text-muted);
                 line-height: 1.5;
             }
 
             .nav-card__link {
-                font-size: 12px;
+                font-size: 15px;
                 color: var(--accent);
                 margin-top: auto;
                 display: flex;
@@ -344,14 +344,14 @@
             }
 
             .sandbox-item__name {
-                font-size: 14px;
+                font-size: 17px;
                 font-weight: 500;
                 color: var(--text);
                 min-width: 160px;
             }
 
             .sandbox-item__desc {
-                font-size: 12px;
+                font-size: 15px;
                 color: var(--text-dim);
                 flex: 1;
                 white-space: nowrap;
@@ -385,7 +385,7 @@
 
             .code pre {
                 font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-                font-size: 13px;
+                font-size: 16px;
                 line-height: 1.7;
                 color: var(--text-muted);
             }
@@ -407,7 +407,7 @@
                 text-align: center;
                 padding: 48px 0 40px;
                 color: var(--text-dim);
-                font-size: 13px;
+                font-size: 16px;
                 border-top: 1px solid var(--border);
             }
 
@@ -443,6 +443,32 @@
                 }
             }
 
+            /* ─── Tablet ─────────────────────────────────────── */
+
+            @media (max-width: 800px) {
+                .hero__name {
+                    font-size: 64px;
+                }
+
+                .hero__tagline {
+                    font-size: 20px;
+                }
+
+                .features {
+                    grid-template-columns: 1fr 1fr;
+                }
+
+                .nav-card__icon {
+                    font-size: 26px;
+                }
+
+                .nav-card__title {
+                    font-size: 18px;
+                }
+            }
+
+            /* ─── Mobile ─────────────────────────────────────── */
+
             @media (max-width: 640px) {
                 .header__nav {
                     display: none;
@@ -457,11 +483,106 @@
                 }
 
                 .hero {
-                    padding: calc(var(--header-height) + 32px) 0 40px;
+                    padding: calc(var(--header-height) + 28px) 0 36px;
                 }
 
                 .hero__name {
                     font-size: 48px;
+                    letter-spacing: -1.5px;
+                }
+
+                .hero__tagline {
+                    font-size: 17px;
+                    margin-bottom: 24px;
+                }
+
+                .hero__badges {
+                    margin-bottom: 28px;
+                }
+
+                .badge {
+                    font-size: 13px;
+                }
+
+                .btn {
+                    font-size: 15px;
+                    padding: 9px 18px;
+                }
+
+                .install__cmd {
+                    font-size: 14px;
+                    padding: 8px 14px;
+                }
+
+                .install {
+                    margin-bottom: 40px;
+                }
+
+                .section__title {
+                    font-size: 14px;
+                }
+
+                .feature__icon {
+                    font-size: 22px;
+                }
+
+                .feature__name {
+                    font-size: 15px;
+                }
+
+                .feature__desc {
+                    font-size: 13px;
+                }
+
+                .nav-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .nav-card {
+                    padding: 20px 18px;
+                }
+
+                .nav-card__icon {
+                    font-size: 24px;
+                }
+
+                .nav-card__title {
+                    font-size: 17px;
+                }
+
+                .nav-card__desc {
+                    font-size: 14px;
+                }
+
+                .nav-card__link {
+                    font-size: 13px;
+                }
+
+                .sandbox-item__name {
+                    font-size: 15px;
+                    min-width: 0;
+                }
+
+                .sandbox-item__desc {
+                    display: none;
+                }
+
+                .code pre {
+                    font-size: 14px;
+                }
+
+                footer {
+                    font-size: 14px;
+                    padding: 36px 0 32px;
+                }
+            }
+
+            /* ─── Small phone ────────────────────────────────── */
+
+            @media (max-width: 420px) {
+                .hero__name {
+                    font-size: 38px;
+                    letter-spacing: -1px;
                 }
 
                 .hero__tagline {
@@ -469,25 +590,17 @@
                 }
 
                 .features {
-                    grid-template-columns: 1fr 1fr;
-                }
-
-                .nav-grid {
                     grid-template-columns: 1fr;
                 }
 
-                .sandbox-item__desc {
-                    display: none;
+                .badge {
+                    font-size: 12px;
+                    padding: 4px 10px;
                 }
 
-                .sandbox-item__name {
-                    min-width: 0;
-                }
-            }
-
-            @media (max-width: 420px) {
-                .features {
-                    grid-template-columns: 1fr;
+                .btn {
+                    font-size: 14px;
+                    padding: 8px 16px;
                 }
             }
         </style>

@@ -378,20 +378,24 @@ function buildSidebar(activeSlug: string | null): string {
 function buildOverviewContent(): string {
   const lines: string[] = [];
 
-  lines.push(`<div class="index">`);
-  lines.push(`  <h1 class="index__title">Documentation</h1>`);
+  lines.push(`<div class="overview">`);
+  lines.push(`  <h1 class="overview__title">Documentation</h1>`);
   lines.push(
-    `  <p class="index__tagline">API reference, configuration, events, methods, styling, and internals for the vlist virtual list library.</p>`,
+    `  <p class="overview__tagline">API reference, configuration, events, methods, styling, and internals for the vlist virtual list library.</p>`,
   );
 
   for (const section of OVERVIEW_SECTIONS) {
-    lines.push(`  <div class="index__section">`);
-    lines.push(`    <div class="index__section-title">${section.label}</div>`);
-    lines.push(`    <div class="index__grid">`);
+    lines.push(`  <div class="overview__section">`);
+    lines.push(
+      `    <div class="overview__section-title">${section.label}</div>`,
+    );
+    lines.push(`    <div class="overview__grid">`);
     for (const card of section.cards) {
-      lines.push(`      <a href="/docs/${card.slug}" class="index__card">`);
-      lines.push(`        <div class="index__card-title">${card.name}</div>`);
-      lines.push(`        <div class="index__card-desc">${card.desc}</div>`);
+      lines.push(`      <a href="/docs/${card.slug}" class="overview__card">`);
+      lines.push(
+        `        <div class="overview__card-title">${card.name}</div>`,
+      );
+      lines.push(`        <div class="overview__card-desc">${card.desc}</div>`);
       lines.push(`      </a>`);
     }
     lines.push(`    </div>`);
