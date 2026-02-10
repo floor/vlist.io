@@ -230,15 +230,17 @@ const resolveSandbox = (pathname: string): Response | null => {
 // =============================================================================
 
 /**
- * Get the last commit date (YYYY-MM-DD) for a file.
- * Returns null if the file has no git history.
+ * Get the last commit date (YYYY-MM-DD) across one or more files.
+ * When multiple files are given, returns the most recent date.
+ * Returns null if none of the files have git history.
  */
-function gitLastmod(filePath: string): string | null {
+function gitLastmod(...filePaths: string[]): string | null {
   try {
-    const date = execSync(
-      `git log -1 --format=%cd --date=short -- "${filePath}"`,
-      { cwd: ROOT, encoding: "utf-8" },
-    ).trim();
+    const quoted = filePaths.map((f) => `"${f}"`).join(" ");
+    const date = execSync(`git log -1 --format=%cd --date=short -- ${quoted}`, {
+      cwd: ROOT,
+      encoding: "utf-8",
+    }).trim();
     return date || null;
   } catch {
     return null;
@@ -272,11 +274,13 @@ function buildLastmodMap(): Map<string, string> {
   // Sandbox overview → renderer config
   map.set("/sandbox/", gitLastmod("sandbox/renderer.ts") ?? FALLBACK_DATE);
 
-  // Sandbox examples → content files
+  // Sandbox examples → content + script + styles
   for (const group of EXAMPLE_GROUPS) {
     for (const item of group.items) {
-      const file = `sandbox/${item.slug}/content.html`;
-      map.set(`/sandbox/${item.slug}`, gitLastmod(file) ?? FALLBACK_DATE);
+      const dir = `sandbox/${item.slug}`;
+      const date =
+        gitLastmod(`${dir}/content.html`, `${dir}/script.js`) ?? FALLBACK_DATE;
+      map.set(`/sandbox/${item.slug}`, date);
     }
   }
 
@@ -286,7 +290,7 @@ function buildLastmodMap(): Map<string, string> {
     gitLastmod("benchmarks/renderer.ts") ?? FALLBACK_DATE,
   );
 
-  // Benchmark suites → shared script
+  // Benchmark suites → shared script + styles
   const benchScriptDate = gitLastmod("benchmarks/script.js") ?? FALLBACK_DATE;
   for (const group of BENCH_GROUPS) {
     for (const item of group.items) {
