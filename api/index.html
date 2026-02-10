@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="vlist.dev API — deterministic user data for virtual list demos. 1M+ items, zero storage, configurable latency."
+        />
+        <title>vlist — API</title>
+
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                --text: #e8e8ed;
+                --text-muted: #9a9aaa;
+                --text-dim: #5a5a68;
+                --bg: #0c0c10;
+                --bg-card: #141418;
+                --bg-code: #18181e;
+                --bg-code-inline: #1c1c24;
+                --border: #1e1e25;
+                --border-hover: #2e2e38;
+                --accent: #667eea;
+                --accent-dim: rgba(102, 126, 234, 0.12);
+                --accent-text: #8da0f2;
+                --green: #4ade80;
+                --green-dim: rgba(74, 222, 128, 0.1);
+                --orange: #fb923c;
+                --orange-dim: rgba(251, 146, 60, 0.1);
+                --red: #f87171;
+                --radius: 12px;
+                --radius-sm: 8px;
+                --radius-xs: 5px;
+                --header-height: 56px;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, Oxygen, Ubuntu, sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                min-height: 100vh;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                line-height: 1.6;
+            }
+
+            code,
+            pre,
+            .mono {
+                font-family: "SF Mono", Monaco, Menlo, "Cascadia Code",
+                    Consolas, monospace;
+            }
+
+            /* ─── Header ─────────────────────────────────────── */
+
+            .header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: var(--header-height);
+                background: rgba(12, 12, 16, 0.85);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                padding: 0 24px;
+                z-index: 100;
+                gap: 16px;
+            }
+
+            .header__logo {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text);
+                text-decoration: none;
+                letter-spacing: -0.3px;
+            }
+
+            .header__logo:hover {
+                opacity: 0.85;
+            }
+
+            .header__sep {
+                color: var(--text-dim);
+                font-weight: 300;
+                font-size: 20px;
+                user-select: none;
+            }
+
+            .header__section {
+                font-size: 14px;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+
+            .header__nav {
+                margin-left: auto;
+                display: flex;
+                gap: 20px;
+            }
+
+            .header__nav a {
+                font-size: 13px;
+                color: var(--text-dim);
+                text-decoration: none;
+                transition: color 0.15s;
+            }
+
+            .header__nav a:hover {
+                color: var(--text-muted);
+            }
+
+            /* ─── Layout ─────────────────────────────────────── */
+
+            .container {
+                max-width: 780px;
+                margin: 0 auto;
+                padding: calc(var(--header-height) + 40px) 24px 80px;
+            }
+
+            /* ─── Hero ───────────────────────────────────────── */
+
+            .hero {
+                margin-bottom: 48px;
+            }
+
+            .hero__title {
+                font-size: 32px;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+                margin-bottom: 8px;
+            }
+
+            .hero__desc {
+                font-size: 16px;
+                color: var(--text-muted);
+                line-height: 1.7;
+                margin-bottom: 16px;
+            }
+
+            .hero__badges {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .badge {
+                font-size: 12px;
+                padding: 3px 10px;
+                border-radius: 12px;
+                border: 1px solid var(--border);
+                color: var(--text-dim);
+            }
+
+            .badge--accent {
+                border-color: var(--accent);
+                color: var(--accent-text);
+                background: var(--accent-dim);
+            }
+
+            /* ─── Base URL ───────────────────────────────────── */
+
+            .base-url {
+                background: var(--bg-code);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 12px 16px;
+                margin-bottom: 48px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .base-url__label {
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: var(--text-dim);
+                white-space: nowrap;
+            }
+
+            .base-url__value {
+                font-size: 14px;
+                color: var(--accent-text);
+            }
+
+            /* ─── Section ────────────────────────────────────── */
+
+            .section-label {
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: var(--text-dim);
+                margin-bottom: 16px;
+            }
+
+            /* ─── Endpoint card ──────────────────────────────── */
+
+            .endpoint {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                margin-bottom: 24px;
+                overflow: hidden;
+            }
+
+            .endpoint__header {
+                padding: 18px 22px;
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .endpoint__method {
+                font-size: 12px;
+                font-weight: 700;
+                padding: 3px 10px;
+                border-radius: var(--radius-xs);
+                letter-spacing: 0.5px;
+            }
+
+            .endpoint__method--get {
+                background: var(--green-dim);
+                color: var(--green);
+            }
+
+            .endpoint__path {
+                font-size: 15px;
+                font-weight: 500;
+                color: var(--text);
+            }
+
+            .endpoint__path-param {
+                color: var(--orange);
+            }
+
+            .endpoint__desc {
+                font-size: 13px;
+                color: var(--text-muted);
+                margin-left: auto;
+            }
+
+            .endpoint__body {
+                padding: 20px 22px;
+            }
+
+            .endpoint__sub {
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+                color: var(--text-dim);
+                margin-bottom: 10px;
+                margin-top: 20px;
+            }
+
+            .endpoint__sub:first-child {
+                margin-top: 0;
+            }
+
+            /* ─── Params table ───────────────────────────────── */
+
+            .params {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+
+            .params th {
+                text-align: left;
+                font-weight: 600;
+                color: var(--text-dim);
+                padding: 6px 12px 6px 0;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .params td {
+                padding: 8px 12px 8px 0;
+                border-bottom: 1px solid rgba(30, 30, 37, 0.5);
+                vertical-align: top;
+            }
+
+            .params tr:last-child td {
+                border-bottom: none;
+            }
+
+            .params__name {
+                color: var(--text);
+                font-weight: 500;
+            }
+
+            .params__name code {
+                font-size: 13px;
+                background: var(--bg-code-inline);
+                padding: 1px 6px;
+                border-radius: 3px;
+            }
+
+            .params__type {
+                color: var(--accent-text);
+                font-size: 12px;
+            }
+
+            .params__default {
+                color: var(--text-dim);
+                font-size: 12px;
+            }
+
+            .params__desc {
+                color: var(--text-muted);
+            }
+
+            .params__range {
+                color: var(--text-dim);
+                font-size: 11px;
+            }
+
+            /* ─── Code block ─────────────────────────────────── */
+
+            .code {
+                background: var(--bg-code);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+            }
+
+            .code__bar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 14px;
+                background: rgba(255, 255, 255, 0.02);
+                border-bottom: 1px solid var(--border);
+            }
+
+            .code__label {
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: var(--text-dim);
+            }
+
+            .code__try {
+                font-size: 12px;
+                color: var(--accent-text);
+                text-decoration: none;
+                padding: 2px 8px;
+                border-radius: var(--radius-xs);
+                transition: background 0.15s;
+            }
+
+            .code__try:hover {
+                background: var(--accent-dim);
+            }
+
+            .code pre {
+                padding: 14px 16px;
+                overflow-x: auto;
+                font-size: 13px;
+                line-height: 1.55;
+                color: #c8cedc;
+            }
+
+            .code pre::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .code pre::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .code pre::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 2px;
+            }
+
+            /* ─── Syntax colors ──────────────────────────────── */
+
+            .kw { color: #c792ea; }
+            .str { color: #c3e88d; }
+            .num { color: #f78c6c; }
+            .prop { color: #80cbc4; }
+            .pun { color: #89ddff; }
+            .cm { color: #546e7a; font-style: italic; }
+            .bool { color: #ff5370; }
+            .type { color: #ffcb6b; }
+
+            /* ─── Try It panel ───────────────────────────────── */
+
+            .try-it {
+                margin-top: 16px;
+            }
+
+            .try-it__form {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+            }
+
+            .try-it__input-group {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .try-it__label {
+                font-size: 12px;
+                color: var(--text-dim);
+            }
+
+            .try-it__input {
+                background: var(--bg-code);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xs);
+                padding: 5px 8px;
+                font-size: 12px;
+                color: var(--text);
+                width: 80px;
+                font-family: "SF Mono", Monaco, Menlo, monospace;
+                outline: none;
+                transition: border-color 0.15s;
+            }
+
+            .try-it__input:focus {
+                border-color: var(--accent);
+            }
+
+            .try-it__input--wide {
+                width: 64px;
+            }
+
+            .try-it__btn {
+                background: var(--accent-dim);
+                border: 1px solid rgba(102, 126, 234, 0.3);
+                border-radius: var(--radius-xs);
+                padding: 5px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--accent-text);
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+
+            .try-it__btn:hover {
+                background: rgba(102, 126, 234, 0.2);
+                border-color: var(--accent);
+            }
+
+            .try-it__url {
+                font-size: 12px;
+                color: var(--text-dim);
+                margin-bottom: 8px;
+                word-break: break-all;
+            }
+
+            .try-it__url a {
+                color: var(--accent-text);
+                text-decoration: none;
+            }
+
+            .try-it__url a:hover {
+                text-decoration: underline;
+            }
+
+            .try-it__result {
+                background: var(--bg-code);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                overflow: hidden;
+                display: none;
+            }
+
+            .try-it__result--visible {
+                display: block;
+            }
+
+            .try-it__result-bar {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 6px 14px;
+                background: rgba(255, 255, 255, 0.02);
+                border-bottom: 1px solid var(--border);
+                font-size: 11px;
+            }
+
+            .try-it__status {
+                font-weight: 700;
+                letter-spacing: 0.3px;
+            }
+
+            .try-it__status--ok {
+                color: var(--green);
+            }
+
+            .try-it__status--err {
+                color: var(--red);
+            }
+
+            .try-it__time {
+                color: var(--text-dim);
+            }
+
+            .try-it__result pre {
+                padding: 12px 16px;
+                overflow-x: auto;
+                font-size: 12px;
+                line-height: 1.5;
+                color: #c8cedc;
+                max-height: 360px;
+                overflow-y: auto;
+            }
+
+            .try-it__result pre::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+            }
+
+            .try-it__result pre::-webkit-scrollbar-thumb {
+                background: var(--border);
+                border-radius: 2px;
+            }
+
+            /* ─── User type ──────────────────────────────────── */
+
+            .type-def {
+                margin-bottom: 48px;
+            }
+
+            .type-def__title {
+                font-size: 18px;
+                font-weight: 650;
+                margin-bottom: 12px;
+            }
+
+            .type-def__desc {
+                font-size: 13px;
+                color: var(--text-muted);
+                margin-bottom: 16px;
+                line-height: 1.6;
+            }
+
+            /* ─── Notes ──────────────────────────────────────── */
+
+            .notes {
+                margin-top: 48px;
+            }
+
+            .notes__title {
+                font-size: 18px;
+                font-weight: 650;
+                margin-bottom: 16px;
+            }
+
+            .notes__list {
+                list-style: none;
+                padding: 0;
+            }
+
+            .notes__list li {
+                font-size: 14px;
+                color: var(--text-muted);
+                padding: 6px 0;
+                padding-left: 20px;
+                position: relative;
+                line-height: 1.6;
+            }
+
+            .notes__list li::before {
+                content: "→";
+                position: absolute;
+                left: 0;
+                color: var(--text-dim);
+            }
+
+            .notes__list code {
+                font-size: 12px;
+                background: var(--bg-code-inline);
+                padding: 1px 6px;
+                border-radius: 3px;
+                color: #c8cedc;
+            }
+
+            /* ─── Footer ─────────────────────────────────────── */
+
+            .footer {
+                margin-top: 48px;
+                padding-top: 24px;
+                border-top: 1px solid var(--border);
+                text-align: center;
+                font-size: 13px;
+                color: var(--text-dim);
+            }
+
+            .footer a {
+                color: var(--text-muted);
+                text-decoration: none;
+            }
+
+            .footer a:hover {
+                color: var(--text);
+            }
+
+            .footer__links {
+                display: flex;
+                justify-content: center;
+                gap: 20px;
+                margin-bottom: 12px;
+            }
+
+            /* ─── Responsive ─────────────────────────────────── */
+
+            @media (max-width: 640px) {
+                .container {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                }
+
+                .hero__title {
+                    font-size: 26px;
+                }
+
+                .endpoint__header {
+                    padding: 14px 16px;
+                }
+
+                .endpoint__desc {
+                    margin-left: 0;
+                    flex-basis: 100%;
+                }
+
+                .endpoint__body {
+                    padding: 16px;
+                }
+
+                .params th:nth-child(4),
+                .params td:nth-child(4) {
+                    display: none;
+                }
+
+                .try-it__form {
+                    gap: 6px;
+                }
+
+                .header__nav {
+                    gap: 14px;
+                }
+
+                .header__nav a {
+                    font-size: 12px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Header -->
+        <header class="header">
+            <a href="/" class="header__logo">VList</a>
+            <span class="header__sep">/</span>
+            <span class="header__section">API</span>
+            <nav class="header__nav">
+                <a href="/docs/">Docs</a>
+                <a href="/sandbox/">Sandbox</a>
+                <a href="/benchmarks/">Benchmarks</a>
+                <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+            </nav>
+        </header>
+
+        <div class="container">
+            <!-- Hero -->
+            <section class="hero">
+                <h1 class="hero__title">API</h1>
+                <p class="hero__desc">
+                    Deterministic user data API for vlist demos. Every request generates
+                    data on-the-fly using seeded hashing — same index always returns
+                    the same user. Supports 1M+ items with zero storage.
+                </p>
+                <div class="hero__badges">
+                    <span class="badge badge--accent">v0.1.0</span>
+                    <span class="badge">CORS enabled</span>
+                    <span class="badge">Zero storage</span>
+                    <span class="badge">Configurable latency</span>
+                </div>
+            </section>
+
+            <!-- Base URL -->
+            <div class="base-url">
+                <span class="base-url__label">Base URL</span>
+                <code class="base-url__value mono">https://vlist.dev/api</code>
+            </div>
+
+            <!-- Endpoints -->
+            <div class="section-label">Endpoints</div>
+
+            <!-- ─── GET /api/users ─────────────────────────── -->
+            <div class="endpoint" id="get-users">
+                <div class="endpoint__header">
+                    <span class="endpoint__method endpoint__method--get">GET</span>
+                    <span class="endpoint__path mono">/api/users</span>
+                    <span class="endpoint__desc">Paginated user list</span>
+                </div>
+                <div class="endpoint__body">
+                    <div class="endpoint__sub">Parameters</div>
+                    <table class="params">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="params__name"><code>offset</code></td>
+                                <td class="params__type mono">number</td>
+                                <td class="params__default mono">0</td>
+                                <td class="params__desc">Start index <span class="params__range">(0 – 10M)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="params__name"><code>limit</code></td>
+                                <td class="params__type mono">number</td>
+                                <td class="params__default mono">50</td>
+                                <td class="params__desc">Page size <span class="params__range">(1 – 200)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="params__name"><code>delay</code></td>
+                                <td class="params__type mono">number</td>
+                                <td class="params__default mono">0</td>
+                                <td class="params__desc">Simulated latency in ms <span class="params__range">(0 – 5000)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="params__name"><code>total</code></td>
+                                <td class="params__type mono">number</td>
+                                <td class="params__default mono">1000000</td>
+                                <td class="params__desc">Dataset size <span class="params__range">(1 – 10M)</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="endpoint__sub">Response</div>
+                    <div class="code">
+                        <div class="code__bar">
+                            <span class="code__label">Example</span>
+                            <a href="/api/users?offset=0&limit=2" target="_blank" class="code__try">Open ↗</a>
+                        </div>
+<pre>{
+  <span class="prop">"items"</span><span class="pun">:</span> [
+    {
+      <span class="prop">"id"</span><span class="pun">:</span> <span class="num">1</span>,
+      <span class="prop">"firstName"</span><span class="pun">:</span> <span class="str">"Mary"</span>,
+      <span class="prop">"lastName"</span><span class="pun">:</span> <span class="str">"Baker"</span>,
+      <span class="prop">"email"</span><span class="pun">:</span> <span class="str">"mary.baker@gmail.com"</span>,
+      <span class="prop">"avatar"</span><span class="pun">:</span> <span class="str">"MB"</span>,
+      <span class="prop">"avatarColor"</span><span class="pun">:</span> <span class="str">"#5e35b1"</span>,
+      <span class="prop">"role"</span><span class="pun">:</span> <span class="str">"Senior PM"</span>,
+      <span class="prop">"department"</span><span class="pun">:</span> <span class="str">"Security"</span>,
+      <span class="prop">"company"</span><span class="pun">:</span> <span class="str">"Soylent Corp"</span>,
+      <span class="prop">"city"</span><span class="pun">:</span> <span class="str">"Portland"</span>,
+      <span class="prop">"country"</span><span class="pun">:</span> <span class="str">"United States"</span>,
+      <span class="prop">"status"</span><span class="pun">:</span> <span class="str">"active"</span>,
+      <span class="prop">"joinedYear"</span><span class="pun">:</span> <span class="num">2023</span>
+    },
+    <span class="cm">// ... more items</span>
+  ],
+  <span class="prop">"total"</span><span class="pun">:</span> <span class="num">1000000</span>,
+  <span class="prop">"hasMore"</span><span class="pun">:</span> <span class="bool">true</span>
+}</pre>
+                    </div>
+
+                    <!-- Try It -->
+                    <div class="try-it" id="try-users">
+                        <div class="endpoint__sub">Try It</div>
+                        <div class="try-it__form">
+                            <div class="try-it__input-group">
+                                <label class="try-it__label" for="users-offset">offset</label>
+                                <input class="try-it__input try-it__input--wide mono" type="number" id="users-offset" value="0" min="0" />
+                            </div>
+                            <div class="try-it__input-group">
+                                <label class="try-it__label" for="users-limit">limit</label>
+                                <input class="try-it__input try-it__input--wide mono" type="number" id="users-limit" value="3" min="1" max="200" />
+                            </div>
+                            <div class="try-it__input-group">
+                                <label class="try-it__label" for="users-delay">delay</label>
+                                <input class="try-it__input try-it__input--wide mono" type="number" id="users-delay" value="0" min="0" max="5000" />
+                            </div>
+                            <button class="try-it__btn" onclick="tryUsers()">Send →</button>
+                        </div>
+                        <div class="try-it__url" id="users-url"></div>
+                        <div class="try-it__result" id="users-result">
+                            <div class="try-it__result-bar">
+                                <span class="try-it__status" id="users-status"></span>
+                                <span class="try-it__time" id="users-time"></span>
+                            </div>
+                            <pre id="users-body"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── GET /api/users/:id ─────────────────────── -->
+            <div class="endpoint" id="get-user">
+                <div class="endpoint__header">
+                    <span class="endpoint__method endpoint__method--get">GET</span>
+                    <span class="endpoint__path mono">/api/users/<span class="endpoint__path-param">:id</span></span>
+                    <span class="endpoint__desc">Single user by ID (1-based)</span>
+                </div>
+                <div class="endpoint__body">
+                    <div class="endpoint__sub">Parameters</div>
+                    <table class="params">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="params__name"><code>:id</code></td>
+                                <td class="params__type mono">number</td>
+                                <td class="params__default">—</td>
+                                <td class="params__desc">User ID (1-based) <span class="params__range">(path param)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="params__name"><code>delay</code></td>
+                                <td class="params__type mono">number</td>
+                                <td class="params__default mono">0</td>
+                                <td class="params__desc">Simulated latency in ms <span class="params__range">(0 – 5000)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="params__name"><code>total</code></td>
+                                <td class="params__type mono">number</td>
+                                <td class="params__default mono">1000000</td>
+                                <td class="params__desc">Dataset size for bounds checking <span class="params__range">(1 – 10M)</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="endpoint__sub">Response</div>
+                    <div class="code">
+                        <div class="code__bar">
+                            <span class="code__label">Example</span>
+                            <a href="/api/users/42" target="_blank" class="code__try">Open ↗</a>
+                        </div>
+<pre>{
+  <span class="prop">"id"</span><span class="pun">:</span> <span class="num">42</span>,
+  <span class="prop">"firstName"</span><span class="pun">:</span> <span class="str">"Ronald"</span>,
+  <span class="prop">"lastName"</span><span class="pun">:</span> <span class="str">"Hughes"</span>,
+  <span class="prop">"email"</span><span class="pun">:</span> <span class="str">"ronald.hughes1g@fastmail.com"</span>,
+  <span class="prop">"avatar"</span><span class="pun">:</span> <span class="str">"RH"</span>,
+  <span class="prop">"avatarColor"</span><span class="pun">:</span> <span class="str">"#fb8c00"</span>,
+  <span class="prop">"role"</span><span class="pun">:</span> <span class="str">"Mobile Developer"</span>,
+  <span class="prop">"department"</span><span class="pun">:</span> <span class="str">"Support"</span>,
+  <span class="prop">"company"</span><span class="pun">:</span> <span class="str">"Morley &amp; Associates"</span>,
+  <span class="prop">"city"</span><span class="pun">:</span> <span class="str">"Philadelphia"</span>,
+  <span class="prop">"country"</span><span class="pun">:</span> <span class="str">"United States"</span>,
+  <span class="prop">"status"</span><span class="pun">:</span> <span class="str">"active"</span>,
+  <span class="prop">"joinedYear"</span><span class="pun">:</span> <span class="num">2016</span>
+}</pre>
+                    </div>
+
+                    <!-- Try It -->
+                    <div class="try-it" id="try-user">
+                        <div class="endpoint__sub">Try It</div>
+                        <div class="try-it__form">
+                            <div class="try-it__input-group">
+                                <label class="try-it__label" for="user-id">id</label>
+                                <input class="try-it__input try-it__input--wide mono" type="number" id="user-id" value="42" min="1" />
+                            </div>
+                            <button class="try-it__btn" onclick="tryUser()">Send →</button>
+                        </div>
+                        <div class="try-it__url" id="user-url"></div>
+                        <div class="try-it__result" id="user-result">
+                            <div class="try-it__result-bar">
+                                <span class="try-it__status" id="user-status"></span>
+                                <span class="try-it__time" id="user-time"></span>
+                            </div>
+                            <pre id="user-body"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── GET /api/info ──────────────────────────── -->
+            <div class="endpoint" id="get-info">
+                <div class="endpoint__header">
+                    <span class="endpoint__method endpoint__method--get">GET</span>
+                    <span class="endpoint__path mono">/api/info</span>
+                    <span class="endpoint__desc">API metadata</span>
+                </div>
+                <div class="endpoint__body">
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+                        Returns API version, available endpoints, parameter definitions, and defaults. Machine-readable.
+                    </p>
+                    <div class="code">
+                        <div class="code__bar">
+                            <span class="code__label">JSON</span>
+                            <a href="/api/info" target="_blank" class="code__try">Open ↗</a>
+                        </div>
+<pre>{
+  <span class="prop">"name"</span><span class="pun">:</span> <span class="str">"vlist.dev API"</span>,
+  <span class="prop">"version"</span><span class="pun">:</span> <span class="str">"0.1.0"</span>,
+  <span class="prop">"description"</span><span class="pun">:</span> <span class="str">"Deterministic user data API for vlist demos"</span>,
+  <span class="prop">"endpoints"</span><span class="pun">:</span> { <span class="cm">...</span> },
+  <span class="prop">"defaults"</span><span class="pun">:</span> { <span class="prop">"total"</span><span class="pun">:</span> <span class="num">1000000</span>, <span class="prop">"limit"</span><span class="pun">:</span> <span class="num">50</span>, <span class="prop">"maxLimit"</span><span class="pun">:</span> <span class="num">200</span> }
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User type -->
+            <div class="type-def" id="user-type">
+                <div class="section-label">Types</div>
+                <div class="type-def__title">User</div>
+                <div class="type-def__desc">
+                    Generated deterministically from the user's index using FNV-1a hashing.
+                    Same ID always produces the same user — no database, no randomness.
+                </div>
+                <div class="code">
+                    <div class="code__bar">
+                        <span class="code__label">TypeScript</span>
+                    </div>
+<pre><span class="kw">interface</span> <span class="type">User</span> {
+  <span class="prop">id</span><span class="pun">:</span> <span class="type">number</span>          <span class="cm">// 1-based unique identifier</span>
+  <span class="prop">firstName</span><span class="pun">:</span> <span class="type">string</span>   <span class="cm">// From 200 common first names</span>
+  <span class="prop">lastName</span><span class="pun">:</span> <span class="type">string</span>    <span class="cm">// From 128 common last names</span>
+  <span class="prop">email</span><span class="pun">:</span> <span class="type">string</span>       <span class="cm">// first.last[suffix]@domain</span>
+  <span class="prop">avatar</span><span class="pun">:</span> <span class="type">string</span>      <span class="cm">// Two-letter initials ("MB")</span>
+  <span class="prop">avatarColor</span><span class="pun">:</span> <span class="type">string</span> <span class="cm">// Hex color for avatar background</span>
+  <span class="prop">role</span><span class="pun">:</span> <span class="type">string</span>        <span class="cm">// Job title (32 roles)</span>
+  <span class="prop">department</span><span class="pun">:</span> <span class="type">string</span>  <span class="cm">// Team name (20 departments)</span>
+  <span class="prop">company</span><span class="pun">:</span> <span class="type">string</span>     <span class="cm">// Company name (47 companies)</span>
+  <span class="prop">city</span><span class="pun">:</span> <span class="type">string</span>        <span class="cm">// City name (40 cities)</span>
+  <span class="prop">country</span><span class="pun">:</span> <span class="type">string</span>     <span class="cm">// Country name (mapped from city)</span>
+  <span class="prop">status</span><span class="pun">:</span> <span class="type">string</span>      <span class="cm">// "active" | "inactive" | "pending" | "suspended"</span>
+  <span class="prop">joinedYear</span><span class="pun">:</span> <span class="type">number</span>  <span class="cm">// 2015 – 2025</span>
+}</pre>
+                </div>
+            </div>
+
+            <!-- Usage examples -->
+            <div id="usage">
+                <div class="section-label">Usage</div>
+                <div class="type-def__title" style="margin-bottom: 16px;">With vlist</div>
+
+                <div class="code" style="margin-bottom: 24px;">
+                    <div class="code__bar">
+                        <span class="code__label">Infinite scroll adapter</span>
+                    </div>
+<pre><span class="kw">import</span> { createVList } <span class="kw">from</span> <span class="str">"vlist"</span>
+
+<span class="kw">const</span> list = createVList({
+  container: document.getElementById(<span class="str">"list"</span>),
+  item: {
+    height: <span class="num">56</span>,
+    template: (user) <span class="pun">=></span> {
+      <span class="kw">const</span> el = document.createElement(<span class="str">"div"</span>)
+      el.textContent = <span class="str">`${user.firstName} ${user.lastName}`</span>
+      <span class="kw">return</span> el
+    }
+  },
+  adapter: {
+    read: <span class="kw">async</span> ({ offset, limit }) <span class="pun">=></span> {
+      <span class="kw">const</span> res = <span class="kw">await</span> fetch(
+        <span class="str">`https://vlist.dev/api/users?offset=${offset}&limit=${limit}`</span>
+      )
+      <span class="kw">return</span> res.json()  <span class="cm">// { items, total, hasMore }</span>
+    }
+  }
+})</pre>
+                </div>
+
+                <div class="code">
+                    <div class="code__bar">
+                        <span class="code__label">Simulated latency (for testing loading states)</span>
+                    </div>
+<pre><span class="cm">// Add 500ms delay to simulate real network conditions</span>
+<span class="kw">const</span> res = <span class="kw">await</span> fetch(
+  <span class="str">`https://vlist.dev/api/users?offset=${offset}&limit=${limit}&delay=500`</span>
+)</pre>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="notes">
+                <div class="notes__title">Notes</div>
+                <ul class="notes__list">
+                    <li>All data is generated on-the-fly — no database, no storage, no state between requests</li>
+                    <li>Same index always returns the same user (deterministic FNV-1a hashing)</li>
+                    <li>CORS is enabled for all origins — use it from any domain</li>
+                    <li>The <code>delay</code> parameter adds server-side sleep to simulate real API latency</li>
+                    <li>The <code>total</code> parameter controls dataset size — useful for testing edge cases (small lists, huge lists)</li>
+                    <li>Response shape matches vlist's <code>AdapterResponse</code> interface — plug it directly into the async adapter</li>
+                    <li>Maximum page size is 200 items per request</li>
+                    <li>User IDs are 1-based (first user is ID 1, not 0)</li>
+                </ul>
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="footer__links">
+                    <a href="/">Home</a>
+                    <a href="/docs/">Docs</a>
+                    <a href="/sandbox/">Sandbox</a>
+                    <a href="/benchmarks/">Benchmarks</a>
+                    <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+                </div>
+                <p></p>Built by <a href="https://floor.io" target="_blank">Floor IO</a></p>
+            </footer>
+        </div>
+
+        <script>
+            // ─── Try It: Users ────────────────────────────────
+
+            async function tryUsers() {
+                const offset = document.getElementById("users-offset").value || "0";
+                const limit = document.getElementById("users-limit").value || "3";
+                const delay = document.getElementById("users-delay").value || "0";
+
+                const params = new URLSearchParams({ offset, limit, delay });
+                const url = `/api/users?${params}`;
+
+                const urlEl = document.getElementById("users-url");
+                const resultEl = document.getElementById("users-result");
+                const statusEl = document.getElementById("users-status");
+                const timeEl = document.getElementById("users-time");
+                const bodyEl = document.getElementById("users-body");
+
+                urlEl.innerHTML = `<a href="${url}" target="_blank">${location.origin}${url}</a>`;
+                resultEl.classList.remove("try-it__result--visible");
+                bodyEl.textContent = "";
+
+                const start = performance.now();
+
+                try {
+                    const res = await fetch(url);
+                    const elapsed = Math.round(performance.now() - start);
+                    const data = await res.json();
+
+                    statusEl.textContent = res.status;
+                    statusEl.className = "try-it__status " +
+                        (res.ok ? "try-it__status--ok" : "try-it__status--err");
+                    timeEl.textContent = `${elapsed}ms`;
+                    bodyEl.textContent = JSON.stringify(data, null, 2);
+                } catch (err) {
+                    const elapsed = Math.round(performance.now() - start);
+                    statusEl.textContent = "Error";
+                    statusEl.className = "try-it__status try-it__status--err";
+                    timeEl.textContent = `${elapsed}ms`;
+                    bodyEl.textContent = err.message;
+                }
+
+                resultEl.classList.add("try-it__result--visible");
+            }
+
+            // ─── Try It: Single User ──────────────────────────
+
+            async function tryUser() {
+                const id = document.getElementById("user-id").value || "42";
+                const url = `/api/users/${id}`;
+
+                const urlEl = document.getElementById("user-url");
+                const resultEl = document.getElementById("user-result");
+                const statusEl = document.getElementById("user-status");
+                const timeEl = document.getElementById("user-time");
+                const bodyEl = document.getElementById("user-body");
+
+                urlEl.innerHTML = `<a href="${url}" target="_blank">${location.origin}${url}</a>`;
+                resultEl.classList.remove("try-it__result--visible");
+                bodyEl.textContent = "";
+
+                const start = performance.now();
+
+                try {
+                    const res = await fetch(url);
+                    const elapsed = Math.round(performance.now() - start);
+                    const data = await res.json();
+
+                    statusEl.textContent = res.status;
+                    statusEl.className = "try-it__status " +
+                        (res.ok ? "try-it__status--ok" : "try-it__status--err");
+                    timeEl.textContent = `${elapsed}ms`;
+                    bodyEl.textContent = JSON.stringify(data, null, 2);
+                } catch (err) {
+                    const elapsed = Math.round(performance.now() - start);
+                    statusEl.textContent = "Error";
+                    statusEl.className = "try-it__status try-it__status--err";
+                    timeEl.textContent = `${elapsed}ms`;
+                    bodyEl.textContent = err.message;
+                }
+
+                resultEl.classList.add("try-it__result--visible");
+            }
+
+            // ─── Enter key support ────────────────────────────
+
+            document.querySelectorAll(".try-it__input").forEach((input) => {
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") {
+                        const btn = input.closest(".try-it").querySelector(".try-it__btn");
+                        if (btn) btn.click();
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
