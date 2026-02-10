@@ -45,7 +45,7 @@ jobs:
             # Replace file: dependencies with npm registry versions
             # (file: paths are for local dev only — they don't exist on the server)
             echo "🔗 Resolving production dependencies..."
-            sed -i 's|"vlist": "file:../vlist"|"vlist": "^0.4.0"|' package.json
+            sed -i 's|"vlist": "file:../vlist"|"vlist": "github:floor/vlist"|' package.json
             sed -i 's|"mtrl": "file:../../mtrl"|"mtrl": "^0.6.3"|' package.json
             sed -i 's|"mtrl-addons": "file:../../mtrl-addons"|"mtrl-addons": "^0.6.0"|' package.json
 
