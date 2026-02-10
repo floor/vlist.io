@@ -15,7 +15,8 @@ The methods module provides factory functions that create the public API methods
 
 ```
 src/
-└── methods.ts  # All method factories
+├── methods.ts    # Method factories (data, scroll, selection)
+└── animation.ts  # Shared scroll animation utilities (easing, arg resolution)
 ```
 
 ## Key Concepts
@@ -28,20 +29,28 @@ Methods are created using factory functions that receive the context:
 // Factory pattern
 const dataMethods = createDataMethods(ctx);
 const scrollMethods = createScrollMethods(ctx);
-const snapshotMethods = createSnapshotMethods(ctx);
 const selectionMethods = createSelectionMethods(ctx);
 
 // Methods are spread into public API
 return {
   ...dataMethods,
   ...scrollMethods,
-  getScrollSnapshot: snapshotMethods.getScrollSnapshot,
-  restoreScroll: snapshotMethods.restoreScroll,
   select: selectionMethods.select,
   deselect: selectionMethods.deselect,
   // ...
 };
 ```
+
+### Shared Animation Utilities (`animation.ts`)
+
+Scroll animation helpers are shared between the full `methods.ts` and the lightweight `vlist/core`:
+
+- **`easeInOutQuad(t)`** — Quadratic ease-in-out function for smooth scroll animation
+- **`resolveScrollArgs(alignOrOptions)`** — Parses string alignment or `ScrollToOptions` into resolved `{ align, behavior, duration }`
+- **`calculateScrollToPosition(index, heightCache, ...)`** — Non-compressed scroll position calculation (used by core)
+- **`DEFAULT_SMOOTH_DURATION`** — Default animation duration (300ms)
+
+These live in `src/animation.ts` to avoid duplication between the full vlist and core entry points.
 
 ### Separation from Handlers
 
@@ -659,9 +668,13 @@ updateItem: (id: string | number, updates: Partial<T>): void => {
 
 ### Scroll Position Calculation
 
-`scrollToIndex` uses compression-aware calculations and supports smooth animation:
+`scrollToIndex` uses compression-aware calculations and supports smooth animation.
+The `resolveScrollArgs` and `easeInOutQuad` helpers are imported from the shared `animation.ts` module:
 
 ```typescript
+// From animation.ts (shared with vlist/core)
+import { easeInOutQuad, resolveScrollArgs } from './animation';
+
 scrollToIndex: (
   index: number,
   alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions,
@@ -672,7 +685,7 @@ scrollToIndex: (
   // calculateScrollToIndex handles compression automatically
   const position = calculateScrollToIndex(
     index,
-    ctx.config.itemHeight,
+    ctx.heightCache,
     ctx.state.viewportState.containerHeight,
     dataState.total,
     align,
@@ -714,6 +727,7 @@ if (ctx.config.hasAdapter) {
 - [data.md](./data.md) - Data manager operations
 - [scroll.md](./scroll.md) - Scroll controller
 - [render.md](./render.md) - Scroll position calculations
+- `src/animation.ts` - Shared animation utilities (easing, scroll arg resolution)
 
 ---
 

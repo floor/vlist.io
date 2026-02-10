@@ -17,11 +17,15 @@ The render module is responsible for all DOM-related operations in vlist. It han
 ```
 src/render/
 ├── index.ts        # Module exports
-├── heights.ts      # Height cache for fixed and variable item heights
-├── renderer.ts     # DOM rendering with element pooling
+├── dom.ts          # DOM structure, container resolution, content height (shared with core)
+├── pool.ts         # Element pool for DOM element recycling (shared with core)
+├── heights.ts      # Height cache for fixed and variable item heights (shared with core)
+├── renderer.ts     # DOM rendering with compression support
 ├── virtual.ts      # Virtual scrolling calculations
 └── compression.ts  # Large list compression logic
 ```
+
+> **Shared modules:** `dom.ts`, `pool.ts`, and `heights.ts` have zero dependencies on compression or other heavy vlist internals. They are imported by both the full `vlist` renderer and the lightweight `vlist/core` entry point, eliminating code duplication while preserving tree-shaking.
 
 ## Key Concepts
 
@@ -196,7 +200,9 @@ When a list exceeds browser height limits (~16.7M pixels), compression automatic
 
 ## API Reference
 
-### DOM Structure
+### DOM Structure (`dom.ts`)
+
+> These utilities live in `src/render/dom.ts` — a standalone module with zero dependencies on compression or other vlist internals. Shared by both the full renderer and `vlist/core`.
 
 #### `createDOMStructure`
 
@@ -247,7 +253,29 @@ Updates the content height for virtual scrolling.
 function updateContentHeight(content: HTMLElement, totalHeight: number): void;
 ```
 
-### Renderer
+### Element Pool (`pool.ts`)
+
+> Lives in `src/render/pool.ts` — a standalone module shared by both the full renderer and `vlist/core`.
+
+#### `createElementPool`
+
+Creates an element pool for recycling DOM elements. Reduces garbage collection and improves scroll performance.
+
+```typescript
+function createElementPool(
+  tagName?: string,  // default: "div"
+  maxSize?: number   // default: 100
+): ElementPool;
+
+interface ElementPool {
+  acquire: () => HTMLElement;
+  release: (element: HTMLElement) => void;
+  clear: () => void;
+  stats: () => { poolSize: number; created: number; reused: number };
+}
+```
+
+### Renderer (`renderer.ts`)
 
 #### `createRenderer`
 

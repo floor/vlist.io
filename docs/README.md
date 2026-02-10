@@ -25,12 +25,14 @@ Each module has detailed documentation covering its API, usage examples, and imp
 | **[Types](./types.md)** | TypeScript interfaces and type definitions | `src/types.ts` |
 | **[Constants](./constants.md)** | Default values and configuration constants | `src/constants.ts` |
 | **[Context](./context.md)** | Internal state container and coordination | `src/context.ts` |
+| **Config** | Validation, defaults, and derived flags (mtrl-style) | `src/config.ts` |
+| **Animation** | Shared scroll animation utilities (easing, arg resolution) | `src/animation.ts` |
 
 ### Feature Modules
 
 | Module | Description | Directory |
 |--------|-------------|-----------|
-| **[Render](./render.md)** | DOM rendering, virtualization, and compression | `src/render/` |
+| **[Render](./render.md)** | DOM structure, element pool, rendering, virtualization, and compression | `src/render/` |
 | **[Data](./data.md)** | Data management, sparse storage, and placeholders | `src/data/` |
 | **[Scroll](./scroll.md)** | Scroll controller and custom scrollbar | `src/scroll/` |
 | **[Selection](./selection.md)** | Selection state management | `src/selection/` |
@@ -42,6 +44,8 @@ Each module has detailed documentation covering its API, usage examples, and imp
 |--------|-------------|------|
 | **[Handlers](./handlers.md)** | Scroll, click, and keyboard event handlers | `src/handlers.ts` |
 | **[Methods](./methods.md)** | Public API methods (data, scroll, selection) | `src/methods.ts` |
+
+> **Shared building blocks:** Several modules under `src/render/` (`dom.ts`, `pool.ts`, `heights.ts`) and `src/animation.ts` are shared between the full `vlist` and the lightweight `vlist/core` entry point. They have zero dependencies on compression or other heavy internals, enabling tree-shaking to keep the core bundle small (~9 KB) while eliminating code duplication.
 
 ### Framework Adapters
 
@@ -67,7 +71,8 @@ React and Vue are optional `peerDependencies`. Svelte needs zero framework impor
                               ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │                        createVList()                                  │
-│                         (vlist.ts)                                    │
+│              (vlist.ts — composition root)                            │
+│         Uses config.ts for validation & defaults                     │
 └──────────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -89,6 +94,13 @@ React and Vue are optional `peerDependencies`. Svelte needs zero framework impor
 │    Adapter    │   │    Scrollbar    │   │  Compression  │
 │ (async fetch) │   │    (custom)     │   │ (large lists) │
 └───────────────┘   └─────────────────┘   └───────────────┘
+
+        Shared building blocks (used by both vlist and vlist/core):
+        ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
+        │  dom.ts  │  │ pool.ts  │  │heights.ts│  │animation │
+        │ (DOM     │  │ (element │  │ (height  │  │ (easing, │
+        │ structure│  │ recycler)│  │  cache)  │  │ scroll)  │
+        └──────────┘  └──────────┘  └──────────┘  └──────────┘
 ```
 
 ## Data Flow

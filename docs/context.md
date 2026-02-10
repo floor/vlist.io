@@ -27,10 +27,13 @@ The context is created in `vlist.ts` after all components are instantiated, serv
 ```
 createVList()
     ↓
+resolveConfig() — validate, apply defaults, compute derived flags
+    (src/config.ts — mtrl-style config pattern)
+    ↓
 Create individual components:
   - DataManager
   - ScrollController
-  - Renderer
+  - Renderer (uses shared dom.ts, pool.ts, heights.ts)
   - Emitter
   - Scrollbar (optional)
     ↓
@@ -38,7 +41,7 @@ Create Context (wires everything together)
     ↓
 Create Handlers (receive context)
     ↓
-Create Methods (receive context)
+Create Methods (receive context, uses shared animation.ts)
     ↓
 Return Public API
 ```
