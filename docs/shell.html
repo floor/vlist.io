@@ -3,10 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta
-            name="description"
-            content="{{DESCRIPTION}}"
-        />
+        <meta name="description" content="{{DESCRIPTION}}" />
         <title>{{TITLE}}</title>
 
         <style>
@@ -113,6 +110,10 @@
 
             .header__nav a:hover {
                 color: var(--text-muted);
+            }
+
+            .header__nav a.active {
+                color: var(--text);
             }
 
             .header__hamburger {
@@ -648,6 +649,7 @@
             <span class="header__sep">/</span>
             <span class="header__section">Docs</span>
             <nav class="header__nav">
+                <a href="/docs/" class="active">Docs</a>
                 <a href="/sandbox/">Sandbox</a>
                 <a href="/benchmarks/">Benchmarks</a>
                 <a href="/api">API</a>
@@ -692,7 +694,9 @@
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/bash.min.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/scss.min.js"></script>
-        <script>hljs.highlightAll();</script>
+        <script>
+            hljs.highlightAll();
+        </script>
 
         <!-- ─── Mobile toggle ────────────────────────────── -->
 
