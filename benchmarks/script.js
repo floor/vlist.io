@@ -214,7 +214,7 @@ function buildBundlePage(root) {
         <td>${row.min} KB</td>
         <td class="${gzipClass}">${row.gzip} KB</td>
         <td>${row.deps}</td>
-        <td style="font-size:12px;color:var(--mtrl-sys-color-on-surface-variant,#666);font-family:inherit;">${escapeHtml(row.note)}</td>
+        <td style="font-size:12px;color:var(--text-dim);font-family:inherit;">${escapeHtml(row.note)}</td>
       </tr>
     `;
   }).join("");

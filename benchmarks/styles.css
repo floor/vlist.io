@@ -1,11 +1,49 @@
-/* benchmarks/styles.css — Benchmark dashboard */
+/* benchmarks/styles.css — Benchmark dashboard
+   Uses shell.css design tokens for light/dark theme support */
+
+/* ============================================================================
+   VList Theme Overrides
+   vlist.css uses @media (prefers-color-scheme) and .dark class,
+   but the website uses [data-theme] on <html>. Bridge the two systems.
+   ============================================================================ */
+
+[data-theme="light"] {
+    --vlist-bg: #ffffff;
+    --vlist-bg-hover: #f9fafb;
+    --vlist-bg-selected: #eff6ff;
+    --vlist-bg-selected-hover: #dbeafe;
+    --vlist-border: #e5e7eb;
+    --vlist-border-selected: #3b82f6;
+    --vlist-text: #111827;
+    --vlist-text-muted: #6b7280;
+    --vlist-scrollbar-thumb: #d1d5db;
+    --vlist-scrollbar-thumb-hover: #9ca3af;
+    --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);
+    --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] {
+    --vlist-bg: #111827;
+    --vlist-bg-hover: #1f2937;
+    --vlist-bg-selected: rgba(59, 130, 246, 0.2);
+    --vlist-bg-selected-hover: rgba(59, 130, 246, 0.3);
+    --vlist-border: #374151;
+    --vlist-border-selected: #3b82f6;
+    --vlist-text: #f9fafb;
+    --vlist-text-muted: #9ca3af;
+    --vlist-scrollbar-thumb: #4b5563;
+    --vlist-scrollbar-thumb-hover: #6b7280;
+    --vlist-scrollbar-custom-thumb-bg: rgba(255, 255, 255, 0.3);
+    --vlist-scrollbar-custom-thumb-hover-bg: rgba(255, 255, 255, 0.5);
+}
 
 /* ============================================================================
    Page Layout
    ============================================================================ */
 
 .bench-page {
-    max-width: 960px;
+    max-width: 760px;
+    margin: 0 auto;
     padding: 40px 36px 80px;
 }
 
@@ -21,13 +59,13 @@
     font-size: 40px;
     font-weight: 700;
     letter-spacing: -0.5px;
-    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    color: var(--text);
     margin: 0 0 8px;
 }
 
 .bench-header__desc {
     font-size: 16px;
-    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    color: var(--text-muted);
     margin: 0 0 24px;
     max-width: 680px;
     line-height: 1.6;
@@ -47,13 +85,13 @@
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.3px;
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #333);
-    color: var(--mtrl-sys-color-on-surface-variant, #999);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
 }
 
 .bench-tag--accent {
-    border-color: var(--mtrl-sys-color-primary, #667eea);
-    color: var(--mtrl-sys-color-primary, #667eea);
+    border-color: var(--accent);
+    color: var(--accent-text);
 }
 
 /* ============================================================================
@@ -67,15 +105,15 @@
     flex-wrap: wrap;
     margin-bottom: 32px;
     padding: 16px 20px;
-    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
+    background: var(--bg-card);
     border-radius: 16px;
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    border: 1px solid var(--border);
 }
 
 .bench-controls__label {
     font-size: 13px;
     font-weight: 500;
-    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     white-space: nowrap;
@@ -89,9 +127,9 @@
 .bench-size-btn {
     padding: 6px 16px;
     border-radius: 8px;
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+    border: 1px solid var(--border);
     background: transparent;
-    color: var(--mtrl-sys-color-on-surface-variant, #999);
+    color: var(--text-muted);
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
     font-size: 13px;
     font-weight: 500;
@@ -100,14 +138,14 @@
 }
 
 .bench-size-btn:hover {
-    border-color: var(--mtrl-sys-color-on-surface-variant, #666);
-    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    border-color: var(--border-hover);
+    color: var(--text);
 }
 
 .bench-size-btn--active {
-    background: var(--mtrl-sys-color-primary, #667eea);
-    border-color: var(--mtrl-sys-color-primary, #667eea);
-    color: var(--mtrl-sys-color-on-primary, #fff);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
 }
 
 .bench-size-btn--active:hover {
@@ -117,15 +155,15 @@
 .bench-controls__sep {
     width: 1px;
     height: 28px;
-    background: var(--mtrl-sys-color-outline-variant, #333);
+    background: var(--border);
 }
 
 .bench-run-btn {
     padding: 8px 24px;
     border-radius: 8px;
     border: none;
-    background: var(--mtrl-sys-color-primary, #667eea);
-    color: var(--mtrl-sys-color-on-primary, #fff);
+    background: var(--accent);
+    color: #fff;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -149,19 +187,19 @@
 }
 
 .bench-run-btn--stop {
-    background: var(--mtrl-sys-color-error, #f44336);
+    background: #f44336;
 }
 
 .bench-status {
     font-size: 13px;
-    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    color: var(--text-dim);
     margin-left: auto;
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
     white-space: nowrap;
 }
 
 .bench-status--running {
-    color: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--accent-text);
 }
 
 /* ============================================================================
@@ -194,19 +232,19 @@
    ============================================================================ */
 
 .bench-suite {
-    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 20px;
     transition: border-color 0.2s ease;
 }
 
 .bench-suite--running {
-    border-color: var(--mtrl-sys-color-primary, #667eea);
+    border-color: var(--accent);
 }
 
 .bench-suite--done {
-    border-color: var(--mtrl-sys-color-outline-variant, #333);
+    border-color: var(--border-hover);
 }
 
 .bench-suite__header {
@@ -224,7 +262,7 @@
 .bench-suite__name {
     font-size: 18px;
     font-weight: 600;
-    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    color: var(--text);
     margin: 0;
 }
 
@@ -232,17 +270,17 @@
     margin-left: auto;
     padding: 4px 12px;
     border-radius: 6px;
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+    border: 1px solid var(--border);
     background: transparent;
-    color: var(--mtrl-sys-color-on-surface-variant, #999);
+    color: var(--text-muted);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .bench-suite__run-btn:hover {
-    border-color: var(--mtrl-sys-color-primary, #667eea);
-    color: var(--mtrl-sys-color-primary, #667eea);
+    border-color: var(--accent);
+    color: var(--accent-text);
 }
 
 .bench-suite__run-btn:disabled {
@@ -252,7 +290,7 @@
 
 .bench-suite__desc {
     font-size: 13px;
-    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    color: var(--text-dim);
     margin: 0 0 16px;
     line-height: 1.5;
 }
@@ -260,13 +298,13 @@
 .bench-suite__status {
     font-size: 12px;
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    color: var(--mtrl-sys-color-on-surface-variant, #666);
+    color: var(--text-dim);
     margin: 0 0 12px;
     min-height: 18px;
 }
 
 .bench-suite__status--running {
-    color: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--accent-text);
 }
 
 /* ============================================================================
@@ -283,21 +321,21 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    background: var(--mtrl-sys-color-surface, #111);
+    background: var(--bg);
     border-radius: 8px;
     min-height: 38px;
 }
 
 .bench-metric__label {
     font-size: 13px;
-    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    color: var(--text-muted);
 }
 
 .bench-metric__value {
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
     font-size: 15px;
     font-weight: 600;
-    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    color: var(--text);
     display: flex;
     align-items: baseline;
     gap: 4px;
@@ -306,7 +344,7 @@
 .bench-metric__unit {
     font-size: 11px;
     font-weight: 400;
-    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    color: var(--text-dim);
 }
 
 /* Rating colors */
@@ -328,7 +366,7 @@
 }
 
 .bench-metric--empty .bench-metric__value {
-    color: var(--mtrl-sys-color-on-surface-variant, #555);
+    color: var(--text-dim);
     font-size: 13px;
     font-weight: 400;
 }
@@ -359,7 +397,7 @@
     border-radius: 6px;
     border: 1px solid transparent;
     background: transparent;
-    color: var(--mtrl-sys-color-on-surface-variant, #666);
+    color: var(--text-dim);
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
     font-size: 11px;
     font-weight: 500;
@@ -368,13 +406,13 @@
 }
 
 .bench-tab:hover {
-    color: var(--mtrl-sys-color-on-surface, #ccc);
+    color: var(--text-muted);
 }
 
 .bench-tab--active {
-    border-color: var(--mtrl-sys-color-outline-variant, #444);
-    background: var(--mtrl-sys-color-surface, #111);
-    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    border-color: var(--border-hover);
+    background: var(--bg);
+    color: var(--text);
 }
 
 .bench-tab--done {
@@ -382,7 +420,7 @@
 }
 
 .bench-tab--running {
-    color: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--accent-text);
 }
 
 /* ============================================================================
@@ -390,8 +428,8 @@
    ============================================================================ */
 
 .bench-bundle {
-    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 40px;
@@ -400,13 +438,13 @@
 .bench-bundle__title {
     font-size: 20px;
     font-weight: 600;
-    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    color: var(--text);
     margin: 0 0 4px;
 }
 
 .bench-bundle__desc {
     font-size: 13px;
-    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    color: var(--text-dim);
     margin: 0 0 20px;
 }
 
@@ -423,8 +461,8 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--mtrl-sys-color-on-surface-variant, #777);
-    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
 }
 
 .bench-bundle__table th:not(:first-child) {
@@ -433,8 +471,8 @@
 
 .bench-bundle__table td {
     padding: 10px 16px;
-    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #1f1f1f);
-    color: var(--mtrl-sys-color-on-surface, #ccc);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
 }
 
 .bench-bundle__table td:not(:first-child) {
@@ -457,13 +495,13 @@
 }
 
 .bench-bundle__table .bench-bundle__lib--self {
-    color: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--accent-text);
     font-weight: 600;
 }
 
 .bench-bundle__note {
     font-size: 12px;
-    color: var(--mtrl-sys-color-on-surface-variant, #555);
+    color: var(--text-dim);
     margin: 14px 0 0;
     font-style: italic;
 }
@@ -473,8 +511,8 @@
    ============================================================================ */
 
 .bench-features {
-    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 40px;
@@ -483,13 +521,13 @@
 .bench-features__title {
     font-size: 20px;
     font-weight: 600;
-    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    color: var(--text);
     margin: 0 0 4px;
 }
 
 .bench-features__desc {
     font-size: 13px;
-    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    color: var(--text-dim);
     margin: 0 0 20px;
 }
 
@@ -506,8 +544,8 @@
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--mtrl-sys-color-on-surface-variant, #777);
-    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
 }
 
 .bench-features__table th:not(:first-child) {
@@ -516,8 +554,8 @@
 
 .bench-features__table td {
     padding: 10px 16px;
-    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #1f1f1f);
-    color: var(--mtrl-sys-color-on-surface, #ccc);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
 }
 
 .bench-features__table td:not(:first-child) {
@@ -542,8 +580,8 @@
     height: 350px;
     border-radius: 8px;
     overflow: hidden;
-    background: var(--mtrl-sys-color-surface, #111);
-    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    background: var(--bg);
+    border: 1px solid var(--border);
     margin-top: 12px;
     position: relative;
     display: none;
@@ -560,14 +598,23 @@
     overflow: hidden;
 }
 
+/* Benchmark item rendered inside vlist */
+.bench-item {
+    padding: 0 var(--vlist-item-padding-x);
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 14px;
+    color: var(--vlist-text);
+    line-height: 1;
+}
+
 .bench-viewport__label {
     position: absolute;
     top: 8px;
     right: 8px;
     font-size: 10px;
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    color: var(--mtrl-sys-color-on-surface-variant, #555);
-    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
+    color: var(--text-dim);
+    background: var(--bg-card);
     padding: 2px 8px;
     border-radius: 4px;
     z-index: 1;
@@ -582,7 +629,7 @@
 .bench-progress {
     width: 100%;
     height: 3px;
-    background: var(--mtrl-sys-color-surface, #111);
+    background: var(--bg);
     border-radius: 2px;
     overflow: hidden;
     margin-bottom: 24px;
@@ -597,7 +644,7 @@
 .bench-progress__bar {
     height: 100%;
     width: 0%;
-    background: var(--mtrl-sys-color-primary, #667eea);
+    background: var(--accent);
     border-radius: 2px;
     transition: width 0.3s ease;
 }
@@ -609,26 +656,83 @@
 .bench-footer {
     text-align: center;
     padding: 24px 0;
-    color: var(--mtrl-sys-color-on-surface-variant, #555);
+    color: var(--text-dim);
     font-size: 13px;
 }
 
 .bench-footer a {
-    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    color: var(--text-muted);
     text-decoration: none;
 }
 
 .bench-footer a:hover {
-    color: var(--mtrl-sys-color-on-surface, #ccc);
+    color: var(--text);
+}
+
+/* ============================================================================
+   Theme Transition
+   ============================================================================ */
+
+html[data-theme] .bench-page,
+html[data-theme] .bench-controls,
+html[data-theme] .bench-suite,
+html[data-theme] .bench-metric,
+html[data-theme] .bench-bundle,
+html[data-theme] .bench-features,
+html[data-theme] .bench-viewport,
+html[data-theme] .vlist,
+html[data-theme] .vlist-item,
+html[data-theme] .vlist-grid-item,
+html[data-theme] .vlist-viewport,
+html[data-theme] .bench-item {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
 }
 
 /* ============================================================================
    Responsive
    ============================================================================ */
 
-@media (max-width: 640px) {
+/* ─── Large screens ──────────────────────────────────────────────── */
+
+@media (min-width: 1200px) {
     .bench-page {
-        padding: 24px 16px 60px;
+        max-width: 880px;
+    }
+}
+
+/* ─── Tablet ─────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+    .bench-page {
+        padding: 32px 28px 60px;
+    }
+
+    .bench-header__title {
+        font-size: 32px;
+    }
+
+    .bench-header__desc {
+        font-size: 15px;
+    }
+
+    .bench-suite__name {
+        font-size: 16px;
+    }
+
+    .bench-bundle__title,
+    .bench-features__title {
+        font-size: 18px;
+    }
+}
+
+/* ─── Mobile ─────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+    .bench-page {
+        padding: 24px 20px 60px;
     }
 
     .bench-header__title {

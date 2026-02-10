@@ -96,7 +96,7 @@ body {
 }
 
 .header__logo {
-    font-size: 22px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text);
     text-decoration: none;
@@ -110,7 +110,7 @@ body {
 .header__sep {
     color: var(--text-dim);
     font-weight: 300;
-    font-size: 24px;
+    font-size: 16px;
     user-select: none;
 }
 
