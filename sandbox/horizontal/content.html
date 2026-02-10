@@ -1,0 +1,32 @@
+<div class="container">
+    <header>
+        <h1>Horizontal Scrolling</h1>
+        <p class="description">
+            A horizontal virtual list rendering 10,000 cards with
+            <code>wheelScroll: false</code> — mouse wheel disabled,
+            scrollbar hidden. Navigate using the buttons below or
+            trackpad swipe. Only visible items are in the DOM.
+        </p>
+    </header>
+
+    <div class="stats" id="stats">Loading...</div>
+
+    <div id="list-container"></div>
+
+    <div class="controls">
+        <button id="btn-start">⏮ Start</button>
+        <button id="btn-center">⏺ Center (5000)</button>
+        <button id="btn-end">⏭ End</button>
+        <button id="btn-smooth">🎞 Smooth Scroll</button>
+    </div>
+
+    <footer>
+        <p>
+            Uses <code>direction: 'horizontal'</code> with
+            <code>item.width</code> instead of <code>item.height</code>.
+            <code>wheelScroll: false</code> disables the mouse wheel and
+            <code>scrollbar: { enabled: false }</code> hides the
+            scrollbar — navigation is button-only. ✨
+        </p>
+    </footer>
+</div>

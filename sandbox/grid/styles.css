@@ -6,7 +6,7 @@
     padding: 0;
 }
 
-body {
+.sb-main {
     font-family:
         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
         sans-serif;
@@ -212,7 +212,7 @@ footer code {
    ========================================================================== */
 
 @media (prefers-color-scheme: dark) {
-    body {
+    .sb-main {
         background: #0a0f1a;
     }
 

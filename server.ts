@@ -3,7 +3,9 @@
 //
 // Serves:
 //   /api/*                        → API routes (users, etc.)
-//   /sandbox/*                    → Interactive sandbox examples
+//   /sandbox/                     → Sandbox overview (server-rendered)
+//   /sandbox/<slug>               → Sandbox example (server-rendered)
+//   /sandbox/<slug>/*             → Sandbox static assets (JS, CSS bundles)
 //   /docs/*                       → Documentation (markdown files)
 //   /dist/*                       → vlist library assets (CSS, JS)
 //   /node_modules/mtrl/*          → mtrl library assets
@@ -11,6 +13,7 @@
 //   /                             → Landing page
 
 import { routeApi } from "./src/api/router";
+import { renderSandboxPage } from "./sandbox/renderer";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
 import { join, extname, resolve } from "path";
 
@@ -149,13 +152,14 @@ const serveFromPackage = (
  *
  * Priority:
  *   1. /api/*                       → API router
- *   2. /dist/*                      → vlist package dist/
- *   3. /node_modules/mtrl/*         → mtrl package root
- *   4. /node_modules/mtrl-addons/*  → mtrl-addons package root
- *   5. /docs/*.md                   → raw markdown (for client fetch)
- *   6. /docs/*                      → docs shell (index.html renders md)
- *   7. /sandbox/*                   → local sandbox/
- *   8. /*                           → local root (landing page, etc.)
+ *   2. /sandbox/ or /sandbox/<slug> → Server-rendered sandbox pages
+ *   3. /dist/*                      → vlist package dist/
+ *   4. /node_modules/mtrl/*         → mtrl package root
+ *   5. /node_modules/mtrl-addons/*  → mtrl-addons package root
+ *   6. /docs/*.md                   → raw markdown (for client fetch)
+ *   7. /docs/*                      → docs shell (index.html renders md)
+ *   8. /sandbox/<slug>/*            → sandbox static assets (JS, CSS)
+ *   9. /*                           → local root (landing page, etc.)
  */
 const DOCS_SHELL = join(ROOT, "docs", "index.html");
 
@@ -198,6 +202,36 @@ const resolveStatic = (pathname: string): Response | null => {
 };
 
 // =============================================================================
+// Sandbox Routing
+// =============================================================================
+
+/**
+ * Match sandbox routes and render pages server-side.
+ *
+ * - /sandbox or /sandbox/         → overview page
+ * - /sandbox/<slug>               → example page (server-rendered with shell)
+ * - /sandbox/<slug>/              → same (trailing slash)
+ * - /sandbox/<slug>/dist/*        → falls through (static assets)
+ */
+const resolveSandbox = (pathname: string): Response | null => {
+  // Overview: /sandbox or /sandbox/
+  if (pathname === "/sandbox" || pathname === "/sandbox/") {
+    return renderSandboxPage(null);
+  }
+
+  // Example page: /sandbox/<slug> or /sandbox/<slug>/
+  const match = pathname.match(/^\/sandbox\/([a-z0-9-]+)\/?$/);
+  if (match) {
+    const slug = match[1];
+    const rendered = renderSandboxPage(slug);
+    if (rendered) return rendered;
+    // Unknown slug — fall through to static file serving
+  }
+
+  return null;
+};
+
+// =============================================================================
 // Request Handler
 // =============================================================================
 
@@ -209,11 +243,15 @@ const handleRequest = async (req: Request): Promise<Response> => {
   const apiResponse = await routeApi(req);
   if (apiResponse) return apiResponse;
 
-  // 2. Static files (with package resolution)
+  // 2. Sandbox pages (server-rendered)
+  const sandboxResponse = resolveSandbox(pathname);
+  if (sandboxResponse) return sandboxResponse;
+
+  // 3. Static files (with package resolution)
   const staticResponse = resolveStatic(pathname);
   if (staticResponse) return staticResponse;
 
-  // 3. 404
+  // 4. 404
   return new Response("Not Found", { status: 404 });
 };
 

@@ -1,0 +1,37 @@
+<div class="container">
+    <header>
+        <h1>Variable Heights</h1>
+        <p class="description">
+            Chat-style message feed where each item's pixel height is
+            measured from the DOM at init time using
+            <code>height: (index) =&gt; number</code>. Each unique
+            template is rendered into a hidden element, measured once,
+            and the result is cached — accurate to the pixel.
+        </p>
+    </header>
+
+    <div class="stats" id="stats">Loading...</div>
+
+    <div class="controls">
+        <button id="jump-top" class="control-btn">⬆ Top</button>
+        <button id="jump-middle" class="control-btn">◆ Middle</button>
+        <button id="jump-bottom" class="control-btn">⬇ Bottom</button>
+        <button id="jump-random-header" class="control-btn">
+            🎲 Random Header
+        </button>
+    </div>
+
+    <div id="list-container"></div>
+
+    <div class="height-distribution" id="height-distribution"></div>
+
+    <footer>
+        <p>
+            Heights are measured once from the actual DOM at init
+            (unique templates only — ~40 measurements for 5,000 items).
+            The prefix-sum cache then enables O(1) offset lookups and
+            O(log&nbsp;n) scroll-position-to-index resolution — no
+            per-frame measurement needed. ⚡
+        </p>
+    </footer>
+</div>

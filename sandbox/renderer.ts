@@ -1,0 +1,334 @@
+// sandbox/renderer.ts
+// Server-side renderer for sandbox pages.
+// Assembles shell template + sidebar + example content into full HTML pages.
+
+import { readFileSync, existsSync } from "fs";
+import { join, resolve } from "path";
+
+// =============================================================================
+// Example Configuration
+// =============================================================================
+
+export interface ExampleItem {
+  slug: string;
+  name: string;
+  desc: string;
+  mtrl?: boolean;
+}
+
+export interface ExampleGroup {
+  label: string;
+  items: ExampleItem[];
+}
+
+export const EXAMPLE_GROUPS: ExampleGroup[] = [
+  {
+    label: "Core",
+    items: [
+      {
+        slug: "basic",
+        name: "Basic",
+        desc: "Pure vanilla JS — 10K items, no dependencies",
+      },
+      {
+        slug: "core",
+        name: "Core (7KB)",
+        desc: "Lightweight build — 83% smaller, same result",
+      },
+    ],
+  },
+  {
+    label: "Layouts",
+    items: [
+      {
+        slug: "grid",
+        name: "Grid",
+        desc: "Virtualized photo gallery with real images",
+      },
+      {
+        slug: "horizontal",
+        name: "Horizontal",
+        desc: "Horizontal carousel with 10K cards",
+      },
+      {
+        slug: "window-scroll",
+        name: "Window Scroll",
+        desc: "Document-level scrolling — no inner scrollbar",
+      },
+    ],
+  },
+  {
+    label: "Data",
+    items: [
+      {
+        slug: "variable-heights",
+        name: "Variable Heights",
+        desc: "Chat feed with DOM-measured item heights",
+      },
+      {
+        slug: "infinite-scroll",
+        name: "Infinite Scroll",
+        desc: "Async loading with simulated API calls",
+        mtrl: true,
+      },
+      {
+        slug: "million-items",
+        name: "Million Items",
+        desc: "1–5M items with compression and FPS monitoring",
+        mtrl: true,
+      },
+    ],
+  },
+  {
+    label: "Patterns",
+    items: [
+      {
+        slug: "selection",
+        name: "Selection",
+        desc: "Single & multi-select with keyboard navigation",
+        mtrl: true,
+      },
+      {
+        slug: "reverse-chat",
+        name: "Reverse Chat",
+        desc: "Chat UI — reverse mode, prepend history, auto-scroll",
+      },
+      {
+        slug: "sticky-headers",
+        name: "Sticky Headers",
+        desc: "A–Z contact list with sticky section headers",
+      },
+      {
+        slug: "scroll-restore",
+        name: "Scroll Restore",
+        desc: "Save & restore scroll position across navigations",
+      },
+    ],
+  },
+  {
+    label: "Advanced",
+    items: [
+      {
+        slug: "velocity-loading",
+        name: "Velocity Loading",
+        desc: "Smart loading — skips when scrolling fast",
+        mtrl: true,
+      },
+      {
+        slug: "wizard-nav",
+        name: "Wizard Nav",
+        desc: "Button-only navigation, wheel disabled",
+      },
+    ],
+  },
+];
+
+// Flat lookup for quick access
+const ALL_EXAMPLES: Map<string, ExampleItem> = new Map();
+for (const group of EXAMPLE_GROUPS) {
+  for (const item of group.items) {
+    ALL_EXAMPLES.set(item.slug, item);
+  }
+}
+
+// =============================================================================
+// Paths
+// =============================================================================
+
+const SANDBOX_DIR = resolve("./sandbox");
+const SHELL_PATH = join(SANDBOX_DIR, "shell.html");
+
+// =============================================================================
+// Template Loading
+// =============================================================================
+
+let shellCache: string | null = null;
+
+function loadShell(): string {
+  if (!shellCache) {
+    shellCache = readFileSync(SHELL_PATH, "utf-8");
+  }
+  return shellCache;
+}
+
+/** Clear the cached template (call when files change in dev) */
+export function clearCache(): void {
+  shellCache = null;
+}
+
+// =============================================================================
+// Sidebar Generation
+// =============================================================================
+
+function buildSidebar(activeSlug: string | null): string {
+  const lines: string[] = [];
+
+  // Overview link
+  const overviewActive = activeSlug === null ? " sb-sidebar__link--active" : "";
+  lines.push(`<div class="sb-sidebar__group">`);
+  lines.push(
+    `  <a href="/sandbox/" class="sb-sidebar__link${overviewActive}">Overview</a>`,
+  );
+  lines.push(`</div>`);
+
+  for (const group of EXAMPLE_GROUPS) {
+    lines.push(`<div class="sb-sidebar__group">`);
+    lines.push(`  <div class="sb-sidebar__label">${group.label}</div>`);
+    for (const item of group.items) {
+      const active =
+        item.slug === activeSlug ? " sb-sidebar__link--active" : "";
+      lines.push(
+        `  <a href="/sandbox/${item.slug}" class="sb-sidebar__link${active}">${item.name}</a>`,
+      );
+    }
+    lines.push(`</div>`);
+  }
+
+  return lines.join("\n");
+}
+
+// =============================================================================
+// Overview Content Generation
+// =============================================================================
+
+function buildOverviewContent(): string {
+  const sections: string[] = [];
+
+  sections.push(`<div class="sb-overview">`);
+  sections.push(`  <h1 class="sb-overview__title">Sandbox</h1>`);
+  sections.push(
+    `  <p class="sb-overview__tagline">Interactive examples exploring every vlist feature — from basic lists to million-item stress tests.</p>`,
+  );
+
+  for (const group of EXAMPLE_GROUPS) {
+    sections.push(`  <div class="sb-overview__section">`);
+    sections.push(
+      `    <div class="sb-overview__section-title">${group.label}</div>`,
+    );
+    sections.push(`    <div class="sb-overview__grid">`);
+    for (const item of group.items) {
+      sections.push(
+        `      <a href="/sandbox/${item.slug}" class="sb-overview__card">`,
+      );
+      sections.push(
+        `        <div class="sb-overview__card-title">${item.name}</div>`,
+      );
+      sections.push(
+        `        <div class="sb-overview__card-desc">${item.desc}</div>`,
+      );
+      sections.push(`      </a>`);
+    }
+    sections.push(`    </div>`);
+    sections.push(`  </div>`);
+  }
+
+  sections.push(`</div>`);
+  return sections.join("\n");
+}
+
+// =============================================================================
+// Style & Script Tag Generation
+// =============================================================================
+
+function buildExtraHead(
+  slug: string | null,
+  example: ExampleItem | null,
+): string {
+  if (!slug || !example) return "";
+
+  const tags: string[] = [];
+
+  // mtrl styles (for examples that use mtrl/mtrl-addons)
+  if (example.mtrl) {
+    tags.push(
+      `<link rel="stylesheet" href="/node_modules/mtrl/dist/styles.css" />`,
+    );
+  }
+
+  // vlist styles — always needed for examples
+  tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
+
+  // Example-specific styles
+  tags.push(
+    `<link rel="stylesheet" href="/sandbox/${slug}/dist/styles.css" />`,
+  );
+
+  return tags.join("\n    ");
+}
+
+function buildExtraBody(
+  slug: string | null,
+  example: ExampleItem | null,
+): string {
+  if (!slug || !example) return "";
+
+  return `<script type="module" src="/sandbox/${slug}/dist/script.js"></script>`;
+}
+
+// =============================================================================
+// Page Assembly
+// =============================================================================
+
+function assemblePage(
+  slug: string | null,
+  example: ExampleItem | null,
+  content: string,
+): string {
+  const shell = loadShell();
+
+  const title = example ? `vlist — ${example.name}` : "vlist — Sandbox";
+
+  const description = example
+    ? `vlist ${example.name.toLowerCase()} example — ${example.desc}`
+    : "Interactive examples for the vlist virtual list library — from basic lists to million-item stress tests.";
+
+  const sidebar = buildSidebar(slug);
+  const extraHead = buildExtraHead(slug, example);
+  const extraBody = buildExtraBody(slug, example);
+  const mainClass = example?.mtrl ? " mtrl-app" : "";
+
+  return shell
+    .replace("{{TITLE}}", title)
+    .replace("{{DESCRIPTION}}", description)
+    .replace("{{SIDEBAR}}", sidebar)
+    .replace("{{CONTENT}}", content)
+    .replace("{{EXTRA_HEAD}}", extraHead)
+    .replace("{{EXTRA_BODY}}", extraBody)
+    .replace("{{MAIN_CLASS}}", mainClass);
+}
+
+// =============================================================================
+// Public API
+// =============================================================================
+
+/**
+ * Render a sandbox page.
+ *
+ * @param slug - Example slug (e.g. "basic", "grid") or null for the overview.
+ * @returns A Response with the full HTML page, or null if the example doesn't exist.
+ */
+export function renderSandboxPage(slug: string | null): Response | null {
+  // Overview page
+  if (slug === null) {
+    const content = buildOverviewContent();
+    const html = assemblePage(null, null, content);
+    return new Response(html, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+
+  // Example page — check it exists in our config
+  const example = ALL_EXAMPLES.get(slug);
+  if (!example) return null;
+
+  // Load content.html
+  const contentPath = join(SANDBOX_DIR, slug, "content.html");
+  if (!existsSync(contentPath)) return null;
+
+  const content = readFileSync(contentPath, "utf-8");
+  const html = assemblePage(slug, example, content);
+
+  return new Response(html, {
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
