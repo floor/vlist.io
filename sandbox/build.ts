@@ -2,6 +2,7 @@
 import {
   readdirSync,
   existsSync,
+  mkdirSync,
   readFileSync,
   writeFileSync,
   watch,
@@ -171,10 +172,28 @@ function printSizeTable(results: BuildResult[]): void {
   );
 }
 
+function buildSharedCss(): void {
+  const cssPath = join(SANDBOX_DIR, "sandbox.css");
+  const outdir = join(SANDBOX_DIR, "dist");
+
+  if (!existsSync(cssPath)) return;
+
+  if (!existsSync(outdir)) mkdirSync(outdir, { recursive: true });
+
+  const raw = readFileSync(cssPath, "utf-8");
+  const minified = minifyCss(raw);
+  writeFileSync(join(outdir, "sandbox.css"), minified);
+  const size = Buffer.byteLength(minified, "utf-8");
+  console.log(`✅ ${"sandbox.css".padEnd(20)}          ${formatKB(size)} KB\n`);
+}
+
 async function main() {
   const totalStart = performance.now();
 
   console.log("🔨 Building sandbox...\n");
+
+  // Build shared CSS first
+  buildSharedCss();
 
   // Discover all examples
   const examples = await discoverExamples();
@@ -218,6 +237,14 @@ async function watchMode() {
 
   // Initial build
   await main();
+
+  // Watch shared sandbox.css
+  watch(SANDBOX_DIR, { recursive: false }, async (_event, filename) => {
+    if (filename === "sandbox.css") {
+      console.log(`\n📝 sandbox.css changed`);
+      buildSharedCss();
+    }
+  });
 
   // Watch each sandbox directory
   const examples = await discoverExamples();

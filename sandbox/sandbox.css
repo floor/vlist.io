@@ -1,0 +1,295 @@
+/* sandbox/sandbox.css — Shared styles for all sandbox examples
+   Uses shell.css design tokens for light/dark theme support */
+
+/* ============================================================================
+   VList Theme Overrides
+   vlist.css uses @media (prefers-color-scheme) and .dark class,
+   but the website uses [data-theme] on <html>. Bridge the two systems.
+   ============================================================================ */
+
+[data-theme="light"] {
+    --vlist-bg: #ffffff;
+    --vlist-bg-hover: #f9fafb;
+    --vlist-bg-selected: #eff6ff;
+    --vlist-bg-selected-hover: #dbeafe;
+    --vlist-border: #e5e7eb;
+    --vlist-border-selected: #3b82f6;
+    --vlist-text: #111827;
+    --vlist-text-muted: #6b7280;
+    --vlist-scrollbar-thumb: #d1d5db;
+    --vlist-scrollbar-thumb-hover: #9ca3af;
+    --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);
+    --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5);
+    --vlist-group-header-bg: #f3f4f6;
+}
+
+[data-theme="dark"] {
+    --vlist-bg: #111827;
+    --vlist-bg-hover: #1f2937;
+    --vlist-bg-selected: rgba(59, 130, 246, 0.2);
+    --vlist-bg-selected-hover: rgba(59, 130, 246, 0.3);
+    --vlist-border: #374151;
+    --vlist-border-selected: #3b82f6;
+    --vlist-text: #f9fafb;
+    --vlist-text-muted: #9ca3af;
+    --vlist-scrollbar-thumb: #4b5563;
+    --vlist-scrollbar-thumb-hover: #6b7280;
+    --vlist-scrollbar-custom-thumb-bg: rgba(255, 255, 255, 0.3);
+    --vlist-scrollbar-custom-thumb-hover-bg: rgba(255, 255, 255, 0.5);
+    --vlist-group-header-bg: #1e2433;
+}
+
+/* ============================================================================
+   Container — centered content column (matches overview pattern)
+   ============================================================================ */
+
+.container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 36px 80px;
+}
+
+.container--wide {
+    max-width: 960px;
+}
+
+/* ============================================================================
+   Page Header
+   ============================================================================ */
+
+.container header {
+    margin-bottom: 24px;
+}
+
+.container h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    margin: 0 0 8px;
+}
+
+.container .description {
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.container .description a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 2px;
+}
+
+.container .description a:hover {
+    text-decoration-color: var(--accent-text);
+}
+
+.container .description code {
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text-muted);
+}
+
+/* ============================================================================
+   Stats Bar
+   ============================================================================ */
+
+.stats {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* ============================================================================
+   Controls
+   ============================================================================ */
+
+.controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.controls select {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.controls select:focus {
+    border-color: var(--accent);
+}
+
+.controls button {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.controls button:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+}
+
+.controls button:active {
+    background: var(--border);
+}
+
+/* ============================================================================
+   List Containers — common wrapper for vlist instances
+   ============================================================================ */
+
+[id$="-container"] {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.container footer {
+    margin-top: 24px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.container footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.container footer a:hover {
+    color: var(--text);
+}
+
+.container footer code {
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 13px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text-muted);
+}
+
+/* ============================================================================
+   Theme Transitions
+   ============================================================================ */
+
+html[data-theme] .container,
+html[data-theme] .stats,
+html[data-theme] .controls button,
+html[data-theme] .controls select,
+html[data-theme] [id$="-container"],
+html[data-theme] .vlist,
+html[data-theme] .vlist-item,
+html[data-theme] .vlist-grid-item,
+html[data-theme] .vlist-viewport {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+/* ============================================================================
+   Responsive: large screens
+   ============================================================================ */
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 880px;
+    }
+
+    .container--wide {
+        max-width: 1060px;
+    }
+}
+
+/* ============================================================================
+   Responsive: tablet
+   ============================================================================ */
+
+@media (max-width: 900px) {
+    .container {
+        padding: 32px 28px 60px;
+    }
+
+    .container h1 {
+        font-size: 28px;
+    }
+
+    .container .description {
+        font-size: 15px;
+    }
+}
+
+/* ============================================================================
+   Responsive: mobile
+   ============================================================================ */
+
+@media (max-width: 720px) {
+    .container {
+        padding: 24px 20px 60px;
+    }
+
+    .container h1 {
+        font-size: 24px;
+    }
+
+    .container .description {
+        font-size: 14px;
+    }
+
+    .stats {
+        gap: 16px;
+        font-size: 13px;
+        padding: 10px 16px;
+    }
+
+    .controls {
+        flex-direction: column;
+    }
+}
