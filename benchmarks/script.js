@@ -1,7 +1,8 @@
 // benchmarks/script.js — Benchmark Dashboard
 //
-// Main entry point: builds the UI, wires up controls, and orchestrates
-// benchmark execution via the runner engine.
+// Page-aware entry point: reads `data-page` from the #content element
+// and builds the appropriate UI. The shell (header, sidebar) is
+// server-rendered; this script handles the interactive content area.
 
 // Import suites (side-effect: each calls defineSuite())
 import "./suites/render.js";
@@ -10,7 +11,12 @@ import "./suites/memory.js";
 import "./suites/scrollto.js";
 
 // Import runner
-import { getSuites, runBenchmarks, formatItemCount } from "./runner.js";
+import {
+  getSuites,
+  getSuite,
+  runBenchmarks,
+  formatItemCount,
+} from "./runner.js";
 
 // =============================================================================
 // Constants
@@ -103,7 +109,7 @@ const FEATURE_LIBS = [
 ];
 
 // =============================================================================
-// State
+// Shared State
 // =============================================================================
 
 let selectedItemCounts = [ITEM_COUNTS[DEFAULT_ITEM_COUNT_INDEX]];
@@ -113,7 +119,7 @@ let abortController = null;
 // results[suiteId][itemCount] = BenchmarkResult
 const results = {};
 
-// DOM references (populated by buildUI)
+// DOM references (populated by build* functions)
 const dom = {
   runBtn: null,
   statusEl: null,
@@ -125,22 +131,37 @@ const dom = {
 };
 
 // =============================================================================
-// UI Building
+// Page Router
 // =============================================================================
 
-const buildUI = (root) => {
-  const suites = getSuites();
+const root = document.getElementById("content");
+if (root) {
+  const page = root.dataset.page || "overview";
 
+  if (page === "bundle") {
+    buildBundlePage(root);
+  } else if (page === "features") {
+    buildFeaturesPage(root);
+  } else {
+    // Suite page (render, scroll, memory, scrollto)
+    const suite = getSuite(page);
+    if (suite) {
+      buildSuitePage(root, suite);
+    }
+  }
+}
+
+// =============================================================================
+// Suite Page
+// =============================================================================
+
+function buildSuitePage(root, suite) {
   root.innerHTML = `
     <div class="bench-page">
       <!-- Header -->
       <header class="bench-header">
-        <h1 class="bench-header__title">Benchmarks</h1>
-        <p class="bench-header__desc">
-          Live performance measurements running in your browser.
-          Each benchmark creates a real vlist instance, scrolls it programmatically,
-          and measures actual frame times, render latency, and memory usage.
-        </p>
+        <h1 class="bench-header__title">${suite.icon} ${escapeHtml(suite.name)}</h1>
+        <p class="bench-header__desc">${escapeHtml(suite.description)}</p>
         <div class="bench-header__meta">
           <span class="bench-tag bench-tag--accent">vlist ${getVlistVersion()}</span>
           <span class="bench-tag">${navigator.userAgent.includes("Chrome") ? "Chrome — full metrics" : "⚠️ Use Chrome for memory metrics"}</span>
@@ -153,7 +174,7 @@ const buildUI = (root) => {
         <span class="bench-controls__label">Items</span>
         <div class="bench-controls__sizes" id="bench-sizes"></div>
         <div class="bench-controls__sep"></div>
-        <button class="bench-run-btn" id="bench-run">▶ Run All</button>
+        <button class="bench-run-btn" id="bench-run">▶ Run</button>
         <span class="bench-status" id="bench-status">Ready</span>
       </div>
 
@@ -162,14 +183,8 @@ const buildUI = (root) => {
         <div class="bench-progress__bar" id="bench-progress-bar"></div>
       </div>
 
-      <!-- Suite Cards -->
+      <!-- Suite Card -->
       <div class="bench-suites" id="bench-suites"></div>
-
-      <!-- Bundle Size Comparison -->
-      <div class="bench-bundle" id="bench-bundle"></div>
-
-      <!-- Feature Comparison -->
-      <div class="bench-features" id="bench-features"></div>
 
       <!-- Footer -->
       <footer class="bench-footer">
@@ -184,8 +199,6 @@ const buildUI = (root) => {
         </p>
       </footer>
     </div>
-
-
   `;
 
   // Cache DOM refs
@@ -198,18 +211,93 @@ const buildUI = (root) => {
   // Build size buttons
   buildSizeButtons(root.querySelector("#bench-sizes"));
 
-  // Build suite cards
-  buildSuiteCards(root.querySelector("#bench-suites"), suites);
-
-  // Build bundle comparison
-  buildBundleTable(root.querySelector("#bench-bundle"));
-
-  // Build feature comparison
-  buildFeatureTable(root.querySelector("#bench-features"));
+  // Build suite card (single)
+  buildSuiteCards(root.querySelector("#bench-suites"), [suite]);
 
   // Wire up run button
-  dom.runBtn.addEventListener("click", handleRunClick);
-};
+  dom.runBtn.addEventListener("click", () => handleSuiteRunClick(suite.id));
+}
+
+// =============================================================================
+// Bundle Page
+// =============================================================================
+
+function buildBundlePage(root) {
+  const rows = BUNDLE_DATA.map((row) => {
+    const libClass = row.self
+      ? "bench-bundle__lib bench-bundle__lib--self"
+      : "bench-bundle__lib";
+    const gzipClass = row.self ? "bench-bundle__highlight" : "";
+
+    return `
+      <tr>
+        <td class="${libClass}">${escapeHtml(row.lib)}</td>
+        <td>${row.min} KB</td>
+        <td class="${gzipClass}">${row.gzip} KB</td>
+        <td>${row.deps}</td>
+        <td style="font-size:12px;color:var(--mtrl-sys-color-on-surface-variant,#666);font-family:inherit;">${escapeHtml(row.note)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  root.innerHTML = `
+    <div class="bench-page">
+      <div class="bench-bundle">
+        <h2 class="bench-bundle__title">📦 Bundle Size</h2>
+        <p class="bench-bundle__desc">Minified and gzipped sizes — smaller is better for load time.</p>
+        <table class="bench-bundle__table">
+          <thead>
+            <tr>
+              <th>Library</th>
+              <th>Minified</th>
+              <th>Gzipped</th>
+              <th>Deps</th>
+              <th style="text-align:left;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <p class="bench-bundle__note">
+          Sizes measured via local build (Bun) and verified with bundlephobia.com where available.
+          vlist/core is the lightweight entry point for simple lists. The full bundle includes all features.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================================================
+// Features Page
+// =============================================================================
+
+function buildFeaturesPage(root) {
+  const headerCells = FEATURE_LIBS.map(
+    (lib) => `<th>${escapeHtml(lib)}</th>`,
+  ).join("");
+
+  const rows = FEATURE_DATA.map(([feature, ...values]) => {
+    const cells = values.map((v) => `<td>${v}</td>`).join("");
+    return `<tr><td>${escapeHtml(feature)}</td>${cells}</tr>`;
+  }).join("");
+
+  root.innerHTML = `
+    <div class="bench-page">
+      <div class="bench-features">
+        <h2 class="bench-features__title">⚖️ Feature Comparison</h2>
+        <p class="bench-features__desc">Feature coverage across popular virtual list libraries.</p>
+        <table class="bench-features__table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              ${headerCells}
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
 
 // =============================================================================
 // Size Buttons
@@ -284,14 +372,13 @@ const buildSuiteCards = (container, suites) => {
       <div class="bench-suite__header">
         <span class="bench-suite__icon">${suite.icon}</span>
         <h3 class="bench-suite__name">${suite.name}</h3>
-        <button class="bench-suite__run-btn" data-suite="${suite.id}">Run</button>
       </div>
       <p class="bench-suite__desc">${suite.description}</p>
       <div class="bench-suite__status" id="status-${suite.id}"></div>
       <div class="bench-suite__tabs" id="tabs-${suite.id}">${tabsHtml}</div>
       <div class="bench-metrics" id="metrics-${suite.id}">
         <div class="bench-metric bench-metric--empty">
-          <span class="bench-metric__value">Click "Run All" or "Run" to benchmark</span>
+          <span class="bench-metric__value">Click "Run" to benchmark</span>
         </div>
       </div>
       <div class="bench-viewport" id="viewport-${suite.id}">
@@ -303,7 +390,6 @@ const buildSuiteCards = (container, suites) => {
     container.appendChild(card);
 
     // Cache refs
-    const runBtn = card.querySelector(".bench-suite__run-btn");
     const statusEl = card.querySelector(`#status-${suite.id}`);
     const metricsContainer = card.querySelector(`#metrics-${suite.id}`);
     const tabsContainer = card.querySelector(`#tabs-${suite.id}`);
@@ -317,14 +403,10 @@ const buildSuiteCards = (container, suites) => {
       metricsContainer,
       tabs,
       tabsContainer,
-      runBtn,
       viewport,
       viewportInner,
       activeTab: null,
     });
-
-    // Wire up individual run button
-    runBtn.addEventListener("click", () => handleSuiteRunClick(suite.id));
 
     // Wire up tabs
     tabs.forEach((tab) => {
@@ -428,94 +510,15 @@ const renderMetrics = (suiteId, itemCount) => {
 };
 
 // =============================================================================
-// Bundle Size Table
-// =============================================================================
-
-const buildBundleTable = (container) => {
-  const rows = BUNDLE_DATA.map((row) => {
-    const libClass = row.self
-      ? "bench-bundle__lib bench-bundle__lib--self"
-      : "bench-bundle__lib";
-    const gzipClass = row.self ? "bench-bundle__highlight" : "";
-
-    return `
-      <tr>
-        <td class="${libClass}">${escapeHtml(row.lib)}</td>
-        <td>${row.min} KB</td>
-        <td class="${gzipClass}">${row.gzip} KB</td>
-        <td>${row.deps}</td>
-        <td style="font-size:12px;color:var(--mtrl-sys-color-on-surface-variant,#666);font-family:inherit;">${escapeHtml(row.note)}</td>
-      </tr>
-    `;
-  }).join("");
-
-  container.innerHTML = `
-    <h2 class="bench-bundle__title">📦 Bundle Size</h2>
-    <p class="bench-bundle__desc">Minified and gzipped sizes — smaller is better for load time.</p>
-    <table class="bench-bundle__table">
-      <thead>
-        <tr>
-          <th>Library</th>
-          <th>Minified</th>
-          <th>Gzipped</th>
-          <th>Deps</th>
-          <th style="text-align:left;">Notes</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <p class="bench-bundle__note">
-      Sizes measured via local build (Bun) and verified with bundlephobia.com where available.
-      vlist/core is the lightweight entry point for simple lists. The full bundle includes all features.
-    </p>
-  `;
-};
-
-// =============================================================================
-// Feature Comparison Table
-// =============================================================================
-
-const buildFeatureTable = (container) => {
-  const headerCells = FEATURE_LIBS.map(
-    (lib) => `<th>${escapeHtml(lib)}</th>`,
-  ).join("");
-
-  const rows = FEATURE_DATA.map(([feature, ...values]) => {
-    const cells = values.map((v) => `<td>${v}</td>`).join("");
-    return `<tr><td>${escapeHtml(feature)}</td>${cells}</tr>`;
-  }).join("");
-
-  container.innerHTML = `
-    <h2 class="bench-features__title">⚖️ Feature Comparison</h2>
-    <p class="bench-features__desc">Feature coverage across popular virtual list libraries.</p>
-    <table class="bench-features__table">
-      <thead>
-        <tr>
-          <th>Feature</th>
-          ${headerCells}
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
-};
-
-// =============================================================================
 // Run Logic
 // =============================================================================
 
-const handleRunClick = () => {
+const handleSuiteRunClick = async (suiteId) => {
   if (isRunning) {
     // Stop
     abortController?.abort();
     return;
   }
-
-  runAllSuites();
-};
-
-const handleSuiteRunClick = async (suiteId) => {
-  if (isRunning) return;
 
   isRunning = true;
   abortController = new AbortController();
@@ -536,9 +539,7 @@ const handleSuiteRunClick = async (suiteId) => {
 
       onStatus: (sid, itemCount, message) => {
         updateSuiteStatus(sid, itemCount, message);
-        setGlobalStatus(
-          `${getSuites().find((s) => s.id === sid)?.icon || ""} ${formatItemCount(itemCount)} — ${message}`,
-        );
+        setGlobalStatus(`${formatItemCount(itemCount)} — ${message}`);
       },
 
       onResult: (result) => {
@@ -571,92 +572,6 @@ const handleSuiteRunClick = async (suiteId) => {
   isRunning = false;
   abortController = null;
   setRunningState(false);
-  setGlobalStatus("Done");
-  setProgress(0);
-};
-
-const runAllSuites = async () => {
-  if (isRunning) return;
-
-  isRunning = true;
-  abortController = new AbortController();
-
-  const suites = getSuites();
-  const totalSteps = suites.length * selectedItemCounts.length;
-  let completedSteps = 0;
-
-  setRunningState(true);
-
-  // Mark all suites as pending
-  for (const suite of suites) {
-    setSuiteState(suite.id, "pending");
-  }
-
-  let currentSuiteId = null;
-
-  try {
-    await runBenchmarks({
-      itemCounts: selectedItemCounts,
-      getContainer: (suiteId) => getViewportContainer(suiteId),
-      signal: abortController.signal,
-
-      onStatus: (suiteId, itemCount, message) => {
-        // Track which suite is currently running
-        if (suiteId !== currentSuiteId) {
-          if (currentSuiteId) {
-            setSuiteState(currentSuiteId, "done");
-            hideViewport(currentSuiteId);
-          }
-          currentSuiteId = suiteId;
-          setSuiteState(suiteId, "running");
-          showViewport(suiteId);
-
-          // Switch to this suite's first selected tab
-          const ref = dom.suiteCards.get(suiteId);
-          if (ref && !selectedItemCounts.includes(ref.activeTab)) {
-            setActiveTab(suiteId, selectedItemCounts[0]);
-          }
-        }
-
-        updateSuiteStatus(suiteId, itemCount, message);
-        setGlobalStatus(
-          `${getSuites().find((s) => s.id === suiteId)?.icon || ""} ${formatItemCount(itemCount)} — ${message}`,
-        );
-      },
-
-      onResult: (result) => {
-        storeResult(result);
-        completedSteps++;
-        setProgress(completedSteps / totalSteps);
-
-        // Mark tab as done
-        markTabDone(result.suiteId, result.itemCount);
-
-        // Switch to the tab that just completed and render
-        setActiveTab(result.suiteId, result.itemCount);
-      },
-
-      onComplete: () => {
-        if (currentSuiteId) {
-          setSuiteState(currentSuiteId, "done");
-          hideViewport(currentSuiteId);
-        }
-      },
-    });
-  } catch (err) {
-    if (err.name !== "AbortError") {
-      console.error("Benchmark error:", err);
-    }
-  }
-
-  // Hide all viewports
-  for (const suiteId of dom.suiteCards.keys()) {
-    hideViewport(suiteId);
-  }
-
-  isRunning = false;
-  abortController = null;
-  setRunningState(false);
   setGlobalStatus("Done ✓");
 
   // Fade out progress bar after a moment
@@ -675,25 +590,30 @@ const storeResult = (result) => {
 };
 
 const setRunningState = (running) => {
-  dom.runBtn.textContent = running ? "■ Stop" : "▶ Run All";
-  dom.runBtn.classList.toggle("bench-run-btn--stop", running);
+  if (dom.runBtn) {
+    dom.runBtn.textContent = running ? "■ Stop" : "▶ Run";
+    dom.runBtn.classList.toggle("bench-run-btn--stop", running);
+  }
 
-  // Disable size buttons and individual run buttons while running
+  // Disable size buttons while running
   dom.sizeBtns.forEach((btn) => (btn.disabled = running));
-  dom.suiteCards.forEach((ref) => (ref.runBtn.disabled = running));
 
-  dom.progressContainer.classList.toggle("bench-progress--active", running);
+  if (dom.progressContainer) {
+    dom.progressContainer.classList.toggle("bench-progress--active", running);
+  }
 
   // Switch to single-column layout while running so the active suite + viewport is larger
   dom.suitesContainer?.classList.toggle("bench-suites--running", running);
 };
 
 const setGlobalStatus = (message) => {
+  if (!dom.statusEl) return;
   dom.statusEl.textContent = message;
   dom.statusEl.classList.toggle("bench-status--running", isRunning);
 };
 
 const setProgress = (fraction) => {
+  if (!dom.progressBar || !dom.progressContainer) return;
   const pct = Math.round(fraction * 100);
   dom.progressBar.style.width = `${pct}%`;
 
@@ -811,12 +731,3 @@ const getVlistVersion = () => {
     return "";
   }
 };
-
-// =============================================================================
-// Boot
-// =============================================================================
-
-const root = document.getElementById("content");
-if (root) {
-  buildUI(root);
-}

@@ -15,6 +15,7 @@
 import { routeApi } from "./src/api/router";
 import { renderSandboxPage } from "./sandbox/renderer";
 import { renderDocsPage } from "./docs/renderer";
+import { renderBenchmarkPage } from "./benchmarks/renderer";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
 import { join, extname, resolve } from "path";
 
@@ -152,15 +153,15 @@ const serveFromPackage = (
  * Map a URL pathname to the correct file source.
  *
  * Priority:
- *   1. /api/*                       → API router
- *   2. /sandbox/ or /sandbox/<slug> → Server-rendered sandbox pages
- *   3. /dist/*                      → vlist package dist/
- *   4. /node_modules/mtrl/*         → mtrl package root
- *   5. /node_modules/mtrl-addons/*  → mtrl-addons package root
- *   6. /docs/*.md                   → raw markdown (for client fetch)
- *   7. /docs/*                      → docs shell (index.html renders md)
- *   8. /sandbox/<slug>/*            → sandbox static assets (JS, CSS)
- *   9. /*                           → local root (landing page, etc.)
+ *   1. /api/*                        → API router
+ *   2. /sandbox/ or /sandbox/<slug>  → Server-rendered sandbox pages
+ *   3. /docs/ or /docs/<slug>        → Server-rendered docs pages
+ *   4. /benchmarks/ or /bench/<slug> → Server-rendered benchmark pages
+ *   5. /dist/*                       → vlist package dist/
+ *   6. /node_modules/mtrl/*          → mtrl package root
+ *   7. /node_modules/mtrl-addons/*   → mtrl-addons package root
+ *   8. /docs/*.md                    → raw markdown files
+ *   9. /*                            → local root (landing, static assets)
  */
 const resolveStatic = (pathname: string): Response | null => {
   // /dist/* → vlist package dist directory
@@ -248,11 +249,23 @@ const handleRequest = async (req: Request): Promise<Response> => {
     }
   }
 
-  // 4. Static files (with package resolution)
+  // 4. Benchmark pages (server-rendered)
+  if (pathname === "/benchmarks" || pathname === "/benchmarks/") {
+    const rendered = renderBenchmarkPage(null);
+    if (rendered) return rendered;
+  } else {
+    const benchMatch = pathname.match(/^\/benchmarks\/([a-z0-9-]+)\/?$/);
+    if (benchMatch) {
+      const rendered = renderBenchmarkPage(benchMatch[1]);
+      if (rendered) return rendered;
+    }
+  }
+
+  // 5. Static files (with package resolution)
   const staticResponse = resolveStatic(pathname);
   if (staticResponse) return staticResponse;
 
-  // 5. 404
+  // 6. 404
   return new Response("Not Found", { status: 404 });
 };
 

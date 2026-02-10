@@ -1,35 +1,12 @@
 /* benchmarks/styles.css — Benchmark dashboard */
 
 /* ============================================================================
-   Back Link (shared with sandbox examples)
-   ============================================================================ */
-
-.back-link {
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    color: var(--mtrl-sys-color-primary, #667eea);
-    text-decoration: none;
-    font-size: 14px;
-    z-index: 100;
-    padding: 8px 16px;
-    background: var(--mtrl-sys-color-surface, #1a1a1a);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.back-link:hover {
-    text-decoration: underline;
-}
-
-/* ============================================================================
    Page Layout
    ============================================================================ */
 
 .bench-page {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 48px 24px 80px;
+    max-width: 960px;
+    padding: 40px 36px 80px;
 }
 
 /* ============================================================================
@@ -651,7 +628,7 @@
 
 @media (max-width: 640px) {
     .bench-page {
-        padding: 32px 16px 60px;
+        padding: 24px 16px 60px;
     }
 
     .bench-header__title {
