@@ -28,8 +28,10 @@ jobs:
           script: |
             set -e
 
-            # Load fnm (node), bun, pm2 into PATH
-            source ~/.zshrc
+            # Set up PATH explicitly (avoid sourcing .zshrc — it fails
+            # in non-interactive SSH sessions due to prompt/completion setup)
+            export PATH="$HOME/.bun/bin:$HOME/bin:$HOME/.local/share/fnm:$PATH"
+            eval "$(fnm env)"
 
             APP_DIR="/home/floor/vlist.dev"
 
