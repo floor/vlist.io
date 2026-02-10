@@ -7,20 +7,23 @@
 //   /sandbox/<slug>               → Sandbox example (server-rendered)
 //   /sandbox/<slug>/*             → Sandbox static assets (JS, CSS bundles)
 //   /docs/*                       → Documentation (markdown files)
+//   /benchmarks/*                 → Benchmarks (server-rendered)
+//   /sitemap.xml                  → Dynamic sitemap
 //   /dist/*                       → vlist library assets (CSS, JS)
 //   /node_modules/mtrl/*          → mtrl library assets
 //   /node_modules/mtrl-addons/*   → mtrl-addons library assets
 //   /                             → Landing page
 
 import { routeApi } from "./src/api/router";
-import { renderSandboxPage } from "./sandbox/renderer";
-import { renderDocsPage } from "./docs/renderer";
-import { renderBenchmarkPage } from "./benchmarks/renderer";
+import { renderSandboxPage, EXAMPLE_GROUPS } from "./sandbox/renderer";
+import { renderDocsPage, DOC_GROUPS } from "./docs/renderer";
+import { renderBenchmarkPage, BENCH_GROUPS } from "./benchmarks/renderer";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
 import { join, extname, resolve } from "path";
 
 const PORT = parseInt(process.env.PORT || "3338", 10);
 const ROOT = resolve(".");
+const SITE = "https://vlist.dev";
 
 // =============================================================================
 // Package Resolution
@@ -222,6 +225,63 @@ const resolveSandbox = (pathname: string): Response | null => {
 };
 
 // =============================================================================
+// Sitemap
+// =============================================================================
+
+/**
+ * Build /sitemap.xml dynamically from the renderer config arrays.
+ * Always in sync — add a page to any renderer and it appears here.
+ */
+function renderSitemap(): Response {
+  const urls: { loc: string; priority: string }[] = [];
+
+  // Landing
+  urls.push({ loc: "/", priority: "1.0" });
+
+  // Docs
+  urls.push({ loc: "/docs/", priority: "0.9" });
+  for (const group of DOC_GROUPS) {
+    for (const item of group.items) {
+      if (item.slug === "") continue; // overview already added
+      urls.push({ loc: `/docs/${item.slug}`, priority: "0.7" });
+    }
+  }
+
+  // Sandbox
+  urls.push({ loc: "/sandbox/", priority: "0.9" });
+  for (const group of EXAMPLE_GROUPS) {
+    for (const item of group.items) {
+      urls.push({ loc: `/sandbox/${item.slug}`, priority: "0.6" });
+    }
+  }
+
+  // Benchmarks
+  urls.push({ loc: "/benchmarks/", priority: "0.8" });
+  for (const group of BENCH_GROUPS) {
+    for (const item of group.items) {
+      urls.push({ loc: `/benchmarks/${item.slug}`, priority: "0.5" });
+    }
+  }
+
+  const xml = [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    ...urls.map(
+      (u) =>
+        `  <url>\n    <loc>${SITE}${u.loc}</loc>\n    <priority>${u.priority}</priority>\n  </url>`,
+    ),
+    `</urlset>`,
+  ].join("\n");
+
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
+}
+
+// =============================================================================
 // Request Handler
 // =============================================================================
 
@@ -229,15 +289,20 @@ const handleRequest = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
   const pathname = decodeURIComponent(url.pathname);
 
-  // 1. API routes
+  // 1. Sitemap
+  if (pathname === "/sitemap.xml") {
+    return renderSitemap();
+  }
+
+  // 2. API routes
   const apiResponse = await routeApi(req);
   if (apiResponse) return apiResponse;
 
-  // 2. Sandbox pages (server-rendered)
+  // 3. Sandbox pages (server-rendered)
   const sandboxResponse = resolveSandbox(pathname);
   if (sandboxResponse) return sandboxResponse;
 
-  // 3. Docs pages (server-rendered)
+  // 4. Docs pages (server-rendered)
   if (pathname === "/docs" || pathname === "/docs/") {
     const rendered = renderDocsPage(null);
     if (rendered) return rendered;
@@ -249,7 +314,7 @@ const handleRequest = async (req: Request): Promise<Response> => {
     }
   }
 
-  // 4. Benchmark pages (server-rendered)
+  // 5. Benchmark pages (server-rendered)
   if (pathname === "/benchmarks" || pathname === "/benchmarks/") {
     const rendered = renderBenchmarkPage(null);
     if (rendered) return rendered;
@@ -261,11 +326,11 @@ const handleRequest = async (req: Request): Promise<Response> => {
     }
   }
 
-  // 5. Static files (with package resolution)
+  // 6. Static files (with package resolution)
   const staticResponse = resolveStatic(pathname);
   if (staticResponse) return staticResponse;
 
-  // 6. 404
+  // 7. 404
   return new Response("Not Found", { status: 404 });
 };
 
