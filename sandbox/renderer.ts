@@ -2,6 +2,8 @@
 // Server-side renderer for sandbox pages.
 // Assembles shell template + sidebar + example content into full HTML pages.
 
+const SITE = "https://vlist.dev";
+
 import { readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
 
@@ -286,9 +288,12 @@ function assemblePage(
   const extraBody = buildExtraBody(slug, example);
   const mainClass = example?.mtrl ? " mtrl-app" : "";
 
+  const url = slug ? `${SITE}/sandbox/${slug}` : `${SITE}/sandbox/`;
+
   return shell
-    .replace("{{TITLE}}", title)
-    .replace("{{DESCRIPTION}}", description)
+    .replace(/{{TITLE}}/g, title)
+    .replace(/{{DESCRIPTION}}/g, description)
+    .replace(/{{URL}}/g, url)
     .replace("{{SIDEBAR}}", sidebar)
     .replace("{{CONTENT}}", content)
     .replace("{{EXTRA_HEAD}}", extraHead)

@@ -2,6 +2,8 @@
 // Server-side renderer for benchmark pages.
 // Assembles shell template + sidebar + page content into full HTML pages.
 
+const SITE = "https://vlist.dev";
+
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
 
@@ -195,9 +197,12 @@ function assemblePage(
       ? `<script type="module" src="/benchmarks/dist/script.js"></script>`
       : "";
 
+  const url = slug ? `${SITE}/benchmarks/${slug}` : `${SITE}/benchmarks/`;
+
   return shell
-    .replace("{{TITLE}}", title)
-    .replace("{{DESCRIPTION}}", description)
+    .replace(/{{TITLE}}/g, title)
+    .replace(/{{DESCRIPTION}}/g, description)
+    .replace(/{{URL}}/g, url)
     .replace("{{SIDEBAR}}", sidebar)
     .replace("{{CONTENT}}", content)
     .replace("{{PAGE}}", page)

@@ -2,6 +2,8 @@
 // Server-side renderer for documentation pages.
 // Assembles shell template + sidebar + parsed markdown into full HTML pages.
 
+const SITE = "https://vlist.dev";
+
 import { readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
 import { Marked, type Tokens } from "marked";
@@ -174,38 +176,106 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
   {
     label: "Getting Started",
     cards: [
-      { slug: "vlist", name: "Documentation", desc: "Configuration, usage, events, selection, infinite scroll, and more" },
-      { slug: "styles", name: "Styles", desc: "CSS tokens, variants, dark mode, and customization" },
-      { slug: "optimization", name: "Optimization", desc: "Performance tuning and best practices" },
-      { slug: "compression", name: "Compression", desc: "Handling 1M+ items with scroll compression" },
-      { slug: "accessibility", name: "Accessibility", desc: "WAI-ARIA listbox, keyboard navigation, screen readers" },
-      { slug: "benchmarks", name: "Benchmarks", desc: "Live performance suites — FPS, render, memory" },
-      { slug: "known-issues", name: "Known Issues", desc: "Current limitations and workarounds" },
+      {
+        slug: "vlist",
+        name: "Documentation",
+        desc: "Configuration, usage, events, selection, infinite scroll, and more",
+      },
+      {
+        slug: "styles",
+        name: "Styles",
+        desc: "CSS tokens, variants, dark mode, and customization",
+      },
+      {
+        slug: "optimization",
+        name: "Optimization",
+        desc: "Performance tuning and best practices",
+      },
+      {
+        slug: "compression",
+        name: "Compression",
+        desc: "Handling 1M+ items with scroll compression",
+      },
+      {
+        slug: "accessibility",
+        name: "Accessibility",
+        desc: "WAI-ARIA listbox, keyboard navigation, screen readers",
+      },
+      {
+        slug: "benchmarks",
+        name: "Benchmarks",
+        desc: "Live performance suites — FPS, render, memory",
+      },
+      {
+        slug: "known-issues",
+        name: "Known Issues",
+        desc: "Current limitations and workarounds",
+      },
     ],
   },
   {
     label: "Architecture",
     cards: [
-      { slug: "types", name: "Types", desc: "TypeScript interfaces and type definitions" },
-      { slug: "constants", name: "Constants", desc: "Default values and configuration constants" },
-      { slug: "context", name: "Context", desc: "Internal state container and coordination" },
+      {
+        slug: "types",
+        name: "Types",
+        desc: "TypeScript interfaces and type definitions",
+      },
+      {
+        slug: "constants",
+        name: "Constants",
+        desc: "Default values and configuration constants",
+      },
+      {
+        slug: "context",
+        name: "Context",
+        desc: "Internal state container and coordination",
+      },
     ],
   },
   {
     label: "Modules",
     cards: [
-      { slug: "render", name: "Render", desc: "DOM rendering, virtualization, and element pooling" },
-      { slug: "data", name: "Data", desc: "Sparse storage, placeholders, and async adapters" },
-      { slug: "scroll", name: "Scroll", desc: "Scroll controller, custom scrollbar, and velocity" },
-      { slug: "selection", name: "Selection", desc: "Single &amp; multi-select state management" },
-      { slug: "events", name: "Events", desc: "Type-safe event emitter system" },
+      {
+        slug: "render",
+        name: "Render",
+        desc: "DOM rendering, virtualization, and element pooling",
+      },
+      {
+        slug: "data",
+        name: "Data",
+        desc: "Sparse storage, placeholders, and async adapters",
+      },
+      {
+        slug: "scroll",
+        name: "Scroll",
+        desc: "Scroll controller, custom scrollbar, and velocity",
+      },
+      {
+        slug: "selection",
+        name: "Selection",
+        desc: "Single &amp; multi-select state management",
+      },
+      {
+        slug: "events",
+        name: "Events",
+        desc: "Type-safe event emitter system",
+      },
     ],
   },
   {
     label: "API",
     cards: [
-      { slug: "methods", name: "Methods", desc: "Public API — data, scroll, selection, lifecycle" },
-      { slug: "handlers", name: "Handlers", desc: "Scroll, click, and keyboard event handlers" },
+      {
+        slug: "methods",
+        name: "Methods",
+        desc: "Public API — data, scroll, selection, lifecycle",
+      },
+      {
+        slug: "handlers",
+        name: "Handlers",
+        desc: "Scroll, click, and keyboard event handlers",
+      },
     ],
   },
 ];
@@ -270,9 +340,7 @@ const renderer = {
     }
     const titleAttr = title ? ` title="${title}"` : "";
     const external =
-      href && href.startsWith("http")
-        ? ' target="_blank" rel="noopener"'
-        : "";
+      href && href.startsWith("http") ? ' target="_blank" rel="noopener"' : "";
     return `<a href="${href}"${titleAttr}${external}>${text}</a>`;
   },
 };
@@ -318,18 +386,12 @@ function buildOverviewContent(): string {
 
   for (const section of OVERVIEW_SECTIONS) {
     lines.push(`  <div class="index__section">`);
-    lines.push(
-      `    <div class="index__section-title">${section.label}</div>`,
-    );
+    lines.push(`    <div class="index__section-title">${section.label}</div>`);
     lines.push(`    <div class="index__grid">`);
     for (const card of section.cards) {
       lines.push(`      <a href="/docs/${card.slug}" class="index__card">`);
-      lines.push(
-        `        <div class="index__card-title">${card.name}</div>`,
-      );
-      lines.push(
-        `        <div class="index__card-desc">${card.desc}</div>`,
-      );
+      lines.push(`        <div class="index__card-title">${card.name}</div>`);
+      lines.push(`        <div class="index__card-desc">${card.desc}</div>`);
       lines.push(`      </a>`);
     }
     lines.push(`    </div>`);
@@ -370,10 +432,12 @@ function assemblePage(
 ): string {
   const shell = loadShell();
   const sidebar = buildSidebar(slug);
+  const url = slug ? `${SITE}/docs/${slug}` : `${SITE}/docs/`;
 
   return shell
-    .replace("{{TITLE}}", title)
-    .replace("{{DESCRIPTION}}", description)
+    .replace(/{{TITLE}}/g, title)
+    .replace(/{{DESCRIPTION}}/g, description)
+    .replace(/{{URL}}/g, url)
     .replace("{{SIDEBAR}}", sidebar)
     .replace("{{CONTENT}}", content);
 }
