@@ -5,6 +5,7 @@
 ## Quick Links
 
 - **[Main Documentation](./vlist.md)** - Getting started, configuration, and usage
+- **[Accessibility](./accessibility.md)** - WAI-ARIA listbox, keyboard navigation, screen reader support
 - **[Benchmarks](./benchmarks.md)** - Live performance suites (scroll FPS, render, memory, scrollToIndex)
 - **[Optimization Guide](./optimization.md)** - Performance optimizations and tuning
 - **[Styles Guide](./styles.md)** - CSS tokens, variants, dark mode, split core/extras CSS, and customization
@@ -45,6 +46,12 @@ Each module has detailed documentation covering its API, usage examples, and imp
 |--------|-------------|------|
 | **[Handlers](./handlers.md)** | Scroll, click, and keyboard event handlers | `src/handlers.ts` |
 | **[Methods](./methods.md)** | Public API methods (data, scroll, selection) | `src/methods.ts` |
+
+### Cross-Cutting
+
+| Module | Description | File |
+|--------|-------------|------|
+| **[Accessibility](./accessibility.md)** | WAI-ARIA implementation, keyboard navigation, screen reader support | across modules |
 
 > **Shared building blocks:** Several modules under `src/render/` (`dom.ts`, `pool.ts`, `heights.ts`) and `src/animation.ts` are shared between the full `vlist` and the lightweight `vlist/core` entry point. They have zero dependencies on compression or other heavy internals, enabling tree-shaking to keep the core bundle small (~9 KB) while eliminating code duplication.
 
@@ -195,6 +202,16 @@ Emit 'load:end' event
 - Range selection (shift+click)
 - Pure functional state management
 
+### Accessibility (across modules)
+- WAI-ARIA Listbox pattern (`role="listbox"` / `role="option"`)
+- `aria-setsize` / `aria-posinset` — screen readers announce "item 5 of 10,000"
+- `aria-activedescendant` — root tracks focused item by ID (better than roving tabindex for virtual lists)
+- `aria-selected` — reflects selection state per item
+- `aria-busy` — set during async adapter loading
+- Visually-hidden live region (`aria-live="polite"`) — announces selection changes
+- Instance-scoped element IDs — safe with multiple lists per page
+- `:focus-visible` keyboard-only focus ring on root and items
+
 ### Events Module
 - Type-safe event system
 - Error isolation per handler
@@ -217,6 +234,7 @@ const list = createVList({
   adapter: { read: async () => ... },  // Async loader
   
   // Optional
+  ariaLabel: 'My list',        // Accessible label (recommended)
   overscan: 3,                 // Extra items to render
   reverse: false,              // Reverse mode for chat UIs
   classPrefix: 'vlist',        // CSS class prefix
@@ -257,4 +275,4 @@ GPL-3.0-or-later
 
 ---
 
-*For the main getting started guide, see [vlist.md](./vlist.md).*
+*For the main getting started guide, see [vlist.md](./vlist.md). For accessibility details, see [accessibility.md](./accessibility.md).*

@@ -15,6 +15,7 @@
 - [Scroll Save/Restore](#scroll-saverestore)
 - [Infinite Scroll](#infinite-scroll)
 - [Compression (1M+ Items)](#compression-1m-items)
+- [Accessibility](#accessibility)
 - [Styling](#styling)
 - [Performance](#performance)
 - [TypeScript](#typescript)
@@ -908,6 +909,24 @@ Horizontal mode cannot be combined with:
 - **Window scrolling** — horizontal document-level scrolling is not supported
 
 Attempting to combine these will throw a descriptive error at creation time.
+
+---
+
+## Accessibility
+
+vlist implements the [WAI-ARIA Listbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/) with full keyboard navigation and screen reader support. Key features:
+
+- **ARIA roles** — `role="listbox"` on root, `role="option"` on items
+- **Positional context** — `aria-setsize` / `aria-posinset` on every item ("item 5 of 10,000")
+- **Focus tracking** — `aria-activedescendant` on root follows keyboard navigation
+- **Selection state** — `aria-selected` on each item, live region announces changes ("3 items selected")
+- **Loading state** — `aria-busy` during async data fetching
+- **Unique IDs** — Instance-scoped element IDs safe with multiple lists per page
+- **Keyboard** — Arrow keys, Home, End, Space, Enter (when selection is enabled)
+
+Works across all modes: list, grid, core, groups, reverse, compression, and window scrolling.
+
+> 📖 **Full documentation:** [accessibility.md](./accessibility.md) — ARIA attributes, keyboard model, screen reader testing, CSS focus styles, best practices.
 
 ---
 
