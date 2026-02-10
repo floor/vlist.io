@@ -9,53 +9,64 @@
         />
         <title>vlist — API</title>
 
+        <link rel="canonical" href="https://vlist.dev/api" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://vlist.dev/api" />
+        <meta property="og:title" content="vlist — API" />
+        <meta
+            property="og:description"
+            content="vlist.dev API — deterministic user data for virtual list demos. 1M+ items, zero storage, configurable latency."
+        />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="vlist — API" />
+        <meta
+            name="twitter:description"
+            content="vlist.dev API — deterministic user data for virtual list demos. 1M+ items, zero storage, configurable latency."
+        />
+
+        <link rel="stylesheet" href="/styles/shell.css" />
+
+        <!-- Theme: apply before paint to prevent flash -->
+        <script>
+            (function () {
+                var t = localStorage.getItem("vlist-theme");
+                if (!t)
+                    t = window.matchMedia("(prefers-color-scheme: light)")
+                        .matches
+                        ? "light"
+                        : "dark";
+                document.documentElement.setAttribute("data-theme", t);
+            })();
+        </script>
+
         <style>
-            *,
-            *::before,
-            *::after {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
+            /* ─── API Token Overrides ────────────────────────── */
 
             :root {
-                --text: #e8e8ed;
-                --text-muted: #9a9aaa;
-                --text-dim: #5a5a68;
-                --bg: #0c0c10;
-                --bg-card: #141418;
                 --bg-code: #18181e;
                 --bg-code-inline: #1c1c24;
-                --border: #1e1e25;
-                --border-hover: #2e2e38;
-                --accent: #667eea;
-                --accent-dim: rgba(102, 126, 234, 0.12);
-                --accent-text: #8da0f2;
+                --code-bar-bg: rgba(255, 255, 255, 0.02);
                 --green: #4ade80;
                 --green-dim: rgba(74, 222, 128, 0.1);
                 --orange: #fb923c;
                 --orange-dim: rgba(251, 146, 60, 0.1);
                 --red: #f87171;
-                --radius: 12px;
                 --radius-sm: 8px;
                 --radius-xs: 5px;
-                --header-height: 56px;
             }
 
-            html {
-                scroll-behavior: smooth;
+            [data-theme="light"] {
+                --bg-code: #f0f0f5;
+                --bg-code-inline: #eaeaf0;
+                --code-bar-bg: rgba(0, 0, 0, 0.02);
+                --green: #16a34a;
+                --green-dim: rgba(22, 163, 74, 0.08);
+                --orange: #ea580c;
+                --orange-dim: rgba(234, 88, 12, 0.08);
+                --red: #dc2626;
             }
 
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-                    Roboto, Oxygen, Ubuntu, sans-serif;
-                background: var(--bg);
-                color: var(--text);
-                min-height: 100vh;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-                line-height: 1.6;
-            }
+            /* ─── Monospace ──────────────────────────────────── */
 
             code,
             pre,
@@ -64,73 +75,46 @@
                     Consolas, monospace;
             }
 
-            /* ─── Header ─────────────────────────────────────── */
-
-            .header {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: var(--header-height);
-                background: rgba(12, 12, 16, 0.85);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border-bottom: 1px solid var(--border);
-                display: flex;
-                align-items: center;
-                padding: 0 24px;
-                z-index: 100;
-                gap: 16px;
-            }
-
-            .header__logo {
-                font-size: 18px;
-                font-weight: 700;
-                color: var(--text);
-                text-decoration: none;
-                letter-spacing: -0.3px;
-            }
-
-            .header__logo:hover {
-                opacity: 0.85;
-            }
-
-            .header__sep {
-                color: var(--text-dim);
-                font-weight: 300;
-                font-size: 20px;
-                user-select: none;
-            }
-
-            .header__section {
-                font-size: 14px;
-                color: var(--text-muted);
-                font-weight: 500;
-            }
-
-            .header__nav {
-                margin-left: auto;
-                display: flex;
-                gap: 20px;
-            }
-
-            .header__nav a {
-                font-size: 13px;
-                color: var(--text-dim);
-                text-decoration: none;
-                transition: color 0.15s;
-            }
-
-            .header__nav a:hover {
-                color: var(--text-muted);
-            }
-
             /* ─── Layout ─────────────────────────────────────── */
 
             .container {
-                max-width: 780px;
+                max-width: 880px;
                 margin: 0 auto;
                 padding: calc(var(--header-height) + 40px) 24px 80px;
+            }
+
+            /* ─── Mobile Dropdown ────────────────────────────── */
+
+            .dropdown {
+                display: none;
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                background: var(--header-bg);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--border);
+                padding: 12px 24px 16px;
+                z-index: 99;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .dropdown--open {
+                display: flex;
+            }
+
+            .dropdown a {
+                display: block;
+                font-size: 16px;
+                color: var(--text-muted);
+                text-decoration: none;
+                padding: 8px 0;
+            }
+
+            .dropdown a:hover {
+                color: var(--text);
             }
 
             /* ─── Hero ───────────────────────────────────────── */
@@ -140,14 +124,14 @@
             }
 
             .hero__title {
-                font-size: 32px;
+                font-size: 38px;
                 font-weight: 700;
                 letter-spacing: -0.5px;
                 margin-bottom: 8px;
             }
 
             .hero__desc {
-                font-size: 16px;
+                font-size: 20px;
                 color: var(--text-muted);
                 line-height: 1.7;
                 margin-bottom: 16px;
@@ -160,8 +144,8 @@
             }
 
             .badge {
-                font-size: 12px;
-                padding: 3px 10px;
+                font-size: 15px;
+                padding: 4px 12px;
                 border-radius: 12px;
                 border: 1px solid var(--border);
                 color: var(--text-dim);
@@ -179,7 +163,7 @@
                 background: var(--bg-code);
                 border: 1px solid var(--border);
                 border-radius: var(--radius-sm);
-                padding: 12px 16px;
+                padding: 14px 18px;
                 margin-bottom: 48px;
                 display: flex;
                 align-items: center;
@@ -187,7 +171,7 @@
             }
 
             .base-url__label {
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 0.8px;
@@ -196,14 +180,14 @@
             }
 
             .base-url__value {
-                font-size: 14px;
+                font-size: 17px;
                 color: var(--accent-text);
             }
 
             /* ─── Section ────────────────────────────────────── */
 
             .section-label {
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 0.8px;
@@ -216,13 +200,13 @@
             .endpoint {
                 background: var(--bg-card);
                 border: 1px solid var(--border);
-                border-radius: var(--radius);
+                border-radius: 12px;
                 margin-bottom: 24px;
                 overflow: hidden;
             }
 
             .endpoint__header {
-                padding: 18px 22px;
+                padding: 20px 24px;
                 border-bottom: 1px solid var(--border);
                 display: flex;
                 align-items: center;
@@ -231,9 +215,9 @@
             }
 
             .endpoint__method {
-                font-size: 12px;
+                font-size: 15px;
                 font-weight: 700;
-                padding: 3px 10px;
+                padding: 3px 12px;
                 border-radius: var(--radius-xs);
                 letter-spacing: 0.5px;
             }
@@ -244,7 +228,7 @@
             }
 
             .endpoint__path {
-                font-size: 15px;
+                font-size: 18px;
                 font-weight: 500;
                 color: var(--text);
             }
@@ -254,23 +238,23 @@
             }
 
             .endpoint__desc {
-                font-size: 13px;
+                font-size: 16px;
                 color: var(--text-muted);
                 margin-left: auto;
             }
 
             .endpoint__body {
-                padding: 20px 22px;
+                padding: 22px 24px;
             }
 
             .endpoint__sub {
-                font-size: 12px;
+                font-size: 15px;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 0.6px;
                 color: var(--text-dim);
                 margin-bottom: 10px;
-                margin-top: 20px;
+                margin-top: 24px;
             }
 
             .endpoint__sub:first-child {
@@ -282,7 +266,7 @@
             .params {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 13px;
+                font-size: 16px;
             }
 
             .params th {
@@ -290,15 +274,15 @@
                 font-weight: 600;
                 color: var(--text-dim);
                 padding: 6px 12px 6px 0;
-                font-size: 11px;
+                font-size: 13px;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 border-bottom: 1px solid var(--border);
             }
 
             .params td {
-                padding: 8px 12px 8px 0;
-                border-bottom: 1px solid rgba(30, 30, 37, 0.5);
+                padding: 10px 12px 10px 0;
+                border-bottom: 1px solid var(--border);
                 vertical-align: top;
             }
 
@@ -312,20 +296,20 @@
             }
 
             .params__name code {
-                font-size: 13px;
+                font-size: 16px;
                 background: var(--bg-code-inline);
-                padding: 1px 6px;
-                border-radius: 3px;
+                padding: 2px 7px;
+                border-radius: 4px;
             }
 
             .params__type {
                 color: var(--accent-text);
-                font-size: 12px;
+                font-size: 15px;
             }
 
             .params__default {
                 color: var(--text-dim);
-                font-size: 12px;
+                font-size: 15px;
             }
 
             .params__desc {
@@ -334,7 +318,7 @@
 
             .params__range {
                 color: var(--text-dim);
-                font-size: 11px;
+                font-size: 13px;
             }
 
             /* ─── Code block ─────────────────────────────────── */
@@ -350,13 +334,13 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 8px 14px;
-                background: rgba(255, 255, 255, 0.02);
+                padding: 8px 16px;
+                background: var(--code-bar-bg);
                 border-bottom: 1px solid var(--border);
             }
 
             .code__label {
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
@@ -364,7 +348,7 @@
             }
 
             .code__try {
-                font-size: 12px;
+                font-size: 15px;
                 color: var(--accent-text);
                 text-decoration: none;
                 padding: 2px 8px;
@@ -377,9 +361,9 @@
             }
 
             .code pre {
-                padding: 14px 16px;
+                padding: 16px 18px;
                 overflow-x: auto;
-                font-size: 13px;
+                font-size: 16px;
                 line-height: 1.55;
                 color: #c8cedc;
             }
@@ -397,7 +381,7 @@
                 border-radius: 2px;
             }
 
-            /* ─── Syntax colors ──────────────────────────────── */
+            /* ─── Syntax colors (dark) ───────────────────────── */
 
             .kw { color: #c792ea; }
             .str { color: #c3e88d; }
@@ -407,6 +391,20 @@
             .cm { color: #546e7a; font-style: italic; }
             .bool { color: #ff5370; }
             .type { color: #ffcb6b; }
+
+            /* ─── Syntax colors (light) ──────────────────────── */
+
+            [data-theme="light"] .code pre { color: #374151; }
+            [data-theme="light"] .kw { color: #7c3aed; }
+            [data-theme="light"] .str { color: #16a34a; }
+            [data-theme="light"] .num { color: #ea580c; }
+            [data-theme="light"] .prop { color: #0d9488; }
+            [data-theme="light"] .pun { color: #6366f1; }
+            [data-theme="light"] .cm { color: #94a3b8; }
+            [data-theme="light"] .bool { color: #dc2626; }
+            [data-theme="light"] .type { color: #d97706; }
+            [data-theme="light"] .try-it__result pre { color: #374151; }
+            [data-theme="light"] .notes__list code { color: #374151; }
 
             /* ─── Try It panel ───────────────────────────────── */
 
@@ -429,7 +427,7 @@
             }
 
             .try-it__label {
-                font-size: 12px;
+                font-size: 15px;
                 color: var(--text-dim);
             }
 
@@ -437,8 +435,8 @@
                 background: var(--bg-code);
                 border: 1px solid var(--border);
                 border-radius: var(--radius-xs);
-                padding: 5px 8px;
-                font-size: 12px;
+                padding: 6px 10px;
+                font-size: 15px;
                 color: var(--text);
                 width: 80px;
                 font-family: "SF Mono", Monaco, Menlo, monospace;
@@ -451,15 +449,15 @@
             }
 
             .try-it__input--wide {
-                width: 64px;
+                width: 72px;
             }
 
             .try-it__btn {
                 background: var(--accent-dim);
                 border: 1px solid rgba(102, 126, 234, 0.3);
                 border-radius: var(--radius-xs);
-                padding: 5px 14px;
-                font-size: 12px;
+                padding: 6px 16px;
+                font-size: 15px;
                 font-weight: 600;
                 color: var(--accent-text);
                 cursor: pointer;
@@ -472,7 +470,7 @@
             }
 
             .try-it__url {
-                font-size: 12px;
+                font-size: 15px;
                 color: var(--text-dim);
                 margin-bottom: 8px;
                 word-break: break-all;
@@ -503,10 +501,10 @@
                 display: flex;
                 align-items: center;
                 gap: 10px;
-                padding: 6px 14px;
-                background: rgba(255, 255, 255, 0.02);
+                padding: 8px 16px;
+                background: var(--code-bar-bg);
                 border-bottom: 1px solid var(--border);
-                font-size: 11px;
+                font-size: 13px;
             }
 
             .try-it__status {
@@ -527,9 +525,9 @@
             }
 
             .try-it__result pre {
-                padding: 12px 16px;
+                padding: 14px 18px;
                 overflow-x: auto;
-                font-size: 12px;
+                font-size: 15px;
                 line-height: 1.5;
                 color: #c8cedc;
                 max-height: 360px;
@@ -553,13 +551,13 @@
             }
 
             .type-def__title {
-                font-size: 18px;
+                font-size: 22px;
                 font-weight: 650;
                 margin-bottom: 12px;
             }
 
             .type-def__desc {
-                font-size: 13px;
+                font-size: 16px;
                 color: var(--text-muted);
                 margin-bottom: 16px;
                 line-height: 1.6;
@@ -572,7 +570,7 @@
             }
 
             .notes__title {
-                font-size: 18px;
+                font-size: 22px;
                 font-weight: 650;
                 margin-bottom: 16px;
             }
@@ -583,7 +581,7 @@
             }
 
             .notes__list li {
-                font-size: 14px;
+                font-size: 17px;
                 color: var(--text-muted);
                 padding: 6px 0;
                 padding-left: 20px;
@@ -599,10 +597,10 @@
             }
 
             .notes__list code {
-                font-size: 12px;
+                font-size: 15px;
                 background: var(--bg-code-inline);
-                padding: 1px 6px;
-                border-radius: 3px;
+                padding: 2px 7px;
+                border-radius: 4px;
                 color: #c8cedc;
             }
 
@@ -613,7 +611,7 @@
                 padding-top: 24px;
                 border-top: 1px solid var(--border);
                 text-align: center;
-                font-size: 13px;
+                font-size: 16px;
                 color: var(--text-dim);
             }
 
@@ -629,33 +627,82 @@
             .footer__links {
                 display: flex;
                 justify-content: center;
-                gap: 20px;
+                gap: 24px;
                 margin-bottom: 12px;
             }
 
             /* ─── Responsive ─────────────────────────────────── */
 
+            /* Reset shell.css 720px breakpoint — API has no sidebar,
+               so the hamburger collapses at 640px instead */
+            @media (max-width: 720px) {
+                .header__hamburger {
+                    display: none;
+                }
+
+                .header__nav {
+                    display: flex;
+                }
+            }
+
             @media (max-width: 640px) {
+                .header__nav {
+                    display: none;
+                }
+
+                .header__hamburger {
+                    display: block;
+                }
+
+                .dropdown--open {
+                    display: flex;
+                }
+
                 .container {
                     padding-left: 16px;
                     padding-right: 16px;
                 }
 
                 .hero__title {
-                    font-size: 26px;
+                    font-size: 32px;
+                }
+
+                .hero__desc {
+                    font-size: 17px;
+                }
+
+                .badge {
+                    font-size: 13px;
+                }
+
+                .base-url__value {
+                    font-size: 14px;
                 }
 
                 .endpoint__header {
-                    padding: 14px 16px;
+                    padding: 16px 18px;
+                }
+
+                .endpoint__path {
+                    font-size: 16px;
                 }
 
                 .endpoint__desc {
                     margin-left: 0;
                     flex-basis: 100%;
+                    font-size: 14px;
                 }
 
                 .endpoint__body {
-                    padding: 16px;
+                    padding: 18px;
+                }
+
+                .params {
+                    font-size: 14px;
+                }
+
+                .params__name code {
+                    font-size: 14px;
                 }
 
                 .params th:nth-child(4),
@@ -667,12 +714,32 @@
                     gap: 6px;
                 }
 
-                .header__nav {
-                    gap: 14px;
+                .try-it__input,
+                .try-it__label,
+                .try-it__btn {
+                    font-size: 13px;
                 }
 
-                .header__nav a {
-                    font-size: 12px;
+                .code pre {
+                    font-size: 14px;
+                    padding: 12px 14px;
+                }
+
+                .try-it__result pre {
+                    font-size: 13px;
+                }
+
+                .type-def__title,
+                .notes__title {
+                    font-size: 18px;
+                }
+
+                .notes__list li {
+                    font-size: 15px;
+                }
+
+                .footer {
+                    font-size: 14px;
                 }
             }
         </style>
@@ -687,9 +754,72 @@
                 <a href="/docs/">Docs</a>
                 <a href="/sandbox/">Sandbox</a>
                 <a href="/benchmarks/">Benchmarks</a>
-                <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+                <a href="/api" class="active">API</a>
+                <a href="https://github.com/floor/vlist" target="_blank"
+                    >GitHub</a
+                >
             </nav>
+            <button
+                class="header__theme"
+                id="theme-toggle"
+                aria-label="Toggle theme"
+            >
+                <svg
+                    class="header__theme-sun"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                <svg
+                    class="header__theme-moon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
+            <button
+                class="header__hamburger"
+                id="hamburger"
+                aria-label="Toggle menu"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <rect y="3" width="20" height="2" rx="1" />
+                    <rect y="9" width="20" height="2" rx="1" />
+                    <rect y="15" width="20" height="2" rx="1" />
+                </svg>
+            </button>
         </header>
+
+        <nav class="dropdown" id="dropdown">
+            <a href="/docs/">Docs</a>
+            <a href="/sandbox/">Sandbox</a>
+            <a href="/benchmarks/">Benchmarks</a>
+            <a href="/api">API</a>
+            <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+        </nav>
 
         <div class="container">
             <!-- Hero -->
@@ -828,7 +958,7 @@
                 <div class="endpoint__header">
                     <span class="endpoint__method endpoint__method--get">GET</span>
                     <span class="endpoint__path mono">/api/users/<span class="endpoint__path-param">:id</span></span>
-                    <span class="endpoint__desc">Single user by ID (1-based)</span>
+                    <span class="endpoint__desc">Single user by ID</span>
                 </div>
                 <div class="endpoint__body">
                     <div class="endpoint__sub">Parameters</div>
@@ -843,10 +973,10 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="params__name"><code>:id</code></td>
+                                <td class="params__name"><code>id</code></td>
                                 <td class="params__type mono">number</td>
-                                <td class="params__default">—</td>
-                                <td class="params__desc">User ID (1-based) <span class="params__range">(path param)</span></td>
+                                <td class="params__default mono">—</td>
+                                <td class="params__desc">User index <span class="params__range">(1 – 10M)</span></td>
                             </tr>
                             <tr>
                                 <td class="params__name"><code>delay</code></td>
@@ -858,7 +988,7 @@
                                 <td class="params__name"><code>total</code></td>
                                 <td class="params__type mono">number</td>
                                 <td class="params__default mono">1000000</td>
-                                <td class="params__desc">Dataset size for bounds checking <span class="params__range">(1 – 10M)</span></td>
+                                <td class="params__desc">Dataset size <span class="params__range">(1 – 10M)</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -871,18 +1001,18 @@
                         </div>
 <pre>{
   <span class="prop">"id"</span><span class="pun">:</span> <span class="num">42</span>,
-  <span class="prop">"firstName"</span><span class="pun">:</span> <span class="str">"Ronald"</span>,
-  <span class="prop">"lastName"</span><span class="pun">:</span> <span class="str">"Hughes"</span>,
-  <span class="prop">"email"</span><span class="pun">:</span> <span class="str">"ronald.hughes1g@fastmail.com"</span>,
-  <span class="prop">"avatar"</span><span class="pun">:</span> <span class="str">"RH"</span>,
-  <span class="prop">"avatarColor"</span><span class="pun">:</span> <span class="str">"#fb8c00"</span>,
-  <span class="prop">"role"</span><span class="pun">:</span> <span class="str">"Mobile Developer"</span>,
-  <span class="prop">"department"</span><span class="pun">:</span> <span class="str">"Support"</span>,
-  <span class="prop">"company"</span><span class="pun">:</span> <span class="str">"Morley &amp; Associates"</span>,
-  <span class="prop">"city"</span><span class="pun">:</span> <span class="str">"Philadelphia"</span>,
-  <span class="prop">"country"</span><span class="pun">:</span> <span class="str">"United States"</span>,
+  <span class="prop">"firstName"</span><span class="pun">:</span> <span class="str">"Thomas"</span>,
+  <span class="prop">"lastName"</span><span class="pun">:</span> <span class="str">"Garcia"</span>,
+  <span class="prop">"email"</span><span class="pun">:</span> <span class="str">"thomas.garcia@outlook.com"</span>,
+  <span class="prop">"avatar"</span><span class="pun">:</span> <span class="str">"TG"</span>,
+  <span class="prop">"avatarColor"</span><span class="pun">:</span> <span class="str">"#00897b"</span>,
+  <span class="prop">"role"</span><span class="pun">:</span> <span class="str">"Frontend Dev"</span>,
+  <span class="prop">"department"</span><span class="pun">:</span> <span class="str">"Design"</span>,
+  <span class="prop">"company"</span><span class="pun">:</span> <span class="str">"Initech"</span>,
+  <span class="prop">"city"</span><span class="pun">:</span> <span class="str">"Berlin"</span>,
+  <span class="prop">"country"</span><span class="pun">:</span> <span class="str">"Germany"</span>,
   <span class="prop">"status"</span><span class="pun">:</span> <span class="str">"active"</span>,
-  <span class="prop">"joinedYear"</span><span class="pun">:</span> <span class="num">2016</span>
+  <span class="prop">"joinedYear"</span><span class="pun">:</span> <span class="num">2021</span>
 }</pre>
                     </div>
 
@@ -892,7 +1022,7 @@
                         <div class="try-it__form">
                             <div class="try-it__input-group">
                                 <label class="try-it__label" for="user-id">id</label>
-                                <input class="try-it__input try-it__input--wide mono" type="number" id="user-id" value="42" min="1" />
+                                <input class="try-it__input mono" type="number" id="user-id" value="42" min="1" />
                             </div>
                             <button class="try-it__btn" onclick="tryUser()">Send →</button>
                         </div>
@@ -908,118 +1038,106 @@
                 </div>
             </div>
 
-            <!-- ─── GET /api/info ──────────────────────────── -->
-            <div class="endpoint" id="get-info">
+            <!-- ─── GET /api/health ────────────────────────── -->
+            <div class="endpoint" id="get-health">
                 <div class="endpoint__header">
                     <span class="endpoint__method endpoint__method--get">GET</span>
-                    <span class="endpoint__path mono">/api/info</span>
-                    <span class="endpoint__desc">API metadata</span>
+                    <span class="endpoint__path mono">/api/health</span>
+                    <span class="endpoint__desc">Health check</span>
                 </div>
                 <div class="endpoint__body">
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
-                        Returns API version, available endpoints, parameter definitions, and defaults. Machine-readable.
+                    <p class="type-def__desc">
+                        Returns server status. Useful for monitoring
+                        or checking if the API is reachable.
                     </p>
                     <div class="code">
                         <div class="code__bar">
-                            <span class="code__label">JSON</span>
-                            <a href="/api/info" target="_blank" class="code__try">Open ↗</a>
+                            <span class="code__label">Response</span>
+                            <a href="/api/health" target="_blank" class="code__try">Open ↗</a>
                         </div>
 <pre>{
-  <span class="prop">"name"</span><span class="pun">:</span> <span class="str">"vlist.dev API"</span>,
-  <span class="prop">"version"</span><span class="pun">:</span> <span class="str">"0.1.0"</span>,
-  <span class="prop">"description"</span><span class="pun">:</span> <span class="str">"Deterministic user data API for vlist demos"</span>,
-  <span class="prop">"endpoints"</span><span class="pun">:</span> { <span class="cm">...</span> },
-  <span class="prop">"defaults"</span><span class="pun">:</span> { <span class="prop">"total"</span><span class="pun">:</span> <span class="num">1000000</span>, <span class="prop">"limit"</span><span class="pun">:</span> <span class="num">50</span>, <span class="prop">"maxLimit"</span><span class="pun">:</span> <span class="num">200</span> }
+  <span class="prop">"status"</span><span class="pun">:</span> <span class="str">"ok"</span>,
+  <span class="prop">"uptime"</span><span class="pun">:</span> <span class="num">12345.67</span>,
+  <span class="prop">"timestamp"</span><span class="pun">:</span> <span class="str">"2025-01-15T10:30:00.000Z"</span>
 }</pre>
                     </div>
                 </div>
             </div>
 
-            <!-- User type -->
-            <div class="type-def" id="user-type">
-                <div class="section-label">Types</div>
+            <!-- ─── User Type ──────────────────────────────── -->
+            <div class="section-label">Types</div>
+
+            <div class="type-def">
                 <div class="type-def__title">User</div>
                 <div class="type-def__desc">
-                    Generated deterministically from the user's index using FNV-1a hashing.
-                    Same ID always produces the same user — no database, no randomness.
+                    Every user is generated deterministically from its ID.
+                    Fields are seeded — the same ID always produces the same data.
                 </div>
                 <div class="code">
                     <div class="code__bar">
                         <span class="code__label">TypeScript</span>
                     </div>
 <pre><span class="kw">interface</span> <span class="type">User</span> {
-  <span class="prop">id</span><span class="pun">:</span> <span class="type">number</span>          <span class="cm">// 1-based unique identifier</span>
-  <span class="prop">firstName</span><span class="pun">:</span> <span class="type">string</span>   <span class="cm">// From 200 common first names</span>
-  <span class="prop">lastName</span><span class="pun">:</span> <span class="type">string</span>    <span class="cm">// From 128 common last names</span>
-  <span class="prop">email</span><span class="pun">:</span> <span class="type">string</span>       <span class="cm">// first.last[suffix]@domain</span>
-  <span class="prop">avatar</span><span class="pun">:</span> <span class="type">string</span>      <span class="cm">// Two-letter initials ("MB")</span>
-  <span class="prop">avatarColor</span><span class="pun">:</span> <span class="type">string</span> <span class="cm">// Hex color for avatar background</span>
-  <span class="prop">role</span><span class="pun">:</span> <span class="type">string</span>        <span class="cm">// Job title (32 roles)</span>
-  <span class="prop">department</span><span class="pun">:</span> <span class="type">string</span>  <span class="cm">// Team name (20 departments)</span>
-  <span class="prop">company</span><span class="pun">:</span> <span class="type">string</span>     <span class="cm">// Company name (47 companies)</span>
-  <span class="prop">city</span><span class="pun">:</span> <span class="type">string</span>        <span class="cm">// City name (40 cities)</span>
-  <span class="prop">country</span><span class="pun">:</span> <span class="type">string</span>     <span class="cm">// Country name (mapped from city)</span>
-  <span class="prop">status</span><span class="pun">:</span> <span class="type">string</span>      <span class="cm">// "active" | "inactive" | "pending" | "suspended"</span>
-  <span class="prop">joinedYear</span><span class="pun">:</span> <span class="type">number</span>  <span class="cm">// 2015 – 2025</span>
+  <span class="prop">id</span><span class="pun">:</span> <span class="type">number</span>
+  <span class="prop">firstName</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">lastName</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">email</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">avatar</span><span class="pun">:</span> <span class="type">string</span>        <span class="cm">// initials, e.g. "JD"</span>
+  <span class="prop">avatarColor</span><span class="pun">:</span> <span class="type">string</span>   <span class="cm">// hex color, e.g. "#5e35b1"</span>
+  <span class="prop">role</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">department</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">company</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">city</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">country</span><span class="pun">:</span> <span class="type">string</span>
+  <span class="prop">status</span><span class="pun">:</span> <span class="str">"active"</span> | <span class="str">"inactive"</span> | <span class="str">"pending"</span>
+  <span class="prop">joinedYear</span><span class="pun">:</span> <span class="type">number</span>
 }</pre>
                 </div>
             </div>
 
-            <!-- Usage examples -->
-            <div id="usage">
-                <div class="section-label">Usage</div>
-                <div class="type-def__title" style="margin-bottom: 16px;">With vlist</div>
+            <!-- ─── Pagination Type ────────────────────────── -->
 
-                <div class="code" style="margin-bottom: 24px;">
-                    <div class="code__bar">
-                        <span class="code__label">Infinite scroll adapter</span>
-                    </div>
-<pre><span class="kw">import</span> { createVList } <span class="kw">from</span> <span class="str">"vlist"</span>
-
-<span class="kw">const</span> list = createVList({
-  container: document.getElementById(<span class="str">"list"</span>),
-  item: {
-    height: <span class="num">56</span>,
-    template: (user) <span class="pun">=></span> {
-      <span class="kw">const</span> el = document.createElement(<span class="str">"div"</span>)
-      el.textContent = <span class="str">`${user.firstName} ${user.lastName}`</span>
-      <span class="kw">return</span> el
-    }
-  },
-  adapter: {
-    read: <span class="kw">async</span> ({ offset, limit }) <span class="pun">=></span> {
-      <span class="kw">const</span> res = <span class="kw">await</span> fetch(
-        <span class="str">`https://vlist.dev/api/users?offset=${offset}&limit=${limit}`</span>
-      )
-      <span class="kw">return</span> res.json()  <span class="cm">// { items, total, hasMore }</span>
-    }
-  }
-})</pre>
+            <div class="type-def">
+                <div class="type-def__title">Paginated Response</div>
+                <div class="type-def__desc">
+                    The <code class="mono" style="font-size: 0.88em; background: var(--bg-code-inline); padding: 2px 7px; border-radius: 4px;">GET /api/users</code>
+                    endpoint wraps results in a pagination envelope.
                 </div>
-
                 <div class="code">
                     <div class="code__bar">
-                        <span class="code__label">Simulated latency (for testing loading states)</span>
+                        <span class="code__label">TypeScript</span>
                     </div>
-<pre><span class="cm">// Add 500ms delay to simulate real network conditions</span>
-<span class="kw">const</span> res = <span class="kw">await</span> fetch(
-  <span class="str">`https://vlist.dev/api/users?offset=${offset}&limit=${limit}&delay=500`</span>
-)</pre>
+<pre><span class="kw">interface</span> <span class="type">PaginatedResponse</span> {
+  <span class="prop">items</span><span class="pun">:</span> <span class="type">User</span>[]
+  <span class="prop">total</span><span class="pun">:</span> <span class="type">number</span>
+  <span class="prop">hasMore</span><span class="pun">:</span> <span class="type">boolean</span>
+}</pre>
                 </div>
             </div>
 
-            <!-- Notes -->
+            <!-- ─── Error Type ─────────────────────────────── -->
+
+            <div class="type-def">
+                <div class="type-def__title">Error Response</div>
+                <div class="code">
+<pre>{
+  <span class="prop">"error"</span><span class="pun">:</span> <span class="str">"Invalid offset: must be 0–10000000"</span>
+}</pre>
+                </div>
+            </div>
+
+            <!-- ─── Notes ──────────────────────────────────── -->
             <div class="notes">
                 <div class="notes__title">Notes</div>
                 <ul class="notes__list">
-                    <li>All data is generated on-the-fly — no database, no storage, no state between requests</li>
-                    <li>Same index always returns the same user (deterministic FNV-1a hashing)</li>
-                    <li>CORS is enabled for all origins — use it from any domain</li>
-                    <li>The <code>delay</code> parameter adds server-side sleep to simulate real API latency</li>
-                    <li>The <code>total</code> parameter controls dataset size — useful for testing edge cases (small lists, huge lists)</li>
-                    <li>Response shape matches vlist's <code>AdapterResponse</code> interface — plug it directly into the async adapter</li>
-                    <li>Maximum page size is 200 items per request</li>
-                    <li>User IDs are 1-based (first user is ID 1, not 0)</li>
+                    <li>All data is deterministic — same parameters = same results</li>
+                    <li>User generation uses seeded hashing (FNV-1a)</li>
+                    <li>Maximum dataset: 10,000,000 users</li>
+                    <li>The <code class="mono">delay</code> param adds server-side sleep (0–5000ms)</li>
+                    <li>CORS is enabled: <code class="mono">Access-Control-Allow-Origin: *</code></li>
+                    <li>Rate limiting: <code class="mono">none</code> (please be reasonable)</li>
+                    <li>No authentication required</li>
+                    <li>JSON responses only</li>
                 </ul>
             </div>
 
@@ -1035,6 +1153,40 @@
                 <p></p>Built by <a href="https://floor.io" target="_blank">Floor IO</a></p>
             </footer>
         </div>
+
+        <!-- ─── Mobile dropdown toggle ───────────────────────── -->
+
+        <script>
+            (function () {
+                var h = document.getElementById("hamburger");
+                var d = document.getElementById("dropdown");
+                if (!h) return;
+                h.addEventListener("click", function () {
+                    d.classList.toggle("dropdown--open");
+                });
+                d.addEventListener("click", function (e) {
+                    if (e.target.closest("a")) d.classList.remove("dropdown--open");
+                });
+            })();
+        </script>
+
+        <!-- ─── Theme toggle ─────────────────────────────────── -->
+
+        <script>
+            (function () {
+                var btn = document.getElementById("theme-toggle");
+                if (!btn) return;
+                btn.addEventListener("click", function () {
+                    var current =
+                        document.documentElement.getAttribute("data-theme");
+                    var next = current === "light" ? "dark" : "light";
+                    document.documentElement.setAttribute("data-theme", next);
+                    localStorage.setItem("vlist-theme", next);
+                });
+            })();
+        </script>
+
+        <!-- ─── Try It scripts ───────────────────────────────── -->
 
         <script>
             // ─── Try It: Users ────────────────────────────────

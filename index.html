@@ -26,6 +26,19 @@
 
         <link rel="stylesheet" href="/styles/shell.css" />
 
+        <!-- Theme: apply before paint to prevent flash -->
+        <script>
+            (function () {
+                var t = localStorage.getItem("vlist-theme");
+                if (!t)
+                    t = window.matchMedia("(prefers-color-scheme: light)")
+                        .matches
+                        ? "light"
+                        : "dark";
+                document.documentElement.setAttribute("data-theme", t);
+            })();
+        </script>
+
         <style>
             /* ─── Landing Token Overrides ─────────────────────── */
 
@@ -35,8 +48,18 @@
                 --bg-card-hover: #1a1a1f;
                 --accent-dim: rgba(102, 126, 234, 0.12);
                 --accent-glow: rgba(102, 126, 234, 0.06);
+                --dropdown-bg: rgba(12, 12, 16, 0.95);
                 --radius: 12px;
                 --radius-sm: 8px;
+            }
+
+            [data-theme="light"] {
+                --text-muted: #555568;
+                --text-dim: #8888a0;
+                --bg-card-hover: #e8e8f0;
+                --accent-dim: rgba(74, 92, 216, 0.08);
+                --accent-glow: rgba(74, 92, 216, 0.04);
+                --dropdown-bg: rgba(255, 255, 255, 0.95);
             }
 
             /* ============================================================
@@ -59,7 +82,7 @@
                 top: var(--header-height);
                 left: 0;
                 right: 0;
-                background: rgba(12, 12, 16, 0.95);
+                background: var(--dropdown-bg);
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
                 border-bottom: 1px solid var(--border);
@@ -100,7 +123,7 @@
                 letter-spacing: -2px;
                 line-height: 1;
                 margin-bottom: 16px;
-                color: #fff;
+                color: var(--text);
             }
 
             .hero__tagline {
@@ -158,7 +181,7 @@
 
             .btn--primary {
                 background: var(--accent);
-                color: #fff;
+                color: #ffffff;
                 border-color: var(--accent);
             }
 
@@ -298,7 +321,7 @@
             .nav-card__title {
                 font-size: 20px;
                 font-weight: 600;
-                color: #fff;
+                color: var(--text);
             }
 
             .nav-card__desc {
@@ -398,6 +421,19 @@
             .code .prop { color: #f07178; }
             .code .par { color: #89ddff; }
             .code .op { color: #89ddff; }
+
+            /* ─── Light theme: code ──────────────────────────── */
+
+            [data-theme="light"] .code { background: var(--bg-card); }
+            [data-theme="light"] .code pre { color: var(--text-muted); }
+            [data-theme="light"] .code .kw { color: #7c3aed; }
+            [data-theme="light"] .code .fn { color: #2563eb; }
+            [data-theme="light"] .code .str { color: #16a34a; }
+            [data-theme="light"] .code .cm { color: #94a3b8; }
+            [data-theme="light"] .code .num { color: #ea580c; }
+            [data-theme="light"] .code .prop { color: #dc2626; }
+            [data-theme="light"] .code .par { color: #6366f1; }
+            [data-theme="light"] .code .op { color: #6366f1; }
 
             /* ============================================================
                Footer
@@ -617,6 +653,42 @@
                     >GitHub</a
                 >
             </nav>
+            <button
+                class="header__theme"
+                id="theme-toggle"
+                aria-label="Toggle theme"
+            >
+                <svg
+                    class="header__theme-sun"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                <svg
+                    class="header__theme-moon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
             <button
                 class="header__hamburger"
                 id="hamburger"
@@ -923,6 +995,22 @@
                 });
                 d.addEventListener("click", function (e) {
                     if (e.target.closest("a")) d.classList.remove("dropdown--open");
+                });
+            })();
+        </script>
+
+        <!-- ─── Theme toggle ─────────────────────────────────── -->
+
+        <script>
+            (function () {
+                var btn = document.getElementById("theme-toggle");
+                if (!btn) return;
+                btn.addEventListener("click", function () {
+                    var current =
+                        document.documentElement.getAttribute("data-theme");
+                    var next = current === "light" ? "dark" : "light";
+                    document.documentElement.setAttribute("data-theme", next);
+                    localStorage.setItem("vlist-theme", next);
                 });
             })();
         </script>

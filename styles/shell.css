@@ -22,14 +22,40 @@
     --bg: #0c0c10;
     --bg-sidebar: #101014;
     --bg-card: #141418;
+    --bg-card-hover: #161619;
     --border: #1e1e25;
     --border-hover: #2e2e38;
     --accent: #667eea;
     --accent-dim: rgba(102, 126, 234, 0.15);
     --accent-text: #8da0f2;
+    --header-bg: rgba(12, 12, 16, 0.85);
+    --sidebar-hover: rgba(255, 255, 255, 0.03);
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+    --shadow-sidebar: rgba(0, 0, 0, 0.4);
     --sidebar-width: 220px;
     --header-height: 56px;
     --radius: 8px;
+}
+
+/* ─── Light Theme ────────────────────────────────────────────────── */
+
+[data-theme="light"] {
+    --text: #1a1a2e;
+    --text-muted: #4a4a60;
+    --text-dim: #8080a0;
+    --bg: #ffffff;
+    --bg-sidebar: #f5f5f8;
+    --bg-card: #f0f0f5;
+    --bg-card-hover: #e8e8f0;
+    --border: #dcdce5;
+    --border-hover: #c0c0d0;
+    --accent: #4a5cd8;
+    --accent-dim: rgba(74, 92, 216, 0.08);
+    --accent-text: #4a5cd8;
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --sidebar-hover: rgba(0, 0, 0, 0.03);
+    --overlay-bg: rgba(0, 0, 0, 0.3);
+    --shadow-sidebar: rgba(0, 0, 0, 0.15);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────── */
@@ -58,7 +84,7 @@ body {
     left: 0;
     right: 0;
     height: var(--header-height);
-    background: rgba(12, 12, 16, 0.85);
+    background: var(--header-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
@@ -192,7 +218,7 @@ body {
 
 .sidebar__link:hover {
     color: var(--text);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--sidebar-hover);
 }
 
 .sidebar__link--active {
@@ -215,7 +241,7 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--overlay-bg);
     z-index: 40;
 }
 
@@ -278,7 +304,7 @@ body {
 
 .overview__card:hover {
     border-color: var(--border-hover);
-    background: #161619;
+    background: var(--bg-card-hover);
 }
 
 .overview__card-icon {
@@ -297,6 +323,68 @@ body {
     font-size: 15px;
     color: var(--text-dim);
     line-height: 1.5;
+}
+
+/* ─── Theme Toggle ───────────────────────────────────────────────── */
+
+.header__theme {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition:
+        color 0.2s,
+        background 0.2s,
+        border-color 0.2s;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.header__theme:hover {
+    color: var(--text-muted);
+    background: var(--sidebar-hover);
+    border-color: var(--border);
+}
+
+.header__theme-sun,
+.header__theme-moon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Dark mode: show moon, hide sun */
+.header__theme-sun {
+    display: none;
+}
+.header__theme-moon {
+    display: block;
+}
+
+/* Light mode: show sun, hide moon */
+[data-theme="light"] .header__theme-sun {
+    display: block;
+}
+[data-theme="light"] .header__theme-moon {
+    display: none;
+}
+
+/* ─── Theme Transition ───────────────────────────────────────────── */
+
+html[data-theme] body,
+html[data-theme] .header,
+html[data-theme] .sidebar,
+html[data-theme] .overview__card,
+html[data-theme] .sidebar__link {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
 }
 
 /* ─── Responsive: large screens ──────────────────────────────────── */
@@ -352,7 +440,7 @@ body {
         transition: transform 0.25s ease;
         width: 260px;
         background: var(--bg);
-        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 0 24px var(--shadow-sidebar);
     }
 
     .sidebar--open {
