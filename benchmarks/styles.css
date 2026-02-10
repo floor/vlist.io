@@ -1,0 +1,704 @@
+/* benchmarks/styles.css — Benchmark dashboard */
+
+/* ============================================================================
+   Back Link (shared with sandbox examples)
+   ============================================================================ */
+
+.back-link {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    color: var(--mtrl-sys-color-primary, #667eea);
+    text-decoration: none;
+    font-size: 14px;
+    z-index: 100;
+    padding: 8px 16px;
+    background: var(--mtrl-sys-color-surface, #1a1a1a);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* ============================================================================
+   Page Layout
+   ============================================================================ */
+
+.bench-page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.bench-header {
+    margin-bottom: 40px;
+}
+
+.bench-header__title {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    margin: 0 0 8px;
+}
+
+.bench-header__desc {
+    font-size: 16px;
+    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    margin: 0 0 24px;
+    max-width: 680px;
+    line-height: 1.6;
+}
+
+.bench-header__meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.bench-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+    color: var(--mtrl-sys-color-on-surface-variant, #999);
+}
+
+.bench-tag--accent {
+    border-color: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--mtrl-sys-color-primary, #667eea);
+}
+
+/* ============================================================================
+   Controls Bar
+   ============================================================================ */
+
+.bench-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    padding: 16px 20px;
+    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
+    border-radius: 16px;
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+}
+
+.bench-controls__label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.bench-controls__sizes {
+    display: flex;
+    gap: 6px;
+}
+
+.bench-size-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+    background: transparent;
+    color: var(--mtrl-sys-color-on-surface-variant, #999);
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bench-size-btn:hover {
+    border-color: var(--mtrl-sys-color-on-surface-variant, #666);
+    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+}
+
+.bench-size-btn--active {
+    background: var(--mtrl-sys-color-primary, #667eea);
+    border-color: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--mtrl-sys-color-on-primary, #fff);
+}
+
+.bench-size-btn--active:hover {
+    opacity: 0.9;
+}
+
+.bench-controls__sep {
+    width: 1px;
+    height: 28px;
+    background: var(--mtrl-sys-color-outline-variant, #333);
+}
+
+.bench-run-btn {
+    padding: 8px 24px;
+    border-radius: 8px;
+    border: none;
+    background: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--mtrl-sys-color-on-primary, #fff);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.bench-run-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.bench-run-btn:active {
+    transform: translateY(0);
+}
+
+.bench-run-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.bench-run-btn--stop {
+    background: var(--mtrl-sys-color-error, #f44336);
+}
+
+.bench-status {
+    font-size: 13px;
+    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    margin-left: auto;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    white-space: nowrap;
+}
+
+.bench-status--running {
+    color: var(--mtrl-sys-color-primary, #667eea);
+}
+
+/* ============================================================================
+   Suite Grid
+   ============================================================================ */
+
+.bench-suites {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.bench-suites--running {
+    grid-template-columns: 1fr;
+}
+
+.bench-suites--running .bench-suite:not(.bench-suite--running) .bench-viewport {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .bench-suites {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================================
+   Suite Card
+   ============================================================================ */
+
+.bench-suite {
+    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    border-radius: 16px;
+    padding: 20px;
+    transition: border-color 0.2s ease;
+}
+
+.bench-suite--running {
+    border-color: var(--mtrl-sys-color-primary, #667eea);
+}
+
+.bench-suite--done {
+    border-color: var(--mtrl-sys-color-outline-variant, #333);
+}
+
+.bench-suite__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.bench-suite__icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.bench-suite__name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    margin: 0;
+}
+
+.bench-suite__run-btn {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+    background: transparent;
+    color: var(--mtrl-sys-color-on-surface-variant, #999);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bench-suite__run-btn:hover {
+    border-color: var(--mtrl-sys-color-primary, #667eea);
+    color: var(--mtrl-sys-color-primary, #667eea);
+}
+
+.bench-suite__run-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.bench-suite__desc {
+    font-size: 13px;
+    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    margin: 0 0 16px;
+    line-height: 1.5;
+}
+
+.bench-suite__status {
+    font-size: 12px;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    color: var(--mtrl-sys-color-on-surface-variant, #666);
+    margin: 0 0 12px;
+    min-height: 18px;
+}
+
+.bench-suite__status--running {
+    color: var(--mtrl-sys-color-primary, #667eea);
+}
+
+/* ============================================================================
+   Metrics Table (inside each suite card)
+   ============================================================================ */
+
+.bench-metrics {
+    display: grid;
+    gap: 8px;
+}
+
+.bench-metric {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--mtrl-sys-color-surface, #111);
+    border-radius: 8px;
+    min-height: 38px;
+}
+
+.bench-metric__label {
+    font-size: 13px;
+    color: var(--mtrl-sys-color-on-surface-variant, #888);
+}
+
+.bench-metric__value {
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.bench-metric__unit {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--mtrl-sys-color-on-surface-variant, #777);
+}
+
+/* Rating colors */
+.bench-metric--good .bench-metric__value {
+    color: #43e97b;
+}
+
+.bench-metric--ok .bench-metric__value {
+    color: #ffc107;
+}
+
+.bench-metric--bad .bench-metric__value {
+    color: #f44336;
+}
+
+/* Placeholder when no results yet */
+.bench-metric--empty {
+    justify-content: center;
+}
+
+.bench-metric--empty .bench-metric__value {
+    color: var(--mtrl-sys-color-on-surface-variant, #555);
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* Error state */
+.bench-suite__error {
+    padding: 12px;
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #f44336;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+}
+
+/* ============================================================================
+   Multi-count Results (tabs for 10K / 100K / 1M inside each card)
+   ============================================================================ */
+
+.bench-suite__tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.bench-tab {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--mtrl-sys-color-on-surface-variant, #666);
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bench-tab:hover {
+    color: var(--mtrl-sys-color-on-surface, #ccc);
+}
+
+.bench-tab--active {
+    border-color: var(--mtrl-sys-color-outline-variant, #444);
+    background: var(--mtrl-sys-color-surface, #111);
+    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+}
+
+.bench-tab--done {
+    color: #43e97b;
+}
+
+.bench-tab--running {
+    color: var(--mtrl-sys-color-primary, #667eea);
+}
+
+/* ============================================================================
+   Bundle Size Comparison (static table)
+   ============================================================================ */
+
+.bench-bundle {
+    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 40px;
+}
+
+.bench-bundle__title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    margin: 0 0 4px;
+}
+
+.bench-bundle__desc {
+    font-size: 13px;
+    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    margin: 0 0 20px;
+}
+
+.bench-bundle__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.bench-bundle__table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+}
+
+.bench-bundle__table th:not(:first-child) {
+    text-align: right;
+}
+
+.bench-bundle__table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #1f1f1f);
+    color: var(--mtrl-sys-color-on-surface, #ccc);
+}
+
+.bench-bundle__table td:not(:first-child) {
+    text-align: right;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 13px;
+}
+
+.bench-bundle__table tr:last-child td {
+    border-bottom: none;
+}
+
+.bench-bundle__table .bench-bundle__highlight {
+    color: #43e97b;
+    font-weight: 600;
+}
+
+.bench-bundle__table .bench-bundle__lib {
+    font-weight: 500;
+}
+
+.bench-bundle__table .bench-bundle__lib--self {
+    color: var(--mtrl-sys-color-primary, #667eea);
+    font-weight: 600;
+}
+
+.bench-bundle__note {
+    font-size: 12px;
+    color: var(--mtrl-sys-color-on-surface-variant, #555);
+    margin: 14px 0 0;
+    font-style: italic;
+}
+
+/* ============================================================================
+   Feature Comparison Table
+   ============================================================================ */
+
+.bench-features {
+    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 40px;
+}
+
+.bench-features__title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--mtrl-sys-color-on-surface, #e0e0e0);
+    margin: 0 0 4px;
+}
+
+.bench-features__desc {
+    font-size: 13px;
+    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    margin: 0 0 20px;
+}
+
+.bench-features__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.bench-features__table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--mtrl-sys-color-on-surface-variant, #777);
+    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #333);
+}
+
+.bench-features__table th:not(:first-child) {
+    text-align: center;
+}
+
+.bench-features__table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--mtrl-sys-color-outline-variant, #1f1f1f);
+    color: var(--mtrl-sys-color-on-surface, #ccc);
+}
+
+.bench-features__table td:not(:first-child) {
+    text-align: center;
+    font-size: 15px;
+}
+
+.bench-features__table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ============================================================================
+   Benchmark Viewport (visible on-screen so browser renders at full 60fps)
+   ============================================================================ */
+
+.bench-offscreen {
+    display: none;
+}
+
+.bench-viewport {
+    width: 100%;
+    height: 350px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--mtrl-sys-color-surface, #111);
+    border: 1px solid var(--mtrl-sys-color-outline-variant, #222);
+    margin-top: 12px;
+    position: relative;
+    display: none;
+}
+
+.bench-viewport--active {
+    display: block;
+}
+
+.bench-viewport__inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.bench-viewport__label {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    color: var(--mtrl-sys-color-on-surface-variant, #555);
+    background: var(--mtrl-sys-color-surface-container, #1a1a1a);
+    padding: 2px 8px;
+    border-radius: 4px;
+    z-index: 1;
+    pointer-events: none;
+    letter-spacing: 0.3px;
+}
+
+/* ============================================================================
+   Progress Indicator
+   ============================================================================ */
+
+.bench-progress {
+    width: 100%;
+    height: 3px;
+    background: var(--mtrl-sys-color-surface, #111);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.bench-progress--active {
+    opacity: 1;
+}
+
+.bench-progress__bar {
+    height: 100%;
+    width: 0%;
+    background: var(--mtrl-sys-color-primary, #667eea);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.bench-footer {
+    text-align: center;
+    padding: 24px 0;
+    color: var(--mtrl-sys-color-on-surface-variant, #555);
+    font-size: 13px;
+}
+
+.bench-footer a {
+    color: var(--mtrl-sys-color-on-surface-variant, #888);
+    text-decoration: none;
+}
+
+.bench-footer a:hover {
+    color: var(--mtrl-sys-color-on-surface, #ccc);
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 640px) {
+    .bench-page {
+        padding: 32px 16px 60px;
+    }
+
+    .bench-header__title {
+        font-size: 28px;
+    }
+
+    .bench-header__desc {
+        font-size: 14px;
+    }
+
+    .bench-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .bench-controls__sep {
+        display: none;
+    }
+
+    .bench-controls__sizes {
+        justify-content: center;
+    }
+
+    .bench-status {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .bench-run-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .bench-suites {
+        grid-template-columns: 1fr;
+    }
+
+    .bench-bundle__table,
+    .bench-features__table {
+        font-size: 12px;
+    }
+
+    .bench-bundle__table th,
+    .bench-bundle__table td,
+    .bench-features__table th,
+    .bench-features__table td {
+        padding: 8px 10px;
+    }
+}

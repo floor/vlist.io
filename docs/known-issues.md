@@ -4,7 +4,7 @@
 
 ## Current State
 
-vlist is a well-optimized, batteries-included virtual list with zero dependencies. It supports both fixed and variable item heights, built-in selection, keyboard navigation, infinite scroll, and 1M+ item compression.
+vlist is a well-optimized, batteries-included virtual list with zero dependencies. It supports fixed and variable item heights, grid layout, sticky headers, reverse mode (chat), built-in selection, keyboard navigation, infinite scroll, framework adapters, and 1M+ item compression.
 
 **Where vlist wins today:**
 - ✅ Zero dependencies
@@ -13,22 +13,30 @@ vlist is a well-optimized, batteries-included virtual list with zero dependencie
 - ✅ Built-in infinite scroll with adapter, placeholders, velocity-based loading
 - ✅ Variable item heights via `height: (index) => number` (Mode A)
 - ✅ Window/document scrolling via `scrollElement: window`
+- ✅ Grid layout with O(1) row/column mapping and compression support
+- ✅ Sticky headers / grouped lists with push-out transitions
+- ✅ Reverse mode for chat UIs with scroll-position-preserving prepend
+- ✅ Framework adapters — React, Vue 3, Svelte (< 1 KB each)
 - ✅ Smooth `scrollToIndex` animation with easing
+- ✅ Scroll position save/restore (JSON-serializable snapshots)
+- ✅ Modular imports — `vlist/core` at 3.0 KB gzip (smaller than TanStack)
 - ✅ Extensive scroll hot-path optimizations (zero-allocation, RAF-throttled, circular buffer velocity)
-- ✅ 561 tests, comprehensive documentation
+- ✅ 806 tests (3,610 assertions), comprehensive documentation
 
 **Where vlist falls short:**
 
 | Gap | Impact | Competitors |
 |-----|--------|-------------|
 | No auto-height measurement (Mode B) | ⚠️ Mode A covers known heights; Mode B needed for dynamic content | @tanstack/virtual ✅ |
-| No horizontal / grid layout | ❌ Major | @tanstack/virtual ✅ |
-| ~~No window (document) scrolling~~ | ✅ Shipped | @tanstack/virtual ✅ |
-| No sticky headers / grouped lists | ❌ Common pattern | react-virtuoso ✅ |
-| No reverse mode (chat UI) | ❌ Common pattern | react-virtuoso ✅ |
-| No framework adapters | ❌ Adoption barrier | @tanstack/virtual ✅ |
-| Bundle ~12.2 KB gzip | ⚠️ 2× larger than tanstack (~5.5 KB) | @tanstack/virtual ✅ |
+| No horizontal scrolling | ⚠️ Carousels, timelines — less common than vertical | @tanstack/virtual ✅ |
 | Basic accessibility | ⚠️ Missing aria-setsize/posinset | — |
+| No public benchmarks | ⚠️ Performance claims lack proof | — |
+| ~~No grid layout~~ | ✅ Shipped | @tanstack/virtual ✅ |
+| ~~No window (document) scrolling~~ | ✅ Shipped | @tanstack/virtual ✅ |
+| ~~No sticky headers / grouped lists~~ | ✅ Shipped | react-virtuoso ✅ |
+| ~~No reverse mode (chat UI)~~ | ✅ Shipped | react-virtuoso ✅ |
+| ~~No framework adapters~~ | ✅ Shipped | @tanstack/virtual ✅ |
+| ~~Bundle ~12.2 KB gzip~~ | ✅ Core 3.0 KB gzip (smaller than TanStack ~5.5 KB) | @tanstack/virtual ✅ |
 
 ---
 
@@ -206,19 +214,19 @@ const list = createVList({
 
 ---
 
-### 5. Grid / Masonry Layout
+### 5. ✅ Grid Layout
 
-**Priority:** Medium.
+**Priority:** Medium. **Status: DONE**
 
 **Problem:** Image galleries, card grids, and dashboard tiles need 2D virtualization. This is a top use case that no vanilla library handles well.
 
-**Approach:**
+**Solution:** Added `layout: 'grid'` with a dedicated `grid` configuration option:
 
 ```typescript
 const grid = createVList({
   container: '#gallery',
-  layout: 'grid',       // new option
-  columns: 4,           // or 'auto' for responsive
+  layout: 'grid',
+  grid: { columns: 4, gap: 8 },
   item: {
     height: 200,
     template: (item) => `<img src="${item.thumbnail}" />`,
@@ -227,13 +235,21 @@ const grid = createVList({
 });
 ```
 
-**Architecture impact:**
-- `(row, col)` calculation from flat index: `row = floor(index / columns)`, `col = index % columns`
-- Virtual range is rows, not items: visible rows × columns = visible items
-- Item width = `containerWidth / columns`
-- Compression applies to row count, not item count
+**Implementation details:**
+- New `src/grid/` module: `layout.ts` (O(1) flat-index ↔ row/col mapping), `renderer.ts` (2D positioning with `translate(x, y)`), `types.ts`
+- Virtualization operates on **rows** (not items): visible rows × columns = visible items
+- `createGridLayout()` provides zero-allocation `getPosition()` (reusable object), `getTotalRows()`, `getItemRange()`, `getColumnWidth()`, `getColumnOffset()` — all O(1) integer math
+- `createGridRenderer()` extends the base renderer pattern with 2D positioning: items use `translate(colOffset, rowOffset)` for GPU-accelerated placement
+- Height cache operates on row indices; row height = item height + gap (renderer subtracts gap for DOM element sizing)
+- Container resize updates column widths and repositions all rendered items
+- Compression applies to row count, not item count — large grids (1M+ items) compress seamlessly
+- Element pool with grid-specific data attributes (`data-row`, `data-col`)
+- Validation: cannot combine grid with `groups` or `reverse` mode (throws at creation time)
+- CSS: `.vlist--grid` modifier, `.vlist-grid-item` element class
+- Exported as `vlist/grid` subpath (1.4 KB gzip standalone)
+- 55 tests covering layout math, round-trips, edge cases, and renderer behavior
 
-**Estimated effort:** Medium-Large — new layout mode but builds on existing virtual scrolling math.
+**Changes:** `src/grid/layout.ts` (new), `src/grid/renderer.ts` (new), `src/grid/types.ts` (new), `src/grid/index.ts` (new), `src/vlist.ts`, `src/types.ts`, `build.ts`, `package.json`
 
 ---
 
@@ -622,7 +638,7 @@ list.restoreScroll(saved);
 | 2 | Smooth scrollToIndex | 🟠 High | Small | 1 | ✅ Done |
 | 3 | Shrink bundle size | 🟠 High | Medium | 1 | ✅ Done |
 | 4 | Horizontal scrolling | 🟡 Medium | Medium | 2 | 🟡 Pending |
-| 5 | Grid layout | 🟡 Medium | Medium-Large | 2 | 🟡 Pending |
+| 5 | Grid layout | 🟡 Medium | Medium-Large | 2 | ✅ Done |
 | 6 | Window scrolling | 🟡 Medium | Medium | 2 | ✅ Done |
 | 7 | Sticky headers | 🟡 Medium | Medium | 3 | ✅ Done |
 | 8 | Reverse mode (chat) | 🟡 Medium | Medium-Large | 3 | ✅ Done |
@@ -631,6 +647,8 @@ list.restoreScroll(saved);
 | 11 | Auto-height measurement | 🟢 Low | Medium | 4 | 🟡 Pending |
 | 12 | Enhanced accessibility | 🟡 Medium | Small-Medium | 4 | 🟡 Pending |
 | 13 | Scroll save/restore | 🟢 Low | Small | 4 | ✅ Done |
+
+**Summary: 10 of 13 features shipped.** Phases 1 and 3 complete. Phase 2 has one remaining item (horizontal scrolling). Phase 4 has two remaining items (benchmarks, accessibility) plus one low-priority nice-to-have (auto-height).
 
 ---
 
@@ -652,5 +670,5 @@ list.restoreScroll(saved);
 
 ---
 
-*Last updated: June 2025*
-*Status: Phase 1 complete. Phase 2 partially complete (window scrolling, grid). Phase 3 complete (sticky headers, reverse mode, framework adapters). Phase 4 pending.*
+*Last updated: February 2026*
+*Status: 10/13 shipped. Phase 1 complete. Phase 2 complete (window scrolling, grid) except horizontal. Phase 3 complete (sticky headers, reverse mode, framework adapters). Phase 4: scroll save/restore done; benchmarks, accessibility, auto-height pending.*
