@@ -15,6 +15,7 @@ vlist is a well-optimized, batteries-included virtual list with zero dependencie
 - ✅ Window/document scrolling via `scroll: { element: window }`
 - ✅ Custom scrollbar by default, native or none via `scroll: { scrollbar }`
 - ✅ Wheel control — enable/disable mouse wheel via `scroll: { wheel }`
+- ✅ Wrap navigation — circular `scrollToIndex` for carousels/wizards via `scroll: { wrap }`
 - ✅ Grid layout with O(1) row/column mapping and compression support
 - ✅ Sticky headers / grouped lists with push-out transitions
 - ✅ Horizontal scrolling via `direction: 'horizontal'` (carousels, timelines)
@@ -24,7 +25,7 @@ vlist is a well-optimized, batteries-included virtual list with zero dependencie
 - ✅ Scroll position save/restore (JSON-serializable snapshots)
 - ✅ Modular imports — `vlist/core` at 3.0 KB gzip (smaller than TanStack)
 - ✅ Extensive scroll hot-path optimizations (zero-allocation, RAF-throttled, circular buffer velocity)
-- ✅ 806 tests (3,610 assertions), comprehensive documentation
+- ✅ 816 tests (3,620 assertions), comprehensive documentation
 
 **Where vlist falls short:**
 
@@ -659,8 +660,9 @@ list.restoreScroll(saved);
 | 11 | Auto-height measurement | 🟢 Low | Medium | 4 | 🟡 Pending |
 | 12 | Enhanced accessibility | 🟡 Medium | Small-Medium | 4 | 🟡 Pending |
 | 13 | Scroll save/restore | 🟢 Low | Small | 4 | ✅ Done |
+| 14 | Scroll config (wheel, scrollbar, wrap) | 🟡 Medium | Medium | 4 | ✅ Done |
 
-**Summary: 11 of 13 features shipped.** Phases 1, 2, and 3 complete. Phase 4 has two remaining items (benchmarks, accessibility) plus one low-priority nice-to-have (auto-height).
+**Summary: 12 of 14 features shipped.** Phases 1, 2, and 3 complete. Phase 4 has two remaining items (benchmarks, accessibility) plus one low-priority nice-to-have (auto-height).
 
 ---
 
@@ -683,4 +685,4 @@ list.restoreScroll(saved);
 ---
 
 *Last updated: February 2026*
-*Status: 10/13 shipped. Phase 1 complete. Phase 2 complete (window scrolling, grid) except horizontal. Phase 3 complete (sticky headers, reverse mode, framework adapters). Phase 4: scroll save/restore done; benchmarks, accessibility, auto-height pending.*
+*Status: 12/14 shipped. Phases 1–3 complete. Phase 4: scroll config and scroll save/restore done; benchmarks, accessibility, auto-height pending.*

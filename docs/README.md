@@ -13,6 +13,7 @@
 - **[Scroll Save/Restore](./vlist.md#scroll-saverestore)** - Save and restore scroll position for SPA navigation
 - **[Framework Adapters](#framework-adapters)** - React, Vue, and Svelte wrappers (<1 KB each)
 - **[Reverse Mode](./vlist.md#reverse-mode-chat-ui)** - Chat UI support with auto-scroll and scroll-preserving prepend
+- **[Scroll Config](./scroll.md#scroll-configuration)** - Wheel control, wrap navigation, scrollbar modes, window scrolling
 
 ## Module Documentation
 
@@ -176,8 +177,11 @@ Emit 'load:end' event
 - Direct state getters (`getTotal()`, `getCached()`) for zero-allocation hot paths
 
 ### Scroll Module
+- Unified `scroll` config (`wheel`, `wrap`, `scrollbar`, `element`, `idleTimeout`)
+- Custom scrollbar by default (consistent cross-browser), with `'native'` and `'none'` modes
+- `wheel: false` — disable mouse wheel, hide native scrollbar (wizard/carousel UIs)
+- `wrap: true` — circular navigation via `scrollToIndex` (carousel/wizard loops)
 - Native, compressed, and window scrolling modes
-- Custom scrollbar for compressed mode (auto-disabled in window mode)
 - Circular buffer velocity tracking (zero allocations during scroll)
 - RAF-throttled native scroll (at most one processing per animation frame)
 - Configurable idle detection (`idleTimeout` option, default: 150ms)
@@ -215,9 +219,14 @@ const list = createVList({
   // Optional
   overscan: 3,                 // Extra items to render
   reverse: false,              // Reverse mode for chat UIs
-  scrollElement: window,       // Document scrolling (list scrolls with page)
   classPrefix: 'vlist',        // CSS class prefix
-  idleTimeout: 150,            // Scroll idle detection (ms)
+  scroll: {
+    wheel: true,               // Enable mouse wheel (default: true)
+    wrap: false,               // Wrap around at boundaries (default: false)
+    scrollbar: { autoHide: true },  // 'native' | 'none' | { options } (default: custom)
+    element: window,           // Window scrolling mode
+    idleTimeout: 150,          // Scroll idle detection (ms)
+  },
   selection: {
     mode: 'multiple',          // 'none' | 'single' | 'multiple'
     initial: ['id-1']          // Pre-selected IDs
@@ -227,12 +236,6 @@ const list = createVList({
     preloadThreshold: 2,       // Start preloading above this velocity (px/ms)
     preloadAhead: 50,          // Items to preload in scroll direction
   },
-  scrollbar: {
-    enabled: true,             // Auto-enabled in compressed mode
-    autoHide: true,
-    autoHideDelay: 1000,
-    minThumbSize: 30
-  }
 });
 ```
 

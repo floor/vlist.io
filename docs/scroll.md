@@ -35,6 +35,7 @@ createVList({
   item: { height: 48, template: (item) => item.name },
   scroll: {
     wheel: true,                     // enable/disable mouse wheel
+    wrap: false,                     // wrap around at boundaries
     scrollbar: ...,                  // 'native' | 'none' | { options }
     element: window,                 // external scroll element
     idleTimeout: 150,                // idle detection timeout (ms)
@@ -73,6 +74,50 @@ createVList({
   scroll: { wheel: false, scrollbar: 'none' },
 });
 ```
+
+### `scroll.wrap`
+
+**Type:** `boolean`
+**Default:** `false`
+
+Wraps around when `scrollToIndex` goes past the boundaries of the list.
+
+| Index | `wrap: false` (default) | `wrap: true` |
+|-------|-------------------------|--------------|
+| **Past last item** | Clamped to last item | Wraps to beginning |
+| **Negative index** | Clamped to 0 | Wraps from end |
+
+When `true`, `scrollToIndex` applies modulo arithmetic to the index:
+- `scrollToIndex(totalItems)` → scrolls to index `0`
+- `scrollToIndex(-1)` → scrolls to the last item
+- `scrollToIndex(totalItems + 5)` → scrolls to index `5`
+
+This is useful for carousels, wizards, and any circular navigation pattern where prev/next buttons should loop endlessly.
+
+```typescript
+// Carousel with wrap-around navigation
+const list = createVList({
+  container: '#carousel',
+  item: { height: 300, template: renderSlide },
+  items: slides,
+  scroll: { wheel: false, scrollbar: 'none', wrap: true },
+});
+
+let current = 0;
+
+// These never need boundary checks — wrap handles it
+btnNext.addEventListener('click', () => {
+  current++;
+  list.scrollToIndex(current, { align: 'start', behavior: 'smooth' });
+});
+
+btnPrev.addEventListener('click', () => {
+  current--;
+  list.scrollToIndex(current, { align: 'start', behavior: 'smooth' });
+});
+```
+
+> **Note:** `wrap` only affects `scrollToIndex` and `scrollToItem`. It does not create an infinite/repeating list — the items array stays finite. The wrapping is purely navigational.
 
 ### `scroll.scrollbar`
 
@@ -205,6 +250,9 @@ createVList({
 interface ScrollConfig {
   /** Enable mouse wheel scrolling (default: true) */
   wheel?: boolean;
+
+  /** Wrap around at boundaries (default: false) */
+  wrap?: boolean;
 
   /** Scrollbar mode (default: custom scrollbar) */
   scrollbar?: 'native' | 'none' | ScrollbarOptions;
@@ -656,17 +704,20 @@ const list = createVList({
 
 ### Button-Only Navigation (Wizard)
 
-Disable wheel and hide all scrollbars — navigation is entirely programmatic:
+Disable wheel and hide all scrollbars — navigation is entirely programmatic.
+With `wrap: true`, prev/next loop endlessly without boundary checks:
 
 ```typescript
 const list = createVList({
   container: '#wizard',
   item: { height: 400, template: renderStep },
   items: wizardSteps,
-  scroll: { wheel: false, scrollbar: 'none' },
+  scroll: { wheel: false, scrollbar: 'none', wrap: true },
 });
 
-// Navigate with buttons
+let currentStep = 0;
+
+// No boundary checks needed — wrap handles it
 document.getElementById('next').addEventListener('click', () => {
   currentStep++;
   list.scrollToIndex(currentStep, { align: 'start', behavior: 'smooth', duration: 350 });
@@ -677,6 +728,9 @@ document.getElementById('prev').addEventListener('click', () => {
   list.scrollToIndex(currentStep, { align: 'start', behavior: 'smooth', duration: 350 });
 });
 ```
+
+> Without `wrap: true`, you would need to clamp manually:
+> `currentStep = Math.max(0, Math.min(currentStep, total - 1))`
 
 ### Horizontal Carousel
 

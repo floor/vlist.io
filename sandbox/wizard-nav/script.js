@@ -214,7 +214,7 @@ const TOTAL = recipes.length;
 // Create virtual list with wheel scrolling disabled
 const list = createVList({
   container: "#list-container",
-  scroll: { wheel: false, scrollbar: "none" },
+  scroll: { wheel: false, scrollbar: "none", wrap: true },
   ariaLabel: "Recipe wizard",
   selection: { mode: "single" },
   item: {
@@ -253,9 +253,9 @@ const btnRandom = document.getElementById("btn-random");
 const statsEl = document.getElementById("stats");
 const indicatorEl = document.getElementById("step-indicator");
 
-// Navigate to a specific index
+// Navigate to a specific index (wrap is handled by vlist)
 function goTo(index) {
-  currentIndex = Math.max(0, Math.min(index, TOTAL - 1));
+  currentIndex = ((index % TOTAL) + TOTAL) % TOTAL;
 
   list.scrollToIndex(currentIndex, {
     align: "start",
@@ -271,8 +271,7 @@ function goTo(index) {
 
 // Update buttons, stats, and step indicator
 function updateUI() {
-  btnPrev.disabled = currentIndex === 0;
-  btnNext.disabled = currentIndex === TOTAL - 1;
+  // No disabling — wrap mode means prev/next always work
 
   const recipe = recipes[currentIndex];
   statsEl.innerHTML = `
