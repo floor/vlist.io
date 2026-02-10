@@ -14,6 +14,7 @@
 
 import { routeApi } from "./src/api/router";
 import { renderSandboxPage } from "./sandbox/renderer";
+import { renderDocsPage } from "./docs/renderer";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
 import { join, extname, resolve } from "path";
 
@@ -161,8 +162,6 @@ const serveFromPackage = (
  *   8. /sandbox/<slug>/*            → sandbox static assets (JS, CSS)
  *   9. /*                           → local root (landing page, etc.)
  */
-const DOCS_SHELL = join(ROOT, "docs", "index.html");
-
 const resolveStatic = (pathname: string): Response | null => {
   // /dist/* → vlist package dist directory
   if (pathname.startsWith("/dist/")) {
@@ -182,19 +181,9 @@ const resolveStatic = (pathname: string): Response | null => {
     return serveFromPackage(MTRL_ADDONS_ROOT, subpath);
   }
 
-  // /docs/*.md → serve raw markdown (client fetches these)
+  // /docs/*.md → serve raw markdown
   if (pathname.startsWith("/docs/") && pathname.endsWith(".md")) {
     return serveStatic(pathname);
-  }
-
-  // /docs/ or /docs/<slug> (no extension) → serve docs shell
-  // The shell loads the corresponding .md file client-side
-  if (
-    pathname === "/docs" ||
-    pathname === "/docs/" ||
-    pathname.match(/^\/docs\/[a-zA-Z0-9_-]+$/)
-  ) {
-    return serveFile(DOCS_SHELL);
   }
 
   // Everything else — serve from project root
@@ -247,11 +236,23 @@ const handleRequest = async (req: Request): Promise<Response> => {
   const sandboxResponse = resolveSandbox(pathname);
   if (sandboxResponse) return sandboxResponse;
 
-  // 3. Static files (with package resolution)
+  // 3. Docs pages (server-rendered)
+  if (pathname === "/docs" || pathname === "/docs/") {
+    const rendered = renderDocsPage(null);
+    if (rendered) return rendered;
+  } else {
+    const docsMatch = pathname.match(/^\/docs\/([a-zA-Z0-9_-]+)\/?$/);
+    if (docsMatch) {
+      const rendered = renderDocsPage(docsMatch[1]);
+      if (rendered) return rendered;
+    }
+  }
+
+  // 4. Static files (with package resolution)
   const staticResponse = resolveStatic(pathname);
   if (staticResponse) return staticResponse;
 
-  // 4. 404
+  // 5. 404
   return new Response("Not Found", { status: 404 });
 };
 
