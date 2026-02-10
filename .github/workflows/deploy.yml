@@ -52,6 +52,9 @@ jobs:
             # Install dependencies (regenerate lockfile with npm versions)
             bun install
 
+            # Build vlist (installed from GitHub — dist/ is gitignored)
+            cd node_modules/vlist && bun run build && cd $APP_DIR
+
             # Patch mtrl packages: remove "development" export condition
             # (points to src/ which isn't shipped in npm packages)
             node -e "
