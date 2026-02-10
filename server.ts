@@ -1,5 +1,5 @@
 // server.ts
-// vlist.dev — Main Bun HTTP server
+// vlist.dev — Main Bun HTTP server (Bun runtime)
 //
 // Serves:
 //   /api/*                        → API routes (users, etc.)
@@ -19,6 +19,7 @@ import { renderSandboxPage, EXAMPLE_GROUPS } from "./sandbox/renderer";
 import { renderDocsPage, DOC_GROUPS } from "./docs/renderer";
 import { renderBenchmarkPage, BENCH_GROUPS } from "./benchmarks/renderer";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
+import { execSync } from "child_process";
 import { join, extname, resolve } from "path";
 
 const PORT = parseInt(process.env.PORT || "3338", 10);
@@ -225,6 +226,80 @@ const resolveSandbox = (pathname: string): Response | null => {
 };
 
 // =============================================================================
+// Git-based lastmod
+// =============================================================================
+
+/**
+ * Get the last commit date (YYYY-MM-DD) for a file.
+ * Returns null if the file has no git history.
+ */
+function gitLastmod(filePath: string): string | null {
+  try {
+    const date = execSync(
+      `git log -1 --format=%cd --date=short -- "${filePath}"`,
+      { cwd: ROOT, encoding: "utf-8" },
+    ).trim();
+    return date || null;
+  } catch {
+    return null;
+  }
+}
+
+const FALLBACK_DATE = new Date().toISOString().split("T")[0];
+
+/**
+ * Build a map of URL path → lastmod date at startup.
+ * Runs ~40 git commands once — takes under a second.
+ */
+function buildLastmodMap(): Map<string, string> {
+  const map = new Map<string, string>();
+
+  // Landing
+  map.set("/", gitLastmod("index.html") ?? FALLBACK_DATE);
+
+  // Docs overview → renderer config
+  map.set("/docs/", gitLastmod("docs/renderer.ts") ?? FALLBACK_DATE);
+
+  // Docs pages → markdown files
+  for (const group of DOC_GROUPS) {
+    for (const item of group.items) {
+      if (item.slug === "") continue;
+      const file = `docs/${item.slug}.md`;
+      map.set(`/docs/${item.slug}`, gitLastmod(file) ?? FALLBACK_DATE);
+    }
+  }
+
+  // Sandbox overview → renderer config
+  map.set("/sandbox/", gitLastmod("sandbox/renderer.ts") ?? FALLBACK_DATE);
+
+  // Sandbox examples → content files
+  for (const group of EXAMPLE_GROUPS) {
+    for (const item of group.items) {
+      const file = `sandbox/${item.slug}/content.html`;
+      map.set(`/sandbox/${item.slug}`, gitLastmod(file) ?? FALLBACK_DATE);
+    }
+  }
+
+  // Benchmarks overview → renderer config
+  map.set(
+    "/benchmarks/",
+    gitLastmod("benchmarks/renderer.ts") ?? FALLBACK_DATE,
+  );
+
+  // Benchmark suites → shared script
+  const benchScriptDate = gitLastmod("benchmarks/script.js") ?? FALLBACK_DATE;
+  for (const group of BENCH_GROUPS) {
+    for (const item of group.items) {
+      map.set(`/benchmarks/${item.slug}`, benchScriptDate);
+    }
+  }
+
+  return map;
+}
+
+const LASTMOD = buildLastmodMap();
+
+// =============================================================================
 // Sitemap
 // =============================================================================
 
@@ -266,10 +341,10 @@ function renderSitemap(): Response {
   const xml = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
-    ...urls.map(
-      (u) =>
-        `  <url>\n    <loc>${SITE}${u.loc}</loc>\n    <priority>${u.priority}</priority>\n  </url>`,
-    ),
+    ...urls.map((u) => {
+      const lastmod = LASTMOD.get(u.loc) ?? FALLBACK_DATE;
+      return `  <url>\n    <loc>${SITE}${u.loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${u.priority}</priority>\n  </url>`;
+    }),
     `</urlset>`,
   ].join("\n");
 
@@ -282,6 +357,25 @@ function renderSitemap(): Response {
 }
 
 // =============================================================================
+// robots.txt
+// =============================================================================
+
+function renderRobots(): Response {
+  const txt = `User-agent: *
+Allow: /
+
+Sitemap: ${SITE}/sitemap.xml
+`;
+
+  return new Response(txt, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=86400",
+    },
+  });
+}
+
+// =============================================================================
 // Request Handler
 // =============================================================================
 
@@ -289,10 +383,9 @@ const handleRequest = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
   const pathname = decodeURIComponent(url.pathname);
 
-  // 1. Sitemap
-  if (pathname === "/sitemap.xml") {
-    return renderSitemap();
-  }
+  // 1. Sitemap & robots.txt
+  if (pathname === "/sitemap.xml") return renderSitemap();
+  if (pathname === "/robots.txt") return renderRobots();
 
   // 2. API routes
   const apiResponse = await routeApi(req);
