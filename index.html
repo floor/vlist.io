@@ -31,6 +31,7 @@
                 --accent-glow: rgba(102, 126, 234, 0.06);
                 --radius: 12px;
                 --radius-sm: 8px;
+                --header-height: 56px;
             }
 
             body {
@@ -54,11 +55,107 @@
             }
 
             /* ============================================================
+               Header
+               ============================================================ */
+
+            .header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: var(--header-height);
+                background: rgba(12, 12, 16, 0.85);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--border);
+                display: flex;
+                align-items: center;
+                padding: 0 24px;
+                z-index: 100;
+                gap: 16px;
+            }
+
+            .header__logo {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text);
+                text-decoration: none;
+                letter-spacing: -0.3px;
+            }
+
+            .header__logo:hover {
+                opacity: 0.85;
+            }
+
+            .header__nav {
+                margin-left: auto;
+                display: flex;
+                gap: 20px;
+            }
+
+            .header__nav a {
+                font-size: 13px;
+                color: var(--text-dim);
+                text-decoration: none;
+                transition: color 0.15s;
+            }
+
+            .header__nav a:hover {
+                color: var(--text-muted);
+            }
+
+            .header__hamburger {
+                display: none;
+                background: none;
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                padding: 4px;
+                margin-left: auto;
+            }
+
+            /* ============================================================
+               Mobile Dropdown
+               ============================================================ */
+
+            .dropdown {
+                display: none;
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                background: rgba(12, 12, 16, 0.95);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--border);
+                padding: 12px 24px 16px;
+                z-index: 99;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .dropdown--open {
+                display: flex;
+            }
+
+            .dropdown a {
+                display: block;
+                font-size: 14px;
+                color: var(--text-muted);
+                text-decoration: none;
+                padding: 8px 0;
+            }
+
+            .dropdown a:hover {
+                color: var(--text);
+            }
+
+            /* ============================================================
                Hero
                ============================================================ */
 
             .hero {
-                padding: 80px 0 56px;
+                padding: calc(var(--header-height) + 40px) 0 56px;
                 text-align: center;
             }
 
@@ -400,8 +497,20 @@
                ============================================================ */
 
             @media (max-width: 640px) {
+                .header__nav {
+                    display: none;
+                }
+
+                .header__hamburger {
+                    display: block;
+                }
+
+                .dropdown--open {
+                    display: flex;
+                }
+
                 .hero {
-                    padding: 56px 0 40px;
+                    padding: calc(var(--header-height) + 32px) 0 40px;
                 }
 
                 .hero__name {
@@ -437,6 +546,43 @@
         </style>
     </head>
     <body>
+        <header class="header">
+            <a href="/" class="header__logo">VList</a>
+            <nav class="header__nav">
+                <a href="/docs/">Docs</a>
+                <a href="/sandbox/">Sandbox</a>
+                <a href="/benchmarks/">Benchmarks</a>
+                <a href="/api">API</a>
+                <a href="https://github.com/floor/vlist" target="_blank"
+                    >GitHub</a
+                >
+            </nav>
+            <button
+                class="header__hamburger"
+                id="hamburger"
+                aria-label="Toggle menu"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <rect y="3" width="20" height="2" rx="1" />
+                    <rect y="9" width="20" height="2" rx="1" />
+                    <rect y="15" width="20" height="2" rx="1" />
+                </svg>
+            </button>
+        </header>
+
+        <nav class="dropdown" id="dropdown">
+            <a href="/docs/">Docs</a>
+            <a href="/sandbox/">Sandbox</a>
+            <a href="/benchmarks/">Benchmarks</a>
+            <a href="/api">API</a>
+            <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+        </nav>
+
         <div class="container">
             <!-- ========================================================
                  Hero
@@ -707,5 +853,18 @@
                 <p></p>Built by <a href="https://floor.io" target="_blank">Floor IO</a></p>
             </div>
         </footer>
+        <script>
+            (function () {
+                var h = document.getElementById("hamburger");
+                var d = document.getElementById("dropdown");
+                if (!h) return;
+                h.addEventListener("click", function () {
+                    d.classList.toggle("dropdown--open");
+                });
+                d.addEventListener("click", function (e) {
+                    if (e.target.closest("a")) d.classList.remove("dropdown--open");
+                });
+            })();
+        </script>
     </body>
 </html>
