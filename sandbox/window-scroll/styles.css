@@ -16,6 +16,9 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+.vlist {
+    min-height: 500px;
+}
 /* ============================================================================
    Sticky Stats Bar
    ============================================================================ */
@@ -243,7 +246,6 @@ body {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 0 20px;
     height: 100%;
 }
 
@@ -382,10 +384,10 @@ body {
     background: #f8f9fc;
 }
 
-/* Subtle separator between items */
+/* Subtle separator between items
 .vlist-item:not(:last-child) .result-item {
     border-bottom: 1px solid #f0f2f5;
-}
+} */
 
 /* ============================================================================
    Footer
@@ -561,10 +563,6 @@ body {
 
     .vlist-item:hover {
         background: rgba(102, 126, 234, 0.06);
-    }
-
-    .vlist-item:not(:last-child) .result-item {
-        border-bottom-color: #2a2a4a;
     }
 
     .result-icon--placeholder {

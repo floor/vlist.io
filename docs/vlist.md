@@ -88,6 +88,9 @@ See [Compression (1M+ Items)](#compression-1m-items) for details.
 ## Installation
 
 ```bash
+# bun
+bun add vlist
+
 # npm
 npm install vlist
 
@@ -97,8 +100,6 @@ yarn add vlist
 # pnpm
 pnpm add vlist
 
-# bun
-bun add vlist
 ```
 
 ---

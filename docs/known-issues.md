@@ -15,6 +15,7 @@ vlist is a well-optimized, batteries-included virtual list with zero dependencie
 - ✅ Window/document scrolling via `scrollElement: window`
 - ✅ Grid layout with O(1) row/column mapping and compression support
 - ✅ Sticky headers / grouped lists with push-out transitions
+- ✅ Horizontal scrolling via `direction: 'horizontal'` (carousels, timelines)
 - ✅ Reverse mode for chat UIs with scroll-position-preserving prepend
 - ✅ Framework adapters — React, Vue 3, Svelte (< 1 KB each)
 - ✅ Smooth `scrollToIndex` animation with easing
@@ -28,7 +29,7 @@ vlist is a well-optimized, batteries-included virtual list with zero dependencie
 | Gap | Impact | Competitors |
 |-----|--------|-------------|
 | No auto-height measurement (Mode B) | ⚠️ Mode A covers known heights; Mode B needed for dynamic content | @tanstack/virtual ✅ |
-| No horizontal scrolling | ⚠️ Carousels, timelines — less common than vertical | @tanstack/virtual ✅ |
+| ~~No horizontal scrolling~~ | ✅ Shipped | @tanstack/virtual ✅ |
 | Basic accessibility | ⚠️ Missing aria-setsize/posinset | — |
 | No public benchmarks | ⚠️ Performance claims lack proof | — |
 | ~~No grid layout~~ | ✅ Shipped | @tanstack/virtual ✅ |
@@ -185,32 +186,39 @@ The core module is fully self-contained — zero imports from the full bundle's 
 
 ## Phase 2 — Expand Layout Modes
 
-### 4. Horizontal Scrolling
+### 4. ✅ Horizontal Scrolling
 
-**Priority:** Medium.
+**Priority:** Medium. **Status: DONE**
 
 **Problem:** Some UIs need horizontal lists (carousels, timelines, horizontal menus). Currently vlist is vertical-only.
 
-**Approach:** Generalize the scroll controller and renderer to accept a direction:
+**Solution:** Added `direction: 'horizontal'` config option with axis-aware rendering, scrolling, and CSS:
 
 ```typescript
 const list = createVList({
   container: '#carousel',
   direction: 'horizontal', // new option (default: 'vertical')
   item: {
-    width: 200,  // or height for vertical
+    width: 200,  // use width instead of height in horizontal mode
     template: (item) => `<div class="card">${item.title}</div>`,
   },
   items: cards,
 });
 ```
 
-**Architecture impact:**
-- Swap `scrollTop` ↔ `scrollLeft`, `height` ↔ `width`, `translateY` ↔ `translateX`
-- CSS containment and positioning need axis-awareness
-- Compression works the same (just on the opposite axis)
+**What was implemented:**
+- `direction: 'horizontal'` config option (default: `'vertical'`)
+- `item.width` for scroll-axis dimension (replaces `item.height` in horizontal mode)
+- Axis-aware scroll controller: `scrollLeft` ↔ `scrollTop`, `deltaX` ↔ `deltaY`
+- Axis-aware renderer: `translateX` ↔ `translateY`, width sizing ↔ height sizing
+- Axis-aware DOM structure: `overflow-x` ↔ `overflow-y`, content width ↔ height
+- `.vlist--horizontal` CSS modifier with horizontal item layout and scrollbar
+- Keyboard navigation: ArrowLeft/ArrowRight instead of ArrowUp/ArrowDown
+- `aria-orientation="horizontal"` for accessibility
+- Compression works identically on the horizontal axis
+- Validation: cannot combine with grid, groups, or window scrolling
 
-**Estimated effort:** Medium — mostly mechanical axis swaps if abstracted well.
+**Files changed:** `types.ts`, `config.ts`, `context.ts`, `render/dom.ts`, `render/renderer.ts`, `render/index.ts`, `scroll/controller.ts`, `styles/vlist.css`, `handlers.ts`, `vlist.ts`, `index.ts`
 
 ---
 
@@ -637,7 +645,7 @@ list.restoreScroll(saved);
 | 1 | Variable item heights (Mode A) | 🔴 Critical | Large | 1 | ✅ Done |
 | 2 | Smooth scrollToIndex | 🟠 High | Small | 1 | ✅ Done |
 | 3 | Shrink bundle size | 🟠 High | Medium | 1 | ✅ Done |
-| 4 | Horizontal scrolling | 🟡 Medium | Medium | 2 | 🟡 Pending |
+| 4 | Horizontal scrolling | 🟡 Medium | Medium | 2 | ✅ Done |
 | 5 | Grid layout | 🟡 Medium | Medium-Large | 2 | ✅ Done |
 | 6 | Window scrolling | 🟡 Medium | Medium | 2 | ✅ Done |
 | 7 | Sticky headers | 🟡 Medium | Medium | 3 | ✅ Done |
@@ -648,7 +656,7 @@ list.restoreScroll(saved);
 | 12 | Enhanced accessibility | 🟡 Medium | Small-Medium | 4 | 🟡 Pending |
 | 13 | Scroll save/restore | 🟢 Low | Small | 4 | ✅ Done |
 
-**Summary: 10 of 13 features shipped.** Phases 1 and 3 complete. Phase 2 has one remaining item (horizontal scrolling). Phase 4 has two remaining items (benchmarks, accessibility) plus one low-priority nice-to-have (auto-height).
+**Summary: 11 of 13 features shipped.** Phases 1, 2, and 3 complete. Phase 4 has two remaining items (benchmarks, accessibility) plus one low-priority nice-to-have (auto-height).
 
 ---
 
