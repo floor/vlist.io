@@ -7,7 +7,7 @@
    but the website uses [data-theme] on <html>. Bridge the two systems.
    ============================================================================ */
 
-[data-theme="light"] {
+html[data-theme="light"] {
     --vlist-bg: #ffffff;
     --vlist-bg-hover: #f9fafb;
     --vlist-bg-selected: #eff6ff;
@@ -23,7 +23,7 @@
     --vlist-group-header-bg: #f3f4f6;
 }
 
-[data-theme="dark"] {
+html[data-theme="dark"] {
     --vlist-bg: #111827;
     --vlist-bg-hover: #1f2937;
     --vlist-bg-selected: rgba(59, 130, 246, 0.2);
@@ -250,7 +250,6 @@ html[data-theme] .source__panel pre {
     z-index: 100;
     background: var(--bg-card);
     border-top: 1px solid var(--border);
-    border-radius: 12px 12px 0 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -393,6 +392,14 @@ html[data-theme] .source__panel pre {
     color: #c792ea;
 }
 
+.hljs-tag {
+    color: #89ddff;
+}
+
+.hljs-tag .hljs-name {
+    color: #f07178;
+}
+
 .hljs-string,
 .hljs-attr {
     color: #c3e88d;
@@ -467,6 +474,14 @@ html[data-theme] .source__panel pre {
 [data-theme="light"] .hljs-built_in,
 [data-theme="light"] .hljs-type {
     color: #7c3aed;
+}
+
+[data-theme="light"] .hljs-tag {
+    color: #6366f1;
+}
+
+[data-theme="light"] .hljs-tag .hljs-name {
+    color: #dc2626;
 }
 
 [data-theme="light"] .hljs-string,

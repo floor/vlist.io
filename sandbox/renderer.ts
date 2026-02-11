@@ -191,7 +191,7 @@ function buildSourceTabs(slug: string): string {
   const files: { name: string; id: string; lang: string }[] = [
     { name: "script.js", id: "js", lang: "javascript" },
     { name: "styles.css", id: "css", lang: "css" },
-    { name: "content.html", id: "html", lang: "html" },
+    { name: "content.html", id: "html", lang: "xml" },
   ];
 
   const sources: SourceFile[] = [];
