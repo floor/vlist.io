@@ -227,11 +227,306 @@ html[data-theme] [id$="-container"],
 html[data-theme] .vlist,
 html[data-theme] .vlist-item,
 html[data-theme] .vlist-grid-item,
-html[data-theme] .vlist-viewport {
+html[data-theme] .vlist-viewport,
+html[data-theme] .source,
+html[data-theme] .source__header,
+html[data-theme] .source__tab,
+html[data-theme] .source__panel pre {
     transition:
         background-color 0.25s ease,
         color 0.25s ease,
         border-color 0.25s ease;
+}
+
+/* ============================================================================
+   Source Code Viewer — Fixed bottom drawer
+   ============================================================================ */
+
+.source {
+    position: fixed;
+    top: 55px;
+    bottom: 0;
+    left: var(--sidebar-width);
+    right: 0;
+    z-index: 100;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(calc(100% - 41px)); /* show only the header */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.source--open {
+    transform: translateY(0);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .source--open {
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.source__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+    flex-shrink: 0;
+    height: 41px;
+    border-radius: 6px 6px 0 0;
+}
+
+.source__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+.source__tabs {
+    display: flex;
+    gap: 0;
+    flex: 1;
+}
+
+.source__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition:
+        color 0.15s ease,
+        background 0.15s ease,
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.source__toggle:hover {
+    color: var(--text);
+    background: var(--bg-card-hover, rgba(255, 255, 255, 0.06));
+}
+
+.source--open .source__toggle {
+    transform: rotate(180deg);
+}
+
+.source__tab {
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition:
+        color 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.source__tab:hover {
+    color: var(--text);
+}
+
+.source__tab--active {
+    color: var(--accent-text, var(--text));
+    border-bottom-color: var(--accent, currentColor);
+}
+
+.source__body {
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.source__panel {
+    display: none;
+    height: 100%;
+}
+
+.source__panel--active {
+    display: block;
+}
+
+.source__panel pre {
+    margin: 0;
+    padding: 20px 24px;
+    overflow: auto;
+    height: 100%;
+    font-size: 13px;
+    line-height: 1.65;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.source__panel code {
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    tab-size: 2;
+}
+
+/* ============================================================================
+   Syntax Highlighting — Dark theme (default)
+   ============================================================================ */
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-type {
+    color: #c792ea;
+}
+
+.hljs-string,
+.hljs-attr {
+    color: #c3e88d;
+}
+
+.hljs-number,
+.hljs-literal {
+    color: #f78c6c;
+}
+
+.hljs-comment {
+    color: #546e7a;
+    font-style: italic;
+}
+
+.hljs-function .hljs-title,
+.hljs-title.function_ {
+    color: #82aaff;
+}
+
+.hljs-variable,
+.hljs-template-variable {
+    color: #eeffff;
+}
+
+.hljs-params {
+    color: #c8cedc;
+}
+
+.hljs-property {
+    color: #80cbc4;
+}
+
+.hljs-punctuation {
+    color: #89ddff;
+}
+
+.hljs-meta {
+    color: #ffcb6b;
+}
+
+.hljs-selector-class {
+    color: #ffcb6b;
+}
+
+.hljs-selector-id {
+    color: #82aaff;
+}
+
+.hljs-attribute {
+    color: #c792ea;
+}
+
+.hljs-regexp {
+    color: #89ddff;
+}
+
+.hljs-addition {
+    color: #c3e88d;
+}
+
+.hljs-deletion {
+    color: #ff5370;
+}
+
+/* ============================================================================
+   Syntax Highlighting — Light theme
+   ============================================================================ */
+
+[data-theme="light"] .hljs-keyword,
+[data-theme="light"] .hljs-selector-tag,
+[data-theme="light"] .hljs-built_in,
+[data-theme="light"] .hljs-type {
+    color: #7c3aed;
+}
+
+[data-theme="light"] .hljs-string,
+[data-theme="light"] .hljs-attr {
+    color: #16a34a;
+}
+
+[data-theme="light"] .hljs-number,
+[data-theme="light"] .hljs-literal {
+    color: #ea580c;
+}
+
+[data-theme="light"] .hljs-comment {
+    color: #94a3b8;
+}
+
+[data-theme="light"] .hljs-function .hljs-title,
+[data-theme="light"] .hljs-title.function_ {
+    color: #2563eb;
+}
+
+[data-theme="light"] .hljs-variable,
+[data-theme="light"] .hljs-template-variable {
+    color: #1e293b;
+}
+
+[data-theme="light"] .hljs-params {
+    color: #475569;
+}
+
+[data-theme="light"] .hljs-property {
+    color: #0d9488;
+}
+
+[data-theme="light"] .hljs-punctuation {
+    color: #6366f1;
+}
+
+[data-theme="light"] .hljs-meta {
+    color: #d97706;
+}
+
+[data-theme="light"] .hljs-selector-class {
+    color: #d97706;
+}
+
+[data-theme="light"] .hljs-selector-id {
+    color: #2563eb;
+}
+
+[data-theme="light"] .hljs-attribute {
+    color: #7c3aed;
+}
+
+[data-theme="light"] .hljs-regexp {
+    color: #6366f1;
+}
+
+[data-theme="light"] .hljs-addition {
+    color: #16a34a;
+}
+
+[data-theme="light"] .hljs-deletion {
+    color: #dc2626;
 }
 
 /* ============================================================================
@@ -291,5 +586,24 @@ html[data-theme] .vlist-viewport {
 
     .controls {
         flex-direction: column;
+    }
+
+    .source {
+        left: 0;
+    }
+
+    .source__header {
+        gap: 12px;
+        padding: 0 12px;
+    }
+
+    .source__tab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .source__panel pre {
+        padding: 16px;
+        font-size: 12px;
     }
 }

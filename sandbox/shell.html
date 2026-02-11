@@ -157,5 +157,91 @@
                 });
             })();
         </script>
+
+        <!-- ─── Syntax highlighting (client-side) ────────── -->
+
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
+        <script>
+            hljs.highlightAll();
+        </script>
+
+        <!-- ─── Source tab switching ─────────────────────── -->
+
+        <script>
+            (function () {
+                var source = document.querySelector(".source");
+                if (!source) return;
+                var tabs = source.querySelectorAll(".source__tab");
+                var panels = source.querySelectorAll(".source__panel");
+                var toggle = document.getElementById("source-toggle");
+                var activeTab = null;
+
+                // Compute drawer top from the container header's bottom edge
+                function updateSourceTop() {
+                    var header = document.querySelector(
+                        ".content .container header",
+                    );
+                    if (!header) return;
+                    var bottom = header.getBoundingClientRect().bottom;
+                    source.style.top = bottom + 20 + "px";
+                }
+
+                updateSourceTop();
+                window.addEventListener("resize", updateSourceTop);
+
+                function openTab(id) {
+                    tabs.forEach(function (t) {
+                        t.classList.remove("source__tab--active");
+                    });
+                    panels.forEach(function (p) {
+                        p.classList.remove("source__panel--active");
+                    });
+                    var tab = source.querySelector('[data-tab="' + id + '"]');
+                    if (tab) tab.classList.add("source__tab--active");
+                    var panel = source.querySelector(
+                        '[data-panel="' + id + '"]',
+                    );
+                    if (panel) panel.classList.add("source__panel--active");
+                    source.classList.add("source--open");
+                    activeTab = id;
+                }
+
+                function closeDrawer() {
+                    source.classList.remove("source--open");
+                    tabs.forEach(function (t) {
+                        t.classList.remove("source__tab--active");
+                    });
+                    panels.forEach(function (p) {
+                        p.classList.remove("source__panel--active");
+                    });
+                    activeTab = null;
+                }
+
+                tabs.forEach(function (tab) {
+                    tab.addEventListener("click", function () {
+                        var id = tab.getAttribute("data-tab");
+                        if (activeTab === id) {
+                            closeDrawer();
+                        } else {
+                            openTab(id);
+                        }
+                    });
+                });
+
+                if (toggle) {
+                    toggle.addEventListener("click", function () {
+                        if (activeTab) {
+                            closeDrawer();
+                        } else {
+                            // Open with the first tab
+                            var firstTab = source.querySelector(".source__tab");
+                            if (firstTab)
+                                openTab(firstTab.getAttribute("data-tab"));
+                        }
+                    });
+                }
+            })();
+        </script>
     </body>
 </html>

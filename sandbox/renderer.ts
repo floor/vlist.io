@@ -8,6 +8,18 @@ import { readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
 
 // =============================================================================
+// HTML Escaping
+// =============================================================================
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// =============================================================================
 // Example Configuration
 // =============================================================================
 
@@ -156,6 +168,81 @@ function loadShell(): string {
 /** Clear the cached template (call when files change in dev) */
 export function clearCache(): void {
   shellCache = null;
+}
+
+// =============================================================================
+// Source Code Tabs
+// =============================================================================
+
+interface SourceFile {
+  label: string;
+  id: string;
+  lang: string;
+  code: string;
+}
+
+/**
+ * Read source files for an example and build a tabbed code viewer.
+ * Reads script.js, styles.css, and content.html from the example directory.
+ */
+function buildSourceTabs(slug: string): string {
+  const dir = join(SANDBOX_DIR, slug);
+
+  const files: { name: string; id: string; lang: string }[] = [
+    { name: "script.js", id: "js", lang: "javascript" },
+    { name: "styles.css", id: "css", lang: "css" },
+    { name: "content.html", id: "html", lang: "html" },
+  ];
+
+  const sources: SourceFile[] = [];
+  for (const f of files) {
+    const filePath = join(dir, f.name);
+    if (existsSync(filePath)) {
+      const code = readFileSync(filePath, "utf-8").trim();
+      if (code.length > 0) {
+        sources.push({ label: f.name, id: f.id, lang: f.lang, code });
+      }
+    }
+  }
+
+  if (sources.length === 0) return "";
+
+  const lines: string[] = [];
+  lines.push(`<div class="source">`);
+  lines.push(`  <div class="source__header">`);
+  lines.push(`    <span class="source__title">Source</span>`);
+  lines.push(`    <div class="source__tabs">`);
+  for (let i = 0; i < sources.length; i++) {
+    const s = sources[i];
+    lines.push(
+      `      <button class="source__tab" data-tab="${s.id}">${s.label}</button>`,
+    );
+  }
+  lines.push(`    </div>`);
+  lines.push(
+    `    <button class="source__toggle" id="source-toggle" aria-label="Toggle source panel">`,
+  );
+  lines.push(
+    `      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">`,
+  );
+  lines.push(`        <polyline points="4 6 8 2 12 6" />`);
+  lines.push(`      </svg>`);
+  lines.push(`    </button>`);
+  lines.push(`  </div>`);
+
+  lines.push(`  <div class="source__body">`);
+  for (let i = 0; i < sources.length; i++) {
+    const s = sources[i];
+    lines.push(`    <div class="source__panel" data-panel="${s.id}">`);
+    lines.push(
+      `      <pre><code class="language-${s.lang}">${escapeHtml(s.code)}</code></pre>`,
+    );
+    lines.push(`    </div>`);
+  }
+  lines.push(`  </div>`);
+
+  lines.push(`</div>`);
+  return lines.join("\n");
 }
 
 // =============================================================================
@@ -330,7 +417,8 @@ export function renderSandboxPage(slug: string | null): Response | null {
   if (!existsSync(contentPath)) return null;
 
   const content = readFileSync(contentPath, "utf-8");
-  const html = assemblePage(slug, example, content);
+  const sourceTabs = buildSourceTabs(slug);
+  const html = assemblePage(slug, example, content + sourceTabs);
 
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
