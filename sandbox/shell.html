@@ -176,6 +176,16 @@
                 var panels = source.querySelectorAll(".source__panel");
                 var toggle = document.getElementById("source-toggle");
                 var activeTab = null;
+                var sourceHeader = source.querySelector(".source__header");
+
+                // Block wheel events on the source header
+                sourceHeader.addEventListener(
+                    "wheel",
+                    function (e) {
+                        e.preventDefault();
+                    },
+                    { passive: false },
+                );
 
                 // Compute drawer top from the container header's bottom edge
                 function updateSourceTop() {
