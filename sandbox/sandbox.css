@@ -228,7 +228,6 @@ html[data-theme] .vlist,
 html[data-theme] .vlist-item,
 html[data-theme] .vlist-grid-item,
 html[data-theme] .vlist-viewport,
-html[data-theme] .source,
 html[data-theme] .source__header,
 html[data-theme] .source__tab,
 html[data-theme] .source__panel pre {
@@ -251,10 +250,15 @@ html[data-theme] .source__panel pre {
     z-index: 100;
     background: var(--bg-card);
     border-top: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     transform: translateY(calc(100% - 41px)); /* show only the header */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.25s ease,
+        border-color 0.25s ease;
 }
 
 .source--open {
@@ -275,7 +279,6 @@ html[data-theme] .source__panel pre {
     background: var(--bg-card);
     flex-shrink: 0;
     height: 41px;
-    border-radius: 6px 6px 0 0;
 }
 
 .source__title {

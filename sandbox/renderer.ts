@@ -225,7 +225,7 @@ function buildSourceTabs(slug: string): string {
   lines.push(
     `      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">`,
   );
-  lines.push(`        <polyline points="4 6 8 2 12 6" />`);
+  lines.push(`        <polyline points="4 10 8 6 12 10" />`);
   lines.push(`      </svg>`);
   lines.push(`    </button>`);
   lines.push(`  </div>`);
