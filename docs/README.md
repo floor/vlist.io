@@ -15,6 +15,7 @@
 - **[Framework Adapters](#framework-adapters)** - React, Vue, and Svelte wrappers (<1 KB each)
 - **[Reverse Mode](./vlist.md#reverse-mode-chat-ui)** - Chat UI support with auto-scroll and scroll-preserving prepend
 - **[Scroll Config](./scroll.md#scroll-configuration)** - Wheel control, wrap navigation, scrollbar modes, window scrolling
+- **[Testing](./test.md)** - Test suite, coverage (99.99% lines), and testing patterns
 
 ## Module Documentation
 

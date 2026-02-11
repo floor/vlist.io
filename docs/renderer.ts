@@ -138,6 +138,11 @@ export const DOC_GROUPS: DocGroup[] = [
     label: "Resources",
     items: [
       {
+        slug: "test",
+        name: "Testing",
+        desc: "Test suite, coverage, and testing patterns",
+      },
+      {
         slug: "sandbox",
         name: "Sandbox",
         desc: "",
@@ -275,6 +280,16 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
         slug: "handlers",
         name: "Handlers",
         desc: "Scroll, click, and keyboard event handlers",
+      },
+    ],
+  },
+  {
+    label: "Resources",
+    cards: [
+      {
+        slug: "test",
+        name: "Testing",
+        desc: "1,644 tests, 99.99% line coverage, and testing patterns",
       },
     ],
   },
