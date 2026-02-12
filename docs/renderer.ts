@@ -38,6 +38,11 @@ export const DOC_GROUPS: DocGroup[] = [
         desc: "Configuration, usage, events, selection, infinite scroll, and more",
       },
       {
+        slug: "builder",
+        name: "Builder",
+        desc: "Composable builder — pick features, pay only for what you ship",
+      },
+      {
         slug: "accessibility",
         name: "Accessibility",
         desc: "WAI-ARIA listbox, keyboard navigation, screen readers",
@@ -185,6 +190,11 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
         slug: "vlist",
         name: "Documentation",
         desc: "Configuration, usage, events, selection, infinite scroll, and more",
+      },
+      {
+        slug: "builder",
+        name: "Builder",
+        desc: "Composable builder — pick features, pay only for what you ship",
       },
       {
         slug: "styles",

@@ -4,6 +4,7 @@
 
 ## Quick Links
 
+- **[Builder](./builder.md)** - Composable builder — pick only the features you need, pay only for what you ship
 - **[Main Documentation](./vlist.md)** - Getting started, configuration, and usage
 - **[Accessibility](./accessibility.md)** - WAI-ARIA listbox, keyboard navigation, screen reader support
 - **[Benchmarks](./benchmarks.md)** - Live performance suites (scroll FPS, render, memory, scrollToIndex)
@@ -35,6 +36,7 @@ Each module has detailed documentation covering its API, usage examples, and imp
 
 | Module | Description | Directory |
 |--------|-------------|-----------|
+| **[Builder](./builder.md)** | Composable builder with plugin architecture | `src/builder/` |
 | **[Render](./render.md)** | DOM structure, element pool, rendering, virtualization, and compression | `src/render/` |
 | **[Data](./data.md)** | Data management, sparse storage, and placeholders | `src/data/` |
 | **[Scroll](./scroll.md)** | Scroll controller and custom scrollbar | `src/scroll/` |

@@ -213,8 +213,8 @@ const resolveSandbox = (pathname: string): Response | null => {
     return renderSandboxPage(null);
   }
 
-  // Example page: /sandbox/<slug> or /sandbox/<slug>/
-  const match = pathname.match(/^\/sandbox\/([a-z0-9-]+)\/?$/);
+  // Example page: /sandbox/<slug> or /sandbox/<category>/<slug>
+  const match = pathname.match(/^\/sandbox\/([a-z0-9-]+(?:\/[a-z0-9-]+)?)\/?$/);
   if (match) {
     const slug = match[1];
     const rendered = renderSandboxPage(slug);

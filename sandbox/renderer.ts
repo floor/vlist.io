@@ -37,27 +37,48 @@ export interface ExampleGroup {
 
 export const EXAMPLE_GROUPS: ExampleGroup[] = [
   {
-    label: "Core",
+    label: "Examples",
     items: [
       {
         slug: "basic",
         name: "Basic",
-        desc: "Pure vanilla JS — 10K items, no dependencies",
+        desc: "Minimal vanilla JS — one function call, zero boilerplate",
+      },
+      {
+        slug: "controls",
+        name: "Controls",
+        desc: "Selection, navigation, scroll events — full API exploration",
       },
       {
         slug: "core",
         name: "Core (7KB)",
         desc: "Lightweight build — 83% smaller, same result",
       },
-    ],
-  },
-  {
-    label: "Layouts",
-    items: [
       {
         slug: "grid",
         name: "Grid",
         desc: "Virtualized photo gallery with real images",
+      },
+      {
+        slug: "selection",
+        name: "Selection",
+        desc: "Single & multi-select with keyboard navigation",
+        mtrl: true,
+      },
+      {
+        slug: "sticky-headers",
+        name: "Sticky Headers",
+        desc: "A–Z contact list with sticky section headers",
+      },
+      {
+        slug: "variable-heights",
+        name: "Variable Heights",
+        desc: "Chat feed with DOM-measured item heights",
+      },
+      {
+        slug: "reverse-chat",
+        name: "Reverse Chat",
+        desc: "Chat UI — reverse mode, prepend history, auto-scroll",
       },
       {
         slug: "horizontal",
@@ -69,15 +90,10 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         name: "Window Scroll",
         desc: "Document-level scrolling — no inner scrollbar",
       },
-    ],
-  },
-  {
-    label: "Data",
-    items: [
       {
-        slug: "variable-heights",
-        name: "Variable Heights",
-        desc: "Chat feed with DOM-measured item heights",
+        slug: "scroll-restore",
+        name: "Scroll Restore",
+        desc: "Save & restore scroll position across navigations",
       },
       {
         slug: "infinite-scroll",
@@ -91,37 +107,6 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         desc: "1–5M items with compression and FPS monitoring",
         mtrl: true,
       },
-    ],
-  },
-  {
-    label: "Patterns",
-    items: [
-      {
-        slug: "selection",
-        name: "Selection",
-        desc: "Single & multi-select with keyboard navigation",
-        mtrl: true,
-      },
-      {
-        slug: "reverse-chat",
-        name: "Reverse Chat",
-        desc: "Chat UI — reverse mode, prepend history, auto-scroll",
-      },
-      {
-        slug: "sticky-headers",
-        name: "Sticky Headers",
-        desc: "A–Z contact list with sticky section headers",
-      },
-      {
-        slug: "scroll-restore",
-        name: "Scroll Restore",
-        desc: "Save & restore scroll position across navigations",
-      },
-    ],
-  },
-  {
-    label: "Advanced",
-    items: [
       {
         slug: "velocity-loading",
         name: "Velocity Loading",
@@ -134,6 +119,85 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         desc: "Button-only navigation, wheel disabled",
       },
     ],
+  },
+  {
+    label: "Builder",
+    items: [
+      {
+        slug: "builder/basic",
+        name: "Basic",
+        desc: "Minimal builder — one plugin, zero boilerplate",
+      },
+      {
+        slug: "builder/controls",
+        name: "Controls",
+        desc: "Selection, navigation, scroll events — full builder integration",
+      },
+      {
+        slug: "builder/large-list",
+        name: "Large List",
+        desc: "1–5M items with withCompression + withScrollbar plugins",
+      },
+      {
+        slug: "builder/photo-album",
+        name: "Photo Album",
+        desc: "Grid gallery with withGrid + withScrollbar plugins",
+      },
+      {
+        slug: "builder/chat",
+        name: "Chat",
+        desc: "Reverse-mode chat UI with withScrollbar plugin",
+      },
+    ],
+  },
+  {
+    label: "React",
+    items: [
+      {
+        slug: "react/basic",
+        name: "Basic",
+        desc: "Minimal useVList hook — 10K items, one hook, zero boilerplate",
+      },
+      {
+        slug: "react/controls",
+        name: "Controls",
+        desc: "Selection, navigation, scroll events — full React integration",
+      },
+    ],
+  },
+  {
+    label: "Vue",
+    items: [
+      {
+        slug: "vue/basic",
+        name: "Basic",
+        desc: "Minimal useVList composable — 10K items, one composable, zero boilerplate",
+      },
+      {
+        slug: "vue/controls",
+        name: "Controls",
+        desc: "Selection, navigation, scroll events — full Vue integration",
+      },
+    ],
+  },
+  {
+    label: "Svelte",
+    items: [
+      {
+        slug: "svelte/basic",
+        name: "Basic",
+        desc: "Minimal vlist action — no Svelte runtime needed, just a function",
+      },
+      {
+        slug: "svelte/controls",
+        name: "Controls",
+        desc: "Selection, navigation, scroll events — full action integration",
+      },
+    ],
+  },
+  {
+    label: "mtrl",
+    items: [],
   },
 ];
 
@@ -189,18 +253,28 @@ function buildSourceTabs(slug: string): string {
   const dir = join(SANDBOX_DIR, slug);
 
   const files: { name: string; id: string; lang: string }[] = [
+    { name: "script.tsx", id: "tsx", lang: "typescript" },
+    { name: "script.jsx", id: "jsx", lang: "javascript" },
     { name: "script.js", id: "js", lang: "javascript" },
     { name: "styles.css", id: "css", lang: "css" },
     { name: "content.html", id: "html", lang: "xml" },
   ];
 
+  // Only include the first script entry point found (tsx > jsx > js)
+  let scriptFound = false;
+
   const sources: SourceFile[] = [];
   for (const f of files) {
+    // Skip additional script variants if we already found one
+    const isScript = f.id === "tsx" || f.id === "jsx" || f.id === "js";
+    if (isScript && scriptFound) continue;
+
     const filePath = join(dir, f.name);
     if (existsSync(filePath)) {
       const code = readFileSync(filePath, "utf-8").trim();
       if (code.length > 0) {
         sources.push({ label: f.name, id: f.id, lang: f.lang, code });
+        if (isScript) scriptFound = true;
       }
     }
   }
@@ -263,11 +337,17 @@ function buildSidebar(activeSlug: string | null): string {
   for (const group of EXAMPLE_GROUPS) {
     lines.push(`<div class="sidebar__group">`);
     lines.push(`  <div class="sidebar__label">${group.label}</div>`);
-    for (const item of group.items) {
-      const active = item.slug === activeSlug ? " sidebar__link--active" : "";
+    if (group.items.length === 0) {
       lines.push(
-        `  <a href="/sandbox/${item.slug}" class="sidebar__link${active}">${item.name}</a>`,
+        `  <span class="sidebar__link sidebar__link--soon">Coming soon</span>`,
       );
+    } else {
+      for (const item of group.items) {
+        const active = item.slug === activeSlug ? " sidebar__link--active" : "";
+        lines.push(
+          `  <a href="/sandbox/${item.slug}" class="sidebar__link${active}">${item.name}</a>`,
+        );
+      }
     }
     lines.push(`</div>`);
   }
@@ -294,17 +374,28 @@ function buildOverviewContent(): string {
       `    <div class="overview__section-title">${group.label}</div>`,
     );
     sections.push(`    <div class="overview__grid">`);
-    for (const item of group.items) {
+    if (group.items.length === 0) {
+      sections.push(`      <div class="overview__card overview__card--soon">`);
       sections.push(
-        `      <a href="/sandbox/${item.slug}" class="overview__card">`,
+        `        <div class="overview__card-title">Coming soon</div>`,
       );
       sections.push(
-        `        <div class="overview__card-title">${item.name}</div>`,
+        `        <div class="overview__card-desc">Framework adapter examples are in development.</div>`,
       );
-      sections.push(
-        `        <div class="overview__card-desc">${item.desc}</div>`,
-      );
-      sections.push(`      </a>`);
+      sections.push(`      </div>`);
+    } else {
+      for (const item of group.items) {
+        sections.push(
+          `      <a href="/sandbox/${item.slug}" class="overview__card">`,
+        );
+        sections.push(
+          `        <div class="overview__card-title">${item.name}</div>`,
+        );
+        sections.push(
+          `        <div class="overview__card-desc">${item.desc}</div>`,
+        );
+        sections.push(`      </a>`);
+      }
     }
     sections.push(`    </div>`);
     sections.push(`  </div>`);

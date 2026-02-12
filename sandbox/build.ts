@@ -7,16 +7,70 @@ import {
   writeFileSync,
   watch,
 } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 
 const isWatch = process.argv.includes("--watch");
 
 const SANDBOX_DIR = "./sandbox";
+const PROJECT_ROOT = resolve(".");
+
 const BUILD_OPTIONS = {
   minify: !isWatch,
   format: "esm" as const,
   target: "browser" as const,
   sourcemap: isWatch ? ("inline" as const) : ("none" as const),
+};
+
+// =============================================================================
+// Framework dedupe plugin
+// =============================================================================
+// When vlist is linked (symlink), its node_modules/{react,vue} are separate
+// copies from vlist.dev/node_modules/. Framework hooks/reactivity crash if two
+// copies coexist. This plugin forces all framework imports to resolve from
+// vlist.dev's node_modules, guaranteeing a single instance in the bundle.
+//
+// Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
+// string `template` options work at runtime without .vue SFC compilation.
+
+const frameworkDedupePlugin: import("bun").BunPlugin = {
+  name: "dedupe-frameworks",
+  setup(build) {
+    // React + ReactDOM
+    build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
+      try {
+        const resolved = require.resolve(args.path, {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+
+    // Vue — resolve to compiler-included build for template string support
+    build.onResolve({ filter: /^vue$/ }, () => {
+      try {
+        const resolved = require.resolve("vue/dist/vue.esm-bundler.js", {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+
+    // Vue sub-paths (@vue/runtime-core, @vue/reactivity, etc.)
+    build.onResolve({ filter: /^@vue\// }, (args) => {
+      try {
+        const resolved = require.resolve(args.path, {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+  },
 };
 
 function minifyCss(css: string): string {
@@ -51,32 +105,76 @@ interface BuildResult {
   size?: SizeInfo;
 }
 
+/** Supported script entry point extensions, in priority order */
+const SCRIPT_EXTENSIONS = ["script.tsx", "script.jsx", "script.js"] as const;
+
+/** Find the script entry point for an example directory */
+function findEntrypoint(dir: string): string | null {
+  for (const name of SCRIPT_EXTENSIONS) {
+    const p = join(dir, name);
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
 async function discoverExamples(): Promise<string[]> {
-  const entries = readdirSync(SANDBOX_DIR, { withFileTypes: true });
   const examples: string[] = [];
 
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      const scriptPath = join(SANDBOX_DIR, entry.name, "script.js");
-      if (existsSync(scriptPath)) {
-        examples.push(entry.name);
+  const scan = (dir: string, prefix: string): void => {
+    const entries = readdirSync(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (entry.name === "dist" || entry.name === "node_modules") continue;
+
+      const slug = prefix ? `${prefix}/${entry.name}` : entry.name;
+      const fullPath = join(dir, entry.name);
+
+      if (findEntrypoint(fullPath)) {
+        // This directory has a script entry point → it's an example
+        examples.push(slug);
+      } else {
+        // No entry point → might be a category folder, recurse
+        scan(fullPath, slug);
       }
     }
-  }
+  };
 
+  scan(SANDBOX_DIR, "");
   return examples.sort();
 }
 
 async function buildExample(name: string): Promise<BuildResult> {
   const start = performance.now();
-  const entrypoint = join(SANDBOX_DIR, name, "script.js");
-  const outdir = join(SANDBOX_DIR, name, "dist");
+  const exampleDir = join(SANDBOX_DIR, name);
+  const entrypoint = findEntrypoint(exampleDir);
+  const outdir = join(exampleDir, "dist");
+
+  if (!entrypoint) {
+    return {
+      name,
+      success: false,
+      time: performance.now() - start,
+      error:
+        "No script entry point found (script.js, script.jsx, or script.tsx)",
+    };
+  }
 
   try {
+    // Use dedupe plugin for framework examples (React, Vue, Svelte)
+    const needsDedupe =
+      entrypoint.endsWith(".jsx") ||
+      entrypoint.endsWith(".tsx") ||
+      name.startsWith("react/") ||
+      name.startsWith("vue/") ||
+      name.startsWith("svelte/");
+    const plugins = needsDedupe ? [frameworkDedupePlugin] : [];
+
     const result = await Bun.build({
       entrypoints: [entrypoint],
       outdir,
       ...BUILD_OPTIONS,
+      plugins,
     });
 
     if (!result.success) {
@@ -246,21 +344,52 @@ async function watchMode() {
     }
   });
 
-  // Watch each sandbox directory
+  // Watch each sandbox directory (including nested category folders)
   const examples = await discoverExamples();
+  const watchedDirs = new Set<string>();
+
   for (const name of examples) {
     const dir = join(SANDBOX_DIR, name);
-    watch(dir, { recursive: true }, async (event, filename) => {
-      if (
-        filename &&
-        !filename.includes("dist") &&
-        !filename.includes("node_modules")
-      ) {
-        console.log(`\n📝 ${name}/${filename} changed`);
-        const result = await buildExample(name);
-        printResult(result);
+
+    // For nested examples like "builder/chat", also watch the parent
+    // category folder so new examples are detected
+    const parts = name.split("/");
+    if (parts.length > 1) {
+      const categoryDir = join(SANDBOX_DIR, parts[0]);
+      if (!watchedDirs.has(categoryDir)) {
+        watchedDirs.add(categoryDir);
+        watch(categoryDir, { recursive: true }, async (_event, filename) => {
+          if (
+            filename &&
+            !filename.includes("dist") &&
+            !filename.includes("node_modules")
+          ) {
+            // Determine which example changed from the filename path
+            const exampleName = `${parts[0]}/${filename.split("/")[0]}`;
+            console.log(
+              `\n📝 ${exampleName}/${filename.split("/").slice(1).join("/")} changed`,
+            );
+            const result = await buildExample(exampleName);
+            printResult(result);
+          }
+        });
       }
-    });
+    } else {
+      if (!watchedDirs.has(dir)) {
+        watchedDirs.add(dir);
+        watch(dir, { recursive: true }, async (_event, filename) => {
+          if (
+            filename &&
+            !filename.includes("dist") &&
+            !filename.includes("node_modules")
+          ) {
+            console.log(`\n📝 ${name}/${filename} changed`);
+            const result = await buildExample(name);
+            printResult(result);
+          }
+        });
+      }
+    }
   }
 }
 
