@@ -1,6 +1,8 @@
 /* Core Example — example-specific styles only
    Common styles (.container, h1, .description, .stats, footer)
-   are provided by sandbox/sandbox.css using shell.css design tokens. */
+   are provided by sandbox/sandbox.css using shell.css design tokens.
+   Panel system (.split-layout, .split-panel, .panel-*)
+   is also provided by sandbox/sandbox.css. */
 
 /* Title badge */
 .container h1 {
@@ -156,15 +158,40 @@
 }
 
 /* ==========================================================================
-   List container
+   List container height
    ========================================================================== */
 
 #list-container {
-    height: 500px;
+    height: 600px;
+    max-width: 360px;
+    margin: 0 auto;
 }
 
 /* ==========================================================================
-   Item styles
+   Item Detail — example-specific avatar + email
+   ========================================================================== */
+
+.panel-detail__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.panel-detail__email {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Item styles (inside list)
    ========================================================================== */
 
 .item-content {
@@ -196,7 +223,6 @@
 
 .item-name {
     font-weight: 500;
-    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -204,7 +230,6 @@
 
 .item-email {
     font-size: 13px;
-    color: var(--text-dim);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -212,7 +237,26 @@
 
 .item-index {
     font-size: 12px;
-    color: var(--text-dim);
     min-width: 60px;
     text-align: right;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 820px) {
+    #list-container {
+        max-width: none;
+        height: 400px;
+    }
+
+    .comparison-item {
+        grid-template-columns: 80px 1fr 140px;
+        gap: 8px;
+    }
+
+    .comparison-size {
+        font-size: 12px;
+    }
 }
