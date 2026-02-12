@@ -13,10 +13,10 @@ const isWatch = process.argv.includes("--watch");
 
 const SANDBOX_DIR = "./sandbox";
 const BUILD_OPTIONS = {
-  minify: true,
+  minify: !isWatch,
   format: "esm" as const,
   target: "browser" as const,
-  sourcemap: "none" as const,
+  sourcemap: isWatch ? ("inline" as const) : ("none" as const),
 };
 
 function minifyCss(css: string): string {

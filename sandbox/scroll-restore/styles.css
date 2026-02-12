@@ -81,10 +81,6 @@
     transition: background 0.1s ease;
 }
 
-.item-content.item--selected {
-    background: var(--accent-dim);
-}
-
 .item-avatar {
     width: 40px;
     height: 40px;
@@ -122,14 +118,6 @@
     min-width: 50px;
     text-align: right;
     font-variant-numeric: tabular-nums;
-}
-
-.vlist-item:hover .item-content:not(.item--selected) {
-    background: var(--sidebar-hover);
-}
-
-.vlist-item[aria-selected="true"] .item-content {
-    background: var(--accent-dim);
 }
 
 /* ==========================================================================

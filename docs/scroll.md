@@ -165,6 +165,13 @@ createVList({
 | `autoHide` | `boolean` | `true` | Auto-hide scrollbar after idle |
 | `autoHideDelay` | `number` | `1000` | Auto-hide delay in milliseconds |
 | `minThumbSize` | `number` | `30` | Minimum thumb size in pixels |
+| `showOnHover` | `boolean` | `true` | Show scrollbar when hovering near the scrollbar edge |
+| `hoverZoneWidth` | `number` | `16` | Width in px of the invisible hover zone along the scrollbar edge |
+| `showOnViewportEnter` | `boolean` | `true` | Show scrollbar when the mouse enters the list viewport |
+
+When `showOnHover` is `true`, an invisible hover zone is placed along the scrollbar edge. Moving the mouse into this zone reveals the scrollbar, and it stays visible as long as the cursor remains over the zone or the track — the auto-hide timer is suspended while hovering.
+
+When `showOnViewportEnter` is `false`, the scrollbar only appears on scroll or when hovering near the scrollbar edge (if `showOnHover` is `true`). This is useful for cleaner UIs where you don't want the scrollbar to flash every time the mouse enters the list.
 
 #### Native Scrollbar
 
@@ -273,6 +280,15 @@ interface ScrollbarOptions {
 
   /** Minimum thumb size in pixels (default: 30) */
   minThumbSize?: number;
+
+  /** Show scrollbar when hovering near the scrollbar edge (default: true) */
+  showOnHover?: boolean;
+
+  /** Width of the invisible hover zone in pixels (default: 16) */
+  hoverZoneWidth?: number;
+
+  /** Show scrollbar when the mouse enters the list viewport (default: true) */
+  showOnViewportEnter?: boolean;
 }
 ```
 
@@ -578,6 +594,15 @@ interface ScrollbarConfig {
 
   /** Minimum thumb size in pixels (default: 30) */
   minThumbSize?: number;
+
+  /** Show scrollbar when hovering near the scrollbar edge (default: true) */
+  showOnHover?: boolean;
+
+  /** Width of the invisible hover zone in pixels (default: 16) */
+  hoverZoneWidth?: number;
+
+  /** Show scrollbar when the mouse enters the list viewport (default: true) */
+  showOnViewportEnter?: boolean;
 }
 ```
 
@@ -683,6 +708,46 @@ const list = createVList({
   items: myData,
   scroll: {
     scrollbar: { autoHide: false },
+  },
+});
+```
+
+### Scrollbar — Hover to Reveal Only
+
+Show the scrollbar only when hovering near the edge or on scroll — not when the mouse enters the list:
+
+```typescript
+const list = createVList({
+  container: '#app',
+  item: { height: 48, template },
+  items: myData,
+  scroll: {
+    scrollbar: {
+      showOnViewportEnter: false, // don't show on list enter
+      showOnHover: true,          // show when hovering near the edge
+      hoverZoneWidth: 20,         // 20px hover zone
+      autoHideDelay: 800,         // hide after 800ms idle
+    },
+  },
+});
+```
+
+### Scrollbar — Minimal (Scroll-Only)
+
+Show the scrollbar only while actively scrolling — no hover zone, no viewport enter:
+
+```typescript
+const list = createVList({
+  container: '#app',
+  item: { height: 48, template },
+  items: myData,
+  scroll: {
+    scrollbar: {
+      showOnViewportEnter: false,
+      showOnHover: false,
+      autoHide: true,
+      autoHideDelay: 500,
+    },
   },
 });
 ```
@@ -896,6 +961,26 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 
 .vlist-scrollbar-thumb:hover {
   background: var(--vlist-scrollbar-custom-thumb-hover-bg, rgba(0, 0, 0, 0.5));
+}
+
+/* Hover zone — always pointer-events:auto so mouseenter fires
+   even when the track is hidden. Width set via JS from hoverZoneWidth config. */
+.vlist-scrollbar-hover {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  z-index: 9;
+  pointer-events: auto;
+}
+
+.vlist-scrollbar-hover--horizontal {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
 }
 ```
 
