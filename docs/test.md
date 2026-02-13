@@ -10,8 +10,8 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 1,873 |
-| Total assertions | 6,131 |
+| Total tests | 1,878 |
+| Total assertions | 6,136 |
 | Test files | 25 |
 | Line coverage | 97.19% |
 | Function coverage | 95.57% |
@@ -93,7 +93,7 @@ test/
 
 | File | Tests | What it covers |
 |------|------:|----------------|
-| `builder.test.ts` | 228 | Composable builder (`vlist().use().build()`) — builder core, validation, plugin system, `withSelection`, `withScrollbar`, `withData`, `withCompression`, `withSnapshots`, `withGrid`, `withGroups`, plugin combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering |
+| `builder.test.ts` | 233 | Composable builder (`vlist().use().build()`) — builder core, validation, plugin system, `withSelection`, `withScrollbar`, `withData`, `withCompression`, `withSnapshots`, `withGrid`, `withGroups`, plugin combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration tests |
 
 ### Feature Modules
 
@@ -112,6 +112,7 @@ test/
 | `events/index.test.ts` | 22 | Event emitter — subscribe, emit, unsubscribe, once, error isolation, listener count |
 | `grid/layout.test.ts` | 55 | Grid math — row/column calculation, item ranges, column width, offsets, round-trips |
 | `grid/renderer.test.ts` | 50 | Grid rendering — positioning, gap handling, resize, variable columns |
+| `builder.test.ts` (grid) | 5 | Grid scroll virtualization — integration tests verifying multi-row rendering on scroll, continuous updates, gap handling, range events |
 | `groups/layout.test.ts` | 44 | Group layout — header positioning, item offset, group boundaries |
 | `groups/sticky.test.ts` | 47 | Sticky headers — scroll tracking, transition, out-of-bounds, invalidation |
 
@@ -364,6 +365,63 @@ const simulateScroll = (list: BuiltVList<TestItem>, scrollTop: number): void => 
   viewport.scrollTop = scrollTop;
   viewport.dispatchEvent(new dom.window.Event("scroll"));
 };
+```
+
+### Integration Testing for Scroll Virtualization
+
+**Critical pattern**: Plugin integration tests must verify scroll-triggered rendering, not just initial render. Many plugins (like `withGrid`) replace render functions but may not properly calculate visible/render ranges on scroll.
+
+```typescript
+it("should virtualize and render multiple rows on scroll", () => {
+  // Use tall container to show multiple rows
+  container.style.height = "600px";
+
+  list = vlist<TestItem>({
+    container,
+    item: { height: 100, template },
+    items: createTestItems(600), // Many items
+  })
+    .use(withGrid({ columns: 4 }))
+    .build();
+
+  // Initial: verify first rows rendered
+  let indices = getRenderedIndices(list);
+  expect(indices.length).toBeGreaterThan(16); // More than 1 row
+  const firstMax = Math.max(...indices);
+  expect(firstMax).toBeLessThan(60); // Still near top
+
+  // Scroll down significantly
+  simulateScroll(list, 2000);
+  flush(); // Wait for RAF
+
+  indices = getRenderedIndices(list);
+  const secondMin = Math.min(...indices);
+  const secondMax = Math.max(...indices);
+
+  // Range should have shifted - virtualization working!
+  expect(secondMin).toBeGreaterThan(50); // Past initial rows
+  expect(secondMax).toBeGreaterThan(firstMax); // Further than before
+});
+```
+
+**Why this matters:**
+
+- Initial render tests only verify plugin setup, not ongoing virtualization
+- Plugins that replace render functions may miss range calculation
+- Without scroll tests, bugs show in production but pass all tests
+- This pattern caught the grid plugin bug where only first row rendered
+
+**Helper used:**
+
+```typescript
+const getRenderedIndices = (list: BuiltVList<TestItem>): number[] => {
+  const elements = list.element.querySelectorAll("[data-index]");
+  return Array.from(elements).map((el) =>
+    parseInt((el as HTMLElement).dataset.index!, 10),
+  );
+};
+
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 ```
 
 ## Writing New Tests
