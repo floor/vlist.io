@@ -70,11 +70,19 @@ const maxScroll = virtualHeight - containerHeight;
 const distanceFromBottom = maxScroll - scrollTop;
 
 if (distanceFromBottom <= containerHeight) {
-  // Interpolate between compressed position and actual bottom
+  // Special case: at exact max scroll, position from bottom up
+  if (scrollTop >= maxScroll - 1) {
+    const totalHeightFromBottom = totalHeight - itemOffset;
+    return containerHeight - totalHeightFromBottom;
+  }
+  
+  // Otherwise: interpolate between compressed position and actual bottom
   const interpolation = 1 - (distanceFromBottom / containerHeight);
   // Blend positions to smoothly reach the last items
 }
 ```
+
+**Exact Bottom Positioning:** When scrolled to the absolute bottom (`scrollTop >= maxScroll - 1`), items are positioned from the bottom up to ensure pixel-perfect alignment with zero gap. This prevents the ~20-25px gap that could occur due to compression ratio precision at the edge case of max scroll.
 
 ## Architecture
 
