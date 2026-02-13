@@ -1,8 +1,8 @@
-// Large List — Core vlist entry point
-// Uses createVList from 'vlist' (not builder pattern)
-// Demonstrates 100K–5M items with native scrolling (no compression plugin)
+// Large List — Svelte implementation with vlist action
+// Uses builder pattern with compression + scrollbar plugins
+// Demonstrates handling 100K–5M items with automatic scroll compression
 
-import { createVList } from "vlist";
+import { vlist, onVListEvent } from "vlist/svelte";
 
 // =============================================================================
 // Constants
@@ -28,6 +28,10 @@ const COLORS = [
   "#fee140",
 ];
 
+// =============================================================================
+// Utilities
+// =============================================================================
+
 // Simple hash for consistent per-item values
 const hash = (n) => {
   let h = (n + 1) * 2654435761;
@@ -35,10 +39,7 @@ const hash = (n) => {
   return Math.abs(h);
 };
 
-// =============================================================================
 // Generate items on the fly
-// =============================================================================
-
 const generateItems = (count) =>
   Array.from({ length: count }, (_, i) => ({
     id: i + 1,
@@ -47,10 +48,7 @@ const generateItems = (count) =>
     color: COLORS[i % COLORS.length],
   }));
 
-// =============================================================================
 // Item template
-// =============================================================================
-
 const itemTemplate = (item, index) => `
   <div class="item-row">
     <div class="item-color" style="background:${item.color}"></div>
@@ -75,66 +73,18 @@ const scrollPosEl = document.getElementById("scroll-position");
 const scrollDirEl = document.getElementById("scroll-direction");
 const rangeEl = document.getElementById("visible-range");
 const sizeButtons = document.getElementById("size-buttons");
+const container = document.getElementById("list-container");
 
 // =============================================================================
 // State
 // =============================================================================
 
 let currentSize = "1m";
-let list = null;
+let action = null;
+let listInstance = null;
 
 // =============================================================================
-// Create / Recreate list
-// =============================================================================
-
-function createList(sizeKey) {
-  // Destroy previous
-  if (list) {
-    list.destroy();
-    list = null;
-  }
-
-  // Clear container
-  const container = document.getElementById("list-container");
-  container.innerHTML = "";
-
-  const count = SIZES[sizeKey];
-  const startTime = performance.now();
-  const items = generateItems(count);
-  const genTime = performance.now() - startTime;
-
-  // Use core createVList (no builder, no plugins)
-  list = createVList({
-    container: "#list-container",
-    ariaLabel: `${count.toLocaleString()} items list`,
-    item: {
-      height: ITEM_HEIGHT,
-      template: itemTemplate,
-    },
-    items,
-  });
-
-  const buildTime = performance.now() - startTime;
-
-  // Bind events
-  list.on("scroll", ({ scrollTop, direction }) => {
-    scrollPosEl.textContent = `${Math.round(scrollTop).toLocaleString()}px`;
-    scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
-    scheduleStatsUpdate();
-  });
-
-  list.on("range:change", ({ range }) => {
-    rangeEl.textContent = `${range.start.toLocaleString()} – ${range.end.toLocaleString()}`;
-    scheduleStatsUpdate();
-  });
-
-  // Show initial stats
-  updateStats(count, genTime, buildTime);
-  updateCompressionInfo(count);
-}
-
-// =============================================================================
-// Stats
+// Stats functions
 // =============================================================================
 
 let statsRaf = null;
@@ -182,6 +132,71 @@ function updateCompressionInfo(count) {
 }
 
 // =============================================================================
+// Create / Recreate list
+// =============================================================================
+
+function createList(sizeKey) {
+  // Destroy previous action
+  if (action && action.destroy) {
+    action.destroy();
+    action = null;
+    listInstance = null;
+  }
+
+  // Clear container
+  container.innerHTML = "";
+
+  const count = SIZES[sizeKey];
+  const startTime = performance.now();
+  const items = generateItems(count);
+  const genTime = performance.now() - startTime;
+
+  // Create vlist action
+  action = vlist(container, {
+    config: {
+      ariaLabel: `${count.toLocaleString()} items list`,
+      item: {
+        height: ITEM_HEIGHT,
+        template: itemTemplate,
+      },
+      items,
+      plugins: [
+        {
+          name: "compression",
+          config: {},
+        },
+        {
+          name: "scrollbar",
+          config: { autoHide: true },
+        },
+      ],
+    },
+    onInstance: (inst) => {
+      const buildTime = performance.now() - startTime;
+
+      // Store instance for navigation controls
+      listInstance = inst;
+
+      // Bind events
+      onVListEvent(listInstance, "scroll", ({ scrollTop, direction }) => {
+        scrollPosEl.textContent = `${Math.round(scrollTop).toLocaleString()}px`;
+        scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
+        scheduleStatsUpdate();
+      });
+
+      onVListEvent(listInstance, "range:change", ({ range }) => {
+        rangeEl.textContent = `${range.start.toLocaleString()} – ${range.end.toLocaleString()}`;
+        scheduleStatsUpdate();
+      });
+
+      // Show initial stats
+      updateStats(count, genTime, buildTime);
+      updateCompressionInfo(count);
+    },
+  });
+}
+
+// =============================================================================
 // Size selector buttons
 // =============================================================================
 
@@ -196,7 +211,7 @@ sizeButtons.addEventListener("click", (e) => {
 
   // Update active state
   sizeButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("size-btn--active", b.dataset.size === size);
+    b.classList.toggle("panel-segmented__btn--active", b.dataset.size === size);
   });
 
   createList(size);
@@ -207,20 +222,20 @@ sizeButtons.addEventListener("click", (e) => {
 // =============================================================================
 
 document.getElementById("btn-first").addEventListener("click", () => {
-  list.scrollToIndex(0, "start");
+  listInstance?.scrollToIndex(0, "start");
 });
 
 document.getElementById("btn-middle").addEventListener("click", () => {
-  list.scrollToIndex(Math.floor(SIZES[currentSize] / 2), "center");
+  listInstance?.scrollToIndex(Math.floor(SIZES[currentSize] / 2), "center");
 });
 
 document.getElementById("btn-last").addEventListener("click", () => {
-  list.scrollToIndex(SIZES[currentSize] - 1, "end");
+  listInstance?.scrollToIndex(SIZES[currentSize] - 1, "end");
 });
 
 document.getElementById("btn-random").addEventListener("click", () => {
   const idx = Math.floor(Math.random() * SIZES[currentSize]);
-  list.scrollToIndex(idx, "center");
+  listInstance?.scrollToIndex(idx, "center");
   document.getElementById("scroll-index").value = idx;
 });
 
@@ -228,7 +243,10 @@ document.getElementById("btn-go").addEventListener("click", () => {
   const idx = parseInt(document.getElementById("scroll-index").value, 10);
   if (Number.isNaN(idx)) return;
   const align = document.getElementById("scroll-align").value;
-  list.scrollToIndex(Math.max(0, Math.min(idx, SIZES[currentSize] - 1)), align);
+  listInstance?.scrollToIndex(
+    Math.max(0, Math.min(idx, SIZES[currentSize] - 1)),
+    align,
+  );
 });
 
 document.getElementById("scroll-index").addEventListener("keydown", (e) => {
@@ -239,13 +257,15 @@ document.getElementById("scroll-index").addEventListener("keydown", (e) => {
 });
 
 document.getElementById("btn-smooth-top").addEventListener("click", () => {
-  console.log("🚀 Smooth scroll to TOP starting...");
-  list.scrollToIndex(0, { align: "start", behavior: "smooth", duration: 800 });
+  listInstance?.scrollToIndex(0, {
+    align: "start",
+    behavior: "smooth",
+    duration: 800,
+  });
 });
 
 document.getElementById("btn-smooth-bottom").addEventListener("click", () => {
-  console.log("🚀 Smooth scroll to BOTTOM starting...");
-  list.scrollToIndex(SIZES[currentSize] - 1, {
+  listInstance?.scrollToIndex(SIZES[currentSize] - 1, {
     align: "end",
     behavior: "smooth",
     duration: 800,

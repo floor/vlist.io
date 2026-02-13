@@ -215,6 +215,56 @@ for (const group of EXAMPLE_GROUPS) {
 }
 
 // =============================================================================
+// Variant Support
+// =============================================================================
+
+type Variant = "javascript" | "react" | "vue" | "svelte";
+
+const VARIANT_LABELS: Record<Variant, string> = {
+  javascript: "JavaScript",
+  react: "React",
+  vue: "Vue",
+  svelte: "Svelte",
+};
+
+/** Parse variant from query string (e.g., ?variant=react) */
+function parseVariant(url: string): Variant {
+  const params = new URL(url, "http://localhost").searchParams;
+  const variant = params.get("variant");
+  if (
+    variant === "javascript" ||
+    variant === "react" ||
+    variant === "vue" ||
+    variant === "svelte"
+  ) {
+    return variant;
+  }
+  return "javascript"; // default
+}
+
+/** Check which variants exist for an example */
+function detectVariants(slug: string): Variant[] {
+  const variants: Variant[] = [];
+  const exampleDir = join(SANDBOX_DIR, slug);
+
+  for (const variant of ["javascript", "react", "vue", "svelte"] as Variant[]) {
+    const variantDir = join(exampleDir, variant);
+    if (existsSync(variantDir)) {
+      // Check if it has at least a script file
+      const hasScript =
+        existsSync(join(variantDir, "script.js")) ||
+        existsSync(join(variantDir, "script.jsx")) ||
+        existsSync(join(variantDir, "script.tsx"));
+      if (hasScript) {
+        variants.push(variant);
+      }
+    }
+  }
+
+  return variants;
+}
+
+// =============================================================================
 // Paths
 // =============================================================================
 
@@ -254,8 +304,11 @@ interface SourceFile {
  * Read source files for an example and build a tabbed code viewer.
  * Reads script.js, styles.css, and content.html from the example directory.
  */
-function buildSourceTabs(slug: string): string {
-  const dir = join(SANDBOX_DIR, slug);
+function buildSourceTabs(slug: string, variant?: Variant): string {
+  // If variant is provided, look in the variant subdirectory
+  const dir = variant
+    ? join(SANDBOX_DIR, slug, variant)
+    : join(SANDBOX_DIR, slug);
 
   const files: { name: string; id: string; lang: string }[] = [
     { name: "script.tsx", id: "tsx", lang: "typescript" },
@@ -325,17 +378,59 @@ function buildSourceTabs(slug: string): string {
 }
 
 // =============================================================================
+// Variant Switcher
+// =============================================================================
+
+/**
+ * Build the variant switcher UI for examples that have multiple variants.
+ * Shows tabs for JavaScript, React, Vue, and Svelte when those variants exist.
+ */
+function buildVariantSwitcher(
+  slug: string,
+  activeVariant: Variant,
+  queryString: string,
+): string {
+  const variants = detectVariants(slug);
+
+  // If only one variant exists, don't show the switcher
+  if (variants.length <= 1) return "";
+
+  const lines: string[] = [];
+  lines.push(`<div class="variant-switcher">`);
+
+  for (const variant of variants) {
+    const activeClass =
+      variant === activeVariant ? " variant-switcher__option--active" : "";
+    // Build URL with variant query param, preserving other params if any
+    const params = new URLSearchParams(queryString);
+    params.set("variant", variant);
+    const url = `/sandbox/${slug}?${params.toString()}`;
+
+    lines.push(
+      `  <a href="${url}" class="variant-switcher__option${activeClass}">${VARIANT_LABELS[variant]}</a>`,
+    );
+  }
+
+  lines.push(`</div>`);
+  return lines.join("\n");
+}
+
+// =============================================================================
 // Sidebar Generation
 // =============================================================================
 
-function buildSidebar(activeSlug: string | null): string {
+function buildSidebar(activeSlug: string | null, variant?: Variant): string {
   const lines: string[] = [];
+
+  // Build query string to preserve variant across navigation
+  const queryString =
+    variant && variant !== "javascript" ? `?variant=${variant}` : "";
 
   // Overview link
   const overviewActive = activeSlug === null ? " sidebar__link--active" : "";
   lines.push(`<div class="sidebar__group">`);
   lines.push(
-    `  <a href="/sandbox/" class="sidebar__link${overviewActive}">Overview</a>`,
+    `  <a href="/sandbox/${queryString}" class="sidebar__link${overviewActive}">Overview</a>`,
   );
   lines.push(`</div>`);
 
@@ -350,7 +445,7 @@ function buildSidebar(activeSlug: string | null): string {
       for (const item of group.items) {
         const active = item.slug === activeSlug ? " sidebar__link--active" : "";
         lines.push(
-          `  <a href="/sandbox/${item.slug}" class="sidebar__link${active}">${item.name}</a>`,
+          `  <a href="/sandbox/${item.slug}${queryString}" class="sidebar__link${active}">${item.name}</a>`,
         );
       }
     }
@@ -417,6 +512,7 @@ function buildOverviewContent(): string {
 function buildExtraHead(
   slug: string | null,
   example: ExampleItem | null,
+  variant?: Variant,
 ): string {
   if (!slug || !example) return "";
 
@@ -432,10 +528,11 @@ function buildExtraHead(
   // vlist styles — always needed for examples
   tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
 
-  // Example-specific styles
-  tags.push(
-    `<link rel="stylesheet" href="/sandbox/${slug}/dist/styles.css" />`,
-  );
+  // Example-specific styles — check variant subdirectory first
+  const stylePath = variant
+    ? `/sandbox/${slug}/${variant}/dist/styles.css`
+    : `/sandbox/${slug}/dist/styles.css`;
+  tags.push(`<link rel="stylesheet" href="${stylePath}" />`);
 
   return tags.join("\n    ");
 }
@@ -443,10 +540,16 @@ function buildExtraHead(
 function buildExtraBody(
   slug: string | null,
   example: ExampleItem | null,
+  variant?: Variant,
 ): string {
   if (!slug || !example) return "";
 
-  return `<script type="module" src="/sandbox/${slug}/dist/script.js"></script>`;
+  // Script path — check variant subdirectory first
+  const scriptPath = variant
+    ? `/sandbox/${slug}/${variant}/dist/script.js`
+    : `/sandbox/${slug}/dist/script.js`;
+
+  return `<script type="module" src="${scriptPath}"></script>`;
 }
 
 // =============================================================================
@@ -457,6 +560,8 @@ function assemblePage(
   slug: string | null,
   example: ExampleItem | null,
   content: string,
+  variant?: Variant,
+  queryString?: string,
 ): string {
   const shell = loadShell();
 
@@ -466,12 +571,14 @@ function assemblePage(
     ? `VList ${example.name.toLowerCase()} example — ${example.desc}`
     : "Interactive examples for the VList virtual list library — from basic lists to million-item stress tests.";
 
-  const sidebar = buildSidebar(slug);
-  const extraHead = buildExtraHead(slug, example);
-  const extraBody = buildExtraBody(slug, example);
+  const sidebar = buildSidebar(slug, variant);
+  const extraHead = buildExtraHead(slug, example, variant);
+  const extraBody = buildExtraBody(slug, example, variant);
   const mainClass = example?.mtrl ? " mtrl-app" : "";
 
-  const url = slug ? `${SITE}/sandbox/${slug}` : `${SITE}/sandbox/`;
+  const url = slug
+    ? `${SITE}/sandbox/${slug}${queryString || ""}`
+    : `${SITE}/sandbox/`;
 
   return shell
     .replace(/{{TITLE}}/g, title)
@@ -492,9 +599,13 @@ function assemblePage(
  * Render a sandbox page.
  *
  * @param slug - Example slug (e.g. "basic", "grid") or null for the overview.
+ * @param url - Full request URL for parsing query params
  * @returns A Response with the full HTML page, or null if the example doesn't exist.
  */
-export function renderSandboxPage(slug: string | null): Response | null {
+export function renderSandboxPage(
+  slug: string | null,
+  url?: string,
+): Response | null {
   // Overview page
   if (slug === null) {
     const content = buildOverviewContent();
@@ -504,17 +615,56 @@ export function renderSandboxPage(slug: string | null): Response | null {
     });
   }
 
+  // Parse variant from URL query string
+  const variant = url ? parseVariant(url) : "javascript";
+  const queryString = url ? new URL(url, "http://localhost").search : "";
+
   // Example page — check it exists in our config
   const example = ALL_EXAMPLES.get(slug);
   if (!example) return null;
 
-  // Load content.html
-  const contentPath = join(SANDBOX_DIR, slug, "content.html");
+  // Check if this example has variants (new structure)
+  const variants = detectVariants(slug);
+  const hasVariants = variants.length > 0;
+
+  // Determine paths based on whether variants exist
+  let contentPath: string;
+
+  if (hasVariants) {
+    // New structure: sandbox/{example}/{variant}/
+    if (!variants.includes(variant)) {
+      // Requested variant doesn't exist, use first available
+      const firstVariant = variants[0];
+      contentPath = join(SANDBOX_DIR, slug, firstVariant, "content.html");
+    } else {
+      contentPath = join(SANDBOX_DIR, slug, variant, "content.html");
+    }
+  } else {
+    // Old structure: sandbox/{example}/ (backward compatibility)
+    contentPath = join(SANDBOX_DIR, slug, "content.html");
+  }
+
   if (!existsSync(contentPath)) return null;
 
   const content = readFileSync(contentPath, "utf-8");
-  const sourceTabs = buildSourceTabs(slug);
-  const html = assemblePage(slug, example, content + sourceTabs);
+
+  // Build variant switcher if this example has variants
+  const variantSwitcher = hasVariants
+    ? buildVariantSwitcher(slug, variant, queryString)
+    : "";
+
+  // Build source tabs for the selected variant
+  const sourceTabs = hasVariants
+    ? buildSourceTabs(slug, variant)
+    : buildSourceTabs(slug);
+
+  const html = assemblePage(
+    slug,
+    example,
+    variantSwitcher + content + sourceTabs,
+    hasVariants ? variant : undefined,
+    queryString,
+  );
 
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },

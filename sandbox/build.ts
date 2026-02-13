@@ -167,14 +167,26 @@ async function buildExample(name: string): Promise<BuildResult> {
       entrypoint.endsWith(".tsx") ||
       name.startsWith("react/") ||
       name.startsWith("vue/") ||
-      name.startsWith("svelte/");
+      name.startsWith("svelte/") ||
+      name.includes("/react") ||
+      name.includes("/vue") ||
+      name.includes("/svelte");
     const plugins = needsDedupe ? [frameworkDedupePlugin] : [];
+
+    // Define Vue feature flags for production builds
+    const define: Record<string, string> = {};
+    if (name.includes("/vue") || name.startsWith("vue/")) {
+      define["__VUE_OPTIONS_API__"] = "true";
+      define["__VUE_PROD_DEVTOOLS__"] = "false";
+      define["__VUE_PROD_HYDRATION_MISMATCH_DETAILS__"] = "false";
+    }
 
     const result = await Bun.build({
       entrypoints: [entrypoint],
       outdir,
       ...BUILD_OPTIONS,
       plugins,
+      define: Object.keys(define).length > 0 ? define : undefined,
     });
 
     if (!result.success) {

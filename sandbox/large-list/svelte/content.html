@@ -1,0 +1,143 @@
+<div class="container container--wide">
+    <header>
+        <h1>Large List</h1>
+        <p class="description">
+            Svelte implementation with <code>vlist</code> action +
+            <code>withCompression</code> + <code>withScrollbar</code> plugins.
+            Handles 100K–5M items with automatic scroll compression when total
+            height exceeds the browser's 16.7M pixel limit.
+        </p>
+    </header>
+
+    <div class="stats" id="stats">Loading…</div>
+
+    <div class="compression-bar" id="compression-info"></div>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Size -->
+            <section class="panel-section">
+                <h3 class="panel-title">Size</h3>
+                <div class="panel-row">
+                    <div class="panel-segmented" id="size-buttons">
+                        <button class="panel-segmented__btn" data-size="100k">
+                            100K
+                        </button>
+                        <button class="panel-segmented__btn" data-size="500k">
+                            500K
+                        </button>
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-size="1m"
+                        >
+                            1M
+                        </button>
+                        <button class="panel-segmented__btn" data-size="2m">
+                            2M
+                        </button>
+                        <button class="panel-segmented__btn" data-size="5m">
+                            5M
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Navigation</h3>
+
+                <div class="panel-row">
+                    <label class="panel-label" for="scroll-index"
+                        >Scroll to index</label
+                    >
+                    <div class="panel-input-group">
+                        <input
+                            type="number"
+                            id="scroll-index"
+                            min="0"
+                            value="0"
+                            class="panel-input"
+                        />
+                        <select id="scroll-align" class="panel-select">
+                            <option value="start">start</option>
+                            <option value="center">center</option>
+                            <option value="end">end</option>
+                        </select>
+                        <button
+                            id="btn-go"
+                            class="panel-btn panel-btn--icon"
+                            title="Go"
+                        >
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                            >
+                                <path
+                                    d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Quick jump</label>
+                    <div class="panel-btn-group">
+                        <button id="btn-first" class="panel-btn">First</button>
+                        <button id="btn-middle" class="panel-btn">
+                            Middle
+                        </button>
+                        <button id="btn-last" class="panel-btn">Last</button>
+                        <button id="btn-random" class="panel-btn">
+                            Random
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Smooth scroll</label>
+                    <div class="panel-btn-group">
+                        <button id="btn-smooth-top" class="panel-btn">
+                            ↑ Top
+                        </button>
+                        <button id="btn-smooth-bottom" class="panel-btn">
+                            ↓ Bottom
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Viewport -->
+            <section class="panel-section">
+                <h3 class="panel-title">Viewport</h3>
+                <div class="panel-row">
+                    <span class="panel-label">Scroll</span>
+                    <span class="panel-value" id="scroll-position">0px</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Direction</span>
+                    <span class="panel-value" id="scroll-direction">–</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Range</span>
+                    <span class="panel-value" id="visible-range">–</span>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer>
+        <p>
+            Compression activates automatically when the virtual height exceeds
+            ~16.7 million pixels. The Svelte action integrates seamlessly with
+            the builder's plugin system — compression logic is only loaded when
+            you configure the <code>compression</code> plugin. 🎯
+        </p>
+    </footer>
+</div>

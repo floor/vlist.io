@@ -207,17 +207,17 @@ const resolveStatic = (pathname: string): Response | null => {
  * - /sandbox/<slug>/              → same (trailing slash)
  * - /sandbox/<slug>/dist/*        → falls through (static assets)
  */
-const resolveSandbox = (pathname: string): Response | null => {
+const resolveSandbox = (pathname: string, url: string): Response | null => {
   // Overview: /sandbox or /sandbox/
   if (pathname === "/sandbox" || pathname === "/sandbox/") {
-    return renderSandboxPage(null);
+    return renderSandboxPage(null, url);
   }
 
   // Example page: /sandbox/<slug> or /sandbox/<category>/<slug>
   const match = pathname.match(/^\/sandbox\/([a-z0-9-]+(?:\/[a-z0-9-]+)?)\/?$/);
   if (match) {
     const slug = match[1];
-    const rendered = renderSandboxPage(slug);
+    const rendered = renderSandboxPage(slug, url);
     if (rendered) return rendered;
     // Unknown slug — fall through to static file serving
   }
@@ -396,7 +396,7 @@ const handleRequest = async (req: Request): Promise<Response> => {
   if (apiResponse) return apiResponse;
 
   // 3. Sandbox pages (server-rendered)
-  const sandboxResponse = resolveSandbox(pathname);
+  const sandboxResponse = resolveSandbox(pathname, req.url);
   if (sandboxResponse) return sandboxResponse;
 
   // 4. Docs pages (server-rendered)

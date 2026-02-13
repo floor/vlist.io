@@ -1,11 +1,11 @@
 <div class="container container--wide">
     <header>
-        <h1>Builder · Million Items</h1>
+        <h1>Large List</h1>
         <p class="description">
-            Composable entry point – <code>vlist/builder</code> with
+            Builder pattern with <code>vlist/builder</code> +
             <code>withCompression</code> + <code>withScrollbar</code> plugins.
-            Handles 1–5 million items with automatic scroll compression when
-            total height exceeds the browser's 16.7M pixel limit.
+            Handles 100K–5M items with automatic scroll compression when total
+            height exceeds the browser's 16.7M pixel limit.
         </p>
     </header>
 
@@ -15,20 +15,37 @@
 
     <div class="split-layout">
         <div class="split-main">
-            <div class="size-selector" id="size-buttons">
-                <button class="size-btn" data-size="100k">100K</button>
-                <button class="size-btn" data-size="500k">500K</button>
-                <button class="size-btn size-btn--active" data-size="1m">
-                    1M
-                </button>
-                <button class="size-btn" data-size="2m">2M</button>
-                <button class="size-btn" data-size="5m">5M</button>
-            </div>
-
             <div id="list-container"></div>
         </div>
 
         <aside class="split-panel">
+            <!-- Size -->
+            <section class="panel-section">
+                <h3 class="panel-title">Size</h3>
+                <div class="panel-row">
+                    <div class="panel-segmented" id="size-buttons">
+                        <button class="panel-segmented__btn" data-size="100k">
+                            100K
+                        </button>
+                        <button class="panel-segmented__btn" data-size="500k">
+                            500K
+                        </button>
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-size="1m"
+                        >
+                            1M
+                        </button>
+                        <button class="panel-segmented__btn" data-size="2m">
+                            2M
+                        </button>
+                        <button class="panel-segmented__btn" data-size="5m">
+                            5M
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Navigation -->
             <section class="panel-section">
                 <h3 class="panel-title">Navigation</h3>
