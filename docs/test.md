@@ -4,19 +4,19 @@
 
 ## Overview
 
-vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with JSDOM for DOM simulation. The test suite is organized by module, mirroring the `src/` directory structure, with additional cross-cutting test files for integration, accessibility, and reverse mode.
+vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with JSDOM for DOM simulation. The test suite is organized by module, mirroring the `src/` directory structure, with additional cross-cutting test files for integration, accessibility, reverse mode, and the composable builder.
 
 **Current stats:**
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 1,644 |
-| Total assertions | 5,621 |
-| Test files | 24 |
-| Line coverage | 99.99% |
-| Function coverage | 99.68% |
-| Files at 100% lines | 28 of 30 |
-| Runtime | ~10s |
+| Total tests | 1,873 |
+| Total assertions | 6,131 |
+| Test files | 25 |
+| Line coverage | 97.19% |
+| Function coverage | 95.57% |
+| Files at 100% lines | 29 of 38 |
+| Runtime | ~13s |
 
 ## Quick Start
 
@@ -68,6 +68,7 @@ test/
 ├── selection/
 │   └── index.test.ts           # Selection state
 ├── accessibility.test.ts       # WAI-ARIA, keyboard nav, screen readers
+├── builder.test.ts             # Composable builder & plugin system
 ├── context.test.ts             # Internal context wiring
 ├── core.test.ts                # Core vlist (lightweight entry point)
 ├── handlers.test.ts            # Scroll, click, keyboard handlers
@@ -87,6 +88,12 @@ test/
 | `integration.test.ts` | 126 | Cross-module scenarios — horizontal mode, grid compression, groups data, reverse data, selection, event lifecycle, variable heights, validation, wrap mode, destroy idempotency |
 | `vlist-coverage.test.ts` | 58 | Full `createVList` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
 | `context.test.ts` | 20 | Context creation, wiring, state management |
+
+### Builder & Plugins
+
+| File | Tests | What it covers |
+|------|------:|----------------|
+| `builder.test.ts` | 228 | Composable builder (`vlist().use().build()`) — builder core, validation, plugin system, `withSelection`, `withScrollbar`, `withData`, `withCompression`, `withSnapshots`, `withGrid`, `withGroups`, plugin combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering |
 
 ### Feature Modules
 
@@ -156,20 +163,25 @@ The lcov report is written to `coverage/lcov.info`.
 | File | Functions | Lines |
 |------|----------:|------:|
 | `src/adapters/svelte.ts` | 100% | 100% |
+| `src/builder/core.ts` | 75.31% | 92.25% |
+| `src/compression/plugin.ts` | 80% | 85.55% |
 | `src/constants.ts` | 100% | 100% |
 | `src/context.ts` | 100% | 100% |
 | `src/core.ts` | 97.06% | 100% |
 | `src/data/index.ts` | 100% | 100% |
 | `src/data/manager.ts` | 100% | 100% |
 | `src/data/placeholder.ts` | 100% | 100% |
+| `src/data/plugin.ts` | 61.11% | 80.25% |
 | `src/data/sparse.ts` | 100% | 100% |
 | `src/events/emitter.ts` | 100% | 100% |
 | `src/events/index.ts` | 100% | 100% |
 | `src/grid/index.ts` | 100% | 100% |
 | `src/grid/layout.ts` | 100% | 100% |
+| `src/grid/plugin.ts` | 91.67% | 92.98% |
 | `src/grid/renderer.ts` | 100% | 100% |
 | `src/groups/index.ts` | 100% | 100% |
 | `src/groups/layout.ts` | 100% | 100% |
+| `src/groups/plugin.ts` | 76.47% | 89.78% |
 | `src/groups/sticky.ts` | 100% | 100% |
 | `src/groups/types.ts` | 100% | 100% |
 | `src/handlers.ts` | 100% | 100% |
@@ -177,24 +189,33 @@ The lcov report is written to `coverage/lcov.info`.
 | `src/render/compression.ts` | 100% | 100% |
 | `src/render/heights.ts` | 100% | 100% |
 | `src/render/index.ts` | 100% | 100% |
-| `src/render/renderer.ts` | 100% | 100% |
-| `src/render/virtual.ts` | 100% | 100% |
+| `src/render/renderer.ts` | 100% | 97.92% |
+| `src/render/virtual.ts` | 94.74% | 95.83% |
 | `src/scroll/controller.ts` | 100% | 99.76% |
 | `src/scroll/index.ts` | 100% | 100% |
-| `src/scroll/scrollbar.ts` | 100% | 100% |
+| `src/scroll/plugin.ts` | 71.43% | 80.36% |
+| `src/scroll/scrollbar.ts` | 90.48% | 97% |
 | `src/selection/index.ts` | 100% | 100% |
+| `src/selection/plugin.ts` | 100% | 99.23% |
 | `src/selection/state.ts` | 100% | 100% |
+| `src/snapshots/plugin.ts` | 100% | 82.43% |
 | `src/vlist.ts` | 93.33% | 99.87% |
-| **All source files** | **99.68%** | **99.99%** |
+| **All source files** | **95.57%** | **97.19%** |
 
-### Uncoverable Lines
+### Uncovered Lines
 
-Two lines are not covered due to tooling quirks and defensive code:
+Some lines remain uncovered due to JSDOM limitations and defensive code:
 
-| File | Line | Reason |
-|------|------|--------|
-| `scroll/controller.ts` | L527 | **Coverage tool quirk** — the `} else {` between the horizontal and non-horizontal scroll restore branches. The else body (L528) IS executed (4 hits). Bun's V8 coverage instrumentation doesn't count `} else {` on its own line as an executable statement. |
-| `vlist.ts` | L1240 | **Defensive `.catch()`** — the error handler on `dataManager.loadInitial().catch(...)`. Since `loadInitial` delegates to `loadRange`, which catches all errors internally via try-catch, the promise never rejects. The `.catch()` is kept as a safety net. |
+| File | Lines | Reason |
+|------|-------|--------|
+| `builder/core.ts` | 624-636, 959-970 | **Window scroll mode** — JSDOM doesn't support real window scrolling. These paths work in real browsers but can't be tested without Playwright/Puppeteer. |
+| `snapshots/plugin.ts` | 89-96, 127-131 | **Compression snapshot paths** — Requires actual scroll position changes in compressed mode. JSDOM's `scrollTop` assignment doesn't actually scroll. |
+| `scroll/plugin.ts` | 125-131 | **Scrollbar thumb drag** — Requires real mouse drag events with coordinates. |
+| `data/plugin.ts` | 144-151, 171-176 | **Velocity-aware loading** — Requires scroll velocity tracking which depends on real scroll timing. |
+| `scroll/controller.ts` | L527 | **Coverage tool quirk** — the `} else {` between horizontal and non-horizontal scroll restore branches. The else body IS executed (4 hits). |
+| `vlist.ts` | L1240 | **Defensive `.catch()`** — the error handler on `dataManager.loadInitial().catch(...)`. The promise never rejects in practice. |
+
+These edge cases work correctly in production (real browsers) but would require browser-based testing tools (Playwright, Puppeteer) to cover in automated tests.
 
 ## Testing Patterns
 
@@ -228,7 +249,7 @@ afterAll(() => {
 
 ### ResizeObserver Mock
 
-JSDOM doesn't include `ResizeObserver`. Tests that use `createVList` (which uses `ResizeObserver` internally) must provide a mock:
+JSDOM doesn't include `ResizeObserver`. Tests that use `createVList` or the builder (which use `ResizeObserver` internally) must provide a mock:
 
 ```typescript
 global.ResizeObserver = class MockResizeObserver {
@@ -332,6 +353,19 @@ global.cancelAnimationFrame = (id: number): void => {
 };
 ```
 
+### Simulating Scroll Events
+
+JSDOM doesn't fire scroll events when `scrollTop` is set. Tests use a helper:
+
+```typescript
+const simulateScroll = (list: BuiltVList<TestItem>, scrollTop: number): void => {
+  const viewport = list.element.querySelector(".vlist-viewport") as HTMLElement;
+  if (!viewport) return;
+  viewport.scrollTop = scrollTop;
+  viewport.dispatchEvent(new dom.window.Event("scroll"));
+};
+```
+
 ## Writing New Tests
 
 ### Conventions
@@ -372,6 +406,58 @@ describe("myFeature", () => {
 });
 ```
 
+### Builder Plugin Test Template
+
+```typescript
+import { vlist } from "../src/builder/core";
+import { withSelection } from "../src/selection/plugin";
+import { withScrollbar } from "../src/scroll/plugin";
+
+describe("withMyPlugin plugin", () => {
+  let container: HTMLElement;
+  let list: BuiltVList<TestItem> | null = null;
+
+  beforeEach(() => {
+    container = createContainer();
+  });
+
+  afterEach(() => {
+    if (list) {
+      list.destroy();
+      list = null;
+    }
+    container.remove();
+  });
+
+  it("should add plugin functionality", () => {
+    list = vlist<TestItem>({
+      container,
+      item: { height: 40, template },
+      items: createTestItems(20),
+    })
+      .use(withMyPlugin({ option: "value" }))
+      .build();
+
+    expect(list.myPluginMethod).toBeDefined();
+  });
+
+  it("should work with other plugins", () => {
+    list = vlist<TestItem>({
+      container,
+      item: { height: 40, template },
+      items: createTestItems(20),
+    })
+      .use(withMyPlugin())
+      .use(withSelection({ mode: "multiple" }))
+      .use(withScrollbar())
+      .build();
+
+    // Test combined functionality
+    expect(list.element).toBeDefined();
+  });
+});
+```
+
 ### Running a Subset
 
 ```bash
@@ -383,6 +469,9 @@ bun test --test-name-pattern="compression"
 
 # By directory (all files in data/)
 bun test test/data/
+
+# Builder tests only
+bun test test/builder.test.ts
 ```
 
 ---
