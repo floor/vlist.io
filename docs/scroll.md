@@ -1360,6 +1360,41 @@ createVList({
 | `scrollbar: { enabled: false }` | `scrollbar: 'none'` | No scrollbar |
 | *(no equivalent)* | `scrollbar: 'native'` | Browser's native scrollbar |
 
+## Technical Notes
+
+### Smooth Scroll Rendering Fix (v0.4.0)
+
+**Issue:** In versions prior to 0.4.0, smooth scrolling and scrollbar dragging showed a blank list during animation in non-compressed mode. Items only appeared when the animation completed.
+
+**Root Cause:** The internal `lastScrollTop` state variable was not being updated before calling `renderIfNeeded()`, causing the visible range calculation to use stale scroll position values. This made the renderer think the range hadn't changed, so it skipped rendering.
+
+**Execution Flow (Broken):**
+```typescript
+scrollSetTop(newPos);     // Update DOM scroll position
+renderIfNeeded();         // ❌ Uses OLD lastScrollTop value
+// Range appears unchanged → skips rendering
+// Native scroll event fires later → updates lastScrollTop (too late!)
+```
+
+**Solution:** Update `lastScrollTop` immediately after updating the scroll position and before rendering:
+
+```typescript
+scrollSetTop(newPos);     // Update DOM
+lastScrollTop = newPos;   // Update state
+renderIfNeeded();         // ✅ Uses correct value
+```
+
+**Locations Fixed:**
+1. `animateScroll()` function (smooth scroll animations)
+2. Scroll controller proxy `scrollTo()` method (scrollbar dragging)
+3. Scroll controller proxy `scrollBy()` method (programmatic scrolling)
+
+**Impact:** Only affected non-compressed mode (lists < ~500K items). Compressed mode already worked correctly due to its different scroll mechanism.
+
+**Testing:** Fixed in both builder pattern and core vlist entry points. See `sandbox/builder/large-list` and `sandbox/large-list` examples.
+
+This pattern already existed in other parts of the codebase (reverse mode, appendItems, prependItems) but was missing from scroll operations. The fix ensures state and DOM updates happen synchronously.
+
 ## Related Modules
 
 - [methods.md](./methods.md#snapshot-methods) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)

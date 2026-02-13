@@ -108,6 +108,11 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         mtrl: true,
       },
       {
+        slug: "large-list",
+        name: "Large List",
+        desc: "100K–5M items — core vlist with native scrolling",
+      },
+      {
         slug: "velocity-loading",
         name: "Velocity Loading",
         desc: "Smart loading — skips when scrolling fast",
