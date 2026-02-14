@@ -91,9 +91,9 @@ type Variant = "javascript" | "react" | "vue" | "svelte";
 /** Benchmarks that have variant-based structure */
 const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
   render: ["javascript", "react", "vue", "svelte"],
-  scroll: ["javascript"],
-  memory: ["javascript"],
-  scrollto: ["javascript"],
+  scroll: ["javascript", "react", "vue", "svelte"],
+  memory: ["javascript", "react", "vue", "svelte"],
+  scrollto: ["javascript", "react", "vue", "svelte"],
 };
 
 /** Parse variant from query string (e.g., ?variant=react) */
