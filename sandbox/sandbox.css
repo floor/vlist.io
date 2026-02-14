@@ -48,17 +48,16 @@ html[data-theme="dark"] {
 }
 
 /* ============================================================================
-   Container — centered content column (matches overview pattern)
+   Container — unified width for all examples
    ============================================================================ */
 
 .container {
-    max-width: 760px;
+    width: 100%;
+    max-width: 1060px;
     margin: 0 auto;
     padding: 40px 36px 80px;
-}
-
-.container--wide {
-    max-width: 960px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* ============================================================================
@@ -858,11 +857,7 @@ html[data-theme] .source__panel pre {
 
 @media (min-width: 1200px) {
     .container {
-        max-width: 880px;
-    }
-
-    .container--wide {
-        max-width: 1060px;
+        max-width: 1200px;
     }
 }
 

@@ -2,17 +2,6 @@
    Common styles (.container, h1, .description, .stats, footer)
    are provided by sandbox/sandbox.css using shell.css design tokens. */
 
-/* Wider container for grid layout */
-.container {
-    max-width: 960px;
-}
-
-@media (min-width: 1200px) {
-    .container {
-        max-width: 1060px;
-    }
-}
-
 /* Controls */
 .controls {
     margin-bottom: 16px;

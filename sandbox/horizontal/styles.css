@@ -2,20 +2,13 @@
    Common styles (.container, h1, .description, .stats, footer)
    are provided by sandbox/sandbox.css using shell.css design tokens. */
 
-/* Wider container for horizontal layout */
-.container {
-    max-width: 960px;
-}
-
-@media (min-width: 1200px) {
-    .container {
-        max-width: 1060px;
-    }
-}
-
-/* List container */
+/* List container - full width, responsive height */
 #list-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     height: 220px;
+    overflow: hidden;
 }
 
 /* Override vlist defaults for horizontal cards */
@@ -23,6 +16,16 @@
     border: none;
     border-radius: 12px;
     background: transparent;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+#list-container .vlist-viewport {
+    max-width: 100%;
+    width: 100% !important;
+    overflow-x: auto;
 }
 
 #list-container .vlist-item {
@@ -77,4 +80,69 @@
 /* Bottom controls */
 .controls {
     margin-top: 16px;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 900px) {
+    #list-container {
+        height: 190px;
+    }
+
+    #list-container .vlist-item {
+        padding: 6px;
+    }
+
+    .card {
+        padding: 10px 8px;
+        border-radius: 10px;
+    }
+
+    .card-emoji {
+        font-size: 30px;
+    }
+
+    .card-title {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 720px) {
+    #list-container {
+        height: 160px;
+    }
+
+    #list-container .vlist-item {
+        padding: 4px;
+    }
+
+    .card {
+        padding: 8px 6px;
+        gap: 4px;
+        border-radius: 8px;
+    }
+
+    .card-emoji {
+        font-size: 24px;
+    }
+
+    .card-title {
+        font-size: 12px;
+    }
+
+    .card-subtitle {
+        font-size: 10px;
+    }
+
+    .controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .controls button {
+        width: 100%;
+        font-size: 13px;
+    }
 }

@@ -230,6 +230,7 @@ body {
 /* ─── Content ────────────────────────────────────────────────────── */
 
 .content {
+    position: relative;
     flex: 1;
     margin-left: var(--sidebar-width);
     min-height: calc(100vh - var(--header-height));
@@ -328,6 +329,9 @@ body {
 /* ─── Variant Switcher ───────────────────────────────────────────── */
 
 .variant-switcher {
+    position: absolute;
+    top: 10px;
+    left: 36px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -335,9 +339,10 @@ body {
 }
 
 .variant-switcher__option {
-    padding: 4px 12px;
-    font-size: 15px;
+    padding: 2px 6px;
+    font-size: 10px;
     font-weight: 400;
+    text-transform: uppercase;
     color: var(--text-muted);
     text-decoration: none;
     background: transparent;
@@ -355,6 +360,13 @@ body {
     color: var(--text);
     background: var(--bg-hover);
     font-weight: 500;
+    background-color: #4a5cd8;
+}
+.variant-switcher__option--active:hover {
+    color: var(--text);
+    background: var(--bg-hover);
+    font-weight: 500;
+    background-color: #4a5cd8;
 }
 
 .variant-switcher__option--disabled {

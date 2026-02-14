@@ -155,55 +155,6 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
       },
     ],
   },
-  {
-    label: "React",
-    items: [
-      {
-        slug: "react/basic",
-        name: "Basic",
-        desc: "Minimal useVList hook — 10K items, one hook, zero boilerplate",
-      },
-      {
-        slug: "react/controls",
-        name: "Controls",
-        desc: "Selection, navigation, scroll events — full React integration",
-      },
-    ],
-  },
-  {
-    label: "Vue",
-    items: [
-      {
-        slug: "vue/basic",
-        name: "Basic",
-        desc: "Minimal useVList composable — 10K items, one composable, zero boilerplate",
-      },
-      {
-        slug: "vue/controls",
-        name: "Controls",
-        desc: "Selection, navigation, scroll events — full Vue integration",
-      },
-    ],
-  },
-  {
-    label: "Svelte",
-    items: [
-      {
-        slug: "svelte/basic",
-        name: "Basic",
-        desc: "Minimal vlist action — no Svelte runtime needed, just a function",
-      },
-      {
-        slug: "svelte/controls",
-        name: "Controls",
-        desc: "Selection, navigation, scroll events — full action integration",
-      },
-    ],
-  },
-  {
-    label: "mtrl",
-    items: [],
-  },
 ];
 
 // Flat lookup for quick access

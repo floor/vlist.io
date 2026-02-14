@@ -21,6 +21,8 @@ import { renderBenchmarkPage, BENCH_GROUPS } from "./benchmarks/renderer";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
 import { execSync } from "child_process";
 import { join, extname, resolve } from "path";
+import { gzipSync, brotliCompressSync } from "zlib";
+import { createHash } from "crypto";
 
 const PORT = parseInt(process.env.PORT || "3338", 10);
 const ROOT = resolve(".");
@@ -76,6 +78,158 @@ const MIME_TYPES: Record<string, string> = {
 const getMimeType = (filePath: string): string => {
   const ext = extname(filePath).toLowerCase();
   return MIME_TYPES[ext] || "application/octet-stream";
+};
+
+// =============================================================================
+// Compression Cache
+// =============================================================================
+
+interface CachedCompression {
+  br?: Buffer;
+  gzip?: Buffer;
+  timestamp: number;
+}
+
+// Simple LRU cache for compressed responses
+const compressionCache = new Map<string, CachedCompression>();
+const MAX_CACHE_SIZE = 100;
+const CACHE_TTL = 60000; // 1 minute
+
+/**
+ * Generate cache key from pathname and content hash
+ */
+const getCacheKey = (pathname: string, contentHash: string): string => {
+  return `${pathname}:${contentHash}`;
+};
+
+/**
+ * Evict old entries when cache is full (simple LRU)
+ */
+const evictOldCache = (): void => {
+  if (compressionCache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = compressionCache.keys().next().value;
+    if (oldestKey) {
+      compressionCache.delete(oldestKey);
+    }
+  }
+};
+
+// =============================================================================
+// Compression
+// =============================================================================
+
+/**
+ * Check if a content type should be compressed
+ */
+const shouldCompress = (contentType: string): boolean => {
+  return (
+    contentType.includes("text/") ||
+    contentType.includes("application/javascript") ||
+    contentType.includes("application/json") ||
+    contentType.includes("application/xml") ||
+    contentType.includes("image/svg")
+  );
+};
+
+/**
+ * Compress response based on Accept-Encoding header
+ * Prefers brotli over gzip for better compression
+ * Uses LRU cache to avoid re-compressing
+ */
+const compressResponse = async (
+  response: Response,
+  acceptEncoding: string | null,
+  pathname: string,
+): Promise<Response> => {
+  const contentType = response.headers.get("Content-Type") || "";
+
+  // Only compress text-based content
+  if (!shouldCompress(contentType)) {
+    return response;
+  }
+
+  // Skip if already compressed or no encoding accepted
+  if (!acceptEncoding || response.headers.get("Content-Encoding")) {
+    return response;
+  }
+
+  try {
+    // Read the response body as ArrayBuffer
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Skip compression for small responses (< 1KB)
+    if (buffer.length < 1024) {
+      return new Response(buffer, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    }
+
+    // Generate content hash for cache key
+    const contentHash = createHash("md5").update(buffer).digest("hex");
+    const cacheKey = getCacheKey(pathname, contentHash);
+
+    // Check cache
+    let cached = compressionCache.get(cacheKey);
+
+    // Evict stale cache entries
+    if (cached && Date.now() - cached.timestamp > CACHE_TTL) {
+      compressionCache.delete(cacheKey);
+      cached = undefined;
+    }
+
+    // Create cache entry if needed
+    if (!cached) {
+      evictOldCache();
+      cached = { timestamp: Date.now() };
+      compressionCache.set(cacheKey, cached);
+    }
+
+    const lowerEncoding = acceptEncoding.toLowerCase();
+    const headers = new Headers(response.headers);
+    headers.set("Vary", "Accept-Encoding");
+
+    // Prefer brotli (better compression)
+    if (lowerEncoding.includes("br")) {
+      if (!cached.br) {
+        cached.br = brotliCompressSync(buffer);
+      }
+      headers.set("Content-Encoding", "br");
+      headers.set("Content-Length", cached.br.length.toString());
+      return new Response(cached.br, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+
+    // Fallback to gzip
+    if (lowerEncoding.includes("gzip")) {
+      if (!cached.gzip) {
+        cached.gzip = gzipSync(buffer);
+      }
+      headers.set("Content-Encoding", "gzip");
+      headers.set("Content-Length", cached.gzip.length.toString());
+      return new Response(cached.gzip, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+
+    // Return uncompressed
+    return new Response(buffer, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  } catch (error) {
+    // If compression fails, return original response
+    console.error("Compression error:", error);
+    return response;
+  }
 };
 
 // =============================================================================
@@ -386,49 +540,61 @@ Sitemap: ${SITE}/sitemap.xml
 const handleRequest = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
   const pathname = decodeURIComponent(url.pathname);
+  const acceptEncoding = req.headers.get("Accept-Encoding");
+
+  let response: Response | null = null;
 
   // 1. Sitemap & robots.txt
-  if (pathname === "/sitemap.xml") return renderSitemap();
-  if (pathname === "/robots.txt") return renderRobots();
-
+  if (pathname === "/sitemap.xml") {
+    response = renderSitemap();
+  } else if (pathname === "/robots.txt") {
+    response = renderRobots();
+  }
   // 2. API routes
-  const apiResponse = await routeApi(req);
-  if (apiResponse) return apiResponse;
+  else {
+    response = await routeApi(req);
+  }
 
   // 3. Sandbox pages (server-rendered)
-  const sandboxResponse = resolveSandbox(pathname, req.url);
-  if (sandboxResponse) return sandboxResponse;
+  if (!response) {
+    response = resolveSandbox(pathname, req.url);
+  }
 
   // 4. Docs pages (server-rendered)
-  if (pathname === "/docs" || pathname === "/docs/") {
-    const rendered = renderDocsPage(null);
-    if (rendered) return rendered;
-  } else {
+  if (!response && (pathname === "/docs" || pathname === "/docs/")) {
+    response = renderDocsPage(null);
+  } else if (!response) {
     const docsMatch = pathname.match(/^\/docs\/([a-zA-Z0-9_-]+)\/?$/);
     if (docsMatch) {
-      const rendered = renderDocsPage(docsMatch[1]);
-      if (rendered) return rendered;
+      response = renderDocsPage(docsMatch[1]);
     }
   }
 
   // 5. Benchmark pages (server-rendered)
-  if (pathname === "/benchmarks" || pathname === "/benchmarks/") {
-    const rendered = renderBenchmarkPage(null, req.url);
-    if (rendered) return rendered;
-  } else {
+  if (
+    !response &&
+    (pathname === "/benchmarks" || pathname === "/benchmarks/")
+  ) {
+    response = renderBenchmarkPage(null, req.url);
+  } else if (!response) {
     const benchMatch = pathname.match(/^\/benchmarks\/([a-z0-9-]+)\/?$/);
     if (benchMatch) {
-      const rendered = renderBenchmarkPage(benchMatch[1], req.url);
-      if (rendered) return rendered;
+      response = renderBenchmarkPage(benchMatch[1], req.url);
     }
   }
 
   // 6. Static files (with package resolution)
-  const staticResponse = resolveStatic(pathname);
-  if (staticResponse) return staticResponse;
+  if (!response) {
+    response = resolveStatic(pathname);
+  }
 
-  // 7. 404
-  return new Response("Not Found", { status: 404 });
+  // 7. 404 fallback
+  if (!response) {
+    response = new Response("Not Found", { status: 404 });
+  }
+
+  // Apply compression to the response
+  return await compressResponse(response, acceptEncoding, pathname);
 };
 
 // =============================================================================

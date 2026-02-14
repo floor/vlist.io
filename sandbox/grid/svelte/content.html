@@ -1,0 +1,48 @@
+<div class="container">
+    <header>
+        <h1>Grid Layout</h1>
+        <p class="description">
+            Svelte implementation with <code>vlist</code> action. Virtualized
+            2D grid with 1,000 real photos from
+            <a href="https://picsum.photos" target="_blank">Lorem Picsum</a>.
+            Only visible rows are rendered — images load on demand as you
+            scroll.
+        </p>
+    </header>
+
+    <div class="controls">
+        <label>
+            Columns:
+            <select id="columns-select">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected>4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+        </label>
+        <label>
+            Gap:
+            <select id="gap-select">
+                <option value="0">0px</option>
+                <option value="4">4px</option>
+                <option value="8" selected>8px</option>
+                <option value="12">12px</option>
+                <option value="16">16px</option>
+            </select>
+        </label>
+    </div>
+
+    <div class="stats" id="stats">Loading...</div>
+
+    <div id="grid-container"></div>
+
+    <footer>
+        <p>
+            Only visible rows are rendered. Each item is positioned with
+            <code>translate(x, y)</code>. Photos courtesy of
+            <a href="https://picsum.photos" target="_blank">Picsum</a>
+            🎯
+        </p>
+    </footer>
+</div>
