@@ -27,6 +27,7 @@ npm-debug.log*
 
 # Bun
 bun.lockb
+.bun-cache/
 
 # TypeScript
 *.tsbuildinfo
