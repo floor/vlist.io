@@ -108,6 +108,11 @@ export const DOC_GROUPS: DocGroup[] = [
         desc: "Scroll controller, custom scrollbar, and velocity",
       },
       {
+        slug: "grid",
+        name: "Grid",
+        desc: "2D grid layout with dynamic aspect ratios",
+      },
+      {
         slug: "selection",
         name: "Selection",
         desc: "Single & multi-select state management",
@@ -265,6 +270,11 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
         slug: "scroll",
         name: "Scroll",
         desc: "Scroll controller, custom scrollbar, and velocity",
+      },
+      {
+        slug: "grid",
+        name: "Grid",
+        desc: "2D grid layout with dynamic aspect ratios",
       },
       {
         slug: "selection",
