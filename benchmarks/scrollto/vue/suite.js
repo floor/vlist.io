@@ -132,8 +132,6 @@ const generateTargets = (totalItems, count) => {
 // Suite
 // =============================================================================
 
-console.log("[scrollto/vue] Defining suite with ID: scrollto-vue");
-
 defineSuite({
   id: "scrollto-vue",
   name: "scrollToIndex (Vue)",

@@ -303,8 +303,6 @@ const measureRawRAFRate = (durationMs) => {
 // Suite
 // =============================================================================
 
-console.log("[scroll/svelte] Defining suite with ID: scroll-svelte");
-
 defineSuite({
   id: "scroll-svelte",
   name: "Scroll FPS (Svelte)",

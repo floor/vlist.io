@@ -90,8 +90,6 @@ const measureRender = async (container, items) => {
 // Suite
 // =============================================================================
 
-console.log("[render/vue] Defining suite with ID: render-vue");
-
 defineSuite({
   id: "render-vue",
   name: "Initial Render (Vue)",

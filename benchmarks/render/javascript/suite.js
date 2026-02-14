@@ -71,8 +71,6 @@ const measureRender = async (container, items) => {
 // Suite
 // =============================================================================
 
-console.log("[render/javascript] Defining suite with ID: render-javascript");
-
 defineSuite({
   id: "render-javascript",
   name: "Initial Render (JavaScript)",

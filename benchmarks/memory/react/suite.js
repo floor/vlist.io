@@ -112,8 +112,6 @@ const scrollFor = (viewport, durationMs) => {
 // Suite
 // =============================================================================
 
-console.log("[memory/react] Defining suite with ID: memory-react");
-
 defineSuite({
   id: "memory-react",
   name: "Memory (React)",
@@ -201,7 +199,8 @@ defineSuite({
     const scrollLeakOk = itemCount <= 100_000 ? 6 : 12;
 
     // Render heap thresholds (MB) - more lenient for React
-    const renderGood = itemCount <= 10_000 ? 8 : itemCount <= 100_000 ? 20 : 100;
+    const renderGood =
+      itemCount <= 10_000 ? 8 : itemCount <= 100_000 ? 20 : 100;
     const renderOk = itemCount <= 10_000 ? 20 : itemCount <= 100_000 ? 50 : 250;
 
     return [

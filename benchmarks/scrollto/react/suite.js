@@ -126,8 +126,6 @@ const generateTargets = (totalItems, count) => {
 // Suite
 // =============================================================================
 
-console.log("[scrollto/react] Defining suite with ID: scrollto-react");
-
 defineSuite({
   id: "scrollto-react",
   name: "scrollToIndex (React)",

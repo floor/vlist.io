@@ -95,8 +95,6 @@ const scrollFor = (viewport, durationMs) => {
 // Suite
 // =============================================================================
 
-console.log("[memory/svelte] Defining suite with ID: memory-svelte");
-
 defineSuite({
   id: "memory-svelte",
   name: "Memory (Svelte)",

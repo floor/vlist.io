@@ -310,8 +310,6 @@ const measureRawRAFRate = (durationMs) => {
 // Suite
 // =============================================================================
 
-console.log("[scroll/react] Defining suite with ID: scroll-react");
-
 defineSuite({
   id: "scroll-react",
   name: "Scroll FPS (React)",

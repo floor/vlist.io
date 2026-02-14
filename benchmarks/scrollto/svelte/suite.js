@@ -104,8 +104,6 @@ const generateTargets = (totalItems, count) => {
 // Suite
 // =============================================================================
 
-console.log("[scrollto/svelte] Defining suite with ID: scrollto-svelte");
-
 defineSuite({
   id: "scrollto-svelte",
   name: "scrollToIndex (Svelte)",

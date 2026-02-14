@@ -75,8 +75,6 @@ const measureRender = async (container, items) => {
 // Suite
 // =============================================================================
 
-console.log("[render/svelte] Defining suite with ID: render-svelte");
-
 defineSuite({
   id: "render-svelte",
   name: "Initial Render (Svelte)",
