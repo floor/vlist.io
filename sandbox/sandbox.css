@@ -542,40 +542,6 @@ html[data-theme] .source__panel pre {
 }
 
 /* ============================================================================
-   Variant Switcher — Framework selection tabs
-   ============================================================================ */
-
-.variant-switcher {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.variant-switcher__option {
-    padding: 4px 12px;
-    font-size: 15px;
-    font-weight: 400;
-    color: var(--text-muted);
-    text-decoration: none;
-    background: transparent;
-    border-radius: 4px;
-    transition: all 0.15s ease;
-    cursor: pointer;
-}
-
-.variant-switcher__option:hover {
-    color: var(--text);
-    background: var(--bg-hover);
-}
-
-.variant-switcher__option--active {
-    color: var(--text);
-    background: var(--bg-hover);
-    font-weight: 500;
-}
-
-/* ============================================================================
    Source Code Viewer — Fixed bottom drawer
    ============================================================================ */
 
@@ -962,16 +928,6 @@ html[data-theme] .source__panel pre {
     .source__panel pre {
         font-size: 13px;
         padding: 16px;
-    }
-
-    .variant-switcher {
-        gap: 8px;
-        margin-bottom: 12px;
-    }
-
-    .variant-switcher__option {
-        padding: 3px 10px;
-        font-size: 14px;
     }
 }
 
