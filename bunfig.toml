@@ -1,0 +1,10 @@
+# Bun configuration for vlist.dev
+
+[install]
+# Ensure React is deduplicated across all packages
+# This prevents "Invalid hook call" errors when using linked packages
+peer = true
+
+[install.cache]
+# Use workspace root for better deduplication
+dir = ".bun-cache"
