@@ -1,4 +1,6 @@
-# Builder
+# Builder Pattern
+
+> **As of v0.5.0, the builder pattern is now the default entry point.** When you `import { createVList } from 'vlist'`, you're using the builder internally with automatic plugin application. This document explains the manual builder API for maximum control.
 
 > Composable virtual list — pick only the features you need, pay only for what you ship.
 
@@ -407,7 +409,13 @@ Switches from list layout to a 2D grid with configurable columns and gap.
 const gallery = vlist({
   container: '#gallery',
   item: {
-    height: 200,
+    // Dynamic height based on column width for aspect ratio
+    height: (index, context) => {
+      if (context) {
+        return context.columnWidth * 0.75; // 4:3 aspect ratio
+      }
+      return 200; // fallback
+    },
     template: (item) => {
       const img = document.createElement('img')
       img.src = item.thumbnail
@@ -418,6 +426,9 @@ const gallery = vlist({
 })
 .use(withGrid({ columns: 4, gap: 8 }))
 .build()
+
+// Update grid configuration (height recalculates automatically)
+gallery.updateGrid({ columns: 2 });
 ```
 
 #### Config
@@ -427,6 +438,58 @@ const gallery = vlist({
 | `columns` | `number` | — | **Required.** Number of columns (≥ 1) |
 | `gap` | `number` | `0` | Gap between items in pixels |
 
+#### Dynamic Height with Grid Context
+
+The `item.height` function receives an optional second parameter with grid context, allowing dynamic aspect ratio calculations:
+
+```typescript
+interface GridHeightContext {
+  containerWidth: number;  // Current container width
+  columns: number;         // Number of columns
+  gap: number;             // Gap between items
+  columnWidth: number;     // Calculated width per column
+}
+
+// Height function signature
+height?: number | ((index: number, context?: GridHeightContext) => number)
+```
+
+**Example - Maintain 4:3 aspect ratio:**
+
+```typescript
+const gallery = vlist({
+  container: '#gallery',
+  item: {
+    height: (index, context) => {
+      if (context) {
+        // Height = 75% of column width (4:3 ratio)
+        return context.columnWidth * 0.75;
+      }
+      return 200; // fallback for non-grid
+    },
+    template: renderPhoto,
+  },
+  items: photos,
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.build();
+
+// When columns change, height automatically recalculates
+gallery.updateGrid({ columns: 2 }); // Photos get wider AND taller proportionally
+```
+
+**Example - Square items:**
+
+```typescript
+height: (index, context) => context ? context.columnWidth : 200
+```
+
+**Example - 16:9 aspect ratio:**
+
+```typescript
+height: (index, context) => context ? context.columnWidth * 0.5625 : 200
+```
+
 #### What it wires
 
 - **Replaces renderer** — swaps the list renderer with a grid renderer that positions items in a 2D grid
@@ -434,6 +497,19 @@ const gallery = vlist({
 - **Column width calculation** — `(containerWidth - (columns - 1) × gap) / columns`, recalculated on resize
 - **Item positioning** — each item gets `translateX` (column offset) and `translateY` (row offset)
 - **CSS class** — adds `.vlist--grid` to the root element
+- **Grid context injection** — if `item.height` is a function, it receives grid context for dynamic calculations
+- **Mutable layout** — grid configuration can be updated via `updateGrid()` without recreating the instance
+
+#### Added methods
+
+- **`updateGrid(config)`** — Update grid configuration dynamically
+  ```typescript
+  gallery.updateGrid({ columns: 3, gap: 16 });
+  ```
+  - Updates columns and/or gap
+  - Recalculates layout efficiently (no instance recreation)
+  - If height is a function with context, automatically recalculates aspect ratio
+  - Preserves scroll position and selection
 
 #### Restrictions
 
@@ -852,39 +928,124 @@ const list = vlist({
 // ~31 KB — async data + compression + scrollbar + selection + snapshots
 ```
 
-## Migration from `createVList`
+## Entry Point Comparison
+
+### Default Entry Point (Recommended)
+
+As of v0.5.0, the default `createVList()` uses the builder internally:
+
+```typescript
+import { createVList } from 'vlist';
+
+const list = createVList({
+  container: '#app',
+  layout: 'grid',
+  grid: { columns: 4, gap: 8 },
+  item: {
+    height: (index, context) => context.columnWidth * 0.75,
+    template: renderItem,
+  },
+  selection: { mode: 'multiple' },
+  items,
+});
+
+// Plugins auto-applied based on config:
+// - withGrid (layout: 'grid')
+// - withSelection (selection config)
+// - withCompression (always)
+// - withScrollbar (default)
+// - withSnapshots (always)
+
+// Update methods from plugins
+list.updateGrid({ columns: 2 });
+list.selectAll();
+```
+
+**Bundle:** ~27 KB (gzip)
+
+### Manual Builder (Maximum Control)
+
+For explicit control over which plugins to include:
+
+```typescript
+import { vlist } from 'vlist/builder';
+import { withGrid } from 'vlist/grid';
+import { withSelection } from 'vlist/selection';
+
+const list = vlist({
+  container: '#app',
+  item: {
+    height: (index, context) => context.columnWidth * 0.75,
+    template: renderItem,
+  },
+  items,
+})
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withSelection({ mode: 'multiple' }))
+  .build();
+```
+
+**Bundle:** ~27 KB (gzip) - Same size, explicit control
+
+### Legacy Monolithic API
+
+For backwards compatibility (larger bundle):
+
+```typescript
+import { createVList } from 'vlist/full';
+
+const list = createVList({
+  container: '#app',
+  layout: 'grid',
+  grid: { columns: 4, gap: 8 },
+  item: { height: 200, template: renderItem },
+  selection: { mode: 'multiple' },
+  items,
+});
+```
+
+**Bundle:** ~57 KB (gzip) - All features bundled
+
+## Migration from v0.4.x
 
 If you're currently using the full `createVList` and want to switch to the builder for smaller bundles:
 
-### Before
+### No Breaking Changes
+
+**Good news:** Your existing code continues to work! The default `createVList()` now uses the builder internally:
 
 ```typescript
-import { createVList } from 'vlist'
+// This still works (now 53% smaller!)
+import { createVList } from 'vlist';
 
 const list = createVList({
   container: '#app',
   item: { height: 48, template: renderItem },
   items: data,
   selection: { mode: 'multiple' },
-  scroll: { scrollbar: { autoHide: true } },
-})
+  scroll: {
+    scrollbar: { autoHide: true },
+  },
+});
 ```
 
-### After
+### Optional: Use Manual Builder
+
+For explicit control, you can use the builder API directly:
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSelection } from 'vlist/selection'
-import { withScrollbar } from 'vlist/scroll'
+import { vlist } from 'vlist/builder';
+import { withSelection } from 'vlist/selection';
+import { withScrollbar } from 'vlist/scroll';
 
 const list = vlist({
   container: '#app',
   item: { height: 48, template: renderItem },
   items: data,
 })
-.use(withSelection({ mode: 'multiple' }))
-.use(withScrollbar({ autoHide: true }))
-.build()
+  .use(withSelection({ mode: 'multiple' }))
+  .use(withScrollbar({ autoHide: true }))
+  .build();
 ```
 
 ### What changes
@@ -908,7 +1069,46 @@ const list = vlist({
 | Accessibility | Identical — same ARIA attributes, same keyboard behavior |
 | Method signatures | Identical — `setItems`, `scrollToIndex`, etc. work the same |
 
-## When NOT to use the builder
+## When to Use Manual Builder vs. Default
+
+### Use Default `createVList()` (Recommended)
+
+**Best for most cases:**
+- Quick prototyping
+- Standard use cases (grids, infinite scroll, selection)
+- When you want automatic plugin management
+- When bundle size isn't critical (still 53% smaller than legacy!)
+
+```typescript
+import { createVList } from 'vlist';
+
+const list = createVList({
+  container: '#app',
+  layout: 'grid',
+  grid: { columns: 4, gap: 8 },
+  item: { height: 200, template: renderItem },
+  items,
+});
+```
+
+### Use Manual Builder `vlist/builder`
+
+**Best for:**
+- Maximum bundle size control
+- Custom plugin development
+- Unusual feature combinations
+- When you need explicit control over plugin order
+
+```typescript
+import { vlist } from 'vlist/builder';
+import { withGrid } from 'vlist/grid';
+
+const list = vlist({ /* ... */ })
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .build();
+```
+
+### Use Legacy `vlist/full`
 
 The builder is not always the right choice:
 
@@ -1010,7 +1210,7 @@ interface VListPlugin<T extends VListItem = VListItem> {
 }
 ```
 
-## Relationship to Other Entry Points
+## Architecture Evolution
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐

@@ -1,4 +1,6 @@
-# Documentation
+# vlist Documentation
+
+> **Note:** As of v0.5.0, the builder pattern is now the **default entry point**. This documentation covers both the convenient `createVList()` API (which uses the builder internally) and the manual builder pattern. For the legacy monolithic API, see `vlist/full`.
 
 > Lightweight, high-performance virtual list with zero dependencies
 
@@ -110,6 +112,11 @@ pnpm add vlist
 ---
 
 ## Quick Start
+
+> **Entry Points:**
+> - `import { createVList } from 'vlist'` - Default, builder-based (recommended)
+> - `import { vlist } from 'vlist/builder'` - Manual builder pattern (maximum control)
+> - `import { createVList } from 'vlist/full'` - Legacy monolithic (larger bundle)
 
 ### Basic Usage
 
@@ -989,6 +996,26 @@ const list = createVList({
 ---
 
 ## Performance
+
+### Bundle Size
+
+As of v0.5.0, the default `createVList()` uses the builder pattern internally:
+
+| Entry Point | Bundle Size | Includes |
+|------------|-------------|----------|
+| `vlist` (default) | **~27 KB gzip** | Auto-applies plugins based on config |
+| `vlist/builder` | **~15-30 KB gzip** | Manual plugin selection (smallest) |
+| `vlist/full` | **~57 KB gzip** | Legacy monolithic (all features bundled) |
+
+**Example size reduction:**
+```
+Grid example:
+  vlist/full:     57.4 KB minified → 18.5 KB gzip
+  vlist (default): 27.1 KB minified → 9.0 KB gzip  ← 53% smaller!
+  vlist/builder:  27.1 KB minified → 9.0 KB gzip
+```
+
+The new default provides the same convenient API as before but with dramatically smaller bundles by only including the plugins you actually use.
 
 ### Benchmarks
 
