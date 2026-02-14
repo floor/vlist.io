@@ -16,9 +16,63 @@ import { join } from "path";
 const isWatch = process.argv.includes("--watch");
 const BENCHMARKS_DIR = "./benchmarks";
 
+const PROJECT_ROOT = "./";
+
 const BUILD_OPTIONS = {
   format: "esm" as const,
   target: "browser" as const,
+};
+
+// =============================================================================
+// Framework dedupe plugin
+// =============================================================================
+// When vlist is linked (symlink), its node_modules/{react,vue} are separate
+// copies from vlist.dev/node_modules/. Framework hooks/reactivity crash if two
+// copies coexist. This plugin forces all framework imports to resolve from
+// vlist.dev's node_modules, guaranteeing a single instance in the bundle.
+//
+// Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
+// string `template` options work at runtime without .vue SFC compilation.
+
+const frameworkDedupePlugin: import("bun").BunPlugin = {
+  name: "dedupe-frameworks",
+  setup(build) {
+    // React + ReactDOM
+    build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
+      try {
+        const resolved = require.resolve(args.path, {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+
+    // Vue — resolve to compiler-included build for template string support
+    build.onResolve({ filter: /^vue$/ }, () => {
+      try {
+        const resolved = require.resolve("vue/dist/vue.esm-bundler.js", {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+
+    // Vue sub-paths (@vue/runtime-core, @vue/reactivity, etc.)
+    build.onResolve({ filter: /^@vue\// }, (args) => {
+      try {
+        const resolved = require.resolve(args.path, {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+  },
 };
 
 const buildOptions = () => ({
@@ -93,6 +147,7 @@ async function build(): Promise<void> {
       entrypoints: [runnerPath],
       outdir,
       ...buildOptions(),
+      plugins: [frameworkDedupePlugin],
     });
 
     if (!runnerResult.success) {
@@ -104,10 +159,20 @@ async function build(): Promise<void> {
 
     // Build main script
     console.log("Building main script.js...");
+
+    // Define Vue feature flags for production builds
+    const define: Record<string, string> = {
+      __VUE_OPTIONS_API__: "true",
+      __VUE_PROD_DEVTOOLS__: "false",
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false",
+    };
+
     const result = await Bun.build({
       entrypoints: [entrypoint],
       outdir,
       ...buildOptions(),
+      plugins: [frameworkDedupePlugin],
+      define,
     });
 
     if (!result.success) {
