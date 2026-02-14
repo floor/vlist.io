@@ -4,16 +4,140 @@ The benchmark page (`/benchmarks/`) runs four live performance suites directly i
 
 **URL:** `/benchmarks/` (served by vlist.dev)
 
+All benchmarks are available in **four framework variants**:
+- **JavaScript** — Pure `createVList()` API (baseline)
+- **React** — `useVList()` hook with `createRoot()` / `unmount()`
+- **Vue** — `useVList()` composable with `createApp()` / `mount()`
+- **Svelte** — `vlist()` action (direct API, no Svelte runtime)
+
+This allows direct comparison of vlist performance across different framework integrations.
+
 ## Quick Reference
 
-| Suite | What it measures | Key metric |
-|-------|-----------------|------------|
-| **Initial Render** | Time from `createVList()` to first painted frame | Median (ms) |
-| **Scroll FPS** | Sustained scroll rendering throughput over 5s | Avg FPS, Frame budget (ms) |
-| **Memory** | Heap usage after render and after 10s of scrolling | Scroll delta (MB) |
-| **scrollToIndex** | Latency of smooth `scrollToIndex()` animation | Median (ms) |
+| Suite | What it measures | Key metric | Variants |
+|-------|-----------------|------------|----------|
+| **Initial Render** | Time from `createVList()` to first painted frame | Median (ms) | JS, React, Vue, Svelte |
+| **Scroll FPS** | Sustained scroll rendering throughput over 5s | Avg FPS, Frame budget (ms) | JS, React, Vue, Svelte |
+| **Memory** | Heap usage after render and after 10s of scrolling | Scroll delta (MB) | JS, React, Vue, Svelte |
+| **scrollToIndex** | Latency of smooth `scrollToIndex()` animation | Median (ms) | JS, React, Vue, Svelte |
 
 All suites can be run at three item counts: **10K**, **100K**, and **1M**.
+
+---
+
+## Framework Variants
+
+Each benchmark suite is available in four framework variants, allowing direct performance comparison:
+
+### JavaScript (Baseline)
+Pure vlist API using `createVList()`. This is the baseline — fastest possible performance with no framework overhead.
+
+**Example:**
+```javascript
+const list = createVList({
+  container,
+  item: { height: 48, template: benchmarkTemplate },
+  items,
+});
+```
+
+### React
+Uses the `useVList()` hook within a React component. Includes React's reconciliation overhead.
+
+**Example:**
+```javascript
+function BenchmarkList({ items }) {
+  const { containerRef } = useVList({
+    items,
+    item: { height: 48, template: benchmarkTemplate },
+  });
+  return <div ref={containerRef} />;
+}
+```
+
+**Performance characteristics:**
+- ~100% slower than JavaScript baseline (render benchmark data)
+- Extra frames needed for React lifecycle
+- Framework bundle included (~450 KB)
+
+### Vue
+Uses the `useVList()` composable within a Vue component. Includes Vue's reactivity system overhead.
+
+**Example:**
+```javascript
+const BenchmarkList = {
+  props: { items: Array },
+  setup(props) {
+    const { containerRef } = useVList({
+      items: props.items,
+      item: { height: 48, template: benchmarkTemplate },
+    });
+    return { containerRef };
+  },
+  template: '<div ref="containerRef"></div>',
+};
+```
+
+**Performance characteristics:**
+- ~100% slower than JavaScript baseline (render benchmark data)
+- Extra frames needed for Vue lifecycle
+- Vue compiler included (~700 KB for template string support)
+
+### Svelte
+Uses the `vlist()` action directly. Nearly identical performance to JavaScript baseline since Svelte compiles away.
+
+**Example:**
+```javascript
+const action = vlist(container, {
+  config: {
+    item: { height: 48, template: benchmarkTemplate },
+    items,
+  },
+});
+```
+
+**Performance characteristics:**
+- ~1-5% overhead vs. JavaScript baseline
+- Minimal framework runtime
+- Svelte compiles to efficient JavaScript
+
+### Switching Variants
+
+Use the variant switcher at the top of each benchmark page:
+
+```
+JavaScript  React  Vue  Svelte
+    ↑                          ← Click to switch
+```
+
+Or use URL parameters:
+```
+/benchmarks/render?variant=react
+/benchmarks/scroll?variant=vue
+/benchmarks/memory?variant=svelte
+```
+
+### Expected Results
+
+Based on initial render benchmark data:
+
+| Variant | Median @ 100K items | Overhead vs. JS |
+|---------|---------------------|-----------------|
+| JavaScript | 8.1 ms | — (baseline) |
+| Svelte | 8.2 ms | +1.2% |
+| React | 16.6 ms | +105% |
+| Vue | 16.6 ms | +105% |
+
+**Why React/Vue are slower:**
+- Framework reconciliation/reactivity systems
+- Additional lifecycle processing
+- Virtual DOM overhead (React)
+- Reactive dependencies tracking (Vue)
+
+**Why Svelte is fast:**
+- Compiles to efficient imperative code
+- No runtime framework overhead
+- Direct vlist API calls
 
 ---
 
@@ -172,16 +296,45 @@ Thresholds adapt to context. For example, at 1M items the render time thresholds
 
 ## Source Files
 
+### Structure
+
+Benchmarks now use a variant-based directory structure:
+
+```
+benchmarks/
+├── render/
+│   ├── javascript/suite.js   # Pure vlist API
+│   ├── react/suite.js         # useVList hook
+│   ├── vue/suite.js           # useVList composable
+│   └── svelte/suite.js        # vlist action
+├── scroll/
+│   ├── javascript/suite.js
+│   ├── react/suite.js
+│   ├── vue/suite.js
+│   └── svelte/suite.js
+├── memory/
+│   ├── javascript/suite.js
+│   ├── react/suite.js
+│   ├── vue/suite.js
+│   └── svelte/suite.js
+└── scrollto/
+    ├── javascript/suite.js
+    ├── react/suite.js
+    ├── vue/suite.js
+    └── svelte/suite.js
+```
+
+### Key Files
+
 | File | Purpose |
 |------|---------|
-| `benchmarks/script.js` | Dashboard UI, viewport management, result rendering |
+| `benchmarks/script.js` | Dashboard UI, variant switcher, result rendering |
 | `benchmarks/runner.js` | Benchmark engine — suite registry, execution, utilities |
-| `benchmarks/suites/render.js` | Initial Render suite |
-| `benchmarks/suites/scroll.js` | Scroll FPS suite (decoupled architecture) |
-| `benchmarks/suites/memory.js` | Memory suite |
-| `benchmarks/suites/scrollto.js` | scrollToIndex suite |
+| `benchmarks/{name}/{variant}/suite.js` | Individual benchmark suite implementations (16 total) |
+| `benchmarks/renderer.ts` | Server-side rendering for benchmark pages (SSR variant switcher) |
 | `benchmarks/styles.css` | Benchmark page styles |
-| `benchmarks/build.ts` | Bun build script (JS bundling + CSS minification) |
+| `benchmarks/build.ts` | Bun build script with framework deduplication plugin |
+| `styles/shell.css` | Shared styles including variant switcher component |
 
 ### Build
 
@@ -190,4 +343,166 @@ bun run build:bench        # One-shot build
 bun run build:bench:watch  # Watch mode
 ```
 
-Output goes to `benchmarks/dist/`.
+Output goes to `benchmarks/dist/`:
+- `script.js` — All 16 suite variants bundled (1,129 KB → 352 KB gzip)
+- `runner.js` — Shared benchmark utilities
+- `styles.css` — Minified CSS
+
+### Framework Deduplication
+
+The build uses a **Bun plugin** to ensure React and Vue are deduplicated when vlist is linked (symlinked during development). Without this plugin, Bun would bundle React from both `vlist.dev/node_modules` and `vlist/node_modules`, causing "Invalid hook call" errors.
+
+**Plugin configuration** (`benchmarks/build.ts`):
+- Forces all `react` and `react-dom` imports to resolve from project root
+- Resolves Vue to compiler-included build (`vue.esm-bundler.js`) for template string support
+- Ensures single framework instance in the bundle
+
+**Why needed:**
+- React's hooks require a singleton instance
+- Vue's reactivity system requires unified dependency tracking
+- Linked packages can have separate `node_modules` copies
+
+**Bundle size impact:**
+- Vue compiler adds ~500 KB to bundle (necessary for `template` option support)
+- All frameworks share single instance (no duplication)
+
+---
+
+## Performance Expectations
+
+### Render Benchmark
+
+Expected framework overhead (based on 100K items):
+
+| Variant | Typical Range | Rating |
+|---------|---------------|--------|
+| JavaScript | 8-10 ms | Baseline |
+| Svelte | 8-10 ms | Near-baseline |
+| React | 15-20 ms | +100% overhead |
+| Vue | 15-20 ms | +100% overhead |
+
+### Scroll Benchmark
+
+Framework overhead appears in **Frame budget** metric:
+
+| Variant | Frame Budget | Rating |
+|---------|-------------|--------|
+| JavaScript | 3-5 ms | Excellent |
+| Svelte | 3-5 ms | Excellent |
+| React | 5-8 ms | Good |
+| Vue | 5-8 ms | Good |
+
+**Note:** Scroll speed is identical across all variants (decoupled scroll driver). Framework overhead only affects per-frame rendering cost.
+
+### Memory Benchmark
+
+Framework runtime increases baseline heap:
+
+| Variant | After Render (100K items) | Notes |
+|---------|---------------------------|-------|
+| JavaScript | 5-8 MB | Baseline |
+| Svelte | 5-8 MB | Minimal runtime |
+| React | 8-12 MB | +450 KB bundle |
+| Vue | 10-15 MB | +700 KB bundle |
+
+**Scroll delta should remain near zero** for all variants (no leaks).
+
+### ScrollTo Benchmark
+
+Framework has minimal impact on `scrollToIndex()` latency:
+
+| Variant | Median (100K items) | Notes |
+|---------|---------------------|-------|
+| JavaScript | 300-400 ms | Baseline |
+| Svelte | 300-400 ms | Same as baseline |
+| React | 400-500 ms | Slight overhead |
+| Vue | 400-500 ms | Slight overhead |
+
+**Why similar:** `scrollToIndex()` is a vlist API method, not framework-specific. Animation settling time dominates.
+
+---
+
+## Implementation Notes
+
+### React Variants
+
+**Lifecycle:**
+```javascript
+const root = createRoot(container);
+root.render(<BenchmarkList items={items} />);
+// ... measure ...
+root.unmount();
+```
+
+**Extra settling frames:** React needs `await waitFrames(5)` after standard frames for commit phase.
+
+**API access:** For `scrollToIndex()`, uses a ref to store API:
+```javascript
+let listApiRef = null;
+function BenchmarkList({ items }) {
+  const vlistApi = useVList({ items, ... });
+  listApiRef = vlistApi;
+  return <div ref={vlistApi.containerRef} />;
+}
+// Later: listApiRef.scrollToIndex(...)
+```
+
+### Vue Variants
+
+**Lifecycle:**
+```javascript
+const app = createApp(BenchmarkList, { items });
+app.mount(container);
+// ... measure ...
+app.unmount();
+```
+
+**Extra settling frames:** Vue needs `await waitFrames(5)` after standard frames for reactivity updates.
+
+**API access:** Same ref pattern as React:
+```javascript
+let listApiRef = null;
+const BenchmarkList = {
+  setup(props) {
+    const vlistApi = useVList({ items: props.items, ... });
+    listApiRef = vlistApi;
+    return { containerRef: vlistApi.containerRef };
+  },
+};
+// Later: listApiRef.scrollToIndex(...)
+```
+
+### Svelte Variants
+
+**Lifecycle:**
+```javascript
+const action = vlist(container, { config: { items, ... } });
+// ... measure ...
+if (action && action.destroy) action.destroy();
+```
+
+**No extra frames:** Svelte action is synchronous, no additional settling needed.
+
+**API access:** Direct from action return:
+```javascript
+const action = vlist(container, { config: { items, ... } });
+action.scrollToIndex(...);
+```
+
+### Threshold Adjustments
+
+Performance thresholds are adjusted per framework:
+
+**JavaScript/Svelte** (strict):
+```javascript
+const goodThreshold = itemCount <= 10_000 ? 20 : itemCount <= 100_000 ? 30 : 80;
+const okThreshold = itemCount <= 10_000 ? 40 : itemCount <= 100_000 ? 60 : 200;
+```
+
+**React/Vue** (more lenient +5-10ms):
+```javascript
+const goodThreshold = itemCount <= 10_000 ? 25 : itemCount <= 100_000 ? 40 : 100;
+const okThreshold = itemCount <= 10_000 ? 50 : itemCount <= 100_000 ? 80 : 250;
+```
+
+This ensures ratings reflect expected framework overhead rather than penalizing frameworks for their inherent costs.
