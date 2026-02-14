@@ -1,0 +1,245 @@
+// benchmarks/scrollto/react/suite.js — scrollToIndex Benchmark (React)
+//
+// Measures the latency of scrollToIndex() with smooth animation.
+// Tests scrolling to random positions across the list and measures
+// the time until the scroll settles at the target position.
+
+import { createRoot } from "react-dom/client";
+import { useVList } from "vlist/react";
+import {
+  defineSuite,
+  generateItems,
+  benchmarkTemplate,
+  nextFrame,
+  waitFrames,
+  tryGC,
+  round,
+  median,
+  percentile,
+  rateLower,
+} from "../../runner.js";
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+const ITEM_HEIGHT = 48;
+const WARMUP_JUMPS = 2;
+const MEASURE_JUMPS = 7;
+const SETTLE_TIMEOUT_MS = 5_000;
+const SETTLE_FRAMES = 5;
+
+// =============================================================================
+// React Component
+// =============================================================================
+
+let listApiRef = null;
+
+function BenchmarkList({ items }) {
+  const vlistApi = useVList({
+    items,
+    item: {
+      height: ITEM_HEIGHT,
+      template: benchmarkTemplate,
+    },
+  });
+
+  // Store API reference for external access
+  listApiRef = vlistApi;
+
+  return <div ref={vlistApi.containerRef} />;
+}
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+const findViewport = (container) => {
+  const vp = container.querySelector(".vlist-viewport");
+  if (vp) return vp;
+
+  for (const child of container.children) {
+    const style = getComputedStyle(child);
+    if (
+      style.overflow === "auto" ||
+      style.overflow === "scroll" ||
+      style.overflowY === "auto" ||
+      style.overflowY === "scroll"
+    ) {
+      return child;
+    }
+  }
+
+  return container.firstElementChild;
+};
+
+const waitForScrollSettle = (viewport, timeoutMs) => {
+  return new Promise((resolve) => {
+    const start = performance.now();
+    let lastScrollTop = viewport.scrollTop;
+    let stableFrames = 0;
+
+    const check = () => {
+      const elapsed = performance.now() - start;
+
+      if (elapsed > timeoutMs) {
+        resolve(elapsed);
+        return;
+      }
+
+      const currentScrollTop = viewport.scrollTop;
+
+      if (Math.abs(currentScrollTop - lastScrollTop) < 1) {
+        stableFrames++;
+      } else {
+        stableFrames = 0;
+      }
+
+      lastScrollTop = currentScrollTop;
+
+      if (stableFrames >= SETTLE_FRAMES) {
+        resolve(performance.now() - start);
+        return;
+      }
+
+      requestAnimationFrame(check);
+    };
+
+    requestAnimationFrame(check);
+  });
+};
+
+const generateTargets = (totalItems, count) => {
+  const targets = [];
+  const step = Math.floor(totalItems / (count + 1));
+
+  for (let i = 1; i <= count; i++) {
+    const base = i % 2 === 0 ? step * i : totalItems - step * i;
+    const clamped = Math.max(1, Math.min(totalItems - 2, base));
+    targets.push(clamped);
+  }
+
+  return targets;
+};
+
+// =============================================================================
+// Suite
+// =============================================================================
+
+console.log("[scrollto/react] Defining suite with ID: scrollto-react");
+
+defineSuite({
+  id: "scrollto-react",
+  name: "scrollToIndex (React)",
+  description:
+    "Latency of smooth scrollToIndex() — time from call to scroll settled",
+  icon: "🎯",
+
+  run: async ({ itemCount, container, onStatus }) => {
+    const items = generateItems(itemCount);
+
+    container.innerHTML = "";
+    listApiRef = null;
+
+    const root = createRoot(container);
+    root.render(<BenchmarkList items={items} />);
+
+    // Let initial render settle
+    await waitFrames(10);
+    await waitFrames(5); // React needs extra frames
+
+    const viewport = findViewport(container);
+
+    if (!viewport || !listApiRef) {
+      root.unmount();
+      container.innerHTML = "";
+      throw new Error("Could not find vlist viewport element or API");
+    }
+
+    const { scrollToIndex } = listApiRef;
+
+    // ── Warmup ─────────────────────────────────────────────────────────
+    onStatus("Warming up...");
+    const warmupTargets = generateTargets(itemCount, WARMUP_JUMPS);
+
+    for (const target of warmupTargets) {
+      scrollToIndex(target, "center");
+      await waitForScrollSettle(viewport, SETTLE_TIMEOUT_MS);
+      await waitFrames(5);
+    }
+
+    // Reset to top before measuring
+    scrollToIndex(0, "start");
+    await waitForScrollSettle(viewport, SETTLE_TIMEOUT_MS);
+    await tryGC();
+    await waitFrames(10);
+
+    // ── Measure ────────────────────────────────────────────────────────
+    const targets = generateTargets(itemCount, MEASURE_JUMPS);
+    const times = [];
+
+    for (let i = 0; i < targets.length; i++) {
+      const target = targets[i];
+      onStatus(
+        `Jump ${i + 1}/${targets.length} → index ${target.toLocaleString()}`,
+      );
+
+      await waitFrames(3);
+
+      const start = performance.now();
+      scrollToIndex(target, "center");
+      const settleTime = await waitForScrollSettle(viewport, SETTLE_TIMEOUT_MS);
+      times.push(settleTime);
+
+      await waitFrames(5);
+    }
+
+    // Clean up
+    root.unmount();
+    container.innerHTML = "";
+    listApiRef = null;
+    await tryGC();
+
+    // ── Compute stats ──────────────────────────────────────────────────
+    const sorted = [...times].sort((a, b) => a - b);
+    const med = round(median(times), 1);
+    const min = round(sorted[0], 1);
+    const max = round(sorted[sorted.length - 1], 1);
+    const p95 = round(percentile(sorted, 95), 1);
+
+    // Thresholds adjusted for React overhead (more lenient)
+    const goodThreshold = itemCount <= 100_000 ? 500 : 700;
+    const okThreshold = itemCount <= 100_000 ? 1000 : 1400;
+
+    return [
+      {
+        label: "Median",
+        value: med,
+        unit: "ms",
+        better: "lower",
+        rating: rateLower(med, goodThreshold, okThreshold),
+      },
+      {
+        label: "Min",
+        value: min,
+        unit: "ms",
+        better: "lower",
+        rating: rateLower(min, goodThreshold, okThreshold),
+      },
+      {
+        label: "p95",
+        value: p95,
+        unit: "ms",
+        better: "lower",
+        rating: rateLower(p95, goodThreshold * 1.5, okThreshold * 1.5),
+      },
+      {
+        label: "Max",
+        value: max,
+        unit: "ms",
+        better: "lower",
+        rating: rateLower(max, goodThreshold * 2, okThreshold * 2),
+      },
+    ];
+  },
+});

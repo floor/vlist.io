@@ -413,12 +413,12 @@ const handleRequest = async (req: Request): Promise<Response> => {
 
   // 5. Benchmark pages (server-rendered)
   if (pathname === "/benchmarks" || pathname === "/benchmarks/") {
-    const rendered = renderBenchmarkPage(null);
+    const rendered = renderBenchmarkPage(null, req.url);
     if (rendered) return rendered;
   } else {
     const benchMatch = pathname.match(/^\/benchmarks\/([a-z0-9-]+)\/?$/);
     if (benchMatch) {
-      const rendered = renderBenchmarkPage(benchMatch[1]);
+      const rendered = renderBenchmarkPage(benchMatch[1], req.url);
       if (rendered) return rendered;
     }
   }

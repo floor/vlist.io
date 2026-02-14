@@ -4,7 +4,13 @@
 //   bun run benchmarks/build.ts
 //   bun run benchmarks/build.ts --watch
 
-import { existsSync, readFileSync, writeFileSync, watch } from "fs";
+import {
+  existsSync,
+  readFileSync,
+  writeFileSync,
+  watch,
+  readdirSync,
+} from "fs";
 import { join } from "path";
 
 const isWatch = process.argv.includes("--watch");
@@ -39,9 +45,38 @@ function gzipSize(path: string): number {
   return Bun.gzipSync(new Uint8Array(raw)).byteLength;
 }
 
+/**
+ * Discover all suite variants that need to be built.
+ * Scans benchmarks/{name}/{variant}/suite.js
+ */
+function discoverSuites(): string[] {
+  const suites: string[] = [];
+  const entries = readdirSync(BENCHMARKS_DIR, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    if (entry.name === "dist" || entry.name === "suites") continue;
+
+    const benchDir = join(BENCHMARKS_DIR, entry.name);
+    const variants = readdirSync(benchDir, { withFileTypes: true });
+
+    for (const variant of variants) {
+      if (!variant.isDirectory()) continue;
+
+      const suitePath = join(benchDir, variant.name, "suite.js");
+      if (existsSync(suitePath)) {
+        suites.push(`${entry.name}/${variant.name}`);
+      }
+    }
+  }
+
+  return suites;
+}
+
 async function build(): Promise<void> {
   const start = performance.now();
   const entrypoint = join(BENCHMARKS_DIR, "script.js");
+  const runnerPath = join(BENCHMARKS_DIR, "runner.js");
   const outdir = join(BENCHMARKS_DIR, "dist");
 
   if (!existsSync(entrypoint)) {
@@ -52,6 +87,23 @@ async function build(): Promise<void> {
   console.log("🔨 Building benchmarks...\n");
 
   try {
+    // Build runner.js first as a shared module
+    console.log("Building runner.js...");
+    const runnerResult = await Bun.build({
+      entrypoints: [runnerPath],
+      outdir,
+      ...buildOptions(),
+    });
+
+    if (!runnerResult.success) {
+      const errors = runnerResult.logs.map((log) => log.message).join("\n");
+      console.error("❌ Runner build failed:\n", errors);
+      process.exit(1);
+    }
+    console.log("✅ Runner built");
+
+    // Build main script
+    console.log("Building main script.js...");
     const result = await Bun.build({
       entrypoints: [entrypoint],
       outdir,
@@ -60,9 +112,16 @@ async function build(): Promise<void> {
 
     if (!result.success) {
       const errors = result.logs.map((log) => log.message).join("\n");
-      console.error("❌ Build failed:\n", errors);
+      console.error("❌ Main script build failed:\n", errors);
+      console.error("\nBuild logs:");
+      result.logs.forEach((log) => {
+        console.error(log);
+      });
       process.exit(1);
     }
+    console.log("✅ Main script built");
+
+    // Suites are now bundled into main script.js, no separate builds needed
 
     // Minify CSS
     const cssPath = join(BENCHMARKS_DIR, "styles.css");
@@ -98,21 +157,18 @@ async function watchMode(): Promise<void> {
   console.log("👀 Watching benchmarks for changes...\n");
   await build();
 
-  const dirs = [BENCHMARKS_DIR, join(BENCHMARKS_DIR, "suites")];
-
-  for (const dir of dirs) {
-    if (!existsSync(dir)) continue;
-    watch(dir, { recursive: false }, async (_event, filename) => {
-      if (
-        filename &&
-        !filename.includes("dist") &&
-        (filename.endsWith(".js") || filename.endsWith(".css"))
-      ) {
-        console.log(`\n📝 benchmarks/${filename} changed`);
-        await build();
-      }
-    });
-  }
+  // Watch main benchmarks directory and suite variants
+  watch(BENCHMARKS_DIR, { recursive: true }, async (_event, filename) => {
+    if (
+      filename &&
+      !filename.includes("dist") &&
+      !filename.includes("node_modules") &&
+      (filename.endsWith(".js") || filename.endsWith(".css"))
+    ) {
+      console.log(`\n📝 benchmarks/${filename} changed`);
+      await build();
+    }
+  });
 }
 
 if (isWatch) {

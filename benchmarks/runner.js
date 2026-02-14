@@ -57,7 +57,9 @@ export const defineSuite = (suite) => {
   if (suites.has(suite.id)) {
     throw new Error(`Suite "${suite.id}" is already registered`);
   }
+  console.log(`[runner] Registering suite: ${suite.id}`);
   suites.set(suite.id, suite);
+  console.log(`[runner] Suite registered. Total suites: ${suites.size}`);
 };
 
 /**

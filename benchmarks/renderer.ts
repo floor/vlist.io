@@ -81,6 +81,96 @@ for (const group of BENCH_GROUPS) {
 }
 
 // =============================================================================
+// Variant Support
+// =============================================================================
+
+type Variant = "javascript" | "react" | "vue" | "svelte";
+
+// Variant labels are now in script.js (client-side)
+
+/** Benchmarks that have variant-based structure */
+const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
+  render: ["javascript", "react", "vue", "svelte"],
+  scroll: ["javascript"],
+  memory: ["javascript"],
+  scrollto: ["javascript"],
+};
+
+/** Parse variant from query string (e.g., ?variant=react) */
+function parseVariant(url: string): Variant {
+  const params = new URLSearchParams(url);
+  const variant = params.get("variant");
+  if (
+    variant === "javascript" ||
+    variant === "react" ||
+    variant === "vue" ||
+    variant === "svelte"
+  ) {
+    return variant;
+  }
+  return "javascript"; // default
+}
+
+/** Check which variants exist for a benchmark */
+function detectVariants(slug: string): Variant[] {
+  return VARIANT_BENCHMARKS[slug] || [];
+}
+
+/**
+ * Build the variant switcher UI for benchmarks that have multiple variants.
+ */
+function buildVariantSwitcher(
+  slug: string,
+  activeVariant: Variant,
+  queryString: string,
+): string {
+  const variants = detectVariants(slug);
+
+  // If no variants exist, don't show the switcher
+  if (variants.length === 0) return "";
+
+  const VARIANT_LABELS: Record<Variant, string> = {
+    javascript: "JavaScript",
+    react: "React",
+    vue: "Vue",
+    svelte: "Svelte",
+  };
+
+  const lines: string[] = [];
+  lines.push(`<div class="variant-switcher">`);
+
+  // Always show all 4 variants, mark missing ones as disabled
+  const allVariants: Variant[] = ["javascript", "react", "vue", "svelte"];
+
+  for (const variant of allVariants) {
+    const exists = variants.includes(variant);
+    const isActive = variant === activeVariant;
+
+    let classes = "variant-switcher__option";
+    if (isActive) classes += " variant-switcher__option--active";
+    if (!exists) classes += " variant-switcher__option--disabled";
+
+    if (exists) {
+      // Build URL with variant query param
+      const params = new URLSearchParams(queryString);
+      params.set("variant", variant);
+      const url = `/benchmarks/${slug}?${params.toString()}`;
+      lines.push(
+        `  <a href="${url}" class="${classes}">${VARIANT_LABELS[variant]}</a>`,
+      );
+    } else {
+      // Disabled variant (not a link)
+      lines.push(
+        `  <span class="${classes}">${VARIANT_LABELS[variant]}</span>`,
+      );
+    }
+  }
+
+  lines.push(`</div>`);
+  return lines.join("\n");
+}
+
+// =============================================================================
 // Paths
 // =============================================================================
 
@@ -109,14 +199,18 @@ export function clearCache(): void {
 // Sidebar Generation
 // =============================================================================
 
-function buildSidebar(activeSlug: string | null): string {
+function buildSidebar(activeSlug: string | null, variant?: Variant): string {
   const lines: string[] = [];
+
+  // Build query string to preserve variant across navigation
+  const queryString =
+    variant && variant !== "javascript" ? `?variant=${variant}` : "";
 
   // Overview link (standalone, no group label)
   const overviewActive = activeSlug === null ? " sidebar__link--active" : "";
   lines.push(`<div class="sidebar__group">`);
   lines.push(
-    `  <a href="/benchmarks/" class="sidebar__link${overviewActive}">Overview</a>`,
+    `  <a href="/benchmarks/${queryString}" class="sidebar__link${overviewActive}">Overview</a>`,
   );
   lines.push(`</div>`);
 
@@ -126,7 +220,7 @@ function buildSidebar(activeSlug: string | null): string {
     for (const item of group.items) {
       const active = item.slug === activeSlug ? " sidebar__link--active" : "";
       lines.push(
-        `  <a href="/benchmarks/${item.slug}" class="sidebar__link${active}">${item.name}</a>`,
+        `  <a href="/benchmarks/${item.slug}${queryString}" class="sidebar__link${active}">${item.name}</a>`,
       );
     }
     lines.push(`</div>`);
@@ -180,6 +274,8 @@ function assemblePage(
   item: BenchItem | null,
   content: string,
   page: string,
+  variant?: Variant,
+  queryString?: string,
 ): string {
   const shell = loadShell();
 
@@ -189,7 +285,7 @@ function assemblePage(
     ? `VList ${item.name.toLowerCase()} benchmark — ${item.desc}`
     : "VList performance benchmarks — scroll FPS, initial render, memory stability, and bundle size comparisons.";
 
-  const sidebar = buildSidebar(slug);
+  const sidebar = buildSidebar(slug, variant);
 
   // Only load the benchmark script on interactive pages (not overview)
   const extraBody =
@@ -197,7 +293,9 @@ function assemblePage(
       ? `<script type="module" src="/benchmarks/dist/script.js"></script>`
       : "";
 
-  const url = slug ? `${SITE}/benchmarks/${slug}` : `${SITE}/benchmarks/`;
+  const url = slug
+    ? `${SITE}/benchmarks/${slug}${queryString || ""}`
+    : `${SITE}/benchmarks/`;
 
   return shell
     .replace(/{{TITLE}}/g, title)
@@ -217,9 +315,13 @@ function assemblePage(
  * Render a benchmarks page.
  *
  * @param slug - Benchmark slug (e.g. "render", "scroll", "bundle") or null for overview.
+ * @param url - Full request URL for parsing query params
  * @returns A Response with the full HTML page, or null if the benchmark doesn't exist.
  */
-export function renderBenchmarkPage(slug: string | null): Response | null {
+export function renderBenchmarkPage(
+  slug: string | null,
+  url?: string,
+): Response | null {
   // Overview page
   if (slug === null) {
     const content = buildOverviewContent();
@@ -229,12 +331,33 @@ export function renderBenchmarkPage(slug: string | null): Response | null {
     });
   }
 
+  // Parse variant from URL query string
+  const variant = url ? parseVariant(new URL(url).search) : "javascript";
+  const queryString = url ? new URL(url).search : "";
+
   // Check the slug exists in our config
   const item = ALL_ITEMS.get(slug);
   if (!item) return null;
 
-  // Interactive pages render an empty content area — script.js builds the UI
-  const html = assemblePage(slug, item, "", slug);
+  // Check if this benchmark has variants
+  const variants = detectVariants(slug);
+  const hasVariants = variants.length > 0;
+
+  // Build variant switcher if this benchmark has variants
+  const variantSwitcher = hasVariants
+    ? buildVariantSwitcher(slug, variant, queryString)
+    : "";
+
+  // Interactive pages render variant switcher + empty content area
+  // script.js will build the UI and preserve the variant switcher
+  const html = assemblePage(
+    slug,
+    item,
+    variantSwitcher,
+    slug,
+    hasVariants ? variant : undefined,
+    queryString,
+  );
 
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },

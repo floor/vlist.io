@@ -5,10 +5,94 @@
 // server-rendered; this script handles the interactive content area.
 
 // Import suites (side-effect: each calls defineSuite())
-import "./suites/render.js";
-import "./suites/scroll.js";
-import "./suites/memory.js";
-import "./suites/scrollto.js";
+// All benchmark suites - variants imported statically
+import "./render/javascript/suite.js";
+import "./render/react/suite.js";
+import "./render/vue/suite.js";
+import "./render/svelte/suite.js";
+
+import "./scroll/javascript/suite.js";
+import "./scroll/react/suite.js";
+import "./scroll/vue/suite.js";
+import "./scroll/svelte/suite.js";
+
+import "./memory/javascript/suite.js";
+import "./memory/react/suite.js";
+import "./memory/vue/suite.js";
+import "./memory/svelte/suite.js";
+
+import "./scrollto/javascript/suite.js";
+import "./scrollto/react/suite.js";
+import "./scrollto/vue/suite.js";
+import "./scrollto/svelte/suite.js";
+
+// =============================================================================
+// Variant Support
+// =============================================================================
+
+/** Benchmarks that have variant-based structure */
+const VARIANT_BENCHMARKS = {
+  render: ["javascript", "react", "vue", "svelte"],
+  scroll: ["javascript", "react", "vue", "svelte"],
+  memory: ["javascript", "react", "vue", "svelte"],
+  scrollto: ["javascript", "react", "vue", "svelte"],
+};
+
+/**
+ * Parse variant from URL query string (e.g., ?variant=react)
+ */
+function parseVariant(url) {
+  const params = new URLSearchParams(url || window.location.search);
+  const variant = params.get("variant");
+  return variant || "javascript"; // default
+}
+
+/**
+ * Check which variants exist for a benchmark.
+ */
+function detectVariants(benchmark) {
+  return VARIANT_BENCHMARKS[benchmark] || [];
+}
+
+/**
+ * Build variant switcher HTML (client-side version)
+ */
+function buildVariantSwitcher(benchmark, activeVariant) {
+  const variants = detectVariants(benchmark);
+  if (variants.length === 0) return "";
+
+  const VARIANT_LABELS = {
+    javascript: "JavaScript",
+    react: "React",
+    vue: "Vue",
+    svelte: "Svelte",
+  };
+
+  // Always show all 4 variants, mark missing ones as disabled
+  const allVariants = ["javascript", "react", "vue", "svelte"];
+
+  let html = '<div class="variant-switcher">';
+  for (const variant of allVariants) {
+    const exists = variants.includes(variant);
+    const isActive = variant === activeVariant;
+
+    let classes = "variant-switcher__option";
+    if (isActive) classes += " variant-switcher__option--active";
+    if (!exists) classes += " variant-switcher__option--disabled";
+
+    if (exists) {
+      const params = new URLSearchParams(window.location.search);
+      params.set("variant", variant);
+      const url = `/benchmarks/${benchmark}?${params.toString()}`;
+      html += `<a href="${url}" class="${classes}">${VARIANT_LABELS[variant]}</a>`;
+    } else {
+      // Disabled variant (not a link)
+      html += `<span class="${classes}">${VARIANT_LABELS[variant]}</span>`;
+    }
+  }
+  html += "</div>";
+  return html;
+}
 
 // Import runner
 import {
@@ -135,7 +219,14 @@ const dom = {
 // =============================================================================
 
 function buildSuitePage(root, suite) {
+  // Preserve server-rendered variant switcher if it exists
+  const existingVariantSwitcher = root.querySelector(".variant-switcher");
+  const variantSwitcherHTML = existingVariantSwitcher
+    ? existingVariantSwitcher.outerHTML
+    : "";
+
   root.innerHTML = `
+    ${variantSwitcherHTML}
     <div class="bench-page">
       <!-- Header -->
       <header class="bench-header">
@@ -725,9 +816,26 @@ if (root) {
     buildFeaturesPage(root);
   } else {
     // Suite page (render, scroll, memory, scrollto)
-    const suite = getSuite(page);
-    if (suite) {
-      buildSuitePage(root, suite);
+    const variants = detectVariants(page);
+
+    if (variants.length > 0) {
+      // New variant-based structure - suites are statically imported
+      const variant = parseVariant();
+      const variantSwitcher = buildVariantSwitcher(page, variant);
+      const suiteId = `${page}-${variant}`;
+      const suite = getSuite(suiteId);
+
+      if (suite) {
+        buildSuitePage(root, suite);
+      } else {
+        root.innerHTML = `<div class="bench-page"><p>Variant "${variant}" not found for "${page}"</p></div>`;
+      }
+    } else {
+      // Legacy structure (scroll, memory, scrollto)
+      const suite = getSuite(page);
+      if (suite) {
+        buildSuitePage(root, suite);
+      }
     }
   }
 }
