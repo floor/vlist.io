@@ -18,33 +18,71 @@ Then open http://localhost:3337/sandbox
 
 ## Structure
 
+The sandbox is organized by plugin architecture, with each folder representing either a plugin or a category of examples:
+
 ```
 sandbox/
 ├── build.ts              # Auto-discovers and builds all examples
-├── basic/                # Pure vanilla JS example (no dependencies)
-│   ├── index.html
-│   ├── script.js
-│   ├── styles.css
-│   └── dist/             # Built output (gitignored)
-├── core/                 # Lightweight vlist/core (7.3 KB)
-├── grid/                 # 2D photo gallery with Lorem Picsum
-├── selection/            # Selection modes example
-├── infinite-scroll/      # Async data loading example
-├── million-items/        # Stress test example
-├── scroll-restore/       # Scroll save/restore for SPA navigation
-├── sticky-headers/       # Grouped list with sticky section headers
-├── variable-heights/     # Variable item heights example
-├── velocity-loading/     # Velocity-based loading example
-└── window-scroll/        # Document-level scrolling (scrollElement: window)
+├── renderer.ts           # Server-side rendering for example pages
+├── index.html            # Sandbox landing page
+├── sandbox.css           # Shared styles
+├── shell.html            # HTML template wrapper
+│
+├── basic/                # Getting Started - pure vanilla JS
+├── controls/             # Getting Started - full API (4 frameworks)
+│   ├── javascript/
+│   ├── react/
+│   ├── vue/
+│   └── svelte/
+│
+├── core/                 # Core (Lightweight) - 4.2KB gzipped
+│   └── basic/
+│       ├── javascript/   # 4.2KB gzip
+│       ├── react/        # 122.3KB gzip
+│       ├── vue/          # 213.6KB gzip
+│       └── svelte/       # 4.2KB gzip
+│
+├── grid/                 # Grid Plugin (vlist/grid)
+│   └── photo-album/
+│       ├── javascript/
+│       ├── react/
+│       ├── vue/
+│       └── svelte/
+│
+├── data/                 # Data Plugin (vlist/data)
+│   ├── large-list/       # withCompression (4 frameworks)
+│   └── velocity-loading/ # Async loading
+│
+├── groups/               # Groups Plugin (vlist/groups)
+│   └── sticky-headers/   # A-Z contact list
+│
+├── horizontal/           # Horizontal scrolling
+│   └── basic/            # 4 frameworks
+│
+├── builder/              # Builder Pattern examples
+│   ├── basic/
+│   ├── controls/
+│   ├── large-list/
+│   ├── photo-album/
+│   └── chat/
+│
+└── (advanced examples)
+    ├── reverse-chat/
+    ├── variable-heights/
+    ├── scroll-restore/
+    ├── window-scroll/
+    └── wizard-nav/
 ```
 
 ## Adding a New Example
 
-1. Create a new folder in `sandbox/`:
+### Single Framework Example
+
+1. Create a new folder in the appropriate plugin category:
 
 ```
-sandbox/my-example/
-├── index.html
+sandbox/my-plugin/my-example/
+├── content.html
 ├── script.js
 └── styles.css
 ```
@@ -53,34 +91,58 @@ sandbox/my-example/
 
 ```bash
 bun run build:sandbox
-# Output: Found 8 examples: basic, infinite-scroll, million-items, my-example, selection, variable-heights, velocity-loading, window-scroll
+# Output: Found 33 examples including my-plugin/my-example
 ```
 
-That's it. No configuration needed.
+### Multi-Framework Example
+
+For examples with multiple framework variants:
+
+```
+sandbox/my-plugin/my-example/
+├── javascript/
+│   ├── content.html
+│   ├── script.js
+│   └── styles.css
+├── react/
+│   ├── content.html
+│   ├── script.tsx
+│   └── styles.css
+├── vue/
+│   ├── content.html
+│   ├── script.js
+│   └── styles.css
+└── svelte/
+    ├── content.html
+    ├── script.js
+    └── styles.css
+```
+
+The build script automatically detects nested framework directories.
 
 ## Build Script
 
 `sandbox/build.ts` automatically:
 
-- Scans `sandbox/` for directories containing `script.js`
+- Recursively scans `sandbox/` for directories containing `script.js`, `script.jsx`, or `script.tsx`
+- Detects framework variants (javascript/, react/, vue/, svelte/ subdirectories)
 - Builds all examples in parallel using Bun
-- Outputs to `sandbox/{name}/dist/script.js`
-- Reports build times for each example
+- Outputs to `sandbox/{path}/dist/script.js`
+- Reports build times, bundle sizes (minified and gzipped), and CSS sizes
+- Deduplicates React/Vue frameworks when linked (prevents dual framework instances)
 
 ```bash
 bun run build:sandbox
 
 # Output:
-# Building sandbox...
-# Found 11 examples: basic, core, grid, infinite-scroll, million-items, scroll-restore, selection, sticky-headers, variable-heights, velocity-loading, window-scroll
-#   basic                 3ms
-#   infinite-scroll      12ms
-#   million-items        15ms
-#   selection            18ms
-#   variable-heights     22ms
-#   velocity-loading     25ms
-#   window-scroll        28ms
-# Done in 28ms
+# 🔨 Building sandbox...
+# ✅ sandbox.css                   12.3 KB
+# 📦 Found 33 examples: basic, core/basic/javascript, core/basic/react, ...
+# ✅ core/basic/javascript  77ms   11.4 KB → 4.2 KB gzip  css 2.7 KB
+# ✅ core/basic/react     100ms   403.2 KB → 122.3 KB gzip  css 2.7 KB
+# ✅ grid/photo-album/javascript  87ms   32.3 KB → 11.0 KB gzip  css 2.0 KB
+# ...
+# ✨ Built 33/33 examples in 276ms
 ```
 
 ### Watch Mode
@@ -120,47 +182,142 @@ http://localhost:3337/README.md       # Rendered as HTML
 http://localhost:3337/README.md?raw   # Raw markdown
 ```
 
-## Example HTML Template
+## Example Structure
+
+### Content HTML (`content.html`)
+
+This file contains only the example content (not the full HTML document). The server wraps it with `shell.html`:
 
 ```html
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vlist - My Example</title>
-    <link rel="stylesheet" href="/dist/vlist.css" />
-    <link rel="stylesheet" href="/sandbox/my-example/styles.css" />
-</head>
-<body>
-    <a href="/sandbox/" class="back-link">← Back to Sandbox</a>
+<!-- For vanilla JS/Svelte examples -->
+<div class="container">
+    <header>
+        <h1>My Example</h1>
+        <p class="description">Example description</p>
+    </header>
+    
     <div id="list-container"></div>
-    <script type="module" src="/sandbox/my-example/dist/script.js"></script>
-</body>
-</html>
+    
+    <footer>
+        <p>Footer text</p>
+    </footer>
+</div>
 ```
 
-## Example Script
+```html
+<!-- For React examples -->
+<div id="react-root"></div>
+```
 
-The basic example shows the minimal vlist usage:
+```html
+<!-- For Vue examples -->
+<div id="vue-root"></div>
+```
+
+The server automatically injects:
+- `sandbox.css` - Shared styles
+- `styles.css` - Example-specific styles
+- `dist/script.js` - Built JavaScript
+
+## Example Scripts
+
+### Core (Lightweight) Example
+
+Using `vlist/core` for minimal bundle size (4.2KB gzipped):
 
 ```javascript
-import { createVList } from "vlist";
+import { createVList } from "vlist/core";
 
-const items = Array.from({ length: 10000 }, (_, i) => ({
+const items = Array.from({ length: 100000 }, (_, i) => ({
   id: i + 1,
-  name: `Item ${i + 1}`,
+  name: `User ${i + 1}`,
 }));
 
 const list = createVList({
   container: "#list-container",
   item: {
-    height: 48,
+    height: 64,
     template: (item) => `<div>${item.name}</div>`,
   },
-  items: items,
+  items,
 });
 ```
+
+### Builder Pattern with Plugins
+
+Using `vlist/builder` for composable plugins:
+
+```javascript
+import { vlist } from "vlist/builder";
+import { withGrid } from "vlist/grid";
+import { withScrollbar } from "vlist/scroll";
+
+const gallery = vlist({
+  container: "#grid-container",
+  item: {
+    height: 200,
+    template: (item) => `<img src="${item.url}" />`,
+  },
+  items,
+})
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withScrollbar({ autoHide: true }))
+  .build();
+```
+
+### React Example
+
+Using React hooks with vlist:
+
+```tsx
+import { useRef, useEffect } from "react";
+import { createRoot } from "react-dom/client";
+import { createVList } from "vlist/core";
+
+function App() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const instanceRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    instanceRef.current = createVList({
+      container: containerRef.current,
+      item: { height: 64, template: (item) => `<div>${item.name}</div>` },
+      items,
+    });
+
+    return () => instanceRef.current?.destroy();
+  }, []);
+
+  return <div ref={containerRef} />;
+}
+
+createRoot(document.getElementById("react-root")!).render(<App />);
+```
+
+## Organization Guidelines
+
+### When to Create a Plugin Folder
+
+Create a dedicated plugin folder (e.g., `grid/`, `data/`, `groups/`) when:
+- The example demonstrates a specific vlist plugin (e.g., `vlist/grid`, `vlist/data`)
+- You plan to have multiple examples for that plugin
+- The plugin is documented and stable
+
+### When to Use Framework Variants
+
+Provide multiple framework variants when:
+- The example is a key showcase (basic, photo-album, large-list)
+- It demonstrates important patterns developers will copy
+- The implementation differs meaningfully across frameworks
+
+### Single Framework Examples
+
+Use a single framework (usually vanilla JS) when:
+- The example is simple or experimental
+- Framework choice doesn't significantly affect the implementation
+- The focus is on a specific vlist feature, not framework integration
 
 ## Port
 
