@@ -1210,5 +1210,5 @@ Live examples on vlist.dev:
 
 ---
 
-**Last Updated:** February 2025
+**Last Updated:** February 2026
 **Version:** 0.5.0+

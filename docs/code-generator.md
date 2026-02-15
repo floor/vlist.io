@@ -827,4 +827,4 @@ This maintains the excellent DX of the builder while delivering bundle sizes clo
 **Status:** Design phase  
 **Next steps:** Prototype Phase 1 tree-shaking improvements  
 **Owner:** TBD  
-**Updated:** 2024-02
+**Updated:** 2026-02
