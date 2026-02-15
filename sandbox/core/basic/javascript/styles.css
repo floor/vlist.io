@@ -22,61 +22,46 @@
 }
 
 /* ==========================================================================
-   Bundle size comparison bar
+   Bundle size info
    ========================================================================== */
 
-.comparison {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.bundle-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.bundle-item {
     background: var(--bg-card);
     border: 1px solid var(--border);
     padding: 16px 20px;
     border-radius: 10px;
-    margin: 16px 0;
+    text-align: center;
 }
 
-.comparison-item {
-    display: grid;
-    grid-template-columns: 90px 1fr 180px;
-    align-items: center;
-    gap: 12px;
-}
-
-.comparison-label {
-    font-size: 13px;
+.bundle-label {
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-muted);
-    font-family: "SF Mono", Monaco, Menlo, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
 }
 
-.comparison-bar {
-    height: 22px;
-    background: var(--bg);
-    border-radius: 6px;
-    overflow: hidden;
-}
-
-.comparison-fill {
-    height: 100%;
-    border-radius: 6px;
-    transition: width 0.6s ease;
-}
-
-.comparison-bar.full .comparison-fill {
-    background: linear-gradient(90deg, #94a3b8, #64748b);
-}
-
-.comparison-bar.core .comparison-fill {
-    background: linear-gradient(90deg, #34d399, #10b981);
-}
-
-.comparison-size {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    text-align: right;
+.bundle-size {
+    font-size: 24px;
+    font-weight: 700;
+    color: #10b981;
     font-variant-numeric: tabular-nums;
+}
+
+.bundle-size .muted {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 4px;
 }
 
 .comparison-size .muted {

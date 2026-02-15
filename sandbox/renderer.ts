@@ -37,7 +37,7 @@ export interface ExampleGroup {
 
 export const EXAMPLE_GROUPS: ExampleGroup[] = [
   {
-    label: "Core Examples",
+    label: "Getting Started",
     items: [
       {
         slug: "basic",
@@ -45,14 +45,19 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         desc: "Minimal vanilla JS — one function call, zero boilerplate",
       },
       {
-        slug: "core",
-        name: "Core (4.2KB)",
-        desc: "Lightweight build — 83% smaller, same result",
-      },
-      {
         slug: "controls",
         name: "Controls",
         desc: "Selection, navigation, scroll events — full API exploration",
+      },
+    ],
+  },
+  {
+    label: "Core (Lightweight)",
+    items: [
+      {
+        slug: "core/basic",
+        name: "Basic Core",
+        desc: "Lightweight 4.2KB build — 83% smaller, same result",
       },
     ],
   },
