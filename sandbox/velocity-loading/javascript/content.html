@@ -1,0 +1,116 @@
+<div class="container">
+    <header></header>
+        <h1>Velocity-Based Loading</h1>
+        <p class="description">
+            Pure vanilla JavaScript. Smart data loading that skips fetching when scrolling fast (&gt;15 px/ms)
+            and loads immediately when velocity drops. Handling 1,000,000 items with adaptive loading.
+        </p>
+    </header>
+
+    <div class="stats" id="stats">
+        <span></span><strong>Requests:</strong> <span id="stat-requests">0</span></span>
+        <span><strong>Loaded:</strong> <span id="stat-loaded">0</span></span>
+        <span><strong>Velocity:</strong> <span id="stat-velocity">0.0</span> px/ms</span>
+    </div>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Loading Stats -->
+            <section class="panel-section">
+                <h3 class="panel-title">Loading Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div id="load-requests" class="stat-card__value">0</div>
+                        <div class="stat-card__label">Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="loaded-count" class="stat-card__value">0</div>
+                        <div class="stat-card__label">Loaded</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Velocity Display -->
+            <section class="panel-section">
+                <h3 class="panel-section__title">Scroll Velocity</h3>
+                <div class="velocity-display">
+                    <span id="velocity-value" class="velocity-display__value">0.0</span>
+                    <span class="velocity-display__unit">px/ms</span>
+                </div>
+                <div class="velocity-bar">
+                    <div id="velocity-fill" class="velocity-bar__fill"></div>
+                    <div class="velocity-bar__marker"></div>
+                </div>
+                <div class="velocity-labels">
+                    <span>0</span>
+                    <span class="velocity-labels__threshold">15</span>
+                    <span>30+</span>
+                </div>
+                <div id="velocity-status" class="velocity-status velocity-status--allowed">
+                    ✅ Loading allowed
+                </div>
+            </section>
+
+            <!-- Data Source -->
+            <section class="panel-section">
+                <h3 class="panel-title">Data Source</h3>
+                <div class="panel-row">
+                    <button id="btn-toggle-api" class="panel-btn panel-btn--full-width">
+                        🧪 Simulated
+                    </button>
+                </div>
+            </section>
+
+            <!-- API Delay -->
+            <section class="panel-section">
+                <div class="panel-row">
+                    <label class="panel-label" for="slider-delay">
+                        API Delay
+                        <span id="delay-value" class="panel-value">0ms</span>
+                    </label>
+                    <input id="slider-delay" type="range" class="panel-slider" min="0" max="1000" step="20" value="0">
+                </div>
+            </section>
+
+            <!-- Scroll To -->
+            <section class="panel-section">
+                <div class="panel-row">
+                    <label class="panel-label" for="slider-scroll">
+                        Scroll to Index
+                        <span id="scroll-index-value" class="panel-value">0</span>
+                    </label>
+                    <input id="slider-scroll" type="range" class="panel-slider" min="0" max="999999" step="1000" value="0">
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Quick Navigation</h3>
+                <div class="panel-btn-group">
+                    <button id="btn-start" class="panel-btn">Start</button>
+                    <button id="btn-middle" class="panel-btn">Middle</button>
+                    <button id="btn-end" class="panel-btn">End</button>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="panel-section">
+                <h3 class="panel-title">Actions</h3>
+                <div class="panel-btn-group">
+                    <button id="btn-reload" class="panel-btn">Reload</button>
+                    <button id="btn-reset-stats" class="panel-btn">Reset Stats</button>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer>
+        <p>
+            Velocity-based loading prevents API spam during fast scrolling while ensuring data loads when you slow down. ⚡
+        </p>
+    </footer>
+</div>

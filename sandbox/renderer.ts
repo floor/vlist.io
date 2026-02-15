@@ -60,12 +60,6 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         desc: "Virtualized photo gallery with real images",
       },
       {
-        slug: "selection",
-        name: "Selection",
-        desc: "Single & multi-select with keyboard navigation",
-        mtrl: true,
-      },
-      {
         slug: "sticky-headers",
         name: "Sticky Headers",
         desc: "A–Z contact list with sticky section headers",
@@ -96,18 +90,6 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         desc: "Save & restore scroll position across navigations",
       },
       {
-        slug: "infinite-scroll",
-        name: "Infinite Scroll",
-        desc: "Async loading with simulated API calls",
-        mtrl: true,
-      },
-      {
-        slug: "million-items",
-        name: "Million Items",
-        desc: "1–5M items with compression and FPS monitoring",
-        mtrl: true,
-      },
-      {
         slug: "large-list",
         name: "Large List",
         desc: "100K–5M items — core vlist with native scrolling",
@@ -116,7 +98,6 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         slug: "velocity-loading",
         name: "Velocity Loading",
         desc: "Smart loading — skips when scrolling fast",
-        mtrl: true,
       },
       {
         slug: "wizard-nav",
