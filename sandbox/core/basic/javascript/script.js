@@ -1,8 +1,9 @@
-// Core Example - Lightweight Virtual List (7 KB)
-// Same result as Basic, but using vlist/core for an 83% smaller bundle
-// No selection, groups, compression, scrollbar, or async adapter — just fast virtual scrolling
+// Core Light Example - Ultra-Lightweight Virtual List (Fixed Heights Only)
+// Same result as Basic, but using vlist/core-light for maximum performance
+// Uses fixed heights only (no variable height overhead) for ~30% additional size reduction
+// Includes single item selection support
 
-import { createVList } from "vlist/core";
+import { createVList } from "vlist/core-light";
 
 // =============================================================================
 // Generate test data
@@ -24,7 +25,7 @@ function generateItems(count) {
 
 let items = generateItems(100000);
 
-const itemTemplate = (item, index) => `
+const itemTemplate = (item, index, state) => `
   <div class="item-content">
     <div class="item-avatar">${item.initials}</div>
     <div class="item-details">
@@ -63,8 +64,6 @@ const btnFirst = document.getElementById("btn-first");
 const btnMiddle = document.getElementById("btn-middle");
 const btnLast = document.getElementById("btn-last");
 const btnRandom = document.getElementById("btn-random");
-const btnSmoothTop = document.getElementById("btn-smooth-top");
-const btnSmoothBottom = document.getElementById("btn-smooth-bottom");
 
 // Data methods
 const btnAppend = document.getElementById("btn-append");
@@ -130,22 +129,6 @@ btnRandom.addEventListener("click", () => {
   const index = Math.floor(Math.random() * list.total);
   list.scrollToIndex(index, "center");
   scrollIndexInput.value = index;
-});
-
-btnSmoothTop.addEventListener("click", () => {
-  list.scrollToIndex(0, {
-    align: "start",
-    behavior: "smooth",
-    duration: 600,
-  });
-});
-
-btnSmoothBottom.addEventListener("click", () => {
-  list.scrollToIndex(list.total - 1, {
-    align: "end",
-    behavior: "smooth",
-    duration: 600,
-  });
 });
 
 // =============================================================================
@@ -231,9 +214,25 @@ list.on("range:change", ({ range }) => {
   updateStats();
 });
 
-list.on("item:click", ({ item, index }) => {
-  showItemDetail(item, index);
-  scrollIndexInput.value = index;
+list.on("selection:change", ({ selectedId }) => {
+  if (selectedId !== null) {
+    const index = items.findIndex((item) => item.id === selectedId);
+    if (index >= 0) {
+      showItemDetail(items[index], index);
+      scrollIndexInput.value = index;
+    }
+  }
+});
+
+// Handle clicks manually to trigger selection
+list.element.addEventListener("click", (e) => {
+  const itemEl = e.target.closest(".vlist-item");
+  if (itemEl) {
+    const itemId = itemEl.dataset.id;
+    if (itemId) {
+      list.selectItem(Number(itemId));
+    }
+  }
 });
 
 // =============================================================================
