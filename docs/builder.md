@@ -987,25 +987,6 @@ const list = vlist({
 
 **Bundle:** ~27 KB (gzip) - Same size, explicit control
 
-### Legacy Monolithic API
-
-For backwards compatibility (larger bundle):
-
-```typescript
-import { createVList } from 'vlist/full';
-
-const list = createVList({
-  container: '#app',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  item: { height: 200, template: renderItem },
-  selection: { mode: 'multiple' },
-  items,
-});
-```
-
-**Bundle:** ~57 KB (gzip) - All features bundled
-
 ## Migration from v0.4.x
 
 If you're currently using the full `createVList` and want to switch to the builder for smaller bundles:
@@ -1108,27 +1089,20 @@ const list = vlist({ /* ... */ })
   .build();
 ```
 
-### Use Legacy `vlist/full`
-
-The builder is not always the right choice:
-
-- **Prototyping** — Use `createVList` from `vlist`. Zero decisions, everything works.
-- **Bundle size doesn't matter** — If you're building an internal tool or Electron app, 54 KB is nothing. Use `vlist`.
-- **You need everything** — If you use grid + groups + data + compression + selection + scrollbar + snapshots, the builder saves ~15 KB over the full bundle. Whether that matters depends on your context.
-- **Simplest possible list** — If you need only virtual scrolling with no extras, `vlist/core` at 8 KB is still the lightest option and has a simpler API than the builder.
-
 ### Decision guide
 
 ```
 Do you need virtual scrolling only, no extras?
   → Use vlist/core (8 KB min / 3.3 KB gzip)
 
-Do you need features but care about bundle size?
+Do you need features but want optimal bundle size?
   → Use vlist/builder + plugins (14.8 KB min + only the plugins you use)
 
-Do you want everything with zero configuration?
-  → Use vlist (54.5 KB min / 17.9 KB gzip)
+Do you want convenience with automatic optimization?
+  → Use vlist (default - 27 KB gzip, auto-applies needed plugins)
 ```
+
+The default `createVList` is now recommended for most use cases as it provides the convenience of automatic plugin application with 53% smaller bundles than v0.4.0.
 
 ## TypeScript
 

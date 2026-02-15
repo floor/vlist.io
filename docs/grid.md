@@ -1100,8 +1100,7 @@ height: (index, context) => context ? context.columnWidth * 0.75 : 200
 
 **Check:**
 1. Using default entry point or builder with `withGrid` plugin
-2. Not using legacy `vlist/full` (use recreation there)
-3. Grid context available: `layout: 'grid'` was specified
+2. Grid context available: `layout: 'grid'` was specified
 
 ### Images not loading
 
