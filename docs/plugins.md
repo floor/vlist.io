@@ -9,7 +9,7 @@ vlist is built around two core principles:
 1. **Small by default** — Ship only the code your users need
 2. **Extensible by design** — Enable any feature through plugins
 
-The base library provides virtual scrolling essentials (~2-3 KB gzipped). Everything else—selection, grids, data adapters, window scrolling—is opt-in via plugins.
+The base library provides virtual scrolling essentials (4.2 KB gzipped). Everything else—selection, grids, data adapters, window scrolling—is opt-in via plugins.
 
 ## Why Plugins?
 
@@ -32,42 +32,48 @@ const list = createVList({
 - Complex auto-detection logic
 - Tight coupling between core and plugins
 
-### After (v0.6.0): True Plugin Architecture
+### After (v0.6.0): Plugin Architecture Foundation
 
 ```typescript
 import { vlist } from 'vlist/builder'
 import { withSelection } from 'vlist/selection'
 import { withGrid } from 'vlist/grid'
+import { withWindow } from 'vlist/window'
 
 const list = vlist({
   container: '#app',
   item: { height: 48, template: render }
 })
+.use(withWindow())              // NEW: Window scroll mode now a plugin
 .use(withSelection({ mode: 'single' }))
 .use(withGrid({ columns: 4, gap: 8 }))
 .build()
 ```
 
 **Benefits:**
-- ✅ **Smaller core** — Only virtual scrolling (~2-3 KB)
+- ✅ **Cleaner architecture** — Features can be extracted to plugins
 - ✅ **Explicit imports** — See exactly what features you're using
 - ✅ **Community plugins** — Anyone can extend vlist
-- ✅ **No vendor lock-in** — Replace any component
+- ✅ **Foundation built** — First feature extraction complete (window mode)
 
-## Bundle Size Targets (v0.6.0)
+## Bundle Size Results (v0.6.0)
 
 | Configuration | Size (gzipped) | What's Included |
 |---------------|----------------|-----------------|
-| Core only | **~2 KB** | Virtual scrolling + element pooling |
-| + Selection | ~2.5 KB | + Click/keyboard selection |
-| + Grid | ~3 KB | + 2D grid layout |
-| + Window mode | ~2.3 KB | + Page scroll integration |
-| + Variable heights | ~2.5 KB | + Dynamic height caching |
-| All features | ~6 KB | Everything included |
+| Core only | **4.2 KB** | Virtual scrolling + element pooling |
+| Builder (basic) | **7.7 KB** | Builder + no plugins (-0.1 KB from v0.5.0) |
+| + Selection | ~10 KB | + Click/keyboard selection |
+| + Grid | ~12 KB | + 2D grid layout |
+| + Window mode | 20.4 KB | + Page scroll integration (+0.3 KB overhead) |
+| All features | ~27 KB | Everything included |
 
-**Previous v0.5.0:** 3.3 KB (core) → 15 KB (typical) → 27 KB (full)
+**v0.5.0 baseline:** 4.2 KB (core) → 7.8 KB (basic) → 20.1 KB (window) → 27 KB (full)
 
-**Improvement:** 33-40% smaller for typical use cases.
+**v0.6.0 results:**
+- ✅ Most examples: **-0.1 to -0.2 KB** savings
+- ✅ Window mode extracted from core
+- ⚠️ Window-scroll example: +0.3 KB (plugin overhead acceptable)
+- ✅ Architecture foundation for future extractions
 
 ## How Plugins Work
 
@@ -143,23 +149,33 @@ Plugins receive a `BuilderContext` object with:
 - **`vlist/groups`** — Grouped lists with sticky headers
 - **`vlist/snapshots`** — Scroll position save/restore
 
-**To Be Extracted (v0.6.0):**
-- **`vlist/window`** — Window scroll mode (saves ~0.5 KB from core)
-- **`vlist/variable`** — Variable height support (saves ~0.3 KB)
-- **`vlist/horizontal`** — Horizontal scrolling (saves ~0.4 KB)
-- **`vlist/resize`** — ResizeObserver integration (saves ~0.8 KB)
+**Newly Extracted (v0.6.0):**
+- **`vlist/window`** — Window scroll mode ✅ (1.2 KB / 0.6 KB gzip)
 
-### Minimal Core (v0.6.0 Goal)
+**Future Candidates:**
+- **Variable height support** — Currently integrated, needs refactor
+- **Horizontal scrolling** — Too integrated, requires axis-agnostic core refactor
+- **Reverse mode** — Chat UI specific, could be plugin with refactoring
+- **ResizeObserver** — Used by 90% of lists, extraction debatable
 
-After extraction, the core will only include:
+### Current Core (v0.6.0)
+
+The core currently includes:
 
 ✅ **Fixed-height vertical scrolling**
 ✅ **Element pooling**
 ✅ **Basic DOM structure**
 ✅ **Range calculation**
 ✅ **Event emitter**
+✅ **ResizeObserver** (viewport size detection)
+✅ **Horizontal scrolling** (integrated, not yet extracted)
+✅ **Reverse mode** (chat UI support, integrated)
+✅ **Variable heights** (abstracted via HeightCache)
 
-Everything else is opt-in.
+**What was extracted:**
+✅ **Window scroll mode** → `vlist/window` plugin
+
+Future extractions will require more aggressive refactoring.
 
 ## Creating a Plugin
 
@@ -201,7 +217,7 @@ export const withWindow = <T extends VListItem = VListItem>(): VListPlugin<T> =>
         (pos: number) => {
           const rect = dom.viewport.getBoundingClientRect()
           const pageY = rect.top + window.scrollY
-          window.scrollTo({ top: pageY + pos })
+          window.scrollTo(window.scrollX, pageY + pos)
         }
       )
       
@@ -490,21 +506,32 @@ const list = vlist({
 
 ## Roadmap
 
-### v0.6.0 (In Progress)
+### v0.6.0 (Completed)
 
-**Goals:**
-- Extract window mode to plugin
-- Extract variable heights to plugin
-- Extract horizontal scrolling to plugin
-- Core down to ~2 KB gzipped
+**Achievements:**
+- ✅ Extract window mode to plugin (1.2 KB / 0.6 KB gzip)
+- ✅ Add plugin hooks to BuilderContext (4 new methods)
+- ✅ Organize all plugins under `src/plugins/` folder
+- ✅ Prove plugin architecture with real-world feature extraction
+- ✅ Fix window-scroll performance (944ms INP → 0ms)
+
+**Results:**
+- Most examples: -0.1 to -0.2 KB savings
+- Plugin system foundation established
+- Backward compatible (auto-detection still works)
 
 ### v0.7.0 (Future)
 
-**Goals:**
-- Extract ResizeObserver to plugin
+**Potential Goals:**
+- Refactor core for axis-agnostic scrolling (enables horizontal plugin)
+- Extract reverse mode for chat UIs
+- Consider making ResizeObserver opt-in (controversial - used by 90%)
 - Plugin marketplace/registry
 - More community plugins
 - Plugin composition helpers
+
+**Reality Check:**
+Further extractions require significant refactoring. Horizontal scrolling, reverse mode, and variable heights are deeply integrated. The plugin architecture is proven, but aggressive extraction has diminishing returns without major core rewrites.
 
 ## Examples
 
@@ -532,7 +559,7 @@ const feed = vlist({
 .build()
 ```
 
-**Bundle:** ~4 KB (core + window + data + analytics)
+**Bundle:** ~6 KB (core + window + data + analytics)
 
 ### Real-World: Photo Grid with Selection
 
@@ -554,15 +581,15 @@ gallery.on('selection:change', ({ selected }) => {
 })
 ```
 
-**Bundle:** ~3.5 KB (core + grid + selection)
+**Bundle:** ~12 KB (core + grid + selection)
 
 ## Summary
 
 | Approach | Bundle Size | Use Case |
 |----------|-------------|----------|
-| **Core only** | ~2 KB | Simple fixed-height lists |
-| **Builder + plugins** | ~2-6 KB | Production apps (optimal) |
-| **Default (auto-detect)** | ~3-15 KB | Prototypes, internal tools |
+| **Core only** | ~4.2 KB | Simple fixed-height lists |
+| **Builder + plugins** | ~8-20 KB | Production apps (optimal) |
+| **Default (auto-detect)** | ~8-27 KB | Prototypes, internal tools |
 
 **Bottom line:** Plugins make vlist smaller, more flexible, and community-extensible. Start with the builder pattern for the best bundle size and explicit control.
 

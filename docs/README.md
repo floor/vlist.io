@@ -24,24 +24,25 @@ Each module has detailed documentation covering its API, usage examples, and imp
 
 ### Core Modules
 
-| Module | Description | File |
-|--------|-------------|------|
+| Module | Description | Location |
+|--------|-------------|----------|
 | **[Types](./types.md)** | TypeScript interfaces and type definitions | `src/types.ts` |
-| **[Constants](./constants.md)** | Default values and configuration constants | `src/constants.ts` |
-| **[Context](./context.md)** | Internal state container and coordination | `src/context.ts` |
-| **Config** | Validation, defaults, and derived flags (mtrl-style) | `src/config.ts` |
-| **Animation** | Shared scroll animation utilities (easing, arg resolution) | `src/animation.ts` |
-
-### Feature Modules
-
-| Module | Description | Directory |
-|--------|-------------|-----------|
-| **[Builder](./builder.md)** | Composable builder with plugin architecture | `src/builder/` |
-| **[Render](./render.md)** | DOM structure, element pool, rendering, virtualization, and compression | `src/render/` |
-| **[Data](./data.md)** | Data management, sparse storage, and placeholders | `src/data/` |
-| **[Scroll](./scroll.md)** | Scroll controller and custom scrollbar | `src/scroll/` |
-| **[Selection](./selection.md)** | Selection state management | `src/selection/` |
+| **[Builder](./builder.md)** | Plugin system with composable `.use()` pattern | `src/builder/` |
+| **[Render](./render.md)** | DOM structure, element pool, rendering, virtualization | `src/render/` |
 | **[Events](./events.md)** | Type-safe event emitter system | `src/events/` |
+
+### Plugin Modules (v0.6.0)
+
+| Plugin | Description | Directory |
+|--------|-------------|-----------|
+| **[Window](./plugins.md#window-mode)** | Window scroll mode (page-level scrolling) | `src/plugins/window/` |
+| **[Selection](./selection.md)** | Click/keyboard selection with ARIA | `src/plugins/selection/` |
+| **[Data](./data.md)** | Async data adapter with sparse storage | `src/plugins/data/` |
+| **[Scroll](./scroll.md)** | Custom scrollbar with drag support | `src/plugins/scroll/` |
+| **Compression** | Large list compression (1M+ items) | `src/plugins/compression/` |
+| **Grid** | 2D grid layout | `src/plugins/grid/` |
+| **Groups** | Grouped lists with sticky headers | `src/plugins/groups/` |
+| **Snapshots** | Scroll position save/restore | `src/plugins/snapshots/` |
 
 ### API Modules
 
@@ -56,7 +57,7 @@ Each module has detailed documentation covering its API, usage examples, and imp
 |--------|-------------|------|
 | **[Accessibility](./accessibility.md)** | WAI-ARIA implementation, keyboard navigation, screen reader support | across modules |
 
-> **Shared building blocks:** Several modules under `src/render/` (`dom.ts`, `pool.ts`, `heights.ts`) and `src/animation.ts` are shared between the full `vlist` and the lightweight `vlist/core` entry point. They have zero dependencies on compression or other heavy internals, enabling tree-shaking to keep the core bundle small (~9 KB) while eliminating code duplication.
+> **Plugin Architecture (v0.6.0):** Features are now extracted as plugins under `src/plugins/`. The builder core provides virtual scrolling essentials, and plugins extend functionality via hooks. Window scroll mode was the first feature extraction, proving the architecture works for complex cross-cutting concerns.
 
 ### Framework Adapters
 
@@ -70,7 +71,7 @@ Thin mount-based wrappers that handle lifecycle (create on mount, destroy on unm
 
 React and Vue are optional `peerDependencies`. Svelte needs zero framework imports (actions are plain functions).
 
-## Architecture Overview
+## Architecture Overview (v0.6.0 - Plugin System)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -81,38 +82,33 @@ React and Vue are optional `peerDependencies`. Svelte needs zero framework impor
                               │
                               ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│                        createVList()                                  │
-│              (vlist.ts — composition root)                            │
-│         Uses config.ts for validation & defaults                     │
+│                    createVList() - Auto-detection                     │
+│         Detects features from config and applies plugins              │
 └──────────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌──────────────────────────────────────────────────────────────────────┐
-│                         Context                                       │
-│  Wires together all components and manages mutable state              │
+│                  vlist() Builder + Plugins                            │
+│  .use(withWindow()) .use(withSelection()) .use(withGrid())           │
+└──────────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                      BuilderContext                                   │
+│  Provides hooks for plugins: setScrollFns, setScrollTarget, etc.     │
 └──────────────────────────────────────────────────────────────────────┘
                               │
         ┌─────────────────────┼─────────────────────┐
         ▼                     ▼                     ▼
 ┌───────────────┐   ┌─────────────────┐   ┌───────────────┐
-│  DataManager  │   │ScrollController │   │   Renderer    │
-│ (sparse data) │   │(native/compress-│   │ (DOM pooling) │
-│               │   │ ed/window)      │   │               │
+│  Core (8 KB)  │   │   Plugins       │   │   Render      │
+│ Virtual scroll│   │  (opt-in)       │   │ (DOM pooling) │
+│ Element pool  │   │  Window, Grid,  │   │ Height cache  │
+│ Basic DOM     │   │  Selection, etc │   │               │
 └───────────────┘   └─────────────────┘   └───────────────┘
-        │                     │                     │
-        ▼                     ▼                     ▼
-┌───────────────┐   ┌─────────────────┐   ┌───────────────┐
-│    Adapter    │   │    Scrollbar    │   │  Compression  │
-│ (async fetch) │   │    (custom)     │   │ (large lists) │
-└───────────────┘   └─────────────────┘   └───────────────┘
-
-        Shared building blocks (used by both vlist and vlist/core):
-        ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-        │  dom.ts  │  │ pool.ts  │  │heights.ts│  │animation │
-        │ (DOM     │  │ (element │  │ (height  │  │ (easing, │
-        │ structure│  │ recycler)│  │  cache)  │  │ scroll)  │
-        └──────────┘  └──────────┘  └──────────┘  └──────────┘
 ```
+
+**Key Change in v0.6.0:** Features like window scrolling are now plugins that hook into the builder core rather than being baked in. This enables smaller bundles and community extensibility.
 
 ## Data Flow
 
@@ -168,42 +164,26 @@ Emit 'load:end' event
 
 ## Key Features by Module
 
-### Render Module
-- Element pooling for performance
-- DocumentFragment batching for bulk DOM operations
-- Viewport-relative positioning
-- Compression for 1M+ items
-- CSS containment (`contain: layout style` on items container, `contain: content` + `will-change: transform` on items)
-- CSS-only static positioning (only dynamic `height` set via JS)
-- Reusable ItemState object to reduce GC pressure
-- Targeted keyboard focus render (updates only 2 affected items on arrow keys)
+### Core (Builder + Render)
+- **Virtual scrolling** - Only render visible + overscan items
+- **Element pooling** - Reuse DOM elements for performance
+- **Height cache** - O(1) offset lookups with prefix sums
+- **Basic DOM structure** - Container, viewport, content, items
+- **Event system** - Type-safe emitter with error isolation
+- **ResizeObserver** - Automatic viewport size detection
+- **Plugin hooks** - Extensibility points for features
 
-### Data Module
-- Sparse storage (chunk-based) with LRU eviction
-- Memory-efficient (configurable limits)
-- Smart placeholder generation
-- Request deduplication
-- Batched LRU timestamps (`touchChunksForRange()` — single `Date.now()` per render)
-- Direct state getters (`getTotal()`, `getCached()`) for zero-allocation hot paths
+### Plugin System (v0.6.0)
+- **Window mode** - Page-level scrolling (extracted in v0.6.0)
+- **Selection** - Click/keyboard selection with ARIA
+- **Grid** - 2D grid layout with responsive columns
+- **Groups** - Sticky headers for grouped lists
+- **Data adapter** - Async loading with sparse storage
+- **Compression** - Handle 1M+ items efficiently
+- **Custom scrollbar** - Consistent cross-browser scrollbar
+- **Snapshots** - Save/restore scroll position
 
-### Scroll Module
-- Unified `scroll` config (`wheel`, `wrap`, `scrollbar`, `element`, `idleTimeout`)
-- Custom scrollbar by default (consistent cross-browser), with `'native'` and `'none'` modes
-- `wheel: false` — disable mouse wheel, hide native scrollbar (wizard/carousel UIs)
-- `wrap: true` — circular navigation via `scrollToIndex` (carousel/wizard loops)
-- Native, compressed, and window scrolling modes
-- Circular buffer velocity tracking (zero allocations during scroll)
-- RAF-throttled native scroll (at most one processing per animation frame)
-- Configurable idle detection (`idleTimeout` option, default: 150ms)
-- Scroll transition suppression (`.vlist--scrolling` class during active scroll)
-- Velocity-based configurable chunk preloading
-- Reverse mode (chat UI): initial scroll to bottom, auto-scroll on append, scroll-preserving prepend
 
-### Selection Module
-- Single/multiple selection modes
-- Keyboard navigation with in-place focus mutation (zero allocations)
-- Range selection (shift+click)
-- Pure functional state management
 
 ### Accessibility (across modules)
 - WAI-ARIA Listbox pattern (`role="listbox"` / `role="option"`)
