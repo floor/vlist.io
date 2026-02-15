@@ -37,7 +37,7 @@ export interface ExampleGroup {
 
 export const EXAMPLE_GROUPS: ExampleGroup[] = [
   {
-    label: "Examples",
+    label: "Core Examples",
     items: [
       {
         slug: "basic",
@@ -45,25 +45,80 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         desc: "Minimal vanilla JS — one function call, zero boilerplate",
       },
       {
+        slug: "core",
+        name: "Core (4.2KB)",
+        desc: "Lightweight build — 83% smaller, same result",
+      },
+      {
         slug: "controls",
         name: "Controls",
         desc: "Selection, navigation, scroll events — full API exploration",
       },
+    ],
+  },
+  {
+    label: "Grid Plugin",
+    items: [
       {
-        slug: "core",
-        name: "Core (7KB)",
-        desc: "Lightweight build — 83% smaller, same result",
+        slug: "grid/photo-album",
+        name: "Photo Album",
+        desc: "Grid gallery with withGrid + withScrollbar — 4 frameworks",
+      },
+    ],
+  },
+  {
+    label: "Data Plugin",
+    items: [
+      {
+        slug: "data/large-list",
+        name: "Large List (Compression)",
+        desc: "100K–5M items with withCompression — 4 frameworks",
       },
       {
-        slug: "grid",
-        name: "Grid",
-        desc: "Virtualized photo gallery with real images",
+        slug: "data/velocity-loading",
+        name: "Velocity Loading",
+        desc: "Smart loading — skips when scrolling fast",
       },
+    ],
+  },
+  {
+    label: "Horizontal",
+    items: [
       {
-        slug: "sticky-headers",
+        slug: "horizontal/basic",
+        name: "Basic Horizontal",
+        desc: "Horizontal carousel with 10K cards — 4 frameworks",
+      },
+    ],
+  },
+  {
+    label: "Groups Plugin",
+    items: [
+      {
+        slug: "groups/sticky-headers",
         name: "Sticky Headers",
         desc: "A–Z contact list with sticky section headers",
       },
+    ],
+  },
+  {
+    label: "Other Plugins",
+    items: [
+      {
+        slug: "scroll-restore",
+        name: "Snapshots (Scroll Restore)",
+        desc: "Save & restore scroll position across navigations",
+      },
+      {
+        slug: "window-scroll",
+        name: "Window (Page Scroll)",
+        desc: "Document-level scrolling — no inner scrollbar",
+      },
+    ],
+  },
+  {
+    label: "Advanced Examples",
+    items: [
       {
         slug: "variable-heights",
         name: "Variable Heights",
@@ -75,64 +130,9 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         desc: "Chat UI — reverse mode, prepend history, auto-scroll",
       },
       {
-        slug: "horizontal",
-        name: "Horizontal",
-        desc: "Horizontal carousel with 10K cards",
-      },
-      {
-        slug: "window-scroll",
-        name: "Window Scroll",
-        desc: "Document-level scrolling — no inner scrollbar",
-      },
-      {
-        slug: "scroll-restore",
-        name: "Scroll Restore",
-        desc: "Save & restore scroll position across navigations",
-      },
-      {
-        slug: "large-list",
-        name: "Large List",
-        desc: "100K–5M items — core vlist with native scrolling",
-      },
-      {
-        slug: "velocity-loading",
-        name: "Velocity Loading",
-        desc: "Smart loading — skips when scrolling fast",
-      },
-      {
         slug: "wizard-nav",
-        name: "Wizard Nav",
+        name: "Wizard Navigation",
         desc: "Button-only navigation, wheel disabled",
-      },
-    ],
-  },
-  {
-    label: "Builder",
-    items: [
-      {
-        slug: "builder/basic",
-        name: "Basic",
-        desc: "Minimal builder — one plugin, zero boilerplate",
-      },
-      {
-        slug: "builder/controls",
-        name: "Controls",
-        desc: "Selection, navigation, scroll events — full builder integration",
-      },
-      {
-        slug: "builder/large-list",
-        name: "Large List",
-        desc: "1–5M items with withCompression + withScrollbar plugins",
-      },
-      {
-        slug: "builder/photo-album",
-        name: "Photo Album",
-        desc: "Grid gallery with withGrid + withScrollbar plugins",
-      },
-      {
-        slug: "builder/chat",
-        name: "Chat",
-        desc: "Reverse-mode chat UI with withScrollbar plugin",
       },
     ],
   },
