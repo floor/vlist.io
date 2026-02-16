@@ -343,39 +343,9 @@ function createGridView() {
     (innerWidth - (currentColumns - 1) * currentGap) / currentColumns;
   const height = colWidth * 0.8; // Icon + text
 
-  // Get arrangement config (grouping + sorting)
+  // Get arrangement config (sorting only - grouping disabled in grid view)
   const config = getArrangementConfig(currentArrangeBy);
   const sorted = [...items].sort(config.sortFn);
-
-  // Create group map if grouping is enabled
-  let groupMap = null;
-  if (config.groupBy !== "none") {
-    groupMap = new Map();
-    const groupCounts = {};
-    sorted.forEach((item, index) => {
-      const groupKey =
-        config.groupBy === "date" ? getDateGroup(item) : getFileKind(item);
-      groupMap.set(index, groupKey);
-      groupCounts[groupKey] = (groupCounts[groupKey] || 0) + 1;
-    });
-    console.log("🔍 Grid View Grouping Debug:", {
-      arrangeBy: currentArrangeBy,
-      groupBy: config.groupBy,
-      totalItems: sorted.length,
-      groupCounts,
-      firstTenGroups: Array.from(
-        { length: Math.min(10, sorted.length) },
-        (_, i) => ({
-          index: i,
-          name: sorted[i].name,
-          type: sorted[i].type,
-          kind: getFileKind(sorted[i]),
-          dateGroup: getDateGroup(sorted[i]),
-          assignedGroup: groupMap.get(i),
-        }),
-      ),
-    });
-  }
 
   // Hide list header in grid view
   const listHeader = document.getElementById("list-header");
@@ -399,27 +369,8 @@ function createGridView() {
     items: sorted,
   };
 
-  // Add groups config if grouping is enabled
-  if (config.groupBy !== "none" && groupMap) {
-    listConfig.groups = {
-      getGroupForIndex: (index) => groupMap.get(index) || "",
-      headerHeight: 40,
-      headerTemplate: (groupKey) => {
-        // Count items in this group
-        let count = 0;
-        groupMap.forEach((key) => {
-          if (key === groupKey) count++;
-        });
-        return `
-          <div class="group-header">
-            <span class="group-header__label">${groupKey}</span>
-            <span class="group-header__count">${count} items</span>
-          </div>
-        `;
-      },
-      sticky: true,
-    };
-  }
+  // Groups are disabled in grid view (visual browsing works better without groups)
+  // Items are still sorted according to the selected arrangement
 
   list = createVList(listConfig);
 
