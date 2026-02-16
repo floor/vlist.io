@@ -7,7 +7,7 @@ import { withGrid } from "vlist/grid";
 import { withScrollbar } from "vlist/scroll";
 
 // =============================================================================
-// File Type Icons & Colors
+// File Type Icons
 // =============================================================================
 
 const FILE_ICONS = {
@@ -30,39 +30,10 @@ const FILE_ICONS = {
   default: "📄",
 };
 
-const FILE_COLORS = {
-  folder: "#64b5f6",
-  js: "#f7df1e",
-  ts: "#3178c6",
-  json: "#f5a623",
-  html: "#e34c26",
-  css: "#264de4",
-  scss: "#cc6699",
-  md: "#083fa1",
-  image: "#4caf50",
-  archive: "#ff9800",
-  default: "#90a4ae",
-};
-
 function getFileIcon(item) {
   if (item.type === "directory") return FILE_ICONS.folder;
   const ext = item.extension;
   return FILE_ICONS[ext] || FILE_ICONS.default;
-}
-
-function getFileColor(item) {
-  if (item.type === "directory") return FILE_COLORS.folder;
-  const ext = item.extension;
-
-  // Image files
-  if (["png", "jpg", "jpeg", "gif", "svg"].includes(ext)) {
-    return FILE_COLORS.image;
-  }
-  // Archives
-  if (["zip", "tar", "gz"].includes(ext)) {
-    return FILE_COLORS.archive;
-  }
-  return FILE_COLORS[ext] || FILE_COLORS.default;
 }
 
 function getFileKind(item) {
@@ -99,7 +70,7 @@ function getFileKind(item) {
 let currentPath = "";
 let items = [];
 let currentView = "grid";
-let currentColumns = 4;
+let currentColumns = 6;
 let currentGap = 8;
 let list = null;
 let navigationHistory = [""];
@@ -113,11 +84,10 @@ let currentArrangeBy = "name";
 
 const gridItemTemplate = (item) => {
   const icon = getFileIcon(item);
-  const color = getFileColor(item);
 
   return `
     <div class="file-card">
-      <div class="file-card__icon" style="color: ${color}">
+      <div class="file-card__icon">
         ${icon}
       </div>
       <div class="file-card__name" title="${item.name}">
@@ -129,7 +99,6 @@ const gridItemTemplate = (item) => {
 
 const listItemTemplate = (item) => {
   const icon = getFileIcon(item);
-  const color = getFileColor(item);
   const sizeText =
     item.type === "file" && item.size != null ? formatFileSize(item.size) : "—";
   const kind = getFileKind(item);
@@ -159,7 +128,7 @@ const listItemTemplate = (item) => {
 
   return `
     <div class="file-row">
-      <div class="file-row__icon" style="color: ${color}">
+      <div class="file-row__icon">
         ${icon}
       </div>
       <div class="file-row__name">${item.name}</div>
@@ -223,18 +192,6 @@ function getArrangementConfig(arrangeBy) {
         },
       };
     case "date-modified":
-      return {
-        groupBy: "none",
-        sortFn: (a, b) => {
-          const dateA = new Date(a.modified).getTime();
-          const dateB = new Date(b.modified).getTime();
-          // Newest first
-          if (isNaN(dateA)) return 1;
-          if (isNaN(dateB)) return -1;
-          return dateB - dateA;
-        },
-      };
-    case "date-added":
       return {
         groupBy: "date",
         sortFn: (a, b) => {

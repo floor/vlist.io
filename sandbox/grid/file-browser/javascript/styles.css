@@ -34,7 +34,7 @@
     border-radius: 0;
     border: none;
     background: transparent;
-    font-size: 12px;
+    font-size: 13px;
     overflow-x: auto;
     white-space: nowrap;
     flex: 1;
@@ -295,7 +295,6 @@
 }
 
 .file-card__name {
-    font-size: 12px;
     font-weight: 500;
     color: var(--text);
     text-align: center;
@@ -337,6 +336,7 @@
 .list-header__size,
 .list-header__date,
 .list-header__kind {
+    font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -384,7 +384,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    padding: 8px 48px 8px 12px;
     background: transparent;
     margin-top: 12px;
     transition: all 0.2s ease;
@@ -478,7 +478,6 @@
 }
 
 .file-row__name {
-    font-size: 12px;
     font-weight: 400;
     color: var(--text);
     overflow: hidden;
@@ -495,19 +494,16 @@
 }
 
 .file-row__size {
-    font-size: 11px;
     color: var(--text-muted);
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
 
 .file-row__date {
-    font-size: 11px;
     color: var(--text-muted);
 }
 
 .file-row__kind {
-    font-size: 11px;
     color: var(--text-muted);
 }
 
@@ -621,9 +617,5 @@
 
     .file-card__icon {
         font-size: 44px;
-    }
-
-    .file-card__name {
-        font-size: 11px;
     }
 }
