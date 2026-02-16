@@ -966,16 +966,6 @@ Grid layout has certain constraints:
 
 ### Cannot Combine With
 
-❌ **Groups** — Grid has no concept of group boundaries or sticky headers
-```typescript
-// Invalid combination
-createVList({
-  layout: 'grid',
-  grid: { columns: 4 },
-  groups: { /* ... */ },  // ❌ Error!
-});
-```
-
 ❌ **Horizontal Direction** — Grid is inherently 2D
 ```typescript
 // Invalid combination
@@ -996,12 +986,61 @@ createVList({
 
 ### Can Combine With
 
+✅ **Groups** — Grouped grids with full-width section headers (NEW!)
 ✅ **Selection** — Single or multiple selection
 ✅ **Compression** — For grids with millions of items
 ✅ **Scrollbar** — Custom scrollbar styling
 ✅ **Snapshots** — Scroll position save/restore
 ✅ **Adapter** — Infinite scroll grid
 ✅ **Window Scrolling** — Full-page grid layouts
+
+### Grid with Groups
+
+✅ **NEW: Grid layouts now support grouped sections with headers!**
+
+Headers automatically:
+- Span full width across all columns
+- Force new rows (items after header start fresh row)
+- Work with sticky headers for iOS Contacts-style UI
+
+```typescript
+const fileByType = createVList({
+  container: '#browser',
+  layout: 'grid',
+  grid: { columns: 4, gap: 8 },
+  item: {
+    height: (index, ctx) => ctx.columnWidth * 0.8, // Dynamic aspect ratio
+    template: (item) => `<div class="file-card">...</div>`,
+  },
+  items: sortedFiles,
+  groups: {
+    getGroupForIndex: (i) => sortedFiles[i].type, // "Folder", "Image", "Document"
+    headerHeight: 40,
+    headerTemplate: (type) => `<div class="group-header">${type}</div>`,
+    sticky: true, // iOS-style sticky headers
+  },
+});
+```
+
+**How it works:**
+- Headers inserted into grid flow at group boundaries
+- Each header starts a new row (even if previous row not full)
+- Items after header resume normal 4-column grid layout
+- Sticky headers float at top during scroll
+- Performance: O(1) for regular grids, O(n) for grouped grids (acceptable for typical use)
+
+**Example layout:**
+```
+┌─────────────────────────────────────┐
+│ FOLDERS                      7 items│ ← Full-width header
+├─────────┬─────────┬─────────┬───────┤
+│ api     │ docs    │ src     │ test  │ ← 4-column grid
+├─────────┴─────────┴─────────┴───────┤
+│ IMAGES                       3 items│ ← New row, full-width header
+├─────────┬─────────┬─────────┬───────┤
+│ logo.png│ bg.jpg  │ icon.svg│       │ ← 4-column grid continues
+└─────────┴─────────┴─────────┴───────┘
+```
 
 ## Migration Guide
 
@@ -1116,6 +1155,91 @@ height: (index, context) => context ? context.columnWidth * 0.75 : 200
 2. Optimize template complexity
 3. Use `loading="lazy"` for images
 4. Consider pagination/filtering for truly massive datasets
+
+## Grid+Groups Technical Details
+
+When grid and groups plugins are combined, special coordination is required to handle:
+- Full-width headers that span all columns
+- Headers forcing new rows in the grid flow
+- Correct height calculations (row-based vs item-based)
+
+### How Grid+Groups Works
+
+**1. Layout Transformation**
+
+The groups plugin transforms the flat item list by inserting header pseudo-items:
+
+```
+Items: [file1, file2, file3, ...]
+         ↓ (groups plugin)
+Layout: [header, file1, header, file2, file3, header, ...]
+```
+
+**2. Groups-Aware Grid Layout**
+
+The grid layout algorithm becomes groups-aware:
+
+```typescript
+// Regular grid (O(1)):
+getRow(index) = Math.floor(index / columns)
+getCol(index) = index % columns
+
+// Grouped grid (O(n) - acceptable for typical use):
+getRow(index) = loop through items, headers force new rows
+getCol(index) = headers at col 0, items flow normally
+```
+
+**3. Height Cache Strategy**
+
+- Grid plugin initially sets row-based heights
+- Groups plugin rebuilds with item-based heights (headers + items)
+- Grid plugin overrides `getTotalHeight()` to return sum of column 0 items only
+
+This prevents double-counting items in the same row.
+
+**4. Rendering**
+
+Headers are detected by `data-id` starting with `__group_header`:
+- **Width**: Full container width (not column width)
+- **Height**: Uses `headerHeight` from groups config (typically 40px)
+- **X position**: Always 0 (left edge)
+- **Y position**: Cumulative sum of previous rows' heights
+
+Regular items:
+- **Width**: Column width
+- **Height**: Grid-calculated height (aspect ratio aware)
+- **X position**: Column offset based on column index
+- **Y position**: Same as headers - cumulative row heights
+
+### Performance Characteristics
+
+**Regular grids (no groups):**
+- All calculations: O(1)
+- No performance impact from groups support
+
+**Grouped grids:**
+- `getRow(index)`: O(n) where n = index
+- `getCol(index)`: O(n) where n = index
+- `getItemRange(rowStart, rowEnd)`: O(total items)
+- Acceptable for typical file browsers (< 1000 items)
+
+**Optimization notes:**
+- Fast path used when no groups detected (`isHeaderFn` undefined)
+- Groups-aware calculations only run when headers present
+- Height cache uses efficient prefix sums
+- Rendering uses element pooling
+
+### Example Use Cases
+
+Perfect for:
+- **File browsers** grouped by file type
+- **Photo galleries** grouped by date/album
+- **Product catalogs** grouped by category
+- **App launchers** grouped by folder
+
+Not recommended for:
+- Lists with 10,000+ items and many groups (performance)
+- Highly dynamic groupings that change frequently
 
 ## Grid Context Technical Details
 
