@@ -336,7 +336,6 @@ async function createBrowser(view = "grid") {
     createListView();
   }
 
-  updateStats();
   updateNavigationState();
 }
 
@@ -427,8 +426,6 @@ function createGridView() {
   list = createVList(listConfig);
 
   // Bind events
-  list.on("scroll", () => scheduleStatsUpdate());
-  list.on("range:change", () => scheduleStatsUpdate());
 
   list.on("item:click", ({ item, index }) => {
     handleItemClick(item, index);
@@ -520,8 +517,6 @@ function createListView() {
   list = createVList(listConfig);
 
   // Bind events
-  list.on("scroll", () => scheduleStatsUpdate());
-  list.on("range:change", () => scheduleStatsUpdate());
 
   list.on("item:click", ({ item, index }) => {
     handleItemClick(item, index);
@@ -607,39 +602,10 @@ async function navigateUp() {
 }
 
 // =============================================================================
-// Stats & UI Updates
+// UI Updates
 // =============================================================================
 
-const statsEl = document.getElementById("stats");
 const breadcrumbEl = document.getElementById("breadcrumb");
-
-// Throttle stats updates with RAF
-let statsRaf = null;
-
-function scheduleStatsUpdate() {
-  if (statsRaf) return;
-  statsRaf = requestAnimationFrame(() => {
-    updateStats();
-    statsRaf = null;
-  });
-}
-
-function updateStats() {
-  const domNodes = document.querySelectorAll(".file-card, .file-row").length;
-  const totalItems = items.length;
-  const saved =
-    totalItems > 0 ? ((totalItems - domNodes) / totalItems) * 100 : 0;
-  const folders = items.filter((i) => i.type === "directory").length;
-  const files = items.filter((i) => i.type === "file").length;
-
-  statsEl.innerHTML = `
-    <strong>Total:</strong> ${totalItems} items •
-    <strong>Folders:</strong> ${folders} •
-    <strong>Files:</strong> ${files} •
-    <strong>DOM:</strong> ${domNodes} •
-    <strong>Virtualized:</strong> ${saved.toFixed(1)}%
-  `;
-}
 
 function updateBreadcrumb() {
   const parts = currentPath ? currentPath.split("/") : [];
