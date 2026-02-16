@@ -407,11 +407,12 @@ document.getElementById("jump-bottom").addEventListener("click", () => {
   const lastIndex = list.total - 1;
   if (lastIndex >= 0) {
     list.scrollToIndex(lastIndex, {
-      align: "end",
+      align: "start",
       behavior: "smooth",
+      duration: 600,
     });
   }
-  addLog("scroll", "scrollToIndex(last, end, smooth)");
+  addLog("scroll", "scrollToIndex(last, start, smooth)");
 });
 
 document.getElementById("add-batch").addEventListener("click", () => {
