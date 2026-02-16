@@ -406,7 +406,11 @@ inputEl.addEventListener("keydown", (e) => {
 document.getElementById("jump-bottom").addEventListener("click", () => {
   const lastIndex = list.total - 1;
   if (lastIndex >= 0) {
-    list.scrollToIndex(lastIndex, { align: "end", behavior: "smooth" });
+    list.scrollToIndex(lastIndex, {
+      align: "end",
+      behavior: "smooth",
+      duration: 600,
+    });
   }
   addLog("scroll", "scrollToIndex(last, end, smooth)");
 });
