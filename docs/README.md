@@ -14,7 +14,7 @@
 - **[Window Scrolling](./vlist.md#window-scrolling)** - Document-level scrolling with `scrollElement: window`
 - **[Scroll Save/Restore](./vlist.md#scroll-saverestore)** - Save and restore scroll position for SPA navigation
 - **[Framework Adapters](#framework-adapters)** - React, Vue, and Svelte wrappers (<1 KB each)
-- **[Reverse Mode](./vlist.md#reverse-mode-chat-ui)** - Chat UI support with auto-scroll and scroll-preserving prepend
+- **[Reverse Mode](./reverse.md)** - Chat UI support with auto-scroll and scroll-preserving prepend
 - **[Scroll Config](./scroll.md#scroll-configuration)** - Wheel control, wrap navigation, scrollbar modes, window scrolling
 - **[Testing](./test.md)** - Test suite, coverage (99.99% lines), and testing patterns
 
@@ -40,8 +40,8 @@ Each module has detailed documentation covering its API, usage examples, and imp
 | **[Data](./data.md)** | Async data adapter with sparse storage | `src/plugins/data/` |
 | **[Scroll](./scroll.md)** | Custom scrollbar with drag support | `src/plugins/scroll/` |
 | **Compression** | Large list compression (1M+ items) | `src/plugins/compression/` |
-| **Grid** | 2D grid layout | `src/plugins/grid/` |
-| **Groups** | Grouped lists with sticky headers | `src/plugins/groups/` |
+| **[Grid](./grid.md)** | 2D grid layout | `src/plugins/grid/` |
+| **[Groups](./groups.md)** | Grouped lists with sticky headers | `src/plugins/groups/` |
 | **Snapshots** | Scroll position save/restore | `src/plugins/snapshots/` |
 
 ### API Modules

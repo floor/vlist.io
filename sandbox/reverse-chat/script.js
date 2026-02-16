@@ -1,12 +1,12 @@
-// script.js - vlist Reverse Mode Example
-// Chat-style messaging UI demonstrating reverse: true
+// script.js - vlist Reverse Mode with Groups Example
+// Chat-style messaging UI demonstrating reverse: true + inline date headers
 //
 // Features shown:
 //   - reverse: true → starts scrolled to bottom
+//   - groups with sticky: false → date headers (iMessage style)
 //   - appendItems() auto-scrolls to bottom (new messages)
 //   - prependItems() preserves scroll position (older messages)
-//   - Manual "load older" on scroll near top (no adapter — reverse
-//     mode is best demonstrated with explicit prepend/append)
+//   - Manual "load older" on scroll near top
 //   - Variable heights via DOM measurement
 
 import { createVList } from "vlist";
@@ -73,7 +73,7 @@ const DATE_LABELS = [
   "Today",
 ];
 
-const DATE_HEADER_HEIGHT = 36;
+const DATE_HEADER_HEIGHT = 24;
 const DEFAULT_MSG_HEIGHT = 56;
 
 // Total messages available to "load" from the server
@@ -98,9 +98,12 @@ const generateMessage = (index) => {
   const hour = 8 + (index % 14);
   const minute = (index * 7) % 60;
 
+  // Calculate which date section this message belongs to
+  const messagesPerDate = Math.ceil(TOTAL_HISTORY / DATE_LABELS.length);
+  const dateSection = Math.floor(index / messagesPerDate);
+
   return {
     id: `msg-${index}`,
-    isHeader: false,
     text,
     user: user.name,
     color: user.color,
@@ -108,35 +111,20 @@ const generateMessage = (index) => {
     isSelf: false,
     time: `${hour}:${String(minute).padStart(2, "0")}`,
     height: 0, // measured below
+    dateSection: Math.min(dateSection, DATE_LABELS.length - 1), // for grouping
   };
 };
 
 /**
  * Generate a page of messages in chronological order.
- * Sprinkles date separators at regular intervals.
+ * No need to manually insert date headers - groups plugin handles it!
  */
 const generatePage = (startIndex, count) => {
   const items = [];
-  const messagesPerDate = Math.ceil(TOTAL_HISTORY / DATE_LABELS.length);
 
   for (let i = 0; i < count; i++) {
     const globalIdx = startIndex + i;
     if (globalIdx >= TOTAL_HISTORY) break;
-
-    // Insert date separator at section boundaries
-    const dateSection = Math.floor(globalIdx / messagesPerDate);
-    const prevSection =
-      globalIdx > 0 ? Math.floor((globalIdx - 1) / messagesPerDate) : -1;
-
-    if (dateSection !== prevSection && dateSection < DATE_LABELS.length) {
-      items.push({
-        id: `date-${dateSection}`,
-        isHeader: true,
-        text: DATE_LABELS[dateSection],
-        height: DATE_HEADER_HEIGHT,
-      });
-    }
-
     items.push(generateMessage(globalIdx));
   }
 
@@ -146,14 +134,6 @@ const generatePage = (startIndex, count) => {
 // =============================================================================
 // Templates (return HTML strings)
 // =============================================================================
-
-const renderDateSep = (item) => `
-  <div class="date-sep">
-    <span class="date-sep__line"></span>
-    <span class="date-sep__text">${item.text}</span>
-    <span class="date-sep__line"></span>
-  </div>
-`;
 
 const renderMessage = (item) => {
   const selfClass = item.isSelf ? " msg--self" : "";
@@ -171,32 +151,28 @@ const renderMessage = (item) => {
   `;
 };
 
-const renderItem = (item) => {
-  if (item.isHeader) return renderDateSep(item);
-  return renderMessage(item);
-};
-
 // =============================================================================
 // DOM Measurement
-//
-// Measure BEFORE creating the vlist so we use the container's full width
-// (no scrollbar yet). A persistent content cache avoids redundant DOM
-// measurements across pages.
 // =============================================================================
 
+/**
+ * Measure heights for a batch of items.
+ * Creates a temporary container, renders items, measures, then cleans up.
+ */
 const contentCache = new Map();
 
-const measureHeights = (items, containerWidth) => {
+const measureHeights = (items, width) => {
   const measurer = document.createElement("div");
-  measurer.style.cssText =
-    "position:absolute;top:0;left:0;visibility:hidden;pointer-events:none;" +
-    `width:${containerWidth}px;`;
+  measurer.style.cssText = `
+    position: absolute;
+    visibility: hidden;
+    width: ${width}px;
+    pointer-events: none;
+  `;
   document.body.appendChild(measurer);
 
   for (const item of items) {
-    if (item.isHeader) continue; // fixed height
-
-    const key = `${item.isSelf ? "self:" : ""}${item.user}:${item.text}`;
+    const key = `${item.id}-${width}`;
     if (contentCache.has(key)) {
       item.height = contentCache.get(key);
       continue;
@@ -208,13 +184,11 @@ const measureHeights = (items, containerWidth) => {
     contentCache.set(key, measured);
   }
 
-  measurer.remove();
+  document.body.removeChild(measurer);
 };
 
 /**
- * Return the width to use for measurement.
- * After vlist is created, use .vlist-viewport clientWidth (excludes scrollbar).
- * Before vlist exists, use the container's clientWidth.
+ * Get the actual content width (viewport minus scrollbar).
  */
 const getMeasureWidth = (container) => {
   const viewport = container.querySelector(".vlist-viewport");
@@ -222,268 +196,283 @@ const getMeasureWidth = (container) => {
 };
 
 // =============================================================================
-// Event log
+// Event logging (shows in bottom panel)
 // =============================================================================
 
-const MAX_LOG = 20;
+const MAX_LOG = 40;
 const logEntries = [];
 
 const addLog = (event, data) => {
-  const time = new Date().toLocaleTimeString();
-  logEntries.unshift({ time, event, data });
-  if (logEntries.length > MAX_LOG) logEntries.pop();
+  const time = new Date().toLocaleTimeString("en-US", { timeStyle: "medium" });
+  logEntries.push({ time, event, data });
+  if (logEntries.length > MAX_LOG) logEntries.shift();
   renderLog();
 };
 
 const renderLog = () => {
   const el = document.getElementById("event-log");
-  if (!el) return;
   el.innerHTML = logEntries
     .map(
-      (e) =>
-        `<div class="event-log__entry">` +
-        `<span class="event-log__time">[${e.time}]</span>` +
-        `<span class="event-log__event">${e.event}</span>` +
-        `<span class="event-log__data">${e.data}</span>` +
-        `</div>`,
+      ({ time, event, data }) => `
+    <div class="event-log__entry">
+      <span class="event-log__time">${time}</span>
+      <span class="event-log__event">${event}</span>
+      <span class="event-log__data">${data}</span>
+    </div>
+  `,
     )
     .join("");
 };
 
 // =============================================================================
-// Setup
+// Init
 // =============================================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("list-container");
-  const statsEl = document.getElementById("stats");
-  const statusEl = document.getElementById("channel-status");
-  const inputEl = document.getElementById("message-input");
-  const sendBtn = document.getElementById("send-btn");
+const container = document.getElementById("list-container");
+const statsEl = document.getElementById("stats");
+const statusEl = document.getElementById("channel-status");
+const inputEl = document.getElementById("message-input");
+const sendBtn = document.getElementById("send-btn");
 
-  // ------------------------------------------------------------------
-  // Generate & measure the initial page BEFORE creating vlist
-  // (so the container width has no scrollbar deducted yet).
-  // ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// Initial page: last N messages
+// ------------------------------------------------------------------
 
-  // How many messages from history have been loaded so far
-  let historyLoaded = INITIAL_PAGE;
-  // Counter for new user-sent messages
-  let sentCounter = 0;
-  // Flag to prevent concurrent loads
-  let isLoadingOlder = false;
+let historyLoaded = INITIAL_PAGE;
+let sentCounter = 1;
 
-  const startIdx = TOTAL_HISTORY - INITIAL_PAGE;
-  const initialItems = generatePage(startIdx, INITIAL_PAGE);
+let isLoadingOlder = false;
+const startIdx = Math.max(0, TOTAL_HISTORY - INITIAL_PAGE);
+const initialItems = generatePage(startIdx, INITIAL_PAGE);
 
-  // Measure at the container width (no vlist DOM yet → no scrollbar)
-  measureHeights(initialItems, container.clientWidth);
+// Measure heights before creating the list
+// (Use an estimated width; vlist will remeasure on resize)
+measureHeights(initialItems, 600);
 
-  // Mirror of vlist's internal items — the height function needs this
-  // during createVList() (before `list` is assigned) and after mutations.
-  let currentItems = [...initialItems];
+let currentItems = [...initialItems];
 
-  const updateStatus = () => {
-    const remaining = TOTAL_HISTORY - historyLoaded;
-    statusEl.textContent =
-      remaining > 0
-        ? `${remaining} older messages available`
-        : `All ${TOTAL_HISTORY} messages loaded`;
-  };
+const updateStatus = () => {
+  const remaining = TOTAL_HISTORY - historyLoaded;
+  statusEl.textContent =
+    remaining > 0
+      ? `${remaining.toLocaleString()} older messages available`
+      : `All ${TOTAL_HISTORY.toLocaleString()} messages loaded`;
+};
+updateStatus();
 
-  updateStatus();
+// ------------------------------------------------------------------
+// Create vlist with reverse mode + groups (inline date headers)
+// ------------------------------------------------------------------
 
-  // ------------------------------------------------------------------
-  // Create the list with reverse: true and static items
-  // ------------------------------------------------------------------
-
-  const list = createVList({
-    container,
-    ariaLabel: "Chat messages",
-    reverse: true,
-    item: {
-      height: (index) => {
-        const item = currentItems[index];
-        return (item && item.height) || DEFAULT_MSG_HEIGHT;
-      },
-      template: (item) => {
-        const el = document.createElement("div");
-        el.innerHTML = renderItem(item);
-        return el.firstElementChild;
-      },
+const list = createVList({
+  container,
+  ariaLabel: "Chat messages",
+  reverse: true,
+  item: {
+    height: (index) => {
+      const item = currentItems[index];
+      return (item && item.height) || DEFAULT_MSG_HEIGHT;
     },
-    items: initialItems,
-  });
+    template: (item) => {
+      const el = document.createElement("div");
+      el.innerHTML = renderMessage(item);
+      return el.firstElementChild;
+    },
+  },
+  items: initialItems,
+  // Groups plugin with inline headers (iMessage style)
+  groups: {
+    getGroupForIndex: (index) => {
+      const item = currentItems[index];
+      return item ? DATE_LABELS[item.dateSection] : "Unknown";
+    },
+    headerHeight: DATE_HEADER_HEIGHT,
+    headerTemplate: (dateLabel) => {
+      const el = document.createElement("div");
+      el.className = "date-sep";
+      el.innerHTML = `
+        <span class="date-sep__line"></span>
+        <span class="date-sep__text">${dateLabel}</span>
+        <span class="date-sep__line"></span>
+      `;
+      return el;
+    },
+    sticky: true, // Try sticky: true for Telegram-style (header sticks at top while scrolling)
+  },
+});
 
-  addLog("init", `reverse: true — ${initialItems.length} items loaded`);
+addLog(
+  "init",
+  `reverse: true + groups (sticky: false) — ${initialItems.length} items`,
+);
 
-  // ------------------------------------------------------------------
-  // Load older messages on scroll near top (manual prependItems)
-  // ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// Load older messages on scroll near top (manual prependItems)
+// ------------------------------------------------------------------
 
-  const loadOlderMessages = async () => {
-    if (isLoadingOlder) return;
+const loadOlderMessages = async () => {
+  if (isLoadingOlder) return;
 
-    const remaining = TOTAL_HISTORY - historyLoaded;
-    if (remaining <= 0) return;
+  const remaining = TOTAL_HISTORY - historyLoaded;
+  if (remaining <= 0) return;
 
-    isLoadingOlder = true;
-    addLog("load", "fetching older messages…");
+  isLoadingOlder = true;
+  addLog("load", "fetching older messages…");
 
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, LOAD_DELAY));
+  // Simulate network delay
+  await new Promise((r) => setTimeout(r, LOAD_DELAY));
 
-    const count = Math.min(PREPEND_PAGE, remaining);
-    const start = TOTAL_HISTORY - historyLoaded - count;
-    const page = generatePage(Math.max(0, start), count);
+  const count = Math.min(PREPEND_PAGE, remaining);
+  const start = TOTAL_HISTORY - historyLoaded - count;
+  const page = generatePage(Math.max(0, start), count);
 
-    // Measure at the viewport width (scrollbar exists now)
-    measureHeights(page, getMeasureWidth(container));
+  // Measure at the viewport width (scrollbar exists now)
+  measureHeights(page, getMeasureWidth(container));
 
-    currentItems = [...page, ...currentItems];
-    list.prependItems(page);
-    historyLoaded += count;
+  currentItems = [...page, ...currentItems];
+  list.prependItems(page);
+  historyLoaded += count;
 
-    addLog("prepend", `${page.length} older messages (scroll preserved)`);
-    updateStatus();
-    isLoadingOlder = false;
-    scheduleStatsUpdate();
-  };
+  addLog("prepend", `${page.length} older messages (scroll preserved)`);
+  updateStatus();
+  isLoadingOlder = false;
+  scheduleStatsUpdate();
+};
 
-  // ------------------------------------------------------------------
-  // Wire events
-  // ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// Wire events
+// ------------------------------------------------------------------
 
-  list.on("scroll", ({ scrollTop }) => {
-    scheduleStatsUpdate();
+list.on("scroll", ({ scrollTop }) => {
+  scheduleStatsUpdate();
 
-    // Trigger "load older" when near the top
-    if (scrollTop < LOAD_THRESHOLD && !isLoadingOlder) {
-      loadOlderMessages();
-    }
-  });
-
-  list.on("range:change", ({ range }) => {
-    addLog("range", `${range.start}–${range.end}`);
-  });
-
-  list.on("error", ({ error, context }) => {
-    addLog("error", `${context}: ${error.message}`);
-  });
-
-  // ------------------------------------------------------------------
-  // Send message (appendItems — auto-scrolls when at bottom)
-  // ------------------------------------------------------------------
-
-  const sendMessage = (text) => {
-    if (!text.trim()) return;
-
-    const now = new Date();
-    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
-    const msg = {
-      id: `sent-${sentCounter++}`,
-      isHeader: false,
-      text: text.trim(),
-      user: SELF_USER.name,
-      color: SELF_USER.color,
-      initials: SELF_USER.initials,
-      isSelf: true,
-      time,
-      height: 0,
-    };
-
-    // Measure at the actual viewport width
-    measureHeights([msg], getMeasureWidth(container));
-
-    currentItems.push(msg);
-    list.appendItems([msg]);
-    addLog("append", `"${text.trim().slice(0, 40)}…"`);
-    inputEl.value = "";
-    inputEl.focus();
-    scheduleStatsUpdate();
-  };
-
-  sendBtn.addEventListener("click", () => sendMessage(inputEl.value));
-  inputEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage(inputEl.value);
-    }
-  });
-
-  // ------------------------------------------------------------------
-  // Controls
-  // ------------------------------------------------------------------
-
-  document.getElementById("jump-bottom").addEventListener("click", () => {
-    const total = list.total;
-    if (total > 0) {
-      list.scrollToIndex(total - 1, "end");
-      addLog("action", "Jump to bottom");
-    }
-  });
-
-  document.getElementById("add-batch").addEventListener("click", () => {
-    const now = new Date();
-    const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`;
-    const batch = [];
-
-    for (let i = 0; i < 5; i++) {
-      const userIdx = i % (USERS.length - 1);
-      const user = USERS[userIdx];
-      const text = MESSAGES[(sentCounter + i) % MESSAGES.length];
-      batch.push({
-        id: `sent-${sentCounter++}`,
-        isHeader: false,
-        text,
-        user: user.name,
-        color: user.color,
-        initials: user.initials,
-        isSelf: false,
-        time,
-        height: 0,
-      });
-    }
-
-    measureHeights(batch, getMeasureWidth(container));
-    currentItems.push(...batch);
-    list.appendItems(batch);
-    addLog("append", `batch of ${batch.length} messages`);
-    scheduleStatsUpdate();
-  });
-
-  document.getElementById("load-older").addEventListener("click", () => {
+  // Trigger "load older" when near the top
+  if (scrollTop < LOAD_THRESHOLD) {
     loadOlderMessages();
+  }
+});
+
+list.on("render", ({ range }) => {
+  addLog("render", `items ${range.start}–${range.end}`);
+});
+
+// ------------------------------------------------------------------
+// Send message
+// ------------------------------------------------------------------
+
+const sendMessage = () => {
+  const text = inputEl.value.trim();
+  if (!text) return;
+
+  inputEl.value = "";
+
+  const now = new Date();
+  const time = now.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
   });
 
-  // ------------------------------------------------------------------
-  // Stats display (throttled)
-  // ------------------------------------------------------------------
+  // New messages go in the "Today" section
+  const todaySection = DATE_LABELS.length - 1;
 
-  let statsRaf = false;
+  const msg = {
+    id: `sent-${sentCounter++}`,
+    text,
+    user: SELF_USER.name,
+    color: SELF_USER.color,
+    initials: SELF_USER.initials,
+    isSelf: true,
+    time,
+    height: DEFAULT_MSG_HEIGHT,
+    dateSection: todaySection,
+  };
 
-  function scheduleStatsUpdate() {
-    if (statsRaf) return;
-    statsRaf = true;
-    requestAnimationFrame(() => {
-      updateStats();
-      statsRaf = false;
+  // Measure height
+  measureHeights([msg], getMeasureWidth(container));
+
+  currentItems = [...currentItems, msg];
+  list.appendItems([msg]);
+  addLog("append", `sent message (auto-scroll if at bottom)`);
+  scheduleStatsUpdate();
+};
+
+sendBtn.addEventListener("click", sendMessage);
+inputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// ------------------------------------------------------------------
+// Control buttons
+// ------------------------------------------------------------------
+
+document.getElementById("jump-bottom").addEventListener("click", () => {
+  list.scrollToBottom("smooth");
+  addLog("scroll", "scrollToBottom()");
+});
+
+document.getElementById("add-batch").addEventListener("click", () => {
+  const now = new Date();
+  const time = now.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const batch = [];
+  const todaySection = DATE_LABELS.length - 1;
+
+  for (let i = 0; i < 5; i++) {
+    const userIdx = i % (USERS.length - 1);
+    const user = USERS[userIdx];
+    const text = MESSAGES[(currentItems.length + i) % MESSAGES.length];
+    batch.push({
+      id: `batch-${Date.now()}-${i}`,
+      text,
+      user: user.name,
+      color: user.color,
+      initials: user.initials,
+      isSelf: false,
+      time,
+      height: DEFAULT_MSG_HEIGHT,
+      dateSection: todaySection,
     });
   }
 
-  function updateStats() {
-    const total = list.total;
-    const domNodes = container.querySelectorAll(".vlist-item").length;
-    const virtualized =
-      total > 0 ? Math.round((1 - domNodes / total) * 100) : 0;
-
-    statsEl.innerHTML = [
-      `<span><strong>Total:</strong> ${total.toLocaleString()} items</span>`,
-      `<span><strong>DOM:</strong> ${domNodes}</span>`,
-      `<span><strong>Virtualized:</strong> ${virtualized}%</span>`,
-      `<span><strong>History:</strong> ${historyLoaded}/${TOTAL_HISTORY}</span>`,
-    ].join("");
-  }
-
-  setTimeout(scheduleStatsUpdate, 100);
+  measureHeights(batch, getMeasureWidth(container));
+  currentItems = [...currentItems, ...batch];
+  list.appendItems(batch);
+  addLog("append", `5 messages added`);
+  scheduleStatsUpdate();
 });
+
+document.getElementById("load-older").addEventListener("click", () => {
+  loadOlderMessages();
+});
+
+// ------------------------------------------------------------------
+// Stats update (debounced via rAF)
+// ------------------------------------------------------------------
+
+let statsRaf = null;
+
+function scheduleStatsUpdate() {
+  if (statsRaf) return;
+  statsRaf = requestAnimationFrame(updateStats);
+}
+
+function updateStats() {
+  statsRaf = null;
+  const total = list.total;
+  const domNodes = container.querySelectorAll("[data-index]").length;
+  const virtualized =
+    total > 0 ? (((total - domNodes) / total) * 100).toFixed(1) : 0;
+
+  statsEl.innerHTML = `
+    <strong>${total.toLocaleString()}</strong> items
+    · <strong>${domNodes}</strong> DOM nodes
+    · <strong>${virtualized}%</strong> virtualized
+  `;
+}
+
+scheduleStatsUpdate();
