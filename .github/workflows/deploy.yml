@@ -45,15 +45,15 @@ jobs:
             # Replace file: dependencies with npm registry versions
             # (file: paths are for local dev only — they don't exist on the server)
             echo "🔗 Resolving production dependencies..."
-            sed -i 's|"vlist": "file:../vlist"|"vlist": "github:floor/vlist"|' package.json
+            sed -i 's|"vlist": "file:../vlist"|"vlist": "@floor/vlist"|' package.json
             sed -i 's|"mtrl": "file:../../mtrl"|"mtrl": "^0.6.3"|' package.json
             sed -i 's|"mtrl-addons": "file:../../mtrl-addons"|"mtrl-addons": "^0.6.0"|' package.json
 
             # Install dependencies (regenerate lockfile with npm versions)
             bun install
 
-            # Build vlist (installed from GitHub — dist/ is gitignored)
-            cd node_modules/vlist && bun run build && cd $APP_DIR
+            # Note: vlist is now published to npm as @floor/vlist with pre-built dist/
+            # No build step needed anymore!
 
             # Patch mtrl packages: remove "development" export condition
             # (points to src/ which isn't shipped in npm packages)
