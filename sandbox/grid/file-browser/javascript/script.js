@@ -123,9 +123,6 @@ const gridItemTemplate = (item) => {
       <div class="file-card__name" title="${item.name}">
         ${item.name}
       </div>
-      <div class="file-card__meta">
-        ${item.type === "file" ? formatFileSize(item.size) : "—"}
-      </div>
     </div>
   `;
 };
