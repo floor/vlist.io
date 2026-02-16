@@ -409,7 +409,6 @@ document.getElementById("jump-bottom").addEventListener("click", () => {
     list.scrollToIndex(lastIndex, {
       align: "end",
       behavior: "smooth",
-      duration: 600,
     });
   }
   addLog("scroll", "scrollToIndex(last, end, smooth)");
