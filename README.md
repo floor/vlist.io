@@ -9,10 +9,28 @@ Documentation, sandbox, and benchmarks site for the [vlist](https://github.com/f
 | Section | Path | Description |
 |---------|------|-------------|
 | **Landing** | `/` | Feature overview, quick start, and navigation |
-| **Sandbox** | `/sandbox/` | 12 interactive examples — basic lists to million-item stress tests |
+| **Sandbox** | `/sandbox/` | 19 interactive examples — basic lists to million-item stress tests |
 | **Docs** | `/docs/` | API reference, configuration, events, methods, styling |
 | **Benchmarks** | `/benchmarks/` | Live performance suites — scroll FPS, render time, memory, bundle size |
 | **API** | `/api/` | Deterministic user data endpoint for demos (1M+ items, zero storage) |
+
+## Sandbox Examples
+
+The sandbox includes 19 interactive examples organized by feature category:
+
+| Category | Examples | Description |
+|----------|----------|-------------|
+| **Getting Started** | Basic, Controls | Minimal setup and full API exploration |
+| **Core (Lightweight)** | Basic Core | 4.2KB build — 83% smaller than full bundle |
+| **Grid Plugin** | Photo Album, File Browser | Grid layouts with multiple framework implementations |
+| **Data Plugin** | Large List (Compression), Velocity Loading | 100K–5M items with smart loading strategies |
+| **Horizontal** | Basic Horizontal | Horizontal carousel with 10K cards |
+| **Groups Plugin** | Sticky Headers | A–Z contact list with sticky section headers |
+| **Other Plugins** | Scroll Restore, Window Scroll | Save/restore scroll position, document-level scrolling |
+| **Advanced** | Variable Heights, Reverse Chat, Wizard Nav | DOM-measured heights, reverse mode, button-only navigation |
+| **Builder Pattern** | Basic, Controls, Large List, Photo Album, Chat | Fluent API with plugin composition (5 examples) |
+
+Many examples include **multi-framework implementations** (JavaScript, React, Svelte, Vue) demonstrating framework-agnostic usage.
 
 ## Setup
 
@@ -47,7 +65,7 @@ This builds the sandbox and benchmarks, then starts the Bun server with `--watch
 |--------|---------|-------------|
 | `dev` | `bun run dev` | Build sandbox + benchmarks, start server with watch |
 | `start` | `bun run start` | Start server (no build, no watch) |
-| `build:sandbox` | `bun run build:sandbox` | Build all 12 sandbox examples |
+| `build:sandbox` | `bun run build:sandbox` | Build all 19 sandbox examples |
 | `build:sandbox:watch` | `bun run build:sandbox:watch` | Rebuild sandbox on change |
 | `build:bench` | `bun run build:bench` | Build benchmark suites |
 | `build:bench:watch` | `bun run build:bench:watch` | Rebuild benchmarks on change |
@@ -65,18 +83,31 @@ vlist.dev/
 ├── sandbox/                # Interactive examples
 │   ├── build.ts            # Sandbox build script
 │   ├── index.html          # Sandbox index page
-│   ├── basic/
-│   ├── core/
-│   ├── grid/
-│   ├── infinite-scroll/
-│   ├── million-items/
+│   ├── basic/              # Getting Started
+│   ├── controls/
+│   ├── core/               # Core (Lightweight)
+│   │   └── basic/
+│   ├── grid/               # Grid Plugin
+│   │   ├── photo-album/
+│   │   └── file-browser/
+│   ├── data/               # Data Plugin
+│   │   ├── large-list/
+│   │   └── velocity-loading/
+│   ├── horizontal/         # Horizontal
+│   │   └── basic/
+│   ├── groups/             # Groups Plugin
+│   │   └── sticky-headers/
+│   ├── scroll-restore/     # Other Plugins
+│   ├── window-scroll/
+│   ├── variable-heights/   # Advanced Examples
 │   ├── reverse-chat/
-│   ├── scroll-restore/
-│   ├── selection/
-│   ├── sticky-headers/
-│   ├── variable-heights/
-│   ├── velocity-loading/
-│   └── window-scroll/
+│   ├── wizard-nav/
+│   └── builder/            # Builder Pattern
+│       ├── basic/
+│       ├── controls/
+│       ├── large-list/
+│       ├── photo-album/
+│       └── chat/
 ├── benchmarks/             # Performance test suites
 ├── docs/                   # Markdown documentation
 ├── nginx/                  # nginx vhost config
