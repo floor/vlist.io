@@ -3,6 +3,11 @@
    are provided by sandbox/sandbox.css using shell.css design tokens.
    Panel system (.split-layout, .split-panel, .panel-*)
    is also provided by sandbox/sandbox.css. */
+
+.split-layout {
+    height: 600px;
+}
+
 .split-main {
     padding: 0;
 }
@@ -18,7 +23,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    max-height: 600px;
 }
 
 /* ==========================================================================

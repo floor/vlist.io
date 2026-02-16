@@ -12,80 +12,64 @@
 import { createVList } from "vlist";
 
 // =============================================================================
-// Data — message corpus & users
+// Data — load messages from JSON
 // =============================================================================
 
-const MESSAGES = [
-  "Hey! 👋",
-  "What's up?",
-  "Not much, just listening to some music",
-  "Check out this new album I found on Radiooooo 🎶",
-  "Oh nice! What decade?",
-  "1970s Brazilian funk. The groove is incredible.",
-  "I've been on a 1960s Japanese city pop kick lately. The production quality is way ahead of its time — lush arrangements, incredible detail.",
-  "lol",
-  "👍",
-  "brb",
-  "Did you know you can scroll through music by country AND decade? I spent 3 hours exploring Soviet-era Georgian folk music yesterday. The polyphonic singing is out of this world — layers upon layers of voices.",
-  "Ha, classic rabbit hole",
-  "The best kind though",
-  "true",
-  "Anyone want to grab lunch?",
-  "🎵🎵🎵",
-  "I was thinking about how 1950s West African music has this incredible rhythmic complexity that influenced jazz, funk, afrobeat, and even modern electronic music.",
-  "Totally agree",
-  "Yes! Fela Kuti's early stuff especially",
-  "omw",
-  "k",
-  "The thing about exploring music geographically is that you hear the connections between cultures — a melody traveling from North Africa through Spain into Latin America and back. An audible map of human migration.",
-  "That's deep",
-  "Mind = blown 🤯",
-  "Wait, have you tried the random mode? It drops you into a random country and decade. Yesterday I landed on 1980s Iceland and discovered an amazing post-punk scene.",
-  "No way, adding that to my list",
-  "Do it. You won't regret it.",
-  "🇮🇸 🎸",
-  "So I went down the Iceland rabbit hole and found experimental electronic music from Reykjavik in the late 90s that basically paved the way for ambient and IDM",
-  "Has anyone tried making a playlist that follows one genre across every continent? Like jazz from New Orleans to Paris to Tokyo to Lagos?",
-  "That sounds amazing, how do I do that?",
-  "Just pick a decade, click through countries one by one — you'll hear the local flavor each place added",
-  "🔥🔥🔥",
-  "ok I just tried 1940s Cuba and I can't stop dancing at my desk",
-  "haha same thing happened to me last week",
-  "The mambo recordings from that era are some of the most joyful music ever. Pérez Prado was doing things with brass that still sound fresh 80 years later.",
-];
+let MESSAGES = [];
+let USERS = [];
 
-const USERS = [
-  { name: "Alice", color: "#667eea", initials: "A" },
-  { name: "Bob", color: "#e06595", initials: "B" },
-  { name: "Charlie", color: "#38a169", initials: "C" },
-  { name: "Diana", color: "#d97706", initials: "D" },
-  { name: "You", color: "#667eea", initials: "Y" },
-];
+// Load messages and users from JSON files
+const loadMessages = async () => {
+  const response = await fetch("/sandbox/reverse-chat/messages.json");
+  MESSAGES = await response.json();
+};
 
-const SELF_USER = USERS[4];
+const loadUsers = async () => {
+  const response = await fetch("/sandbox/reverse-chat/users.json");
+  USERS = await response.json();
+};
 
-const DATE_LABELS = [
-  "December 10",
-  "December 12",
-  "December 14",
-  "December 16",
-  "Yesterday",
-  "Today",
-];
+let SELF_USER;
+
+// Generate date labels from beginning of year to now
+const generateDateLabels = () => {
+  const labels = [];
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYear = new Date(now.getFullYear(), 0, 1); // Jan 1
+
+  const daysSinceStart = Math.floor(
+    (today - startOfYear) / (1000 * 60 * 60 * 24),
+  );
+
+  for (let i = daysSinceStart; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+
+    if (i === 0) {
+      labels.push("Today");
+    } else if (i === 1) {
+      labels.push("Yesterday");
+    } else {
+      labels.push(
+        date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+      );
+    }
+  }
+
+  return labels;
+};
+
+const DATE_LABELS = generateDateLabels();
 
 const DATE_HEADER_HEIGHT = 24;
 const DEFAULT_MSG_HEIGHT = 56;
 
-// Total messages available to "load" from the server
-const TOTAL_HISTORY = 500;
-// How many to load as the initial page (newest)
-const INITIAL_PAGE = 100;
-// How many to prepend when scrolling near the top
-const PREPEND_PAGE = 60;
-// Scroll threshold (px from top) to trigger loading older messages
-const LOAD_THRESHOLD = 200;
-// Simulated network delay (ms)
-const LOAD_DELAY = 300;
+// Total messages to display
+const TOTAL_MESSAGES = 5000;
 
 // =============================================================================
 // Message generation — produces a deterministic corpus
@@ -95,12 +79,17 @@ const generateMessage = (index) => {
   const text = MESSAGES[index % MESSAGES.length];
   const userIdx = index % (USERS.length - 1); // exclude "You" from history
   const user = USERS[userIdx];
-  const hour = 8 + (index % 14);
-  const minute = (index * 7) % 60;
 
-  // Calculate which date section this message belongs to
-  const messagesPerDate = Math.ceil(TOTAL_HISTORY / DATE_LABELS.length);
-  const dateSection = Math.floor(index / messagesPerDate);
+  // Distribute messages across the year (from Jan 1 to today)
+  // index 0 = oldest (Jan 1), index TOTAL_MESSAGES-1 = newest (today)
+  const dayIndex = Math.floor((index / TOTAL_MESSAGES) * DATE_LABELS.length);
+  const dateSection = Math.min(dayIndex, DATE_LABELS.length - 1);
+
+  // Generate realistic time within the day
+  const messagesPerDay = TOTAL_MESSAGES / DATE_LABELS.length;
+  const indexInDay = index % messagesPerDay;
+  const hour = 8 + Math.floor((indexInDay / messagesPerDay) * 14); // 8am to 10pm
+  const minute = (index * 7) % 60;
 
   return {
     id: `msg-${index}`,
@@ -124,7 +113,7 @@ const generatePage = (startIndex, count) => {
 
   for (let i = 0; i < count; i++) {
     const globalIdx = startIndex + i;
-    if (globalIdx >= TOTAL_HISTORY) break;
+    if (globalIdx >= TOTAL_MESSAGES) break;
     items.push(generateMessage(globalIdx));
   }
 
@@ -234,123 +223,103 @@ const inputEl = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
 
 // ------------------------------------------------------------------
+// Helper: Check if user is at bottom
+// ------------------------------------------------------------------
+
+const isAtBottom = () => {
+  const scrollTop = list.getScrollPosition();
+  const maxScroll = container.scrollHeight - container.clientHeight;
+  return scrollTop >= maxScroll - 50; // Within 50px of bottom
+};
+
+// ------------------------------------------------------------------
 // Initial page: last N messages
 // ------------------------------------------------------------------
 
-let historyLoaded = INITIAL_PAGE;
 let sentCounter = 1;
-
-let isLoadingOlder = false;
-const startIdx = Math.max(0, TOTAL_HISTORY - INITIAL_PAGE);
-const initialItems = generatePage(startIdx, INITIAL_PAGE);
-
-// Measure heights before creating the list
-// (Use an estimated width; vlist will remeasure on resize)
-measureHeights(initialItems, 600);
-
-let currentItems = [...initialItems];
-
-const updateStatus = () => {
-  const remaining = TOTAL_HISTORY - historyLoaded;
-  statusEl.textContent =
-    remaining > 0
-      ? `${remaining.toLocaleString()} older messages available`
-      : `All ${TOTAL_HISTORY.toLocaleString()} messages loaded`;
-};
-updateStatus();
+let currentItems = [];
+let list;
 
 // ------------------------------------------------------------------
-// Create vlist with reverse mode + groups (inline date headers)
+// Initialize - Load messages and create list
 // ------------------------------------------------------------------
 
-const list = createVList({
-  container,
-  ariaLabel: "Chat messages",
-  reverse: true,
-  item: {
-    height: (index) => {
-      const item = currentItems[index];
-      return (item && item.height) || DEFAULT_MSG_HEIGHT;
+const init = async () => {
+  // Load messages and users from JSON
+  await Promise.all([loadMessages(), loadUsers()]);
+
+  // Set self user after loading
+  SELF_USER = { name: "You", color: "#667eea", initials: "YOU" };
+
+  // Generate all messages from the start
+  const allItems = generatePage(0, TOTAL_MESSAGES);
+
+  // Measure heights before creating the list
+  measureHeights(allItems, 600);
+
+  currentItems = [...allItems];
+
+  const updateStatus = () => {
+    statusEl.textContent = `${TOTAL_MESSAGES.toLocaleString()} messages from Jan 1 to today`;
+  };
+  updateStatus();
+
+  // Create vlist with reverse mode + groups (inline date headers)
+  list = createVList({
+    container,
+    ariaLabel: "Chat messages",
+    reverse: true,
+    item: {
+      height: (index) => {
+        const item = currentItems[index];
+        return (item && item.height) || DEFAULT_MSG_HEIGHT;
+      },
+      template: (item) => {
+        const el = document.createElement("div");
+        el.innerHTML = renderMessage(item);
+        return el.firstElementChild;
+      },
     },
-    template: (item) => {
-      const el = document.createElement("div");
-      el.innerHTML = renderMessage(item);
-      return el.firstElementChild;
-    },
-  },
-  items: initialItems,
-  // Groups plugin with inline headers (iMessage style)
-  groups: {
-    getGroupForIndex: (index) => {
-      const item = currentItems[index];
-      return item ? DATE_LABELS[item.dateSection] : "Unknown";
-    },
-    headerHeight: DATE_HEADER_HEIGHT,
-    headerTemplate: (dateLabel) => {
-      const el = document.createElement("div");
-      el.className = "date-sep";
-      el.innerHTML = `
+    items: allItems,
+    // Groups plugin with inline headers (iMessage style)
+    groups: {
+      getGroupForIndex: (index) => {
+        const item = currentItems[index];
+        return item ? DATE_LABELS[item.dateSection] : "Unknown";
+      },
+      headerHeight: DATE_HEADER_HEIGHT,
+      headerTemplate: (dateLabel) => {
+        const el = document.createElement("div");
+        el.className = "date-sep";
+        el.innerHTML = `
         <span class="date-sep__line"></span>
         <span class="date-sep__text">${dateLabel}</span>
         <span class="date-sep__line"></span>
       `;
-      return el;
+        return el;
+      },
+      sticky: true, // Try sticky: true for Telegram-style (header sticks at top while scrolling)
     },
-    sticky: true, // Try sticky: true for Telegram-style (header sticks at top while scrolling)
-  },
-});
+  });
 
-addLog(
-  "init",
-  `reverse: true + groups (sticky: false) — ${initialItems.length} items`,
-);
+  addLog("init", `reverse: true + groups — ${allItems.length} items loaded`);
 
-// ------------------------------------------------------------------
-// Load older messages on scroll near top (manual prependItems)
-// ------------------------------------------------------------------
+  // Wire events
+  wireEvents();
 
-const loadOlderMessages = async () => {
-  if (isLoadingOlder) return;
-
-  const remaining = TOTAL_HISTORY - historyLoaded;
-  if (remaining <= 0) return;
-
-  isLoadingOlder = true;
-  addLog("load", "fetching older messages…");
-
-  // Simulate network delay
-  await new Promise((r) => setTimeout(r, LOAD_DELAY));
-
-  const count = Math.min(PREPEND_PAGE, remaining);
-  const start = TOTAL_HISTORY - historyLoaded - count;
-  const page = generatePage(Math.max(0, start), count);
-
-  // Measure at the viewport width (scrollbar exists now)
-  measureHeights(page, getMeasureWidth(container));
-
-  currentItems = [...page, ...currentItems];
-  list.prependItems(page);
-  historyLoaded += count;
-
-  addLog("prepend", `${page.length} older messages (scroll preserved)`);
-  updateStatus();
-  isLoadingOlder = false;
+  // Start auto-message generation
+  scheduleNextMessage();
 };
 
 // ------------------------------------------------------------------
-// Wire events
+// Wire events (after list is created)
 // ------------------------------------------------------------------
 
-list.on("scroll", ({ scrollTop }) => {
-  // Trigger "load older" when near the top
-  if (scrollTop < LOAD_THRESHOLD) {
-    loadOlderMessages();
-  }
-});
-
-list.on("render", ({ range }) => {
-  addLog("render", `items ${range.start}–${range.end}`);
-});
+const wireEvents = () => {
+  list.on("render", ({ range }) => {
+    addLog("render", `items ${range.start}–${range.end}`);
+  });
+};
 
 // ------------------------------------------------------------------
 // Send message
@@ -388,7 +357,16 @@ const sendMessage = () => {
 
   currentItems = [...currentItems, msg];
   list.appendItems([msg]);
-  addLog("append", `sent message (auto-scroll if at bottom)`);
+
+  // Always scroll to bottom when user sends a message
+  const lastIndex = list.total - 1;
+  list.scrollToIndex(lastIndex, {
+    align: "start",
+    behavior: "smooth",
+    duration: 300,
+  });
+
+  addLog("append", `sent message → scrolled to bottom`);
 };
 
 sendBtn.addEventListener("click", sendMessage);
@@ -415,38 +393,49 @@ document.getElementById("jump-bottom").addEventListener("click", () => {
   addLog("scroll", "scrollToIndex(last, start, smooth)");
 });
 
-document.getElementById("add-batch").addEventListener("click", () => {
+// ------------------------------------------------------------------
+// Auto-generate random messages (1-2 messages every 3-8 seconds)
+// ------------------------------------------------------------------
+
+const generateRandomMessage = () => {
   const now = new Date();
   const time = now.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
   });
-  const batch = [];
   const todaySection = DATE_LABELS.length - 1;
 
-  for (let i = 0; i < 5; i++) {
-    const userIdx = i % (USERS.length - 1);
-    const user = USERS[userIdx];
-    const text = MESSAGES[(currentItems.length + i) % MESSAGES.length];
-    batch.push({
-      id: `batch-${Date.now()}-${i}`,
-      text,
-      user: user.name,
-      color: user.color,
-      initials: user.initials,
-      isSelf: false,
-      time,
-      height: DEFAULT_MSG_HEIGHT,
-      dateSection: todaySection,
-    });
-  }
+  // Generate a single random message
+  const userIdx = Math.floor(Math.random() * USERS.length);
+  const user = USERS[userIdx];
+  const text = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
 
-  measureHeights(batch, getMeasureWidth(container));
-  currentItems = [...currentItems, ...batch];
-  list.appendItems(batch);
-  addLog("append", `5 messages added`);
-});
+  const msg = {
+    id: `auto-${Date.now()}`,
+    text,
+    user: user.name,
+    color: user.color,
+    initials: user.initials,
+    isSelf: false,
+    time,
+    height: DEFAULT_MSG_HEIGHT,
+    dateSection: todaySection,
+  };
 
-document.getElementById("load-older").addEventListener("click", () => {
-  loadOlderMessages();
-});
+  measureHeights([msg], getMeasureWidth(container));
+  currentItems = [...currentItems, msg];
+  list.appendItems([msg]);
+
+  addLog("auto", `message received`);
+
+  // Schedule next random message
+  scheduleNextMessage();
+};
+
+const scheduleNextMessage = () => {
+  const delay = 3000 + Math.random() * 17000; // 3-20 seconds
+  setTimeout(generateRandomMessage, delay);
+};
+
+// Start initialization
+init();
