@@ -420,7 +420,7 @@ function createGridView() {
           </div>
         `;
       },
-      sticky: false,
+      sticky: true,
     };
   }
 
@@ -513,7 +513,7 @@ function createListView() {
           </div>
         `;
       },
-      sticky: false,
+      sticky: true,
     };
   }
 

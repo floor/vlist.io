@@ -351,14 +351,25 @@
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: transparent;
+    border-bottom: 0;
     margin-top: 12px;
+    transition: all 0.2s ease;
 }
 
 /* First group header has no margin-top */
 .vlist-item:first-child .group-header {
     margin-top: 0;
+}
+
+/* Sticky header enhancement */
+.vlist-item[data-sticky="true"] .group-header {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10;
 }
 
 .group-header__label {
@@ -373,6 +384,14 @@
     font-size: 11px;
     color: var(--text-muted);
     opacity: 0.6;
+}
+
+/* Enhanced count visibility when sticky */
+.vlist-item[data-sticky="true"] .group-header__count {
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
 }
 
 /* ============================================================================
