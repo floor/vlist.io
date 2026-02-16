@@ -22,10 +22,6 @@ Documentation, sandbox, and benchmarks site for the [vlist](https://github.com/f
 ~/Code/floor/
 ├── vlist/          # The library itself
 └── vlist.dev/      # This repo
-
-~/Code/
-├── mtrl/           # UI component library (used in sandbox)
-└── mtrl-addons/    # mtrl extensions (used in sandbox)
 ```
 
 **Install and link:**
@@ -56,7 +52,7 @@ This builds the sandbox and benchmarks, then starts the Bun server with `--watch
 | `build:bench` | `bun run build:bench` | Build benchmark suites |
 | `build:bench:watch` | `bun run build:bench:watch` | Rebuild benchmarks on change |
 | `typecheck` | `bun run typecheck` | Run TypeScript type checking |
-| `link:libs` | `bun run link:libs` | Link local vlist, mtrl, and mtrl-addons |
+| `link:libs` | `bun run link:libs` | Link local vlist for development |
 
 ## Project Structure
 
@@ -103,9 +99,7 @@ vlist.dev/
 
 1. `/api/*` → API router
 2. `/dist/*` → vlist package `dist/` (follows symlinks from `bun link`)
-3. `/node_modules/mtrl/*` → mtrl package assets
-4. `/node_modules/mtrl-addons/*` → mtrl-addons assets
-5. `/sandbox/*`, `/docs/*`, `/benchmarks/*` → static files
+3. `/sandbox/*`, `/docs/*`, `/benchmarks/*` → static files
 6. `/` → landing page
 
 No frameworks, no bundler for the server — just `Bun.serve()`.
@@ -145,9 +139,7 @@ This clones the repo, installs dependencies, starts PM2, links the nginx vhost, 
 
 | Package | Purpose | Resolution |
 |---------|---------|------------|
-| `vlist` | The library being documented | `file:../vlist` (local) → GitHub (production) |
-| `mtrl` | UI components for sandbox examples | `file:../../mtrl` (local) → npm (production) |
-| `mtrl-addons` | Extended components for sandbox | `file:../../mtrl-addons` (local) → npm (production) |
+| `vlist` | The library being documented | `file:../vlist` (local) → `@floor/vlist` (production) |
 
 Local `file:` paths are used in development. The deploy script swaps them for registry versions before installing on the server.
 

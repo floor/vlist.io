@@ -46,33 +46,12 @@ jobs:
             # (file: paths are for local dev only — they don't exist on the server)
             echo "🔗 Resolving production dependencies..."
             sed -i 's|"vlist": "file:../vlist"|"vlist": "@floor/vlist"|' package.json
-            sed -i 's|"mtrl": "file:../../mtrl"|"mtrl": "^0.6.3"|' package.json
-            sed -i 's|"mtrl-addons": "file:../../mtrl-addons"|"mtrl-addons": "^0.6.0"|' package.json
 
             # Install dependencies (regenerate lockfile with npm versions)
             bun install
 
             # Note: vlist is now published to npm as @floor/vlist with pre-built dist/
             # No build step needed anymore!
-
-            # Patch mtrl packages: remove "development" export condition
-            # (points to src/ which isn't shipped in npm packages)
-            node -e "
-            const fs = require('fs');
-            for (const pkg of ['mtrl', 'mtrl-addons']) {
-              const p = 'node_modules/' + pkg + '/package.json';
-              if (!fs.existsSync(p)) continue;
-              const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-              const clean = (obj) => {
-                if (obj && typeof obj === 'object') {
-                  delete obj.development;
-                  Object.values(obj).forEach(clean);
-                }
-              };
-              clean(j.exports);
-              fs.writeFileSync(p, JSON.stringify(j, null, 2));
-              console.log('Patched ' + pkg);
-            }"
 
             # Build sandbox examples and benchmarks
             bun run build:sandbox

@@ -28,7 +28,7 @@ The context is created in `vlist.ts` after all components are instantiated, serv
 createVList()
     ↓
 resolveConfig() — validate, apply defaults, compute derived flags
-    (src/config.ts — mtrl-style config pattern)
+    (src/config.ts)
     ↓
 Create individual components:
   - DataManager

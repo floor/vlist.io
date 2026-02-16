@@ -27,7 +27,6 @@ export interface ExampleItem {
   slug: string;
   name: string;
   desc: string;
-  mtrl?: boolean;
 }
 
 export interface ExampleGroup {
@@ -460,13 +459,6 @@ function buildExtraHead(
 
   const tags: string[] = [];
 
-  // mtrl styles (for examples that use mtrl/mtrl-addons)
-  if (example.mtrl) {
-    tags.push(
-      `<link rel="stylesheet" href="/node_modules/mtrl/dist/styles.css" />`,
-    );
-  }
-
   // vlist styles — always needed for examples
   tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
 
@@ -516,7 +508,7 @@ function assemblePage(
   const sidebar = buildSidebar(slug, variant);
   const extraHead = buildExtraHead(slug, example, variant);
   const extraBody = buildExtraBody(slug, example, variant);
-  const mainClass = example?.mtrl ? " mtrl-app" : "";
+  const mainClass = "";
 
   const url = slug
     ? `${SITE}/sandbox/${slug}${queryString || ""}`

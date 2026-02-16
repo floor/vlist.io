@@ -155,14 +155,6 @@ const template = (item, index, state) => {
   el.textContent = item.name;
   return el;
 };
-
-// ✅ Layout system (mtrl integration)
-const template = (item, index, state) => {
-  return createLayout([
-    { class: 'item-content' },
-    [{ class: 'item-name', text: item.name }],
-  ]).element;
-};
 ```
 
 ---

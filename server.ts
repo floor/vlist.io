@@ -10,8 +10,6 @@
 //   /benchmarks/*                 → Benchmarks (server-rendered)
 //   /sitemap.xml                  → Dynamic sitemap
 //   /dist/*                       → vlist library assets (CSS, JS)
-//   /node_modules/mtrl/*          → mtrl library assets
-//   /node_modules/mtrl-addons/*   → mtrl-addons library assets
 //   /                             → Landing page
 
 import { routeApi } from "./src/api/router";
@@ -48,8 +46,6 @@ const resolvePackagePath = (packageName: string): string | null => {
 
 // Resolve library paths once at startup
 const VLIST_ROOT = resolvePackagePath("vlist");
-const MTRL_ROOT = resolvePackagePath("mtrl");
-const MTRL_ADDONS_ROOT = resolvePackagePath("mtrl-addons");
 
 // =============================================================================
 // MIME Types
@@ -316,9 +312,7 @@ const serveFromPackage = (
  *   3. /docs/ or /docs/<slug>        → Server-rendered docs pages
  *   4. /benchmarks/ or /bench/<slug> → Server-rendered benchmark pages
  *   5. /dist/*                       → vlist package dist/
- *   6. /node_modules/mtrl/*          → mtrl package root
- *   7. /node_modules/mtrl-addons/*   → mtrl-addons package root
- *   8. /docs/*.md                    → raw markdown files
+ *   6. /docs/*.md                    → raw markdown files
  *   9. /*                            → local root (landing, static assets)
  */
 const resolveStatic = (pathname: string): Response | null => {
@@ -326,18 +320,6 @@ const resolveStatic = (pathname: string): Response | null => {
   if (pathname.startsWith("/dist/")) {
     const subpath = pathname; // keep /dist/... as-is since vlist root contains dist/
     return serveFromPackage(VLIST_ROOT, subpath);
-  }
-
-  // /node_modules/mtrl/* → mtrl package
-  if (pathname.startsWith("/node_modules/mtrl/")) {
-    const subpath = pathname.replace("/node_modules/mtrl/", "/");
-    return serveFromPackage(MTRL_ROOT, subpath);
-  }
-
-  // /node_modules/mtrl-addons/* → mtrl-addons package
-  if (pathname.startsWith("/node_modules/mtrl-addons/")) {
-    const subpath = pathname.replace("/node_modules/mtrl-addons/", "/");
-    return serveFromPackage(MTRL_ADDONS_ROOT, subpath);
   }
 
   // /docs/*.md → serve raw markdown
@@ -605,12 +587,6 @@ const packages = [
   VLIST_ROOT
     ? `  vlist:         ${VLIST_ROOT}`
     : "  vlist:         ⚠️  not found",
-  MTRL_ROOT
-    ? `  mtrl:          ${MTRL_ROOT}`
-    : "  mtrl:          ⚠️  not found",
-  MTRL_ADDONS_ROOT
-    ? `  mtrl-addons:   ${MTRL_ADDONS_ROOT}`
-    : "  mtrl-addons:   ⚠️  not found",
 ];
 
 console.log(`

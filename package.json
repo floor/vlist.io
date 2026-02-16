@@ -17,8 +17,6 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "marked": "^17.0.1",
-    "mtrl": "file:../../mtrl",
-    "mtrl-addons": "file:../../mtrl-addons",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "vlist": "file:../vlist",
