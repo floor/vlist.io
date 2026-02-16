@@ -593,12 +593,11 @@ async function navigateBack() {
   }
 }
 
-async function navigateUp() {
-  if (!currentPath) return;
-  const parts = currentPath.split("/");
-  parts.pop();
-  const parentPath = parts.join("/");
-  await navigateTo(parentPath);
+async function navigateForward() {
+  if (historyIndex < navigationHistory.length - 1) {
+    historyIndex++;
+    await navigateTo(navigationHistory[historyIndex], false);
+  }
 }
 
 // =============================================================================
@@ -623,9 +622,9 @@ function updateBreadcrumb() {
 
 function updateNavigationState() {
   const backBtn = document.getElementById("btn-back");
-  const upBtn = document.getElementById("btn-up");
+  const forwardBtn = document.getElementById("btn-forward");
   backBtn.disabled = historyIndex <= 0;
-  upBtn.disabled = !currentPath;
+  forwardBtn.disabled = historyIndex >= navigationHistory.length - 1;
 }
 
 // =============================================================================
@@ -665,8 +664,8 @@ function updateNavigationState() {
     navigateBack();
   });
 
-  document.getElementById("btn-up").addEventListener("click", () => {
-    navigateUp();
+  document.getElementById("btn-forward").addEventListener("click", () => {
+    navigateForward();
   });
 
   // Breadcrumb click handler

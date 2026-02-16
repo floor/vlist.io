@@ -117,6 +117,23 @@
     transition: all 0.15s ease;
 }
 
+.toolbar__btn--icon {
+    padding: 6px;
+    min-width: 32px;
+    min-height: 32px;
+    justify-content: center;
+}
+
+.toolbar__btn--icon svg {
+    display: block;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.toolbar__btn--icon:hover:not(:disabled) svg {
+    opacity: 1;
+}
+
 .toolbar__btn:hover:not(:disabled) {
     border-color: var(--accent);
     color: var(--accent-text);
