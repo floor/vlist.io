@@ -229,7 +229,6 @@ const renderLog = () => {
 // =============================================================================
 
 const container = document.getElementById("list-container");
-const statsEl = document.getElementById("stats");
 const statusEl = document.getElementById("channel-status");
 const inputEl = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
@@ -336,7 +335,6 @@ const loadOlderMessages = async () => {
   addLog("prepend", `${page.length} older messages (scroll preserved)`);
   updateStatus();
   isLoadingOlder = false;
-  scheduleStatsUpdate();
 };
 
 // ------------------------------------------------------------------
@@ -344,8 +342,6 @@ const loadOlderMessages = async () => {
 // ------------------------------------------------------------------
 
 list.on("scroll", ({ scrollTop }) => {
-  scheduleStatsUpdate();
-
   // Trigger "load older" when near the top
   if (scrollTop < LOAD_THRESHOLD) {
     loadOlderMessages();
@@ -393,7 +389,6 @@ const sendMessage = () => {
   currentItems = [...currentItems, msg];
   list.appendItems([msg]);
   addLog("append", `sent message (auto-scroll if at bottom)`);
-  scheduleStatsUpdate();
 };
 
 sendBtn.addEventListener("click", sendMessage);
@@ -443,36 +438,8 @@ document.getElementById("add-batch").addEventListener("click", () => {
   currentItems = [...currentItems, ...batch];
   list.appendItems(batch);
   addLog("append", `5 messages added`);
-  scheduleStatsUpdate();
 });
 
 document.getElementById("load-older").addEventListener("click", () => {
   loadOlderMessages();
 });
-
-// ------------------------------------------------------------------
-// Stats update (debounced via rAF)
-// ------------------------------------------------------------------
-
-let statsRaf = null;
-
-function scheduleStatsUpdate() {
-  if (statsRaf) return;
-  statsRaf = requestAnimationFrame(updateStats);
-}
-
-function updateStats() {
-  statsRaf = null;
-  const total = list.total;
-  const domNodes = container.querySelectorAll("[data-index]").length;
-  const virtualized =
-    total > 0 ? (((total - domNodes) / total) * 100).toFixed(1) : 0;
-
-  statsEl.innerHTML = `
-    <strong>${total.toLocaleString()}</strong> items
-    · <strong>${domNodes}</strong> DOM nodes
-    · <strong>${virtualized}%</strong> virtualized
-  `;
-}
-
-scheduleStatsUpdate();

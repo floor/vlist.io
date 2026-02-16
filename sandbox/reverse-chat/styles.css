@@ -1,7 +1,11 @@
 /* Reverse Chat Example — example-specific styles only
    Common styles (.container, h1, .description, .stats, footer)
-   are provided by sandbox/sandbox.css using shell.css design tokens. */
-
+   are provided by sandbox/sandbox.css using shell.css design tokens.
+   Panel system (.split-layout, .split-panel, .panel-*)
+   is also provided by sandbox/sandbox.css. */
+.split-main {
+    padding: 0;
+}
 /* ==========================================================================
    Chat Wrapper — groups header, list, and input
    ========================================================================== */
@@ -11,6 +15,10 @@
     overflow: hidden;
     border: 1px solid var(--border);
     background: var(--vlist-bg, #fff);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    max-height: 600px;
 }
 
 /* ==========================================================================
@@ -59,7 +67,7 @@
    ========================================================================== */
 
 #list-container {
-    height: 480px;
+    flex: 1;
     background: var(--vlist-bg);
     overflow: hidden;
     border-radius: 0;
@@ -123,34 +131,12 @@
 }
 
 /* ==========================================================================
-   Controls
+   Split Layout Overrides
    ========================================================================== */
 
-.controls {
-    margin-top: 12px;
-}
-
-.control-btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-card);
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 500;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.control-btn:hover {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-.control-btn:active {
-    transform: scale(0.97);
+.split-main {
+    display: flex;
+    flex-direction: column;
 }
 
 /* ==========================================================================
@@ -335,52 +321,61 @@
 }
 
 /* ==========================================================================
-   Event Log
+   Event Log (inside panel)
    ========================================================================== */
 
 .event-log {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-top: 12px;
-    max-height: 180px;
+    max-height: 300px;
     overflow-y: auto;
     font-family: "SF Mono", Monaco, Menlo, monospace;
     font-size: 11px;
     line-height: 1.6;
+    padding: 8px;
+    background: var(--vlist-bg-hover, #f5f5f5);
+    border-radius: 6px;
 }
 
-.event-log:empty {
-    display: none;
+.event-log:empty::after {
+    content: "No events yet...";
+    color: var(--text-dim);
+    font-style: italic;
 }
 
 .event-log__entry {
-    padding: 2px 0;
-    border-bottom: 1px solid var(--border);
+    padding: 4px 0;
     display: flex;
     gap: 8px;
-}
-
-.event-log__entry:last-child {
-    border-bottom: none;
+    font-size: 10px;
 }
 
 .event-log__time {
     color: var(--text-dim);
     flex-shrink: 0;
+    min-width: 60px;
 }
 
 .event-log__event {
-    color: var(--accent-text);
+    color: var(--accent);
     font-weight: 600;
     flex-shrink: 0;
+    min-width: 50px;
 }
 
 .event-log__data {
     color: var(--text-muted);
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 900px) {
+    .chat-wrapper {
+        max-height: 500px;
+    }
 }

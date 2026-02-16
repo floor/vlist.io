@@ -1,58 +1,148 @@
-<div class="container">
-    <header>
-        <h1>Reverse Mode</h1>
-        <p class="description">
-            Chat-style messaging UI using
-            <code>reverse: true</code>. The list starts scrolled to the bottom
-            (newest messages visible). Scroll up to load older messages via
-            <code>prependItems()</code> — scroll position is preserved so
-            content doesn't jump. Send a message to see auto-scroll when you're
-            at the bottom.
-        </p>
-    </header>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="vlist reverse mode + groups example — chat-style messaging UI with reverse: true and inline date headers. iMessage-style chat with automatic date sections."
+        />
+        <title>vlist - Reverse Mode + Groups (Chat UI)</title>
+        <link rel="stylesheet" href="/dist/vlist.css" />
+        <link rel="stylesheet" href="/sandbox/reverse-chat/dist/styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <a href="/sandbox/" class="back-link">← Back to Sandbox</a>
+                <h1>Reverse Mode + Groups</h1>
+                <p class="description">
+                    Chat-style messaging UI using
+                    <code>reverse: true</code> with <code>groups</code> plugin
+                    (<code>sticky: false</code>). Demonstrates iMessage-style
+                    inline date headers that automatically organize messages by
+                    date. The list starts scrolled to the bottom, loads older
+                    messages at the top with preserved scroll position, and
+                    auto-scrolls when sending new messages.
+                </p>
+            </header>
 
-    <div class="stats" id="stats">Loading...</div>
+            <div class="split-layout">
+                <div class="split-main">
+                    <div class="chat-wrapper">
+                        <div class="chat-header">
+                            <div class="chat-header__avatar">R</div>
+                            <div class="chat-header__info">
+                                <div class="chat-header__name">
+                                    Radiooooo Lounge
+                                </div>
+                                <div
+                                    class="chat-header__status"
+                                    id="channel-status"
+                                >
+                                    Loading messages…
+                                </div>
+                            </div>
+                        </div>
 
-    <div class="chat-wrapper">
-        <div class="chat-header">
-            <div class="chat-header__avatar">R</div>
-            <div class="chat-header__info">
-                <div class="chat-header__name">Radiooooo Lounge</div>
-                <div class="chat-header__status" id="channel-status">
-                    Loading messages…
+                        <div id="list-container"></div>
+
+                        <div class="chat-input">
+                            <input
+                                type="text"
+                                id="message-input"
+                                class="chat-input__field"
+                                placeholder="Type a message…"
+                                autocomplete="off"
+                            />
+                            <button id="send-btn" class="chat-input__send">
+                                Send
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                <aside class="split-panel">
+                    <!-- Controls -->
+                    <section class="panel-section">
+                        <h3 class="panel-title">Controls</h3>
+
+                        <div class="panel-row">
+                            <button id="jump-bottom" class="panel-btn">
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+                                    />
+                                </svg>
+                                Jump to Bottom
+                            </button>
+                        </div>
+
+                        <div class="panel-row">
+                            <button id="add-batch" class="panel-btn">
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                                    />
+                                </svg>
+                                Add 5 Messages
+                            </button>
+                        </div>
+
+                        <div class="panel-row">
+                            <button id="load-older" class="panel-btn">
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"
+                                    />
+                                </svg>
+                                Load Older Messages
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Event Log -->
+                    <section class="panel-section">
+                        <h3 class="panel-title">Event Log</h3>
+                        <div class="event-log" id="event-log"></div>
+                    </section>
+                </aside>
             </div>
+
+            <footer>
+                <p></p>
+                    Reverse mode with groups plugin supports both
+                    <strong>inline headers</strong> (<code>sticky: false</code>
+                    - iMessage/WhatsApp style) and
+                    <strong>sticky headers</strong> (<code>sticky: true</code> -
+                    Telegram style). This example uses inline headers. Try
+                    changing <code>sticky: false</code> to
+                    <code>sticky: true</code> in the code to see the difference!
+                    Items stay in chronological order (oldest = index 0).
+                    <code>appendItems()</code> auto-scrolls when at bottom;
+                    <code>prependItems()</code> preserves scroll position. ⚡
+                </p>
+            </footer>
         </div>
 
-        <div id="list-container"></div>
-
-        <div class="chat-input">
-            <input
-                type="text"
-                id="message-input"
-                class="chat-input__field"
-                placeholder="Type a message…"
-                autocomplete="off"
-            />
-            <button id="send-btn" class="chat-input__send">Send</button>
-        </div>
-    </div>
-
-    <div class="controls">
-        <button id="jump-bottom" class="control-btn">⬇ Jump to Bottom</button>
-        <button id="add-batch" class="control-btn">+ Add 5 Messages</button>
-        <button id="load-older" class="control-btn">⬆ Prepend Older</button>
-    </div>
-
-    <div class="event-log" id="event-log"></div>
-
-    <footer>
-        <p>
-            Reverse mode keeps items in chronological order (oldest = index 0).
-            <code>appendItems()</code> auto-scrolls to the bottom when the user
-            was already there; <code>prependItems()</code> adjusts
-            <code>scrollTop</code> so the viewport stays put — perfect for
-            loading older messages at the top. ⚡
-        </p>
-    </footer>
-</div>
+        <script
+            type="module"
+            src="/sandbox/reverse-chat/dist/script.js"
+        ></script>
+    </body>
+</html>
