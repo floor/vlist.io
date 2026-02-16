@@ -23,6 +23,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 /* ==========================================================================
@@ -132,6 +133,46 @@
 
 .chat-input__send:active {
     transform: scale(0.96);
+}
+
+/* ==========================================================================
+   New Messages Notification
+   ========================================================================== */
+
+.new-messages-bar {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.new-messages-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    background: var(--accent);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    pointer-events: auto;
+}
+
+.new-messages-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.new-messages-btn:active {
+    transform: translateY(0);
 }
 
 /* ==========================================================================

@@ -221,16 +221,52 @@ const container = document.getElementById("list-container");
 const statusEl = document.getElementById("channel-status");
 const inputEl = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
+const newMessagesBar = document.getElementById("new-messages-bar");
+const newMessagesBtn = document.getElementById("new-messages-btn");
+const newMessagesCount = document.getElementById("new-messages-count");
 
 // ------------------------------------------------------------------
 // Helper: Check if user is at bottom
 // ------------------------------------------------------------------
 
 const isAtBottom = () => {
-  const scrollTop = list.getScrollPosition();
-  const maxScroll = container.scrollHeight - container.clientHeight;
-  return scrollTop >= maxScroll - 50; // Within 50px of bottom
+  const total = list.total;
+
+  // In reverse mode, we're at bottom if viewing the last items
+  // Allow a small margin (within 5 items of the end)
+  const atBottom = currentRange && currentRange.end >= total - 5;
+
+  return atBottom;
 };
+
+// ------------------------------------------------------------------
+// New messages notification
+// ------------------------------------------------------------------
+
+let unreadCount = 0;
+
+const showNewMessagesNotification = (count) => {
+  unreadCount = count;
+  newMessagesCount.textContent =
+    count === 1 ? "1 new message" : `${count} new messages`;
+  newMessagesBar.style.display = "block";
+};
+
+const hideNewMessagesNotification = () => {
+  unreadCount = 0;
+  newMessagesBar.style.display = "none";
+};
+
+newMessagesBtn.addEventListener("click", () => {
+  const lastIndex = list.total - 1;
+  list.scrollToIndex(lastIndex, {
+    align: "start",
+    behavior: "smooth",
+    duration: 600,
+  });
+  hideNewMessagesNotification();
+  addLog("scroll", "scrolled to bottom (via new messages button)");
+});
 
 // ------------------------------------------------------------------
 // Initial page: last N messages
@@ -239,6 +275,7 @@ const isAtBottom = () => {
 let sentCounter = 1;
 let currentItems = [];
 let list;
+let currentRange = { start: 0, end: 0 }; // Track visible range from events
 
 // ------------------------------------------------------------------
 // Initialize - Load messages and create list
@@ -318,6 +355,16 @@ const init = async () => {
 const wireEvents = () => {
   list.on("render", ({ range }) => {
     addLog("render", `items ${range.start}–${range.end}`);
+  });
+
+  list.on("range:change", ({ range }) => {
+    // Track current visible range
+    currentRange = range;
+
+    // Hide notification when user scrolls to bottom manually
+    if (isAtBottom() && unreadCount > 0) {
+      hideNewMessagesNotification();
+    }
   });
 };
 
@@ -426,7 +473,25 @@ const generateRandomMessage = () => {
   currentItems = [...currentItems, msg];
   list.appendItems([msg]);
 
-  addLog("auto", `message received`);
+  // Show notification if user is not at bottom, or auto-scroll if at bottom
+  const atBottom = isAtBottom();
+
+  if (!atBottom) {
+    showNewMessagesNotification(unreadCount + 1);
+  } else {
+    // Auto-scroll to show new message
+    const lastIndex = list.total - 1;
+    list.scrollToIndex(lastIndex, {
+      align: "start",
+      behavior: "smooth",
+      duration: 300,
+    });
+  }
+
+  addLog(
+    "auto",
+    `message received${atBottom ? " → scrolled to bottom" : " (notification shown)"}`,
+  );
 
   // Schedule next random message
   scheduleNextMessage();
