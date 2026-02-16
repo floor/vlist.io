@@ -406,9 +406,9 @@ inputEl.addEventListener("keydown", (e) => {
 document.getElementById("jump-bottom").addEventListener("click", () => {
   const lastIndex = list.total - 1;
   if (lastIndex >= 0) {
-    list.scrollToIndex(lastIndex, "end");
+    list.scrollToIndex(lastIndex, { align: "end", behavior: "smooth" });
   }
-  addLog("scroll", "scrollToIndex(last, end)");
+  addLog("scroll", "scrollToIndex(last, end, smooth)");
 });
 
 document.getElementById("add-batch").addEventListener("click", () => {
