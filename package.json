@@ -11,7 +11,7 @@
     "build:bench": "bun run benchmarks/build.ts",
     "build:bench:watch": "bun run benchmarks/build.ts --watch",
     "typecheck": "tsc --noEmit",
-    "link:libs": "cd ~/Code/floor/vlist && bun link && cd ~/Code/mtrl && bun link && cd ~/Code/mtrl-addons && bun link && cd ~/Code/floor/vlist.dev && bun link vlist && bun link mtrl && bun link mtrl-addons"
+    "link:libs": "cd ~/Code/floor/vlist && bun link && cd ~/Code/floor/vlist.dev && bun link vlist"
   },
   "dependencies": {
     "@types/react": "^19.2.14",

@@ -69,6 +69,11 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
         name: "Photo Album",
         desc: "Grid gallery with withGrid + withScrollbar — 4 frameworks",
       },
+      {
+        slug: "grid/file-browser",
+        name: "File Browser",
+        desc: "Finder-like file browser with grid/list views — real filesystem API",
+      },
     ],
   },
   {

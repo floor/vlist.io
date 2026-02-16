@@ -2,6 +2,7 @@
 // API router for vlist.dev — handles /api/* routes with CORS support
 
 import { getUsers, getUserById, DEFAULT_TOTAL, MAX_LIMIT } from "./users";
+import { listDirectory, getFilesBrowserInfo } from "./files";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -124,6 +125,33 @@ const handleGetUser = async (url: URL, id: number): Promise<Response> => {
 };
 
 /**
+ * GET /api/files?path=<path>
+ *
+ * Query params:
+ *   path — relative path from base directory (default: "")
+ *
+ * Response: { path: string, items: FileItem[] }
+ */
+const handleGetFiles = async (url: URL): Promise<Response> => {
+  try {
+    const requestedPath = url.searchParams.get("path") || "";
+    const result = await listDirectory(requestedPath);
+    return json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    const status = message.includes("Access denied") ? 403 : 500;
+    return error(message, status);
+  }
+};
+
+/**
+ * GET /api/files/info
+ *
+ * Returns file browser configuration and allowed roots.
+ */
+const handleFilesInfo = (): Response => json(getFilesBrowserInfo());
+
+/**
  * GET /api/info
  *
  * Returns API metadata — available endpoints, defaults, limits.
@@ -161,6 +189,20 @@ const handleInfo = (): Response =>
           },
         },
         response: "User | { error: string }",
+      },
+      "GET /api/files": {
+        description: "List directory contents",
+        params: {
+          path: {
+            type: "string",
+            default: "",
+            description: "Relative path from base directory",
+          },
+        },
+        response: "{ path: string, items: FileItem[] }",
+      },
+      "GET /api/files/info": {
+        description: "File browser configuration",
       },
       "GET /api/info": {
         description: "This endpoint — API metadata",
@@ -221,6 +263,16 @@ export const routeApi = async (req: Request): Promise<Response | null> => {
   if (match) {
     const id = parseInt(match[1], 10);
     return handleGetUser(url, id);
+  }
+
+  // GET /api/files/info
+  if (path === "/api/files/info") {
+    return handleFilesInfo();
+  }
+
+  // GET /api/files
+  if (path === "/api/files" || path === "/api/files/") {
+    return handleGetFiles(url);
   }
 
   return error("Not found", 404);

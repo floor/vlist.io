@@ -1,0 +1,65 @@
+<div class="container container">
+    <header></header>
+        <h1>File Browser</h1>
+        <p class="description">
+            Finder-like file browser using <code>vlist/builder</code> with
+            <code>withGrid</code> plugin. Browse files from vlist and vlist.dev projects
+            with switchable grid/list views. Click to select, double-click folders to navigate.
+        </p>
+    </header>
+
+    <!-- Breadcrumb navigation -->
+    <div class="breadcrumb" id="breadcrumb">
+        <button class="breadcrumb__item" data-path="">Home</button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar__left">
+            <button id="btn-back" class="toolbar__btn" disabled>
+                <span class="icon">←</span> Back
+            </button>
+            <button id="btn-up" class="toolbar__btn" disabled>
+                <span class="icon">↑</span> Up
+            </button>
+        </div>
+        <div class="toolbar__right">
+            <select id="arrange-by-select" class="toolbar__select">
+                <option value="name" selected>Name</option>
+                <option value="kind">Kind</option>
+                <option value="date-modified">Date Modified</option>
+                <option value="date-added">Date Added</option>
+                <option value="size">Size</option>
+            </select>
+            <div class="view-switcher">
+                <button id="btn-view-grid" class="view-btn view-btn--active" title="Grid View">
+                    <span class="icon">⊞</span>
+                </button>
+                <button id="btn-view-list" class="view-btn" title="List View">
+                    <span class="icon">☰</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats" id="stats">Loading…</div>
+
+    <!-- List view header (hidden in grid view) -->
+    <div class="list-header" id="list-header" style="display: none;">
+        <div class="list-header__icon"></div>
+        <div class="list-header__name">Name</div>
+        <div class="list-header__size">Size</div>
+        <div class="list-header__date">Date Modified</div>
+        <div class="list-header__kind">Kind</div>
+    </div>
+
+    <!-- File browser container -->
+    <div id="browser-container"></div>
+
+    <footer>
+        <p>
+            File browser demo using <code>withGrid</code> plugin with switchable views.
+            Backend API serves real filesystem data. Click to select, double-click folders to navigate. 📁
+        </p>
+    </footer>
+</div>
