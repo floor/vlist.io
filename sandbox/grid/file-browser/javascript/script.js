@@ -387,6 +387,7 @@ function createGridView() {
   const listConfig = {
     container: "#browser-container",
     ariaLabel: "File browser",
+    layout: "grid",
     item: {
       height,
       template: gridItemTemplate,
