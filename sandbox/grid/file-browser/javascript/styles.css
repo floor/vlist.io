@@ -386,21 +386,16 @@
     align-items: center;
     padding: 8px 12px;
     background: transparent;
-    border-bottom: 0;
     margin-top: 12px;
     transition: all 0.2s ease;
 }
 
-/* Group headers in grid layout - span full width across all columns */
-.vlist--grid .vlist-item:has(.group-header) {
-    width: 100% !important;
-    grid-column: 1 / -1;
-}
-
+/* Group headers in grid layout - background and spacing */
 .vlist--grid .group-header {
-    width: 100%;
     background: rgba(255, 255, 255, 0.03);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 0;
+    margin-bottom: 8px;
 }
 
 /* First group header has no margin-top */
@@ -416,13 +411,6 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     z-index: 10;
-}
-
-/* Sticky headers in grid view - ensure full width */
-.vlist--grid .vlist-item[data-sticky="true"] .group-header {
-    width: 100%;
-    left: 0;
-    right: 0;
 }
 
 .group-header__label {
