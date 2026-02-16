@@ -65,7 +65,7 @@ const generateDateLabels = () => {
 
 const DATE_LABELS = generateDateLabels();
 
-const DATE_HEADER_HEIGHT = 24;
+const DATE_HEADER_HEIGHT = 28;
 const DEFAULT_MSG_HEIGHT = 56;
 
 // Total messages to display

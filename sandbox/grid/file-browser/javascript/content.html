@@ -1,21 +1,50 @@
 <div class="container container">
-    <header></header>
+    <header>
         <h1>File Browser</h1>
         <p class="description">
             Finder-like file browser using <code>vlist/builder</code> with
-            <code>withGrid</code> plugin. Browse files from vlist and vlist.dev projects
-            with switchable grid/list views. Click to select, double-click folders to navigate.
+            <code>withGrid</code> plugin. Browse files from vlist and vlist.dev
+            projects with switchable grid/list views. Click to select,
+            double-click folders to navigate.
         </p>
     </header>
 
     <!-- Toolbar -->
     <div class="toolbar">
         <div class="toolbar__left">
-            <button id="btn-back" class="toolbar__btn toolbar__btn--icon" disabled title="Back">
-                <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            <button
+                id="btn-back"
+                class="toolbar__btn toolbar__btn--icon"
+                disabled
+                title="Back"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="20px"
+                    viewBox="0 0 24 24"
+                    width="20px"
+                    fill="currentColor"
+                >
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                </svg>
             </button>
-            <button id="btn-forward" class="toolbar__btn toolbar__btn--icon" disabled title="Forward">
-                <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            <button
+                id="btn-forward"
+                class="toolbar__btn toolbar__btn--icon"
+                disabled
+                title="Forward"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="20px"
+                    viewBox="0 0 24 24"
+                    width="20px"
+                    fill="currentColor"
+                >
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+                </svg>
             </button>
             <!-- Breadcrumb navigation -->
             <div class="breadcrumb" id="breadcrumb">
@@ -33,7 +62,11 @@
                 <button id="btn-view-grid" class="view-btn" title="Grid View">
                     <span class="icon">⊞</span>
                 </button>
-                <button id="btn-view-list" class="view-btn view-btn--active" title="List View">
+                <button
+                    id="btn-view-list"
+                    class="view-btn view-btn--active"
+                    title="List View"
+                >
                     <span class="icon">☰</span>
                 </button>
             </div>
@@ -41,7 +74,7 @@
     </div>
 
     <!-- List view header (hidden in grid view) -->
-    <div class="list-header" id="list-header" style="display: none;">
+    <div class="list-header" id="list-header" style="display: none">
         <div class="list-header__icon"></div>
         <div class="list-header__name">Name</div>
         <div class="list-header__size">Size</div>
@@ -54,8 +87,9 @@
 
     <footer>
         <p>
-            File browser demo using <code>withGrid</code> plugin with switchable views.
-            Backend API serves real filesystem data. Click to select, double-click folders to navigate. 📁
+            File browser demo using <code>withGrid</code> plugin with switchable
+            views. Backend API serves real filesystem data. Click to select,
+            double-click folders to navigate. 📁
         </p>
     </footer>
 </div>
