@@ -384,7 +384,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 48px 8px 12px;
+    padding: 8px 12px 8px 48px;
     background: transparent;
     margin-top: 12px;
     transition: all 0.2s ease;
@@ -440,6 +440,7 @@
    ============================================================================ */
 
 .file-row {
+    font-size: 14px;
     display: grid;
     grid-template-columns: 24px minmax(200px, 2fr) 100px 200px 140px;
     align-items: center;
@@ -456,10 +457,6 @@
 /* Zebra striping (even rows) */
 .vlist-item:nth-child(even) .file-row {
     background: rgba(255, 255, 255, 0.02);
-}
-
-.file-row:hover {
-    background: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* Finder-style selection for list view */

@@ -69,7 +69,7 @@ function getFileKind(item) {
 
 let currentPath = "";
 let items = [];
-let currentView = "grid";
+let currentView = "list";
 let currentColumns = 6;
 let currentGap = 8;
 let list = null;
@@ -546,7 +546,7 @@ const breadcrumbEl = document.getElementById("breadcrumb");
 
 function updateBreadcrumb() {
   const parts = currentPath ? currentPath.split("/") : [];
-  let html = `<button class="breadcrumb__item" data-path="">Home</button>`;
+  let html = `<button class="breadcrumb__item" data-path="">home</button>`;
   let pathSoFar = "";
 
   parts.forEach((part, index) => {
@@ -613,6 +613,6 @@ function updateNavigationState() {
     navigateTo(btn.dataset.path);
   });
 
-  // Initial load
-  await navigateTo("");
+  // Initial load - start in vlist folder with list view
+  await navigateTo("vlist");
 })();
