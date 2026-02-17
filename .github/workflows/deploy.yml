@@ -45,13 +45,10 @@ jobs:
             # Replace file: dependencies with npm registry versions
             # (file: paths are for local dev only — they don't exist on the server)
             echo "🔗 Resolving production dependencies..."
-            sed -i 's|"vlist": "file:../vlist"|"vlist": "@floor/vlist"|' package.json
+            sed -i 's|"@floor/vlist": "file:../vlist"|"@floor/vlist": "latest"|' package.json
 
-            # Install dependencies (regenerate lockfile with npm versions)
+            # Install dependencies (vlist comes pre-built from npm with dist/ folder)
             bun install
-
-            # Note: vlist is now published to npm as @floor/vlist with pre-built dist/
-            # No build step needed anymore!
 
             # Build sandbox examples and benchmarks
             bun run build:sandbox
