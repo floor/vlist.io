@@ -31,10 +31,28 @@ const BUILD_OPTIONS = {
 //
 // Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
 // string `template` options work at runtime without .vue SFC compilation.
+//
+// vlist: resolves bare "vlist" imports to "@floor/vlist" via the package.json
+// "imports" field mapping (which Bun's bundler doesn't natively support).
 
 const frameworkDedupePlugin: import("bun").BunPlugin = {
   name: "dedupe-frameworks",
   setup(build) {
+    // vlist — resolve bare imports via package.json imports map
+    // "vlist" → "@floor/vlist"
+    // "vlist/react" → "@floor/vlist/react"
+    build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
+      try {
+        const subpath = args.path.replace(/^vlist/, "@floor/vlist");
+        const resolved = require.resolve(subpath, {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
       try {
@@ -187,17 +205,8 @@ async function buildExample(name: string): Promise<BuildResult> {
         writeFileSync(join(parentOutdir, "styles.css"), minified);
       }
     }
-    // Use dedupe plugin for framework examples (React, Vue, Svelte)
-    const needsDedupe =
-      entrypoint.endsWith(".jsx") ||
-      entrypoint.endsWith(".tsx") ||
-      name.startsWith("react/") ||
-      name.startsWith("vue/") ||
-      name.startsWith("svelte/") ||
-      name.includes("/react") ||
-      name.includes("/vue") ||
-      name.includes("/svelte");
-    const plugins = needsDedupe ? [frameworkDedupePlugin] : [];
+    // Always use dedupe plugin (needed for vlist imports + frameworks)
+    const plugins = [frameworkDedupePlugin];
 
     // Define Vue feature flags for production builds
     const define: Record<string, string> = {};
@@ -207,21 +216,41 @@ async function buildExample(name: string): Promise<BuildResult> {
       define["__VUE_PROD_HYDRATION_MISMATCH_DETAILS__"] = "false";
     }
 
-    const result = await Bun.build({
-      entrypoints: [entrypoint],
-      outdir,
-      ...BUILD_OPTIONS,
-      plugins,
-      define: Object.keys(define).length > 0 ? define : undefined,
-    });
-
-    if (!result.success) {
-      const errors = result.logs.map((log) => log.message).join("\n");
+    let result;
+    try {
+      result = await Bun.build({
+        entrypoints: [entrypoint],
+        outdir,
+        ...BUILD_OPTIONS,
+        plugins,
+        define: Object.keys(define).length > 0 ? define : undefined,
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.error(`[${name}] Build exception:`, errorMsg);
+      if (err instanceof Error && err.stack) {
+        console.error(err.stack);
+      }
       return {
         name,
         success: false,
         time: performance.now() - start,
-        error: errors,
+        error: `Build exception: ${errorMsg}`,
+      };
+    }
+
+    if (!result.success) {
+      const errors = result.logs
+        .map((log) => {
+          console.error(`[${name}] ${log.level}: ${log.message}`);
+          return log.message;
+        })
+        .join("\n");
+      return {
+        name,
+        success: false,
+        time: performance.now() - start,
+        error: errors || "Unknown bundle error",
       };
     }
 

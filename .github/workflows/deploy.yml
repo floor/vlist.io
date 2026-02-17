@@ -42,15 +42,16 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # Replace file: dependencies with npm registry versions
+            # Replace file: dependencies with npm registry versions BEFORE building
             # (file: paths are for local dev only — they don't exist on the server)
             echo "🔗 Resolving production dependencies..."
-            sed -i 's|"@floor/vlist": "file:../vlist"|"@floor/vlist": "latest"|' package.json
+            sed -i 's|"@floor/vlist": "file:../vlist"|"@floor/vlist": "^0.6.1"|' package.json
 
-            # Install dependencies (vlist comes pre-built from npm with dist/ folder)
-            bun install
+            # Clean install to ensure fresh resolution (avoid lockfile conflicts)
+            rm -rf node_modules bun.lockb
+            bun install --force
 
-            # Build sandbox examples and benchmarks
+            # Build sandbox examples and benchmarks (now that vlist is installed from npm)
             bun run build:sandbox
             bun run build:bench
 
