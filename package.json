@@ -1,6 +1,6 @@
 {
   "name": "vlist.dev",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "vlist.dev — documentation, sandbox, and API for the vlist library",
   "type": "module",
   "imports": {
