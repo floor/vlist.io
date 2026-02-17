@@ -2,28 +2,6 @@
 
 > Lightweight, high-performance virtual list with zero dependencies and optimal tree-shaking.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [Events](#events)
-- [Selection](#selection)
-- [Reverse Mode (Chat UI)](#reverse-mode-chat-ui)
-- [Scroll Save/Restore](#scroll-saverestore)
-- [Infinite Scroll](#infinite-scroll)
-- [Scale (1M+ Items)](#scale-1m-items)
-- [Accessibility](#accessibility)
-- [Styling](#styling)
-- [Performance](#performance)
-- [TypeScript](#typescript)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-
----
-
 ## Overview
 
 vlist is a high-performance virtual list library with a composable builder pattern. Use only the features you need for optimal bundle sizes (8-12 KB gzipped vs 20+ KB for traditional virtual lists).

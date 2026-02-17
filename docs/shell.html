@@ -579,6 +579,8 @@
             <nav class="sidebar" id="sidebar">{{SIDEBAR}}</nav>
 
             <main class="content">{{CONTENT}}</main>
+
+            {{TOC}}
         </div>
 
         <!-- ─── Syntax highlighting (client-side) ────────── -->
@@ -629,6 +631,67 @@
                     document.documentElement.setAttribute("data-theme", next);
                     localStorage.setItem("vlist-theme", next);
                 });
+            })();
+        </script>
+
+        <!-- ─── TOC active link highlighting ─────────────── -->
+
+        <script>
+            (function () {
+                var toc = document.querySelector(".toc");
+                if (!toc) return;
+
+                var links = Array.from(toc.querySelectorAll(".toc__link"));
+                if (links.length === 0) return;
+
+                // Get all heading elements
+                var headings = links
+                    .map(function (link) {
+                        var id = link.getAttribute("href").slice(1);
+                        return document.getElementById(id);
+                    })
+                    .filter(Boolean);
+
+                if (headings.length === 0) return;
+
+                // Update active link based on scroll position
+                function updateActive() {
+                    var scrollPos = window.scrollY + 100; // offset for header
+                    var current = null;
+
+                    // Find the heading closest to top of viewport
+                    for (var i = headings.length - 1; i >= 0; i--) {
+                        if (headings[i].offsetTop <= scrollPos) {
+                            current = headings[i];
+                            break;
+                        }
+                    }
+
+                    // Update active state
+                    links.forEach(function (link) {
+                        var id = link.getAttribute("href").slice(1);
+                        if (current && current.id === id) {
+                            link.classList.add("toc__link--active");
+                        } else {
+                            link.classList.remove("toc__link--active");
+                        }
+                    });
+                }
+
+                // Throttle scroll events
+                var ticking = false;
+                window.addEventListener("scroll", function () {
+                    if (!ticking) {
+                        window.requestAnimationFrame(function () {
+                            updateActive();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                });
+
+                // Initial update
+                updateActive();
             })();
         </script>
     </body>

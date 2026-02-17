@@ -4,19 +4,6 @@
 
 Grid layout transforms a flat list of items into a virtualized 2D grid with configurable columns and gaps. It's perfect for photo galleries, product catalogs, card layouts, and any interface that displays items in a grid.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Quick Start](#quick-start)
-- [Dynamic Aspect Ratio](#dynamic-aspect-ratio)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [Performance](#performance)
-- [Examples](#examples)
-- [Migration Guide](#migration-guide)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
-
 ## Overview
 
 ### What It Does

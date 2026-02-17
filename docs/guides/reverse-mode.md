@@ -6,21 +6,6 @@
 
 Reverse mode flips the list upside-down — starting scrolled to the bottom with newest content visible first. Perfect for chat interfaces, messaging apps, and any UI where the latest content matters most.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Quick Start](#quick-start)
-- [How It Works](#how-it-works)
-- [Configuration](#configuration)
-- [Async Operations](#data-operations)
-- [Combining with Other Features](#combining-with-other-features)
-- [API Reference](#api-reference)
-- [Examples](#examples)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
-
-## Overview
-
 ### What It Does
 
 Reverse mode:

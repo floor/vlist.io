@@ -387,6 +387,63 @@ export function clearCache(): void {
 }
 
 // =============================================================================
+// Table of Contents
+// =============================================================================
+
+interface TocItem {
+  text: string;
+  slug: string;
+  depth: number;
+}
+
+/**
+ * Extract headings (H2 only) from parsed HTML for table of contents.
+ * Skips H1 (page title) and H3+ (too detailed).
+ */
+function extractToc(html: string): TocItem[] {
+  const toc: TocItem[] = [];
+  const headingRegex =
+    /<h2[^>]*id="([^"]+)"[^>]*>(.*?)<a class="anchor"[^>]*>.*?<\/a><\/h2>/g;
+
+  let match;
+  while ((match = headingRegex.exec(html)) !== null) {
+    const slug = match[1];
+    const htmlText = match[2];
+    // Strip HTML tags from heading text
+    const text = htmlText.replace(/<[^>]*>/g, "").trim();
+
+    toc.push({ text, slug, depth: 2 });
+  }
+
+  return toc;
+}
+
+/**
+ * Build table of contents HTML for the right sidebar.
+ */
+function buildToc(tocItems: TocItem[]): string {
+  if (tocItems.length === 0) return "";
+
+  const lines: string[] = [];
+  lines.push(`<nav class="toc">`);
+  lines.push(`  <div class="toc__title">On this page</div>`);
+  lines.push(`  <ul class="toc__list">`);
+
+  for (const item of tocItems) {
+    lines.push(`    <li class="toc__item">`);
+    lines.push(
+      `      <a href="#${item.slug}" class="toc__link">${item.text}</a>`,
+    );
+    lines.push(`    </li>`);
+  }
+
+  lines.push(`  </ul>`);
+  lines.push(`</nav>`);
+
+  return lines.join("\n");
+}
+
+// =============================================================================
 // Markdown Parser (configured once)
 // =============================================================================
 
@@ -513,6 +570,7 @@ function assemblePage(
   content: string,
   title: string,
   description: string,
+  toc: string = "",
 ): string {
   const shell = loadShell();
   const sidebar = buildSidebar(slug);
@@ -523,7 +581,8 @@ function assemblePage(
     .replace(/{{DESCRIPTION}}/g, description)
     .replace(/{{URL}}/g, url)
     .replace("{{SIDEBAR}}", sidebar)
-    .replace("{{CONTENT}}", content);
+    .replace("{{CONTENT}}", content)
+    .replace("{{TOC}}", toc);
 }
 
 // =============================================================================
@@ -563,6 +622,10 @@ export function renderDocsPage(slug: string | null): Response | null {
   const mdSource = readFileSync(mdPath, "utf-8");
   const parsedHtml = marked.parse(mdSource) as string;
 
+  // Extract table of contents
+  const tocItems = extractToc(parsedHtml);
+  const tocHtml = buildToc(tocItems);
+
   // Wrap in .md container
   const content = `<div class="md">${parsedHtml}</div>`;
 
@@ -573,7 +636,7 @@ export function renderDocsPage(slug: string | null): Response | null {
     ? `VList ${h1Title.toLowerCase()} — documentation and API reference.`
     : "VList documentation — API reference, configuration, events, methods, styling, and more.";
 
-  const html = assemblePage(slug, content, title, description);
+  const html = assemblePage(slug, content, title, description, tocHtml);
 
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },

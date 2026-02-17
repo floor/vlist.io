@@ -6,23 +6,6 @@
 
 The sections plugin transforms a flat list into sections with headers. Perfect for alphabetically sorted contacts, categorized items, or any list that needs visual grouping.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [Sticky Headers](#sticky-headers)
-- [With Grid Layout](#with-grid-layout)
-- [Async Operations](#data-operations)
-- [Combining with Reverse Mode](#combining-with-reverse-mode)
-- [API Reference](#api-reference)
-- [Performance](#performance)
-- [Examples](#examples)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
-
-## Overview
-
 ### What It Does
 
 The sections plugin:
