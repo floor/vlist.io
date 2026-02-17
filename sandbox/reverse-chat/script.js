@@ -9,7 +9,7 @@
 //   - Manual "load older" on scroll near top
 //   - Variable heights via DOM measurement
 
-import { createVList } from "vlist";
+import { vlist, withSections } from "vlist";
 
 // =============================================================================
 // Data — load messages from JSON
@@ -302,7 +302,7 @@ const init = async () => {
   updateStatus();
 
   // Create vlist with reverse mode + groups (inline date headers)
-  list = createVList({
+  list = vlist({
     container,
     ariaLabel: "Chat messages",
     reverse: true,
@@ -318,26 +318,28 @@ const init = async () => {
       },
     },
     items: allItems,
-    // Groups plugin with inline headers (iMessage style)
-    groups: {
-      getGroupForIndex: (index) => {
-        const item = currentItems[index];
-        return item ? DATE_LABELS[item.dateSection] : "Unknown";
-      },
-      headerHeight: DATE_HEADER_HEIGHT,
-      headerTemplate: (dateLabel) => {
-        const el = document.createElement("div");
-        el.className = "date-sep";
-        el.innerHTML = `
+  })
+    .use(
+      withSections({
+        getGroupForIndex: (index) => {
+          const item = currentItems[index];
+          return item ? DATE_LABELS[item.dateSection] : "Unknown";
+        },
+        headerHeight: DATE_HEADER_HEIGHT,
+        headerTemplate: (dateLabel) => {
+          const el = document.createElement("div");
+          el.className = "date-sep";
+          el.innerHTML = `
         <span class="date-sep__line"></span>
         <span class="date-sep__text">${dateLabel}</span>
         <span class="date-sep__line"></span>
       `;
-        return el;
-      },
-      sticky: true, // Try sticky: true for Telegram-style (header sticks at top while scrolling)
-    },
-  });
+          return el;
+        },
+        sticky: true, // Try sticky: true for Telegram-style (header sticks at top while scrolling)
+      }),
+    )
+    .build();
 
   addLog("init", `reverse: true + groups — ${allItems.length} items loaded`);
 

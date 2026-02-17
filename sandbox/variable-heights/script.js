@@ -3,7 +3,7 @@
 // Each item is rendered into a hidden measuring element once, and the
 // measured pixel height is stored. The height function is a pure lookup.
 
-import { createVList } from "vlist";
+import { vlist } from "vlist";
 
 // =============================================================================
 // Data
@@ -216,7 +216,7 @@ const getItemHeight = (index) => items[index]?.height ?? 56;
 // Create List
 // =============================================================================
 
-const list = createVList({
+const list = vlist({
   container,
   ariaLabel: "Chat messages",
   item: {
@@ -224,7 +224,7 @@ const list = createVList({
     template: renderItem,
   },
   items,
-});
+}).build();
 
 // =============================================================================
 // Stats & Height Distribution

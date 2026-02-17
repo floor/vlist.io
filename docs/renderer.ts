@@ -33,114 +33,119 @@ export const DOC_GROUPS: DocGroup[] = [
         desc: "",
       },
       {
-        slug: "vlist",
+        slug: "QUICKSTART",
+        name: "Quick Start",
+        desc: "Get started in 5 minutes with common patterns",
+      },
+      {
+        slug: "guides/getting-started",
         name: "Documentation",
-        desc: "Configuration, usage, events, selection, infinite scroll, and more",
+        desc: "Complete introduction, configuration, and usage",
       },
       {
-        slug: "builder",
-        name: "Builder",
-        desc: "Composable builder — pick features, pay only for what you ship",
+        slug: "guides/builder-pattern",
+        name: "Builder Pattern",
+        desc: "Composable plugins — pay only for what you use",
       },
+    ],
+  },
+  {
+    label: "Guides",
+    items: [
       {
-        slug: "accessibility",
+        slug: "guides/accessibility",
         name: "Accessibility",
-        desc: "WAI-ARIA listbox, keyboard navigation, screen readers",
+        desc: "WAI-ARIA, keyboard navigation, screen readers",
       },
       {
-        slug: "styles",
-        name: "Styles",
-        desc: "CSS tokens, variants, dark mode, and customization",
+        slug: "guides/mobile",
+        name: "Mobile",
+        desc: "Touch optimization and mobile considerations",
       },
       {
-        slug: "optimization",
+        slug: "guides/optimization",
         name: "Optimization",
         desc: "Performance tuning and best practices",
       },
       {
-        slug: "benchmarks",
-        name: "Benchmarks",
-        desc: "Live performance suites — FPS, render, memory",
+        slug: "guides/reverse-mode",
+        name: "Reverse Mode",
+        desc: "Chat UI with auto-scroll and history loading",
       },
       {
-        slug: "known-issues",
-        name: "Known Issues",
-        desc: "Current limitations and workarounds",
-      },
-    ],
-  },
-  {
-    label: "Architecture",
-    items: [
-      {
-        slug: "types",
-        name: "Types",
-        desc: "TypeScript interfaces and type definitions",
-      },
-      {
-        slug: "constants",
-        name: "Constants",
-        desc: "Default values and configuration constants",
-      },
-      {
-        slug: "context",
-        name: "Context",
-        desc: "Internal state container and coordination",
+        slug: "guides/styling",
+        name: "Styling",
+        desc: "CSS customization, tokens, variants, dark mode",
       },
     ],
   },
   {
-    label: "Modules",
+    label: "Plugins",
     items: [
       {
-        slug: "render",
-        name: "Render",
-        desc: "DOM rendering, virtualization, and element pooling",
+        slug: "plugins/README",
+        name: "Plugins Overview",
+        desc: "All plugins with examples and costs",
       },
       {
-        slug: "data",
-        name: "Data",
-        desc: "Sparse storage, placeholders, and async adapters",
-      },
-      {
-        slug: "scroll",
-        name: "Scroll",
-        desc: "Scroll controller, custom scrollbar, and velocity",
-      },
-      {
-        slug: "grid",
+        slug: "plugins/grid",
         name: "Grid",
-        desc: "2D grid layout with dynamic aspect ratios",
+        desc: "2D grid layout (withGrid)",
       },
       {
-        slug: "selection",
+        slug: "plugins/sections",
+        name: "Sections",
+        desc: "Grouped lists with headers (withSections)",
+      },
+      {
+        slug: "plugins/async",
+        name: "Async",
+        desc: "Lazy data loading (withAsync)",
+      },
+      {
+        slug: "plugins/selection",
         name: "Selection",
-        desc: "Single & multi-select state management",
+        desc: "Item selection & keyboard nav (withSelection)",
       },
       {
-        slug: "events",
-        name: "Events",
-        desc: "Type-safe event emitter system",
+        slug: "plugins/scale",
+        name: "Scale",
+        desc: "1M+ items (withScale)",
       },
       {
-        slug: "compression",
-        name: "Compression",
-        desc: "Handling 1M+ items with scroll compression",
+        slug: "plugins/scrollbar",
+        name: "Scrollbar",
+        desc: "Custom scrollbar UI (withScrollbar)",
+      },
+      {
+        slug: "plugins/page",
+        name: "Page",
+        desc: "Document scrolling (withPage)",
+      },
+      {
+        slug: "plugins/snapshots",
+        name: "Snapshots",
+        desc: "Scroll save/restore (withSnapshots)",
       },
     ],
   },
   {
-    label: "API",
+    label: "API Reference",
     items: [
       {
-        slug: "methods",
+        slug: "api/methods",
         name: "Methods",
-        desc: "Public API — data, scroll, selection, lifecycle",
+        desc: "All public methods",
       },
       {
-        slug: "handlers",
-        name: "Handlers",
-        desc: "Scroll, click, and keyboard event handlers",
+        slug: "api/events",
+        name: "Events",
+        desc: "Event system and available events",
+      },
+      {
+        slug: "api/types",
+        name: "Types",
+        desc: "TypeScript interfaces and definitions",
       },
     ],
   },
@@ -148,19 +153,49 @@ export const DOC_GROUPS: DocGroup[] = [
     label: "Resources",
     items: [
       {
-        slug: "test",
+        slug: "resources/benchmarks",
+        name: "Benchmarks",
+        desc: "Performance metrics and live suites",
+      },
+      {
+        slug: "resources/bundle-size",
+        name: "Bundle Size",
+        desc: "Bundle analysis and optimization",
+      },
+      {
+        slug: "resources/testing",
         name: "Testing",
-        desc: "Test suite, coverage, and testing patterns",
+        desc: "Test suite and patterns",
       },
       {
-        slug: "sandbox",
-        name: "Sandbox",
-        desc: "",
+        slug: "resources/known-issues",
+        name: "Known Issues",
+        desc: "Current limitations and workarounds",
+      },
+    ],
+  },
+  {
+    label: "Internals",
+    items: [
+      {
+        slug: "internals/rendering",
+        name: "Rendering",
+        desc: "DOM rendering and virtualization",
       },
       {
-        slug: "prompt-variable-heights",
-        name: "Variable Heights",
-        desc: "",
+        slug: "internals/context",
+        name: "Context",
+        desc: "BuilderContext and plugin system",
+      },
+      {
+        slug: "internals/handlers",
+        name: "Handlers",
+        desc: "Event handler registration",
+      },
+      {
+        slug: "internals/constants",
+        name: "Constants",
+        desc: "Default configuration values",
       },
     ],
   },
@@ -192,114 +227,109 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
     label: "Getting Started",
     cards: [
       {
-        slug: "vlist",
+        slug: "QUICKSTART",
+        name: "Quick Start",
+        desc: "Get started in 5 minutes with 7 common patterns",
+      },
+      {
+        slug: "guides/getting-started",
         name: "Documentation",
-        desc: "Configuration, usage, events, selection, infinite scroll, and more",
+        desc: "Complete introduction, configuration, and usage",
       },
       {
-        slug: "builder",
-        name: "Builder",
-        desc: "Composable builder — pick features, pay only for what you ship",
+        slug: "guides/builder-pattern",
+        name: "Builder Pattern",
+        desc: "Composable plugins — pay only for what you use",
       },
       {
-        slug: "styles",
-        name: "Styles",
-        desc: "CSS tokens, variants, dark mode, and customization",
+        slug: "guides/styling",
+        name: "Styling",
+        desc: "CSS customization, tokens, variants, dark mode",
       },
       {
-        slug: "optimization",
+        slug: "guides/accessibility",
+        name: "Accessibility",
+        desc: "WAI-ARIA, keyboard navigation, screen reader support",
+      },
+      {
+        slug: "guides/optimization",
         name: "Optimization",
         desc: "Performance tuning and best practices",
       },
       {
-        slug: "compression",
-        name: "Compression",
-        desc: "Handling 1M+ items with scroll compression",
-      },
-      {
-        slug: "accessibility",
-        name: "Accessibility",
-        desc: "WAI-ARIA listbox, keyboard navigation, screen readers",
-      },
-      {
-        slug: "benchmarks",
-        name: "Benchmarks",
-        desc: "Live performance suites — FPS, render, memory",
-      },
-      {
-        slug: "known-issues",
-        name: "Known Issues",
-        desc: "Current limitations and workarounds",
+        slug: "guides/reverse-mode",
+        name: "Reverse Mode",
+        desc: "Chat UI with auto-scroll and history loading",
       },
     ],
   },
   {
-    label: "Architecture",
+    label: "Plugins",
     cards: [
       {
-        slug: "types",
+        slug: "plugins/README",
+        name: "Overview",
+        desc: "All 8 plugins with examples, costs, and compatibility",
+      },
+      {
+        slug: "plugins/grid",
+        name: "Grid",
+        desc: "2D grid layout with virtualized rows",
+      },
+      {
+        slug: "plugins/sections",
+        name: "Sections",
+        desc: "Grouped lists with sticky or inline headers",
+      },
+      {
+        slug: "plugins/async",
+        name: "Async",
+        desc: "Async data loading with lazy loading and placeholders",
+      },
+      {
+        slug: "plugins/selection",
+        name: "Selection",
+        desc: "Single &amp; multi-select with keyboard navigation",
+      },
+      {
+        slug: "plugins/scale",
+        name: "Scale",
+        desc: "Handle 1M+ items with automatic scroll compression",
+      },
+      {
+        slug: "plugins/scrollbar",
+        name: "Scrollbar",
+        desc: "Custom scrollbar UI with auto-hide and smooth dragging",
+      },
+      {
+        slug: "plugins/page",
+        name: "Page",
+        desc: "Document-level scrolling with native browser scrollbar",
+      },
+      {
+        slug: "plugins/snapshots",
+        name: "Snapshots",
+        desc: "Save and restore scroll position for SPA navigation",
+      },
+    ],
+  },
+  {
+    label: "API Reference",
+    cards: [
+      {
+        slug: "api/methods",
+        name: "Methods",
+        desc: "All public methods — data, scroll, selection, lifecycle",
+      },
+      {
+        slug: "api/events",
+        name: "Events",
+        desc: "Event system and all available events",
+      },
+      {
+        slug: "api/types",
         name: "Types",
         desc: "TypeScript interfaces and type definitions",
-      },
-      {
-        slug: "constants",
-        name: "Constants",
-        desc: "Default values and configuration constants",
-      },
-      {
-        slug: "context",
-        name: "Context",
-        desc: "Internal state container and coordination",
-      },
-    ],
-  },
-  {
-    label: "Modules",
-    cards: [
-      {
-        slug: "render",
-        name: "Render",
-        desc: "DOM rendering, virtualization, and element pooling",
-      },
-      {
-        slug: "data",
-        name: "Data",
-        desc: "Sparse storage, placeholders, and async adapters",
-      },
-      {
-        slug: "scroll",
-        name: "Scroll",
-        desc: "Scroll controller, custom scrollbar, and velocity",
-      },
-      {
-        slug: "grid",
-        name: "Grid",
-        desc: "2D grid layout with dynamic aspect ratios",
-      },
-      {
-        slug: "selection",
-        name: "Selection",
-        desc: "Single &amp; multi-select state management",
-      },
-      {
-        slug: "events",
-        name: "Events",
-        desc: "Type-safe event emitter system",
-      },
-    ],
-  },
-  {
-    label: "API",
-    cards: [
-      {
-        slug: "methods",
-        name: "Methods",
-        desc: "Public API — data, scroll, selection, lifecycle",
-      },
-      {
-        slug: "handlers",
-        name: "Handlers",
-        desc: "Scroll, click, and keyboard event handlers",
       },
     ],
   },
@@ -307,9 +337,24 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
     label: "Resources",
     cards: [
       {
-        slug: "test",
+        slug: "resources/benchmarks",
+        name: "Benchmarks",
+        desc: "Live performance suites — FPS, render time, memory",
+      },
+      {
+        slug: "resources/bundle-size",
+        name: "Bundle Size",
+        desc: "Bundle analysis and tree-shaking optimization",
+      },
+      {
+        slug: "resources/testing",
         name: "Testing",
-        desc: "1,644 tests, 99.99% line coverage, and testing patterns",
+        desc: "1,739 tests, 99.99% coverage, and testing patterns",
+      },
+      {
+        slug: "resources/known-issues",
+        name: "Known Issues",
+        desc: "Current limitations and workarounds",
       },
     ],
   },
@@ -339,6 +384,63 @@ function loadShell(): string {
 /** Clear the cached template (call when files change in dev) */
 export function clearCache(): void {
   shellCache = null;
+}
+
+// =============================================================================
+// Table of Contents
+// =============================================================================
+
+interface TocItem {
+  text: string;
+  slug: string;
+  depth: number;
+}
+
+/**
+ * Extract headings (H2 only) from parsed HTML for table of contents.
+ * Skips H1 (page title) and H3+ (too detailed).
+ */
+function extractToc(html: string): TocItem[] {
+  const toc: TocItem[] = [];
+  const headingRegex =
+    /<h2[^>]*id="([^"]+)"[^>]*>(.*?)<a class="anchor"[^>]*>.*?<\/a><\/h2>/g;
+
+  let match;
+  while ((match = headingRegex.exec(html)) !== null) {
+    const slug = match[1];
+    const htmlText = match[2];
+    // Strip HTML tags from heading text
+    const text = htmlText.replace(/<[^>]*>/g, "").trim();
+
+    toc.push({ text, slug, depth: 2 });
+  }
+
+  return toc;
+}
+
+/**
+ * Build table of contents HTML for the right sidebar.
+ */
+function buildToc(tocItems: TocItem[]): string {
+  if (tocItems.length === 0) return "";
+
+  const lines: string[] = [];
+  lines.push(`<nav class="toc">`);
+  lines.push(`  <div class="toc__title">On this page</div>`);
+  lines.push(`  <ul class="toc__list">`);
+
+  for (const item of tocItems) {
+    lines.push(`    <li class="toc__item">`);
+    lines.push(
+      `      <a href="#${item.slug}" class="toc__link">${item.text}</a>`,
+    );
+    lines.push(`    </li>`);
+  }
+
+  lines.push(`  </ul>`);
+  lines.push(`</nav>`);
+
+  return lines.join("\n");
 }
 
 // =============================================================================
@@ -468,6 +570,7 @@ function assemblePage(
   content: string,
   title: string,
   description: string,
+  toc: string = "",
 ): string {
   const shell = loadShell();
   const sidebar = buildSidebar(slug);
@@ -478,7 +581,8 @@ function assemblePage(
     .replace(/{{DESCRIPTION}}/g, description)
     .replace(/{{URL}}/g, url)
     .replace("{{SIDEBAR}}", sidebar)
-    .replace("{{CONTENT}}", content);
+    .replace("{{CONTENT}}", content)
+    .replace("{{TOC}}", toc);
 }
 
 // =============================================================================
@@ -518,6 +622,10 @@ export function renderDocsPage(slug: string | null): Response | null {
   const mdSource = readFileSync(mdPath, "utf-8");
   const parsedHtml = marked.parse(mdSource) as string;
 
+  // Extract table of contents
+  const tocItems = extractToc(parsedHtml);
+  const tocHtml = buildToc(tocItems);
+
   // Wrap in .md container
   const content = `<div class="md">${parsedHtml}</div>`;
 
@@ -528,7 +636,7 @@ export function renderDocsPage(slug: string | null): Response | null {
     ? `VList ${h1Title.toLowerCase()} — documentation and API reference.`
     : "VList documentation — API reference, configuration, events, methods, styling, and more.";
 
-  const html = assemblePage(slug, content, title, description);
+  const html = assemblePage(slug, content, title, description, tocHtml);
 
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },

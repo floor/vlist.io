@@ -33,6 +33,7 @@
     --overlay-bg: rgba(0, 0, 0, 0.5);
     --shadow-sidebar: rgba(0, 0, 0, 0.4);
     --sidebar-width: 220px;
+    --toc-width: 240px;
     --header-height: 56px;
     --radius: 8px;
 }
@@ -90,8 +91,16 @@ body {
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    padding: 0 12px 0 24px;
+    justify-content: center;
     z-index: 100;
+}
+
+.header__inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 1472px;
+    padding: 0 12px 0 24px;
     gap: 16px;
 }
 
@@ -162,16 +171,18 @@ body {
     display: flex;
     padding-top: var(--header-height);
     min-height: 100vh;
+    max-width: 1472px;
+    margin: 0 auto;
 }
 
 /* ─── Sidebar ────────────────────────────────────────────────────── */
 
 .sidebar {
-    position: fixed;
+    position: sticky;
     top: var(--header-height);
-    left: 0;
-    bottom: 0;
+    height: calc(100vh - var(--header-height));
     width: var(--sidebar-width);
+    flex-shrink: 0;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
     overflow-y: auto;
@@ -232,8 +243,72 @@ body {
 .content {
     position: relative;
     flex: 1;
-    margin-left: var(--sidebar-width);
     min-height: calc(100vh - var(--header-height));
+}
+
+/* ─── Table of Contents (right sidebar) ──────────────────────────── */
+
+.toc {
+    position: sticky;
+    top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    width: var(--toc-width);
+    flex-shrink: 0;
+    padding: 32px 20px;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+}
+
+.toc::-webkit-scrollbar {
+    width: 4px;
+}
+
+.toc::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.toc::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+}
+
+.toc__title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+}
+
+.toc__list {
+    list-style: none;
+}
+
+.toc__item {
+    margin-bottom: 0;
+}
+
+.toc__link {
+    display: block;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 4px 0;
+    transition: color 0.15s;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    margin-left: -10px;
+}
+
+.toc__link:hover {
+    color: var(--text);
+}
+
+.toc__link--active {
+    color: var(--accent-text);
+    border-left-color: var(--accent);
 }
 
 /* ─── Overlay (mobile sidebar backdrop) ──────────────────────────── */
@@ -448,6 +523,16 @@ html[data-theme] .sidebar__link {
 
 /* ─── Responsive: tablet ─────────────────────────────────────────── */
 
+@media (max-width: 1200px) {
+    .toc {
+        display: none;
+    }
+
+    .content {
+        margin-right: 0;
+    }
+}
+
 @media (max-width: 900px) {
     :root {
         --sidebar-width: 190px;
@@ -487,6 +572,10 @@ html[data-theme] .sidebar__link {
 
 @media (max-width: 720px) {
     .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        bottom: 0;
         transform: translateX(-100%);
         transition: transform 0.25s ease;
         width: 260px;
@@ -496,10 +585,6 @@ html[data-theme] .sidebar__link {
 
     .sidebar--open {
         transform: translateX(0);
-    }
-
-    .content {
-        margin-left: 0;
     }
 
     .header__hamburger {

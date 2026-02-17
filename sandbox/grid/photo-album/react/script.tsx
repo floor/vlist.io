@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createRoot } from "react-dom/client";
-import { createVList } from "vlist";
+import { vlist, withGrid, withScrollbar } from "vlist";
 
 // =============================================================================
 // Data Generation
@@ -123,25 +123,18 @@ function App() {
     setGridInfo({ columns, gap, rowHeight: height });
 
     // Create new instance
-    instanceRef.current = createVList({
+    instanceRef.current = vlist({
       container: containerRef.current,
       ariaLabel: "Photo gallery",
-      layout: "grid",
-      grid: {
-        columns,
-        gap,
-      },
       item: {
         height,
         template: itemTemplate,
       },
       items,
-      scroll: {
-        scrollbar: {
-          autoHide: true,
-        },
-      },
-    });
+    })
+      .use(withGrid({ columns, gap }))
+      .use(withScrollbar({ autoHide: true }))
+      .build();
 
     // Bind events
     instanceRef.current.on("scroll", scheduleStatsUpdate);

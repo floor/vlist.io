@@ -1,8 +1,8 @@
 # Dependencies
 node_modules/
 
-# Build output — sandbox and benchmark dist folders are built artifacts
-sandbox/**/dist/
+# Build output
+dist/
 benchmarks/dist/
 
 # IDE

@@ -2,9 +2,7 @@
 // Uses vlist/builder with withGrid plugin for grid view and standard list for list view
 // Demonstrates a virtualized file browser similar to macOS Finder
 
-import { createVList } from "vlist";
-import { withGrid } from "vlist/grid";
-import { withScrollbar } from "vlist/scroll";
+import { vlist, withGrid, withScrollbar, withSections } from "vlist";
 
 // =============================================================================
 // File Type Icons
@@ -321,47 +319,44 @@ function createGridView() {
   const listHeader = document.getElementById("list-header");
   if (listHeader) listHeader.style.display = "none";
 
-  const listConfig = {
+  // Create list with builder pattern
+  let builder = vlist({
     container: "#browser-container",
     ariaLabel: "File browser",
-    layout: "grid",
     item: {
       height,
       template: gridItemTemplate,
     },
-    grid: {
-      columns: currentColumns,
-      gap: currentGap,
-    },
-    scrollbar: {
-      autoHide: true,
-    },
     items: sorted,
-  };
+  })
+    .use(withGrid({ columns: currentColumns, gap: currentGap }))
+    .use(withScrollbar({ autoHide: true }));
 
-  // Add groups config if grouping is enabled
+  // Add groups plugin if grouping is enabled
   if (config.groupBy !== "none" && groupMap) {
-    listConfig.groups = {
-      getGroupForIndex: (index) => groupMap.get(index) || "",
-      headerHeight: 40,
-      headerTemplate: (groupKey) => {
-        // Count items in this group
-        let count = 0;
-        groupMap.forEach((key) => {
-          if (key === groupKey) count++;
-        });
-        return `
+    builder = builder.use(
+      withSections({
+        getGroupForIndex: (index) => groupMap.get(index) || "",
+        headerHeight: 40,
+        headerTemplate: (groupKey) => {
+          // Count items in this group
+          let count = 0;
+          groupMap.forEach((key) => {
+            if (key === groupKey) count++;
+          });
+          return `
           <div class="group-header">
             <span class="group-header__label">${groupKey}</span>
             <span class="group-header__count">${count} items</span>
           </div>
         `;
-      },
-      sticky: true,
-    };
+        },
+        sticky: true,
+      }),
+    );
   }
 
-  list = createVList(listConfig);
+  list = builder.build();
 
   // Bind events
 
@@ -417,42 +412,42 @@ function createListView() {
     });
   }
 
-  const listConfig = {
+  // Create list with builder pattern
+  let builder = vlist({
     container: "#browser-container",
     ariaLabel: "File browser",
     item: {
       height,
       template: listItemTemplate,
     },
-    scrollbar: {
-      autoHide: true,
-    },
     items: sorted,
-  };
+  }).use(withScrollbar({ autoHide: true }));
 
-  // Add groups config if grouping is enabled
+  // Add groups plugin if grouping is enabled
   if (config.groupBy !== "none" && groupMap) {
-    listConfig.groups = {
-      getGroupForIndex: (index) => groupMap.get(index) || "",
-      headerHeight: 40,
-      headerTemplate: (groupKey) => {
-        // Count items in this group
-        let count = 0;
-        groupMap.forEach((key) => {
-          if (key === groupKey) count++;
-        });
-        return `
+    builder = builder.use(
+      withSections({
+        getGroupForIndex: (index) => groupMap.get(index) || "",
+        headerHeight: 40,
+        headerTemplate: (groupKey) => {
+          // Count items in this group
+          let count = 0;
+          groupMap.forEach((key) => {
+            if (key === groupKey) count++;
+          });
+          return `
           <div class="group-header">
             <span class="group-header__label">${groupKey}</span>
             <span class="group-header__count">${count} items</span>
           </div>
         `;
-      },
-      sticky: true,
-    };
+        },
+        sticky: true,
+      }),
+    );
   }
 
-  list = createVList(listConfig);
+  list = builder.build();
 
   // Bind events
 

@@ -50,6 +50,8 @@
                 max-width: 820px;
                 margin: 0 auto;
                 padding: 40px 48px 80px;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
             }
 
             .md h1 {
@@ -457,6 +459,7 @@
             @media (max-width: 720px) {
                 .md {
                     padding: 24px 20px 60px;
+                    max-width: 100%;
                 }
 
                 .md h1 {
@@ -496,6 +499,25 @@
                 .md tbody td code {
                     font-size: 13px;
                 }
+
+                .md pre code {
+                    word-break: break-all;
+                    white-space: pre-wrap;
+                }
+
+                .md table {
+                    display: block;
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                }
+
+                .md table thead,
+                .md table tbody,
+                .md table tr {
+                    display: table;
+                    width: 100%;
+                    table-layout: fixed;
+                }
             }
         </style>
     </head>
@@ -503,70 +525,74 @@
         <!-- ─── Header ───────────────────────────────────── -->
 
         <header class="header">
-            <a href="/" class="header__logo">VList</a>
-            <span class="header__sep">/</span>
-            <span class="header__section">Docs</span>
-            <nav class="header__nav">
-                <a href="/docs/" class="active">Docs</a>
-                <a href="/sandbox/">Sandbox</a>
-                <a href="/benchmarks/">Benchmarks</a>
-                <a href="/api">API</a>
-                <a href="https://github.com/floor/vlist" target="_blank"
-                    >GitHub</a
+            <div class="header__inner">
+                <a href="/" class="header__logo">VList</a>
+                <span class="header__sep">/</span>
+                <span class="header__section">Docs</span>
+                <nav class="header__nav">
+                    <a href="/docs/" class="active">Docs</a>
+                    <a href="/sandbox/">Sandbox</a>
+                    <a href="/benchmarks/">Benchmarks</a>
+                    <a href="/api">API</a>
+                    <a href="https://github.com/floor/vlist" target="_blank"
+                        >GitHub</a
+                    >
+                </nav>
+                <button
+                    class="header__theme"
+                    id="theme-toggle"
+                    aria-label="Toggle theme"
                 >
-            </nav>
-            <button
-                class="header__theme"
-                id="theme-toggle"
-                aria-label="Toggle theme"
-            >
-                <svg
-                    class="header__theme-sun"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    <svg
+                        class="header__theme-sun"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg
+                        class="header__theme-moon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path
+                            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                        />
+                    </svg>
+                </button>
+                <button
+                    class="header__hamburger"
+                    id="hamburger"
+                    aria-label="Toggle menu"
                 >
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                    <line x1="12" y1="21" x2="12" y2="23" />
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                    <line x1="1" y1="12" x2="3" y2="12" />
-                    <line x1="21" y1="12" x2="23" y2="12" />
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-                <svg
-                    class="header__theme-moon"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-            </button>
-            <button
-                class="header__hamburger"
-                id="hamburger"
-                aria-label="Toggle menu"
-            >
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                >
-                    <rect y="3" width="20" height="2" rx="1" />
-                    <rect y="9" width="20" height="2" rx="1" />
-                    <rect y="15" width="20" height="2" rx="1" />
-                </svg>
-            </button>
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <rect y="3" width="20" height="2" rx="1" />
+                        <rect y="9" width="20" height="2" rx="1" />
+                        <rect y="15" width="20" height="2" rx="1" />
+                    </svg>
+                </button>
+            </div>
         </header>
 
         <!-- ─── Overlay ──────────────────────────────────── -->
@@ -579,6 +605,8 @@
             <nav class="sidebar" id="sidebar">{{SIDEBAR}}</nav>
 
             <main class="content">{{CONTENT}}</main>
+
+            {{TOC}}
         </div>
 
         <!-- ─── Syntax highlighting (client-side) ────────── -->
@@ -629,6 +657,67 @@
                     document.documentElement.setAttribute("data-theme", next);
                     localStorage.setItem("vlist-theme", next);
                 });
+            })();
+        </script>
+
+        <!-- ─── TOC active link highlighting ─────────────── -->
+
+        <script>
+            (function () {
+                var toc = document.querySelector(".toc");
+                if (!toc) return;
+
+                var links = Array.from(toc.querySelectorAll(".toc__link"));
+                if (links.length === 0) return;
+
+                // Get all heading elements
+                var headings = links
+                    .map(function (link) {
+                        var id = link.getAttribute("href").slice(1);
+                        return document.getElementById(id);
+                    })
+                    .filter(Boolean);
+
+                if (headings.length === 0) return;
+
+                // Update active link based on scroll position
+                function updateActive() {
+                    var scrollPos = window.scrollY + 100; // offset for header
+                    var current = null;
+
+                    // Find the heading closest to top of viewport
+                    for (var i = headings.length - 1; i >= 0; i--) {
+                        if (headings[i].offsetTop <= scrollPos) {
+                            current = headings[i];
+                            break;
+                        }
+                    }
+
+                    // Update active state
+                    links.forEach(function (link) {
+                        var id = link.getAttribute("href").slice(1);
+                        if (current && current.id === id) {
+                            link.classList.add("toc__link--active");
+                        } else {
+                            link.classList.remove("toc__link--active");
+                        }
+                    });
+                }
+
+                // Throttle scroll events
+                var ticking = false;
+                window.addEventListener("scroll", function () {
+                    if (!ticking) {
+                        window.requestAnimationFrame(function () {
+                            updateActive();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                });
+
+                // Initial update
+                updateActive();
             })();
         </script>
     </body>

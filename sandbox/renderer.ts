@@ -462,11 +462,31 @@ function buildExtraHead(
   // vlist styles — always needed for examples
   tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
 
-  // Example-specific styles — check variant subdirectory first
-  const stylePath = variant
-    ? `/sandbox/${slug}/${variant}/dist/styles.css`
-    : `/sandbox/${slug}/dist/styles.css`;
-  tags.push(`<link rel="stylesheet" href="${stylePath}" />`);
+  // Shared example styles (at example root, optional)
+  // e.g., /dist/sandbox/grid/photo-album/styles.css
+  // This allows variants to share common styles without duplication
+  // Only add if file exists to avoid 404s in network tab
+  const sharedCssPath = resolve(join("dist", "sandbox", slug, "styles.css"));
+  if (existsSync(sharedCssPath)) {
+    tags.push(
+      `<link rel="stylesheet" href="/dist/sandbox/${slug}/styles.css" />`,
+    );
+  }
+
+  // Variant-specific styles (optional overrides)
+  // e.g., /dist/sandbox/grid/photo-album/react/styles.css
+  // Loaded after shared styles to allow variant-specific customization
+  // Only add if file exists to avoid 404s in network tab
+  if (variant) {
+    const variantCssPath = resolve(
+      join("dist", "sandbox", slug, variant, "styles.css"),
+    );
+    if (existsSync(variantCssPath)) {
+      tags.push(
+        `<link rel="stylesheet" href="/dist/sandbox/${slug}/${variant}/styles.css" />`,
+      );
+    }
+  }
 
   return tags.join("\n    ");
 }
@@ -480,8 +500,8 @@ function buildExtraBody(
 
   // Script path — check variant subdirectory first
   const scriptPath = variant
-    ? `/sandbox/${slug}/${variant}/dist/script.js`
-    : `/sandbox/${slug}/dist/script.js`;
+    ? `/dist/sandbox/${slug}/${variant}/script.js`
+    : `/dist/sandbox/${slug}/script.js`;
 
   return `<script type="module" src="${scriptPath}"></script>`;
 }

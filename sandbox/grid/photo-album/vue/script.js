@@ -3,7 +3,7 @@
 // Demonstrates a virtualized 2D photo gallery with Vue composition API
 
 import { createApp, ref, onMounted, onUnmounted } from "vue";
-import { createVList } from "vlist";
+import { vlist, withGrid, withScrollbar } from "vlist";
 
 // =============================================================================
 // Data Generation
@@ -128,25 +128,18 @@ const App = {
       };
 
       // Create new instance with builder pattern
-      instance.value = createVList({
+      instance.value = vlist({
         container: containerRef.value,
         ariaLabel: "Photo gallery",
-        layout: "grid",
-        grid: {
-          columns: columns.value,
-          gap: gap.value,
-        },
         item: {
           height,
           template: itemTemplate,
         },
         items,
-        scroll: {
-          scrollbar: {
-            autoHide: true,
-          },
-        },
-      });
+      })
+        .use(withGrid({ columns: columns.value, gap: gap.value }))
+        .use(withScrollbar({ autoHide: true }))
+        .build();
 
       // Track scroll and range changes
       instance.value.on("scroll", scheduleStatsUpdate);
