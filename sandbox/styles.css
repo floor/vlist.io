@@ -555,10 +555,10 @@ html[data-theme] .source__panel pre {
    ============================================================================ */
 
 .source {
-    position: fixed;
-    top: 55px;
+    position: absolute;
+    top: 0 !important;
     bottom: 0;
-    left: var(--sidebar-width);
+    left: 0;
     right: 0;
     z-index: 100;
     background: var(--bg-card);
@@ -575,11 +575,6 @@ html[data-theme] .source__panel pre {
 
 .source--open {
     transform: translateY(0);
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="light"] .source--open {
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.08);
 }
 
 .source__header {
