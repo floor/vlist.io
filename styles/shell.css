@@ -91,8 +91,16 @@ body {
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    padding: 0 12px 0 24px;
+    justify-content: center;
     z-index: 100;
+}
+
+.header__inner {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 1600px;
+    padding: 0 12px 0 24px;
     gap: 16px;
 }
 
@@ -163,16 +171,18 @@ body {
     display: flex;
     padding-top: var(--header-height);
     min-height: 100vh;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 /* ─── Sidebar ────────────────────────────────────────────────────── */
 
 .sidebar {
-    position: fixed;
+    position: sticky;
     top: var(--header-height);
-    left: 0;
-    bottom: 0;
+    height: calc(100vh - var(--header-height));
     width: var(--sidebar-width);
+    flex-shrink: 0;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
     overflow-y: auto;
@@ -233,19 +243,17 @@ body {
 .content {
     position: relative;
     flex: 1;
-    margin-left: var(--sidebar-width);
-    margin-right: var(--toc-width);
     min-height: calc(100vh - var(--header-height));
 }
 
 /* ─── Table of Contents (right sidebar) ──────────────────────────── */
 
 .toc {
-    position: fixed;
+    position: sticky;
     top: var(--header-height);
-    right: 0;
-    width: var(--toc-width);
     height: calc(100vh - var(--header-height));
+    width: var(--toc-width);
+    flex-shrink: 0;
     padding: 32px 20px;
     overflow-y: auto;
     border-left: 1px solid var(--border);
@@ -280,7 +288,6 @@ body {
 .toc__item {
     margin-bottom: 0;
 }
-
 
 .toc__link {
     display: block;
@@ -565,6 +572,10 @@ html[data-theme] .sidebar__link {
 
 @media (max-width: 720px) {
     .sidebar {
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        bottom: 0;
         transform: translateX(-100%);
         transition: transform 0.25s ease;
         width: 260px;
@@ -574,11 +585,6 @@ html[data-theme] .sidebar__link {
 
     .sidebar--open {
         transform: translateX(0);
-    }
-
-    .content {
-        margin-left: 0;
-        margin-right: 0;
     }
 
     .header__hamburger {
