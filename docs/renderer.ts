@@ -268,7 +268,7 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
     cards: [
       {
         slug: "plugins/README",
-        name: "Plugins Overview",
+        name: "Overview",
         desc: "All 8 plugins with examples, costs, and compatibility",
       },
       {
