@@ -1,4 +1,4 @@
-/* Core Example — example-specific styles only
+/* Core Basic Example — shared styles for all variants (javascript, react, vue, svelte)
    Common styles (.container, h1, .description, .stats, footer)
    are provided by sandbox/sandbox.css using shell.css design tokens.
    Panel system (.split-layout, .split-panel, .panel-*)

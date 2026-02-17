@@ -1,4 +1,14 @@
-/* sandbox/sandbox.css — Shared styles for all sandbox examples
+/* sandbox/styles.css — Shared styles for EXAMPLE PAGES (built to dist/sandbox/)
+
+   This stylesheet provides all the UI components for interactive sandbox examples:
+   - Container, panels, controls, buttons
+   - Split layout system
+   - Source code drawer with syntax highlighting
+   - Theme integration with vlist components
+
+   Used in: shell.html template (all example pages like /sandbox/grid/photo-album/)
+   NOT used in: sandbox/index.html (uses styles/sandbox.css instead)
+
    Uses shell.css design tokens for light/dark theme support */
 
 /* ============================================================================

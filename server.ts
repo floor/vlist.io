@@ -316,6 +316,11 @@ const serveFromPackage = (
  *   9. /*                            → local root (landing, static assets)
  */
 const resolveStatic = (pathname: string): Response | null => {
+  // /dist/sandbox/* → project root dist/sandbox directory (sandbox build output)
+  if (pathname.startsWith("/dist/sandbox/")) {
+    return serveStatic(pathname);
+  }
+
   // /dist/* → vlist package dist directory
   if (pathname.startsWith("/dist/")) {
     const subpath = pathname; // keep /dist/... as-is since vlist root contains dist/

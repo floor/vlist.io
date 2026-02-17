@@ -148,7 +148,7 @@ async function buildExample(name: string): Promise<BuildResult> {
   const start = performance.now();
   const exampleDir = join(SANDBOX_DIR, name);
   const entrypoint = findEntrypoint(exampleDir);
-  const outdir = join(exampleDir, "dist");
+  const outdir = join("dist", SANDBOX_DIR, name);
 
   if (!entrypoint) {
     return {
@@ -161,6 +161,32 @@ async function buildExample(name: string): Promise<BuildResult> {
   }
 
   try {
+    // Shared styles support: examples with variants (javascript/react/vue/svelte)
+    // can have a shared styles.css at the example root that all variants use.
+    // Example structure:
+    //   grid/photo-album/styles.css         → shared (built to dist/sandbox/grid/photo-album/)
+    //   grid/photo-album/javascript/*.js    → variant (built to dist/sandbox/grid/photo-album/javascript/)
+    //   grid/photo-album/react/*.jsx        → variant (built to dist/sandbox/grid/photo-album/react/)
+    // Each variant can optionally have its own styles.css for overrides.
+    const isVariant = ["javascript", "react", "vue", "svelte"].some((v) =>
+      name.endsWith(`/${v}`),
+    );
+    if (isVariant) {
+      const parentDir = join(exampleDir, "..");
+      const sharedCssPath = join(parentDir, "styles.css");
+      // Get parent example name (e.g., "grid/photo-album" from "grid/photo-album/javascript")
+      const parentName = name.split("/").slice(0, -1).join("/");
+      const parentOutdir = join("dist", SANDBOX_DIR, parentName);
+
+      if (existsSync(sharedCssPath)) {
+        if (!existsSync(parentOutdir)) {
+          mkdirSync(parentOutdir, { recursive: true });
+        }
+        const raw = readFileSync(sharedCssPath, "utf-8");
+        const minified = minifyCss(raw);
+        writeFileSync(join(parentOutdir, "styles.css"), minified);
+      }
+    }
     // Use dedupe plugin for framework examples (React, Vue, Svelte)
     const needsDedupe =
       entrypoint.endsWith(".jsx") ||
@@ -199,14 +225,25 @@ async function buildExample(name: string): Promise<BuildResult> {
       };
     }
 
-    // Minify CSS if styles.css exists
-    const cssPath = join(SANDBOX_DIR, name, "styles.css");
+    // Minify CSS if styles.css exists (variant-specific or example-specific)
+    const cssPath = join(exampleDir, "styles.css");
     let cssSize = 0;
     if (existsSync(cssPath)) {
       const raw = readFileSync(cssPath, "utf-8");
       const minified = minifyCss(raw);
       writeFileSync(join(outdir, "styles.css"), minified);
       cssSize = Buffer.byteLength(minified, "utf-8");
+    }
+
+    // If this is a variant, also account for shared styles size
+    if (isVariant) {
+      const parentDir = join(exampleDir, "..");
+      const sharedCssPath = join(parentDir, "styles.css");
+      if (existsSync(sharedCssPath)) {
+        const sharedRaw = readFileSync(sharedCssPath, "utf-8");
+        const sharedMinified = minifyCss(sharedRaw);
+        cssSize += Buffer.byteLength(sharedMinified, "utf-8");
+      }
     }
 
     // Measure JS bundle size
@@ -283,8 +320,8 @@ function printSizeTable(results: BuildResult[]): void {
 }
 
 function buildSharedCss(): void {
-  const cssPath = join(SANDBOX_DIR, "sandbox.css");
-  const outdir = join(SANDBOX_DIR, "dist");
+  const cssPath = join(SANDBOX_DIR, "styles.css");
+  const outdir = join("dist", SANDBOX_DIR);
 
   if (!existsSync(cssPath)) return;
 
@@ -292,9 +329,9 @@ function buildSharedCss(): void {
 
   const raw = readFileSync(cssPath, "utf-8");
   const minified = minifyCss(raw);
-  writeFileSync(join(outdir, "sandbox.css"), minified);
+  writeFileSync(join(outdir, "styles.css"), minified);
   const size = Buffer.byteLength(minified, "utf-8");
-  console.log(`✅ ${"sandbox.css".padEnd(20)}          ${formatKB(size)} KB\n`);
+  console.log(`✅ ${"styles.css".padEnd(20)}          ${formatKB(size)} KB\n`);
 }
 
 async function main() {
@@ -348,10 +385,10 @@ async function watchMode() {
   // Initial build
   await main();
 
-  // Watch shared sandbox.css
+  // Watch shared styles.css
   watch(SANDBOX_DIR, { recursive: false }, async (_event, filename) => {
-    if (filename === "sandbox.css") {
-      console.log(`\n📝 sandbox.css changed`);
+    if (filename === "styles.css") {
+      console.log(`\n📝 styles.css changed`);
       buildSharedCss();
     }
   });
