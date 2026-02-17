@@ -622,4 +622,4 @@ The library's reliance on native scrolling rather than custom touch handling res
 
 ---
 
-**Need help?** Open an issue on [GitHub](https://github.com/your-repo/vlist) or join the discussion.
+**Need help?** Open an issue on [GitHub](https://github.com/floor/vlist) or join the discussion.
