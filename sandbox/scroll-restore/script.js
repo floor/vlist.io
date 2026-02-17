@@ -1,7 +1,7 @@
 // Scroll Save/Restore Example
 // Demonstrates getScrollSnapshot() and restoreScroll() for SPA navigation
 
-import { createVList } from "vlist";
+import { vlist, withSelection } from "vlist";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -64,7 +64,7 @@ let list = null;
 let snapshotUpdateId = null;
 
 function createList() {
-  list = createVList({
+  list = vlist({
     container: listContainer,
     ariaLabel: "Employee list",
     item: {
@@ -84,10 +84,9 @@ function createList() {
       },
     },
     items,
-    selection: {
-      mode: "multiple",
-    },
-  });
+  })
+    .use(withSelection({ mode: "multiple" }))
+    .build();
 
   // Live stats
   const updateStats = () => {
@@ -154,9 +153,7 @@ function formatSnapshot(snapshot) {
       parts.push(`  "selectedIds": [${ids.join(", ")}]`);
     } else {
       const preview = ids.slice(0, 6).join(", ");
-      parts.push(
-        `  "selectedIds": [${preview}, … +${ids.length - 6} more]`,
-      );
+      parts.push(`  "selectedIds": [${preview}, … +${ids.length - 6} more]`);
     }
   }
 

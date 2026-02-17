@@ -1,7 +1,7 @@
 // Controls - Pure Vanilla JavaScript
 // Interactive control panel demonstrating vlist's navigation, selection, and viewport APIs
 
-import { createVList } from "vlist";
+import { vlist, withSelection } from "vlist";
 import {
   TOTAL,
   items,
@@ -17,16 +17,17 @@ import {
 let currentSelectionMode = "single";
 
 function createList(mode) {
-  return createVList({
+  return vlist({
     container: "#list-container",
     ariaLabel: "User list",
-    selection: { mode },
     item: {
       height: 64,
       template: itemTemplate,
     },
     items,
-  });
+  })
+    .use(withSelection({ mode }))
+    .build();
 }
 
 let list = createList(currentSelectionMode);

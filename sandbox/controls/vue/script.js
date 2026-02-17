@@ -2,7 +2,7 @@
 // Interactive control panel demonstrating vlist's navigation, selection, and viewport APIs
 
 import { createApp, ref, computed, watch, onUnmounted } from "vue";
-import { createVList } from "vlist";
+import { vlist, withSelection } from "vlist";
 import {
   TOTAL,
   items,
@@ -47,16 +47,17 @@ const App = {
       }
 
       // Create new instance with current selection mode
-      instance.value = createVList({
+      instance.value = vlist({
         container: containerRef.value,
         ariaLabel: "User list",
-        selection: { mode: selectionMode.value },
         item: {
           height: 64,
           template: itemTemplate,
         },
         items,
-      });
+      })
+        .use(withSelection({ mode: selectionMode.value }))
+        .build();
 
       // Track scroll events
       instance.value.on("scroll", ({ scrollTop, direction }) => {

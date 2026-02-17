@@ -2,7 +2,7 @@
 // Demonstrates the groups API with sticky section headers.
 // Contacts are sorted by last name and grouped by the first letter.
 
-import { createVList } from "vlist";
+import { vlist, withSections } from "vlist";
 
 // =============================================================================
 // Data Generation
@@ -331,21 +331,24 @@ const contacts = generateContacts(TOTAL_CONTACTS);
 
 const container = document.getElementById("list-container");
 
-const list = createVList({
+const list = vlist({
   container,
   ariaLabel: "Contact list",
   item: {
     height: 64,
     template: renderContact,
   },
-  groups: {
-    getGroupForIndex: (index) => contacts[index].lastName[0].toUpperCase(),
-    headerHeight: 36,
-    headerTemplate: (group) => renderGroupHeader(group),
-    sticky: true,
-  },
   items: contacts,
-});
+})
+  .use(
+    withSections({
+      getGroupForIndex: (index) => contacts[index].lastName[0].toUpperCase(),
+      headerHeight: 36,
+      headerTemplate: (group) => renderGroupHeader(group),
+      sticky: true,
+    }),
+  )
+  .build();
 
 // =============================================================================
 // Stats

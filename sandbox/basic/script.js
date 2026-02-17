@@ -1,4 +1,4 @@
-import { createVList } from "vlist";
+import { vlist } from "vlist";
 
 // ── Data ────────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ const users = Array.from({ length: 10_000 }, (_, i) => ({
 
 // ── List ────────────────────────────────────────────────────────
 
-const list = createVList({
+const list = vlist({
   container: "#list-container",
   ariaLabel: "User list",
   items: users,
@@ -40,7 +40,7 @@ const list = createVList({
       </div>
     `,
   },
-});
+}).build();
 
 // ── Stats ───────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 // Wizard Navigation Example
 // Demonstrates scroll.wheel: false with button-only navigation
 
-import { createVList } from "vlist";
+import { vlist, withSelection } from "vlist";
 
 // Recipe steps dataset — a cookbook wizard
 const recipes = [
@@ -212,11 +212,10 @@ let currentIndex = 0;
 const TOTAL = recipes.length;
 
 // Create virtual list with wheel scrolling disabled
-const list = createVList({
+const list = vlist({
   container: "#list-container",
   scroll: { wheel: false, scrollbar: "none", wrap: true },
   ariaLabel: "Recipe wizard",
-  selection: { mode: "single" },
   item: {
     height: 320,
     template: (item) => `
@@ -242,7 +241,9 @@ const list = createVList({
     `,
   },
   items: recipes,
-});
+})
+  .use(withSelection({ mode: "single" }))
+  .build();
 
 // DOM elements
 const btnPrev = document.getElementById("btn-prev");
