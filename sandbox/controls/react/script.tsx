@@ -3,7 +3,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { createVList } from "vlist";
+import { vlist, withSelection } from "vlist";
 import {
   TOTAL,
   items,
@@ -54,16 +54,17 @@ function App() {
     }
 
     // Create new instance with current selection mode
-    instanceRef.current = createVList({
+    instanceRef.current = vlist({
       container: containerRef.current,
       ariaLabel: "User list",
-      selection: { mode: selectionMode },
       item: {
         height: 64,
         template: itemTemplate,
       },
       items,
-    });
+    })
+      .use(withSelection({ mode: selectionMode }))
+      .build();
 
     // Track scroll events
     instanceRef.current.on("scroll", ({ scrollTop, direction }: any) => {
