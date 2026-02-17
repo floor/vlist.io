@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "vlist.dev — documentation, sandbox, and API for the vlist library",
   "type": "module",
+  "imports": {
+    "vlist": "@floor/vlist",
+    "vlist/*": "@floor/vlist/*"
+  },
   "scripts": {
     "dev": "bun run build:sandbox && bun run build:bench && bun run --watch server.ts",
     "start": "bun run server.ts",
@@ -19,7 +23,7 @@
     "marked": "^17.0.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "vlist": "file:../vlist",
+    "@floor/vlist": "file:../vlist",
     "vue": "^3.5.28"
   },
   "devDependencies": {

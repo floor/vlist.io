@@ -5,12 +5,12 @@
     "": {
       "name": "vlist.dev",
       "dependencies": {
+        "@floor/vlist": "file:../vlist",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "marked": "^17.0.1",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
-        "vlist": "file:../vlist",
         "vue": "^3.5.28",
       },
       "devDependencies": {
@@ -106,6 +106,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.27.3", "", { "os": "win32", "cpu": "x64" }, "sha512-4uJGhsxuptu3OcpVAzli+/gWusVGwZZHTlS63hh++ehExkVT8SgiEf7/uC/PclrPPkLhZqGgCTjd0VWLo6xMqA=="],
 
     "@exodus/bytes": ["@exodus/bytes@1.14.1", "", { "peerDependencies": { "@noble/hashes": "^1.8.0 || ^2.0.0" }, "optionalPeers": ["@noble/hashes"] }, "sha512-OhkBFWI6GcRMUroChZiopRiSp2iAMvEBK47NhJooDqz1RERO4QuZIZnjP63TXX8GAiLABkYmX+fuQsdJ1dd2QQ=="],
+
+    "@floor/vlist": ["@floor/vlist@file:../vlist", { "devDependencies": { "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "@types/react": "^19.2.13", "esbuild": "^0.27.3", "jsdom": "^28.0.0", "madge": "^8.0.0", "react": "^19.2.4", "typescript": "^5.0.0", "vue": "^3.5.28" }, "peerDependencies": { "react": ">=17.0.0", "vue": ">=3.0.0" }, "optionalPeers": ["react", "vue"] }],
 
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.5.5", "", {}, "sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og=="],
 
@@ -484,8 +486,6 @@
     "undici-types": ["undici-types@7.16.0", "", {}, "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="],
 
     "util-deprecate": ["util-deprecate@1.0.2", "", {}, "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="],
-
-    "vlist": ["@floor/vlist@file:../vlist", { "devDependencies": { "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "@types/react": "^19.2.13", "esbuild": "^0.27.3", "jsdom": "^28.0.0", "madge": "^8.0.0", "react": "^19.2.4", "typescript": "^5.0.0", "vue": "^3.5.28" }, "peerDependencies": { "react": ">=17.0.0", "vue": ">=3.0.0" }, "optionalPeers": ["react", "vue"] }],
 
     "vue": ["vue@3.5.28", "", { "dependencies": { "@vue/compiler-dom": "3.5.28", "@vue/compiler-sfc": "3.5.28", "@vue/runtime-dom": "3.5.28", "@vue/server-renderer": "3.5.28", "@vue/shared": "3.5.28" }, "peerDependencies": { "typescript": "*" }, "optionalPeers": ["typescript"] }, "sha512-BRdrNfeoccSoIZeIhyPBfvWSLFP4q8J3u8Ju8Ug5vu3LdD+yTM13Sg4sKtljxozbnuMu1NB1X5HBHRYUzFocKg=="],
 

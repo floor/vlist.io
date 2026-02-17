@@ -2,9 +2,7 @@
 // Uses vlist/builder with withGrid + withScrollbar plugins
 // Demonstrates a virtualized 2D photo gallery using the builder API
 
-import { vlist } from "vlist/builder";
-import { withGrid } from "vlist/grid";
-import { withScrollbar } from "vlist/scroll";
+import { vlist, withGrid, withScrollbar } from "vlist";
 
 // =============================================================================
 // Data Generation

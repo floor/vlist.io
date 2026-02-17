@@ -2,9 +2,7 @@
 // Uses vlist/builder with withCompression + withScrollbar plugins
 // Demonstrates handling 1M+ items with automatic scroll compression
 
-import { vlist } from "vlist/builder";
-import { withCompression } from "vlist/compression";
-import { withScrollbar } from "vlist/scroll";
+import { vlist, withScale, withScrollbar } from "vlist";
 
 // =============================================================================
 // Constants

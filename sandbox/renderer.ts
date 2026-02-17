@@ -51,16 +51,6 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
     ],
   },
   {
-    label: "Core (Lightweight)",
-    items: [
-      {
-        slug: "core/basic",
-        name: "Basic Core",
-        desc: "Lightweight 4.2KB build — 83% smaller, same result",
-      },
-    ],
-  },
-  {
     label: "Grid Plugin",
     items: [
       {
@@ -80,8 +70,8 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
     items: [
       {
         slug: "data/large-list",
-        name: "Large List (Compression)",
-        desc: "100K–5M items with withCompression — 4 frameworks",
+        name: "Large List (Scale)",
+        desc: "100K–5M items with withScale — 4 frameworks",
       },
       {
         slug: "data/velocity-loading",
