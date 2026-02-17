@@ -1320,7 +1320,7 @@ When `updateGrid()` is called:
 
 - [Builder Pattern](./builder.md) - Manual builder API
 - [Selection](./selection.md) - Multi-select for grids
-- [Compression](./compression.md) - Handle millions of items
+- [Compression](./scale.md) - Handle millions of items
 - [Performance](./optimization.md) - Optimization techniques
 - [API Reference](./methods.md) - All methods
 

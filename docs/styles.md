@@ -610,4 +610,4 @@ Required CSS features:
 
 ---
 
-*See also: [Main Documentation](./vlist.md) | [Compression Guide](./compression.md)*
+*See also: [Main Documentation](./vlist.md) | [Scale Guide](./scale.md)*

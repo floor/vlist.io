@@ -1452,7 +1452,7 @@ Compression adds minimal overhead:
 - Position calculations: Pure math, very fast
 - Memory: No additional memory for compression
 
-For detailed technical documentation, see [compression.md](./compression.md).
+For detailed technical documentation, see [scale.md](./scale.md).
 
 ---
 
@@ -1476,5 +1476,5 @@ MIT © [Floor](https://github.com/floor)
 - [GitHub Repository](https://github.com/floor/vlist)
 - [npm Package](https://www.npmjs.com/package/vlist)
 - [Examples](../examples/)
-- [Compression Documentation](./compression.md)
+- [Scale Documentation](./scale.md)
 - [Changelog](../CHANGELOG.md)

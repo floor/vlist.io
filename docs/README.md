@@ -10,12 +10,12 @@
 - **[Benchmarks](./benchmarks.md)** - Live performance suites (scroll FPS, render, memory, scrollToIndex)
 - **[Optimization Guide](./optimization.md)** - Performance optimizations and tuning
 - **[Styles Guide](./styles.md)** - CSS tokens, variants, dark mode, split core/extras CSS, and customization
-- **[Scale Guide](./compression.md)** - Handling large lists (1M+ items) with compression
+- **[Scale Guide](./scale.md)** - Handling large lists (1M+ items) with compression
 - **[Page Scrolling](./vlist.md#page-scrolling)** - Document-level scrolling
 - **[Scroll Save/Restore](./vlist.md#scroll-saverestore)** - Save and restore scroll position for SPA navigation
 - **[Framework Adapters](#framework-adapters)** - React, Vue, and Svelte wrappers (<1 KB each)
 - **[Reverse Mode](./reverse.md)** - Chat UI support with auto-scroll and scroll-preserving prepend
-- **[Scroll Config](./scroll.md#scroll-configuration)** - Wheel control, wrap navigation, scrollbar modes, window scrolling
+- **[Scroll Config](./scrollbar.md#scroll-configuration)** - Wheel control, wrap navigation, scrollbar modes, window scrolling
 - **[Testing](./test.md)** - Test suite, coverage (99.99% lines), and testing patterns
 
 ## Module Documentation
@@ -38,11 +38,11 @@ All features are opt-in via the builder pattern - use only what you need for opt
 | Plugin | Description | Directory |
 |--------|-------------|-----------|
 | **[Grid](./grid.md)** | 2D grid layout with virtualized rows | `src/features/grid/` |
-| **[Sections](./groups.md)** | Grouped lists with sticky/inline headers | `src/features/sections/` |
-| **[Async](./data.md)** | Async data loading with adapters | `src/features/async/` |
+| **[Sections](./sections.md)** | Grouped lists with sticky/inline headers | `src/features/sections/` |
+| **[Async](./async.md)** | Async data loading with adapters | `src/features/async/` |
 | **[Selection](./selection.md)** | Single/multiple selection with keyboard nav | `src/features/selection/` |
-| **[Scale](./compression.md)** | Handle 1M+ items with compression | `src/features/scale/` |
-| **[Scrollbar](./scroll.md)** | Custom scrollbar with auto-hide | `src/features/scrollbar/` |
+| **[Scale](./scale.md)** | Handle 1M+ items with compression | `src/features/scale/` |
+| **[Scrollbar](./scrollbar.md)** | Custom scrollbar with auto-hide | `src/features/scrollbar/` |
 | **[Page](./plugins.md#withpage)** | Document-level scrolling | `src/features/page/` |
 | **[Snapshots](./plugins.md#withsnapshots)** | Scroll position save/restore | `src/features/snapshots/` |
 

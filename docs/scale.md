@@ -1,6 +1,6 @@
-# Compression System
+# Scale Plugin (Large Datasets)
 
-> Documentation for handling large lists (1M+ items) that exceed browser height limits.
+> Handle 1M+ items with automatic scroll compression (1M+ items) that exceed browser height limits.
 
 ## Overview
 

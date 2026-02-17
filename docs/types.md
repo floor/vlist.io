@@ -874,7 +874,7 @@ const item = list.items[0] as any;
 - [vlist.md](./vlist.md) - Main documentation with configuration examples
 - [context.md](./context.md) - Internal context types
 - [render.md](./render.md) - CompressionState, DOMStructure types
-- [data.md](./data.md) - DataState, SparseStorage types
+- [async.md](./async.md) - DataState, SparseStorage types
 - [selection.md](./selection.md) - Selection state management
 - [events.md](./events.md) - Event system types
 

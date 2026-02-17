@@ -1,6 +1,6 @@
-# Groups Plugin
+# Sections Plugin
 
-> Grouped lists with section headers — iOS Contacts style with optional sticky headers
+> Grouped lists with sticky or inline section headers.
 
 ## Overview
 
@@ -13,7 +13,7 @@ The sections plugin transforms a flat list into sections with headers. Perfect f
 - [Configuration](#configuration)
 - [Sticky Headers](#sticky-headers)
 - [With Grid Layout](#with-grid-layout)
-- [Data Operations](#data-operations)
+- [Async Operations](#data-operations)
 - [Combining with Reverse Mode](#combining-with-reverse-mode)
 - [API Reference](#api-reference)
 - [Performance](#performance)

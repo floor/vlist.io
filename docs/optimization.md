@@ -395,8 +395,8 @@ With all optimizations enabled:
 
 ## Related Documentation
 
-- [Compression](./compression.md) - How large list compression works
-- [Data Management](./data.md) - Sparse storage and chunking
-- [Scroll Controller](./scroll.md) - Velocity tracking and scroll handling
+- [Compression](./scale.md) - How large list compression works
+- [Async Management](./async.md) - Sparse storage and chunking
+- [Scroll Controller](./scrollbar.md) - Velocity tracking and scroll handling
 - [Rendering](./render.md) - Element pooling and DOM management
 - [Types](./types.md) - Configuration interfaces including `LoadingConfig`

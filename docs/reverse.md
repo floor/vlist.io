@@ -12,7 +12,7 @@ Reverse mode flips the list upside-down — starting scrolled to the bottom with
 - [Quick Start](#quick-start)
 - [How It Works](#how-it-works)
 - [Configuration](#configuration)
-- [Data Operations](#data-operations)
+- [Async Operations](#data-operations)
 - [Combining with Other Features](#combining-with-other-features)
 - [API Reference](#api-reference)
 - [Examples](#examples)
@@ -945,7 +945,7 @@ const messages = [...originalMessages].reverse() // Don't do this!
 
 ## Further Reading
 
-- [Groups Plugin](./groups.md) — Add date headers to chat UIs
-- [Data Plugin](./data.md) — Infinite scrolling with async loading
+- [Sections Plugin](./sections.md) — Add date headers to chat UIs
+- [Async Plugin](./async.md) — Infinite scrolling with async loading
 - [Selection Plugin](./selection.md) — Add message selection
 - [API Reference](./methods.md) — Full API documentation

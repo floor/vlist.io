@@ -1,6 +1,6 @@
-# Scroll Module
+# Scrollbar Module
 
-> Scroll controller, custom scrollbar, and wheel behavior for vlist.
+> Custom scrollbar UI with auto-hide and smooth dragging.
 
 ## Overview
 
@@ -1398,7 +1398,7 @@ This pattern already existed in other parts of the codebase (reverse mode, appen
 ## Related Modules
 
 - [methods.md](./methods.md#snapshot-methods) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
-- [compression.md](./compression.md) — Compression state for large lists
+- [scale.md](./scale.md) — Compression state for large lists
 - [render.md](./render.md) — Viewport state management
 - [handlers.md](./handlers.md) — Scroll event handler
 - [context.md](./context.md) — Context holds scroll controller

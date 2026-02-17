@@ -458,8 +458,8 @@ const savedState = ctx.state;  // State will change!
 - [handlers.md](./handlers.md) - Handlers that use context
 - [methods.md](./methods.md) - Methods that use context
 - [render.md](./render.md) - DOMStructure, Renderer interfaces
-- [data.md](./data.md) - DataManager interface
-- [scroll.md](./scroll.md) - ScrollController interface
+- [async.md](./async.md) - DataManager interface
+- [scrollbar.md](./scrollbar.md) - ScrollController interface
 - [events.md](./events.md) - Emitter interface
 
 ---

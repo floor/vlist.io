@@ -892,8 +892,8 @@ vlist({ ... })
 
 - [Builder Pattern](./builder.md) - Detailed builder API docs
 - [Grid Plugin](./grid.md) - Grid layout in depth
-- [Sections Plugin](./groups.md) - Grouped lists guide
-- [Async Plugin](./data.md) - Data loading patterns
+- [Sections Plugin](./sections.md) - Grouped lists guide
+- [Async Plugin](./async.md) - Data loading patterns
 - [Selection Plugin](./selection.md) - Selection and keyboard navigation
 - [API Reference](./methods.md) - Complete API documentation
 

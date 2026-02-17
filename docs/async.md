@@ -1,6 +1,6 @@
-# Data Module
+# Async Module
 
-> Data management, sparse storage, and placeholder generation for vlist.
+> Asynchronous data loading with lazy loading and placeholders.
 
 ## Overview
 

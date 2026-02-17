@@ -53,7 +53,7 @@ sandbox/
 │   ├── large-list/       # withScale (4 frameworks)
 │   └── velocity-loading/ # Async loading
 │
-├── groups/               # Groups Plugin (vlist (withSections))
+├── groups/               # Sections Plugin (vlist (withSections))
 │   └── sticky-headers/   # A-Z contact list
 │
 ├── horizontal/           # Horizontal scrolling

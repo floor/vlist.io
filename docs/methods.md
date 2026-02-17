@@ -724,8 +724,8 @@ if (ctx.config.hasAdapter) {
 - [context.md](./context.md) - Context passed to method factories
 - [handlers.md](./handlers.md) - Event handlers (internal counterpart)
 - [selection.md](./selection.md) - Selection state management functions
-- [data.md](./data.md) - Data manager operations
-- [scroll.md](./scroll.md) - Scroll controller
+- [async.md](./async.md) - Data manager operations
+- [scrollbar.md](./scrollbar.md) - Scroll controller
 - [render.md](./render.md) - Scroll position calculations
 - `src/animation.ts` - Shared animation utilities (easing, scroll arg resolution)
 

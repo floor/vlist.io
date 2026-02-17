@@ -666,7 +666,7 @@ list.restoreScroll(saved);
 
 - [Optimization Guide](./optimization.md) — Implemented performance optimizations
 - [Main Documentation](./vlist.md) — Configuration and usage
-- [Compression Guide](./compression.md) — How 1M+ item compression works
+- [Scale Guide](./scale.md) — How 1M+ item compression works
 - [Accessibility Guide](./accessibility.md) — WAI-ARIA implementation, keyboard navigation, screen reader support
 - [Benchmarks Guide](./benchmarks.md) — Performance suites, scroll FPS architecture, rating system
 - [Styles Guide](./styles.md) — CSS architecture
