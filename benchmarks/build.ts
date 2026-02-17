@@ -33,10 +33,28 @@ const BUILD_OPTIONS = {
 //
 // Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
 // string `template` options work at runtime without .vue SFC compilation.
+//
+// vlist: resolves bare "vlist" imports to "@floor/vlist" via the package.json
+// "imports" field mapping (which Bun's bundler doesn't natively support).
 
 const frameworkDedupePlugin: import("bun").BunPlugin = {
   name: "dedupe-frameworks",
   setup(build) {
+    // vlist — resolve bare imports via package.json imports map
+    // "vlist" → "@floor/vlist"
+    // "vlist/react" → "@floor/vlist/react"
+    build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
+      try {
+        const subpath = args.path.replace(/^vlist/, "@floor/vlist");
+        const resolved = require.resolve(subpath, {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
       try {
@@ -167,13 +185,20 @@ async function build(): Promise<void> {
       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false",
     };
 
-    const result = await Bun.build({
-      entrypoints: [entrypoint],
-      outdir,
-      ...buildOptions(),
-      plugins: [frameworkDedupePlugin],
-      define,
-    });
+    let result;
+    try {
+      result = await Bun.build({
+        entrypoints: [entrypoint],
+        outdir,
+        ...buildOptions(),
+        plugins: [frameworkDedupePlugin],
+        define,
+      });
+    } catch (err) {
+      console.error("❌ Build exception:");
+      console.error(err);
+      process.exit(1);
+    }
 
     if (!result.success) {
       const errors = result.logs.map((log) => log.message).join("\n");

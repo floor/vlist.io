@@ -3,7 +3,7 @@
 // Measures how long it takes to create a vlist and render the first frame.
 // Runs multiple iterations and reports median, min, and p95.
 
-import { createVList } from "vlist";
+import { vlist } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -46,14 +46,14 @@ const measureRender = async (container, items) => {
 
   const start = performance.now();
 
-  const list = createVList({
+  const list = vlist({
     container,
     item: {
       height: ITEM_HEIGHT,
       template: benchmarkTemplate,
     },
     items,
-  });
+  }).build();
 
   // Wait for the browser to commit the paint (single frame)
   await nextFrame();
@@ -74,7 +74,7 @@ const measureRender = async (container, items) => {
 defineSuite({
   id: "render",
   name: "Initial Render",
-  description: "Time from createVList() to first painted frame",
+  description: "Time from vlist() to first painted frame",
   icon: "⚡",
 
   run: async ({ itemCount, container, onStatus }) => {

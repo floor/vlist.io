@@ -4,7 +4,7 @@
 // Tests scrolling to random positions across the list and measures
 // the time until the scroll settles at the target position.
 
-import { createVList } from "vlist";
+import { vlist } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -145,14 +145,14 @@ defineSuite({
 
     container.innerHTML = "";
 
-    const list = createVList({
+    const list = vlist({
       container,
       item: {
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
       items,
-    });
+    }).build();
 
     // Let initial render settle
     await waitFrames(10);

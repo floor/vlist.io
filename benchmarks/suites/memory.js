@@ -8,7 +8,7 @@
 // The delta between (2) and (3) reveals memory leaks.
 // Chrome-only (requires performance.memory API).
 
-import { createVList } from "vlist";
+import { vlist } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -148,14 +148,14 @@ defineSuite({
     // ── Step 2: Create vlist and measure after render ────────────────────
     onStatus("Creating list...");
 
-    const list = createVList({
+    const list = vlist({
       container,
       item: {
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
       items,
-    });
+    }).build();
 
     // Let the render settle and GC stabilize
     await waitFrames(SETTLE_FRAMES);

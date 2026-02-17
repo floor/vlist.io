@@ -30,7 +30,7 @@
 // the actual paint rate — plus we report estimated throughput even
 // when the display is throttled.
 
-import { createVList } from "vlist";
+import { vlist } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -169,14 +169,14 @@ const findViewport = (container) => {
 const measureScrollFPS = async (container, items) => {
   container.innerHTML = "";
 
-  const list = createVList({
+  const list = vlist({
     container,
     item: {
       height: ITEM_HEIGHT,
       template: benchmarkTemplate,
     },
     items,
-  });
+  }).build();
 
   // Let the initial render settle
   await waitFrames(10);
@@ -222,7 +222,7 @@ const measureScrollFPS = async (container, items) => {
     // -----------------------------------------------------------------------
     // Loop 3 — Frame cost probe (scroll event → rAF)
     //
-    // Registered on the viewport AFTER createVList(), so this scroll
+    // Registered on the viewport AFTER vlist(), so this scroll
     // listener fires after vlist's. When it schedules a rAF, that
     // callback is guaranteed to run AFTER vlist's rafThrottle callback
     // in the same frame batch. This means:
@@ -485,11 +485,11 @@ defineSuite({
     {
       const warmupItems = generateItems(Math.min(itemCount, 10_000));
       container.innerHTML = "";
-      const warmupList = createVList({
+      const warmupList = vlist({
         container,
         item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
         items: warmupItems,
-      });
+      }).build();
       await waitFrames(10);
 
       const vp = findViewport(container);
