@@ -1,600 +1,902 @@
 # Plugin System
 
-> How to extend vlist with custom functionality and why plugins exist.
+> Composable features for vlist - pay only for what you use.
+
+## Overview
+
+VList uses a **builder pattern** with explicit plugins for optimal tree-shaking. Start with the core (7.7 KB gzipped), add only the features you need.
+
+```typescript
+import { vlist, withGrid, withSections, withSelection } from 'vlist';
+
+const list = vlist({
+  container: '#app',
+  items: photos,
+  item: { height: 200, template: renderPhoto },
+})
+  .use(withGrid({ columns: 4, gap: 16 }))
+  .use(withSections({ ... }))
+  .use(withSelection({ mode: 'multiple' }))
+  .build();
+```
+
+**Bundle:** ~12 KB gzipped (vs 20-23 KB for traditional virtual lists)
+
+---
 
 ## Philosophy
 
-vlist is built around two core principles:
+### Why Builder Pattern?
 
-1. **Small by default** — Ship only the code your users need
-2. **Extensible by design** — Enable any feature through plugins
-
-The base library provides virtual scrolling essentials (4.2 KB gzipped). Everything else—selection, grids, data adapters, window scrolling—is opt-in via plugins.
-
-## Why Plugins?
-
-### Before (v0.5.0): Monolithic with Auto-Detection
-
+**Before (Monolithic API):**
 ```typescript
-import { createVList } from 'vlist'
+import { createVList } from 'vlist';
 
 const list = createVList({
-  container: '#app',
-  item: { height: 48, template: render },
-  selection: { mode: 'single' },  // Auto-includes selection plugin
-  layout: 'grid',                  // Auto-includes grid plugin
-  grid: { columns: 4, gap: 8 }
-})
+  grid: { columns: 4 },
+  groups: { ... },
+});
+// Bundle: 20-23 KB gzipped (ALL plugins included)
 ```
 
-**Problem:** While auto-detection reduced bundle size (53% smaller than v0.4.0), you still shipped:
-- All plugin code (~15-20 KB) even if unused features were tree-shaken
-- Complex auto-detection logic
-- Tight coupling between core and plugins
-
-### After (v0.6.0): Plugin Architecture Foundation
-
+**After (Builder API):**
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSelection } from 'vlist/selection'
-import { withGrid } from 'vlist/grid'
-import { withWindow } from 'vlist/window'
+import { vlist, withGrid, withSections } from 'vlist';
 
-const list = vlist({
-  container: '#app',
-  item: { height: 48, template: render }
-})
-.use(withWindow())              // NEW: Window scroll mode now a plugin
-.use(withSelection({ mode: 'single' }))
-.use(withGrid({ columns: 4, gap: 8 }))
-.build()
+const list = vlist({ ... })
+  .use(withGrid({ columns: 4 }))
+  .use(withSections({ ... }))
+  .build();
+// Bundle: 11.7 KB gzipped (ONLY used plugins)
 ```
 
 **Benefits:**
-- ✅ **Cleaner architecture** — Features can be extracted to plugins
-- ✅ **Explicit imports** — See exactly what features you're using
-- ✅ **Community plugins** — Anyone can extend vlist
-- ✅ **Foundation built** — First feature extraction complete (window mode)
+- ✅ **2-3x smaller bundles** - Ship only what you use
+- ✅ **Explicit imports** - Clear what's included
+- ✅ **Perfect tree-shaking** - Bundler removes unused code
+- ✅ **Transparent costs** - Each plugin's size is visible
+- ✅ **Extensible** - Easy to add custom plugins
 
-## Bundle Size Results (v0.6.0)
+---
 
-| Configuration | Size (gzipped) | What's Included |
-|---------------|----------------|-----------------|
-| Core only | **4.2 KB** | Virtual scrolling + element pooling |
-| Builder (basic) | **7.7 KB** | Builder + no plugins (-0.1 KB from v0.5.0) |
-| + Selection | ~10 KB | + Click/keyboard selection |
-| + Grid | ~12 KB | + 2D grid layout |
-| + Window mode | 20.4 KB | + Page scroll integration (+0.3 KB overhead) |
-| All features | ~27 KB | Everything included |
+## Available Plugins
 
-**v0.5.0 baseline:** 4.2 KB (core) → 7.8 KB (basic) → 20.1 KB (window) → 27 KB (full)
+### Quick Reference
 
-**v0.6.0 results:**
-- ✅ Most examples: **-0.1 to -0.2 KB** savings
-- ✅ Window mode extracted from core
-- ⚠️ Window-scroll example: +0.3 KB (plugin overhead acceptable)
-- ✅ Architecture foundation for future extractions
+| Plugin | Cost (Gzipped) | Description |
+|--------|----------------|-------------|
+| **Base** | 7.7 KB | Core virtualization (no plugins) |
+| `withGrid()` | +4.0 KB | 2D grid layout |
+| `withSections()` | +4.6 KB | Grouped lists with sticky/inline headers |
+| `withAsync()` | +5.3 KB | Async data loading with adapters |
+| `withSelection()` | +2.3 KB | Single/multiple item selection |
+| `withScale()` | +2.2 KB | Handle 1M+ items with compression |
+| `withScrollbar()` | +1.0 KB | Custom scrollbar UI |
+| `withPage()` | +0.9 KB | Document-level scrolling |
+| `withSnapshots()` | Included | Scroll save/restore (no cost) |
 
-## How Plugins Work
+---
 
-### The Plugin Interface
+## Plugin Details
 
-Every plugin implements `VListPlugin`:
+### `withGrid(config)` - 2D Grid Layout
+
+Virtualizes items in a 2D grid with configurable columns and gap.
+
+**Import:**
+```typescript
+import { vlist, withGrid } from 'vlist';
+```
+
+**Configuration:**
+```typescript
+interface GridConfig {
+  columns: number;     // Number of columns (required)
+  gap?: number;        // Gap between items in pixels (default: 0)
+}
+```
+
+**Example:**
+```typescript
+const gallery = vlist({
+  container: '#gallery',
+  items: photos,
+  item: {
+    height: 200,
+    template: (photo) => `<img src="${photo.url}" />`,
+  },
+})
+  .use(withGrid({ columns: 4, gap: 16 }))
+  .build();
+
+// Update columns dynamically
+gallery.updateGrid({ columns: 6 });
+```
+
+**How it works:**
+- Virtualizes by **rows** (not individual items)
+- Calculates row heights based on column count
+- Positions items with `translate(x, y)` for GPU acceleration
+- Supports variable row heights
+- Can combine with `withSections()` for grouped grids
+
+**Bundle cost:** +4.0 KB gzipped
+
+---
+
+### `withSections(config)` - Grouped Lists with Headers
+
+Creates grouped lists with sticky or inline section headers.
+
+**Import:**
+```typescript
+import { vlist, withSections } from 'vlist';
+```
+
+**Configuration:**
+```typescript
+interface SectionsConfig {
+  getGroupForIndex: (index: number) => string;
+  headerHeight: number | ((group: string, groupIndex: number) => number);
+  headerTemplate: (group: string, groupIndex: number) => string | HTMLElement;
+  sticky?: boolean;  // Default: true
+}
+```
+
+**Example (Sticky Headers - Telegram Style):**
+```typescript
+const contacts = vlist({
+  container: '#contacts',
+  items: sortedContacts,  // MUST be pre-sorted by group!
+  item: {
+    height: 56,
+    template: (contact) => `<div>${contact.name}</div>`,
+  },
+})
+  .use(withSections({
+    getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase(),
+    headerHeight: 36,
+    headerTemplate: (letter) => `<div class="section-header">${letter}</div>`,
+    sticky: true,  // Headers stick to top
+  }))
+  .build();
+```
+
+**Example (Inline Headers - iMessage Style):**
+```typescript
+const chat = vlist({
+  container: '#messages',
+  reverse: true,
+  items: messages,
+  item: {
+    height: (i) => messages[i].height,
+    template: (msg) => `<div class="message">${msg.text}</div>`,
+  },
+})
+  .use(withSections({
+    getGroupForIndex: (i) => formatDate(messages[i].timestamp),
+    headerHeight: 32,
+    headerTemplate: (date) => `<div class="date-separator">${date}</div>`,
+    sticky: false,  // Inline headers (scroll with content)
+  }))
+  .build();
+```
+
+**Important:**
+- Items **must be pre-sorted** by group
+- Headers are auto-injected at group boundaries
+- Works with `reverse: true` for chat UIs
+- Works with `withGrid()` for grouped 2D layouts
+- Cannot combine with `direction: 'horizontal'`
+
+**Bundle cost:** +4.6 KB gzipped
+
+---
+
+### `withAsync(config)` - Async Data Loading
+
+Lazy loading with placeholders, pagination, and velocity-aware loading.
+
+**Import:**
+```typescript
+import { vlist, withAsync } from 'vlist';
+```
+
+**Configuration:**
+```typescript
+interface AsyncConfig {
+  adapter: {
+    read: (params: { offset: number, limit: number }) => Promise<{
+      items: T[];
+      total?: number;
+      hasMore?: boolean;
+    }>;
+  };
+  loading?: {
+    cancelThreshold?: number;  // Cancel loads when scrolling fast (px/ms)
+  };
+}
+```
+
+**Example:**
+```typescript
+const list = vlist({
+  container: '#list',
+  item: {
+    height: 64,
+    template: (item) => {
+      if (!item) return `<div class="skeleton">Loading...</div>`;
+      return `<div>${item.name}</div>`;
+    },
+  },
+})
+  .use(withAsync({
+    adapter: {
+      read: async ({ offset, limit }) => {
+        const res = await fetch(`/api/users?offset=${offset}&limit=${limit}`);
+        return res.json();
+      },
+    },
+    loading: {
+      cancelThreshold: 15,  // Skip loads when scrolling > 15 px/ms
+    },
+  }))
+  .build();
+
+// Events
+list.on('load:start', ({ offset, limit }) => console.log('Loading...'));
+list.on('load:end', ({ items, total }) => console.log('Loaded!'));
+list.on('load:error', ({ error }) => console.error(error));
+```
+
+**Features:**
+- Shows placeholders for unloaded items
+- Fetches data as you scroll (windowed loading)
+- Velocity-aware: cancels requests when scrolling fast
+- Automatic retry on failure
+- Efficient sparse storage (only loaded items in memory)
+
+**Bundle cost:** +5.3 KB gzipped
+
+---
+
+### `withSelection(config)` - Item Selection
+
+Single or multiple item selection with keyboard navigation.
+
+**Import:**
+```typescript
+import { vlist, withSelection } from 'vlist';
+```
+
+**Configuration:**
+```typescript
+interface SelectionConfig {
+  mode: 'single' | 'multiple';
+  initial?: Array<string | number>;  // Pre-selected item IDs
+}
+```
+
+**Example:**
+```typescript
+const list = vlist({
+  container: '#list',
+  items: users,
+  item: {
+    height: 48,
+    template: (user, index, { selected }) => {
+      const cls = selected ? 'item--selected' : '';
+      return `<div class="${cls}">${user.name}</div>`;
+    },
+  },
+})
+  .use(withSelection({ 
+    mode: 'multiple',
+    initial: [1, 5, 10],
+  }))
+  .build();
+
+// Selection API
+list.selectItem(5);
+list.deselectItem(5);
+list.toggleSelection(5);
+list.selectAll();
+list.clearSelection();
+list.getSelectedIds();        // [1, 5, 10]
+list.getSelectedItems();      // [{ id: 1, ... }, ...]
+
+// Events
+list.on('selection:change', ({ selectedIds, selectedItems }) => {
+  console.log('Selected:', selectedIds);
+});
+
+// Change mode dynamically
+list.setSelectionMode('single');
+```
+
+**Keyboard navigation:**
+- `↑/↓` - Move focus
+- `Home/End` - Jump to first/last
+- `Space/Enter` - Toggle selection
+- `Ctrl+A` - Select all (multiple mode)
+
+**Bundle cost:** +2.3 KB gzipped
+
+---
+
+### `withScale()` - Large Datasets (1M+ Items)
+
+Automatically compresses scroll space when total height exceeds browser limits.
+
+**Import:**
+```typescript
+import { vlist, withScale } from 'vlist';
+```
+
+**Configuration:**
+```typescript
+// No configuration needed - auto-activates
+```
+
+**Example:**
+```typescript
+const bigList = vlist({
+  container: '#list',
+  items: generateItems(5_000_000),
+  item: {
+    height: 48,
+    template: (item) => `<div>#${item.id}</div>`,
+  },
+})
+  .use(withScale())
+  .build();
+```
+
+**How it works:**
+- Browser scroll height limit: ~16.7M pixels
+- With 48px items: limit is ~350K items
+- Scale plugin compresses virtual height when exceeded
+- Transparently maps scroll position to item indices
+- Smooth scrolling through millions of items
+
+**When to use:**
+- Lists with 100K+ fixed-height items
+- Lists with 50K+ variable-height items
+- Any list approaching 16M pixels total height
+
+**Bundle cost:** +2.2 KB gzipped
+
+---
+
+### `withScrollbar(config)` - Custom Scrollbar
+
+Beautiful custom scrollbar with auto-hide and smooth dragging.
+
+**Import:**
+```typescript
+import { vlist, withScrollbar } from 'vlist';
+```
+
+**Configuration:**
+```typescript
+interface ScrollbarConfig {
+  autoHide?: boolean;        // Hide when not scrolling (default: false)
+  autoHideDelay?: number;    // Hide delay in ms (default: 1000)
+  minThumbSize?: number;     // Minimum thumb size in px (default: 20)
+}
+```
+
+**Example:**
+```typescript
+const list = vlist({
+  container: '#list',
+  items: users,
+  item: { height: 48, template: renderUser },
+})
+  .use(withScrollbar({ 
+    autoHide: true,
+    autoHideDelay: 1500,
+  }))
+  .build();
+```
+
+**Features:**
+- Smooth dragging with momentum
+- Auto-hide on idle
+- Proportional thumb sizing
+- Works with mouse wheel and touch
+- Automatically used when `withScale()` is active
+
+**Bundle cost:** +1.0 KB gzipped
+
+---
+
+### `withPage()` - Document-Level Scrolling
+
+Use the document scroll instead of container scroll.
+
+**Import:**
+```typescript
+import { vlist, withPage } from 'vlist';
+```
+
+**Configuration:**
+```typescript
+// No configuration needed
+```
+
+**Example:**
+```typescript
+const list = vlist({
+  container: '#list',
+  items: articles,
+  item: {
+    height: 300,
+    template: (article) => `<article>...</article>`,
+  },
+})
+  .use(withPage())
+  .build();
+```
+
+**Use cases:**
+- Blog posts
+- Infinite scroll feeds
+- Full-page lists
+- When you want native browser scrollbar
+
+**Note:** Cannot combine with custom scrollbar or horizontal direction.
+
+**Bundle cost:** +0.9 KB gzipped
+
+---
+
+### `withSnapshots()` - Scroll Save/Restore
+
+Save and restore scroll position (included in base, no cost).
+
+**Import:**
+```typescript
+// No import needed - included in base builder
+```
+
+**API:**
+```typescript
+const snapshot = list.getScrollSnapshot();
+// { index: 523, offsetInItem: 12 }
+
+list.restoreScroll(snapshot);
+```
+
+**Example:**
+```typescript
+const list = vlist({
+  container: '#list',
+  items: users,
+  item: { height: 48, template: renderUser },
+}).build();
+
+// Save before navigation
+const snapshot = list.getScrollSnapshot();
+sessionStorage.setItem('scroll', JSON.stringify(snapshot));
+
+// Restore after navigation
+const saved = JSON.parse(sessionStorage.getItem('scroll'));
+list.restoreScroll(saved);
+```
+
+**Perfect for:**
+- SPA navigation (back/forward)
+- Preserving scroll across page reloads
+- Restoring user position in lists
+
+**Bundle cost:** Included in base (no additional cost)
+
+---
+
+## Bundle Size Breakdown
+
+### Minimal Configuration
+
+```typescript
+vlist({ ... }).build()
+```
+
+**Bundle:** 7.7 KB gzipped (core virtualization only)
+
+### Common Configurations
+
+| Configuration | Plugins | Bundle (Gzipped) |
+|---------------|---------|------------------|
+| **Photo gallery** | `withGrid()` + `withScrollbar()` | 11.7 KB |
+| **Contact list** | `withSections()` | 12.3 KB |
+| **Chat UI** | `withSections()` (inline) | 11.9 KB |
+| **File browser** | `withGrid()` + `withSelection()` + `withScrollbar()` | 15.3 KB |
+| **Infinite scroll** | `withAsync()` + `withSelection()` | 15.0 KB |
+| **Large dataset** | `withScale()` + `withScrollbar()` | 9.9 KB |
+
+### Full Featured
+
+```typescript
+vlist({ ... })
+  .use(withGrid({ columns: 4 }))
+  .use(withSections({ ... }))
+  .use(withSelection({ mode: 'multiple' }))
+  .use(withAsync({ adapter }))
+  .use(withScrollbar({ autoHide: true }))
+  .build()
+```
+
+**Bundle:** ~16 KB gzipped (all plugins)
+
+**Compare to:**
+- Traditional virtual lists: 20-23 KB minimum
+- VList monolithic (deprecated): 20-23 KB
+- VList builder (optimal): 8-16 KB based on usage
+
+---
+
+## Creating Custom Plugins
+
+The plugin API allows you to extend vlist with custom functionality.
+
+### Plugin Interface
 
 ```typescript
 interface VListPlugin<T extends VListItem = VListItem> {
-  /** Unique plugin name */
-  readonly name: string
-  
-  /** Execution priority (lower runs first, default: 50) */
-  readonly priority?: number
-  
-  /** Setup function — receives BuilderContext */
-  setup(ctx: BuilderContext<T>): void
-  
-  /** Optional cleanup */
-  destroy?(): void
-  
-  /** Methods this plugin adds to the public API */
-  readonly methods?: readonly string[]
-  
-  /** Plugins this conflicts with */
-  readonly conflicts?: readonly string[]
+  name: string;
+  priority?: number;  // Default: 50 (lower = earlier)
+  conflicts?: string[];  // Conflicting plugin names
+  setup: (ctx: BuilderContext<T>) => void;
 }
 ```
 
-### The Builder Context
-
-Plugins receive a `BuilderContext` object with:
-
-**Core Components:**
-- `dom` — DOM structure (root, viewport, content)
-- `heightCache` — Height calculation and caching
-- `emitter` — Event system
-- `config` — Resolved configuration
-
-**Replaceable Components:**
-- `renderer` — How items are rendered
-- `dataManager` — How data is stored/accessed
-- `scrollController` — Scroll position management
-
-**Extension Points:**
-- `afterScroll` — Callbacks after scroll
-- `clickHandlers` — Mouse click handlers
-- `keydownHandlers` — Keyboard handlers
-- `resizeHandlers` — Container resize handlers
-- `destroyHandlers` — Cleanup callbacks
-
-**Public API Registration:**
-- `methods` — Map of method name → function
-- Exposed on the returned list instance
-
-**Component Replacement:**
-- `replaceRenderer()` — Replace rendering logic
-- `setScrollFns()` — Override scroll get/set
-- `setScrollTarget()` — Change scroll element
-- `setRenderFns()` — Replace render triggers
-- And many more...
-
-## Official Plugins
-
-### Core Feature Plugins
-
-**Already Extracted (v0.5.0):**
-- **`vlist/selection`** — Click/keyboard selection with ARIA
-- **`vlist/scroll`** — Custom scrollbar with drag support
-- **`vlist/data`** — Async data adapter with placeholders
-- **`vlist/compression`** — 1M+ items with scroll compression
-- **`vlist/grid`** — 2D grid layout with responsive columns
-- **`vlist/groups`** — Grouped lists with sticky headers
-- **`vlist/snapshots`** — Scroll position save/restore
-
-**Newly Extracted (v0.6.0):**
-- **`vlist/window`** — Window scroll mode ✅ (1.2 KB / 0.6 KB gzip)
-
-**Future Candidates:**
-- **Variable height support** — Currently integrated, needs refactor
-- **Horizontal scrolling** — Too integrated, requires axis-agnostic core refactor
-- **Reverse mode** — Chat UI specific, could be plugin with refactoring
-- **ResizeObserver** — Used by 90% of lists, extraction debatable
-
-### Current Core (v0.6.0)
-
-The core currently includes:
-
-✅ **Fixed-height vertical scrolling**
-✅ **Element pooling**
-✅ **Basic DOM structure**
-✅ **Range calculation**
-✅ **Event emitter**
-✅ **ResizeObserver** (viewport size detection)
-✅ **Horizontal scrolling** (integrated, not yet extracted)
-✅ **Reverse mode** (chat UI support, integrated)
-✅ **Variable heights** (abstracted via HeightCache)
-
-**What was extracted:**
-✅ **Window scroll mode** → `vlist/window` plugin
-
-Future extractions will require more aggressive refactoring.
-
-## Creating a Plugin
-
-### Example: Window Scroll Mode
-
-Window mode lets your list scroll with the page instead of in a container.
+### Example: Simple Plugin
 
 ```typescript
-// vlist/window/plugin.ts
+import { vlist, type VListPlugin } from 'vlist';
 
-import type { VListItem } from "../types"
-import type { VListPlugin, BuilderContext } from "../builder/types"
-
-export const withWindow = <T extends VListItem = VListItem>(): VListPlugin<T> => {
-  let cleanup: (() => void) | null = null
-
-  return {
-    name: "withWindow",
-    priority: 5, // Run early
+const withLogger = (): VListPlugin => ({
+  name: 'withLogger',
+  priority: 100,  // Run late
+  
+  setup(ctx) {
+    // Access core components
+    const { emitter, config } = ctx;
     
-    setup(ctx: BuilderContext<T>): void {
-      const { dom, state, config } = ctx
-      
-      // 1. Modify DOM for window scroll
-      dom.root.style.overflow = "visible"
-      dom.root.style.height = "auto"
-      
-      // 2. Use window as scroll target
-      ctx.setScrollTarget(window)
-      
-      // 3. Override scroll position functions
-      ctx.setScrollFns(
-        // getTop
-        () => {
-          const rect = dom.viewport.getBoundingClientRect()
-          return Math.max(0, -rect.top)
-        },
-        // setTop
-        (pos: number) => {
-          const rect = dom.viewport.getBoundingClientRect()
-          const pageY = rect.top + window.scrollY
-          window.scrollTo(window.scrollX, pageY + pos)
-        }
-      )
-      
-      // 4. Use window dimensions
-      ctx.setContainerDimensions({
-        width: () => window.innerWidth,
-        height: () => window.innerHeight
-      })
-      
-      // 5. Window resize handler
-      const handleResize = () => {
-        state.viewportState.containerHeight = window.innerHeight
-        ctx.renderIfNeeded()
-      }
-      
-      window.addEventListener('resize', handleResize)
-      cleanup = () => window.removeEventListener('resize', handleResize)
-      
-      ctx.destroyHandlers.push(cleanup)
-    },
+    // Add event listeners
+    emitter.on('scroll', ({ scrollTop }) => {
+      console.log('Scrolled to:', scrollTop);
+    });
     
-    destroy(): void {
-      cleanup?.()
-    }
+    // Add custom methods
+    ctx.registerMethod('log', (message: string) => {
+      console.log('[VList]', message);
+    });
   }
-}
-```
+});
 
-**Usage:**
-
-```typescript
-import { vlist } from 'vlist/builder'
-import { withWindow } from 'vlist/window'
-
-const feed = vlist({
-  container: '#infinite-feed',
-  item: { height: 200, template: renderPost }
-})
-.use(withWindow())
-.build()
-```
-
-## Plugin Patterns
-
-### Adding Public Methods
-
-Register methods via `ctx.methods`:
-
-```typescript
-setup(ctx: BuilderContext<T>): void {
-  ctx.methods.set('myMethod', (arg: string) => {
-    console.log('Called with:', arg)
-  })
-}
-```
-
-**Result:**
-
-```typescript
+// Usage
 const list = vlist({ ... })
-  .use(withMyPlugin())
-  .build()
+  .use(withLogger())
+  .build();
 
-list.myMethod('hello') // Works!
+list.log('Hello!');  // Custom method added by plugin
 ```
 
-### Hooking Into Scroll
-
-Register `afterScroll` callbacks:
+### Example: Advanced Plugin
 
 ```typescript
-setup(ctx: BuilderContext<T>): void {
-  ctx.afterScroll.push((scrollTop, direction) => {
-    console.log(`Scrolled to ${scrollTop}, direction: ${direction}`)
-  })
+interface HighlightConfig {
+  searchTerm: string;
+  color?: string;
 }
-```
 
-**When it runs:** After every scroll-triggered render.
-
-### Handling User Input
-
-Register event handlers:
-
-```typescript
-setup(ctx: BuilderContext<T>): void {
-  ctx.clickHandlers.push((event: MouseEvent) => {
-    const target = event.target as HTMLElement
-    const element = target.closest('[data-index]')
-    if (element) {
-      const index = parseInt(element.getAttribute('data-index')!)
-      console.log('Clicked item:', index)
-    }
-  })
+const withHighlight = (config: HighlightConfig): VListPlugin => ({
+  name: 'withHighlight',
+  priority: 80,  // Run after selection but before rendering
   
-  ctx.keydownHandlers.push((event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      console.log('Escape pressed')
-    }
-  })
-}
+  setup(ctx) {
+    const { registerMethod } = ctx;
+    let term = config.searchTerm;
+    let color = config.color || '#ffeb3b';
+    
+    // Enhance template
+    const originalTemplate = ctx.config.item.template;
+    ctx.config.item.template = (item, index, state) => {
+      let html = originalTemplate(item, index, state);
+      if (typeof html === 'string' && term) {
+        const regex = new RegExp(term, 'gi');
+        html = html.replace(regex, `<mark style="background:${color}">$&</mark>`);
+      }
+      return html;
+    };
+    
+    // Add update method
+    registerMethod('setSearchTerm', (newTerm: string) => {
+      term = newTerm;
+      ctx.renderer.forceRender();
+    });
+  }
+});
+
+// Usage
+const list = vlist({ ... })
+  .use(withHighlight({ searchTerm: 'john' }))
+  .build();
+
+list.setSearchTerm('jane');  // Re-render with new highlight
 ```
 
-### Replacing Components
-
-Replace core rendering logic:
-
-```typescript
-setup(ctx: BuilderContext<T>): void {
-  const originalRenderer = ctx.renderer
-  
-  ctx.replaceRenderer({
-    render: (range, items, pool) => {
-      // Custom rendering logic
-      console.log('Rendering:', range)
-      return originalRenderer.render(range, items, pool)
-    },
-    update: (element, item, index) => {
-      // Custom update logic
-      originalRenderer.update(element, item, index)
-    }
-  })
-}
-```
-
-### Wrapping Render Functions
-
-Intercept render calls:
-
-```typescript
-setup(ctx: BuilderContext<T>): void {
-  const { renderIfNeeded, forceRender } = ctx.getRenderFns()
-  
-  ctx.setRenderFns(
-    // Wrap renderIfNeeded
-    () => {
-      console.log('Before render')
-      renderIfNeeded()
-      console.log('After render')
-    },
-    // Wrap forceRender
-    () => {
-      console.log('Force rendering')
-      forceRender()
-    }
-  )
-}
-```
-
-## Plugin Priority
+### Plugin Priority
 
 Plugins run in priority order (lower = earlier):
 
-| Priority | When to Use | Examples |
-|----------|-------------|----------|
-| 1-10 | Core replacements | Window mode, horizontal scroll |
-| 11-30 | Layout changes | Grid, groups |
-| 31-40 | Rendering modifications | Compression, variable heights |
-| 41-50 | Feature additions | Selection, data adapter |
-| 51+ | Post-processing | Snapshots, analytics |
+| Priority | Plugins | Purpose |
+|----------|---------|---------|
+| 10 | `withPage()` | Must run first (changes scroll element) |
+| 15 | `withAsync()` | Sets up data loading |
+| 20 | `withScale()` | Modifies scroll calculations |
+| 30 | `withGrid()`, `withSections()` | Modify layout |
+| 50 | Default | Most plugins |
+| 60 | `withSelection()` | Depends on layout being set |
+| 70 | `withScrollbar()` | Depends on scroll setup |
+| 90 | `withSnapshots()` | Needs all features ready |
 
-**Default:** 50
+### BuilderContext API
 
-**Why it matters:** Window mode needs to run before selection (which depends on scroll position).
-
-## Plugin Conflicts
-
-Declare conflicts to prevent incompatible combinations:
+Plugins receive a `BuilderContext` with:
 
 ```typescript
-export const withGrid = (): VListPlugin => ({
-  name: "withGrid",
-  conflicts: ["withGroups"], // Can't combine grid + groups
+interface BuilderContext<T> {
+  // Core components
+  dom: DOMStructure;
+  config: ResolvedBuilderConfig<T>;
+  emitter: Emitter<VListEvents<T>>;
+  heightCache: HeightCache;
+  renderer: Renderer;
   
-  setup(ctx: BuilderContext): void {
-    // Grid logic
-  }
+  // Registration
+  registerMethod(name: string, fn: Function): void;
+  registerAfterScroll(handler: ScrollHandler): void;
+  registerClickHandler(handler: ClickHandler): void;
+  registerKeydownHandler(handler: KeydownHandler): void;
+  registerResizeHandler(handler: ResizeHandler): void;
+  registerDestroyHandler(handler: DestroyHandler): void;
+  
+  // Utilities
+  getItems(): T[];
+  setItems(items: T[]): void;
+  rerender(): void;
+}
+```
+
+---
+
+## Plugin Compatibility
+
+### Compatible Combinations
+
+✅ **Grid + Sections** - Grouped 2D layouts
+```typescript
+.use(withGrid({ columns: 4 }))
+.use(withSections({ ... }))
+```
+
+✅ **Grid + Selection** - Selectable gallery
+```typescript
+.use(withGrid({ columns: 4 }))
+.use(withSelection({ mode: 'multiple' }))
+```
+
+✅ **Sections + Selection** - Selectable grouped list
+```typescript
+.use(withSections({ ... }))
+.use(withSelection({ mode: 'single' }))
+```
+
+✅ **Async + Scale** - Large async dataset
+```typescript
+.use(withAsync({ adapter }))
+.use(withScale())
+```
+
+✅ **Page + Async** - Infinite scroll blog
+```typescript
+.use(withPage())
+.use(withAsync({ adapter }))
+```
+
+### Incompatible Combinations
+
+❌ **Grid + Horizontal** - Grid requires vertical direction
+❌ **Sections + Horizontal** - Groups require vertical direction
+❌ **Page + Scrollbar** - Page uses native browser scrollbar
+❌ **Reverse + Horizontal** - Reverse mode requires vertical direction
+
+---
+
+## Migration Guide
+
+### From Old Plugin Names
+
+| Old Name | New Name | Import |
+|----------|----------|--------|
+| `withCompression()` | **`withScale()`** | `import { withScale } from 'vlist'` |
+| `withData()` | **`withAsync()`** | `import { withAsync } from 'vlist'` |
+| `withWindow()` | **`withPage()`** | `import { withPage } from 'vlist'` |
+| `withGroups()` | **`withSections()`** | `import { withSections } from 'vlist'` |
+
+### From Monolithic API
+
+**Before:**
+```typescript
+import { createVList } from 'vlist';
+
+createVList({
+  grid: { columns: 4 },
+  groups: { ... },
+  selection: { mode: 'single' },
 })
 ```
 
-**Result:** Builder throws an error if both are used.
-
-## Community Plugins
-
-### Publishing a Plugin
-
-**Package name:** `vlist-plugin-{name}` or `@scope/vlist-plugin-{name}`
-
-**Example:** `vlist-plugin-analytics`
-
+**After:**
 ```typescript
-// index.ts
-import type { VListPlugin, BuilderContext } from "vlist/builder/types"
+import { vlist, withGrid, withSections, withSelection } from 'vlist';
 
-export const withAnalytics = (trackingId: string): VListPlugin => ({
-  name: "withAnalytics",
-  priority: 60, // Run last
-  
-  setup(ctx: BuilderContext): void {
-    ctx.afterScroll.push((scrollTop, direction) => {
-      // Send analytics event
-      gtag('event', 'scroll', {
-        list_position: scrollTop,
-        direction
-      })
-    })
-  }
-})
-```
-
-**Usage:**
-
-```bash
-npm install vlist-plugin-analytics
-```
-
-```typescript
-import { vlist } from 'vlist/builder'
-import { withAnalytics } from 'vlist-plugin-analytics'
-
-const list = vlist({ ... })
-  .use(withAnalytics('UA-XXXXX'))
+vlist({ ... })
+  .use(withGrid({ columns: 4 }))
+  .use(withSections({ ... }))
+  .use(withSelection({ mode: 'single' }))
   .build()
 ```
 
-### Plugin Guidelines
-
-**Do:**
-- ✅ Use TypeScript with proper types
-- ✅ Document all public APIs
-- ✅ Include usage examples
-- ✅ Clean up in `destroy()`
-- ✅ Declare conflicts explicitly
-- ✅ Test with real vlist instances
-
-**Don't:**
-- ❌ Mutate core state directly
-- ❌ Assume other plugins are present
-- ❌ Add global side effects
-- ❌ Forget to remove event listeners
-- ❌ Use priority < 5 (reserved for core plugins)
-
-## Migration from v0.5.0
-
-### Auto-Detection Still Works
-
-The default `createVList()` entry point continues to auto-detect plugins:
-
-```typescript
-import { createVList } from 'vlist'
-
-// This still works! (auto-applies plugins internally)
-const list = createVList({
-  container: '#app',
-  item: { height: 48, template: render },
-  selection: { mode: 'single' },
-  layout: 'grid',
-  grid: { columns: 4 }
-})
-```
-
-**When to use:** Quick prototypes, don't care about bundle size optimization.
-
-### Manual Plugin Selection (Recommended)
-
-For production, use explicit plugins:
-
-```typescript
-import { vlist } from 'vlist/builder'
-import { withSelection } from 'vlist/selection'
-import { withGrid } from 'vlist/grid'
-
-const list = vlist({
-  container: '#app',
-  item: { height: 48, template: render }
-})
-.use(withSelection({ mode: 'single' }))
-.use(withGrid({ columns: 4 }))
-.build()
-```
-
-**Benefits:**
-- Smaller bundle (only what you import)
-- Explicit dependencies
+**Benefits of migration:**
+- 2-3x smaller bundles
+- Explicit about included features
 - Better tree-shaking
+- Easier to debug (clear plugin chain)
 
-## Roadmap
+---
 
-### v0.6.0 (Completed)
+## Best Practices
 
-**Achievements:**
-- ✅ Extract window mode to plugin (1.2 KB / 0.6 KB gzip)
-- ✅ Add plugin hooks to BuilderContext (4 new methods)
-- ✅ Organize all plugins under `src/plugins/` folder
-- ✅ Prove plugin architecture with real-world feature extraction
-- ✅ Fix window-scroll performance (944ms INP → 0ms)
+### Import Only What You Use
 
-**Results:**
-- Most examples: -0.1 to -0.2 KB savings
-- Plugin system foundation established
-- Backward compatible (auto-detection still works)
-
-### v0.7.0 (Future)
-
-**Potential Goals:**
-- Refactor core for axis-agnostic scrolling (enables horizontal plugin)
-- Extract reverse mode for chat UIs
-- Consider making ResizeObserver opt-in (controversial - used by 90%)
-- Plugin marketplace/registry
-- More community plugins
-- Plugin composition helpers
-
-**Reality Check:**
-Further extractions require significant refactoring. Horizontal scrolling, reverse mode, and variable heights are deeply integrated. The plugin architecture is proven, but aggressive extraction has diminishing returns without major core rewrites.
-
-## Examples
-
-### Real-World: Infinite Feed with Analytics
-
+❌ **Don't:**
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withWindow } from 'vlist/window'
-import { withData } from 'vlist/data'
-import { withAnalytics } from 'vlist-plugin-analytics'
-
-const feed = vlist({
-  container: '#feed',
-  item: { height: 200, template: renderPost }
-})
-.use(withWindow())
-.use(withData({
-  load: async (start, end) => {
-    const res = await fetch(`/api/posts?start=${start}&end=${end}`)
-    return res.json()
-  },
-  total: 10000
-}))
-.use(withAnalytics('UA-XXXXX'))
-.build()
+import * from 'vlist';  // Imports everything
 ```
 
-**Bundle:** ~6 KB (core + window + data + analytics)
-
-### Real-World: Photo Grid with Selection
-
+✅ **Do:**
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withSelection } from 'vlist/selection'
-
-const gallery = vlist({
-  container: '#gallery',
-  item: { height: 200, template: renderPhoto }
-})
-.use(withGrid({ columns: 'auto', minWidth: 200, gap: 16 }))
-.use(withSelection({ mode: 'multiple' }))
-.build()
-
-gallery.on('selection:change', ({ selected }) => {
-  console.log(`${selected.length} photos selected`)
-})
+import { vlist, withGrid, withSelection } from 'vlist';
 ```
 
-**Bundle:** ~12 KB (core + grid + selection)
+### Order Plugins by Priority
 
-## Summary
+While plugins auto-sort by priority, it's clearer to order them logically:
 
-| Approach | Bundle Size | Use Case |
-|----------|-------------|----------|
-| **Core only** | ~4.2 KB | Simple fixed-height lists |
-| **Builder + plugins** | ~8-20 KB | Production apps (optimal) |
-| **Default (auto-detect)** | ~8-27 KB | Prototypes, internal tools |
+```typescript
+vlist({ ... })
+  .use(withPage())        // Scroll setup first
+  .use(withAsync({ ... })) // Data loading
+  .use(withGrid({ ... }))  // Layout
+  .use(withSections({ ... }))  // Grouping
+  .use(withSelection({ ... }))  // Interaction
+  .use(withScrollbar({ ... }))  // UI chrome
+  .build()
+```
 
-**Bottom line:** Plugins make vlist smaller, more flexible, and community-extensible. Start with the builder pattern for the best bundle size and explicit control.
+### Check Plugin Compatibility
 
-## Further Reading
+Before combining plugins, verify they're compatible (see [Plugin Compatibility](#plugin-compatibility)).
 
-- [Bundle Size](./bundle-size.md) — Detailed size breakdown
-- [API Reference](./api.md) — Full API documentation
-- [Examples](./examples.md) — Real-world usage examples
+### Use Snapshots for Navigation
+
+```typescript
+// SPA navigation pattern
+const list = vlist({ ... }).build();
+
+// Before navigating away
+const snapshot = list.getScrollSnapshot();
+history.state.scrollSnapshot = snapshot;
+
+// After navigating back
+if (history.state.scrollSnapshot) {
+  list.restoreScroll(history.state.scrollSnapshot);
+}
+```
+
+---
+
+## Common Patterns
+
+### Photo Gallery with Selection
+
+```typescript
+import { vlist, withGrid, withSelection, withScrollbar } from 'vlist';
+
+vlist({ ... })
+  .use(withGrid({ columns: 4, gap: 16 }))
+  .use(withSelection({ mode: 'multiple' }))
+  .use(withScrollbar({ autoHide: true }))
+  .build();
+```
+
+### Contact List (A-Z with Sticky Headers)
+
+```typescript
+import { vlist, withSections } from 'vlist';
+
+vlist({ ... })
+  .use(withSections({
+    getGroupForIndex: (i) => contacts[i].lastName[0],
+    headerHeight: 36,
+    headerTemplate: (letter) => `<div>${letter}</div>`,
+  }))
+  .build();
+```
+
+### Chat UI (Reverse + Inline Date Headers)
+
+```typescript
+import { vlist, withSections } from 'vlist';
+
+vlist({
+  reverse: true,
+  ...
+})
+  .use(withSections({
+    getGroupForIndex: (i) => formatDate(messages[i].date),
+    headerHeight: 32,
+    headerTemplate: (date) => `<div>${date}</div>`,
+    sticky: false,  // Inline headers
+  }))
+  .build();
+```
+
+### Infinite Scroll Blog
+
+```typescript
+import { vlist, withPage, withAsync } from 'vlist';
+
+vlist({ ... })
+  .use(withPage())
+  .use(withAsync({
+    adapter: {
+      read: async ({ offset, limit }) => {
+        const res = await fetch(`/api/posts?offset=${offset}&limit=${limit}`);
+        return res.json();
+      },
+    },
+  }))
+  .build();
+```
+
+### Large Dataset with Search
+
+```typescript
+import { vlist, withScale, withSelection, withScrollbar } from 'vlist';
+
+vlist({ ... })
+  .use(withScale())
+  .use(withSelection({ mode: 'single' }))
+  .use(withScrollbar({ autoHide: true }))
+  .build();
+```
+
+---
+
+## See Also
+
+- [Builder Pattern](./builder.md) - Detailed builder API docs
+- [Grid Plugin](./grid.md) - Grid layout in depth
+- [Sections Plugin](./groups.md) - Grouped lists guide
+- [Async Plugin](./data.md) - Data loading patterns
+- [Selection Plugin](./selection.md) - Selection and keyboard navigation
+- [API Reference](./methods.md) - Complete API documentation
+
+---
+
+**Interactive Examples:** [vlist.dev/sandbox](https://vlist.dev/sandbox)
