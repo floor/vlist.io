@@ -549,7 +549,7 @@ All suites run at three item counts: **10K**, **100K**, and **1M**.
 
 Uses a decoupled multi-loop architecture (scroll driver via `setTimeout`, paint counter via rAF, cost probe via scroll event + rAF) to produce accurate measurements regardless of display refresh rate. Includes display throttling detection, JIT warmup phases, and adaptive rating thresholds.
 
-See [benchmarks.md](./benchmarks.md) for full documentation.
+See [benchmarks.md](./resources/benchmarks.md) for full documentation.
 
 ---
 
@@ -595,7 +595,7 @@ item: {
 
 **Test coverage:** 40 dedicated accessibility tests (`test/accessibility.test.ts`).
 
-**Full documentation:** [accessibility.md](./accessibility.md)
+**Full documentation:** [accessibility.md](./guides/accessibility.md)
 
 ---
 
@@ -664,12 +664,12 @@ list.restoreScroll(saved);
 
 ## Related Documentation
 
-- [Optimization Guide](./optimization.md) — Implemented performance optimizations
-- [Main Documentation](./vlist.md) — Configuration and usage
-- [Scale Guide](./scale.md) — How 1M+ item compression works
-- [Accessibility Guide](./accessibility.md) — WAI-ARIA implementation, keyboard navigation, screen reader support
-- [Benchmarks Guide](./benchmarks.md) — Performance suites, scroll FPS architecture, rating system
-- [Styles Guide](./styles.md) — CSS architecture
+- [Optimization Guide](./guides/optimization.md) — Implemented performance optimizations
+- [Main Documentation](./guides/getting-started.md) — Configuration and usage
+- [Scale Guide](./plugins/scale.md) — How 1M+ item compression works
+- [Accessibility Guide](./guides/accessibility.md) — WAI-ARIA implementation, keyboard navigation, screen reader support
+- [Benchmarks Guide](./resources/benchmarks.md) — Performance suites, scroll FPS architecture, rating system
+- [Styles Guide](./guides/styling.md) — CSS architecture
 
 ---
 

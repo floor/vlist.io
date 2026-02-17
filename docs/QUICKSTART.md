@@ -268,9 +268,9 @@ list.removeItem(5);               // Remove by ID
 
 ## Next Steps
 
-- **[Full Documentation](./vlist.md)** - Complete API reference
-- **[Builder Guide](./builder.md)** - Deep dive into builder pattern
-- **[Plugin System](./plugins.md)** - All plugins with examples
+- **[Full Documentation](./guides/getting-started.md)** - Complete API reference
+- **[Builder Guide](./guides/builder-pattern.md)** - Deep dive into builder pattern
+- **[Plugin System](./plugins/README.md)** - All plugins with examples
 - **[Examples](https://vlist.dev/sandbox/)** - 34 interactive examples
 - **[GitHub](https://github.com/floor/vlist)** - Source code and issues
 

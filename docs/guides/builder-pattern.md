@@ -760,13 +760,13 @@ To verify tree-shaking works:
 
 ## See Also
 
-- **[Plugins Guide](./plugins.md)** - Detailed plugin documentation
-- **[Grid Plugin](./grid.md)** - Grid layout details
-- **[Sections Plugin](./sections.md)** - Grouped lists guide
-- **[Async Plugin](./async.md)** - Data loading patterns
-- **[Selection Plugin](./selection.md)** - Selection and keyboard nav
-- **[Scale Plugin](./scale.md)** - Large dataset handling
-- **[API Reference](./methods.md)** - Complete method documentation
+- **[Plugins Guide](./plugins/README.md)** - Detailed plugin documentation
+- **[Grid Plugin](./plugins/grid.md)** - Grid layout details
+- **[Sections Plugin](./plugins/sections.md)** - Grouped lists guide
+- **[Async Plugin](./plugins/async.md)** - Data loading patterns
+- **[Selection Plugin](./plugins/selection.md)** - Selection and keyboard nav
+- **[Scale Plugin](./plugins/scale.md)** - Large dataset handling
+- **[API Reference](./api/methods.md)** - Complete method documentation
 - **[Examples](https://vlist.dev/sandbox/)** - Interactive examples
 
 ---

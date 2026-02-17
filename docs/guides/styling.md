@@ -610,4 +610,4 @@ Required CSS features:
 
 ---
 
-*See also: [Main Documentation](./vlist.md) | [Scale Guide](./scale.md)*
+*See also: [Main Documentation](./guides/getting-started.md) | [Scale Guide](./plugins/scale.md)*

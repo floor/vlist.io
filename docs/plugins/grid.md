@@ -1318,11 +1318,11 @@ When `updateGrid()` is called:
 
 ## Related Documentation
 
-- [Builder Pattern](./builder.md) - Manual builder API
-- [Selection](./selection.md) - Multi-select for grids
-- [Compression](./scale.md) - Handle millions of items
-- [Performance](./optimization.md) - Optimization techniques
-- [API Reference](./methods.md) - All methods
+- [Builder Pattern](./guides/builder-pattern.md) - Manual builder API
+- [Selection](./plugins/selection.md) - Multi-select for grids
+- [Compression](./plugins/scale.md) - Handle millions of items
+- [Performance](./guides/optimization.md) - Optimization techniques
+- [API Reference](./api/methods.md) - All methods
 
 ## Examples
 

@@ -930,7 +930,7 @@ vlist implements the [WAI-ARIA Listbox pattern](https://www.w3.org/WAI/ARIA/apg/
 
 Works across all modes: list, grid, core, groups, reverse, compression, and window scrolling.
 
-> 📖 **Full documentation:** [accessibility.md](./accessibility.md) — ARIA attributes, keyboard model, screen reader testing, CSS focus styles, best practices.
+> 📖 **Full documentation:** [accessibility.md](./guides/accessibility.md) — ARIA attributes, keyboard model, screen reader testing, CSS focus styles, best practices.
 
 ---
 
@@ -1045,7 +1045,7 @@ maxItems = 16,777,216 / itemHeight
 
 ### Built-In Optimizations
 
-vlist includes many performance optimizations out of the box. For the complete list, see the [Optimization Guide](./optimization.md).
+vlist includes many performance optimizations out of the box. For the complete list, see the [Optimization Guide](./guides/optimization.md).
 
 **Key highlights:**
 
@@ -1452,7 +1452,7 @@ Compression adds minimal overhead:
 - Position calculations: Pure math, very fast
 - Memory: No additional memory for compression
 
-For detailed technical documentation, see [scale.md](./scale.md).
+For detailed technical documentation, see [scale.md](./plugins/scale.md).
 
 ---
 
@@ -1476,5 +1476,5 @@ MIT © [Floor](https://github.com/floor)
 - [GitHub Repository](https://github.com/floor/vlist)
 - [npm Package](https://www.npmjs.com/package/vlist)
 - [Examples](../examples/)
-- [Scale Documentation](./scale.md)
+- [Scale Documentation](./plugins/scale.md)
 - [Changelog](../CHANGELOG.md)

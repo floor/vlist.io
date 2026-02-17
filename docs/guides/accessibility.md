@@ -315,7 +315,7 @@ Override these CSS custom properties to match your design system:
 }
 ```
 
-Dark mode tokens are set automatically via `prefers-color-scheme: dark` or the `.dark` class. See [styles.md](./styles.md) for the full token reference.
+Dark mode tokens are set automatically via `prefers-color-scheme: dark` or the `.dark` class. See [styles.md](./guides/styling.md) for the full token reference.
 
 ---
 
@@ -518,8 +518,8 @@ In compressed mode (1M+ items), all ARIA attributes work identically. The `aria-
 
 ## Related Documentation
 
-- [Selection](./selection.md) — Selection state management and keyboard interaction internals
-- [Handlers](./handlers.md) — Scroll, click, and keyboard event handler implementation
-- [Render](./render.md) — Element pool, DOM structure, and renderer details
-- [Styles](./styles.md) — CSS tokens, variants, focus ring, and dark mode
-- [Main Documentation](./vlist.md) — Full configuration and API reference
+- [Selection](./plugins/selection.md) — Selection state management and keyboard interaction internals
+- [Handlers](./internals/handlers.md) — Scroll, click, and keyboard event handler implementation
+- [Render](./internals/rendering.md) — Element pool, DOM structure, and renderer details
+- [Styles](./guides/styling.md) — CSS tokens, variants, focus ring, and dark mode
+- [Main Documentation](./guides/getting-started.md) — Full configuration and API reference

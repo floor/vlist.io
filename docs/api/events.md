@@ -431,9 +431,9 @@ list.on('error', ({ error, context }) => {
 
 ## Related Modules
 
-- [types.md](./types.md) - Event type definitions
-- [handlers.md](./handlers.md) - Event handlers that emit events
-- [context.md](./context.md) - Context holds emitter reference
+- [types.md](./api/types.md) - Event type definitions
+- [handlers.md](./internals/handlers.md) - Event handlers that emit events
+- [context.md](./internals/context.md) - Context holds emitter reference
 
 ---
 

@@ -1,278 +1,173 @@
-# Documentation
+# VList Documentation
 
 > Comprehensive documentation for the vlist virtual list library.
 
-## Quick Links
+## 🚀 Quick Start
 
-- **[Builder](./builder.md)** - Composable builder — pick only the features you need, pay only for what you ship
-- **[Main Documentation](./vlist.md)** - Getting started, configuration, and usage
-- **[Accessibility](./accessibility.md)** - WAI-ARIA listbox, keyboard navigation, screen reader support
-- **[Benchmarks](./benchmarks.md)** - Live performance suites (scroll FPS, render, memory, scrollToIndex)
-- **[Optimization Guide](./optimization.md)** - Performance optimizations and tuning
-- **[Styles Guide](./styles.md)** - CSS tokens, variants, dark mode, split core/extras CSS, and customization
-- **[Scale Guide](./scale.md)** - Handling large lists (1M+ items) with compression
-- **[Page Scrolling](./vlist.md#page-scrolling)** - Document-level scrolling
-- **[Scroll Save/Restore](./vlist.md#scroll-saverestore)** - Save and restore scroll position for SPA navigation
-- **[Framework Adapters](#framework-adapters)** - React, Vue, and Svelte wrappers (<1 KB each)
-- **[Reverse Mode](./reverse.md)** - Chat UI support with auto-scroll and scroll-preserving prepend
-- **[Scroll Config](./scrollbar.md#scroll-configuration)** - Wheel control, wrap navigation, scrollbar modes, window scrolling
-- **[Testing](./test.md)** - Test suite, coverage (99.99% lines), and testing patterns
+**New to VList?** Start here:
 
-## Module Documentation
+- **[Quick Start Guide](./QUICKSTART.md)** - Get up and running in 5 minutes
+- **[Getting Started](./guides/getting-started.md)** - Complete introduction and configuration
+- **[Builder Pattern](./guides/builder-pattern.md)** - How to compose features with plugins
 
-Each module has detailed documentation covering its API, usage examples, and implementation details.
+## 📚 Documentation Structure
 
-### Core Modules
+### Guides
 
-| Module | Description | Location |
-|--------|-------------|----------|
-| **[Types](./types.md)** | TypeScript interfaces and type definitions | `src/types.ts` |
-| **[Builder](./builder.md)** | Composable builder pattern with plugin system | `src/builder/` |
-| **[Rendering](./render.md)** | DOM structure, element pool, rendering, virtualization | `src/rendering/` |
-| **[Events](./events.md)** | Type-safe event emitter system | `src/events/` |
+User-facing guides for common tasks and patterns:
 
-### Feature Plugins
+| Guide | Description |
+|-------|-------------|
+| **[Getting Started](./guides/getting-started.md)** | Complete introduction, configuration, and usage |
+| **[Builder Pattern](./guides/builder-pattern.md)** | Composable plugins - pay only for what you use |
+| **[Accessibility](./guides/accessibility.md)** | WAI-ARIA, keyboard navigation, screen reader support |
+| **[Mobile](./guides/mobile.md)** | Touch optimization and mobile considerations |
+| **[Optimization](./guides/optimization.md)** | Performance tuning and best practices |
+| **[Reverse Mode](./guides/reverse-mode.md)** | Chat UI with auto-scroll and history loading |
+| **[Styling](./guides/styling.md)** | CSS customization, tokens, variants, dark mode |
 
-All features are opt-in via the builder pattern - use only what you need for optimal tree-shaking.
+### Plugins
 
-| Plugin | Description | Directory |
-|--------|-------------|-----------|
-| **[Grid](./grid.md)** | 2D grid layout with virtualized rows | `src/features/grid/` |
-| **[Sections](./sections.md)** | Grouped lists with sticky/inline headers | `src/features/sections/` |
-| **[Async](./async.md)** | Async data loading with adapters | `src/features/async/` |
-| **[Selection](./selection.md)** | Single/multiple selection with keyboard nav | `src/features/selection/` |
-| **[Scale](./scale.md)** | Handle 1M+ items with compression | `src/features/scale/` |
-| **[Scrollbar](./scrollbar.md)** | Custom scrollbar with auto-hide | `src/features/scrollbar/` |
-| **[Page](./plugins.md#withpage)** | Document-level scrolling | `src/features/page/` |
-| **[Snapshots](./plugins.md#withsnapshots)** | Scroll position save/restore | `src/features/snapshots/` |
+Feature plugin documentation with usage examples:
 
-### API Modules
+| Plugin | Bundle Cost | Description |
+|--------|-------------|-------------|
+| **[Plugins Overview](./plugins/README.md)** | - | **All plugins with examples** |
+| **[Grid](./plugins/grid.md)** | +4.0 KB | 2D grid layout with virtualized rows |
+| **[Sections](./plugins/sections.md)** | +4.6 KB | Grouped lists with sticky/inline headers |
+| **[Async](./plugins/async.md)** | +5.3 KB | Async data loading with lazy loading |
+| **[Selection](./plugins/selection.md)** | +2.3 KB | Single/multiple selection with keyboard nav |
+| **[Scale](./plugins/scale.md)** | +2.2 KB | Handle 1M+ items with compression |
+| **[Scrollbar](./plugins/scrollbar.md)** | +1.0 KB | Custom scrollbar UI with auto-hide |
+| **[Page](./plugins/page.md)** | +0.9 KB | Document-level scrolling |
+| **[Snapshots](./plugins/snapshots.md)** | Included | Scroll position save/restore |
 
-| Module | Description | File |
-|--------|-------------|------|
-| **[Handlers](./handlers.md)** | Scroll, click, and keyboard event handlers | `src/handlers.ts` |
-| **[Methods](./methods.md)** | Public API methods (data, scroll, selection) | `src/methods.ts` |
+### API Reference
 
-### Cross-Cutting
+Complete API documentation:
 
-| Module | Description | File |
-|--------|-------------|------|
-| **[Accessibility](./accessibility.md)** | WAI-ARIA implementation, keyboard navigation, screen reader support | across modules |
+| Reference | Description |
+|-----------|-------------|
+| **[Methods](./api/methods.md)** | All public methods - data, scroll, selection, lifecycle |
+| **[Events](./api/events.md)** | Event system and available events |
+| **[Types](./api/types.md)** | TypeScript interfaces and type definitions |
 
-## Architecture Overview
+### Resources
 
-VList uses a **builder pattern** with explicit plugins for optimal tree-shaking:
+Additional documentation and tools:
+
+| Resource | Description |
+|----------|-------------|
+| **[Benchmarks](./resources/benchmarks.md)** | Performance metrics and live benchmark suites |
+| **[Bundle Size](./resources/bundle-size.md)** | Bundle size analysis and optimization |
+| **[Testing](./resources/testing.md)** | Test suite, coverage, and patterns |
+| **[Known Issues](./resources/known-issues.md)** | Current limitations and workarounds |
+| **[Sandbox](./resources/sandbox.md)** | Interactive example documentation |
+
+### Internals
+
+For contributors and advanced users:
+
+| Internal | Description |
+|----------|-------------|
+| **[Rendering](./internals/rendering.md)** | DOM rendering, virtualization, element pooling |
+| **[Context](./internals/context.md)** | BuilderContext and plugin system internals |
+| **[Handlers](./internals/handlers.md)** | Event handler registration and execution |
+| **[Constants](./internals/constants.md)** | Default values and configuration constants |
+| **[Code Generator](./internals/code-generator.md)** | Template and code generation utilities |
+
+## 🎯 Find What You Need
+
+### I want to...
+
+**Get started quickly**
+→ [Quick Start Guide](./QUICKSTART.md)
+
+**Learn the builder pattern**
+→ [Builder Pattern Guide](./guides/builder-pattern.md)
+
+**Add a grid layout**
+→ [Grid Plugin](./plugins/grid.md)
+
+**Create a chat UI**
+→ [Reverse Mode Guide](./guides/reverse-mode.md) + [Sections Plugin](./plugins/sections.md)
+
+**Load data asynchronously**
+→ [Async Plugin](./plugins/async.md)
+
+**Handle 1M+ items**
+→ [Scale Plugin](./plugins/scale.md)
+
+**Add selection/keyboard navigation**
+→ [Selection Plugin](./plugins/selection.md)
+
+**Customize styles**
+→ [Styling Guide](./guides/styling.md)
+
+**See all methods**
+→ [API Methods](./api/methods.md)
+
+**Understand accessibility**
+→ [Accessibility Guide](./guides/accessibility.md)
+
+**Optimize performance**
+→ [Optimization Guide](./guides/optimization.md)
+
+## 🏗️ Architecture Overview
+
+VList uses a **builder pattern** with explicit plugins:
 
 ```typescript
-import { vlist, withGrid, withSections } from 'vlist';
+import { vlist, withGrid, withSections, withSelection } from 'vlist';
 
-const list = vlist({ ... })
-  .use(withGrid({ columns: 4 }))
+const list = vlist({
+  container: '#app',
+  items: photos,
+  item: { height: 200, template: renderPhoto },
+})
+  .use(withGrid({ columns: 4, gap: 16 }))
   .use(withSections({ ... }))
+  .use(withSelection({ mode: 'multiple' }))
   .build();
 ```
 
-**Features are organized under `src/features/`** with clear, intuitive names. The rendering engine lives in `src/rendering/` and the core builder in `src/builder/`.
+**Module organization:**
+- `src/builder/` - Core builder and plugin system
+- `src/features/` - All plugins (grid, sections, async, etc.)
+- `src/rendering/` - Virtual scrolling calculations
+- `src/events/` - Event emitter system
 
-**Bundle sizes:** 8-12 KB gzipped based on features used (vs 20-23 KB for traditional virtual lists).
+**Bundle sizes:** 8-12 KB gzipped based on features used (vs 20-23 KB for traditional virtual lists)
 
-### Framework Adapters
+## 📦 Bundle Size Reference
 
-Thin mount-based wrappers that handle lifecycle (create on mount, destroy on unmount) and reactive item syncing. Each adapter imports `vlist` from `vlist` as an external — the adapter bundles contain only wrapper code.
+| Configuration | Gzipped | Plugins Used |
+|---------------|---------|--------------|
+| Base only | 7.7 KB | None |
+| + Selection | 10.0 KB | `withSelection()` |
+| + Grid | 11.7 KB | `withGrid()` + `withScrollbar()` |
+| + Sections | 12.3 KB | `withSections()` |
+| + Async | 13.5 KB | `withAsync()` + `withPage()` |
+| + Scale | 9.9 KB | `withScale()` + `withScrollbar()` |
+| All plugins | ~16 KB | Everything |
 
-| Adapter | Import | Size | Exports | Source |
-|---------|--------|------|---------|--------|
-| **React** | `vlist/react` | 0.7 KB | `useVList` hook, `useVListEvent` | `src/adapters/react.ts` |
-| **Vue 3** | `vlist/vue` | 0.5 KB | `useVList` composable, `useVListEvent` | `src/adapters/vue.ts` |
-| **Svelte** | `vlist/svelte` | 0.3 KB | `vlist` action, `onVListEvent` | `src/adapters/svelte.ts` |
+**Traditional virtual lists:** 20-23 KB minimum (all features bundled)
 
-React and Vue are optional `peerDependencies`. Svelte needs zero framework imports (actions are plain functions).
+## 🔗 External Links
 
-## Architecture Overview (v0.6.0 - Plugin System)
+- **Interactive Examples:** [vlist.dev/sandbox](https://vlist.dev/sandbox)
+- **Live Benchmarks:** [vlist.dev/benchmarks](https://vlist.dev/benchmarks)
+- **GitHub Repository:** [github.com/floor/vlist](https://github.com/floor/vlist)
+- **NPM Package:** [@floor/vlist](https://www.npmjs.com/package/@floor/vlist)
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                     Framework Adapters (optional)                     │
-│          vlist/react · vlist/vue · vlist/svelte                       │
-│     Thin mount-based wrappers that delegate to vlist()         │
-└──────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                    vlist() - Auto-detection                     │
-│         Detects features from config and applies plugins              │
-└──────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                  vlist() Builder + Plugins                            │
-│  .use(withPage()) .use(withSelection()) .use(withGrid())           │
-└──────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                      BuilderContext                                   │
-│  Provides hooks for plugins: setScrollFns, setScrollTarget, etc.     │
-└──────────────────────────────────────────────────────────────────────┘
-                              │
-        ┌─────────────────────┼─────────────────────┐
-        ▼                     ▼                     ▼
-┌───────────────┐   ┌─────────────────┐   ┌───────────────┐
-│  Core (8 KB)  │   │   Plugins       │   │   Render      │
-│ Virtual scroll│   │  (opt-in)       │   │ (DOM pooling) │
-│ Element pool  │   │  Window, Grid,  │   │ Height cache  │
-│ Basic DOM     │   │  Selection, etc │   │               │
-└───────────────┘   └─────────────────┘   └───────────────┘
-```
+## 💡 Tips
 
-**Key Change in v0.6.0:** Features like window scrolling are now plugins that hook into the builder core rather than being baked in. This enables smaller bundles and community extensibility.
-
-## Data Flow
-
-### Scroll Event Flow
-
-```
-User scrolls
-    ↓
-ScrollController detects scroll
-    ↓
-Scroll Handler updates ViewportState
-    ↓
-Calculate new visible/render range
-    ↓
-DataManager.ensureRange() loads missing data
-    ↓
-Renderer.render() updates DOM
-    ↓
-Emit 'scroll' and 'range:change' events
-```
-
-### Selection Event Flow
-
-```
-User clicks item (or presses Space/Enter)
-    ↓
-Click/Keyboard Handler processes event
-    ↓
-Update SelectionState (immutable)
-    ↓
-Renderer.render() updates DOM
-    ↓
-Emit 'item:click' and 'selection:change' events
-```
-
-### Data Loading Flow
-
-```
-Adapter mode: scroll near bottom (or near top in reverse mode)
-    ↓
-Scroll Handler detects threshold
-    ↓
-Emit 'load:start' event
-    ↓
-DataManager.loadMore() calls Adapter.read()
-    ↓
-Store items in SparseStorage
-    ↓
-Renderer.render() replaces placeholders
-    ↓
-Emit 'load:end' event
-```
-
-## Key Features by Module
-
-### Core (Builder + Render)
-- **Virtual scrolling** - Only render visible + overscan items
-- **Element pooling** - Reuse DOM elements for performance
-- **Height cache** - O(1) offset lookups with prefix sums
-- **Basic DOM structure** - Container, viewport, content, items
-- **Event system** - Type-safe emitter with error isolation
-- **ResizeObserver** - Automatic viewport size detection
-- **Plugin hooks** - Extensibility points for features
-
-### Plugin System (v0.6.0)
-- **Window mode** - Page-level scrolling (extracted in v0.6.0)
-- **Selection** - Click/keyboard selection with ARIA
-- **Grid** - 2D grid layout with responsive columns
-- **Groups** - Sticky headers for grouped lists
-- **Data adapter** - Async loading with sparse storage
-- **Compression** - Handle 1M+ items efficiently
-- **Custom scrollbar** - Consistent cross-browser scrollbar
-- **Snapshots** - Save/restore scroll position
-
-
-
-### Accessibility (across modules)
-- WAI-ARIA Listbox pattern (`role="listbox"` / `role="option"`)
-- `aria-setsize` / `aria-posinset` — screen readers announce "item 5 of 10,000"
-- `aria-activedescendant` — root tracks focused item by ID (better than roving tabindex for virtual lists)
-- `aria-selected` — reflects selection state per item
-- `aria-busy` — set during async adapter loading
-- Visually-hidden live region (`aria-live="polite"`) — announces selection changes
-- Instance-scoped element IDs — safe with multiple lists per page
-- `:focus-visible` keyboard-only focus ring on root and items
-
-### Events Module
-- Type-safe event system
-- Error isolation per handler
-- Subscription management
-- Memory-safe cleanup
-
-## Configuration Quick Reference
-
-```typescript
-const list = vlist({
-  // Required
-  container: '#app',           // HTMLElement or selector
-  item: {
-    height: 48,                // Fixed height in pixels
-    template: (item) => `...`, // Render function
-  },
-  
-  // Data source (one of)
-  items: [],                   // Static array
-  adapter: { read: async () => ... },  // Async loader
-  
-  // Optional
-  ariaLabel: 'My list',        // Accessible label (recommended)
-  overscan: 3,                 // Extra items to render
-  reverse: false,              // Reverse mode for chat UIs
-  classPrefix: 'vlist',        // CSS class prefix
-  scroll: {
-    wheel: true,               // Enable mouse wheel (default: true)
-    wrap: false,               // Wrap around at boundaries (default: false)
-    scrollbar: { autoHide: true },  // 'native' | 'none' | { options } (default: custom)
-    element: window,           // Window scrolling mode
-    idleTimeout: 150,          // Scroll idle detection (ms)
-  },
-  selection: {
-    mode: 'multiple',          // 'none' | 'single' | 'multiple'
-    initial: ['id-1']          // Pre-selected IDs
-  },
-  loading: {
-    cancelThreshold: 25,       // Skip loading above this velocity (px/ms)
-    preloadThreshold: 2,       // Start preloading above this velocity (px/ms)
-    preloadAhead: 50,          // Items to preload in scroll direction
-  },
-});
-```
-
-## Browser Support
-
-- Chrome/Edge 88+
-- Firefox 78+
-- Safari 14+
-
-Requires:
-- ES2020+
-- CSS Custom Properties
-- ResizeObserver
-- requestAnimationFrame
-
-## License
-
-GPL-3.0-or-later
+- **Use QUICKSTART.md** for copy-paste ready examples
+- **Plugin docs are independent** - read only what you need
+- **Check bundle-size.md** for optimization strategies
+- **All examples are at** [vlist.dev/sandbox](https://vlist.dev/sandbox)
 
 ---
 
-*For the main getting started guide, see [vlist.md](./vlist.md). For accessibility details, see [accessibility.md](./accessibility.md).*
+**License:** MIT  
+**Built by:** [Floor IO](https://floor.io)

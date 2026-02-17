@@ -721,12 +721,12 @@ if (ctx.config.hasAdapter) {
 
 ## Related Modules
 
-- [context.md](./context.md) - Context passed to method factories
-- [handlers.md](./handlers.md) - Event handlers (internal counterpart)
-- [selection.md](./selection.md) - Selection state management functions
-- [async.md](./async.md) - Data manager operations
-- [scrollbar.md](./scrollbar.md) - Scroll controller
-- [render.md](./render.md) - Scroll position calculations
+- [context.md](./internals/context.md) - Context passed to method factories
+- [handlers.md](./internals/handlers.md) - Event handlers (internal counterpart)
+- [selection.md](./plugins/selection.md) - Selection state management functions
+- [async.md](./plugins/async.md) - Data manager operations
+- [scrollbar.md](./plugins/scrollbar.md) - Scroll controller
+- [render.md](./internals/rendering.md) - Scroll position calculations
 - `src/animation.ts` - Shared animation utilities (easing, scroll arg resolution)
 
 ---
