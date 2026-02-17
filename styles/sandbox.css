@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-    max-width: 1600px;
+    max-width: 1472px;
     margin: 0 auto;
     padding: calc(var(--header-height) + 40px) 24px 80px;
 }
