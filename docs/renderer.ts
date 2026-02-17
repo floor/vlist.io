@@ -90,42 +90,52 @@ export const DOC_GROUPS: DocGroup[] = [
     ],
   },
   {
-    label: "Modules",
+    label: "Plugins",
     items: [
-      {
-        slug: "render",
-        name: "Render",
-        desc: "DOM rendering, virtualization, and element pooling",
-      },
-      {
-        slug: "data",
-        name: "Data",
-        desc: "Sparse storage, placeholders, and async adapters",
-      },
-      {
-        slug: "scroll",
-        name: "Scroll",
-        desc: "Scroll controller, custom scrollbar, and velocity",
-      },
       {
         slug: "grid",
         name: "Grid",
-        desc: "2D grid layout with dynamic aspect ratios",
+        desc: "2D grid layout with virtualized rows (withGrid)",
+      },
+      {
+        slug: "sections",
+        name: "Sections",
+        desc: "Grouped lists with sticky/inline headers (withSections)",
+      },
+      {
+        slug: "async",
+        name: "Async",
+        desc: "Async data loading with lazy loading (withAsync)",
       },
       {
         slug: "selection",
         name: "Selection",
-        desc: "Single & multi-select state management",
+        desc: "Single & multi-select with keyboard nav (withSelection)",
+      },
+      {
+        slug: "scale",
+        name: "Scale",
+        desc: "Handle 1M+ items with compression (withScale)",
+      },
+      {
+        slug: "scrollbar",
+        name: "Scrollbar",
+        desc: "Custom scrollbar UI with auto-hide (withScrollbar)",
+      },
+    ],
+  },
+  {
+    label: "Core Modules",
+    items: [
+      {
+        slug: "render",
+        name: "Rendering",
+        desc: "DOM rendering, virtualization, and element pooling",
       },
       {
         slug: "events",
         name: "Events",
         desc: "Type-safe event emitter system",
-      },
-      {
-        slug: "compression",
-        name: "Compression",
-        desc: "Handling 1M+ items with scroll compression",
       },
     ],
   },
@@ -212,9 +222,9 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
         desc: "Performance tuning and best practices",
       },
       {
-        slug: "compression",
-        name: "Compression",
-        desc: "Handling 1M+ items with scroll compression",
+        slug: "scale",
+        name: "Scale",
+        desc: "Handle 1M+ items with automatic compression",
       },
       {
         slug: "accessibility",
@@ -254,32 +264,47 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
     ],
   },
   {
-    label: "Modules",
+    label: "Plugins",
     cards: [
-      {
-        slug: "render",
-        name: "Render",
-        desc: "DOM rendering, virtualization, and element pooling",
-      },
-      {
-        slug: "data",
-        name: "Data",
-        desc: "Sparse storage, placeholders, and async adapters",
-      },
-      {
-        slug: "scroll",
-        name: "Scroll",
-        desc: "Scroll controller, custom scrollbar, and velocity",
-      },
       {
         slug: "grid",
         name: "Grid",
-        desc: "2D grid layout with dynamic aspect ratios",
+        desc: "2D grid layout with virtualized rows",
+      },
+      {
+        slug: "sections",
+        name: "Sections",
+        desc: "Grouped lists with sticky or inline headers",
+      },
+      {
+        slug: "async",
+        name: "Async",
+        desc: "Async data loading with lazy loading and placeholders",
       },
       {
         slug: "selection",
         name: "Selection",
-        desc: "Single &amp; multi-select state management",
+        desc: "Single &amp; multi-select with keyboard navigation",
+      },
+      {
+        slug: "scale",
+        name: "Scale",
+        desc: "Handle 1M+ items with scroll compression",
+      },
+      {
+        slug: "scrollbar",
+        name: "Scrollbar",
+        desc: "Custom scrollbar UI with auto-hide and smooth dragging",
+      },
+    ],
+  },
+  {
+    label: "Core Modules",
+    cards: [
+      {
+        slug: "render",
+        name: "Rendering",
+        desc: "DOM rendering, virtualization, and element pooling",
       },
       {
         slug: "events",
