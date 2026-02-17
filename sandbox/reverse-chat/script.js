@@ -498,7 +498,7 @@ const generateRandomMessage = () => {
 };
 
 const scheduleNextMessage = () => {
-  const delay = 3000 + Math.random() * 17000; // 3-20 seconds
+  const delay = 1000 + Math.random() * 7000; // 3-20 seconds
   setTimeout(generateRandomMessage, delay);
 };
 
