@@ -4,37 +4,65 @@ Documentation, sandbox, and benchmarks site for the [vlist](https://github.com/f
 
 **Live:** [https://vlist.dev](https://vlist.dev)
 
+## Recent Updates
+
+🎉 **VList v0.6.0** - Complete refactoring to builder-only API with optimal tree-shaking!
+
+- **2-3x smaller bundles** (22 KB → 8-12 KB gzipped)
+- **Builder pattern** with explicit plugins
+- **Clear naming** - `withScale`, `withAsync`, `withSections`, `withPage`
+- **All 34 examples updated** to demonstrate new API
+
+See [BUNDLE_SIZE_COMPARISON.md](./BUNDLE_SIZE_COMPARISON.md) for detailed analysis.
+
 ## What's Inside
 
 | Section | Path | Description |
 |---------|------|-------------|
 | **Landing** | `/` | Feature overview, quick start, and navigation |
-| **Sandbox** | `/sandbox/` | 14 interactive examples — basic lists to million-item stress tests |
+| **Sandbox** | `/sandbox/` | 34 interactive examples — basic lists to million-item stress tests |
 | **Docs** | `/docs/` | API reference, configuration, events, methods, styling |
 | **Benchmarks** | `/benchmarks/` | Live performance suites — scroll FPS, render time, memory, bundle size |
 | **API** | `/api/` | Deterministic user data endpoint for demos (1M+ items, zero storage) |
 
 ## Sandbox Examples
 
-The sandbox includes 14 interactive examples organized by feature category:
+The sandbox includes **34 interactive examples** demonstrating the builder pattern with explicit plugins:
 
-| Category | Examples | Description |
-|----------|----------|-------------|
-| **Getting Started** | Basic, Controls | Minimal setup and full API exploration |
-| **Core (Lightweight)** | Basic Core | 7.8KB build — 83% smaller than full bundle |
-| **Grid Plugin** | Photo Album, File Browser | Grid layouts with multiple framework implementations |
-| **Data Plugin** | Large List (Compression), Velocity Loading | 100K–5M items with smart loading strategies |
-| **Horizontal** | Basic Horizontal | Horizontal carousel with 10K cards |
-| **Groups Plugin** | Sticky Headers | A–Z contact list with sticky section headers |
-| **Other Plugins** | Scroll Restore, Window Scroll | Save/restore scroll position, document-level scrolling |
-| **Advanced** | Variable Heights, Reverse Chat, Wizard Nav | DOM-measured heights, reverse mode, button-only navigation |
+### By Feature
 
-Many examples include **multi-framework implementations** (JavaScript, React, Svelte, Vue) demonstrating framework-agnostic usage.
+| Feature | Examples | Bundle Size (Gzipped) |
+|---------|----------|-----------------------|
+| **Getting Started** | Basic, Controls | 8.2 - 10.5 KB |
+| **Core (Ultra-Light)** | Basic Core | **3.1 KB** (no plugins) |
+| **Layout** | Grid (Photo Album, File Browser), Horizontal | 8.6 - 15.3 KB |
+| **Grouped Lists** | Sticky Headers (Sections), Reverse Chat | 11.9 - 12.3 KB |
+| **Large Datasets** | Large List (Scale), Velocity Loading | 9.9 - 15.0 KB |
+| **Scroll Behaviors** | Scroll Restore, Page Scroll, Wizard Nav | 10.4 - 13.5 KB |
+| **Advanced** | Variable Heights, Chat UI, Complex Combinations | 10.9 - 15.3 KB |
+
+### Builder Pattern Examples
+
+All examples now use the **builder API** with explicit plugins:
+
+```typescript
+import { vlist, withGrid, withSections } from 'vlist';
+
+vlist({ ... })
+  .use(withGrid({ columns: 4 }))
+  .use(withSections({ ... }))
+  .build();
+```
+
+Many examples include **multi-framework implementations** (JavaScript, React, Vue, Svelte) with identical VList API.
 
 ## Setup
 
-**Prerequisites:** [Bun](https://bun.sh) and the following sibling repositories:
+**Prerequisites:** 
+- [Bun](https://bun.sh) runtime
+- Sibling `vlist` repository for local development
 
+**Directory structure:**
 ```
 ~/Code/floor/
 ├── vlist/          # The library itself
@@ -44,11 +72,14 @@ Many examples include **multi-framework implementations** (JavaScript, React, Sv
 **Install and link:**
 
 ```bash
+# Install dependencies
 bun install
+
+# Link local vlist for development
 bun run link:libs
 ```
 
-`link:libs` runs `bun link` in each sibling package and links them into this project, so local changes are reflected immediately.
+The `link:libs` script links the local `vlist` package, so changes are reflected immediately without republishing.
 
 **Start development server:**
 
@@ -79,36 +110,42 @@ vlist.dev/
 │   └── api/                # API routes (user data endpoint)
 │       ├── router.ts
 │       └── users.ts
-├── sandbox/                # Interactive examples
-│   ├── build.ts            # Sandbox build script
+├── sandbox/                # Interactive examples (34 total)
+│   ├── build.ts            # Sandbox build script (esbuild)
 │   ├── index.html          # Sandbox index page
 │   ├── basic/              # Getting Started
-│   ├── controls/
-│   ├── core/               # Core (Lightweight)
-│   │   └── basic/
-│   ├── grid/               # Grid Plugin
-│   │   ├── photo-album/
-│   │   └── file-browser/
-│   ├── data/               # Data Plugin
-│   │   ├── large-list/
+│   ├── controls/           # (JavaScript, React, Vue, Svelte)
+│   ├── core/               # Ultra-Lightweight Core (3.1 KB gzip)
+│   │   └── basic/          # (JavaScript, React, Vue, Svelte)
+│   ├── grid/               # Grid Layout Plugin
+│   │   ├── photo-album/    # (JavaScript, React, Vue, Svelte)
+│   │   └── file-browser/   # File browser demo
+│   ├── data/               # Async Loading Plugin
+│   │   ├── large-list/     # (JavaScript, React, Vue, Svelte)
 │   │   └── velocity-loading/
-│   ├── horizontal/         # Horizontal
-│   │   └── basic/
-│   ├── groups/             # Groups Plugin
+│   ├── horizontal/         # Horizontal Direction
+│   │   └── basic/          # (JavaScript, React, Vue, Svelte)
+│   ├── groups/             # Sections Plugin (was: groups)
 │   │   └── sticky-headers/
-│   ├── scroll-restore/     # Other Plugins
-│   ├── window-scroll/
+│   ├── scroll-restore/     # Snapshots Plugin
+│   ├── window-scroll/      # Page Plugin (was: window)
 │   ├── variable-heights/   # Advanced Examples
-│   ├── reverse-chat/
-│   ├── wizard-nav/
-│   └── builder/            # Builder Pattern
+│   ├── reverse-chat/       # Reverse + Sections
+│   ├── wizard-nav/         # Button-only navigation
+│   └── builder/            # Builder Pattern Examples
 │       ├── basic/
 │       ├── controls/
-│       ├── large-list/
+│       ├── large-list/     # Scale plugin (was: compression)
 │       ├── photo-album/
 │       └── chat/
 ├── benchmarks/             # Performance test suites
-├── docs/                   # Markdown documentation
+├── docs/                   # Markdown documentation (API reference)
+│   ├── README.md
+│   ├── plugins.md          # Plugin system guide
+│   ├── grid.md             # Grid plugin details
+│   ├── data.md             # Async plugin details
+│   ├── groups.md           # Sections plugin details
+│   └── ...                 # More guides
 ├── nginx/                  # nginx vhost config
 │   └── vlist.dev.conf
 ├── scripts/
@@ -172,6 +209,13 @@ This clones the repo, installs dependencies, starts PM2, links the nginx vhost, 
 | `vlist` | The library being documented | `file:../vlist` (local) → `@floor/vlist` (production) |
 
 Local `file:` paths are used in development. The deploy script swaps them for registry versions before installing on the server.
+
+## Key Documentation
+
+- **[REFACTORING_SUMMARY.md](./REFACTORING_SUMMARY.md)** - Complete refactoring overview
+- **[BUNDLE_SIZE_COMPARISON.md](./BUNDLE_SIZE_COMPARISON.md)** - Before/after bundle analysis
+- **[docs/plugins.md](./docs/plugins.md)** - Plugin system guide
+- **[docs/builder.md](./docs/builder.md)** - Builder pattern documentation
 
 ## License
 
