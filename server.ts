@@ -45,7 +45,7 @@ const resolvePackagePath = (packageName: string): string | null => {
 };
 
 // Resolve library paths once at startup
-const VLIST_ROOT = resolvePackagePath("vlist");
+const VLIST_ROOT = resolvePackagePath("@floor/vlist");
 
 // =============================================================================
 // MIME Types
