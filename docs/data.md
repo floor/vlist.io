@@ -529,9 +529,9 @@ const { total, cached, isLoading } = dataManager.getState();
 ### Complete Integration
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,

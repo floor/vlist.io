@@ -48,7 +48,7 @@ The following optimizations are already implemented in vlist:
 Control velocity-based loading and preloading via the `loading` config:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#list',
   item: {
     height: 50,
@@ -89,7 +89,7 @@ const list = createVList({
 Control how long after the last scroll event before the list is considered "idle":
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#list',
   item: { height: 50, template: myTemplate },
   adapter: myAdapter,

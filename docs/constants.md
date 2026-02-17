@@ -339,7 +339,7 @@ const renderRange = {
 Most constants have corresponding config options:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,

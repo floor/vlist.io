@@ -49,9 +49,9 @@ Grid layout virtualizes **rows**, not individual items. With 1,000 items in a 4-
 ### With Default Entry Point (Recommended)
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: {
@@ -140,7 +140,7 @@ type HeightFunction = (
 ### Example: 4:3 Aspect Ratio
 
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -260,9 +260,9 @@ interface GridConfig {
 ### With Default Entry Point
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',  // Activates grid mode
   grid: {
@@ -320,7 +320,7 @@ interface ItemConfig {
 Update grid configuration dynamically without recreating the instance.
 
 **Available with:**
-- Default entry point: `createVList()` with `layout: 'grid'`
+- Default entry point: `vlist()` with `layout: 'grid'`
 - Builder pattern: `vlist().use(withGrid()).build()`
 
 **Signature:**
@@ -338,7 +338,7 @@ interface GridConfig {
 
 **Example:**
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -455,7 +455,7 @@ updateGrid():        ~1-2ms (cached)
 Grid layout works with compression for massive datasets:
 
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 6, gap: 4 },
@@ -476,9 +476,9 @@ const gallery = createVList({
 ### Photo Gallery with Responsive Columns
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: {
@@ -539,7 +539,7 @@ interface Product {
   rating: number;
 }
 
-const catalog = createVList<Product>({
+const catalog = vlist<Product>({
   container: '#products',
   layout: 'grid',
   grid: { columns: 3, gap: 16 },
@@ -576,7 +576,7 @@ catalog.on('item:click', ({ item }) => {
 While true masonry (variable heights) requires different handling, you can create a masonry-like effect with alternating row heights:
 
 ```typescript
-const masonry = createVList({
+const masonry = vlist({
   container: '#masonry',
   layout: 'grid',
   grid: { columns: 4, gap: 12 },
@@ -601,7 +601,7 @@ const masonry = createVList({
 ### Icon Grid with Fixed Square Items
 
 ```typescript
-const icons = createVList({
+const icons = vlist({
   container: '#icon-grid',
   layout: 'grid',
   grid: { columns: 8, gap: 4 },
@@ -624,7 +624,7 @@ const icons = createVList({
 ### Gallery with Selectable Items
 
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -657,7 +657,7 @@ console.log('Selected:', selectedPhotos.length, 'photos');
 ### Infinite Scroll Grid
 
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -786,7 +786,7 @@ item: {
 ```typescript
 // Bad: expensive, loses state
 gallery.destroy();
-gallery = createVList({ /* new config */ });
+gallery = vlist({ /* new config */ });
 ```
 
 **✅ Do:** Update in place
@@ -942,7 +942,7 @@ template: (item) => `
 ### Custom Class Prefix
 
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -969,7 +969,7 @@ Grid layout has certain constraints:
 ❌ **Horizontal Direction** — Grid is inherently 2D
 ```typescript
 // Invalid combination
-createVList({
+vlist({
   direction: 'horizontal',
   layout: 'grid',  // ❌ Error!
 });
@@ -978,7 +978,7 @@ createVList({
 ❌ **Reverse Mode** — Reverse grid not supported
 ```typescript
 // Invalid combination
-createVList({
+vlist({
   layout: 'grid',
   reverse: true,  // ❌ Error!
 });
@@ -1004,7 +1004,7 @@ Headers automatically:
 - Work with sticky headers for iOS Contacts-style UI
 
 ```typescript
-const fileByType = createVList({
+const fileByType = vlist({
   container: '#browser',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -1048,7 +1048,7 @@ const fileByType = createVList({
 
 **Before (v0.4.x):**
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -1061,12 +1061,12 @@ const gallery = createVList({
 
 // Changing columns required recreation
 gallery.destroy();
-gallery = createVList({ /* ... columns: 2 ... */ });
+gallery = vlist({ /* ... columns: 2 ... */ });
 ```
 
 **After (v0.5.x):**
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -1086,13 +1086,13 @@ gallery.updateGrid({ columns: 2 });  // Height auto-adjusts!
 
 ### From Monolithic to Builder-Based Default
 
-**No changes needed!** The default `createVList()` now uses the builder internally:
+**No changes needed!** The default `vlist()` now uses the builder internally:
 
 ```typescript
 // This code is unchanged but now 53% smaller
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -1158,7 +1158,7 @@ height: (index, context) => context ? context.columnWidth * 0.75 : 200
 
 ## Grid+Groups Technical Details
 
-When grid and groups plugins are combined, special coordination is required to handle:
+When grid and sections plugins are combined, special coordination is required to handle:
 - Full-width headers that span all columns
 - Headers forcing new rows in the grid flow
 - Correct height calculations (row-based vs item-based)
@@ -1167,11 +1167,11 @@ When grid and groups plugins are combined, special coordination is required to h
 
 **1. Layout Transformation**
 
-The groups plugin transforms the flat item list by inserting header pseudo-items:
+The sections plugin transforms the flat item list by inserting header pseudo-items:
 
 ```
 Items: [file1, file2, file3, ...]
-         ↓ (groups plugin)
+         ↓ (sections plugin)
 Layout: [header, file1, header, file2, file3, header, ...]
 ```
 
@@ -1192,7 +1192,7 @@ getCol(index) = headers at col 0, items flow normally
 **3. Height Cache Strategy**
 
 - Grid plugin initially sets row-based heights
-- Groups plugin rebuilds with item-based heights (headers + items)
+- Sections plugin rebuilds with item-based heights (headers + items)
 - Grid plugin overrides `getTotalHeight()` to return sum of column 0 items only
 
 This prevents double-counting items in the same row.

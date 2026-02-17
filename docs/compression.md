@@ -257,7 +257,7 @@ interface ScrollbarConfig {
 }
 
 // Usage
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,
@@ -333,7 +333,7 @@ const list = createVList({
 ## Example: Million Items
 
 ```javascript
-import { createVList, getCompressionInfo } from 'vlist';
+import { vlist, getCompressionInfo } from 'vlist';
 
 const items = Array.from({ length: 1_000_000 }, (_, i) => ({
   id: i,
@@ -343,7 +343,7 @@ const items = Array.from({ length: 1_000_000 }, (_, i) => ({
 console.log(getCompressionInfo(items.length, 48));
 // "Compressed to 33.3% (1000000 items × 48px = 48.0M px → 16.0M px virtual)"
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,

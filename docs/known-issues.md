@@ -135,13 +135,13 @@ interface ScrollToOptions {
 Consumers can import individual sub-modules instead of the full bundle:
 
 ```typescript
-import { createVList } from 'vlist'                    // full bundle
-import { createVList } from 'vlist/core'               // 7.3 KB / 3.0 KB gzip (83% smaller!)
-import { createSparseStorage } from 'vlist/data'       // 9.2 KB / 3.8 KB gzip
-import { getCompressionInfo } from 'vlist/compression'  // 2.6 KB / 1.1 KB gzip
+import { vlist } from 'vlist'                    // full bundle
+import { vlist } from 'vlist/core'               // 7.3 KB / 3.0 KB gzip (83% smaller!)
+import { createSparseStorage } from 'vlist (withAsync)'       // 9.2 KB / 3.8 KB gzip
+import { getCompressionInfo } from 'vlist (withScale)'  // 2.6 KB / 1.1 KB gzip
 import { createSelectionState } from 'vlist/selection'  // 1.9 KB / 0.7 KB gzip
-import { createScrollController } from 'vlist/scroll'   // 6.0 KB / 2.3 KB gzip
-import { createGroupLayout } from 'vlist/groups'        // 3.6 KB / 1.4 KB gzip
+import { createScrollController } from 'vlist (withScrollbar)'   // 6.0 KB / 2.3 KB gzip
+import { createGroupLayout } from 'vlist (withSections)'        // 3.6 KB / 1.4 KB gzip
 ```
 
 Bundle sizes after split:
@@ -150,10 +150,10 @@ Bundle sizes after split:
 |--------|----------|---------|-------------|
 | `vlist` (full) | 42.3 KB | 13.9 KB | All features |
 | **`vlist/core`** | **7.3 KB** | **3.0 KB** | **Lightweight — no selection, groups, compression, scrollbar, or adapter** |
-| `vlist/data` | 9.2 KB | 3.8 KB | Sparse storage, placeholders, data manager |
-| `vlist/scroll` | 6.0 KB | 2.3 KB | Scroll controller + custom scrollbar |
-| `vlist/groups` | 3.6 KB | 1.4 KB | Group layout + sticky headers |
-| `vlist/compression` | 2.6 KB | 1.1 KB | Large-list compression utilities |
+| `vlist (withAsync)` | 9.2 KB | 3.8 KB | Sparse storage, placeholders, data manager |
+| `vlist (withScrollbar)` | 6.0 KB | 2.3 KB | Scroll controller + custom scrollbar |
+| `vlist (withSections)` | 3.6 KB | 1.4 KB | Group layout + sticky headers |
+| `vlist (withScale)` | 2.6 KB | 1.1 KB | Large-list compression utilities |
 | `vlist/selection` | 1.9 KB | 0.7 KB | Selection state management |
 
 **b) Lazy-init placeholder manager — Done (Z3):**
@@ -162,7 +162,7 @@ The placeholder manager (~400 lines) is now only instantiated when first needed 
 
 **c) Lightweight core entry (`vlist/core`) — Done:**
 
-A self-contained, minimal `createVList` factory at **7.3 KB minified / 3.0 KB gzipped** — an **83% reduction** vs the full bundle. It covers the most common use case (static or streaming lists) and supports:
+A self-contained, minimal `vlist` factory at **7.3 KB minified / 3.0 KB gzipped** — an **83% reduction** vs the full bundle. It covers the most common use case (static or streaming lists) and supports:
 
 - ✅ Fixed and variable item heights
 - ✅ `scrollToIndex` / `scrollToItem` with smooth animation
@@ -198,7 +198,7 @@ The core module is fully self-contained — zero imports from the full bundle's 
 **Solution:** Added `direction: 'horizontal'` config option with axis-aware rendering, scrolling, and CSS:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#carousel',
   direction: 'horizontal', // new option (default: 'vertical')
   item: {
@@ -236,7 +236,7 @@ const list = createVList({
 **Solution:** Added `layout: 'grid'` with a dedicated `grid` configuration option:
 
 ```typescript
-const grid = createVList({
+const grid = vlist({
   container: '#gallery',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -275,7 +275,7 @@ const grid = createVList({
 Pass `scroll: { element: window }` to make the list participate in normal page flow instead of scrolling inside its own container:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#results',
   scroll: { element: window },  // list scrolls with the page
   item: { height: 48, template: myTemplate },
@@ -317,10 +317,10 @@ VList wiring:
 
 **Problem:** Grouped lists with sticky section headers (like iOS Contacts: A, B, C...) are a ubiquitous UI pattern. No vanilla library does this cleanly.
 
-**Solution:** Added a `groups` configuration option to `createVList` that automatically derives group boundaries from a user-provided function, inserts header pseudo-items into the layout, and manages a sticky header overlay element.
+**Solution:** Added a `groups` configuration option to `vlist` that automatically derives group boundaries from a user-provided function, inserts header pseudo-items into the layout, and manages a sticky header overlay element.
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#contacts',
   item: { height: 48, template: contactTemplate },
   groups: {
@@ -355,7 +355,7 @@ const list = createVList({
 **Implementation:** Added `reverse: true` config option. Items stay in chronological order (oldest = index 0). The reverse behavior is handled entirely in the orchestration layer (`vlist.ts`) by wrapping data methods and adjusting scroll positioning — no changes to the renderer, height cache, or core virtualization math.
 
 ```typescript
-const chat = createVList({
+const chat = vlist({
   container: '#messages',
   reverse: true,
   item: {
@@ -393,7 +393,7 @@ chat.prependItems(olderMessages);
 **With adapter (infinite scroll for older messages):**
 
 ```typescript
-const chat = createVList({
+const chat = vlist({
   container: '#messages',
   reverse: true,
   item: {
@@ -540,7 +540,7 @@ Follows the standard Svelte `use:` directive contract. Works with both Svelte 4 
 
 | Suite | What it measures | Key metric |
 |-------|-----------------|------------|
-| **Initial Render** | Time from `createVList()` to first painted frame | Median (ms) |
+| **Initial Render** | Time from `vlist()` to first painted frame | Median (ms) |
 | **Scroll FPS** | Sustained scroll rendering throughput over 5s | Avg FPS, Frame budget (ms) |
 | **Memory** | Heap usage after render and after 10s of scrolling | Scroll delta (MB) |
 | **scrollToIndex** | Latency of smooth `scrollToIndex()` animation | Median (ms) |

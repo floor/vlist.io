@@ -93,7 +93,7 @@ Each rendered item receives:
 Sets `aria-label` on the root element. Always provide this — screen readers need it to identify the list.
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   ariaLabel: 'Contact list',
   item: { height: 48, template },
@@ -118,7 +118,7 @@ Without `ariaLabel`, screen readers will announce the list generically (e.g., "l
 Enables keyboard navigation and selection. When set to anything other than `'none'`, the full keyboard interaction model activates (arrow keys, Home/End, Space/Enter).
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   ariaLabel: 'Task list',
   item: { height: 48, template },
@@ -233,7 +233,7 @@ The live region uses `aria-live="polite"` so announcements don't interrupt the u
 When using an async adapter, vlist sets `aria-busy="true"` on the root element while data is loading. Screen readers may announce this as "busy" or defer reading until loading completes. The attribute is removed when `load:end` fires.
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   ariaLabel: 'User directory',
   item: { height: 48, template },
@@ -329,7 +329,7 @@ Grid mode (`layout: 'grid'`) follows the same accessibility model:
 - Keyboard navigation moves through items linearly (↑↓ move by one item, not by row)
 
 ```typescript
-const gallery = createVList({
+const gallery = vlist({
   container: '#gallery',
   ariaLabel: 'Photo gallery',
   layout: 'grid',
@@ -362,9 +362,9 @@ Core does **not** include:
 - ❌ `aria-busy` (no async adapter)
 
 ```typescript
-import { createVList } from 'vlist/core';
+import { vlist } from 'vlist/core';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   ariaLabel: 'Log entries',
   item: { height: 24, template: logTemplate },
@@ -385,13 +385,13 @@ Every list should have a descriptive label. Without it, screen readers announce 
 
 ```typescript
 // ✅ Good
-createVList({
+vlist({
   ariaLabel: 'Search results for "typescript"',
   ...
 });
 
 // ❌ Missing label
-createVList({
+vlist({
   // Screen reader: "listbox" — user has no idea what this list contains
   ...
 });

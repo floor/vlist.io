@@ -41,7 +41,7 @@ interface User extends VListItem {
 }
 
 // vlist infers types throughout
-const list = createVList<User>({
+const list = vlist<User>({
   container: '#app',
   item: {
     height: 48,
@@ -57,7 +57,7 @@ const list = createVList<User>({
 ### Type Flow
 
 ```
-VListConfig<T>  →  createVList<T>  →  VList<T>
+VListConfig<T>  →  vlist<T>  →  VList<T>
                         ↓
               VListContext<T>  →  Handlers<T>, Methods<T>
                         ↓
@@ -154,7 +154,7 @@ item: {
 
 #### `VListConfig`
 
-Main configuration for createVList.
+Main configuration for vlist.
 
 ```typescript
 interface VListConfig<T extends VListItem = VListItem> {
@@ -392,7 +392,7 @@ interface LoadingConfig {
 
 **Usage Example**:
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#list',
   item: {
     height: 50,
@@ -421,7 +421,7 @@ idleTimeout?: number;
 
 **Usage Example**:
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#list',
   item: { height: 50, template: myTemplate },
   adapter: myAdapter,
@@ -620,7 +620,7 @@ type Unsubscribe = () => void;
 
 #### `VList`
 
-Public API returned by createVList.
+Public API returned by vlist.
 
 ```typescript
 interface VList<T extends VListItem = VListItem> {
@@ -716,7 +716,7 @@ interface RenderedItem {
 ### Custom Item Type
 
 ```typescript
-import { createVList, VListItem, VList } from 'vlist';
+import { vlist, VListItem, VList } from 'vlist';
 
 // Define custom item type
 interface Product extends VListItem {
@@ -727,7 +727,7 @@ interface Product extends VListItem {
 }
 
 // Create typed list
-const productList: VList<Product> = createVList<Product>({
+const productList: VList<Product> = vlist<Product>({
   container: '#products',
   item: {
     height: 60,
@@ -846,8 +846,8 @@ interface User extends VListItem {
   email: string;
 }
 
-// ✅ Use generics with createVList
-const list = createVList<User>({ ... });
+// ✅ Use generics with vlist
+const list = vlist<User>({ ... });
 
 // ✅ Type event handlers
 list.on('item:click', ({ item }) => {
@@ -859,7 +859,7 @@ list.on('item:click', ({ item }) => {
 
 ```typescript
 // ❌ Use 'any' for item type
-const list = createVList<any>({ ... });
+const list = vlist<any>({ ... });
 
 // ❌ Ignore type errors
 // @ts-ignore

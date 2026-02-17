@@ -1,6 +1,6 @@
 # Bundle Size & Tree-Shaking
 
-> **Note:** As of v0.5.0, the default `createVList()` uses the builder pattern internally, automatically applying only the plugins you need. This dramatically reduces bundle sizes (53% smaller than v0.4.0) while maintaining the same convenient API.
+> **Note:** As of v0.5.0, the default `vlist()` uses the builder pattern internally, automatically applying only the plugins you need. This dramatically reduces bundle sizes (53% smaller than v0.4.0) while maintaining the same convenient API.
 
 > How vlist's entry points affect your bundle, what tree-shaking can and cannot do, and how to ship the least code possible.
 
@@ -8,7 +8,7 @@
 
 Virtual list libraries are typically all-or-nothing: you import the library and get every feature whether you use it or not. 
 
-**vlist v0.5.0 solves this** by using the builder pattern internally in the default entry point. When you use `createVList()`, it automatically detects which features you're using from your config and only includes those plugins. A simple contact list ships ~10 KB while a full-featured grid ships ~27 KB - all from the same convenient API.
+**vlist v0.5.0 solves this** by using the builder pattern internally in the default entry point. When you use `vlist()`, it automatically detects which features you're using from your config and only includes those plugins. A simple contact list ships ~10 KB while a full-featured grid ships ~27 KB - all from the same convenient API.
 
 vlist provides **three entry points** at different control/convenience trade-offs:
 
@@ -29,9 +29,9 @@ vlist provides **three entry points** at different control/convenience trade-off
 The lightest option. A single self-contained file with zero imports — height cache, emitter, DOM structure, element pool, renderer, range calculations, and scroll handling are all inlined.
 
 ```typescript
-import { createVList } from 'vlist/core'
+import { vlist } from 'vlist/core'
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template: renderItem },
   items: data,
@@ -51,7 +51,7 @@ The composable option. Also a single self-contained file (zero imports), but add
 ```typescript
 import { vlist } from 'vlist/builder'
 import { withSelection } from 'vlist/selection'
-import { withScrollbar } from 'vlist/scroll'
+import { withScrollbar } from 'vlist (withScrollbar)'
 
 const list = vlist({
   container: '#app',
@@ -74,9 +74,9 @@ const list = vlist({
 **New in v0.5.0:** The default entry point now uses the builder pattern internally, automatically detecting which features you need from your config and only including those plugins.
 
 ```typescript
-import { createVList } from 'vlist'
+import { vlist } from 'vlist'
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template: renderItem },
   items: data,
@@ -103,17 +103,17 @@ const list = createVList({
 
 ### Auto-detection from config
 
-The default `createVList()` examines your configuration and automatically applies the appropriate plugins:
+The default `vlist()` examines your configuration and automatically applies the appropriate plugins:
 
 ```typescript
 // v0.5.0 vlist.ts — uses builder internally
 import { vlist } from './builder'
 import { withSelection } from './selection/plugin'
 import { withGrid } from './grid/plugin'
-import { withGroups } from './groups/plugin'
+import { withSections } from './groups/plugin'
 // ... other plugins
 
-export function createVList(config) {
+export function vlist(config) {
   const builder = vlist(config)
   
   // Auto-detect and apply plugins based on config
@@ -124,7 +124,7 @@ export function createVList(config) {
     builder.use(withGrid(config.grid))
   }
   if (config.groups) {
-    builder.use(withGroups(config.groups))
+    builder.use(withSections(config.groups))
   }
   // ... other conditional plugin applications
   
@@ -138,23 +138,23 @@ Each plugin is a **separate module** with its own entry point. When you don't us
 
 ```
 Your code:
-  import { createVList } from 'vlist'
-  createVList({ container: '#app', item: { height: 48, template: fn }, items })
+  import { vlist } from 'vlist'
+  vlist({ container: '#app', item: { height: 48, template: fn }, items })
 
 Bundler sees:
-  ✓ createVList is used
-  ✓ createVList imports vlist (builder core)
-  ✓ createVList imports withSelection, withGrid, withGroups...
+  ✓ vlist is used
+  ✓ vlist imports vlist (builder core)
+  ✓ vlist imports withSelection, withGrid, withSections...
   
   But wait! Let's trace the usage:
   - config.selection? → undefined → withSelection NOT called
   - config.layout === 'grid'? → undefined → withGrid NOT called
-  - config.groups? → undefined → withGroups NOT called
+  - config.groups? → undefined → withSections NOT called
   
   Dead code elimination:
   ✗ withSelection - never called, can remove
   ✗ withGrid - never called, can remove
-  ✗ withGroups - never called, can remove
+  ✗ withSections - never called, can remove
   
 Result: 14.8 KB (just builder core) — 63% smaller!
 ```
@@ -181,11 +181,11 @@ The old monolithic approach had imports at the top level that bundlers couldn't 
 ```
 vlist/builder      → src/builder/core.ts      (self-contained, 14.8 KB)
 vlist/selection    → src/selection/plugin.ts   (separate file, 5.9 KB)
-vlist/scroll       → src/scroll/plugin.ts      (separate file, 8.6 KB)
-vlist/data         → src/data/plugin.ts        (separate file, 12.2 KB)
-vlist/compression  → src/compression/plugin.ts (separate file, 6.8 KB)
+vlist (withScrollbar)       → src/scroll/plugin.ts      (separate file, 8.6 KB)
+vlist (withAsync)         → src/data/plugin.ts        (separate file, 12.2 KB)
+vlist (withScale)  → src/compression/plugin.ts (separate file, 6.8 KB)
 vlist/grid         → src/grid/plugin.ts        (separate file, 7.2 KB)
-vlist/groups       → src/groups/plugin.ts      (separate file, 9.2 KB)
+vlist (withSections)       → src/groups/plugin.ts      (separate file, 9.2 KB)
 vlist/snapshots    → src/snapshots/plugin.ts   (separate file, 1.1 KB)
 ```
 
@@ -193,14 +193,14 @@ When you write:
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withScrollbar } from 'vlist/scroll'
+import { withScrollbar } from 'vlist (withScrollbar)'
 ```
 
-The bundler sees two separate files. It never encounters `vlist/grid`, `vlist/groups`, `vlist/data`, etc. — they simply don't exist in the import graph. No static analysis needed; the code is physically absent.
+The bundler sees two separate files. It never encounters `vlist/grid`, `vlist (withSections)`, `vlist (withAsync)`, etc. — they simply don't exist in the import graph. No static analysis needed; the code is physically absent.
 
 ### Bundle composition examples (v0.5.0)
 
-**Default `createVList()` (auto-detects plugins from config):**
+**Default `vlist()` (auto-detects plugins from config):**
 
 | Configuration | Minified | Gzipped | Plugins included |
 |---------------|----------|---------|------------------|
@@ -228,10 +228,10 @@ Each plugin's size when imported (either via auto-detection in default entry poi
 |--------|----------|---------|--------------|
 | `withSelection` | 5.9 KB | 2.2 KB | Click/keyboard selection, ARIA, CSS classes |
 | `withScrollbar` | 8.6 KB | 3.0 KB | Custom scrollbar DOM, drag, auto-hide, hover |
-| `withData` | 12.2 KB | 4.8 KB | Sparse storage, placeholders, adapter, velocity loading |
-| `withCompression` | 6.8 KB | 2.6 KB | 1M+ items, scroll-space compression |
+| `withAsync` | 12.2 KB | 4.8 KB | Sparse storage, placeholders, adapter, velocity loading |
+| `withScale` | 6.8 KB | 2.6 KB | 1M+ items, scroll-space compression |
 | `withGrid` | 7.2 KB | 3.1 KB | 2D grid renderer, column layout, gap |
-| `withGroups` | 9.2 KB | 3.6 KB | Grouped lists, sticky headers |
+| `withSections` | 9.2 KB | 3.6 KB | Grouped lists, sticky headers |
 | `withSnapshots` | 1.1 KB | 0.6 KB | Scroll save/restore |
 
 ## Framework Adapter Sizes
@@ -244,7 +244,7 @@ The framework adapters are thin wrappers that import from the default `vlist` en
 | `vlist/vue` | 0.5 KB | ~15-30 KB + Vue | Vue 3 |
 | `vlist/svelte` | 0.3 KB | ~15-30 KB + vlist | None (plain function) |
 
-**v0.5.0:** The adapters import `createVList` from the default `vlist` entry point, which uses the builder internally. Bundle size depends on which features you configure (auto-detected).
+**v0.5.0:** The adapters import `vlist` from the default `vlist` entry point, which uses the builder internally. Bundle size depends on which features you configure (auto-detected).
 
 **v0.4.0:** Adapters pulled in the full 54.5 KB monolithic bundle regardless of features used.
 
@@ -267,7 +267,7 @@ The previous builder architecture (pre-v0.5.0) imported from 10 separate modules
 
 The original `render/virtual.ts` unconditionally imported `render/compression.ts` because every viewport calculation called `getCompressionState()`. This dragged 2.6 KB of compression code into the builder even though compression is a separate plugin.
 
-The fix: `virtual.ts` now defines simple non-compressed range calculations inline. Compression functions are injectable via callback parameters. The builder core uses the simple path; the `withCompression` plugin injects the full compression implementation when installed.
+The fix: `virtual.ts` now defines simple non-compressed range calculations inline. Compression functions are injectable via callback parameters. The builder core uses the simple path; the `withScale` plugin injects the full compression implementation when installed.
 
 This is the same principle as the monolithic tree-shaking problem, applied at the module level: if module A unconditionally imports module B, you can't eliminate B even if A only uses it conditionally.
 
@@ -327,5 +327,5 @@ bun build node_modules/vlist/dist/builder/index.js --minify | gzip -c | wc -c
 | What's the smallest possible bundle? | 8.0 KB (`vlist/core`) |
 | What's the smallest with plugins? | 14.8 KB (`vlist/builder` or `vlist` default with no features) |
 | Why is the builder self-contained? | Module boundaries add ~42% overhead vs inlining |
-| Do framework adapters use the builder? | ✅ Yes — they import the builder-based default `createVList` |
+| Do framework adapters use the builder? | ✅ Yes — they import the builder-based default `vlist` |
 | How much smaller is v0.5.0 vs v0.4.0? | **53% smaller** (27 KB vs 54.5 KB for typical usage) |

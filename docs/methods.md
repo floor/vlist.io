@@ -444,9 +444,9 @@ const items = list.getSelectedItems();
 ### Data Manipulation
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,
@@ -505,7 +505,7 @@ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
 list.destroy();
 
 // After navigating back — recreate and restore
-const list = createVList({ /* same config */ });
+const list = vlist({ /* same config */ });
 const saved = sessionStorage.getItem(STORAGE_KEY);
 if (saved) {
   list.restoreScroll(JSON.parse(saved));
@@ -517,7 +517,7 @@ if (saved) {
 ### Selection Management
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,
@@ -562,7 +562,7 @@ selectAllCheckbox.onchange = (e) => {
 ### With Adapter (Async Data)
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,

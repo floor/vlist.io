@@ -125,9 +125,9 @@ const chat = vlist({
 ### With Default Entry Point
 
 ```typescript
-import { createVList } from 'vlist'
+import { vlist } from 'vlist'
 
-const chat = createVList({
+const chat = vlist({
   container: '#messages',
   reverse: true,
   item: {
@@ -342,7 +342,7 @@ The data adapter automatically triggers "load more" near the **top** in reverse 
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withData } from 'vlist/data'
+import { withAsync } from 'vlist (withAsync)'
 
 const chat = vlist({
   container: '#messages',
@@ -352,7 +352,7 @@ const chat = vlist({
     template: renderMessage
   }
 })
-.use(withData({
+.use(withAsync({
   load: async (offset, limit) => {
     // Load older messages
     const response = await fetch(`/api/messages?offset=${offset}&limit=${limit}`)
@@ -385,7 +385,7 @@ Groups work seamlessly with reverse mode - both sticky and inline headers are su
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withGroups } from 'vlist/groups'
+import { withSections } from 'vlist (withSections)'
 
 const chat = vlist({
   container: '#messages',
@@ -396,7 +396,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withGroups({
+.use(withSections({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date) // "Today", "Yesterday", "Jan 15"
@@ -429,7 +429,7 @@ Sticky headers also work with reverse mode! As you scroll UP through chat histor
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withGroups } from 'vlist/groups'
+import { withSections } from 'vlist (withSections)'
 
 const chat = vlist({
   container: '#messages',
@@ -440,7 +440,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withGroups({
+.use(withSections({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
@@ -707,7 +707,7 @@ init()
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withGroups } from 'vlist/groups'
+import { withSections } from 'vlist (withSections)'
 
 function formatDateLabel(date) {
   const today = new Date()
@@ -743,7 +743,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withGroups({
+.use(withSections({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
@@ -888,7 +888,7 @@ const chat = vlist({
 })
 ```
 
-### Error: "withGroups cannot be used with reverse: true"
+### Error: "withSections cannot be used with reverse: true"
 
 **Symptom:** Error when combining groups with reverse mode.
 
@@ -897,7 +897,7 @@ const chat = vlist({
 **Solution:** Set `sticky: false`:
 
 ```typescript
-.use(withGroups({
+.use(withSections({
   getGroupForIndex: (i) => getDateGroup(messages[i]),
   headerHeight: 28,
   headerTemplate: (date) => `<div>${date}</div>`,

@@ -19,10 +19,10 @@ vlist uses a CSS custom properties (design tokens) system that provides:
 ### Import Styles
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 import 'vlist/styles';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,
@@ -253,7 +253,7 @@ Apply different styles to specific lists:
 Change the default `vlist` prefix:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   classPrefix: 'mylist',  // Uses .mylist, .mylist-item, etc.
   // ...
@@ -377,7 +377,7 @@ If using Tailwind's dark mode:
 Style items directly in your template function:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 64,

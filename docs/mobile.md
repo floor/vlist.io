@@ -210,7 +210,7 @@ Configure the scrollbar for mobile-friendly behavior:
 
 ```javascript
 import { vlist } from 'vlist/builder';
-import { withScrollbar } from 'vlist/scroll';
+import { withScrollbar } from 'vlist (withScrollbar)';
 
 const list = vlist({ /* ... */ })
   .use(withScrollbar({

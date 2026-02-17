@@ -30,9 +30,9 @@ const list = vlist({
 
 **Before (Monolithic API):**
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const list = createVList({
+const list = vlist({
   grid: { columns: 4 },
   groups: { ... },
 });
@@ -722,18 +722,18 @@ interface BuilderContext<T> {
 
 | Old Name | New Name | Import |
 |----------|----------|--------|
-| `withCompression()` | **`withScale()`** | `import { withScale } from 'vlist'` |
-| `withData()` | **`withAsync()`** | `import { withAsync } from 'vlist'` |
-| `withWindow()` | **`withPage()`** | `import { withPage } from 'vlist'` |
-| `withGroups()` | **`withSections()`** | `import { withSections } from 'vlist'` |
+| `withScale()` | **`withScale()`** | `import { withScale } from 'vlist'` |
+| `withAsync()` | **`withAsync()`** | `import { withAsync } from 'vlist'` |
+| `withPage()` | **`withPage()`** | `import { withPage } from 'vlist'` |
+| `withSections()` | **`withSections()`** | `import { withSections } from 'vlist'` |
 
 ### From Monolithic API
 
 **Before:**
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-createVList({
+vlist({
   grid: { columns: 4 },
   groups: { ... },
   selection: { mode: 'single' },

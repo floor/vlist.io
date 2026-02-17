@@ -25,7 +25,7 @@ src/
 The context is created in `vlist.ts` after all components are instantiated, serving as the single point where everything comes together:
 
 ```
-createVList()
+vlist()
     ↓
 resolveConfig() — validate, apply defaults, compute derived flags
     (src/config.ts)

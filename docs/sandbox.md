@@ -49,11 +49,11 @@ sandbox/
 │       ├── vue/
 │       └── svelte/
 │
-├── data/                 # Data Plugin (vlist/data)
-│   ├── large-list/       # withCompression (4 frameworks)
+├── data/                 # Data Plugin (vlist (withAsync))
+│   ├── large-list/       # withScale (4 frameworks)
 │   └── velocity-loading/ # Async loading
 │
-├── groups/               # Groups Plugin (vlist/groups)
+├── groups/               # Groups Plugin (vlist (withSections))
 │   └── sticky-headers/   # A-Z contact list
 │
 ├── horizontal/           # Horizontal scrolling
@@ -226,14 +226,14 @@ The server automatically injects:
 Using `vlist/core` for minimal bundle size (4.2KB gzipped):
 
 ```javascript
-import { createVList } from "vlist/core";
+import { vlist } from "vlist/core";
 
 const items = Array.from({ length: 100000 }, (_, i) => ({
   id: i + 1,
   name: `User ${i + 1}`,
 }));
 
-const list = createVList({
+const list = vlist({
   container: "#list-container",
   item: {
     height: 64,
@@ -250,7 +250,7 @@ Using `vlist/builder` for composable plugins:
 ```javascript
 import { vlist } from "vlist/builder";
 import { withGrid } from "vlist/grid";
-import { withScrollbar } from "vlist/scroll";
+import { withScrollbar } from "vlist (withScrollbar)";
 
 const gallery = vlist({
   container: "#grid-container",
@@ -272,7 +272,7 @@ Using React hooks with vlist:
 ```tsx
 import { useRef, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { createVList } from "vlist/core";
+import { vlist } from "vlist/core";
 
 function App() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -281,7 +281,7 @@ function App() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    instanceRef.current = createVList({
+    instanceRef.current = vlist({
       container: containerRef.current,
       item: { height: 64, template: (item) => `<div>${item.name}</div>` },
       items,
@@ -301,7 +301,7 @@ createRoot(document.getElementById("react-root")!).render(<App />);
 ### When to Create a Plugin Folder
 
 Create a dedicated plugin folder (e.g., `grid/`, `data/`, `groups/`) when:
-- The example demonstrates a specific vlist plugin (e.g., `vlist/grid`, `vlist/data`)
+- The example demonstrates a specific vlist plugin (e.g., `vlist/grid`, `vlist (withAsync)`)
 - You plan to have multiple examples for that plugin
 - The plugin is documented and stable
 

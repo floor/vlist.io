@@ -90,16 +90,16 @@ test/
 
 | File | Tests | What it covers |
 |------|------:|----------------|
-| `core.test.ts` | 218 | `createVList` from `vlist/core` — initialization, items, data methods, scroll, events, templates, rendering, overscan, destroy, large lists, edge cases, height cache, emitter, DOM structure, element pool, visible range, scroll position, overscan, render branches |
+| `core.test.ts` | 218 | `vlist` from `vlist/core` — initialization, items, data methods, scroll, events, templates, rendering, overscan, destroy, large lists, edge cases, height cache, emitter, DOM structure, element pool, visible range, scroll position, overscan, render branches |
 | `integration.test.ts` | 126 | Cross-module scenarios — horizontal mode, grid compression, groups data, reverse data, selection, event lifecycle, variable heights, validation, wrap mode, destroy idempotency |
-| `vlist-coverage.test.ts` | 58 | Full `createVList` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
+| `vlist-coverage.test.ts` | 58 | Full `vlist` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
 | `context.test.ts` | 20 | Context creation, wiring, state management |
 
 ### Builder & Plugins
 
 | File | Tests | What it covers |
 |------|------:|----------------|
-| `builder/index.test.ts` | 233 | Composable builder (`vlist().use().build()`) — builder core, validation, plugin system, `withSelection`, `withScrollbar`, `withData`, `withCompression`, `withSnapshots`, `withGrid`, `withGroups`, plugin combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration tests |
+| `builder/index.test.ts` | 233 | Composable builder (`vlist().use().build()`) — builder core, validation, plugin system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withSections`, plugin combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration tests |
 
 ### Plugin Tests (mirrors `src/plugins/`)
 
@@ -130,9 +130,9 @@ test/
 
 | File | Tests | What it covers |
 |------|------:|----------------|
-| `core.test.ts` | 218 | Legacy `createVList` from `vlist/core` — comprehensive coverage of monolithic implementation |
+| `core.test.ts` | 218 | Legacy `vlist` from `vlist/core` — comprehensive coverage of monolithic implementation |
 | `integration.test.ts` | 126 | Cross-module scenarios — horizontal mode, grid compression, groups data, reverse data, selection, event lifecycle, variable heights, validation, wrap mode, destroy idempotency |
-| `vlist-coverage.test.ts` | 58 | Full `createVList` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
+| `vlist-coverage.test.ts` | 58 | Full `vlist` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
 
 ### Cross-Cutting
 
@@ -293,7 +293,7 @@ afterAll(() => {
 
 ### ResizeObserver Mock
 
-JSDOM doesn't include `ResizeObserver`. Tests that use `createVList` or the builder (which use `ResizeObserver` internally) must provide a mock:
+JSDOM doesn't include `ResizeObserver`. Tests that use `vlist` or the builder (which use `ResizeObserver` internally) must provide a mock:
 
 ```typescript
 global.ResizeObserver = class MockResizeObserver {

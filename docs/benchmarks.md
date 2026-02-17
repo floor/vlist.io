@@ -5,7 +5,7 @@ The benchmark page (`/benchmarks/`) runs four live performance suites directly i
 **URL:** `/benchmarks/` (served by vlist.dev)
 
 All benchmarks are available in **four framework variants**:
-- **JavaScript** — Pure `createVList()` API (baseline)
+- **JavaScript** — Pure `vlist()` API (baseline)
 - **React** — `useVList()` hook with `createRoot()` / `unmount()`
 - **Vue** — `useVList()` composable with `createApp()` / `mount()`
 - **Svelte** — `vlist()` action (direct API, no Svelte runtime)
@@ -16,7 +16,7 @@ This allows direct comparison of vlist performance across different framework in
 
 | Suite | What it measures | Key metric | Variants |
 |-------|-----------------|------------|----------|
-| **Initial Render** | Time from `createVList()` to first painted frame | Median (ms) | JS, React, Vue, Svelte |
+| **Initial Render** | Time from `vlist()` to first painted frame | Median (ms) | JS, React, Vue, Svelte |
 | **Scroll FPS** | Sustained scroll rendering throughput over 5s | Avg FPS, Frame budget (ms) | JS, React, Vue, Svelte |
 | **Memory** | Heap usage after render and after 10s of scrolling | Scroll delta (MB) | JS, React, Vue, Svelte |
 | **scrollToIndex** | Latency of smooth `scrollToIndex()` animation | Median (ms) | JS, React, Vue, Svelte |
@@ -30,11 +30,11 @@ All suites can be run at three item counts: **10K**, **100K**, and **1M**.
 Each benchmark suite is available in four framework variants, allowing direct performance comparison:
 
 ### JavaScript (Baseline)
-Pure vlist API using `createVList()`. This is the baseline — fastest possible performance with no framework overhead.
+Pure vlist API using `vlist()`. This is the baseline — fastest possible performance with no framework overhead.
 
 **Example:**
 ```javascript
-const list = createVList({
+const list = vlist({
   container,
   item: { height: 48, template: benchmarkTemplate },
   items,
@@ -173,7 +173,7 @@ Measures JavaScript heap usage at key points to detect memory leaks. Requires Ch
 
 | Metric | Unit | Description |
 |--------|------|-------------|
-| **After render** | MB | Heap increase after `createVList()` + first paint |
+| **After render** | MB | Heap increase after `vlist()` + first paint |
 | **Scroll delta** | MB | Heap change after 10s of sustained scrolling vs. after render |
 | **Total heap** | MB | Absolute heap size after render |
 | **Total delta** | MB | Net heap change from baseline to after scrolling |
@@ -236,7 +236,7 @@ Advances `scrollTop` at a constant 7,200 px/s using wall-clock `performance.now(
 Registered *before* the scroll loop starts, so it runs first in each rAF batch. Records inter-frame intervals for FPS and jitter analysis. Does not drive scroll or touch the DOM.
 
 **Loop 3 — Cost Probe** (scroll event → `requestAnimationFrame`)
-A scroll event listener registered *after* `createVList()`, guaranteeing its rAF callback runs *after* vlist's `rafThrottle` handler in the same frame. Measures:
+A scroll event listener registered *after* `vlist()`, guaranteeing its rAF callback runs *after* vlist's `rafThrottle` handler in the same frame. Measures:
 - `performance.now() - timestamp` → total JS work in the frame (including vlist's handler)
 - `offsetHeight` forced reflow → layout cost of vlist's DOM mutations
 

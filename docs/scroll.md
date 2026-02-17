@@ -30,7 +30,7 @@ src/scroll/
 All scroll-related settings live under a single `scroll` config object on `VListConfig`:
 
 ```typescript
-createVList({
+vlist({
   container: '#app',
   item: { height: 48, template: (item) => item.name },
   scroll: {
@@ -61,14 +61,14 @@ When `false`, all wheel events are intercepted and `preventDefault()`'d. The nat
 
 ```typescript
 // Default — wheel scrolling enabled
-createVList({
+vlist({
   container: '#app',
   item: { height: 48, template },
   // scroll.wheel defaults to true
 });
 
 // Disable wheel — button-only navigation
-createVList({
+vlist({
   container: '#app',
   item: { height: 48, template },
   scroll: { wheel: false, scrollbar: 'none' },
@@ -96,7 +96,7 @@ This is useful for carousels, wizards, and any circular navigation pattern where
 
 ```typescript
 // Carousel with wrap-around navigation
-const list = createVList({
+const list = vlist({
   container: '#carousel',
   item: { height: 300, template: renderSlide },
   items: slides,
@@ -141,17 +141,17 @@ The custom scrollbar works in **all modes** — native scroll, compressed scroll
 
 ```typescript
 // Default — custom scrollbar with default options
-createVList({ container, item });
+vlist({ container, item });
 
 // Custom scrollbar, always visible (no auto-hide)
-createVList({
+vlist({
   container,
   item,
   scroll: { scrollbar: { autoHide: false } },
 });
 
 // Custom scrollbar with slow fade
-createVList({
+vlist({
   container,
   item,
   scroll: { scrollbar: { autoHide: true, autoHideDelay: 3000 } },
@@ -180,7 +180,7 @@ When `scrollbar: 'native'` is set, the browser's built-in scrollbar is used. Thi
 In compressed mode (large lists where `overflow: hidden` is required), native scrollbar is not available — vlist automatically falls back to the custom scrollbar.
 
 ```typescript
-createVList({
+vlist({
   container,
   item,
   scroll: { scrollbar: 'native' },
@@ -196,7 +196,7 @@ When `scrollbar: 'none'` is set, no scrollbar is shown at all — neither custom
 - Kiosk or embedded UIs where scroll chrome is unwanted
 
 ```typescript
-createVList({
+vlist({
   container,
   item,
   scroll: { wheel: false, scrollbar: 'none' },
@@ -218,7 +218,7 @@ In window mode:
 - Cannot be combined with `direction: 'horizontal'`
 
 ```typescript
-createVList({
+vlist({
   container: '#list',
   item: { height: 48, template },
   scroll: { element: window },
@@ -239,7 +239,7 @@ Milliseconds after the last scroll event before the list is considered "idle". W
 - Resets the velocity tracker
 
 ```typescript
-createVList({
+vlist({
   container: '#list',
   item: { height: 48, template },
   scroll: { idleTimeout: 200 },
@@ -688,9 +688,9 @@ function isRangeVisible(
 The default experience: custom scrollbar, wheel enabled, everything automatic.
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template: (item) => `<div>${item.name}</div>` },
   items: myData,
@@ -702,7 +702,7 @@ const list = createVList({
 Fine-tune the custom scrollbar — disable auto-hide so it's always visible:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template },
   items: myData,
@@ -717,7 +717,7 @@ const list = createVList({
 Show the scrollbar only when hovering near the edge or on scroll — not when the mouse enters the list:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template },
   items: myData,
@@ -737,7 +737,7 @@ const list = createVList({
 Show the scrollbar only while actively scrolling — no hover zone, no viewport enter:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template },
   items: myData,
@@ -757,7 +757,7 @@ const list = createVList({
 Opt into the browser's built-in scrollbar:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template },
   items: myData,
@@ -773,7 +773,7 @@ Disable wheel and hide all scrollbars — navigation is entirely programmatic.
 With `wrap: true`, prev/next loop endlessly without boundary checks:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#wizard',
   item: { height: 400, template: renderStep },
   items: wizardSteps,
@@ -802,7 +802,7 @@ document.getElementById('prev').addEventListener('click', () => {
 Horizontal list with wheel translation and no visible scrollbar:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#carousel',
   direction: 'horizontal',
   item: { width: 200, template: renderCard },
@@ -817,7 +817,7 @@ const list = createVList({
 Horizontal list with no wheel, no scrollbar — arrow buttons only:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#carousel',
   direction: 'horizontal',
   item: { width: 200, template: renderCard },
@@ -835,7 +835,7 @@ btnNext.addEventListener('click', () => list.scrollToIndex(current + 1));
 The list scrolls with the page — no inner container scrollbar:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#list',
   item: { height: 88, template: renderUser },
   scroll: { element: window },
@@ -850,7 +850,7 @@ const list = createVList({
 Custom scrollbar visible for dragging, but wheel is disabled — useful for embedded contexts where the wheel should scroll the parent page:
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#sidebar-list',
   item: { height: 36, template: renderMenuItem },
   items: menuItems,
@@ -864,7 +864,7 @@ const list = createVList({
 Load data as soon as scrolling stops (100ms instead of default 150ms):
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#feed',
   item: { height: 120, template: renderPost },
   adapter: myAdapter,
@@ -1327,7 +1327,7 @@ The `scroll` config replaces four root-level options:
 
 **Before:**
 ```typescript
-createVList({
+vlist({
   container: '#app',
   item: { height: 48, template },
   scrollElement: window,
@@ -1339,7 +1339,7 @@ createVList({
 
 **After:**
 ```typescript
-createVList({
+vlist({
   container: '#app',
   item: { height: 48, template },
   scroll: {

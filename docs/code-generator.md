@@ -421,7 +421,7 @@ if (config.layout === 'grid' && config.grid) {
   builder.use(withGrid(config.grid))
 }
 if (config.groups) {
-  builder.use(withGroups(config.groups))
+  builder.use(withSections(config.groups))
 }
 if (config.selection?.mode !== 'none') {
   builder.use(withSelection(config.selection))
@@ -455,7 +455,7 @@ Each plugin's actual functionality, but:
 
 ```typescript
 // Generated module exports same API as builder
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template: renderItem },
   items: data,
@@ -519,7 +519,7 @@ const selectionState: SelectionState = {
 // Core Implementation (from core.ts + plugins merged)
 // ============================================================================
 
-export function createVList<T extends VListItem>(
+export function vlist<T extends VListItem>(
   config: VListConfig<T>
 ): VListInstance<T> {
   
@@ -671,10 +671,10 @@ The generated module exports the same API:
 ```typescript
 // Switch import, that's it
 - import { vlist } from 'vlist/builder'
-+ import { createVList } from './vlist-custom'
++ import { vlist } from './vlist-custom'
 
 // Everything else stays the same
-const list = createVList({ ... })
+const list = vlist({ ... })
 ```
 
 ## Limitations
@@ -790,7 +790,7 @@ Generated files need regeneration when:
 Instead of generating code, split the builder itself into smaller pieces:
 
 ```typescript
-import { createVListCore } from 'vlist/builder-core'      // 8 KB
+import { vlistCore } from 'vlist/builder-core'      // 8 KB
 import { withPluginSystem } from 'vlist/builder-plugins'  // 3 KB
 import { withGrid } from 'vlist/grid'                     // 7 KB
 import { withSelection } from 'vlist/selection'           // 6 KB

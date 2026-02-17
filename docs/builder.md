@@ -1,6 +1,6 @@
 # Builder Pattern
 
-> **As of v0.5.0, the builder pattern is now the default entry point.** When you `import { createVList } from 'vlist'`, you're using the builder internally with automatic plugin application. This document explains the manual builder API for maximum control.
+> **As of v0.5.0, the builder pattern is now the default entry point.** When you `import { vlist } from 'vlist'`, you're using the builder internally with automatic plugin application. This document explains the manual builder API for maximum control.
 
 > Composable virtual list — pick only the features you need, pay only for what you ship.
 
@@ -11,7 +11,7 @@ The builder is an alternative entry point that lets you compose a virtual list f
 ```typescript
 import { vlist } from 'vlist/builder'
 import { withSelection } from 'vlist/selection'
-import { withScrollbar } from 'vlist/scroll'
+import { withScrollbar } from 'vlist (withScrollbar)'
 
 const list = vlist({
   container: '#app',
@@ -75,10 +75,10 @@ Plugins add capabilities that sit *outside* the render pipeline:
 Plugins (opt-in):
 ├── withSelection()       click handler, keyboard nav, selection state, select/deselect methods
 ├── withScrollbar()       custom scrollbar DOM, thumb drag, track click, auto-hide, hover zone
-├── withData()            async adapter, sparse storage, placeholders, load-more, reload
-├── withCompression()     1M+ item support, scroll-space compression, virtual height mapping
+├── withAsync()            async adapter, sparse storage, placeholders, load-more, reload
+├── withScale()     1M+ item support, scroll-space compression, virtual height mapping
 ├── withGrid()            2D grid renderer, column layout, gap calculation
-├── withGroups()          grouped lists, sticky headers, header templates
+├── withSections()          grouped lists, sticky headers, header templates
 └── withSnapshots()       scroll save/restore for SPA navigation
 ```
 
@@ -104,8 +104,8 @@ Emit 'scroll' event
     ↓
 Plugin post-scroll callbacks (if any registered):
     ├── withScrollbar  → update thumb position
-    ├── withData       → check load-more threshold, ensure sparse range
-    └── withCompression → update compression context
+    ├── withAsync       → check load-more threshold, ensure sparse range
+    └── withScale → update compression context
     ↓
 Idle timer (CSS class toggle after 150ms)
 ```
@@ -134,7 +134,7 @@ Each plugin goes through three phases:
 
 ### `vlist(config)`
 
-Create a builder instance. Accepts the same base configuration as `createVList`, minus plugin-specific options (selection, scroll.scrollbar, adapter, groups, grid).
+Create a builder instance. Accepts the same base configuration as `vlist`, minus plugin-specific options (selection, scroll.scrollbar, adapter, groups, grid).
 
 ```typescript
 import { vlist } from 'vlist/builder'
@@ -260,7 +260,7 @@ const items = list.getSelectedItems()    // [{ id: 'id-2', ... }, ...]
 Replaces the native browser scrollbar with a custom, cross-browser consistent scrollbar.
 
 **Size:** 8.6 KB min / 3.0 KB gzip
-**Import:** `import { withScrollbar } from 'vlist/scroll'`
+**Import:** `import { withScrollbar } from 'vlist (withScrollbar)'`
 
 ```typescript
 const list = vlist({ ... })
@@ -298,12 +298,12 @@ const list = vlist({ ... })
 
 No methods are added to the public API. The scrollbar is entirely automatic — it appears, tracks, and hides based on user interaction.
 
-### `withData(config?)`
+### `withAsync(config?)`
 
 Adds async data loading with sparse storage, placeholders, and infinite scroll.
 
 **Size:** 12.2 KB min / 4.8 KB gzip
-**Import:** `import { withData } from 'vlist/data'`
+**Import:** `import { withAsync } from 'vlist (withAsync)'`
 
 ```typescript
 const list = vlist({
@@ -317,7 +317,7 @@ const list = vlist({
   },
   // No items — data comes from the adapter
 })
-.use(withData({
+.use(withAsync({
   adapter: {
     read: async ({ offset, limit }) => {
       const res = await fetch(`/api/users?offset=${offset}&limit=${limit}`)
@@ -361,12 +361,12 @@ const list = vlist({
 | `load:end` | `{ items, total }` | Data loading completed |
 | `error` | `{ error, context }` | Loading error occurred |
 
-### `withCompression()`
+### `withScale()`
 
 Enables support for lists with 1M+ items by compressing the scroll space when the total height exceeds the browser's ~16.7M pixel limit.
 
 **Size:** 6.8 KB min / 2.6 KB gzip
-**Import:** `import { withCompression } from 'vlist/compression'`
+**Import:** `import { withScale } from 'vlist (withScale)'`
 
 ```typescript
 const list = vlist({
@@ -374,7 +374,7 @@ const list = vlist({
   item: { height: 48, template: renderItem },
   items: millionItems,
 })
-.use(withCompression())
+.use(withScale())
 .build()
 ```
 
@@ -394,7 +394,7 @@ No configuration needed — compression activates automatically when the total h
 | Plugin | Interaction |
 |--------|-------------|
 | `withScrollbar` | If scrollbar mode is 'native', compression forces a switch to custom scrollbar |
-| `withData` | Compression recalculates when async data changes the total item count |
+| `withAsync` | Compression recalculates when async data changes the total item count |
 | `withGrid` | Compression operates on row count, not item count |
 | `withSnapshots` | Snapshots store compressed-aware index/offset for correct restore |
 
@@ -513,16 +513,16 @@ height: (index, context) => context ? context.columnWidth * 0.5625 : 200
 
 #### Restrictions
 
-- Cannot be combined with `withGroups` (grid has no concept of group boundaries)
+- Cannot be combined with `withSections` (grid has no concept of group boundaries)
 - Cannot be combined with `direction: 'horizontal'` (grid is inherently 2D)
 - Cannot be combined with `reverse: true` (reverse grid is not supported)
 
-### `withGroups(config)` 
+### `withSections(config)` 
 
 Adds grouped lists with sticky section headers.
 
 **Size:** 9.2 KB min / 3.6 KB gzip
-**Import:** `import { withGroups } from 'vlist/groups'`
+**Import:** `import { withSections } from 'vlist (withSections)'`
 
 ```typescript
 const contacts = vlist({
@@ -530,7 +530,7 @@ const contacts = vlist({
   item: { height: 56, template: renderContact },
   items: sortedContacts,
 })
-.use(withGroups({
+.use(withSections({
   getGroupForIndex: (index) => sortedContacts[index].lastName[0],
   headerHeight: 32,
   headerTemplate: (key) => {
@@ -641,10 +641,10 @@ Plugins are designed to compose independently. However, some combinations have s
 The builder validates plugin combinations at `.build()` time and throws descriptive errors:
 
 ```typescript
-// ❌ Throws: "withGrid and withGroups cannot be combined"
+// ❌ Throws: "withGrid and withSections cannot be combined"
 vlist({ ... })
   .use(withGrid({ columns: 3 }))
-  .use(withGroups({ ... }))
+  .use(withSections({ ... }))
   .build()
 
 // ❌ Throws: "withGrid cannot be used with direction: 'horizontal'"
@@ -660,9 +660,9 @@ Plugins register at different priorities to ensure correct wiring order:
 | Priority | Plugin | Reason |
 |----------|--------|--------|
 | 10 | `withGrid` | Replaces the renderer — must run before anything that renders |
-| 10 | `withGroups` | Transforms item list and height function — must run before rendering |
-| 20 | `withData` | Replaces data manager — must run before scroll handler setup |
-| 20 | `withCompression` | Modifies scroll controller — must run before scroll handler |
+| 10 | `withSections` | Transforms item list and height function — must run before rendering |
+| 20 | `withAsync` | Replaces data manager — must run before scroll handler setup |
+| 20 | `withScale` | Modifies scroll controller — must run before scroll handler |
 | 30 | `withScrollbar` | Creates scrollbar DOM — needs final scroll controller |
 | 50 | `withSelection` | Hooks into click/keydown — needs renderer and DOM ready |
 | 50 | `withSnapshots` | Registers methods — needs all other plugins initialized |
@@ -753,10 +753,10 @@ Measured sizes from `bun run build` (minified, gzipped):
 | Builder core | 14.8 KB | 5.6 KB | Self-contained render pipeline, data store, scroll, plugin system |
 | `withSelection` | 5.9 KB | 2.2 KB | Click/keyboard handlers, selection state, ARIA |
 | `withScrollbar` | 8.6 KB | 3.0 KB | Custom scrollbar DOM, drag, track click, hover zone |
-| `withData` | 12.2 KB | 4.8 KB | Sparse storage, placeholders, adapter, velocity-aware loading |
-| `withCompression` | 6.8 KB | 2.6 KB | Scroll space compression, virtual height mapping |
+| `withAsync` | 12.2 KB | 4.8 KB | Sparse storage, placeholders, adapter, velocity-aware loading |
+| `withScale` | 6.8 KB | 2.6 KB | Scroll space compression, virtual height mapping |
 | `withGrid` | 7.2 KB | 3.1 KB | Grid renderer, column layout, gap calculation |
-| `withGroups` | 9.2 KB | 3.6 KB | Group layout, sticky headers, header templates |
+| `withSections` | 9.2 KB | 3.6 KB | Group layout, sticky headers, header templates |
 | `withSnapshots` | 1.1 KB | 0.6 KB | Scroll save/restore |
 
 For reference:
@@ -790,7 +790,7 @@ const list = vlist({
 ```typescript
 import { vlist } from 'vlist/builder'
 import { withSelection } from 'vlist/selection'
-import { withScrollbar } from 'vlist/scroll'
+import { withScrollbar } from 'vlist (withScrollbar)'
 
 const list = vlist({
   container: '#app',
@@ -808,14 +808,14 @@ const list = vlist({
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withData } from 'vlist/data'
-import { withScrollbar } from 'vlist/scroll'
+import { withAsync } from 'vlist (withAsync)'
+import { withScrollbar } from 'vlist (withScrollbar)'
 
 const list = vlist({
   container: '#app',
   item: { height: 48, template: renderItem },
 })
-.use(withData({
+.use(withAsync({
   adapter: {
     read: async ({ offset, limit }) => {
       const res = await fetch(`/api/items?offset=${offset}&limit=${limit}`)
@@ -835,7 +835,7 @@ const list = vlist({
 ```typescript
 import { vlist } from 'vlist/builder'
 import { withGrid } from 'vlist/grid'
-import { withScrollbar } from 'vlist/scroll'
+import { withScrollbar } from 'vlist (withScrollbar)'
 
 const gallery = vlist({
   container: '#gallery',
@@ -853,7 +853,7 @@ const gallery = vlist({
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withData } from 'vlist/data'
+import { withAsync } from 'vlist (withAsync)'
 
 const chat = vlist({
   container: '#messages',
@@ -861,7 +861,7 @@ const chat = vlist({
   item: { height: (i) => messages[i]?.height ?? 60, template: renderMessage },
   items: recentMessages,
 })
-.use(withData({
+.use(withAsync({
   adapter: {
     read: async ({ offset, limit }) => {
       const older = await fetchOlderMessages(offset, limit)
@@ -878,16 +878,16 @@ const chat = vlist({
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withGroups } from 'vlist/groups'
+import { withSections } from 'vlist (withSections)'
 import { withSelection } from 'vlist/selection'
-import { withScrollbar } from 'vlist/scroll'
+import { withScrollbar } from 'vlist (withScrollbar)'
 
 const contacts = vlist({
   container: '#contacts',
   item: { height: 56, template: renderContact },
   items: sortedContacts,
 })
-.use(withGroups({
+.use(withSections({
   getGroupForIndex: (i) => sortedContacts[i].lastName[0],
   headerHeight: 32,
   headerTemplate: (letter) => {
@@ -908,9 +908,9 @@ const contacts = vlist({
 
 ```typescript
 import { vlist } from 'vlist/builder'
-import { withData } from 'vlist/data'
-import { withCompression } from 'vlist/compression'
-import { withScrollbar } from 'vlist/scroll'
+import { withAsync } from 'vlist (withAsync)'
+import { withScale } from 'vlist (withScale)'
+import { withScrollbar } from 'vlist (withScrollbar)'
 import { withSelection } from 'vlist/selection'
 import { withSnapshots } from 'vlist/snapshots'
 
@@ -918,8 +918,8 @@ const list = vlist({
   container: '#app',
   item: { height: 48, template: renderItem },
 })
-.use(withData({ adapter: myAdapter }))
-.use(withCompression())
+.use(withAsync({ adapter: myAdapter }))
+.use(withScale())
 .use(withScrollbar())
 .use(withSelection({ mode: 'multiple' }))
 .use(withSnapshots())
@@ -932,12 +932,12 @@ const list = vlist({
 
 ### Default Entry Point (Recommended)
 
-As of v0.5.0, the default `createVList()` uses the builder internally:
+As of v0.5.0, the default `vlist()` uses the builder internally:
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -952,7 +952,7 @@ const list = createVList({
 // Plugins auto-applied based on config:
 // - withGrid (layout: 'grid')
 // - withSelection (selection config)
-// - withCompression (always)
+// - withScale (always)
 // - withScrollbar (default)
 // - withSnapshots (always)
 
@@ -989,17 +989,17 @@ const list = vlist({
 
 ## Migration from v0.4.x
 
-If you're currently using the full `createVList` and want to switch to the builder for smaller bundles:
+If you're currently using the full `vlist` and want to switch to the builder for smaller bundles:
 
 ### No Breaking Changes
 
-**Good news:** Your existing code continues to work! The default `createVList()` now uses the builder internally:
+**Good news:** Your existing code continues to work! The default `vlist()` now uses the builder internally:
 
 ```typescript
 // This still works (now 53% smaller!)
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: { height: 48, template: renderItem },
   items: data,
@@ -1017,7 +1017,7 @@ For explicit control, you can use the builder API directly:
 ```typescript
 import { vlist } from 'vlist/builder';
 import { withSelection } from 'vlist/selection';
-import { withScrollbar } from 'vlist/scroll';
+import { withScrollbar } from 'vlist (withScrollbar)';
 
 const list = vlist({
   container: '#app',
@@ -1031,7 +1031,7 @@ const list = vlist({
 
 ### What changes
 
-| Aspect | `createVList` | Builder |
+| Aspect | `vlist` | Builder |
 |--------|---------------|---------|
 | Import | Single import | Multiple imports |
 | Config | Everything in one object | Base config + plugin configs |
@@ -1052,7 +1052,7 @@ const list = vlist({
 
 ## When to Use Manual Builder vs. Default
 
-### Use Default `createVList()` (Recommended)
+### Use Default `vlist()` (Recommended)
 
 **Best for most cases:**
 - Quick prototyping
@@ -1061,9 +1061,9 @@ const list = vlist({
 - When bundle size isn't critical (still 53% smaller than legacy!)
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 
-const list = createVList({
+const list = vlist({
   container: '#app',
   layout: 'grid',
   grid: { columns: 4, gap: 8 },
@@ -1102,7 +1102,7 @@ Do you want convenience with automatic optimization?
   → Use vlist (default - 27 KB gzip, auto-applies needed plugins)
 ```
 
-The default `createVList` is now recommended for most use cases as it provides the convenience of automatic plugin application with 53% smaller bundles than v0.4.0.
+The default `vlist` is now recommended for most use cases as it provides the convenience of automatic plugin application with 53% smaller bundles than v0.4.0.
 
 ## TypeScript
 
@@ -1195,11 +1195,11 @@ interface VListPlugin<T extends VListItem = VListItem> {
 │  vlist              54.5 KB   Full bundle (everything)           │
 │                                                                  │
 │  vlist/selection     5.9 KB   Plugin: selection                  │
-│  vlist/scroll        8.6 KB   Plugin: custom scrollbar           │
-│  vlist/data         12.2 KB   Plugin: async data adapter         │
-│  vlist/compression   6.8 KB   Plugin: 1M+ items                  │
+│  vlist (withScrollbar)        8.6 KB   Plugin: custom scrollbar           │
+│  vlist (withAsync)         12.2 KB   Plugin: async data adapter         │
+│  vlist (withScale)   6.8 KB   Plugin: 1M+ items                  │
 │  vlist/grid          7.2 KB   Plugin: 2D grid layout             │
-│  vlist/groups        9.2 KB   Plugin: sticky headers             │
+│  vlist (withSections)        9.2 KB   Plugin: sticky headers             │
 │  vlist/snapshots     1.1 KB   Plugin: scroll save/restore        │
 │                                                                  │
 │  vlist/react         0.7 KB   Framework adapter                  │
@@ -1224,7 +1224,7 @@ The [vlist.dev/sandbox](/sandbox) includes interactive builder examples:
 |---------|---------------------|
 | [builder/basic](/sandbox/builder/basic) | Minimal builder — one plugin, zero boilerplate (19.3 KB / 7.0 KB gzip) |
 | [builder/controls](/sandbox/builder/controls) | Selection, navigation, scroll events — full API exploration |
-| [builder/large-list](/sandbox/builder/large-list) | 1–5M items with withCompression + withScrollbar |
+| [builder/large-list](/sandbox/builder/large-list) | 1–5M items with withScale + withScrollbar |
 | [builder/photo-album](/sandbox/builder/photo-album) | Grid gallery with withGrid + withScrollbar |
 | [builder/chat](/sandbox/builder/chat) | Reverse-mode chat UI with withScrollbar |
 

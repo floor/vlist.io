@@ -1,8 +1,6 @@
 # vlist Documentation
 
-> **Note:** As of v0.5.0, the builder pattern is now the **default entry point**. This documentation covers both the convenient `createVList()` API (which uses the builder internally) and the manual builder pattern.
-
-> Lightweight, high-performance virtual list with zero dependencies
+> Lightweight, high-performance virtual list with zero dependencies and optimal tree-shaking.
 
 ## Table of Contents
 
@@ -16,7 +14,7 @@
 - [Reverse Mode (Chat UI)](#reverse-mode-chat-ui)
 - [Scroll Save/Restore](#scroll-saverestore)
 - [Infinite Scroll](#infinite-scroll)
-- [Compression (1M+ Items)](#compression-1m-items)
+- [Scale (1M+ Items)](#scale-1m-items)
 - [Accessibility](#accessibility)
 - [Styling](#styling)
 - [Performance](#performance)
@@ -28,45 +26,45 @@
 
 ## Overview
 
-vlist is a high-performance virtual list library designed to handle massive datasets (1M+ items) efficiently. It only renders visible items plus a small buffer, dramatically reducing DOM nodes and memory usage.
+vlist is a high-performance virtual list library with a composable builder pattern. Use only the features you need for optimal bundle sizes (8-12 KB gzipped vs 20+ KB for traditional virtual lists).
 
 ### Key Features
 
 - **Zero Dependencies** - Pure TypeScript, no external libraries
-- **Blazing Fast** - Only renders visible items with element pooling
-- **Grid Layout** - 2D virtualized grid with configurable columns and gap
-- **Horizontal Scrolling** - Carousels and timelines with `direction: 'horizontal'`
-- **Variable Heights** - Fixed or per-item height via function, with prefix-sum based lookups
-- **Infinite Scroll** - Built-in async adapter support for lazy loading
-- **Selection** - Single and multiple selection modes with keyboard navigation
-- **Reverse Mode** - Chat UI support with auto-scroll on append, scroll-preserving prepend
-- **Sticky Headers** - Grouped lists with sticky section headers
-- **Window Scrolling** - Document-level scrolling with `scrollElement: window`
-- **Sparse Storage** - Chunk-based memory management for huge datasets
-- **Accessible** - Full keyboard navigation and ARIA support
-- **Scroll Save/Restore** - `getScrollSnapshot()` / `restoreScroll()` for SPA navigation
-- **TypeScript First** - Complete type definitions included
+- **Tiny Bundle** - 8-12 KB gzipped (vs 20+ KB traditional virtual lists)
+- **Perfect Tree-Shaking** - Pay only for features you use
+- **Builder Pattern** - Explicit, composable plugin system
+- **Grid Layout** - 2D virtualized grid (`withGrid`)
+- **Horizontal Scrolling** - Carousels and timelines
+- **Variable Heights** - Fixed or dynamic height calculation
+- **Async Loading** - Lazy loading with adapters (`withAsync`)
+- **Selection** - Single/multiple modes with keyboard nav (`withSelection`)
+- **Reverse Mode** - Chat UI with auto-scroll
+- **Sticky Headers** - Grouped lists (`withSections`)
+- **Page Scrolling** - Document-level scrolling (`withPage`)
+- **Scale to Millions** - Handle 1M+ items (`withScale`)
+- **Accessible** - Full WAI-ARIA and keyboard support
+- **TypeScript First** - Complete type definitions
 
-### Browser Limitations & Compression
+### Browser Limitations & Scaling
 
-> ℹ️ **Good news:** vlist now supports **compression** for lists exceeding browser limits!
+Browsers have a maximum element height limit of approximately **16.7 million pixels**. This limits lists to ~350,000 items at 48px height.
 
-Browsers have a maximum element height limit of approximately **16 million pixels**. Without compression, this limits lists to ~350,000 items at 48px height.
+**The `withScale()` plugin** automatically compresses scroll space when this limit is exceeded, allowing smooth scrolling through **1 million+ items**.
 
-**vlist automatically enables compression** when your list exceeds this limit, allowing you to display **1 million+ items** smoothly.
+```typescript
+import { vlist, withScale } from 'vlist';
 
-| Scenario | Items | Compression |
-|----------|-------|-------------|
-| Small list | < 350K | Native scrolling |
-| Large list | 350K - 1M+ | Automatic compression |
+vlist({
+  container: '#list',
+  items: generateItems(5_000_000),
+  item: { height: 48, template: renderItem },
+})
+  .use(withScale())  // Auto-activates when needed
+  .build();
+```
 
-**How compression works:**
-- Automatically detects when list exceeds browser limits
-- Switches from native scroll to manual wheel-based scrolling
-- Items positioned relative to viewport for smooth scrolling
-- No configuration needed - it just works!
-
-See [Compression (1M+ Items)](#compression-1m-items) for details.
+See [Scale (1M+ Items)](#scale-1m-items) for details.
 
 ### How It Works
 
@@ -114,16 +112,16 @@ pnpm add vlist
 ## Quick Start
 
 > **Entry Points:**
-> - `import { createVList } from 'vlist'` - Default, builder-based (recommended)
+> - `import { vlist } from 'vlist'` - Default, builder-based (recommended)
 > - `import { vlist } from 'vlist/builder'` - Manual builder pattern (maximum control)
 
 ### Basic Usage
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 import 'vlist/styles';
 
-const list = createVList({
+const list = vlist({
   container: '#my-list',
   item: {
     height: 48,
@@ -244,7 +242,7 @@ interface LoadingConfig {
 **Example:**
 
 ```typescript
-const list = createVList({
+const list = vlist({
   // ... other config
   loading: {
     cancelThreshold: 30,    // Skip loading when scrolling very fast
@@ -451,7 +449,7 @@ list.off('item:click', handler);
 ### Configuration
 
 ```typescript
-const list = createVList({
+const list = vlist({
   // ... other config
   selection: {
     mode: 'multiple',      // 'none' | 'single' | 'multiple'
@@ -510,7 +508,7 @@ Reverse mode (`reverse: true`) is designed for chat and messaging interfaces whe
 ### Basic Usage
 
 ```typescript
-const chat = createVList({
+const chat = vlist({
   container: '#messages',
   reverse: true,
   item: {
@@ -568,7 +566,7 @@ chat.prependItems(olderMessages);
 Reverse mode works with both fixed and variable `(index) => number` heights:
 
 ```typescript
-const chat = createVList({
+const chat = vlist({
   container: '#messages',
   reverse: true,
   item: {
@@ -584,7 +582,7 @@ const chat = createVList({
 In reverse mode, the adapter's "load more" triggers near the **top** of the viewport (when the user scrolls up to see older messages):
 
 ```typescript
-const chat = createVList({
+const chat = vlist({
   container: '#messages',
   reverse: true,
   item: {
@@ -639,7 +637,7 @@ interface AdapterResponse<T> {
 ### Basic Example
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#list',
   item: {
     height: 64,
@@ -755,7 +753,7 @@ By default, vlist scrolls inside its own container (`overflow: auto`). Pass `scr
 ### Basic Usage
 
 ```javascript
-const list = createVList({
+const list = vlist({
   container: '#results',
   scrollElement: window,  // list scrolls with the page
   item: {
@@ -797,7 +795,7 @@ const list = createVList({
 ```
 
 ```javascript
-const list = createVList({
+const list = vlist({
   container: '#results',
   scrollElement: window,
   item: {
@@ -831,7 +829,7 @@ By default, vlist scrolls vertically (top-to-bottom). Set `direction: 'horizonta
 ### Basic Usage
 
 ```javascript
-const carousel = createVList({
+const carousel = vlist({
   container: '#carousel',
   direction: 'horizontal',
   item: {
@@ -867,7 +865,7 @@ All internal calculations (height cache, compression, viewport state) work ident
 Just like variable heights, you can use a function for per-item widths:
 
 ```javascript
-const timeline = createVList({
+const timeline = vlist({
   container: '#timeline',
   direction: 'horizontal',
   item: {
@@ -984,7 +982,7 @@ import 'vlist/styles';
 ### Custom Class Prefix
 
 ```typescript
-const list = createVList({
+const list = vlist({
   // ...
   classPrefix: 'my-list',
 });
@@ -998,7 +996,7 @@ const list = createVList({
 
 ### Bundle Size
 
-As of v0.5.0, the default `createVList()` uses the builder pattern internally:
+As of v0.5.0, the default `vlist()` uses the builder pattern internally:
 
 | Entry Point | Bundle Size | Includes |
 |------------|-------------|----------|
@@ -1104,7 +1102,7 @@ interface User {
   avatar: string;
 }
 
-const list = createVList<User>({
+const list = vlist<User>({
   container: '#users',
   item: {
     height: 64,
@@ -1178,7 +1176,7 @@ function onNavigateAway() {
 
 // Restore after navigating back
 function onNavigateBack() {
-  const list = createVList({ /* same config */ });
+  const list = vlist({ /* same config */ });
 
   const raw = sessionStorage.getItem(STORAGE_KEY);
   if (raw) {
@@ -1207,7 +1205,7 @@ The lightweight `vlist/core` module also supports snapshots via `getScrollSnapsh
 ### Basic List
 
 ```typescript
-import { createVList } from 'vlist';
+import { vlist } from 'vlist';
 import 'vlist/styles';
 
 const users = Array.from({ length: 10000 }, (_, i) => ({
@@ -1216,7 +1214,7 @@ const users = Array.from({ length: 10000 }, (_, i) => ({
   email: `user${i + 1}@example.com`,
 }));
 
-const list = createVList({
+const list = vlist({
   container: '#user-list',
   item: {
     height: 56,
@@ -1237,7 +1235,7 @@ const list = createVList({
 ### Selectable List
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#selectable-list',
   item: {
     height: 48,
@@ -1271,7 +1269,7 @@ interface ChatMessage extends VListItem {
 
 const messages: ChatMessage[] = loadRecentMessages();
 
-const chat = createVList<ChatMessage>({
+const chat = vlist<ChatMessage>({
   container: '#chat',
   reverse: true,
   item: {
@@ -1301,7 +1299,7 @@ document.getElementById('load-older').onclick = async () => {
 ### Infinite Scroll with API
 
 ```typescript
-const list = createVList({
+const list = vlist({
   container: '#api-list',
   item: {
     height: 72,
@@ -1401,7 +1399,7 @@ No configuration required - compression activates automatically:
 
 ```javascript
 // This just works, even with 1 million items!
-const list = createVList({
+const list = vlist({
   container: '#app',
   item: {
     height: 48,
