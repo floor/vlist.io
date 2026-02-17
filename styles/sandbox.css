@@ -1,0 +1,165 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+        sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: calc(var(--header-height) + 40px) 24px 80px;
+}
+
+.dropdown {
+    display: none;
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px 16px;
+    z-index: 99;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dropdown--open {
+    display: flex;
+}
+
+.dropdown a {
+    display: block;
+    font-size: 16px;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 8px 0;
+}
+
+.dropdown a:hover {
+    color: var(--text);
+}
+
+.section {
+    margin-bottom: 48px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sandbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.sandbox-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 20px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.sandbox-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.sandbox-content {
+    flex: 1;
+}
+
+.sandbox-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+}
+
+.sandbox-description {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #999;
+}
+
+.sandbox-description code {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: "SF Mono", Monaco, Consolas, monospace;
+    color: #e0e0e0;
+}
+
+.sandbox-arrow {
+    font-size: 20px;
+    color: #666;
+    transition: transform 0.2s ease;
+}
+
+.sandbox-card:hover .sandbox-arrow {
+    transform: translateX(4px);
+    color: #999;
+}
+
+footer {
+    text-align: center;
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+footer a {
+    color: #999;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: var(--text);
+}
+
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.github-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.github-link svg {
+    width: 20px;
+    height: 20px;
+}

@@ -4,202 +4,66 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>vlist - Sandbox</title>
-        <style>
-            * {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-            }
+        <link rel="stylesheet" href="/styles/shell.css" />
+        <link rel="stylesheet" href="/styles/sandbox.css" />
 
-            body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    Oxygen, Ubuntu, sans-serif;
-                background: #111;
-                color: #e0e0e0;
-                min-height: 100vh;
-                padding: 40px 20px;
-            }
-
-            .container {
-                max-width: 900px;
-                margin: 0 auto;
-            }
-
-            header {
-                text-align: center;
-                margin-bottom: 48px;
-            }
-
-            h1 {
-                font-size: 40px;
-                font-weight: 700;
-                margin-bottom: 8px;
-                letter-spacing: -0.5px;
-                color: #fff;
-            }
-
-            h1 a {
-                text-decoration: none;
-                color: inherit;
-            }
-
-            h1 a:hover {
-                opacity: 0.85;
-            }
-
-            .tagline {
-                font-size: 16px;
-                color: #999;
-                margin-bottom: 16px;
-            }
-
-            .features {
-                display: flex;
-                gap: 12px;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            .feature {
-                background: rgba(255, 255, 255, 0.05);
-                padding: 6px 14px;
-                border-radius: 12px;
-                font-size: 13px;
-                color: #aaa;
-            }
-
-            .section {
-                margin-bottom: 48px;
-            }
-
-            .section-title {
-                font-size: 20px;
-                font-weight: 600;
-                color: #fff;
-                margin-bottom: 16px;
-                padding-bottom: 8px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .sandbox-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
-            }
-
-            .sandbox-card {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 16px;
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                border-radius: 8px;
-                padding: 20px;
-                text-decoration: none;
-                transition: all 0.2s ease;
-            }
-
-            .sandbox-card:hover {
-                background: rgba(255, 255, 255, 0.06);
-                border-color: rgba(255, 255, 255, 0.15);
-                transform: translateY(-2px);
-            }
-
-            .sandbox-content {
-                flex: 1;
-            }
-
-            .sandbox-title {
-                font-size: 15px;
-                font-weight: 600;
-                color: #fff;
-                margin-bottom: 6px;
-            }
-
-            .sandbox-description {
-                font-size: 13px;
-                line-height: 1.5;
-                color: #999;
-            }
-
-            .sandbox-description code {
-                background: rgba(255, 255, 255, 0.08);
-                padding: 2px 6px;
-                border-radius: 3px;
-                font-size: 12px;
-                font-family: "SF Mono", Monaco, Consolas, monospace;
-                color: #e0e0e0;
-            }
-
-            .sandbox-arrow {
-                font-size: 20px;
-                color: #666;
-                transition: transform 0.2s ease;
-            }
-
-            .sandbox-card:hover .sandbox-arrow {
-                transform: translateX(4px);
-                color: #999;
-            }
-
-            footer {
-                text-align: center;
-                margin-top: 64px;
-                padding-top: 32px;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            footer a {
-                color: #999;
-                text-decoration: none;
-            }
-
-            footer a:hover {
-                color: #fff;
-            }
-
-            .github-link {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                background: rgba(255, 255, 255, 0.05);
-                padding: 10px 18px;
-                border-radius: 8px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                transition: all 0.2s ease;
-            }
-
-            .github-link:hover {
-                background: rgba(255, 255, 255, 0.08);
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-
-            .github-link svg {
-                width: 20px;
-                height: 20px;
-            }
-        </style>
+        <!-- Theme: apply before paint to prevent flash -->
+        <script>
+            (function() {
+                var t = localStorage.getItem('vlist-theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+            })();
+        </script>
     </head>
     <body>
+        <!-- Header -->
+        <header class="header">
+            <div class="header__inner">
+                <a href="/" class="header__logo">VList</a>
+                <span class="header__sep">/</span>
+                <span class="header__section">Sandbox</span>
+                <nav class="header__nav">
+                    <a href="/docs/">Docs</a>
+                    <a href="/sandbox/" class="active">Sandbox</a>
+                    <a href="/benchmarks/">Benchmarks</a>
+                    <a href="/api">API</a>
+                    <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+                </nav>
+                <button class="header__theme" id="theme-toggle" aria-label="Toggle theme">
+                    <svg class="header__theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg class="header__theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+                <button class="header__hamburger" id="hamburger" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <rect y="3" width="20" height="2" rx="1" />
+                        <rect y="9" width="20" height="2" rx="1" />
+                        <rect y="15" width="20" height="2" rx="1" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <nav class="dropdown" id="dropdown">
+            <a href="/docs/">Docs</a>
+            <a href="/sandbox/">Sandbox</a>
+            <a href="/benchmarks/">Benchmarks</a>
+            <a href="/api">API</a>
+            <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+        </nav>
+
         <div class="container">
-            <header>
-                <h1><a href="/sandbox/">vlist</a></h1>
-                <p class="tagline">
-                    Lightweight, high-performance virtual list with zero
-                    dependencies
-                </p>
-                <div class="features">
-                    <span class="feature">4.2 KB Core</span>
-                    <span class="feature">Zero Dependencies</span>
-                    <span class="feature">Plugin Architecture</span>
-                    <span class="feature">Framework Agnostic</span>
-                    <span class="feature">TypeScript</span>
-                    <span class="feature">Accessible</span>
-                </div>
-            </header>
 
             <!-- Getting Started -->
             <section class="section">
@@ -465,5 +329,32 @@
                 </p>
             </footer>
         </div>
+
+        <!-- Theme toggle script -->
+        <script>
+            (function() {
+                var btn = document.getElementById('theme-toggle');
+                if (!btn) return;
+                btn.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    var next = current === 'light' ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('vlist-theme', next);
+                });
+            })();
+        </script>
+
+        <!-- Mobile hamburger script -->
+        <script>
+            (function() {
+                var h = document.getElementById('hamburger');
+                var d = document.getElementById('dropdown');
+                if (!h || !d) return;
+                h.addEventListener('click', function() {
+                    d.classList.toggle('dropdown--open');
+                });
+            })();
+        </script>
     </body>
 </html>
+```
