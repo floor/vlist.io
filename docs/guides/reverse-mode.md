@@ -80,7 +80,7 @@ Reverse mode:
 ### Basic Chat UI
 
 ```typescript
-import { vlist } from 'vlist/builder'
+import { vlist } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -122,21 +122,7 @@ const chat = vlist({
 .build()
 ```
 
-### With Default Entry Point
 
-```typescript
-import { vlist } from 'vlist'
-
-const chat = vlist({
-  container: '#messages',
-  reverse: true,
-  item: {
-    height: 60,
-    template: (msg) => `<div class="message">${msg.text}</div>`
-  },
-  items: messages
-})
-```
 
 ## How It Works
 
@@ -341,8 +327,8 @@ chat.removeItem(messageId)
 The data adapter automatically triggers "load more" near the **top** in reverse mode:
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withAsync } from 'vlist (withAsync)'
+import { vlist } from 'vlist'
+import { withAsync } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -384,8 +370,8 @@ Groups work seamlessly with reverse mode - both sticky and inline headers are su
 #### Inline Headers (iMessage Style)
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSections } from 'vlist (withSections)'
+import { vlist } from 'vlist'
+import { withSections } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -428,8 +414,8 @@ const chat = vlist({
 Sticky headers also work with reverse mode! As you scroll UP through chat history, the current section header sticks at the top - useful for navigation:
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSections } from 'vlist (withSections)'
+import { vlist } from 'vlist'
+import { withSections } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -480,8 +466,8 @@ As you scroll up through history, older section headers stick at the top - perfe
 Selection works normally in reverse mode:
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSelection } from 'vlist/selection'
+import { vlist } from 'vlist'
+import { withSelection } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -617,7 +603,7 @@ chat.on('render', ({ range, direction }) => {
 ### Simple Chat
 
 ```typescript
-import { vlist } from 'vlist/builder'
+import { vlist } from 'vlist'
 
 const messages = [
   { id: 1, sender: 'Alice', text: 'Hey there!', timestamp: 1000 },
@@ -661,7 +647,7 @@ function sendMessage(text) {
 ### Chat with Load More
 
 ```typescript
-import { vlist } from 'vlist/builder'
+import { vlist } from 'vlist'
 
 let messages = []
 let oldestTimestamp = Date.now()
@@ -706,8 +692,8 @@ init()
 ### Chat with Date Headers
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSections } from 'vlist (withSections)'
+import { vlist } from 'vlist'
+import { withSections } from 'vlist'
 
 function formatDateLabel(date) {
   const today = new Date()
@@ -762,7 +748,7 @@ const chat = vlist({
 ### Live Feed with Auto-Scroll
 
 ```typescript
-import { vlist } from 'vlist/builder'
+import { vlist } from 'vlist'
 
 let posts = []
 let isAtBottom = true

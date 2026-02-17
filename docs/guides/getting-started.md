@@ -113,7 +113,7 @@ pnpm add vlist
 
 > **Entry Points:**
 > - `import { vlist } from 'vlist'` - Default, builder-based (recommended)
-> - `import { vlist } from 'vlist/builder'` - Manual builder pattern (maximum control)
+> - `import { vlist } from 'vlist'` - Manual builder pattern (maximum control)
 
 ### Basic Usage
 
@@ -998,21 +998,28 @@ const list = vlist({
 
 As of v0.5.0, the default `vlist()` uses the builder pattern internally:
 
-| Entry Point | Bundle Size | Includes |
-|------------|-------------|----------|
-| `vlist` (default) | **~27 KB gzip** | Auto-applies plugins based on config |
-| `vlist/builder` | **~15-30 KB gzip** | Manual plugin selection (smallest) |
-| `vlist/core` | **~8 KB gzip** | Basic virtualization only |
+| Configuration | Bundle Size (Gzipped) | Includes |
+|---------------|----------------------|----------|
+| Base only | **7.7 KB** | Core virtualization, no plugins |
+| + Selection | **10.0 KB** | + `withSelection()` |
+| + Grid | **11.7 KB** | + `withGrid()` + `withScrollbar()` |
+| + Sections | **12.3 KB** | + `withSections()` |
+| + Async | **13.5 KB** | + `withAsync()` + `withPage()` |
+| + Scale | **9.9 KB** | + `withScale()` + `withScrollbar()` |
+| All plugins | **~16 KB** | Everything |
 
-**Example size reduction (v0.5.0 vs v0.4.0):**
-```
-Grid example:
-  v0.4.0 monolithic: 57.4 KB minified → 18.5 KB gzip
-  v0.5.0 default:    27.1 KB minified → 9.0 KB gzip  ← 53% smaller!
-  v0.5.0 builder:    27.1 KB minified → 9.0 KB gzip
+**Example:**
+```typescript
+import { vlist, withGrid, withScrollbar } from 'vlist';
+
+const gallery = vlist({ ... })
+  .use(withGrid({ columns: 4, gap: 16 }))
+  .use(withScrollbar({ autoHide: true }))
+  .build();
+// Bundle: 11.7 KB gzipped (only includes used plugins)
 ```
 
-The v0.5.0 default provides the same convenient API as v0.4.0 but with dramatically smaller bundles by only including the plugins you actually use.
+**Compare to traditional virtual lists:** 20-23 KB gzipped minimum, all features bundled.
 
 ### Benchmarks
 

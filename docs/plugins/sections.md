@@ -75,8 +75,8 @@ The plugin:
 ### With Builder (Recommended)
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSections } from 'vlist (withSections)'
+import { vlist } from 'vlist'
+import { withSections } from 'vlist'
 
 const contacts = vlist({
   container: '#contacts',
@@ -105,26 +105,7 @@ const contacts = vlist({
 .build()
 ```
 
-### With Default Entry Point
 
-```typescript
-import { vlist } from 'vlist'
-
-const contacts = vlist({
-  container: '#contacts',
-  item: {
-    height: 56,
-    template: (contact) => `<div class="contact-item">${contact.name}</div>`
-  },
-  items: sortedContacts,
-  groups: {
-    getGroupForIndex: (i) => sortedContacts[i].lastName[0],
-    headerHeight: 36,
-    headerTemplate: (letter) => `<div class="section-header">${letter}</div>`,
-    sticky: true
-  }
-})
-```
 
 ## Configuration
 
@@ -305,9 +286,9 @@ The sticky header has the class `{classPrefix}-sticky-header`:
 Groups work seamlessly with grid layout. Headers automatically span the full width:
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withSections } from 'vlist (withSections)'
+import { vlist } from 'vlist'
+import { withGrid } from 'vlist'
+import { withSections } from 'vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -403,8 +384,8 @@ contacts.scrollToIndex(2, 'start')
 The sections plugin **works seamlessly with reverse mode** - both sticky and inline headers are supported:
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withSections } from 'vlist (withSections)'
+import { vlist } from 'vlist'
+import { withSections } from 'vlist'
 
 const chat = vlist({
   container: '#messages',

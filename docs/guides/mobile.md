@@ -209,8 +209,8 @@ document.addEventListener('mouseup', handleThumbMouseUp);
 Configure the scrollbar for mobile-friendly behavior:
 
 ```javascript
-import { vlist } from 'vlist/builder';
-import { withScrollbar } from 'vlist (withScrollbar)';
+import { vlist } from 'vlist';
+import { withScrollbar } from 'vlist';
 
 const list = vlist({ /* ... */ })
   .use(withScrollbar({
@@ -255,7 +255,7 @@ const list = vlist({ /* ... */ })
 ### Recommended Settings
 
 ```javascript
-import { vlist } from 'vlist/builder';
+import { vlist } from 'vlist';
 
 const list = vlist({
   container: '#list',
@@ -496,7 +496,7 @@ if ('vibrate' in navigator) {
 ### Full-Screen Mobile List
 
 ```javascript
-import { vlist } from 'vlist/builder';
+import { vlist } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -551,7 +551,7 @@ const list = vlist({
 ### Chat UI (Reverse Mode)
 
 ```javascript
-import { vlist } from 'vlist/builder';
+import { vlist } from 'vlist';
 
 const chat = vlist({
   container: '#chat',

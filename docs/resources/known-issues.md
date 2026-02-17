@@ -137,11 +137,11 @@ Consumers can import individual sub-modules instead of the full bundle:
 ```typescript
 import { vlist } from 'vlist'                    // full bundle
 import { vlist } from 'vlist/core'               // 7.3 KB / 3.0 KB gzip (83% smaller!)
-import { createSparseStorage } from 'vlist (withAsync)'       // 9.2 KB / 3.8 KB gzip
-import { getCompressionInfo } from 'vlist (withScale)'  // 2.6 KB / 1.1 KB gzip
-import { createSelectionState } from 'vlist/selection'  // 1.9 KB / 0.7 KB gzip
-import { createScrollController } from 'vlist (withScrollbar)'   // 6.0 KB / 2.3 KB gzip
-import { createGroupLayout } from 'vlist (withSections)'        // 3.6 KB / 1.4 KB gzip
+import { createSparseStorage } from 'vlist'       // 9.2 KB / 3.8 KB gzip
+import { getCompressionInfo } from 'vlist'  // 2.6 KB / 1.1 KB gzip
+import { createSelectionState } from 'vlist'  // 1.9 KB / 0.7 KB gzip
+import { createScrollController } from 'vlist'   // 6.0 KB / 2.3 KB gzip
+import { createGroupLayout } from 'vlist'        // 3.6 KB / 1.4 KB gzip
 ```
 
 Bundle sizes after split:

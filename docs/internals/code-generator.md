@@ -628,9 +628,9 @@ Reduction: 60% smaller
 Use the builder for flexibility:
 
 ```typescript
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withSelection } from 'vlist/selection'
+import { vlist } from 'vlist'
+import { withGrid } from 'vlist'
+import { withSelection } from 'vlist'
 
 const list = vlist({ ... })
   .use(withGrid({ columns: 4 }))
@@ -670,7 +670,7 @@ The generated module exports the same API:
 
 ```typescript
 // Switch import, that's it
-- import { vlist } from 'vlist/builder'
+- import { vlist } from 'vlist'
 + import { vlist } from './vlist-custom'
 
 // Everything else stays the same
@@ -792,8 +792,8 @@ Instead of generating code, split the builder itself into smaller pieces:
 ```typescript
 import { vlistCore } from 'vlist/builder-core'      // 8 KB
 import { withPluginSystem } from 'vlist/builder-plugins'  // 3 KB
-import { withGrid } from 'vlist/grid'                     // 7 KB
-import { withSelection } from 'vlist/selection'           // 6 KB
+import { withGrid } from 'vlist'                     // 7 KB
+import { withSelection } from 'vlist'           // 6 KB
 
 // Total: 24 KB (vs 25.2 KB current)
 ```

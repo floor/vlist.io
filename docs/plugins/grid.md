@@ -46,47 +46,28 @@ Grid layout virtualizes **rows**, not individual items. With 1,000 items in a 4-
 
 ## Quick Start
 
-### With Default Entry Point (Recommended)
-
 ```typescript
-import { vlist } from 'vlist';
+import { vlist, withGrid, withScrollbar } from 'vlist';
 
 const gallery = vlist({
   container: '#gallery',
-  layout: 'grid',
-  grid: {
-    columns: 4,
-    gap: 8,
-  },
+  items: photos,
   item: {
     height: 200,
-    template: (item) => `<img src="${item.url}" alt="${item.title}" />`,
+    template: (item) => `
+      <div class="card">
+        <img src="${item.url}" alt="${item.title}" />
+        <span class="title">${item.title}</span>
+      </div>
+    `,
   },
-  items: photos,
-});
-```
-
-**Bundle:** ~27 KB gzip (auto-includes withGrid plugin)
-
-### With Builder Pattern
-
-```typescript
-import { vlist } from 'vlist/builder';
-import { withGrid } from 'vlist/grid';
-
-const gallery = vlist({
-  container: '#gallery',
-  item: {
-    height: 200,
-    template: (item) => `<img src="${item.url}" alt="${item.title}" />`,
-  },
-  items: photos,
 })
-  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withGrid({ columns: 4, gap: 16 }))
+  .use(withScrollbar({ autoHide: true }))
   .build();
 ```
 
-**Bundle:** ~27 KB gzip (explicit plugin control)
+**Bundle:** 11.7 KB gzipped
 
 ### HTML Structure
 
@@ -257,43 +238,28 @@ interface GridConfig {
 }
 ```
 
-### With Default Entry Point
-
 ```typescript
-import { vlist } from 'vlist';
+import { vlist, withGrid, withScrollbar } from 'vlist';
 
 const gallery = vlist({
   container: '#gallery',
-  layout: 'grid',  // Activates grid mode
-  grid: {
-    columns: 4,    // Required
-    gap: 8,        // Optional, default: 0
-  },
-  item: {
-    height: 200,   // or function
-    template: renderItem,
-  },
-  items,
-});
-```
-
-### With Builder Pattern
-
-```typescript
-import { vlist } from 'vlist/builder';
-import { withGrid } from 'vlist/grid';
-
-const gallery = vlist({
-  container: '#gallery',
+  items: photos,
   item: {
     height: 200,
-    template: renderItem,
+    template: (item) => `
+      <div class="card">
+        <img src="${item.url}" />
+        <span>${item.title}</span>
+      </div>
+    `,
   },
-  items,
 })
-  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withGrid({ columns: 4, gap: 16 }))
+  .use(withScrollbar({ autoHide: true }))
   .build();
 ```
+
+**Bundle:** 11.7 KB gzipped
 
 ### Item Configuration
 
@@ -319,9 +285,7 @@ interface ItemConfig {
 
 Update grid configuration dynamically without recreating the instance.
 
-**Available with:**
-- Default entry point: `vlist()` with `layout: 'grid'`
-- Builder pattern: `vlist().use(withGrid()).build()`
+**Available with:** `vlist().use(withGrid()).build()`
 
 **Signature:**
 ```typescript
