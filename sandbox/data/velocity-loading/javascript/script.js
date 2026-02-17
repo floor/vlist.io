@@ -1,7 +1,7 @@
 // Velocity-Based Loading - Pure Vanilla JavaScript
 // Demonstrates smart loading that adapts to scroll velocity
 
-import { createVList } from "vlist";
+import { vlist, withSelection, withAsync } from "vlist";
 import {
   CANCEL_LOAD_VELOCITY_THRESHOLD,
   TOTAL_ITEMS,
@@ -88,33 +88,36 @@ function updateControls() {
 }
 
 // Create list with adapter
-const list = createVList({
+const list = vlist({
   container: "#list-container",
   ariaLabel: "Virtual user list with velocity-based loading",
   item: {
     height: ITEM_HEIGHT,
     template: itemTemplate,
   },
-  selection: {
-    mode: "single",
-  },
-  loading: {
-    cancelThreshold: CANCEL_LOAD_VELOCITY_THRESHOLD,
-  },
-  adapter: {
-    read: async ({ offset, limit }) => {
-      loadRequests++;
-      isLoading = true;
-      updateControls();
-      updateStatsBar();
-      const result = await fetchItems(offset, limit);
-      isLoading = false;
-      updateControls();
-      updateStatsBar();
-      return result;
-    },
-  },
-});
+})
+  .use(withSelection({ mode: "single" }))
+  .use(
+    withAsync({
+      adapter: {
+        read: async ({ offset, limit }) => {
+          loadRequests++;
+          isLoading = true;
+          updateControls();
+          updateStatsBar();
+          const result = await fetchItems(offset, limit);
+          isLoading = false;
+          updateControls();
+          updateStatsBar();
+          return result;
+        },
+      },
+      loading: {
+        cancelThreshold: CANCEL_LOAD_VELOCITY_THRESHOLD,
+      },
+    }),
+  )
+  .build();
 
 // Get DOM references
 statRequestsEl = document.getElementById("stat-requests");

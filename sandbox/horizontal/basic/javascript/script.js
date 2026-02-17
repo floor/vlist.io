@@ -1,7 +1,7 @@
 // Horizontal Scrolling — Vanilla JavaScript
 // Demonstrates direction: 'horizontal' with item.width
 
-import { createVList } from "vlist";
+import { vlist } from "vlist";
 import {
   items,
   itemTemplate,
@@ -11,7 +11,7 @@ import {
 } from "../shared.js";
 
 // Create horizontal virtual list
-const list = createVList({
+const list = vlist({
   container: "#list-container",
   direction: "horizontal",
   scroll: { wheel: true },
@@ -21,8 +21,8 @@ const list = createVList({
     width: ITEM_WIDTH,
     template: itemTemplate,
   },
-  items: items,
-});
+  items,
+}).build();
 
 // Update stats display
 const statsEl = document.getElementById("stats");
