@@ -1,6 +1,6 @@
 // Builder Million Items — Composable entry point
-// Uses vlist/builder with withCompression + withScrollbar plugins
-// Demonstrates handling 1M+ items with automatic scroll compression
+// Uses vlist/builder with withScale + withScrollbar plugins
+// Demonstrates handling 1M+ items with automatic scroll scaling
 
 import { vlist, withScale, withScrollbar } from "vlist";
 
@@ -112,7 +112,7 @@ function createList(sizeKey) {
     },
     items,
   })
-    .use(withCompression())
+    .use(withScale())
     .use(withScrollbar({ autoHide: true }))
     .build();
 
