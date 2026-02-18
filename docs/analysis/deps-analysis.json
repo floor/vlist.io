@@ -1,0 +1,219 @@
+{
+  "builder/context.ts": [
+    "builder/data.ts",
+    "builder/types.ts",
+    "events/emitter.ts",
+    "features/scrollbar/controller.ts",
+    "rendering/heights.ts",
+    "rendering/renderer.ts",
+    "rendering/viewport.ts",
+    "types.ts"
+  ],
+  "builder/core.ts": [
+    "builder/types.ts",
+    "rendering/viewport.ts",
+    "types.ts"
+  ],
+  "builder/data.ts": [
+    "types.ts"
+  ],
+  "builder/index.ts": [
+    "builder/core.ts",
+    "builder/types.ts"
+  ],
+  "builder/types.ts": [
+    "builder/data.ts",
+    "events/index.ts",
+    "features/scrollbar/controller.ts",
+    "rendering/index.ts",
+    "rendering/viewport.ts",
+    "types.ts"
+  ],
+  "constants.ts": [],
+  "core/lite.ts": [],
+  "core/minimal.ts": [],
+  "events/emitter.ts": [
+    "types.ts"
+  ],
+  "events/index.ts": [
+    "events/emitter.ts"
+  ],
+  "features/async/index.ts": [
+    "features/async/manager.ts",
+    "features/async/placeholder.ts",
+    "features/async/plugin.ts",
+    "features/async/sparse.ts"
+  ],
+  "features/async/manager.ts": [
+    "features/async/placeholder.ts",
+    "features/async/sparse.ts",
+    "types.ts"
+  ],
+  "features/async/placeholder.ts": [
+    "types.ts"
+  ],
+  "features/async/plugin.ts": [
+    "builder/types.ts",
+    "constants.ts",
+    "features/async/manager.ts",
+    "rendering/index.ts",
+    "types.ts"
+  ],
+  "features/async/sparse.ts": [
+    "types.ts"
+  ],
+  "features/grid/index.ts": [
+    "features/grid/layout.ts",
+    "features/grid/plugin.ts",
+    "features/grid/renderer.ts",
+    "features/grid/types.ts"
+  ],
+  "features/grid/layout.ts": [
+    "features/grid/types.ts"
+  ],
+  "features/grid/plugin.ts": [
+    "builder/types.ts",
+    "features/grid/layout.ts",
+    "features/grid/renderer.ts",
+    "features/grid/types.ts",
+    "rendering/index.ts",
+    "types.ts"
+  ],
+  "features/grid/renderer.ts": [
+    "features/grid/types.ts",
+    "features/sections/types.ts",
+    "rendering/heights.ts",
+    "rendering/renderer.ts",
+    "rendering/scale.ts",
+    "types.ts"
+  ],
+  "features/grid/types.ts": [
+    "types.ts"
+  ],
+  "features/page/index.ts": [
+    "builder/types.ts",
+    "features/page/plugin.ts"
+  ],
+  "features/page/plugin.ts": [
+    "builder/types.ts",
+    "types.ts"
+  ],
+  "features/scale/index.ts": [
+    "features/scale/plugin.ts",
+    "rendering/scale.ts"
+  ],
+  "features/scale/plugin.ts": [
+    "builder/types.ts",
+    "features/scrollbar/index.ts",
+    "rendering/scale.ts",
+    "types.ts"
+  ],
+  "features/scrollbar/controller.ts": [
+    "rendering/scale.ts"
+  ],
+  "features/scrollbar/index.ts": [
+    "features/scrollbar/controller.ts",
+    "features/scrollbar/plugin.ts",
+    "features/scrollbar/scrollbar.ts"
+  ],
+  "features/scrollbar/plugin.ts": [
+    "builder/types.ts",
+    "features/scrollbar/scrollbar.ts",
+    "types.ts"
+  ],
+  "features/scrollbar/scrollbar.ts": [],
+  "features/sections/index.ts": [
+    "features/sections/layout.ts",
+    "features/sections/plugin.ts",
+    "features/sections/sticky.ts",
+    "features/sections/types.ts"
+  ],
+  "features/sections/layout.ts": [
+    "features/sections/types.ts",
+    "types.ts"
+  ],
+  "features/sections/plugin.ts": [
+    "builder/types.ts",
+    "features/sections/layout.ts",
+    "features/sections/sticky.ts",
+    "features/sections/types.ts",
+    "rendering/index.ts",
+    "types.ts"
+  ],
+  "features/sections/sticky.ts": [
+    "features/sections/types.ts",
+    "rendering/heights.ts"
+  ],
+  "features/sections/types.ts": [
+    "types.ts"
+  ],
+  "features/selection/index.ts": [
+    "features/selection/plugin.ts",
+    "features/selection/state.ts"
+  ],
+  "features/selection/plugin.ts": [
+    "builder/types.ts",
+    "features/selection/state.ts",
+    "rendering/index.ts",
+    "types.ts"
+  ],
+  "features/selection/state.ts": [
+    "types.ts"
+  ],
+  "features/snapshots/index.ts": [
+    "features/snapshots/plugin.ts"
+  ],
+  "features/snapshots/plugin.ts": [
+    "builder/types.ts",
+    "types.ts"
+  ],
+  "index.ts": [
+    "builder/index.ts",
+    "events/index.ts",
+    "features/async/index.ts",
+    "features/grid/index.ts",
+    "features/page/index.ts",
+    "features/scale/index.ts",
+    "features/scrollbar/index.ts",
+    "features/sections/index.ts",
+    "features/selection/index.ts",
+    "features/snapshots/index.ts",
+    "rendering/index.ts",
+    "types.ts",
+    "vlist.ts"
+  ],
+  "rendering/heights.ts": [],
+  "rendering/index.ts": [
+    "rendering/heights.ts",
+    "rendering/renderer.ts",
+    "rendering/scale.ts",
+    "rendering/viewport.ts"
+  ],
+  "rendering/renderer.ts": [
+    "rendering/heights.ts",
+    "rendering/viewport.ts",
+    "types.ts"
+  ],
+  "rendering/scale.ts": [
+    "constants.ts",
+    "rendering/heights.ts",
+    "types.ts"
+  ],
+  "rendering/viewport.ts": [
+    "rendering/heights.ts",
+    "types.ts"
+  ],
+  "types.ts": [],
+  "vlist.ts": [
+    "builder/index.ts",
+    "features/async/plugin.ts",
+    "features/grid/plugin.ts",
+    "features/page/plugin.ts",
+    "features/scale/plugin.ts",
+    "features/scrollbar/plugin.ts",
+    "features/sections/plugin.ts",
+    "features/selection/plugin.ts",
+    "features/snapshots/plugin.ts",
+    "types.ts"
+  ]
+}
