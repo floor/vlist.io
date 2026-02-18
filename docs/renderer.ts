@@ -447,42 +447,68 @@ function buildToc(tocItems: TocItem[]): string {
 // Markdown Parser (configured once)
 // =============================================================================
 
-const marked = new Marked({
-  gfm: true,
-  breaks: false,
-});
+// Create a function that returns a marked instance with context-aware link resolution
+function createMarkedInstance(currentSlug: string | null) {
+  const marked = new Marked({
+    gfm: true,
+    breaks: false,
+  });
 
-// Custom renderer — heading anchors + link rewriting
-const renderer = {
-  heading({ text, depth }: Tokens.Heading): string {
-    // Extract raw text for slug (strip HTML tags from the rendered inline text)
-    const raw = text.replace(/<[^>]*>/g, "");
-    const slug = raw
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-    return `<h${depth} id="${slug}">${text} <a class="anchor" href="#${slug}">#</a></h${depth}>\n`;
-  },
+  // Get current document directory for relative link resolution
+  const currentDir = currentSlug
+    ? currentSlug.split("/").slice(0, -1).join("/")
+    : "";
 
-  link({ href, title, text }: Tokens.Link): string {
-    if (href) {
-      // ./file.md → /docs/file
-      // ./file.md#section → /docs/file#section
-      const mdMatch = href.match(/^\.\/([a-zA-Z0-9_-]+)\.md(#.*)?$/);
-      if (mdMatch) {
-        href = `/docs/${mdMatch[1]}${mdMatch[2] || ""}`;
+  // Custom renderer — heading anchors + link rewriting
+  const renderer = {
+    heading({ text, depth }: Tokens.Heading): string {
+      // Extract raw text for slug (strip HTML tags from the rendered inline text)
+      const raw = text.replace(/<[^>]*>/g, "");
+      const slug = raw
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+      return `<h${depth} id="${slug}">${text} <a class="anchor" href="#${slug}">#</a></h${depth}>\n`;
+    },
+
+    link({ href, title, text }: Tokens.Link): string {
+      if (href) {
+        // Handle relative links: ./file.md or ../dir/file.md
+        const relativeMatch = href.match(/^(\.\.?\/)(.+?)\.md(#.*)?$/);
+        if (relativeMatch) {
+          const prefix = relativeMatch[1]; // "./" or "../"
+          const path = relativeMatch[2]; // "file" or "dir/file"
+          const hash = relativeMatch[3] || ""; // "#section" or ""
+
+          let resolvedPath: string;
+          if (prefix === "./") {
+            // Same directory: ./file.md
+            resolvedPath = currentDir ? `${currentDir}/${path}` : path;
+          } else {
+            // Parent directory: ../file.md
+            const parts = currentDir.split("/").filter(Boolean);
+            parts.pop(); // Remove last segment (go up one level)
+            resolvedPath =
+              parts.length > 0 ? `${parts.join("/")}/${path}` : path;
+          }
+
+          href = `/docs/${resolvedPath}${hash}`;
+        }
       }
-    }
-    const titleAttr = title ? ` title="${title}"` : "";
-    const external =
-      href && href.startsWith("http") ? ' target="_blank" rel="noopener"' : "";
-    return `<a href="${href}"${titleAttr}${external}>${text}</a>`;
-  },
-};
+      const titleAttr = title ? ` title="${title}"` : "";
+      const external =
+        href && href.startsWith("http")
+          ? ' target="_blank" rel="noopener"'
+          : "";
+      return `<a href="${href}"${titleAttr}${external}>${text}</a>`;
+    },
+  };
 
-marked.use({ renderer });
+  marked.use({ renderer });
+  return marked;
+}
 
 // =============================================================================
 // Sidebar Generation
@@ -618,8 +644,9 @@ export function renderDocsPage(slug: string | null): Response | null {
   const mdPath = join(DOCS_DIR, mdFile);
   if (!existsSync(mdPath)) return null;
 
-  // Read and parse markdown
+  // Read and parse markdown with context-aware link resolution
   const mdSource = readFileSync(mdPath, "utf-8");
+  const marked = createMarkedInstance(slug);
   const parsedHtml = marked.parse(mdSource) as string;
 
   // Extract table of contents
