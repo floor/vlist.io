@@ -24,6 +24,7 @@
     "marked": "^17.0.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-window": "1.8.10",
     "vlist-react": "^0.1.1",
     "vlist-svelte": "^0.1.1",
     "vlist-vue": "^0.1.1",

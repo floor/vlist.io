@@ -7,24 +7,28 @@
 // Import suites (side-effect: each calls defineSuite())
 // All benchmark suites - variants imported statically
 import "./render/javascript/suite.js";
-import "./render/react/suite.js";
-import "./render/vue/suite.js";
-import "./render/svelte/suite.js";
+// TEMP: Disabled React/Vue/Svelte - vlist 0.7.1 adapters moved to separate packages
+// import "./render/react/suite.js";
+// import "./render/vue/suite.js";
+// import "./render/svelte/suite.js";
 
 import "./scroll/javascript/suite.js";
-import "./scroll/react/suite.js";
-import "./scroll/vue/suite.js";
-import "./scroll/svelte/suite.js";
+// import "./scroll/react/suite.js";
+// import "./scroll/vue/suite.js";
+// import "./scroll/svelte/suite.js";
 
 import "./memory/javascript/suite.js";
-import "./memory/react/suite.js";
-import "./memory/vue/suite.js";
-import "./memory/svelte/suite.js";
+// import "./memory/react/suite.js";
+// import "./memory/vue/suite.js";
+// import "./memory/svelte/suite.js";
 
 import "./scrollto/javascript/suite.js";
-import "./scrollto/react/suite.js";
-import "./scrollto/vue/suite.js";
-import "./scrollto/svelte/suite.js";
+// import "./scrollto/react/suite.js";
+// import "./scrollto/vue/suite.js";
+// import "./scrollto/svelte/suite.js";
+
+// Comparison suite (compares vlist vs react-window)
+import "./comparison/suite.js";
 
 // =============================================================================
 // Variant Support

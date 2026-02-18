@@ -68,6 +68,12 @@ export const BENCH_GROUPS: BenchGroup[] = [
         icon: "⚖️",
         desc: "Feature coverage across popular virtual list libraries",
       },
+      {
+        slug: "comparison",
+        name: "Performance Comparison",
+        icon: "⚔️",
+        desc: "Head-to-head performance: vlist vs react-window",
+      },
     ],
   },
 ];
