@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { useVList, useVListEvent } from "vlist/react";
+import { useVList, useVListEvent } from "vlist-react";
 import {
   items,
   itemTemplate,
@@ -110,9 +110,8 @@ function App() {
 
       <footer>
         <p>
-          Uses <code>direction: 'horizontal'</code> with{" "}
-          <code>item.width</code> for the main axis and{" "}
-          <code>item.height</code> for the cross axis.{" "}
+          Uses <code>direction: 'horizontal'</code> with <code>item.width</code>{" "}
+          for the main axis and <code>item.height</code> for the cross axis.{" "}
           <code>scroll.wheel: true</code> maps vertical mouse wheel to
           horizontal scroll. Custom scrollbar renders at the bottom
           automatically. ⚛️

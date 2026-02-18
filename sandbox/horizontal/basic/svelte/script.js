@@ -1,7 +1,7 @@
 // Horizontal Scrolling — Svelte implementation with vlist action
 // Demonstrates direction: 'horizontal' with item.width
 
-import { vlist, onVListEvent } from "vlist/svelte";
+import { vlist, onVListEvent } from "vlist-svelte";
 import {
   items,
   itemTemplate,

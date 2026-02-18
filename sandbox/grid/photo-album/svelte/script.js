@@ -2,7 +2,7 @@
 // Uses vlist/builder with withGrid + withScrollbar plugins
 // Demonstrates a virtualized 2D photo gallery with Svelte action
 
-import { vlist, onVListEvent } from "vlist/svelte";
+import { vlist, onVListEvent } from "vlist-svelte";
 
 // =============================================================================
 // Data Generation

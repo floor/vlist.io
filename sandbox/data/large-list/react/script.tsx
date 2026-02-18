@@ -4,8 +4,8 @@
 
 import { useState, useCallback, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { useVList, useVListEvent } from "vlist/react";
-import type { VListInstance } from "vlist";
+import { useVList, useVListEvent } from "vlist-react";
+import type { BuiltVList } from "@floor/vlist";
 
 // =============================================================================
 // Constants

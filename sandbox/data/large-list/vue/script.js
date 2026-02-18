@@ -3,7 +3,7 @@
 // Demonstrates handling 100K–5M items with automatic scroll compression
 
 import { createApp, ref, computed, watch } from "vue";
-import { useVList, useVListEvent } from "vlist/vue";
+import { useVList, useVListEvent } from "vlist-vue";
 
 // =============================================================================
 // Constants

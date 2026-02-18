@@ -555,10 +555,10 @@ html[data-theme] .source__panel pre {
    ============================================================================ */
 
 .source {
-    position: absolute;
-    top: 0 !important;
+    position: fixed;
+    top: 0;
     bottom: 0;
-    left: 0;
+    left: var(--sidebar-width);
     right: 0;
     z-index: 100;
     background: var(--bg-card);

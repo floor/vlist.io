@@ -1,7 +1,7 @@
 // Controls — Svelte implementation with vlist action
 // Interactive control panel demonstrating vlist's navigation, selection, and viewport APIs
 
-import { vlist, onVListEvent } from "vlist/svelte";
+import { vlist, onVListEvent } from "vlist-svelte";
 import {
   TOTAL,
   items,

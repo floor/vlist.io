@@ -40,11 +40,24 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
   setup(build) {
     // vlist — resolve bare imports via package.json imports map
     // "vlist" → "@floor/vlist"
-    // "vlist/react" → "@floor/vlist/react"
-    build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
+    build.onResolve({ filter: /^vlist$/ }, (args) => {
       try {
-        const subpath = args.path.replace(/^vlist/, "@floor/vlist");
-        const resolved = require.resolve(subpath, {
+        const resolved = require.resolve("@floor/vlist", {
+          paths: [PROJECT_ROOT],
+        });
+        return { path: resolved };
+      } catch {
+        return undefined;
+      }
+    });
+
+    // vlist adapters — resolve to separate packages
+    // "vlist-react" → "vlist-react"
+    // "vlist-vue" → "vlist-vue"
+    // "vlist-svelte" → "vlist-svelte"
+    build.onResolve({ filter: /^vlist-(react|vue|svelte)$/ }, (args) => {
+      try {
+        const resolved = require.resolve(args.path, {
           paths: [PROJECT_ROOT],
         });
         return { path: resolved };

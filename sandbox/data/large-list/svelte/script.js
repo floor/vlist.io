@@ -2,7 +2,7 @@
 // Uses builder pattern with compression + scrollbar plugins
 // Demonstrates handling 100K–5M items with automatic scroll compression
 
-import { vlist, onVListEvent } from "vlist/svelte";
+import { vlist, onVListEvent } from "vlist-svelte";
 
 // =============================================================================
 // Constants

@@ -2,7 +2,7 @@
 // Demonstrates direction: 'horizontal' with item.width
 
 import { createApp, ref } from "vue";
-import { useVList, useVListEvent } from "vlist/vue";
+import { useVList, useVListEvent } from "vlist-vue";
 import {
   items,
   itemTemplate,
