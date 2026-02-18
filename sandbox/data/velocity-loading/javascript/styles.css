@@ -63,6 +63,9 @@
 .item-details {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .item-name {
@@ -108,7 +111,7 @@
 
 .stat-card {
     padding: 4px;
-    background: var(--surface-container, #f5f5f5);
+    background: var(--surface-container);
     border-radius: 12px;
     text-align: center;
 }
@@ -116,7 +119,7 @@
 .stat-card__value {
     font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary, #1a1a1a);
+    color: var(--text-primary);
 }
 
 .stat-card__value--loading {
@@ -129,7 +132,7 @@
 
 .stat-card__label {
     font-size: 12px;
-    color: var(--text-muted, #666);
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -147,13 +150,13 @@
     gap: 4px;
     margin-bottom: 4px;
     padding: 4px;
-    background: var(--surface-container, #f5f5f5);
+    background: var(--surface-container);
     border-radius: 12px;
     transition: background 0.2s ease;
 }
 
 .velocity-display--fast {
-    background: rgba(250, 112, 154, 0.1);
+    background: color-mix(in srgb, #fa709a 10%, transparent);
 }
 
 .velocity-display__value {
@@ -164,14 +167,14 @@
 
 .velocity-display__unit {
     font-size: 16px;
-    color: var(--text-muted, #666);
+    color: var(--text-muted);
     font-weight: 500;
 }
 
 .velocity-bar {
     position: relative;
     height: 16px;
-    background: var(--surface-container, #f5f5f5);
+    background: var(--surface-container);
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 8px;
@@ -201,14 +204,14 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--outline-variant, rgba(0, 0, 0, 0.3));
 }
 
 .velocity-labels {
     display: flex;
     justify-content: space-between;
     font-size: 11px;
-    color: var(--text-muted, #666);
+    color: var(--text-muted);
     margin-bottom: 12px;
 }
 
@@ -226,47 +229,62 @@
 }
 
 .velocity-status--allowed {
-    background: rgba(67, 233, 123, 0.1);
-    color: #2ea563;
+    background: color-mix(in srgb, #43e97b 10%, transparent);
+    color: var(--color-success, #2ea563);
 }
 
 .velocity-status--skipped {
-    background: rgba(250, 112, 154, 0.1);
-    color: #d63c6f;
+    background: color-mix(in srgb, #fa709a 10%, transparent);
+    color: var(--color-error, #d63c6f);
 }
 
 .item-role {
     font-size: 12px;
-    color: var(--text-muted, #999);
+    color: var(--text-muted);
     margin-top: 2px;
 }
 
-.item-avatar--placeholder,
+/* ============================================================================
+   Placeholder Styles - Rely on core vlist.css for pulse animation
+   ============================================================================ */
+
+.item-role--placeholder {
+    height: 12px;
+    width: 50%;
+    min-width: 80px;
+    max-width: 120px;
+    margin-top: 6px;
+    background: var(--surface-container-highest) !important;
+    border-radius: 6px;
+    display: block;
+}
+
+.item-avatar--placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface-container-highest) !important;
+    flex-shrink: 0;
+}
+
 .item-name--placeholder,
 .item-email--placeholder {
-    background: var(--surface-container, #f5f5f5);
-    animation: pulse 1.5s ease-in-out infinite;
+    background: var(--surface-container-highest) !important;
+    border-radius: 6px;
+    display: block;
 }
 
 .item-name--placeholder {
-    height: 16px;
-    width: 60%;
-    border-radius: 4px;
+    height: 18px;
+    width: 65%;
+    min-width: 120px;
+    margin-bottom: 6px;
+    max-width: 180px;
 }
 
 .item-email--placeholder {
     height: 14px;
-    width: 80%;
-    border-radius: 4px;
-    animation-delay: 0.1s;
-}
-
-@keyframes pulse {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
+    width: 75%;
+    min-width: 150px;
+    max-width: 220px;
 }

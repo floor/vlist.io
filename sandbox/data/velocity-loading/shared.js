@@ -81,6 +81,7 @@ export const placeholderTemplate = () => `
     <div class="item-details">
       <div class="item-name item-name--placeholder"></div>
       <div class="item-email item-email--placeholder"></div>
+      <div class="item-role item-role--placeholder"></div>
     </div>
   </div>
 `;

@@ -36,6 +36,24 @@
     --toc-width: 240px;
     --header-height: 56px;
     --radius: 8px;
+
+    /* Material Design 3 Surface Tokens - Dark Theme */
+    --surface: #1a1a1e;
+    --surface-dim: #131316;
+    --surface-bright: #3a3a3e;
+    --surface-container-lowest: #0e0e11;
+    --surface-container-low: #1a1a1e;
+    --surface-container: #1e1e22;
+    --surface-container-high: #282831;
+    --surface-container-highest: #33333c;
+    --outline-variant: rgba(255, 255, 255, 0.2);
+
+    /* Material Design 3 On-Surface Text Tokens - Dark Theme */
+    --on-surface: #e6e1e5;
+    --on-surface-variant: #cac4d0;
+    --text-primary: #e8e8ed;
+    --color-success: #4caf50;
+    --color-error: #ef5350;
 }
 
 /* ─── Light Theme ────────────────────────────────────────────────── */
@@ -57,6 +75,24 @@
     --sidebar-hover: rgba(0, 0, 0, 0.03);
     --overlay-bg: rgba(0, 0, 0, 0.3);
     --shadow-sidebar: rgba(0, 0, 0, 0.15);
+
+    /* Material Design 3 Surface Tokens - Light Theme */
+    --surface: #fefbff;
+    --surface-dim: #ddd9e0;
+    --surface-bright: #fefbff;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #f7f4fa;
+    --surface-container: #f2eff5;
+    --surface-container-high: #ece9ef;
+    --surface-container-highest: #e6e3e9;
+    --outline-variant: rgba(0, 0, 0, 0.15);
+
+    /* Material Design 3 On-Surface Text Tokens - Light Theme */
+    --on-surface: #1c1b1f;
+    --on-surface-variant: #49454f;
+    --text-primary: #1a1a2e;
+    --color-success: #2e7d32;
+    --color-error: #c62828;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────── */
