@@ -1,7 +1,13 @@
 // Velocity-Based Loading - Pure Vanilla JavaScript
 // Demonstrates smart loading that adapts to scroll velocity
 
-import { vlist, withSelection, withAsync } from "vlist";
+import {
+  vlist,
+  withSelection,
+  withAsync,
+  withScale,
+  withScrollbar,
+} from "vlist";
 import {
   CANCEL_LOAD_VELOCITY_THRESHOLD,
   TOTAL_ITEMS,
@@ -117,6 +123,8 @@ const list = vlist({
       },
     }),
   )
+  .use(withScale())
+  .use(withScrollbar({ autoHide: true }))
   .build();
 
 // Get DOM references
