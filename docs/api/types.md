@@ -871,12 +871,12 @@ const item = list.items[0] as any;
 
 ## Related Modules
 
-- [vlist.md](./guides/getting-started.md) - Main documentation with configuration examples
-- [context.md](./internals/context.md) - Internal context types
-- [render.md](./internals/rendering.md) - CompressionState, DOMStructure types
-- [async.md](./plugins/async.md) - DataState, SparseStorage types
-- [selection.md](./plugins/selection.md) - Selection state management
-- [events.md](./api/events.md) - Event system types
+- [vlist.md](../guides/getting-started.md) - Main documentation with configuration examples
+- [context.md](../internals/context.md) - Internal context types
+- [render.md](../internals/rendering.md) - CompressionState, DOMStructure types
+- [async.md](../plugins/async.md) - DataState, SparseStorage types
+- [selection.md](../plugins/selection.md) - Selection state management
+- [events.md](./events.md) - Event system types
 
 ---
 

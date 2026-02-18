@@ -1397,14 +1397,14 @@ This pattern already existed in other parts of the codebase (reverse mode, appen
 
 ## Related Modules
 
-- [methods.md](./methods.md#snapshot-methods) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
-- [scale.md](./plugins/scale.md) — Compression state for large lists
-- [render.md](./internals/rendering.md) — Viewport state management
-- [handlers.md](./internals/handlers.md) — Scroll event handler
-- [context.md](./internals/context.md) — Context holds scroll controller
-- [optimization.md](./guides/optimization.md) — Full list of scroll-related optimizations
-- [styles.md](./guides/styling.md) — `.vlist--scrolling` class and CSS containment
-- [vlist.md](./guides/getting-started.md) — Main vlist documentation (window scrolling, scroll save/restore)
+- [methods.md](../api/methods.md#snapshot-methods) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
+- [scale.md](./scale.md) — Compression state for large lists
+- [render.md](../internals/rendering.md) — Viewport state management
+- [handlers.md](../internals/handlers.md) — Scroll event handler
+- [context.md](../internals/context.md) — Context holds scroll controller
+- [optimization.md](../guides/optimization.md) — Full list of scroll-related optimizations
+- [styles.md](../guides/styling.md) — `.vlist--scrolling` class and CSS containment
+- [vlist.md](../guides/getting-started.md) — Main vlist documentation (window scrolling, scroll save/restore)
 
 ---
 

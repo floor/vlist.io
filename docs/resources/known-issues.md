@@ -664,12 +664,12 @@ list.restoreScroll(saved);
 
 ## Related Documentation
 
-- [Optimization Guide](./guides/optimization.md) — Implemented performance optimizations
-- [Main Documentation](./guides/getting-started.md) — Configuration and usage
-- [Scale Guide](./plugins/scale.md) — How 1M+ item compression works
-- [Accessibility Guide](./guides/accessibility.md) — WAI-ARIA implementation, keyboard navigation, screen reader support
-- [Benchmarks Guide](./resources/benchmarks.md) — Performance suites, scroll FPS architecture, rating system
-- [Styles Guide](./guides/styling.md) — CSS architecture
+- [Optimization Guide](../guides/optimization.md) — Implemented performance optimizations
+- [Main Documentation](../guides/getting-started.md) — Configuration and usage
+- [Scale Guide](../plugins/scale.md) — How 1M+ item compression works
+- [Accessibility Guide](../guides/accessibility.md) — WAI-ARIA implementation, keyboard navigation, screen reader support
+- [Benchmarks Guide](./benchmarks.md) — Performance suites, scroll FPS architecture, rating system
+- [Styles Guide](../guides/styling.md) — CSS architecture
 
 ---
 

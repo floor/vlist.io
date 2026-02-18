@@ -650,10 +650,10 @@ calculateCompressedVisibleRange(scrollTop, containerHeight, itemHeight, totalIte
 
 ## Related Modules
 
-- [scale.md](./plugins/scale.md) - Detailed compression documentation
-- [scrollbar.md](./plugins/scrollbar.md) - Scroll controller
-- [context.md](./internals/context.md) - Context that holds renderer reference
-- [handlers.md](./internals/handlers.md) - Scroll handler triggers rendering
+- [scale.md](../plugins/scale.md) - Detailed compression documentation
+- [scrollbar.md](../plugins/scrollbar.md) - Scroll controller
+- [context.md](./context.md) - Context that holds renderer reference
+- [handlers.md](./handlers.md) - Scroll handler triggers rendering
 
 ---
 

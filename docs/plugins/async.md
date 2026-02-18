@@ -669,10 +669,10 @@ await dataManager.ensureRange(100, 200);  // Returns existing promise
 
 ## Related Modules
 
-- [types.md](./api/types.md) - VListAdapter, VListItem interfaces
-- [handlers.md](./internals/handlers.md) - Scroll handler triggers data loading
-- [render.md](./internals/rendering.md) - Renderer displays items/placeholders
-- [context.md](./internals/context.md) - Context holds data manager reference
+- [types.md](../api/types.md) - VListAdapter, VListItem interfaces
+- [handlers.md](../internals/handlers.md) - Scroll handler triggers data loading
+- [render.md](../internals/rendering.md) - Renderer displays items/placeholders
+- [context.md](../internals/context.md) - Context holds data manager reference
 
 ---
 

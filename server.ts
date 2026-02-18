@@ -551,7 +551,7 @@ const handleRequest = async (req: Request): Promise<Response> => {
   if (!response && (pathname === "/docs" || pathname === "/docs/")) {
     response = renderDocsPage(null);
   } else if (!response) {
-    const docsMatch = pathname.match(/^\/docs\/([a-zA-Z0-9/_-]+)\/?$/);
+    const docsMatch = pathname.match(/^\/docs\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
     if (docsMatch) {
       response = renderDocsPage(docsMatch[1]);
     }
