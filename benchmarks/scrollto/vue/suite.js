@@ -5,7 +5,7 @@
 // the time until the scroll settles at the target position.
 
 import { createApp } from "vue";
-import { useVList } from "vlist/vue";
+import { useVList } from "vlist-vue";
 import {
   defineSuite,
   generateItems,

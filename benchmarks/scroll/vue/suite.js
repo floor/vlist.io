@@ -8,7 +8,7 @@
 // as the JavaScript variant.
 
 import { createApp } from "vue";
-import { useVList } from "vlist/vue";
+import { useVList } from "vlist-vue";
 import {
   defineSuite,
   generateItems,
@@ -114,7 +114,7 @@ const findViewport = (container) => {
   return container.firstElementChild;
 };
 
-const measureScrollFPS = async (container, items) => {
+const measureScrollFPS = async (container, items, onProgress) => {
   container.innerHTML = "";
   await waitFrames(2);
 
@@ -138,6 +138,7 @@ const measureScrollFPS = async (container, items) => {
     const frameWorkTimes = [];
     let running = true;
     let scrollDriverTicks = 0;
+    let lastProgressUpdate = 0;
 
     let lastPaintTime = 0;
 
@@ -192,6 +193,8 @@ const measureScrollFPS = async (container, items) => {
       if (elapsed >= SCROLL_DURATION_MS) {
         running = false;
 
+        if (onProgress) onProgress(1);
+
         viewport.removeEventListener("scroll", onScrollForCostProbe);
         if (costProbeFrameId !== null) {
           cancelAnimationFrame(costProbeFrameId);
@@ -209,6 +212,13 @@ const measureScrollFPS = async (container, items) => {
           scrollDriverRate: driverRate,
         });
         return;
+      }
+
+      // Update progress every ~100ms
+      if (onProgress && elapsed - lastProgressUpdate > 100) {
+        const progress = elapsed / SCROLL_DURATION_MS;
+        onProgress(progress);
+        lastProgressUpdate = elapsed;
       }
 
       const dt = now - lastScrollTime;
@@ -369,7 +379,12 @@ defineSuite({
 
     onStatus(`Scrolling for ${SCROLL_DURATION_MS / 1000}s...`);
     const { frameTimes, frameWorkTimes, totalFrames, scrollDriverRate } =
-      await measureScrollFPS(container, items);
+      await measureScrollFPS(container, items, (progress) => {
+        const remaining = Math.ceil(
+          (1 - progress) * (SCROLL_DURATION_MS / 1000),
+        );
+        onStatus(`Scrolling... ${remaining}s remaining`);
+      });
 
     refreshDriver.stop();
 

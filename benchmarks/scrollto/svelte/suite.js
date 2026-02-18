@@ -4,7 +4,7 @@
 // Tests scrolling to random positions across the list and measures
 // the time until the scroll settles at the target position.
 
-import { vlist } from "vlist/svelte";
+import { vlist } from "vlist-svelte";
 import {
   defineSuite,
   generateItems,

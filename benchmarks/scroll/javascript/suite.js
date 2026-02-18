@@ -164,9 +164,10 @@ const findViewport = (container) => {
  *
  * @param {HTMLElement} container
  * @param {Array<{id: number}>} items
+ * @param {(progress: number) => void} [onProgress] - Progress callback (0-1)
  * @returns {Promise<{frameTimes: number[], frameWorkTimes: number[], totalFrames: number, scrollDriverRate: number}>}
  */
-const measureScrollFPS = async (container, items) => {
+const measureScrollFPS = async (container, items, onProgress) => {
   container.innerHTML = "";
 
   const list = vlist({
@@ -200,6 +201,7 @@ const measureScrollFPS = async (container, items) => {
     const frameWorkTimes = [];
     let running = true;
     let scrollDriverTicks = 0;
+    let lastProgressUpdate = 0;
 
     // -----------------------------------------------------------------------
     // Loop 1 — Paint counter (rAF)
@@ -287,6 +289,9 @@ const measureScrollFPS = async (container, items) => {
       if (elapsed >= SCROLL_DURATION_MS) {
         running = false;
 
+        // Report 100% complete
+        if (onProgress) onProgress(1);
+
         // Clean up cost probe
         viewport.removeEventListener("scroll", onScrollForCostProbe);
         if (costProbeFrameId !== null) {
@@ -306,6 +311,13 @@ const measureScrollFPS = async (container, items) => {
           scrollDriverRate: driverRate,
         });
         return;
+      }
+
+      // Update progress every ~100ms to avoid excessive callback calls
+      if (onProgress && elapsed - lastProgressUpdate > 100) {
+        const progress = elapsed / SCROLL_DURATION_MS;
+        onProgress(progress);
+        lastProgressUpdate = elapsed;
       }
 
       // Advance scroll position based on real elapsed time (NOT per-frame)
@@ -522,7 +534,12 @@ defineSuite({
     // =====================================================================
     onStatus(`Scrolling for ${SCROLL_DURATION_MS / 1000}s...`);
     const { frameTimes, frameWorkTimes, totalFrames, scrollDriverRate } =
-      await measureScrollFPS(container, items);
+      await measureScrollFPS(container, items, (progress) => {
+        const remaining = Math.ceil(
+          (1 - progress) * (SCROLL_DURATION_MS / 1000),
+        );
+        onStatus(`Scrolling... ${remaining}s remaining`);
+      });
 
     // Stop the canvas driver now that measurement is complete
     refreshDriver.stop();

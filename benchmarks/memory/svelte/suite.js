@@ -8,7 +8,7 @@
 // The delta between (2) and (3) reveals memory leaks.
 // Chrome-only (requires performance.memory API).
 
-import { vlist } from "vlist/svelte";
+import { vlist } from "vlist-svelte";
 import {
   defineSuite,
   generateItems,
@@ -54,12 +54,13 @@ const findViewport = (container) => {
   return container.firstElementChild;
 };
 
-const scrollFor = (viewport, durationMs) => {
+const scrollFor = (viewport, durationMs, onProgress) => {
   return new Promise((resolve) => {
     let startTime = 0;
     let scrollPos = viewport.scrollTop || 0;
     let direction = 1;
     const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+    let lastProgressUpdate = 0;
 
     const tick = (timestamp) => {
       if (startTime === 0) {
@@ -68,9 +69,19 @@ const scrollFor = (viewport, durationMs) => {
         return;
       }
 
-      if (timestamp - startTime >= durationMs) {
+      const elapsed = timestamp - startTime;
+
+      if (elapsed >= durationMs) {
+        if (onProgress) onProgress(1);
         resolve();
         return;
+      }
+
+      // Update progress every ~100ms to avoid excessive callback calls
+      if (onProgress && elapsed - lastProgressUpdate > 100) {
+        const progress = elapsed / durationMs;
+        onProgress(progress);
+        lastProgressUpdate = elapsed;
       }
 
       scrollPos += SCROLL_SPEED_PX_PER_FRAME * direction;
@@ -161,7 +172,10 @@ defineSuite({
     }
 
     onStatus(`Scrolling for ${SCROLL_DURATION_MS / 1000}s...`);
-    await scrollFor(viewport, SCROLL_DURATION_MS);
+    await scrollFor(viewport, SCROLL_DURATION_MS, (progress) => {
+      const remaining = Math.ceil((1 - progress) * (SCROLL_DURATION_MS / 1000));
+      onStatus(`Scrolling... ${remaining}s remaining`);
+    });
 
     // Let GC settle after scrolling
     await waitFrames(SETTLE_FRAMES);

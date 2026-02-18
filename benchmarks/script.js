@@ -7,25 +7,24 @@
 // Import suites (side-effect: each calls defineSuite())
 // All benchmark suites - variants imported statically
 import "./render/javascript/suite.js";
-// TEMP: Disabled React/Vue/Svelte - vlist 0.7.1 adapters moved to separate packages
-// import "./render/react/suite.js";
-// import "./render/vue/suite.js";
-// import "./render/svelte/suite.js";
+import "./render/react/suite.js";
+import "./render/vue/suite.js";
+import "./render/svelte/suite.js";
 
 import "./scroll/javascript/suite.js";
-// import "./scroll/react/suite.js";
-// import "./scroll/vue/suite.js";
-// import "./scroll/svelte/suite.js";
+import "./scroll/react/suite.js";
+import "./scroll/vue/suite.js";
+import "./scroll/svelte/suite.js";
 
 import "./memory/javascript/suite.js";
-// import "./memory/react/suite.js";
-// import "./memory/vue/suite.js";
-// import "./memory/svelte/suite.js";
+import "./memory/react/suite.js";
+import "./memory/vue/suite.js";
+import "./memory/svelte/suite.js";
 
 import "./scrollto/javascript/suite.js";
-// import "./scrollto/react/suite.js";
-// import "./scrollto/vue/suite.js";
-// import "./scrollto/svelte/suite.js";
+import "./scrollto/react/suite.js";
+import "./scrollto/vue/suite.js";
+import "./scrollto/svelte/suite.js";
 
 // Comparison suite (compares vlist vs react-window)
 import "./comparison/suite.js";
@@ -212,6 +211,7 @@ const dom = {
   runBtn: null,
   statusEl: null,
   progressBar: null,
+  progressText: null,
   progressContainer: null,
   suitesContainer: null,
   suiteCards: new Map(), // suiteId → { card, statusEl, metricsContainer, tabs, runBtn, viewport, viewportInner }
@@ -255,6 +255,7 @@ function buildSuitePage(root, suite) {
       <!-- Progress -->
       <div class="bench-progress" id="bench-progress">
         <div class="bench-progress__bar" id="bench-progress-bar"></div>
+        <div class="bench-progress__text" id="bench-progress-text">0%</div>
       </div>
 
       <!-- Suite Card -->
@@ -279,6 +280,7 @@ function buildSuitePage(root, suite) {
   dom.runBtn = root.querySelector("#bench-run");
   dom.statusEl = root.querySelector("#bench-status");
   dom.progressBar = root.querySelector("#bench-progress-bar");
+  dom.progressText = root.querySelector("#bench-progress-text");
   dom.progressContainer = root.querySelector("#bench-progress");
   dom.suitesContainer = root.querySelector("#bench-suites");
 
@@ -432,6 +434,21 @@ const handleSizeClick = (count) => {
 
 const buildSuiteCards = (container, suites) => {
   for (const suite of suites) {
+    // Create a wrapper to hold both viewport and suite card as a unit
+    const wrapper = document.createElement("div");
+    wrapper.className = "bench-suite-wrapper";
+    wrapper.id = `wrapper-${suite.id}`;
+
+    // Create viewport element
+    const viewport = document.createElement("div");
+    viewport.className = "bench-viewport";
+    viewport.id = `viewport-${suite.id}`;
+    viewport.innerHTML = `
+      <span class="bench-viewport__label">live</span>
+      <div class="bench-viewport__inner" id="viewport-inner-${suite.id}"></div>
+    `;
+
+    // Create suite card
     const card = document.createElement("div");
     card.className = "bench-suite";
     card.id = `suite-${suite.id}`;
@@ -455,21 +472,19 @@ const buildSuiteCards = (container, suites) => {
           <span class="bench-metric__value">Click "Run" to benchmark</span>
         </div>
       </div>
-      <div class="bench-viewport" id="viewport-${suite.id}">
-        <span class="bench-viewport__label">live</span>
-        <div class="bench-viewport__inner" id="viewport-inner-${suite.id}"></div>
-      </div>
     `;
 
-    container.appendChild(card);
+    // Append viewport and card to wrapper, then append wrapper to container
+    wrapper.appendChild(viewport);
+    wrapper.appendChild(card);
+    container.appendChild(wrapper);
 
     // Cache refs
     const statusEl = card.querySelector(`#status-${suite.id}`);
     const metricsContainer = card.querySelector(`#metrics-${suite.id}`);
     const tabsContainer = card.querySelector(`#tabs-${suite.id}`);
     const tabs = Array.from(tabsContainer.querySelectorAll(".bench-tab"));
-    const viewport = card.querySelector(`#viewport-${suite.id}`);
-    const viewportInner = card.querySelector(`#viewport-inner-${suite.id}`);
+    const viewportInner = viewport.querySelector(`#viewport-inner-${suite.id}`);
 
     dom.suiteCards.set(suite.id, {
       card,
@@ -603,6 +618,19 @@ const handleSuiteRunClick = async (suiteId) => {
 
   const totalSteps = selectedItemCounts.length;
   let completedSteps = 0;
+  let currentStepProgress = 0;
+
+  // Helper to update progress with sub-step granularity
+  const updateProgress = () => {
+    const baseProgress = completedSteps / totalSteps;
+    const currentStepWeight = 1 / totalSteps;
+    const totalProgress =
+      baseProgress + currentStepProgress * currentStepWeight;
+    setProgress(totalProgress);
+  };
+
+  // Initialize progress bar
+  setProgress(0);
 
   try {
     await runBenchmarks({
@@ -614,12 +642,65 @@ const handleSuiteRunClick = async (suiteId) => {
       onStatus: (sid, itemCount, message) => {
         updateSuiteStatus(sid, itemCount, message);
         setGlobalStatus(`${formatItemCount(itemCount)} — ${message}`);
+
+        // Estimate progress based on status message
+        // Phase-based progress (scroll benchmark)
+        if (message.includes("Waking up display")) {
+          currentStepProgress = 0.1;
+        } else if (message.includes("Checking rAF rate")) {
+          currentStepProgress = 0.2;
+        } else if (message.includes("Preparing")) {
+          currentStepProgress = 0.05;
+        } else if (message.includes("Warming up")) {
+          currentStepProgress = 0.3;
+        } else if (
+          message.includes("Measuring") ||
+          message.includes("Running")
+        ) {
+          currentStepProgress = 0.4;
+        } else if (
+          message.includes("Scrolling") &&
+          !message.includes("remaining")
+        ) {
+          // Initial "Scrolling for Xs..." message
+          currentStepProgress = 0.4;
+        } else if (message.match(/Scrolling\.\.\. (\d+)s remaining/)) {
+          // Memory benchmark: "Scrolling... Xs remaining"
+          const match = message.match(/Scrolling\.\.\. (\d+)s remaining/);
+          const remaining = parseInt(match[1], 10);
+          // SCROLL_DURATION_MS is 10s, so calculate elapsed
+          const totalSeconds = 10;
+          const elapsed = totalSeconds - remaining;
+          const progress = elapsed / totalSeconds;
+          // Map from 0.4 to 0.95 of the current step
+          currentStepProgress = 0.4 + progress * 0.55;
+        } else if (message.includes("Creating list")) {
+          currentStepProgress = 0.5;
+        } else if (message.includes("Measuring baseline")) {
+          currentStepProgress = 0.15;
+        } else if (message.match(/Iteration (\d+)\/(\d+)/)) {
+          // Render benchmark: "Iteration X/Y"
+          const match = message.match(/Iteration (\d+)\/(\d+)/);
+          const current = parseInt(match[1], 10);
+          const total = parseInt(match[2], 10);
+          // Map iterations from 0.4 to 0.95 of the current step
+          currentStepProgress = 0.4 + (current / total) * 0.55;
+        } else if (message.match(/Jump (\d+)\/(\d+)/)) {
+          // ScrollTo benchmark: "Jump X/Y → index N"
+          const match = message.match(/Jump (\d+)\/(\d+)/);
+          const current = parseInt(match[1], 10);
+          const total = parseInt(match[2], 10);
+          // Map jumps from 0.4 to 0.95 of the current step
+          currentStepProgress = 0.4 + (current / total) * 0.55;
+        }
+        updateProgress();
       },
 
       onResult: (result) => {
         storeResult(result);
         completedSteps++;
-        setProgress(completedSteps / totalSteps);
+        currentStepProgress = 0;
+        updateProgress();
 
         // Mark tab as done
         markTabDone(result.suiteId, result.itemCount);
@@ -691,8 +772,17 @@ const setProgress = (fraction) => {
   const pct = Math.round(fraction * 100);
   dom.progressBar.style.width = `${pct}%`;
 
+  if (dom.progressText) {
+    dom.progressText.textContent = `${pct}%`;
+  }
+
   if (fraction === 0) {
     dom.progressContainer.classList.remove("bench-progress--active");
+    if (dom.progressText) {
+      dom.progressText.textContent = "0%";
+    }
+  } else {
+    dom.progressContainer.classList.add("bench-progress--active");
   }
 };
 

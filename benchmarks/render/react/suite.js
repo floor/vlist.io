@@ -4,7 +4,7 @@
 // and render the first frame. Runs multiple iterations and reports median, min, and p95.
 
 import { createRoot } from "react-dom/client";
-import { useVList } from "vlist/react";
+import { useVList } from "vlist-react";
 import {
   defineSuite,
   generateItems,

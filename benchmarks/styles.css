@@ -191,15 +191,35 @@
 }
 
 .bench-status {
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-dim);
     margin-left: auto;
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
     white-space: nowrap;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: var(--bg-card);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
 }
 
 .bench-status--running {
-    color: var(--accent-text);
+    color: var(--accent);
+    font-weight: 600;
+    background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+    border-color: var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 /* ============================================================================
@@ -207,23 +227,24 @@
    ============================================================================ */
 
 .bench-suites {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
     margin-bottom: 40px;
 }
 
-.bench-suites--running {
-    grid-template-columns: 1fr;
+/* Wrapper groups viewport + suite card as a single grid item */
+.bench-suite-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
 }
 
-.bench-suites--running .bench-suite:not(.bench-suite--running) .bench-viewport {
-    display: none;
+.bench-suites--running .bench-suite:not(.bench-suite--running) {
+    opacity: 0.4;
 }
 
-@media (max-width: 768px) {
-    .bench-suites {
+@media (max-width: 900px) {
+    .bench-suite-wrapper {
         grid-template-columns: 1fr;
+        gap: 24px;
     }
 }
 
@@ -235,12 +256,13 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 20px;
-    transition: border-color 0.2s ease;
+    padding: 24px;
+    transition: all 0.3s ease;
 }
 
 .bench-suite--running {
     border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(var(--accent-rgb, 99, 102, 241), 0.15);
 }
 
 .bench-suite--done {
@@ -577,18 +599,21 @@
 
 .bench-viewport {
     width: 100%;
-    height: 350px;
-    border-radius: 8px;
+    height: 400px;
+    border-radius: 12px;
     overflow: hidden;
     background: var(--bg);
-    border: 1px solid var(--border);
-    margin-top: 12px;
+    border: 2px solid var(--border);
+    margin-bottom: 16px;
     position: relative;
-    display: none;
+    display: block;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease;
 }
 
 .bench-viewport--active {
-    display: block;
+    opacity: 1;
+    border-color: var(--accent);
 }
 
 .bench-viewport__inner {
@@ -627,14 +652,19 @@
    ============================================================================ */
 
 .bench-progress {
+    position: relative;
     width: 100%;
-    height: 3px;
-    background: var(--bg);
-    border-radius: 2px;
-    overflow: hidden;
+    height: 28px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    overflow: visible;
     margin-bottom: 24px;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.3s ease;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .bench-progress--active {
@@ -642,11 +672,25 @@
 }
 
 .bench-progress__bar {
+    position: absolute;
+    left: 0;
+    top: 0;
     height: 100%;
     width: 0%;
     background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.3s ease;
+    border-radius: 7px;
+    transition: width 0.2s ease-out;
+    opacity: 0.15;
+}
+
+.bench-progress__text {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    letter-spacing: 0.5px;
 }
 
 /* ============================================================================

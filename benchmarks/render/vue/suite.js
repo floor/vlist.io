@@ -4,7 +4,7 @@
 // and render the first frame. Runs multiple iterations and reports median, min, and p95.
 
 import { createApp } from "vue";
-import { useVList } from "vlist/vue";
+import { useVList } from "vlist-vue";
 import {
   defineSuite,
   generateItems,

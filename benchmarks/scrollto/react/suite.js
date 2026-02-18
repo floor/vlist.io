@@ -5,7 +5,7 @@
 // the time until the scroll settles at the target position.
 
 import { createRoot } from "react-dom/client";
-import { useVList } from "vlist/react";
+import { useVList } from "vlist-react";
 import {
   defineSuite,
   generateItems,

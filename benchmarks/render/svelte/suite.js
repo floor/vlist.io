@@ -3,7 +3,7 @@
 // Measures how long it takes to create a vlist with Svelte's vlist action
 // and render the first frame. Runs multiple iterations and reports median, min, and p95.
 
-import { vlist } from "vlist/svelte";
+import { vlist } from "vlist-svelte";
 import {
   defineSuite,
   generateItems,
