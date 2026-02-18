@@ -1,7 +1,7 @@
 // Scroll Save/Restore Example
 // Demonstrates getScrollSnapshot() and restoreScroll() for SPA navigation
 
-import { vlist, withSelection } from "vlist";
+import { vlist, withSelection, withSnapshots } from "vlist";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -86,6 +86,7 @@ function createList() {
     items,
   })
     .use(withSelection({ mode: "multiple" }))
+    .use(withSnapshots())
     .build();
 
   // Live stats
