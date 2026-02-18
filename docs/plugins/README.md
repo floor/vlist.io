@@ -890,12 +890,12 @@ vlist({ ... })
 
 ## See Also
 
-- [Builder Pattern](./guides/builder-pattern.md) - Detailed builder API docs
-- [Grid Plugin](./plugins/grid.md) - Grid layout in depth
-- [Sections Plugin](./plugins/sections.md) - Grouped lists guide
-- [Async Plugin](./plugins/async.md) - Data loading patterns
-- [Selection Plugin](./plugins/selection.md) - Selection and keyboard navigation
-- [API Reference](./api/methods.md) - Complete API documentation
+- [Builder Pattern](../guides/builder-pattern.md) - Detailed builder API docs
+- [Grid Plugin](./grid.md) - Grid layout in depth
+- [Sections Plugin](./sections.md) - Grouped lists guide
+- [Async Plugin](./async.md) - Data loading patterns
+- [Selection Plugin](./selection.md) - Selection and keyboard navigation
+- [API Reference](../api/methods.md) - Complete API documentation
 
 ---
 

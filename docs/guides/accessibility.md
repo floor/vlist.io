@@ -315,7 +315,7 @@ Override these CSS custom properties to match your design system:
 }
 ```
 
-Dark mode tokens are set automatically via `prefers-color-scheme: dark` or the `.dark` class. See [styles.md](./guides/styling.md) for the full token reference.
+Dark mode tokens are set automatically via `prefers-color-scheme: dark` or the `.dark` class. See [styles.md](./styling.md) for the full token reference.
 
 ---
 

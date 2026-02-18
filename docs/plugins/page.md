@@ -392,8 +392,8 @@ For better SEO with infinite scroll:
 ## See Also
 
 - **[Plugins Overview](./README.md)** - All available plugins
-- **[Async Plugin](./plugins/async.md)** - Combine for infinite scroll
-- **[Scrollbar Plugin](./plugins/scrollbar.md)** - Alternative: custom scrollbar
+- **[Async Plugin](./async.md)** - Combine for infinite scroll
+- **[Scrollbar Plugin](./scrollbar.md)** - Alternative: custom scrollbar
 - **[Builder Pattern](../guides/builder-pattern.md)** - How to compose plugins
 - **[Examples](https://vlist.dev/sandbox/)** - Interactive examples
 

@@ -253,7 +253,7 @@ item: {
 }
 ```
 
-**⚠️ Important**: The `state` object is **reused** for performance. Templates should read from it immediately and not store the reference. See [optimization.md](./guides/optimization.md) for details.
+**⚠️ Important**: The `state` object is **reused** for performance. Templates should read from it immediately and not store the reference. See [optimization.md](../guides/optimization.md) for details.
 
 #### `SelectionConfig`
 
