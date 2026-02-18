@@ -685,11 +685,21 @@
                     var scrollPos = window.scrollY + 100; // offset for header
                     var current = null;
 
-                    // Find the heading closest to top of viewport
-                    for (var i = headings.length - 1; i >= 0; i--) {
-                        if (headings[i].offsetTop <= scrollPos) {
-                            current = headings[i];
-                            break;
+                    // Check if we're at the bottom of the page
+                    var isAtBottom =
+                        window.innerHeight + window.scrollY >=
+                        document.documentElement.scrollHeight - 10;
+
+                    if (isAtBottom) {
+                        // If at bottom, activate the last heading
+                        current = headings[headings.length - 1];
+                    } else {
+                        // Find the heading closest to top of viewport
+                        for (var i = headings.length - 1; i >= 0; i--) {
+                            if (headings[i].offsetTop <= scrollPos) {
+                                current = headings[i];
+                                break;
+                            }
                         }
                     }
 
