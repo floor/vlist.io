@@ -246,6 +246,18 @@ body {
     min-height: calc(100vh - var(--header-height));
 }
 
+/* ─── Markdown Content ───────────────────────────────────────────── */
+
+/* Offset scroll position to account for fixed header (56px + 16px padding) */
+.md h1,
+.md h2,
+.md h3,
+.md h4,
+.md h5,
+.md h6 {
+    scroll-margin-top: calc(var(--header-height) + 16px);
+}
+
 /* ─── Table of Contents (right sidebar) ──────────────────────────── */
 
 .toc {
