@@ -219,7 +219,6 @@ body {
     height: calc(100vh - var(--header-height));
     width: var(--sidebar-width);
     flex-shrink: 0;
-    background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
     overflow-y: auto;
     padding: 20px 0;
@@ -260,7 +259,7 @@ body {
     text-decoration: none;
     padding: 5px 20px;
     transition: all 0.1s;
-    border-left: 2px solid transparent;
+    border-right: 2px solid transparent;
 }
 
 .sidebar__link:hover {
@@ -270,7 +269,7 @@ body {
 
 .sidebar__link--active {
     color: var(--accent-text);
-    border-left-color: var(--accent);
+    border-right-color: var(--accent);
     background: var(--accent-dim);
 }
 

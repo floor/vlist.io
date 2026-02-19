@@ -555,26 +555,17 @@ html[data-theme] .source__panel pre {
    ============================================================================ */
 
 .source {
-    position: fixed;
-    top: 0;
+    position: absolute;
     bottom: 0;
-    left: var(--sidebar-width);
+    left: 0;
     right: 0;
     z-index: 100;
-    background: var(--bg-card);
-    border-top: 1px solid var(--border);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transform: translateY(calc(100% - 41px)); /* show only the header */
     transition:
-        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
         background-color 0.25s ease,
         border-color 0.25s ease;
-}
-
-.source--open {
-    transform: translateY(0);
 }
 
 .source__header {
@@ -583,6 +574,7 @@ html[data-theme] .source__panel pre {
     gap: 16px;
     padding: 0 16px;
     border-bottom: 1px solid var(--border);
+    border-radius: 0 8px 0 0;
     background: var(--bg-card);
     flex-shrink: 0;
     height: 41px;
@@ -656,11 +648,18 @@ html[data-theme] .source__panel pre {
 }
 
 .source__body {
-    flex: 1;
+    height: 0;
     overflow: hidden;
     min-height: 0;
     display: flex;
     flex-direction: column;
+    background: var(--bg-card);
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.source--open .source__body {
+    flex: 1;
+    height: auto;
 }
 
 .source__panel {
@@ -909,10 +908,6 @@ html[data-theme] .source__panel pre {
 
     .controls {
         flex-direction: column;
-    }
-
-    .source {
-        left: 0;
     }
 
     .source__header {

@@ -191,20 +191,23 @@
                     { passive: false },
                 );
 
-                // Compute drawer top from the container header's bottom edge
-                function updateSourceTop() {
+                // Compute drawer top relative to .content (absolute positioning)
+                function getSourceTop() {
                     var header = document.querySelector(
                         ".content .container header",
                     );
-                    if (!header) return;
-                    var bottom = header.getBoundingClientRect().bottom;
-                    source.style.top = bottom + 20 + "px";
+                    if (!header) return null;
+                    return header.offsetTop + header.offsetHeight + 20 + "px";
                 }
 
-                updateSourceTop();
-                window.addEventListener("resize", updateSourceTop);
+                window.addEventListener("resize", function () {
+                    if (activeTab) {
+                        source.style.top = getSourceTop();
+                    }
+                });
 
                 function openTab(id) {
+                    source.style.top = getSourceTop();
                     tabs.forEach(function (t) {
                         t.classList.remove("source__tab--active");
                     });
@@ -222,6 +225,7 @@
                 }
 
                 function closeDrawer() {
+                    source.style.top = "";
                     source.classList.remove("source--open");
                     tabs.forEach(function (t) {
                         t.classList.remove("source__tab--active");

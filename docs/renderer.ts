@@ -37,11 +37,11 @@ export const DOC_GROUPS: DocGroup[] = [
         name: "Quick Start",
         desc: "Get started in 5 minutes with common patterns",
       },
-      {
-        slug: "guides/getting-started",
-        name: "Documentation",
-        desc: "Complete introduction, configuration, and usage",
-      },
+      // {
+      //   slug: "guides/getting-started",
+      //   name: "Documentation",
+      //   desc: "Complete introduction, configuration, and usage",
+      // },
       {
         slug: "guides/builder-pattern",
         name: "Builder Pattern",
@@ -84,7 +84,7 @@ export const DOC_GROUPS: DocGroup[] = [
     items: [
       {
         slug: "plugins/README",
-        name: "Plugins Overview",
+        name: "Overview",
         desc: "All plugins with examples and costs",
       },
       {
