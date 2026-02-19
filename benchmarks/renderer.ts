@@ -74,6 +74,12 @@ export const BENCH_GROUPS: BenchGroup[] = [
         icon: "⚔️",
         desc: "Head-to-head performance: vlist vs react-window",
       },
+      {
+        slug: "memory-optimization-comparison",
+        name: "Memory Optimization Impact",
+        icon: "⚖️",
+        desc: "Compare baseline vs optimized config to measure memory savings",
+      },
     ],
   },
 ];

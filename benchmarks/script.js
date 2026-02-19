@@ -29,6 +29,9 @@ import "./scrollto/svelte/suite.js";
 // Comparison suite (compares vlist vs react-window)
 import "./comparison/suite.js";
 
+// Memory optimization comparison
+import "./comparison/memory-optimization.js";
+
 // =============================================================================
 // Variant Support
 // =============================================================================
