@@ -14,8 +14,7 @@
     "build:sandbox:watch": "bun run sandbox/build.ts --watch",
     "build:bench": "bun run benchmarks/build.ts",
     "build:bench:watch": "bun run benchmarks/build.ts --watch",
-    "typecheck": "tsc --noEmit",
-    "link:libs": "cd ~/Code/floor/vlist && bun link && cd ~/Code/floor/vlist.dev && bun link vlist"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@floor/vlist": "file:../vlist",

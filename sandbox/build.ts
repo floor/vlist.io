@@ -435,6 +435,26 @@ async function watchMode() {
     }
   });
 
+  // Watch vlist src directory for changes
+  const vlistSrcDir = resolve("../vlist/src");
+  if (existsSync(vlistSrcDir)) {
+    console.log("👀 Watching vlist/src for changes...\n");
+    watch(vlistSrcDir, { recursive: true }, async (_event, filename) => {
+      if (
+        filename &&
+        (filename.endsWith(".ts") ||
+          filename.endsWith(".tsx") ||
+          filename.endsWith(".js") ||
+          filename.endsWith(".jsx"))
+      ) {
+        console.log(
+          `\n📝 vlist/src/${filename} changed - rebuilding all examples...`,
+        );
+        await main();
+      }
+    });
+  }
+
   // Watch each sandbox directory (including nested category folders)
   const examples = await discoverExamples();
   const watchedDirs = new Set<string>();

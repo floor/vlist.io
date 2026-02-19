@@ -26,10 +26,11 @@ import {
 let loadRequests = 0;
 let loadedCount = 0;
 let currentVelocity = 0;
+let currentScrollTop = 0;
 let isLoading = false;
 
 // DOM references (will be set after DOM loads)
-let statRequestsEl, statLoadedEl, statVelocityEl;
+let statRequestsEl, statLoadedEl, statVelocityEl, statScrollTopEl;
 let loadRequestsEl, loadedCountEl;
 let velocityValueEl, velocityFillEl, velocityStatusEl;
 
@@ -47,6 +48,8 @@ function updateStatsBar() {
   if (statLoadedEl) statLoadedEl.textContent = formatLoadedCount(loadedCount);
   if (statVelocityEl)
     statVelocityEl.textContent = formatVelocity(currentVelocity);
+  if (statScrollTopEl)
+    statScrollTopEl.textContent = Math.round(currentScrollTop).toLocaleString();
 }
 
 function updateControls() {
@@ -131,6 +134,7 @@ const list = vlist({
 statRequestsEl = document.getElementById("stat-requests");
 statLoadedEl = document.getElementById("stat-loaded");
 statVelocityEl = document.getElementById("stat-velocity");
+statScrollTopEl = document.getElementById("stat-scrolltop");
 loadRequestsEl = document.getElementById("load-requests");
 loadedCountEl = document.getElementById("loaded-count");
 velocityValueEl = document.getElementById("velocity-value");
@@ -149,6 +153,12 @@ const btnReload = document.getElementById("btn-reload");
 const btnResetStats = document.getElementById("btn-reset-stats");
 
 // Event bindings
+// Track scroll position
+list.on("scroll", ({ scrollTop }) => {
+  currentScrollTop = scrollTop;
+  updateStatsBar();
+});
+
 // Use velocity from plugin (smoothed with circular buffer)
 list.on("velocity:change", ({ velocity }) => {
   currentVelocity = velocity;
