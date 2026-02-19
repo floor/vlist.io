@@ -557,6 +557,7 @@ html[data-theme] .source__panel pre {
 .source {
     position: sticky;
     bottom: 0;
+    margin-top: auto;
     z-index: 100;
     overflow: hidden;
     display: flex;
