@@ -268,6 +268,33 @@ function buildSourceTabs(slug: string, variant?: Variant): string {
     }
   }
 
+  // When using variants, also include shared files from the example root
+  // directory (e.g. shared.js, styles.css) that aren't in the variant folder
+  if (variant) {
+    const rootDir = join(SANDBOX_DIR, slug);
+    const foundNames = new Set(sources.map((s) => s.label));
+
+    const sharedFiles: { name: string; id: string; lang: string }[] = [
+      { name: "shared.ts", id: "shared-ts", lang: "typescript" },
+      { name: "shared.js", id: "shared-js", lang: "javascript" },
+      { name: "styles.css", id: "css", lang: "css" },
+    ];
+
+    for (const f of sharedFiles) {
+      // Skip if a file with same name was already found in the variant dir
+      if (foundNames.has(f.name)) continue;
+
+      const filePath = join(rootDir, f.name);
+      if (existsSync(filePath)) {
+        const code = readFileSync(filePath, "utf-8").trim();
+        if (code.length > 0) {
+          sources.push({ label: f.name, id: f.id, lang: f.lang, code });
+          foundNames.add(f.name);
+        }
+      }
+    }
+  }
+
   if (sources.length === 0) return "";
 
   const lines: string[] = [];
