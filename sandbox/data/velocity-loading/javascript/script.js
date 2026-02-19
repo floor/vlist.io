@@ -180,10 +180,14 @@ list.on("load:end", ({ items }) => {
 });
 
 // Controls
-btnToggleApi.addEventListener("click", () => {
+btnToggleApi.addEventListener("click", async () => {
   setUseRealApi(!getUseRealApi());
   btnToggleApi.textContent = formatApiSource(getUseRealApi());
-  list.reload();
+  loadedCount = 0;
+  prevState.loadedCount = -1;
+  updateControls();
+  updateStatsBar();
+  await list.reload();
 });
 
 sliderDelay.addEventListener("input", () => {
@@ -218,6 +222,10 @@ btnEnd.addEventListener("click", () => {
 });
 
 btnReload.addEventListener("click", async () => {
+  loadedCount = 0;
+  prevState.loadedCount = -1;
+  updateControls();
+  updateStatsBar();
   await list.reload();
 });
 
