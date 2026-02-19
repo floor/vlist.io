@@ -1,6 +1,6 @@
 # Decompose `builder/core.ts`
 
-**Date:** February 2025
+**Date:** February 2026
 **Status:** ✅ **COMPLETE** — Both options implemented and compared empirically
 **Branches:**
 - `refactor/decompose-core-refs-object` — **Option A (refs object) — RECOMMENDED** ✅

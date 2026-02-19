@@ -156,7 +156,7 @@ headerTemplate: (key: string, groupIndex: number) => HTMLElement | string
 ```
 
 **Parameters:**
-- `key` — Group key (e.g., "A", "2025-01-15", "Electronics")
+- `key` — Group key (e.g., "A", "2026-01-15", "Electronics")
 - `groupIndex` — Zero-based index of this group (0 for first group, 1 for second, etc.)
 
 **Return Value:**

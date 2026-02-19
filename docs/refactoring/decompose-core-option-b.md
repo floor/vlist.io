@@ -1,6 +1,6 @@
 # Decompose `builder/core.ts` — Option B: Getter-Setter Deps
 
-**Date:** February 2025
+**Date:** February 2026
 **Status:** ✅ **IMPLEMENTED** — empirical comparison complete
 **Branch:** `refactor/decompose-core-getter-setter`
 **Baseline:** `staging` (71.4 KB, 1900 lines in core.ts)

@@ -5,7 +5,7 @@ This directory contains documentation for major refactoring efforts in the VList
 ## 📚 Documents
 
 ### [module-organization-complete.md](./module-organization-complete.md)
-**Module Organization Refactoring - Completed January 2025**
+**Module Organization Refactoring - Completed January 2026**
 
 Complete documentation of the major refactoring that reorganized VList from a dual-entry system to a builder-only architecture with clearer module naming.
 
@@ -19,7 +19,7 @@ Complete documentation of the major refactoring that reorganized VList from a du
 **Status:** ✅ Complete - All tests passing (1739/1739)
 
 ### [decompose-builder-core.md](./decompose-builder-core.md)
-**Decompose `builder/core.ts` — In Progress February 2025**
+**Decompose `builder/core.ts` — In Progress February 2026**
 
 Decomposition of the largest file in the project (1900 lines) into focused modules. Comparing two approaches for extracting closure-heavy code from `materialize()`.
 
@@ -32,7 +32,7 @@ Decomposition of the largest file in the project (1900 lines) into focused modul
 **Status:** 🔄 In progress — Option A (refs object) complete, Option B (getter-setter deps) planned
 
 ### [decompose-core-option-b.md](./decompose-core-option-b.md)
-**Option B Plan: Getter-Setter Deps — February 2025**
+**Option B Plan: Getter-Setter Deps — February 2026**
 
 Design and pre-implementation analysis of the alternative extraction approach. Hot-path variables stay as bare `let` locals (optimal minification); extracted factories receive getter/setter closures instead of a shared mutable object. Theoretical analysis raises concerns about memory and bundle overhead — to be validated empirically.
 
@@ -124,7 +124,7 @@ const list = vlist(config)
 
 ## 📅 History
 
-- **January 2025** - Module organization refactoring completed
+- **January 2026** - Module organization refactoring completed
   - Branch: `refactor/module-organization`
   - Duration: ~2.5 hours
   - Result: ✅ All tests passing, 2-3x bundle size reduction
@@ -139,4 +139,4 @@ Potential future refactoring efforts may be documented here as they are planned 
 
 ---
 
-**Last Updated:** February 19, 2025
+**Last Updated:** February 19, 2026

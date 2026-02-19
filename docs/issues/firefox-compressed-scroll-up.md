@@ -253,6 +253,6 @@ mtrl-addons has a `smoothing` option in its wheel handler that multiplies deltaY
 
 ---
 
-**Created**: 2025-01-29  
-**Fixed**: 2025-01-30  
+**Created**: 2026-01-29  
+**Fixed**: 2026-01-30  
 **Solution**: Lerp-based smooth scroll interpolation in compressed wheel handler
