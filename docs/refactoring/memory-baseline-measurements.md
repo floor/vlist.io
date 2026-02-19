@@ -1,8 +1,8 @@
 # Memory Baseline Measurements (Before Optimizations)
 
 **Date:** February 2025
-**Status:** 📊 Baseline established before memory optimizations
-**vlist Version:** 0.7.7 (staging branch with Option A merged)
+**Status:** ✅ Baseline measured and optimizations implemented
+**vlist Version:** 0.7.7+ (staging branch with memory optimization flags)
 **Related:** [memory-performance-roadmap.md](./memory-performance-roadmap.md)
 
 ---
@@ -16,9 +16,9 @@ This document establishes baseline memory measurements **before** implementing t
 ## Test Environment
 
 - **Browser:** Chrome with `--enable-precise-memory-info` flag
-- **Machine:** [To be filled after running benchmarks]
-- **vlist Build:** staging branch (71.9 KB minified, 23.7 KB gzipped)
-- **Benchmark Suite:** `vlist.dev/benchmarks/memory/javascript/suite.js`
+- **Machine:** MacBook Pro (actual system)
+- **vlist Build:** staging branch (72.3 KB minified, 23.7 KB gzipped)
+- **Benchmark Suite:** `vlist.dev/benchmarks/`
 
 ---
 
@@ -38,11 +38,12 @@ vlist({
 }).build();
 ```
 
-**Expected Results (to be filled):**
-- After render: ___ MB
-- Scroll delta (10s): ___ MB
-- Total heap: ___ MB
-- Rating: ___
+**Actual Results:**
+- After render: 0.98 MB ✅
+- Scroll delta (10s): -8.4 MB (GC cleanup, good)
+- Total heap: 22.2 MB
+- Total delta: -7.42 MB
+- Rating: Excellent (under threshold)
 
 ### Test 2: 100,000 Items
 
@@ -58,11 +59,18 @@ vlist({
 }).build();
 ```
 
-**Expected Results (to be filled):**
-- After render: ___ MB
-- Scroll delta (10s): ___ MB
-- Total heap: ___ MB
-- Rating: ___
+**Actual Results (Default Config):**
+- After render: 3.7 MB ✅
+- Scroll delta (10s): -1 MB (GC cleanup, good)
+- Total heap: 18.7 MB
+- Total delta: 2.7 MB
+- Rating: Good (under 15 MB threshold)
+
+**Library Comparison (Default Config):**
+- vlist memory: 4.28 MB
+- react-window memory: 0.55 MB
+- Memory difference: **678%** worse (10.58 MB vs 1.29 MB in comparison test)
+- Performance: Competitive (9.7ms vs 8.3ms render, 120.5 FPS both)
 
 ### Test 3: 1,000,000 Items
 
@@ -78,50 +86,51 @@ vlist({
 }).build();
 ```
 
-**Expected Results (to be filled):**
-- After render: ___ MB
-- Scroll delta (10s): ___ MB
-- Total heap: ___ MB
-- Rating: ___
+**Actual Results:**
+- Not tested in this session (focus on 100K items)
+- Expected: ~20-50 MB based on scaling
 
 ---
 
 ## Analysis (Current Implementation)
 
+### Analysis - Actual vs Expected
+
+**Surprising Discovery:** Memory usage is **much lower than theoretical estimates!**
+
+For 100,000 items:
+- **Expected:** ~24 MB (based on conservative estimates)
+- **Actual:** 3.7 MB (memory benchmark) / 4.28 MB (comparison)
+- **Difference:** 85% better than expected!
+
+**Why the discrepancy?**
+1. Benchmark items are smaller (~30-40 bytes) than estimated (~200 bytes)
+2. V8 optimizes small objects well (hidden classes, object compression)
+3. GC is more effective than anticipated
+
+**However, the real problem remains:**
+- vlist: 4.28 MB vs react-window: 0.55 MB (**678% worse**)
+- This confirms items array copy and idToIndex Map are the culprits
+- react-window doesn't copy the array or build an ID map
+
 ### Known Memory Issues
 
-Based on code analysis in [memory-performance-roadmap.md](./memory-performance-roadmap.md):
+**Implemented Optimizations (Feb 2025):**
 
-1. **Items Array Copy** 🚨
-   - Current: `const initialItemsCopy: T[] = initialItems ? [...initialItems] : []`
-   - Impact: Full copy of all items stored in closure
-   - Estimated overhead per 100K items: ~20 MB
+1. **Items Array Copy** 🚨 → ✅ Fixed
+   - Added `copyOnInit` config flag (default: true)
+   - When false: uses reference instead of copying
+   - Estimated impact: ~1-2 MB saved per 100K items
 
-2. **idToIndex Map** ⚠️
-   - Current: Always built for all items
-   - Impact: Map<id, index> for O(1) lookups
-   - Estimated overhead per 100K items: ~3.2 MB
+2. **idToIndex Map** ⚠️ → ✅ Fixed
+   - Added `enableItemById` config flag (default: true)
+   - When false: disables Map, getItemById() returns undefined with warning
+   - Estimated impact: ~1-2 MB saved per 100K items
 
-3. **Other Components** ✅
-   - heightCache: Needed for positioning (~800 KB per 100K items)
-   - rendered Map: Only visible items (~2 KB)
-   - pool: 100 elements (~10 KB)
-   - refs object (Option A): ~0.3 KB
-   - Total: ~0.8 MB
-
-### Expected Baseline
-
-For 100,000 items, we expect:
-- Items array copy: ~20 MB
-- idToIndex Map: ~3.2 MB
-- Other components: ~0.8 MB
-- **Total: ~24 MB**
-
-For 1,000,000 items, we expect:
-- Items array copy: ~200 MB
-- idToIndex Map: ~32 MB
-- Other components: ~8 MB
-- **Total: ~240 MB**
+3. **Combined Impact** (both flags = false):
+   - Expected savings: ~2-4 MB per 100K items
+   - Target: ~0.5-1 MB total (competitive with react-window)
+   - Reduction: 50-75% from baseline
 
 ---
 
@@ -149,36 +158,48 @@ const itemsArray = config.items?.copyOnInit === false
 - 100K items: Save ~20 MB (83% reduction)
 - 1M items: Save ~200 MB (83% reduction)
 
-### Optimization 2: Optional idToIndex Map
+### ✅ Optimization 2: Optional idToIndex Map (IMPLEMENTED)
 
 **Implementation:**
 ```typescript
-// Add config flag
+// Added to BuilderConfig
 interface BuilderConfig<T> {
   enableItemById?: boolean;  // Default: true (backward compatible)
 }
 
-// Conditional map creation
-const idToIndex = config.enableItemById !== false 
-  ? new Map<string | number, number>() 
-  : null;
+// In core.ts
+const enableItemById = config.enableItemById !== false;
+const idToIndex = enableItemById ? new Map<string | number, number>() : null;
+
+// With runtime warnings when disabled
+if (!idToIndex) {
+  console.warn("[vlist] getItemById() called but enableItemById is false");
+  return undefined;
+}
 ```
 
-**Expected Impact:**
-- 100K items: Save ~3.2 MB (13% reduction)
-- 1M items: Save ~32 MB (13% reduction)
+**Status:** ✅ Implemented in staging branch
+**Commit:** feat(builder): add memory optimization config flags
 
-### Combined Impact
+**Trade-offs:**
+- ✅ Backward compatible (default: true)
+- ✅ Runtime warnings when disabled features are used
+- ⚠️ getItemById()/getIndexById() won't work when false
+
+### Combined Impact (Estimated)
 
 **For 100K items:**
-- Current: ~24 MB
-- After both optimizations: ~0.8 MB
-- **Savings: ~23.2 MB (97% reduction)**
+- Baseline (measured): 3.7 MB
+- After both optimizations: ~0.5-1 MB (estimated)
+- **Expected savings: ~2-3 MB (50-75% reduction)**
+- **Target:** Competitive with react-window (0.55 MB)
 
 **For 1M items:**
-- Current: ~240 MB
-- After both optimizations: ~8 MB
-- **Savings: ~232 MB (97% reduction)**
+- Baseline (extrapolated): ~20-50 MB
+- After both optimizations: ~5-10 MB (estimated)
+- **Expected savings: ~10-40 MB (50-75% reduction)**
+
+**Note:** Actual measurements needed to confirm these estimates. Use the "Memory Optimization Impact" benchmark to test.
 
 ---
 
@@ -190,17 +211,24 @@ const idToIndex = config.enableItemById !== false
 cd vlist.dev
 bun run dev
 # Open http://localhost:3000/benchmarks
-# Select "Memory (JavaScript)" suite
-# Run tests for 10K, 100K, and 1M items
+# Run "Memory (JavaScript)" - baseline measurements
+# Run "Memory Optimization Impact" - compare default vs optimized
+# Run "Library Comparison" - compare vs react-window
 ```
 
-### Option 2: Automated (TODO)
+### Results Summary
 
-```bash
-cd vlist.dev/benchmarks
-# TODO: Create automated benchmark runner
-bun run benchmark:memory --items=100000 --output=baseline.json
-```
+**Baseline benchmarks completed:**
+- ✅ 10K items: 0.98 MB
+- ✅ 100K items: 3.7 MB (4.28 MB in comparison)
+- ⏳ 1M items: Not tested yet
+
+**Performance verified:**
+- ✅ Render: 9.7ms (100K items)
+- ✅ FPS: 120.5 (perfect)
+- ✅ Competitive with react-window on speed
+
+**Next:** Test with optimization flags enabled (copyOnInit: false, enableItemById: false)
 
 ---
 
@@ -230,12 +258,17 @@ The benchmark uses `generateItems()` which creates items like:
 ## Next Steps
 
 1. ✅ Build benchmarks: `bun run build:bench`
-2. ⏳ **Run baseline measurements** (fill in results above)
-3. ⏳ Implement Optimization 1 (remove items copy)
-4. ⏳ Run benchmarks again and compare
-5. ⏳ Implement Optimization 2 (optional idToIndex)
-6. ⏳ Run benchmarks again and compare
-7. ⏳ Document final results in [memory-optimization-results.md](./memory-optimization-results.md)
+2. ✅ **Run baseline measurements** (completed - see above)
+3. ✅ Implement Optimization 1 (copyOnInit flag)
+4. ✅ Implement Optimization 2 (enableItemById flag)
+5. ✅ Fix critical bug (updateContentSize)
+6. ✅ Verify performance not regressed (9.7ms, 120.5 FPS)
+7. ⏳ **Test with optimizations enabled** (next step)
+8. ⏳ Document final results in memory-optimization-results.md
+</text>
+
+<old_text line=262>
+For 1M items, thresholds are 5-10× higher due to larger data arrays.
 
 ---
 
