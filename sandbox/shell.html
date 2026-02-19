@@ -191,23 +191,29 @@
                     { passive: false },
                 );
 
-                // Compute drawer top relative to .content (absolute positioning)
-                function getSourceTop() {
+                // Compute available height for source body
+                function updateSourceHeight() {
                     var header = document.querySelector(
                         ".content .container header",
                     );
-                    if (!header) return null;
-                    return header.offsetTop + header.offsetHeight + 20 + "px";
+                    if (!header) return;
+                    var headerBottom = header.getBoundingClientRect().bottom;
+                    var bodyHeight =
+                        window.innerHeight - headerBottom - 20 - 41;
+                    source.style.setProperty(
+                        "--source-body-height",
+                        Math.max(200, bodyHeight) + "px",
+                    );
                 }
 
                 window.addEventListener("resize", function () {
                     if (activeTab) {
-                        source.style.top = getSourceTop();
+                        updateSourceHeight();
                     }
                 });
 
                 function openTab(id) {
-                    source.style.top = getSourceTop();
+                    updateSourceHeight();
                     tabs.forEach(function (t) {
                         t.classList.remove("source__tab--active");
                     });
@@ -225,7 +231,6 @@
                 }
 
                 function closeDrawer() {
-                    source.style.top = "";
                     source.classList.remove("source--open");
                     tabs.forEach(function (t) {
                         t.classList.remove("source__tab--active");

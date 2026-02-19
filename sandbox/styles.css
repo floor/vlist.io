@@ -555,10 +555,8 @@ html[data-theme] .source__panel pre {
    ============================================================================ */
 
 .source {
-    position: absolute;
+    position: sticky;
     bottom: 0;
-    left: 0;
-    right: 0;
     z-index: 100;
     overflow: hidden;
     display: flex;
@@ -658,8 +656,7 @@ html[data-theme] .source__panel pre {
 }
 
 .source--open .source__body {
-    flex: 1;
-    height: auto;
+    height: var(--source-body-height, 60vh);
 }
 
 .source__panel {
