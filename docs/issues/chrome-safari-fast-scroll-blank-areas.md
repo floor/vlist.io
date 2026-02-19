@@ -1,9 +1,9 @@
 # Chrome/Safari Fast Scroll Blank Areas Issue
 
 **Date:** February 2026  
-**Status:** ✅ Fixed (temporary solution via wheel interception)  
+**Status:** ✅ Fixed (wheel interception solution)  
 **Severity:** Critical - systematic rendering failure on Chrome/Safari  
-**Affects:** Lists with <350K items (non-compressed mode)
+**Affects:** All lists in non-compressed mode (originally <350K items, now applies universally)
 
 ---
 
@@ -169,14 +169,11 @@ const end = start + visibleCount;
 
 ### Implementation
 
-Intercept wheel events on Chrome/Safari and handle scrolling manually:
+**Final Implementation:** Universal wheel interception (all browsers)
 
 ```javascript
-// Detect Chrome/Safari (not Firefox)
-const isChromiumOrWebKit = /Chrome|Safari/.test(navigator.userAgent) && 
-                           !/Firefox/.test(navigator.userAgent);
-
-if (wheelEnabled && !isHorizontal && isChromiumOrWebKit) {
+// Apply to all browsers for consistent behavior
+if (wheelEnabled && !isHorizontal) {
   wheelHandler = (event: WheelEvent): void => {
     event.preventDefault();  // Stop native scrolling
     
@@ -197,6 +194,19 @@ if (wheelEnabled && !isHorizontal && isChromiumOrWebKit) {
     
     // Emit events
     emitter.emit("scroll", { scrollTop: newScroll, direction });
+    
+    // Update scrolling state and idle detection
+    if (!dom.root.classList.contains(`${classPrefix}--scrolling`)) {
+      dom.root.classList.add(`${classPrefix}--scrolling`);
+    }
+    
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      dom.root.classList.remove(`${classPrefix}--scrolling`);
+      $.vt.velocity = 0;
+      $.vt.sampleCount = 0;
+      emitter.emit("velocity:change", { velocity: 0, reliable: false });
+    }, scrollConfig?.idleTimeout ?? SCROLL_IDLE_TIMEOUT);
   };
   
   // Non-passive listener allows preventDefault
@@ -209,15 +219,28 @@ if (wheelEnabled && !isHorizontal && isChromiumOrWebKit) {
 1. **Prevents native scrolling** - `preventDefault()` stops browser from updating scroll
 2. **Manual scroll control** - JavaScript updates scroll position
 3. **Synchronous rendering** - Renders BEFORE scroll position changes
-4. **Browser-specific** - Only activates on Chrome/Safari, Firefox uses native
+4. **Universal application** - Works consistently on all browsers
 5. **Selective** - Keyboard, scrollbar, touch still use native scrolling
+
+### Evolution of Implementation
+
+**Initial approach:** Browser-specific detection
+- Only intercepted on Chrome/Safari
+- Firefox used native scrolling
+- Required user agent string parsing
+
+**Final approach:** Universal interception
+- Applied to all browsers for consistency
+- Simpler code, no browser detection
+- Same behavior everywhere
+- Slightly smaller bundle (no UA check)
 
 ### Results
 
-✅ **Works perfectly** on Chrome/Safari  
-✅ **Works perfectly** on Firefox (still uses native)  
+✅ **Works perfectly** on all browsers (Chrome, Safari, Firefox, Edge)  
 ✅ No blank areas during fast wheel scrolling  
-✅ All other scroll methods unaffected  
+✅ Consistent wheel behavior across browsers  
+✅ All other scroll methods unaffected (scrollbar, keyboard, touch)
 
 ---
 
@@ -259,10 +282,10 @@ if (wheelEnabled && !isHorizontal && isChromiumOrWebKit) {
 - ✅ Selective intervention (only Chrome/Safari wheel)
 
 ### Cons
-- ⚠️ Browser-specific code (user agent detection)
 - ⚠️ Custom wheel behavior vs native
 - ⚠️ Loses native wheel momentum/inertia (could be added)
 - ⚠️ Architectural compromise (mixing native + custom)
+- ⚠️ "Fighting the browser" instead of working with it
 
 ---
 
@@ -295,7 +318,15 @@ if (wheelEnabled && !isHorizontal && isChromiumOrWebKit) {
 - Browser-specific hack
 - User agent detection (fragile)
 
-**Status:** Current solution
+**Status:** Current solution ✅ Implemented
+
+**Final assessment:**
+- **Pragmatically satisfied:** Works perfectly, minimal impact
+- **Architecturally concerned:** Hybrid approach (custom wheel, native scrollbar/keyboard)
+
+**Scoring:**
+- Current solution: **95/100** - Works great, small compromise
+- Compression everywhere: **100/100** - Architecturally pure, but +2-3 KB gzipped
 
 ### Option C: Extract Wheel Handling from Scale Plugin
 
@@ -320,7 +351,10 @@ Keep the wheel interception solution - it works, has minimal impact, and preserv
 Consider making compression/scale plugin default behavior for consistency and maintainability. The bundle size increase (~2-3 KB gzipped) may be worth the architectural cleanliness.
 
 ### Monitoring
-Track if user agent detection breaks with future browser updates. Consider feature detection instead of user agent strings.
+Monitor for:
+- User feedback about wheel scrolling feeling different
+- Edge cases with custom wheel behavior
+- Future browser API changes that might offer better solutions
 
 ---
 
@@ -332,8 +366,13 @@ Track if user agent detection breaks with future browser updates. Consider featu
 
 ## Files Modified
 
-- `src/builder/core.ts` - Added wheel interception for Chrome/Safari
+- `src/builder/core.ts` - Added universal wheel interception (all browsers)
 - `src/builder/range.ts` - Fixed `calcVisibleRange` to use accurate item counting
+
+### Bundle Impact
+- Before: 71.4 KB minified, 23.6 KB gzipped
+- After: 72.2 KB minified, 23.6 KB gzipped
+- Change: +0.8 KB minified (~1.1%), 0 KB gzipped (compression absorbed it)
 
 ---
 
@@ -367,9 +406,113 @@ Track if user agent detection breaks with future browser updates. Consider featu
 ## Commits
 
 - `fc37fda` - fix(range): use accurate visible item counting to prevent blank areas during fast scrolling
-- `[pending]` - fix(core): add wheel interception for Chrome/Safari to prevent scroll race condition
+- `ee666dc` - fix(core): add wheel interception for Chrome/Safari to prevent scroll race condition
+- `2b85743` - chore(core): revert overscan to 3 - wheel interception makes large overscan unnecessary
+- `18b4f55` - refactor(core): remove browser detection from wheel handler - apply to all browsers
+
+---
+
+## Architectural Considerations
+
+### The Philosophical Dilemma
+
+The current solution works perfectly but represents a philosophical compromise:
+
+**What we're doing:**
+- Intercepting wheel events
+- Preventing native scroll behavior
+- Manually updating scroll position
+- Rendering synchronously before scroll updates
+
+**What this means:**
+- We're "fighting the browser" instead of "working with it"
+- Hybrid approach: custom wheel, native scrollbar/keyboard/touch
+- Some scroll methods native, some custom
+
+### Why This Bothers Us
+
+**Inconsistency:**
+- Scrollbar uses native scrolling
+- Keyboard uses native scrolling  
+- Touch uses native scrolling
+- **Wheel uses custom scrolling** ← The outlier
+
+**Architectural purity:**
+- Pure native: Let browser handle everything (doesn't work - causes blank areas)
+- Pure custom: Handle everything ourselves (works perfectly - compression plugin)
+- Hybrid (current): Mix of both (works, but feels like a hack)
+
+### The "Proper" Solution
+
+Use `withScale` plugin approach for **all lists**:
+
+```javascript
+// Consistent custom scrolling for everything
+vlist({
+  container: '#list',
+  item: { height: 50, template },
+  items: data
+})
+.use(withScale())  // Always, not just for large lists
+.build();
+```
+
+**Benefits:**
+- Architecturally pure
+- Consistent behavior everywhere
+- Full control over all scroll inputs
+- No browser quirks
+- No compromises
+
+**Cost:**
+- +2-3 KB gzipped (~10% increase)
+- Always uses custom scrollbar
+- Must implement custom touch momentum
+- Might feel slightly different
+
+### Pragmatic vs Purist
+
+**Pragmatic (current solution):**
+- "It works perfectly"
+- "Minimal code addition"
+- "Most users won't notice"
+- "95/100 solution"
+
+**Purist (compression everywhere):**
+- "Architecturally correct"
+- "Consistent behavior"
+- "No compromises"
+- "100/100 solution, but heavier"
+
+### Decision Framework
+
+**Ship current solution if:**
+- Bundle size is critical
+- Native scrolling feel is important
+- The hybrid approach is acceptable
+
+**Switch to compression everywhere if:**
+- Users report wheel scrolling feels wrong
+- We hit edge cases with custom wheel
+- Architectural purity becomes important
+- The +2-3 KB is acceptable
+
+### Current Verdict
+
+**Shipping the wheel interception solution** because:
+1. Works perfectly in all testing
+2. Minimal bundle impact
+3. Preserves accessibility
+4. Good enough for v1.0
+
+**But keeping door open** for compression-everywhere in future if:
+- User feedback suggests wheel feels wrong
+- We discover edge cases
+- Bundle size becomes less critical
+- We want architectural purity
 
 ---
 
 **Last Updated:** February 20, 2026  
-**Next Review:** After evaluating long-term solution (compression by default)
+**Decision:** Ship wheel interception solution (95/100 pragmatic solution)  
+**Next Review:** Monitor user feedback, consider compression-everywhere for v2.0
