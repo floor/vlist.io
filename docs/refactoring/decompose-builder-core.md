@@ -8,23 +8,36 @@
 
 ---
 
+## Project Priorities (Reevaluated)
+
+After implementation and testing, the priorities for vlist are:
+
+1. **Speed/Smoothness** — Be the fastest virtual list library (60 FPS scrolling)
+2. **Memory Efficiency** — Minimize memory per instance (critical for multi-list pages)
+3. **Bundle Size** — Keep small but secondary to performance/memory
+4. **Code Maintainability** — Balance readability with performance
+
+These priorities inform the final decision on Option A vs Option B.
+
+---
+
 ## Final Comparison Results
 
-Both options were implemented and tested. **Option A is the clear winner.**
+Both options were implemented and tested. **Option A is the clear winner** when considering project priorities.
 
-| Criterion | Option A (WINNER) | Option B | Difference |
-|---|---|---|---|
-| Bundle size | **71.9 KB (+0.5 KB)** ✅ | 73.5 KB (+2.1 KB) ❌ | Option A saves 1.6 KB |
-| Memory per instance | **~0.3 KB** ✅ | ~3.2 KB (10× worse) ❌ | Option A saves 2.9 KB |
-| Hot-path overhead/frame | ~50–100ns (negligible) | 0ns ✅ | Both negligible in practice |
-| core.ts lines | **1053** ✅ | 1709 | Option A more compact |
-| materializectx.ts lines | **668** ✅ | 689 | Option A more compact |
-| Hot-path readability | `$.hc`, `$.ls` (short keys) | bare `heightCache`, `lastScrollTop` ✅ | Option B clearer |
-| Factory readability | `$.vtf()` (clear) ✅ | `acc.vtf()()` (double-call) ⚠️ | Option A clearer |
-| Mental model | One rule: "use `$`" ✅ | Three concepts | Option A simpler |
-| Tests passing | 1184/1184 ✅ | 1184/1184 ✅ | Both work correctly |
+| Criterion | Priority | Option A (WINNER) | Option B | Winner & Why |
+|---|---|---|---|---|
+| Memory per instance | **HIGH** | **~0.3 KB** ✅ | ~3.2 KB (10× worse) ❌ | **Option A** — Critical for multi-list pages |
+| Hot-path overhead/frame | **HIGH** | ~50–100ns (negligible) | 0ns ✅ | **Tie** — Both < 1% of frame budget |
+| Bundle size | **MEDIUM** | **71.9 KB (+0.5 KB)** ✅ | 73.5 KB (+2.1 KB) ❌ | **Option A** — Smaller increase |
+| core.ts lines | **MEDIUM** | **1053** ✅ | 1709 | **Option A** — More compact |
+| materializectx.ts lines | **MEDIUM** | **668** ✅ | 689 | **Option A** — More compact |
+| Mental model | **MEDIUM** | One rule: "use `$`" ✅ | Three concepts | **Option A** — Simpler |
+| Hot-path readability | **LOW** | `$.hc`, `$.ls` (short keys) | bare `heightCache`, `lastScrollTop` ✅ | **Option B** — Clearer |
+| Factory readability | **LOW** | `$.vtf()` (clear) ✅ | `acc.vtf()()` (double-call) ⚠️ | **Option A** — Clearer |
+| Tests passing | **HIGH** | 1184/1184 ✅ | 1184/1184 ✅ | **Tie** — Both work correctly |
 
-**Verdict:** Use **Option A** (refs object). Smaller bundle, less memory, simpler code, clearer API.
+**Verdict:** Use **Option A** (refs object). **10× better memory efficiency** is critical for the target use case (multi-list dashboards, data-heavy apps). The ~50-100ns property lookup overhead per frame is negligible compared to DOM operations (~10,000-100,000ns).
 
 Full analysis:
 - [decompose-core-option-a.md](./decompose-core-option-a.md) — **RECOMMENDED APPROACH**
@@ -196,24 +209,121 @@ bun test                 # 1184 tests, 0 fail
 
 **✅ Use Option A** (refs object pattern) on branch `refactor/decompose-core-refs-object`
 
-### Why Option A?
+### Why Option A Wins
 
-1. **Bundle size:** 71.9 KB (+0.5 KB) vs Option B's 73.5 KB (+2.1 KB) — **4.2× better**
-2. **Memory:** ~0.3 KB per instance vs Option B's ~3.2 KB — **10× better**
-3. **Code clarity:** Simpler mental model (one rule: "use `$`") vs three concepts
-4. **Factory code:** Clear `$.vtf()` vs double-call `acc.vtf()()`
+Prioritized by project goals:
+
+1. **Memory (HIGH PRIORITY):** ~0.3 KB per instance vs Option B's ~3.2 KB — **10× better** ⭐
+   - Critical for multi-list pages (dashboards, split views, etc.)
+   - 10 list instances: Option A = +3 KB, Option B = +32 KB total
+
+2. **Speed (HIGH PRIORITY):** Property lookups add ~50-100ns/frame — **negligible** ✅
+   - Hot-path overhead < 0.1% of 16.67ms frame budget (60 FPS)
+   - DOM operations dominate at ~10,000-100,000ns per frame
+   - Both options maintain smooth 60 FPS scrolling
+
+3. **Bundle size (MEDIUM PRIORITY):** 71.9 KB (+0.5 KB) vs Option B's 73.5 KB (+2.1 KB) — **4.2× better**
+
+4. **Code clarity (MEDIUM PRIORITY):** Simpler mental model (one rule: "use `$`") vs three concepts
+
 5. **Proven:** All 1184 tests pass, production-ready
 
 ### Trade-off Accepted
 
-Option A's hot-path code uses property lookups (`$.hc`) instead of bare locals (`heightCache`). This adds ~50–100ns per frame, which is negligible compared to DOM operations (~10,000–100,000ns). The short keys reduce readability slightly, but comprehensive documentation in `MRefs` interface comments maps each key to its full name.
+Option A's hot-path code uses property lookups (`$.hc`) instead of bare locals (`heightCache`). This adds ~50–100ns per frame. In the context of:
+- 16.67ms frame budget (60 FPS)
+- ~10,000ns DOM operations per frame
+- Goal: be the fastest virtual list library
 
-### Next Steps
+This overhead is **acceptable** — it's < 0.1% of frame budget and invisible to users.
 
-1. Merge `refactor/decompose-core-refs-object` to `staging`
-2. Update any documentation that references core.ts architecture
-3. Monitor production bundle size after merge
-4. Keep `refactor/decompose-core-getter-setter` branch as reference only
+The short keys reduce readability slightly, but comprehensive documentation in `MRefs` interface comments maps each key to its full name.
+
+---
+
+## Critical Memory Optimizations (Next Steps)
+
+While Option A is 10× better than Option B for memory, **there are bigger memory wins available**:
+
+### 🚨 High Priority: Items Array Copy
+
+**Current implementation:**
+```typescript
+const initialItemsCopy: T[] = initialItems ? [...initialItems] : [];
+const $: MRefs<T> = {
+  it: initialItemsCopy,  // Full copy of all items!
+  // ...
+};
+```
+
+**Problem:** For 100,000 items, we keep a **full duplicate** in memory. This is likely the main memory concern.
+
+**Solution:** Store reference only (requires careful mutation handling):
+```typescript
+const $: MRefs<T> = {
+  it: initialItems || [],  // Reference, not copy
+  // ...
+};
+```
+
+**Estimated savings:** For 100K items × 200 bytes each = **20 MB saved per instance** 🎯
+
+### Medium Priority: Optional `idToIndex` Map
+
+**Current:** Always built, O(n) memory for n items
+**Solution:** Make optional (config flag), only build if `getItemById()` used
+**Estimated savings:** For 100K items = **~3.2 MB saved** if not needed
+
+### Low Priority: Configurable Pool Size
+
+**Current:** Default maxSize = 100 elements
+**Solution:** Already configurable, but document better
+**Estimated savings:** Negligible (elements are recycled)
+
+### Plugin Memory Audits
+
+Audit each plugin's memory footprint:
+- `withData` — may cache ranges unnecessarily
+- `withSelection` — selection Set grows with selected items
+- `withCompression` — additional state for virtual scrolling
+
+Document memory impact in plugin docs.
+
+---
+
+## Performance Profiling (Next Steps)
+
+Before claiming "fastest virtual list library", benchmark against competitors:
+
+### Target Comparisons
+- `react-window` (most popular)
+- `@tanstack/react-virtual` (modern alternative)
+- `virtua` (newer, performance-focused)
+
+### Metrics to Measure
+1. **FPS during scroll** (avg, min, max over 10s)
+2. **Time to first render** (10K, 100K, 1M items)
+3. **Memory per instance** (heap snapshot)
+4. **Bundle size** (minified + gzipped)
+
+### Create Benchmark Suite
+```bash
+# In vlist/benchmark/
+bun run benchmark:scroll    # Measure FPS
+bun run benchmark:memory    # Heap snapshots
+bun run benchmark:compare   # vs competitors
+```
+
+---
+
+## Next Steps (Recommended Order)
+
+1. **Merge Option A to staging** ← Do this now (best for priorities)
+2. **Fix items array copy** ← Biggest memory win (~20 MB per 100K items)
+3. **Create benchmark suite** ← Validate performance claims
+4. **Make idToIndex optional** ← Medium memory win (~3 MB per 100K items)
+5. **Audit plugin memory** ← Document and optimize
+6. **Profile production workloads** ← Real-world validation
 
 ---
 
