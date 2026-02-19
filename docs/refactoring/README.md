@@ -18,6 +18,24 @@ Complete documentation of the major refactoring that reorganized VList from a du
 
 **Status:** ✅ Complete - All tests passing (1739/1739)
 
+### [decompose-builder-core.md](./decompose-builder-core.md)
+**Decompose `builder/core.ts` — In Progress February 2025**
+
+Decomposition of the largest file in the project (1900 lines) into focused modules. Comparing two approaches for extracting closure-heavy code from `materialize()`.
+
+**Key Changes:**
+- Phase 1: Extracted pure utilities (velocity, DOM, pool, range, scroll) into sibling files
+- Phase 1: Reused existing HeightCache and Emitter modules instead of inlined copies
+- Phase 2: Extracted BuilderContext, data proxy, scroll proxy via shared mutable refs object
+- Short property keys on refs object to preserve minification
+
+**Status:** 🔄 In progress — Option A (refs object) complete, Option B (getter-setter deps) planned
+
+### [decompose-core-option-b.md](./decompose-core-option-b.md)
+**Option B Plan: Getter-Setter Deps — February 2025**
+
+Design and pre-implementation analysis of the alternative extraction approach. Hot-path variables stay as bare `let` locals (optimal minification); extracted factories receive getter/setter closures instead of a shared mutable object. Theoretical analysis raises concerns about memory and bundle overhead — to be validated empirically.
+
 ### [module-organization-plan.md](./module-organization-plan.md)
 **Original Refactoring Plan**
 
@@ -110,6 +128,10 @@ const list = vlist(config)
   - Branch: `refactor/module-organization`
   - Duration: ~2.5 hours
   - Result: ✅ All tests passing, 2-3x bundle size reduction
+- **February 2025** - Decompose `builder/core.ts` (in progress)
+  - Branch: `refactor/decompose-core-refs-object` (Option A complete)
+  - Branch: `refactor/decompose-core-getter-setter` (Option B planned)
+  - Option A result: core.ts 1900 → 1053 lines, bundle +0.7% (71.4 → 71.9 KB), 1184 tests pass
 
 ## 🚀 Future Refactoring
 
@@ -117,4 +139,4 @@ Potential future refactoring efforts may be documented here as they are planned 
 
 ---
 
-**Last Updated:** February 18, 2025
+**Last Updated:** February 19, 2025
