@@ -160,20 +160,25 @@ defineSuite({
       throw new Error("Could not find vlist viewport element or API");
     }
 
-    const { scrollToIndex } = listApiRef;
+    const instance = listApiRef.instance.value;
+    if (!instance) {
+      app.unmount();
+      container.innerHTML = "";
+      throw new Error("Could not get vlist instance from Vue adapter");
+    }
 
     // ── Warmup ─────────────────────────────────────────────────────────
     onStatus("Warming up...");
     const warmupTargets = generateTargets(itemCount, WARMUP_JUMPS);
 
     for (const target of warmupTargets) {
-      scrollToIndex(target, "center");
+      instance.scrollToIndex(target, "center");
       await waitForScrollSettle(viewport, SETTLE_TIMEOUT_MS);
       await waitFrames(5);
     }
 
     // Reset to top before measuring
-    scrollToIndex(0, "start");
+    instance.scrollToIndex(0, "start");
     await waitForScrollSettle(viewport, SETTLE_TIMEOUT_MS);
     await tryGC();
     await waitFrames(10);
@@ -191,7 +196,7 @@ defineSuite({
       await waitFrames(3);
 
       const start = performance.now();
-      scrollToIndex(target, "center");
+      instance.scrollToIndex(target, "center");
       const settleTime = await waitForScrollSettle(viewport, SETTLE_TIMEOUT_MS);
       times.push(settleTime);
 
