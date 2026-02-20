@@ -25,33 +25,28 @@ export interface DocGroup {
 
 export const DOC_GROUPS: DocGroup[] = [
   {
-    label: "Getting Started",
+    label: "Introduction",
     items: [
-      {
-        slug: "",
-        name: "Overview",
-        desc: "",
-      },
       {
         slug: "QUICKSTART",
         name: "Quick Start",
-        desc: "Get started in 5 minutes with common patterns",
+        desc: "Copy-paste examples for every use case",
       },
-      // {
-      //   slug: "guides/getting-started",
-      //   name: "Documentation",
-      //   desc: "Complete introduction, configuration, and usage",
-      // },
       {
-        slug: "guides/builder-pattern",
-        name: "Builder Pattern",
-        desc: "Composable plugins — pay only for what you use",
+        slug: "guides/getting-started",
+        name: "Configuration",
+        desc: "Install, configure, and understand the core API",
       },
     ],
   },
   {
     label: "Guides",
     items: [
+      {
+        slug: "guides/builder-pattern",
+        name: "Builder Pattern",
+        desc: "Composable plugins — pay only for what you use",
+      },
       {
         slug: "guides/accessibility",
         name: "Accessibility",
@@ -133,19 +128,9 @@ export const DOC_GROUPS: DocGroup[] = [
     label: "API Reference",
     items: [
       {
-        slug: "api/methods",
-        name: "Methods",
-        desc: "All public methods",
-      },
-      {
-        slug: "api/events",
-        name: "Events",
-        desc: "Event system and available events",
-      },
-      {
-        slug: "api/types",
-        name: "Types",
-        desc: "TypeScript interfaces and definitions",
+        slug: "api/reference",
+        name: "Reference",
+        desc: "Complete API — config, methods, events, types",
       },
     ],
   },
@@ -233,8 +218,8 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
       },
       {
         slug: "guides/getting-started",
-        name: "Documentation",
-        desc: "Complete introduction, configuration, and usage",
+        name: "Getting Started",
+        desc: "Install, configure, and understand the core API",
       },
       {
         slug: "guides/builder-pattern",
@@ -317,19 +302,14 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
     label: "API Reference",
     cards: [
       {
+        slug: "api/reference",
+        name: "Reference",
+        desc: "Complete API — config types, methods, events, plugin interfaces",
+      },
+      {
         slug: "api/methods",
         name: "Methods",
         desc: "All public methods — data, scroll, selection, lifecycle",
-      },
-      {
-        slug: "api/events",
-        name: "Events",
-        desc: "Event system and all available events",
-      },
-      {
-        slug: "api/types",
-        name: "Types",
-        desc: "TypeScript interfaces and type definitions",
       },
     ],
   },

@@ -413,7 +413,7 @@ state = selectRange(state, items, 5, 10, 'multiple');
 ### With VList
 
 ```typescript
-import { vlist } from 'vlist';
+import { vlist } from '@floor/vlist';
 
 const list = vlist({
   container: '#app',

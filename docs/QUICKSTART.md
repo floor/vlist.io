@@ -1,4 +1,4 @@
-# Quick Start Guide
+# Quick Start
 
 > Get started with vlist in under 5 minutes.
 
@@ -8,13 +8,13 @@
 npm install @floor/vlist
 ```
 
-## Basic Usage
+## Examples
 
 ### 1. Simple List
 
 ```typescript
-import { vlist } from 'vlist';
-import 'vlist/styles';
+import { vlist } from '@floor/vlist';
+import '@floor/vlist/styles';
 
 const list = vlist({
   container: '#app',
@@ -32,10 +32,12 @@ const list = vlist({
 
 **Bundle:** 7.7 KB gzipped
 
+---
+
 ### 2. With Selection
 
 ```typescript
-import { vlist, withSelection } from 'vlist';
+import { vlist, withSelection } from '@floor/vlist';
 
 const list = vlist({
   container: '#app',
@@ -52,16 +54,19 @@ const list = vlist({
   .build();
 
 // Selection API
-list.selectItem(5);
-list.getSelectedIds();
+list.select(5);
+list.getSelected();       // [5]
+list.getSelectedItems();  // [{ id: 5, ... }]
 ```
 
 **Bundle:** 10.0 KB gzipped
 
+---
+
 ### 3. Photo Gallery (Grid)
 
 ```typescript
-import { vlist, withGrid, withScrollbar } from 'vlist';
+import { vlist, withGrid, withScrollbar } from '@floor/vlist';
 
 const gallery = vlist({
   container: '#gallery',
@@ -83,10 +88,12 @@ const gallery = vlist({
 
 **Bundle:** 11.7 KB gzipped
 
+---
+
 ### 4. Contact List (A-Z Sections)
 
 ```typescript
-import { vlist, withSections } from 'vlist';
+import { vlist, withSections } from '@floor/vlist';
 
 const contacts = vlist({
   container: '#contacts',
@@ -107,15 +114,17 @@ const contacts = vlist({
 
 **Bundle:** 12.3 KB gzipped
 
+---
+
 ### 5. Chat UI (Reverse Mode)
 
 ```typescript
-import { vlist, withSections } from 'vlist';
+import { vlist, withSections } from '@floor/vlist';
 
 const chat = vlist({
   container: '#messages',
-  reverse: true,  // Start at bottom
-  items: messages,  // Oldest first
+  reverse: true,   // Start at bottom
+  items: messages, // Oldest first
   item: {
     height: (i) => messages[i].height || 60,
     template: (msg) => `<div class="msg">${msg.text}</div>`,
@@ -138,10 +147,12 @@ chat.prependItems(olderMessages);
 
 **Bundle:** 11.9 KB gzipped
 
+---
+
 ### 6. Infinite Scroll Feed
 
 ```typescript
-import { vlist, withPage, withAsync } from 'vlist';
+import { vlist, withPage, withAsync } from '@floor/vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -153,7 +164,7 @@ const feed = vlist({
     },
   },
 })
-  .use(withPage())  // Document-level scrolling
+  .use(withPage())   // Document-level scrolling
   .use(withAsync({
     adapter: {
       read: async ({ offset, limit }) => {
@@ -161,16 +172,19 @@ const feed = vlist({
         return res.json();
       },
     },
+    loading: { cancelThreshold: 15 },
   }))
   .build();
 ```
 
 **Bundle:** 13.5 KB gzipped
 
+---
+
 ### 7. Large Dataset (1M+ Items)
 
 ```typescript
-import { vlist, withScale, withScrollbar } from 'vlist';
+import { vlist, withScale, withScrollbar } from '@floor/vlist';
 
 const bigList = vlist({
   container: '#list',
@@ -180,12 +194,14 @@ const bigList = vlist({
     template: (item) => `<div>#${item.id}: ${item.name}</div>`,
   },
 })
-  .use(withScale())  // Auto-activates compression
+  .use(withScale())   // Auto-activates compression
   .use(withScrollbar({ autoHide: true }))
   .build();
 ```
 
 **Bundle:** 9.9 KB gzipped
+
+---
 
 ## Common Patterns
 
@@ -210,7 +226,7 @@ const carousel = vlist({
   direction: 'horizontal',
   items: cards,
   item: {
-    width: 300,   // Required for horizontal
+    width: 300,
     height: 400,
     template: (card) => `<div>${card.content}</div>`,
   },
@@ -221,14 +237,10 @@ const carousel = vlist({
 
 ```typescript
 list.scrollToIndex(50, 'center');
-list.scrollToItem('user-123', { 
-  align: 'start', 
-  behavior: 'smooth',
-  duration: 500 
-});
+list.scrollToItem('user-123', { align: 'start', behavior: 'smooth', duration: 500 });
 ```
 
-### Event Handling
+### Events
 
 ```typescript
 list.on('scroll', ({ scrollTop, direction }) => {
@@ -238,21 +250,19 @@ list.on('scroll', ({ scrollTop, direction }) => {
 list.on('item:click', ({ item, index }) => {
   console.log('Clicked:', item);
 });
-
-list.on('range:change', ({ range }) => {
-  console.log('Visible:', range.start, '-', range.end);
-});
 ```
 
 ### Data Updates
 
 ```typescript
-list.setItems(newItems);         // Replace all
-list.appendItems([item1, item2]); // Add to end
-list.prependItems([item0]);       // Add to start
-list.updateItem(5, { name: 'Updated' });  // Update by ID
-list.removeItem(5);               // Remove by ID
+list.setItems(newItems);
+list.appendItems([item1, item2]);
+list.prependItems([item0]);
+list.updateItem(5, { name: 'Updated' });
+list.removeItem(5);
 ```
+
+---
 
 ## Available Plugins
 
@@ -268,12 +278,8 @@ list.removeItem(5);               // Remove by ID
 
 ## Next Steps
 
-- **[Full Documentation](./guides/getting-started.md)** - Complete API reference
-- **[Builder Guide](./guides/builder-pattern.md)** - Deep dive into builder pattern
-- **[Plugin System](./plugins/README.md)** - All plugins with examples
-- **[Examples](https://vlist.dev/sandbox/)** - 34 interactive examples
-- **[GitHub](https://github.com/floor/vlist)** - Source code and issues
-
----
-
-**Need help?** Check the [interactive examples](https://vlist.dev/sandbox/) or open an issue on [GitHub](https://github.com/floor/vlist/issues).
+- **[Getting Started](./guides/getting-started.md)** — Installation, configuration, TypeScript
+- **[Builder Pattern](./guides/builder-pattern.md)** — Plugins, composition, bundle costs
+- **[Plugin Docs](./plugins/README.md)** — All plugins with examples
+- **[API Reference](./api/reference.md)** — Complete method and event reference
+- **[Sandbox](https://vlist.dev/sandbox/)** — 34 interactive examples

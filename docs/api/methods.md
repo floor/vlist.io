@@ -4,9 +4,11 @@
 
 ## Overview
 
-After building a vlist instance, you have access to various methods for manipulating data, scrolling, and more. Some methods are always available, while others are added by specific plugins.
+After calling `.build()`, you have a `VList<T>` instance with methods for data, navigation, events, and lifecycle management. Plugin methods are added when you include those plugins.
 
 ```typescript
+import { vlist, withSelection } from '@floor/vlist';
+
 const list = vlist({
   container: '#app',
   items: users,
@@ -22,8 +24,8 @@ list.on('scroll', handler);
 list.destroy();
 
 // Plugin methods (from withSelection)
-list.selectItem(5);
-list.getSelectedIds();
+list.select(5);
+list.getSelected();
 ```
 
 ---
@@ -32,7 +34,7 @@ list.getSelectedIds();
 
 These methods are always available on every vlist instance.
 
-### Data Manipulation
+### Data
 
 #### `setItems(items)`
 
@@ -42,20 +44,14 @@ Replace all items with a new array.
 list.setItems(items: T[]): void
 ```
 
-**Example:**
 ```typescript
 list.setItems([
   { id: 1, name: 'Alice' },
   { id: 2, name: 'Bob' },
-  { id: 3, name: 'Charlie' },
 ]);
 ```
 
-**Effects:**
-- Clears existing items
-- Rebuilds internal index
-- Re-renders list
-- Emits `range:change` event
+Re-renders the list from scratch. Clears the internal index and emits `range:change`.
 
 ---
 
@@ -67,21 +63,11 @@ Add items to the end of the list.
 list.appendItems(items: T[]): void
 ```
 
-**Example:**
 ```typescript
-list.appendItems([
-  { id: 4, name: 'David' },
-  { id: 5, name: 'Eve' },
-]);
+list.appendItems([{ id: 4, name: 'David' }]);
 ```
 
-**Effects:**
-- Adds items to end
-- Updates total count
-- Re-renders if needed
-- In reverse mode: auto-scrolls to bottom if user was at bottom
-
-**Use case:** Loading more items, adding new content
+In reverse mode: auto-scrolls to bottom if the user was already at the bottom.
 
 ---
 
@@ -93,46 +79,27 @@ Add items to the beginning of the list.
 list.prependItems(items: T[]): void
 ```
 
-**Example:**
 ```typescript
-list.prependItems([
-  { id: 0, name: 'Zoe' },
-]);
+list.prependItems([{ id: 0, name: 'Zoe' }]);
 ```
 
-**Effects:**
-- Adds items to start
-- Adjusts scroll position to preserve view
-- Updates indices
-- Re-renders
-
-**Use case:** Loading older messages in chat, prepending new data
+Adjusts scroll position to preserve the currently visible content. Use this to load history in a chat UI.
 
 ---
 
 #### `updateItem(id, updates)`
 
-Update a single item by its ID.
+Merge an update into a single item by its ID.
 
 ```typescript
-list.updateItem(id: string | number, updates: Partial<T>): boolean
+list.updateItem(id: string | number, updates: Partial<T>): void
 ```
 
-**Parameters:**
-- `id` - Item ID
-- `updates` - Partial object with properties to update
-
-**Returns:** `true` if item was found and updated, `false` otherwise
-
-**Example:**
 ```typescript
 list.updateItem(5, { name: 'Updated Name', status: 'active' });
 ```
 
-**Effects:**
-- Merges updates into existing item
-- Re-renders the specific item
-- Preserves other properties
+Re-renders only the affected item. Preserves all other properties.
 
 ---
 
@@ -141,24 +108,14 @@ list.updateItem(5, { name: 'Updated Name', status: 'active' });
 Remove an item by its ID.
 
 ```typescript
-list.removeItem(id: string | number): boolean
+list.removeItem(id: string | number): void
 ```
 
-**Parameters:**
-- `id` - Item ID to remove
-
-**Returns:** `true` if item was found and removed, `false` otherwise
-
-**Example:**
 ```typescript
 list.removeItem(5);
 ```
 
-**Effects:**
-- Removes item from list
-- Updates indices
-- Adjusts scroll if needed
-- Re-renders
+Updates indices, adjusts scroll if needed, and re-renders.
 
 ---
 
@@ -166,27 +123,17 @@ list.removeItem(5);
 
 #### `scrollToIndex(index, align?)`
 
-Scroll to a specific item by index.
+Scroll to a specific item by index (instant).
 
 ```typescript
 list.scrollToIndex(index: number, align?: 'start' | 'center' | 'end'): void
 ```
 
-**Parameters:**
-- `index` - Item index (0-based)
-- `align` - Alignment in viewport (default: `'start'`)
-  - `'start'` - Item at top of viewport
-  - `'center'` - Item centered in viewport
-  - `'end'` - Item at bottom of viewport
-
-**Example:**
 ```typescript
-list.scrollToIndex(100);                    // Scroll to item 100 (top)
-list.scrollToIndex(100, 'center');          // Scroll to item 100 (centered)
-list.scrollToIndex(100, 'end');             // Scroll to item 100 (bottom)
+list.scrollToIndex(100);              // top of viewport
+list.scrollToIndex(100, 'center');    // centered in viewport
+list.scrollToIndex(100, 'end');       // bottom of viewport
 ```
-
-**Instant scroll** - no animation by default.
 
 ---
 
@@ -196,27 +143,19 @@ Scroll to an item with smooth animation.
 
 ```typescript
 list.scrollToIndex(index: number, options: ScrollToOptions): void
-```
 
-**Options:**
-```typescript
 interface ScrollToOptions {
   align?: 'start' | 'center' | 'end';  // Default: 'start'
   behavior?: 'auto' | 'smooth';        // Default: 'auto'
-  duration?: number;                   // Animation duration in ms (default: 300)
+  duration?: number;                   // ms, default: 300 (smooth only)
 }
 ```
 
-**Example:**
 ```typescript
-list.scrollToIndex(100, {
-  align: 'center',
-  behavior: 'smooth',
-  duration: 500,
-});
+list.scrollToIndex(100, { align: 'center', behavior: 'smooth', duration: 500 });
 ```
 
-**Smooth scrolling** uses custom easing (easeInOutQuad) for consistent behavior across browsers.
+Smooth scrolling uses `easeInOutQuad` easing for consistent cross-browser behaviour.
 
 ---
 
@@ -228,13 +167,12 @@ Scroll to an item by its ID.
 list.scrollToItem(id: string | number, align?: 'start' | 'center' | 'end'): void
 ```
 
-**Example:**
 ```typescript
 list.scrollToItem('user-123');
 list.scrollToItem('user-123', 'center');
 ```
 
-**Note:** If item ID doesn't exist, nothing happens.
+No-op if the ID does not exist.
 
 ---
 
@@ -246,13 +184,8 @@ Scroll to an item with smooth animation.
 list.scrollToItem(id: string | number, options: ScrollToOptions): void
 ```
 
-**Example:**
 ```typescript
-list.scrollToItem('user-123', {
-  align: 'center',
-  behavior: 'smooth',
-  duration: 500,
-});
+list.scrollToItem('user-123', { align: 'center', behavior: 'smooth' });
 ```
 
 ---
@@ -265,59 +198,29 @@ Get the current scroll position in pixels.
 list.getScrollPosition(): number
 ```
 
-**Example:**
-```typescript
-const scrollTop = list.getScrollPosition();
-console.log('Scrolled to:', scrollTop, 'px');
-```
-
-**Returns:** Scroll position in pixels from top (or left for horizontal).
+Returns pixels from the top (or left for horizontal direction).
 
 ---
 
-#### `getVisibleRange()`
-
-Get the currently visible item range.
-
-```typescript
-list.getVisibleRange(): { start: number; end: number }
-```
-
-**Example:**
-```typescript
-const range = list.getVisibleRange();
-console.log('Visible items:', range.start, 'to', range.end);
-```
-
-**Returns:** Inclusive range of visible item indices.
-
----
-
-### Scroll Snapshots
+### Snapshots
 
 #### `getScrollSnapshot()`
 
-Capture current scroll position for later restoration.
+Capture scroll position as a serialisable snapshot.
 
 ```typescript
 list.getScrollSnapshot(): ScrollSnapshot
-```
 
-**Returns:**
-```typescript
 interface ScrollSnapshot {
-  index: number;          // First visible item index
-  offsetInItem: number;   // Pixels scrolled into that item
+  index: number;        // First visible item index
+  offsetInItem: number; // Pixels scrolled into that item
 }
 ```
 
-**Example:**
 ```typescript
 const snapshot = list.getScrollSnapshot();
 sessionStorage.setItem('scroll', JSON.stringify(snapshot));
 ```
-
-**Use case:** Save scroll position before navigation, restore on return.
 
 ---
 
@@ -329,18 +232,10 @@ Restore scroll position from a snapshot.
 list.restoreScroll(snapshot: ScrollSnapshot): void
 ```
 
-**Parameters:**
-- `snapshot` - Snapshot from `getScrollSnapshot()`
-
-**Example:**
 ```typescript
-const saved = JSON.parse(sessionStorage.getItem('scroll'));
-if (saved) {
-  list.restoreScroll(saved);
-}
+const saved = JSON.parse(sessionStorage.getItem('scroll') ?? 'null');
+if (saved) list.restoreScroll(saved);
 ```
-
-**Use case:** SPA navigation, tab switching, session persistence.
 
 ---
 
@@ -357,25 +252,35 @@ list.on<K extends keyof VListEvents>(
 ): Unsubscribe
 ```
 
-**Returns:** Unsubscribe function
+Returns an unsubscribe function.
 
-**Example:**
 ```typescript
-const unsubscribe = list.on('scroll', ({ scrollTop, direction }) => {
-  console.log('Scrolled to:', scrollTop, 'direction:', direction);
+const off = list.on('scroll', ({ scrollTop, direction }) => {
+  console.log('Scrolled to:', scrollTop);
 });
 
-// Later: stop listening
-unsubscribe();
+// Later — stop listening
+off();
 ```
 
-**Available events:** See [Events Reference](./events.md)
+**Available events:**
+
+| Event | Payload |
+|---|---|
+| `scroll` | `{ scrollTop, direction }` |
+| `item:click` | `{ item, index, event }` |
+| `range:change` | `{ range: { start, end } }` |
+| `selection:change` | `{ selectedIds, selectedItems }` |
+| `load:start` | `{ offset, limit }` |
+| `load:end` | `{ items, total }` |
+| `load:error` | `{ error }` |
+| `resize` | `{ height, width }` |
 
 ---
 
 #### `off(event, handler)`
 
-Unsubscribe from an event.
+Unsubscribe from an event by handler reference.
 
 ```typescript
 list.off<K extends keyof VListEvents>(
@@ -384,16 +289,11 @@ list.off<K extends keyof VListEvents>(
 ): void
 ```
 
-**Example:**
 ```typescript
-const handler = ({ scrollTop }) => console.log(scrollTop);
-
+const handler = ({ scrollTop }: { scrollTop: number }) => console.log(scrollTop);
 list.on('scroll', handler);
-// ... later
 list.off('scroll', handler);
 ```
-
-**Note:** Handler must be the same function reference.
 
 ---
 
@@ -407,19 +307,7 @@ Destroy the list instance and clean up all resources.
 list.destroy(): void
 ```
 
-**Example:**
-```typescript
-list.destroy();
-```
-
-**Effects:**
-- Removes all DOM elements
-- Removes all event listeners
-- Clears internal state
-- Calls plugin cleanup handlers
-- Instance is unusable after this
-
-**Use case:** Component unmount, page navigation, replacing list.
+Removes all DOM elements, event listeners, and internal state. Calls plugin cleanup handlers. The instance is unusable after this — create a new one if needed.
 
 ---
 
@@ -427,114 +315,82 @@ list.destroy();
 
 #### `element`
 
-The root DOM element.
+The root DOM element (read-only).
 
 ```typescript
 list.element: HTMLElement
 ```
 
-**Example:**
-```typescript
-const root = list.element;
-console.log('Container:', root);
-```
-
-**Read-only** - do not modify directly.
-
 ---
 
 #### `items`
 
-Current items array.
+Current items array (read-only).
 
 ```typescript
 list.items: readonly T[]
 ```
 
-**Example:**
-```typescript
-console.log('Total items:', list.items.length);
-const firstItem = list.items[0];
-```
-
-**Read-only** - use `setItems()`, `appendItems()`, etc. to modify.
-
 ---
 
 #### `total`
 
-Total number of items.
+Total number of items (read-only).
 
 ```typescript
 list.total: number
 ```
 
-**Example:**
-```typescript
-console.log('List has', list.total, 'items');
-```
-
-**Read-only** - updated automatically when items change.
-
 ---
 
 ## Plugin Methods
 
-These methods are added by specific plugins.
+### Selection — `withSelection()`
 
-### Selection Methods (withSelection)
+Available when using the `withSelection()` plugin.
 
-Available when using `withSelection()` plugin.
+#### `select(...ids)`
 
-#### `selectItem(id)`
-
-Select an item by ID.
+Select one or more items by ID.
 
 ```typescript
-list.selectItem(id: string | number): void
+list.select(...ids: Array<string | number>): void
 ```
 
-**Example:**
 ```typescript
-list.selectItem(5);
-list.selectItem('user-123');
+list.select(5);
+list.select(1, 2, 3);   // select multiple at once
 ```
 
-**Effects:**
-- Adds item to selection
-- In `'single'` mode: clears previous selection
-- In `'multiple'` mode: adds to selection
-- Updates visual state
-- Emits `selection:change` event
+In `'single'` mode: clears previous selection first. Emits `selection:change`.
 
 ---
 
-#### `deselectItem(id)`
+#### `deselect(...ids)`
 
-Deselect an item by ID.
+Deselect one or more items by ID.
 
 ```typescript
-list.deselectItem(id: string | number): void
+list.deselect(...ids: Array<string | number>): void
 ```
 
-**Example:**
 ```typescript
-list.deselectItem(5);
+list.deselect(5);
+list.deselect(1, 2);
 ```
 
 ---
 
-#### `toggleSelection(id)`
+#### `toggleSelect(id)`
 
-Toggle selection state of an item.
+Toggle selection state of a single item.
 
 ```typescript
-list.toggleSelection(id: string | number): void
+list.toggleSelect(id: string | number): void
 ```
 
-**Example:**
 ```typescript
-list.toggleSelection(5);  // Selected → Deselected (or vice versa)
+list.toggleSelect(5);  // selected → deselected, or vice versa
 ```
 
 ---
@@ -547,12 +403,7 @@ Select all items (multiple mode only).
 list.selectAll(): void
 ```
 
-**Example:**
-```typescript
-list.selectAll();
-```
-
-**Note:** Only works in `mode: 'multiple'`. Does nothing in single mode.
+No-op in `'single'` mode.
 
 ---
 
@@ -564,106 +415,83 @@ Clear all selections.
 list.clearSelection(): void
 ```
 
-**Example:**
-```typescript
-list.clearSelection();
-```
-
 ---
 
-#### `getSelectedIds()`
+#### `getSelected()`
 
-Get array of selected item IDs.
+Get an array of selected item IDs.
 
 ```typescript
-list.getSelectedIds(): Array<string | number>
+list.getSelected(): Array<string | number>
 ```
 
-**Example:**
 ```typescript
-const selectedIds = list.getSelectedIds();
-console.log('Selected:', selectedIds);  // [1, 5, 10]
+const ids = list.getSelected(); // [1, 5, 10]
 ```
 
 ---
 
 #### `getSelectedItems()`
 
-Get array of selected items (full objects).
+Get an array of selected items (full objects).
 
 ```typescript
 list.getSelectedItems(): T[]
 ```
 
-**Example:**
 ```typescript
-const selectedItems = list.getSelectedItems();
-selectedItems.forEach(item => {
-  console.log('Selected:', item.name);
-});
+const selectedUsers = list.getSelectedItems();
+selectedUsers.forEach(u => console.log(u.name));
 ```
 
 ---
 
-#### `setSelectionMode(mode)`
+#### `update({ selectionMode })`
 
-Change selection mode dynamically.
+Change selection mode at runtime.
 
 ```typescript
-list.setSelectionMode(mode: 'none' | 'single' | 'multiple'): void
+list.update({ selectionMode: 'none' | 'single' | 'multiple' }): void
 ```
 
-**Example:**
 ```typescript
-list.setSelectionMode('multiple');  // Enable multi-select
-list.setSelectionMode('none');      // Disable selection
+list.update({ selectionMode: 'multiple' });
+list.update({ selectionMode: 'none' });    // disables selection, clears state
 ```
 
-**Effects:**
-- Changes selection behavior
-- In `'none'`: clears selection
-- In `'single'`: keeps only first selected item
+In `'none'`: clears all selections. In `'single'`: keeps only the first selected item.
 
 ---
 
-### Grid Methods (withGrid)
+### Grid — `withGrid()`
 
-Available when using `withGrid()` plugin.
+Available when using the `withGrid()` plugin.
 
-#### `updateGrid(config)`
+#### `update({ grid })`
 
-Update grid configuration dynamically.
+Update grid configuration at runtime.
 
 ```typescript
-list.updateGrid(config: Partial<GridConfig>): void
-```
+list.update({ grid: Partial<GridConfig> }): void
 
-**Config:**
-```typescript
 interface GridConfig {
   columns?: number;
   gap?: number;
 }
 ```
 
-**Example:**
 ```typescript
-list.updateGrid({ columns: 6 });
-list.updateGrid({ gap: 20 });
-list.updateGrid({ columns: 3, gap: 12 });
+list.update({ grid: { columns: 6 } });
+list.update({ grid: { columns: 3, gap: 12 } });
 ```
 
-**Effects:**
-- Recalculates layout
-- Re-renders all items
-- Preserves scroll position (relative)
-- Recalculates heights if using aspect ratio
+Recalculates layout and re-renders. Preserves relative scroll position.
 
 ---
 
-### Async Methods (withAsync)
+### Async — `withAsync()`
 
-Available when using `withAsync()` plugin.
+Available when using the `withAsync()` plugin.
 
 #### `reload()`
 
@@ -673,124 +501,88 @@ Reload all data from the adapter.
 list.reload(): Promise<void>
 ```
 
-**Example:**
 ```typescript
 await list.reload();
-console.log('Data reloaded!');
 ```
 
-**Effects:**
-- Clears all cached data
-- Fetches initial page from adapter
-- Shows loading placeholders
-- Emits `load:start` and `load:end` events
-
-**Use case:** Refresh button, pull-to-refresh, data invalidation.
+Clears cached data, shows placeholders, and re-fetches from the adapter. Emits `load:start` and `load:end`.
 
 ---
 
 ## Method Cheatsheet
 
-### Core (Always Available)
+### Core (always available)
 
 | Method | Description |
-|--------|-------------|
+|---|---|
 | `setItems(items)` | Replace all items |
 | `appendItems(items)` | Add to end |
 | `prependItems(items)` | Add to start |
-| `updateItem(id, updates)` | Update one item |
-| `removeItem(id)` | Remove one item |
-| `scrollToIndex(index, align?)` | Scroll to item by index |
+| `updateItem(id, updates)` | Merge update by ID |
+| `removeItem(id)` | Remove by ID |
+| `scrollToIndex(index, align?)` | Scroll to index |
 | `scrollToItem(id, align?)` | Scroll to item by ID |
-| `getScrollPosition()` | Get scroll position in pixels |
-| `getVisibleRange()` | Get visible item range |
+| `getScrollPosition()` | Current scroll position in px |
 | `getScrollSnapshot()` | Save scroll position |
 | `restoreScroll(snapshot)` | Restore scroll position |
 | `on(event, handler)` | Subscribe to event |
 | `off(event, handler)` | Unsubscribe from event |
 | `destroy()` | Clean up and destroy |
 
-### Plugin Methods
+### Plugin methods
 
 | Method | Plugin | Description |
-|--------|--------|-------------|
-| `selectItem(id)` | `withSelection()` | Select an item |
-| `deselectItem(id)` | `withSelection()` | Deselect an item |
-| `toggleSelection(id)` | `withSelection()` | Toggle selection |
+|---|---|---|
+| `select(...ids)` | `withSelection()` | Select by ID |
+| `deselect(...ids)` | `withSelection()` | Deselect by ID |
+| `toggleSelect(id)` | `withSelection()` | Toggle by ID |
 | `selectAll()` | `withSelection()` | Select all items |
 | `clearSelection()` | `withSelection()` | Clear selection |
-| `getSelectedIds()` | `withSelection()` | Get selected IDs |
+| `getSelected()` | `withSelection()` | Get selected IDs |
 | `getSelectedItems()` | `withSelection()` | Get selected items |
-| `setSelectionMode(mode)` | `withSelection()` | Change selection mode |
-| `updateGrid(config)` | `withGrid()` | Update grid layout |
+| `update({ selectionMode })` | `withSelection()` | Change selection mode |
+| `update({ grid })` | `withGrid()` | Update grid layout |
 | `reload()` | `withAsync()` | Reload from adapter |
 
 ---
 
 ## Common Patterns
 
-### Update and Scroll to Item
+### Update and scroll to item
 
 ```typescript
 list.updateItem(5, { status: 'updated' });
 list.scrollToItem(5, 'center');
 ```
 
-### Bulk Updates
+### Save and restore scroll (SPA navigation)
 
 ```typescript
-// Remove old items
-oldIds.forEach(id => list.removeItem(id));
-
-// Add new items
-list.appendItems(newItems);
-
-// Scroll to first new item
-list.scrollToIndex(list.total - newItems.length);
-```
-
-### Save/Restore Scroll
-
-```typescript
-// Before navigation
+// Before navigating away
 const snapshot = list.getScrollSnapshot();
-history.state.scroll = snapshot;
+sessionStorage.setItem('scroll', JSON.stringify(snapshot));
+list.destroy();
 
-// After navigation back
-if (history.state.scroll) {
-  list.restoreScroll(history.state.scroll);
-}
+// After navigating back
+const list = vlist({ /* same config */ }).build();
+const raw = sessionStorage.getItem('scroll');
+if (raw) list.restoreScroll(JSON.parse(raw));
 ```
 
-### Conditional Selection
-
-```typescript
-if (condition) {
-  list.selectItem(itemId);
-} else {
-  list.deselectItem(itemId);
-}
-
-// Or use toggle
-list.toggleSelection(itemId);
-```
-
-### Respond to Scroll
+### Respond to scroll position
 
 ```typescript
 list.on('scroll', ({ scrollTop }) => {
-  // Update scroll indicator
   const percent = (scrollTop / maxScroll) * 100;
-  indicator.style.width = `${percent}%`;
+  progressBar.style.width = `${percent}%`;
 });
 ```
 
-### Handle Item Updates
+### Conditional select on click
 
 ```typescript
-list.on('item:click', ({ item, index }) => {
-  // Update the clicked item
-  list.updateItem(item.id, { clicked: true });
+list.on('item:click', ({ item }) => {
+  list.toggleSelect(item.id);
 });
 ```
 
@@ -798,10 +590,10 @@ list.on('item:click', ({ item, index }) => {
 
 ## TypeScript
 
-All methods are fully typed:
+All methods are fully typed via the `T` generic:
 
 ```typescript
-import { vlist, withSelection, type VList } from 'vlist';
+import { vlist, withSelection, type VList } from '@floor/vlist';
 
 interface User {
   id: number;
@@ -814,27 +606,25 @@ const list: VList<User> = vlist<User>({
   items: users,
   item: {
     height: 64,
-    template: (user: User) => `<div>${user.name}</div>`,
+    template: (user) => `<div>${user.name}</div>`,
   },
 })
   .use(withSelection({ mode: 'single' }))
   .build();
 
-// Fully typed!
-list.updateItem(5, { name: 'New Name' });  // ✅ TypeScript knows properties
-list.updateItem(5, { invalid: true });     // ❌ TypeScript error
+list.updateItem(5, { name: 'New Name' });   // ✅ type-checked
+list.updateItem(5, { invalid: true });       // ❌ TypeScript error
 
-const items: User[] = list.getSelectedItems();  // ✅ Typed as User[]
+const items: User[] = list.getSelectedItems(); // ✅ typed as User[]
 ```
 
 ---
 
 ## See Also
 
-- **[Events Reference](./events.md)** - All available events
-- **[Types Reference](./types.md)** - TypeScript type definitions
-- **[Plugins Overview](../plugins/README.md)** - Plugin-specific APIs
-- **[Quick Start](../QUICKSTART.md)** - Common usage patterns
+- **[API Reference](./reference.md)** — Full config types, events, and plugin interfaces
+- **[Plugins Overview](../plugins/README.md)** — Plugin-specific APIs
+- **[Quick Start](../QUICKSTART.md)** — Common usage patterns
 
 ---
 

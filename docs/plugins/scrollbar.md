@@ -583,9 +583,6 @@ function createScrollbar(
 type ScrollCallback = (position: number) => void;
 
 interface ScrollbarConfig {
-  /** Enable scrollbar (default: true) */
-  enabled?: boolean;
-
   /** Auto-hide scrollbar after idle (default: true) */
   autoHide?: boolean;
 
