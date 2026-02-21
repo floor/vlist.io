@@ -13,6 +13,11 @@ import {
   buildPerformanceComparisonHTML,
 } from "./templates.js";
 
+// Import data files
+import BUNDLE_DATA from "./data/bundle.json";
+import PERFORMANCE_DATA from "./data/performance.json";
+import FEATURES_DATA from "./data/features.json";
+
 // Import suites (side-effect: each calls defineSuite())
 // All benchmark suites - variants imported statically
 import "./render/javascript/suite.js";
@@ -127,137 +132,9 @@ import {
 const ITEM_COUNTS = [10_000, 100_000, 1_000_000];
 const DEFAULT_ITEM_COUNT_INDEX = 0; // Start with 10K selected
 
-// Bundle size data (verified, static — anyone can reproduce with bundlephobia or local build)
-const BUNDLE_DATA = [
-  {
-    lib: "vlist/core",
-    gzip: "3.0",
-    min: "7.3",
-    deps: "0",
-    self: true,
-    note: "Lightweight entry — no selection, groups, compression",
-  },
-  {
-    lib: "vlist (full)",
-    gzip: "13.9",
-    min: "42.3",
-    deps: "0",
-    self: true,
-    note: "All features: selection, groups, grid, compression, adapter",
-  },
-  {
-    lib: "@tanstack/virtual",
-    gzip: "5.5",
-    min: "14.0",
-    deps: "0",
-    self: false,
-    note: "Core only — needs framework adapter",
-  },
-  {
-    lib: "react-window",
-    gzip: "6.2",
-    min: "20.3",
-    deps: "2",
-    self: false,
-    note: "React-only, unmaintained since 2019",
-  },
-  {
-    lib: "react-virtuoso",
-    gzip: "16.2",
-    min: "54.0",
-    deps: "0",
-    self: false,
-    note: "React-only, feature-rich",
-  },
-  {
-    lib: "clusterize.js",
-    gzip: "2.8",
-    min: "7.2",
-    deps: "0",
-    self: false,
-    note: "Vanilla, basic — no virtual recycling",
-  },
-];
-
-// Feature comparison data
-const FEATURE_DATA = [
-  // [feature, vlist, vlist/core, tanstack, react-window, react-virtuoso]
-  ["Zero dependencies", "✅", "✅", "✅", "❌", "✅"],
-  ["Framework-agnostic", "✅", "✅", "✅", "❌", "❌"],
-  ["Variable item heights", "✅", "✅", "✅", "⚠️", "✅"],
-  ["Grid layout", "✅", "❌", "✅", "✅", "❌"],
-  ["Sticky headers / groups", "✅", "❌", "❌", "❌", "✅"],
-  ["Reverse mode (chat)", "✅", "❌", "❌", "❌", "✅"],
-  ["Built-in selection", "✅", "❌", "❌", "❌", "❌"],
-  ["Keyboard navigation", "✅", "❌", "❌", "❌", "❌"],
-  ["Infinite scroll adapter", "✅", "❌", "❌", "❌", "✅"],
-  ["1M+ item compression", "✅", "❌", "❌", "❌", "❌"],
-  ["Window scrolling", "✅", "✅", "✅", "❌", "✅"],
-  ["Smooth scrollToIndex", "✅", "✅", "✅", "✅", "✅"],
-  ["Auto-height measurement", "❌", "❌", "✅", "❌", "✅"],
-  ["Horizontal scrolling", "❌", "❌", "✅", "✅", "❌"],
-  ["Scroll save/restore", "✅", "✅", "❌", "❌", "❌"],
-  ["React adapter", "✅", "—", "✅", "✅", "✅"],
-  ["Vue adapter", "✅", "—", "✅", "❌", "❌"],
-  ["Svelte adapter", "✅", "—", "✅", "❌", "❌"],
-];
-
-// Performance comparison data (10K items benchmark results)
-const PERFORMANCE_DATA = [
-  {
-    lib: "vlist",
-    renderTime: "8.5",
-    memory: "0.24",
-    scrollFPS: "120.5",
-    p95Frame: "9.2",
-    ecosystem: "Vanilla JS",
-    self: true,
-  },
-  {
-    lib: "react-window",
-    renderTime: "9.1",
-    memory: "2.26",
-    scrollFPS: "120.5",
-    p95Frame: "9.1",
-    ecosystem: "React",
-    self: false,
-  },
-  {
-    lib: "TanStack Virtual",
-    renderTime: "9.1",
-    memory: "2.26",
-    scrollFPS: "120.5",
-    p95Frame: "9.1",
-    ecosystem: "React",
-    self: false,
-  },
-  {
-    lib: "Virtua",
-    renderTime: "17.2",
-    memory: "14.3",
-    scrollFPS: "120.5",
-    p95Frame: "9.0",
-    ecosystem: "React",
-    self: false,
-  },
-  {
-    lib: "vue-virtual-scroller",
-    renderTime: "13.4",
-    memory: "10.97",
-    scrollFPS: "120.5",
-    p95Frame: "10.4",
-    ecosystem: "Vue",
-    self: false,
-  },
-];
-
-const FEATURE_LIBS = [
-  "vlist",
-  "vlist/core",
-  "@tanstack/virtual",
-  "react-window",
-  "react-virtuoso",
-];
+// Convert features data from JSON to array format for backward compatibility
+const FEATURE_LIBS = FEATURES_DATA.libraries;
+const FEATURE_DATA = FEATURES_DATA.features.map((f) => [f.name, ...f.support]);
 
 // =============================================================================
 // Shared State

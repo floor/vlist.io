@@ -1,0 +1,50 @@
+[
+  {
+    "lib": "vlist/core",
+    "gzip": "3.0",
+    "min": "7.3",
+    "deps": "0",
+    "self": true,
+    "note": "Lightweight entry — no selection, groups, compression"
+  },
+  {
+    "lib": "vlist (full)",
+    "gzip": "13.9",
+    "min": "42.3",
+    "deps": "0",
+    "self": true,
+    "note": "All features: selection, groups, grid, compression, adapter"
+  },
+  {
+    "lib": "@tanstack/virtual",
+    "gzip": "5.5",
+    "min": "14.0",
+    "deps": "0",
+    "self": false,
+    "note": "Core only — needs framework adapter"
+  },
+  {
+    "lib": "react-window",
+    "gzip": "6.2",
+    "min": "20.3",
+    "deps": "2",
+    "self": false,
+    "note": "React-only, unmaintained since 2019"
+  },
+  {
+    "lib": "react-virtuoso",
+    "gzip": "16.2",
+    "min": "54.0",
+    "deps": "0",
+    "self": false,
+    "note": "React-only, feature-rich"
+  },
+  {
+    "lib": "clusterize.js",
+    "gzip": "2.8",
+    "min": "7.2",
+    "deps": "0",
+    "self": false,
+    "note": "Vanilla, basic — no virtual recycling"
+  }
+]

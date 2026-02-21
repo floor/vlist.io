@@ -1,0 +1,83 @@
+{
+  "libraries": [
+    "vlist",
+    "vlist/core",
+    "@tanstack/virtual",
+    "react-window",
+    "react-virtuoso"
+  ],
+  "features": [
+    {
+      "name": "Zero dependencies",
+      "support": ["✅", "✅", "✅", "❌", "✅"]
+    },
+    {
+      "name": "Framework-agnostic",
+      "support": ["✅", "✅", "✅", "❌", "❌"]
+    },
+    {
+      "name": "Variable item heights",
+      "support": ["✅", "✅", "✅", "⚠️", "✅"]
+    },
+    {
+      "name": "Grid layout",
+      "support": ["✅", "❌", "✅", "✅", "❌"]
+    },
+    {
+      "name": "Sticky headers / groups",
+      "support": ["✅", "❌", "❌", "❌", "✅"]
+    },
+    {
+      "name": "Reverse mode (chat)",
+      "support": ["✅", "❌", "❌", "❌", "✅"]
+    },
+    {
+      "name": "Built-in selection",
+      "support": ["✅", "❌", "❌", "❌", "❌"]
+    },
+    {
+      "name": "Keyboard navigation",
+      "support": ["✅", "❌", "❌", "❌", "❌"]
+    },
+    {
+      "name": "Infinite scroll adapter",
+      "support": ["✅", "❌", "❌", "❌", "✅"]
+    },
+    {
+      "name": "1M+ item compression",
+      "support": ["✅", "❌", "❌", "❌", "❌"]
+    },
+    {
+      "name": "Window scrolling",
+      "support": ["✅", "✅", "✅", "❌", "✅"]
+    },
+    {
+      "name": "Smooth scrollToIndex",
+      "support": ["✅", "✅", "✅", "✅", "✅"]
+    },
+    {
+      "name": "Auto-height measurement",
+      "support": ["❌", "❌", "✅", "❌", "✅"]
+    },
+    {
+      "name": "Horizontal scrolling",
+      "support": ["❌", "❌", "✅", "✅", "❌"]
+    },
+    {
+      "name": "Scroll save/restore",
+      "support": ["✅", "✅", "❌", "❌", "❌"]
+    },
+    {
+      "name": "React adapter",
+      "support": ["✅", "—", "✅", "✅", "✅"]
+    },
+    {
+      "name": "Vue adapter",
+      "support": ["✅", "—", "✅", "❌", "❌"]
+    },
+    {
+      "name": "Svelte adapter",
+      "support": ["✅", "—", "✅", "❌", "❌"]
+    }
+  ]
+}

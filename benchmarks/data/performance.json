@@ -1,0 +1,47 @@
+[
+  {
+    "lib": "vlist",
+    "renderTime": "8.5",
+    "memory": "0.24",
+    "scrollFPS": "120.5",
+    "p95Frame": "9.2",
+    "ecosystem": "Vanilla JS",
+    "self": true
+  },
+  {
+    "lib": "react-window",
+    "renderTime": "9.1",
+    "memory": "2.26",
+    "scrollFPS": "120.5",
+    "p95Frame": "9.1",
+    "ecosystem": "React",
+    "self": false
+  },
+  {
+    "lib": "TanStack Virtual",
+    "renderTime": "9.1",
+    "memory": "2.26",
+    "scrollFPS": "120.5",
+    "p95Frame": "9.1",
+    "ecosystem": "React",
+    "self": false
+  },
+  {
+    "lib": "Virtua",
+    "renderTime": "17.2",
+    "memory": "14.3",
+    "scrollFPS": "120.5",
+    "p95Frame": "9.0",
+    "ecosystem": "React",
+    "self": false
+  },
+  {
+    "lib": "vue-virtual-scroller",
+    "renderTime": "13.4",
+    "memory": "10.97",
+    "scrollFPS": "120.5",
+    "p95Frame": "10.4",
+    "ecosystem": "Vue",
+    "self": false
+  }
+]
