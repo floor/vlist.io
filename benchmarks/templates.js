@@ -3,7 +3,7 @@
 // Separates presentation (HTML) from logic (script.js).
 // All static HTML templates and page builders live here.
 
-import vlistPackage from "../../vlist/package.json";
+import vlistPackage from "@floor/vlist/package.json";
 
 // =============================================================================
 // Helpers
