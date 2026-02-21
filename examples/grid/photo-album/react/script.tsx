@@ -64,6 +64,9 @@ const itemTemplate = (item: (typeof items)[0]) => `
 // =============================================================================
 
 function App() {
+  const [orientation, setOrientation] = useState<"vertical" | "horizontal">(
+    "vertical",
+  );
   const [columns, setColumns] = useState(4);
   const [gap, setGap] = useState(8);
   const [stats, setStats] = useState({
@@ -76,6 +79,7 @@ function App() {
     null,
   );
   const [gridInfo, setGridInfo] = useState({
+    orientation: "vertical" as "vertical" | "horizontal",
     columns: 4,
     gap: 8,
     rowHeight: 0,
@@ -120,14 +124,16 @@ function App() {
     const height = Math.round(colWidth * 0.75);
 
     // Update grid info
-    setGridInfo({ columns, gap, rowHeight: height });
+    setGridInfo({ orientation, columns, gap, rowHeight: height });
 
     // Create new instance
     instanceRef.current = vlist({
       container: containerRef.current,
       ariaLabel: "Photo gallery",
+      orientation,
       item: {
         height,
+        width: orientation === "horizontal" ? colWidth : undefined,
         template: itemTemplate,
       },
       items,
@@ -155,7 +161,7 @@ function App() {
         instanceRef.current = null;
       }
     };
-  }, [columns, gap, updateStats, scheduleStatsUpdate]);
+  }, [orientation, columns, gap, updateStats, scheduleStatsUpdate]);
 
   // Navigation helpers
   const scrollToFirst = useCallback(() => {
@@ -189,6 +195,7 @@ function App() {
       </div>
 
       <div className="grid-info">
+        <strong>Orientation:</strong> {gridInfo.orientation} ·{" "}
         <strong>Columns:</strong> {gridInfo.columns} · <strong>Gap:</strong>{" "}
         {gridInfo.gap}px · <strong>Row height:</strong> {gridInfo.rowHeight}px ·{" "}
         <strong>Aspect:</strong> 4:3
@@ -203,6 +210,22 @@ function App() {
           {/* Grid Controls */}
           <section className="panel-section">
             <h3 className="panel-title">Grid</h3>
+
+            <div className="panel-row">
+              <label className="panel-label">Orientation</label>
+              <div className="panel-btn-group">
+                {(["vertical", "horizontal"] as const).map((orient) => (
+                  <button
+                    key={orient}
+                    data-orientation={orient}
+                    className={`ctrl-btn ${orient === orientation ? "ctrl-btn--active" : ""}`}
+                    onClick={() => setOrientation(orient)}
+                  >
+                    {orient === "vertical" ? "Vertical" : "Horizontal"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="panel-row">
               <label className="panel-label">Columns</label>

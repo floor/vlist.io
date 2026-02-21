@@ -2,7 +2,7 @@
 // Uses vlist/builder with withGrid + withScrollbar plugins
 // Demonstrates a virtualized 2D photo gallery with Vue composition API
 
-import { createApp, ref, onMounted, onUnmounted } from "vue";
+import { createApp, ref, onMounted, onUnmounted, watch } from "vue";
 import { vlist, withGrid, withScrollbar } from "vlist";
 
 // =============================================================================
@@ -65,6 +65,7 @@ const itemTemplate = (item) => `
 const App = {
   setup() {
     // State
+    const orientation = ref("vertical");
     const columns = ref(4);
     const gap = ref(8);
     const stats = ref({
@@ -75,6 +76,7 @@ const App = {
     const visibleRange = ref("–");
     const selectedPhoto = ref(null);
     const gridInfo = ref({
+      orientation: "vertical",
       columns: 4,
       gap: 8,
       rowHeight: 0,
@@ -122,6 +124,7 @@ const App = {
 
       // Update grid info
       gridInfo.value = {
+        orientation: orientation.value,
         columns: columns.value,
         gap: gap.value,
         rowHeight: height,
@@ -131,8 +134,10 @@ const App = {
       instance.value = vlist({
         container: containerRef.value,
         ariaLabel: "Photo gallery",
+        orientation: orientation.value,
         item: {
           height,
+          width: orientation.value === "horizontal" ? colWidth : undefined,
           template: itemTemplate,
         },
         items,
@@ -156,18 +161,6 @@ const App = {
       updateStats();
     };
 
-    // Handle column change
-    const setColumns = (cols) => {
-      columns.value = cols;
-      createListInstance();
-    };
-
-    // Handle gap change
-    const setGap = (gapValue) => {
-      gap.value = gapValue;
-      createListInstance();
-    };
-
     // Navigation helpers
     const scrollToFirst = () => {
       instance.value?.scrollToIndex(0, "start");
@@ -181,6 +174,11 @@ const App = {
       instance.value?.scrollToIndex(ITEM_COUNT - 1, "end");
     };
 
+    // Watch for changes
+    watch([orientation, columns, gap], () => {
+      createListInstance();
+    });
+
     // Lifecycle
     onMounted(() => {
       createListInstance();
@@ -193,6 +191,7 @@ const App = {
     });
 
     return {
+      orientation,
       columns,
       gap,
       stats,
@@ -200,8 +199,6 @@ const App = {
       selectedPhoto,
       gridInfo,
       containerRef,
-      setColumns,
-      setGap,
       scrollToFirst,
       scrollToMiddle,
       scrollToLast,
@@ -222,17 +219,18 @@ const App = {
       </header>
 
       <div class="stats">
-        <strong>Photos:</strong> {{ ITEM_COUNT }} ·
-        <strong>Rows:</strong> {{ stats.rows }} ·
-        <strong>DOM:</strong> {{ stats.domNodes }} ·
-        <strong>Virtualized:</strong> {{ stats.saved }}%
+        <strong>Photos:</strong> ${ITEM_COUNT}
+        · <strong>Rows:</strong> {{ stats.rows }}
+        · <strong>DOM:</strong> {{ stats.domNodes }}
+        · <strong>Virtualized:</strong> {{ stats.saved }}%
       </div>
 
       <div class="grid-info">
-        <strong>Columns:</strong> {{ gridInfo.columns }} ·
-        <strong>Gap:</strong> {{ gridInfo.gap }}px ·
-        <strong>Row height:</strong> {{ gridInfo.rowHeight }}px ·
-        <strong>Aspect:</strong> 4:3
+        <strong>Orientation:</strong> {{ gridInfo.orientation }}
+        · <strong>Columns:</strong> {{ gridInfo.columns }}
+        · <strong>Gap:</strong> {{ gridInfo.gap }}px
+        · <strong>Row height:</strong> {{ gridInfo.rowHeight }}px
+        · <strong>Aspect:</strong> 4:3
       </div>
 
       <div class="split-layout">
@@ -244,6 +242,26 @@ const App = {
           <!-- Grid Controls -->
           <section class="panel-section">
             <h3 class="panel-title">Grid</h3>
+
+            <div class="panel-row">
+              <label class="panel-label">Orientation</label>
+              <div class="panel-btn-group">
+                <button
+                  class="ctrl-btn"
+                  :class="{ 'ctrl-btn--active': orientation === 'vertical' }"
+                  @click="orientation = 'vertical'"
+                >
+                  Vertical
+                </button>
+                <button
+                  class="ctrl-btn"
+                  :class="{ 'ctrl-btn--active': orientation === 'horizontal' }"
+                  @click="orientation = 'horizontal'"
+                >
+                  Horizontal
+                </button>
+              </div>
+            </div>
 
             <div class="panel-row">
               <label class="panel-label">Columns</label>

@@ -66,6 +66,7 @@ const statsEl = document.getElementById("stats");
 const visibleRangeEl = document.getElementById("visible-range");
 const gridInfoEl = document.getElementById("grid-info");
 const detailEl = document.getElementById("photo-detail");
+const orientationButtons = document.getElementById("orientation-buttons");
 const columnsButtons = document.getElementById("columns-buttons");
 const gapButtons = document.getElementById("gap-buttons");
 
@@ -73,6 +74,7 @@ const gapButtons = document.getElementById("gap-buttons");
 // State
 // =============================================================================
 
+let currentOrientation = "vertical";
 let currentColumns = 4;
 let currentGap = 8;
 let action = null;
@@ -83,7 +85,7 @@ let statsRaf = null;
 // Create Grid
 // =============================================================================
 
-function createGrid(columns, gap) {
+function createGrid(orientation, columns, gap) {
   // Destroy previous action
   if (action && action.destroy) {
     action.destroy();
@@ -103,6 +105,7 @@ function createGrid(columns, gap) {
   action = vlist(container, {
     config: {
       ariaLabel: "Photo gallery",
+      orientation,
       layout: "grid",
       grid: {
         columns,
@@ -110,6 +113,7 @@ function createGrid(columns, gap) {
       },
       item: {
         height,
+        width: orientation === "horizontal" ? colWidth : undefined,
         template: itemTemplate,
       },
       items,
@@ -123,7 +127,7 @@ function createGrid(columns, gap) {
       listInstance = inst;
       bindListEvents();
       updateStats();
-      updateGridInfo(columns, gap, height);
+      updateGridInfo(orientation, columns, gap, height);
     },
   });
 }
@@ -171,9 +175,10 @@ function updateStats() {
     ` · <strong>Virtualized:</strong> ${saved}%`;
 }
 
-function updateGridInfo(columns, gap, rowHeight) {
+function updateGridInfo(orientation, columns, gap, rowHeight) {
   gridInfoEl.innerHTML =
-    `<strong>Columns:</strong> ${columns}` +
+    `<strong>Orientation:</strong> ${orientation}` +
+    ` · <strong>Columns:</strong> ${columns}` +
     ` · <strong>Gap:</strong> ${gap}px` +
     ` · <strong>Row height:</strong> ${rowHeight}px` +
     ` · <strong>Aspect:</strong> 4:3`;
@@ -201,6 +206,24 @@ function showDetail(item) {
 // Controls
 // =============================================================================
 
+orientationButtons.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-orientation]");
+  if (!btn) return;
+
+  const orientation = btn.dataset.orientation;
+  if (orientation === currentOrientation) return;
+  currentOrientation = orientation;
+
+  orientationButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle(
+      "ctrl-btn--active",
+      b.dataset.orientation === orientation,
+    );
+  });
+
+  createGrid(currentOrientation, currentColumns, currentGap);
+});
+
 columnsButtons.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-cols]");
   if (!btn) return;
@@ -213,7 +236,7 @@ columnsButtons.addEventListener("click", (e) => {
     b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.cols) === cols);
   });
 
-  createGrid(currentColumns, currentGap);
+  createGrid(currentOrientation, currentColumns, currentGap);
 });
 
 gapButtons.addEventListener("click", (e) => {
@@ -228,7 +251,7 @@ gapButtons.addEventListener("click", (e) => {
     b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.gap) === gap);
   });
 
-  createGrid(currentColumns, currentGap);
+  createGrid(currentOrientation, currentColumns, currentGap);
 });
 
 // Navigation buttons
@@ -248,4 +271,4 @@ document.getElementById("btn-last").addEventListener("click", () => {
 // Initialize
 // =============================================================================
 
-createGrid(currentColumns, currentGap);
+createGrid(currentOrientation, currentColumns, currentGap);
