@@ -3,6 +3,8 @@
 // Separates presentation (HTML) from logic (script.js).
 // All static HTML templates and page builders live here.
 
+import vlistPackage from "../../vlist/package.json";
+
 // =============================================================================
 // Helpers
 // =============================================================================
@@ -14,7 +16,7 @@ const escapeHtml = (str) => {
 };
 
 function getVlistVersion() {
-  return "0.4.0"; // TODO: Extract from package.json
+  return vlistPackage.version;
 }
 
 // =============================================================================
