@@ -116,9 +116,6 @@ function buildLastmodMap(): Map<string, string> {
     "tanstack-virtual": ["benchmarks/comparison/tanstack-virtual.js"],
     virtua: ["benchmarks/comparison/virtua.js"],
     "vue-virtual-scroller": ["benchmarks/comparison/vue-virtual-scroller.js"],
-    "memory-optimization-comparison": [
-      "benchmarks/comparison/memory-optimization.js",
-    ],
     bundle: ["benchmarks/script.js"],
     features: ["benchmarks/script.js"],
     comparisons: ["benchmarks/script.js"],

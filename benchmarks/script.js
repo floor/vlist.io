@@ -46,9 +46,6 @@ import "./comparison/tanstack-virtual.js";
 import "./comparison/virtua.js";
 import "./comparison/vue-virtual-scroller.js";
 
-// Memory optimization comparison
-import "./comparison/memory-optimization.js";
-
 // =============================================================================
 // Variant Support
 // =============================================================================
