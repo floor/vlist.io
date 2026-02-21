@@ -30,7 +30,7 @@
     "min": "20.3",
     "deps": "2",
     "self": false,
-    "note": "React-only, unmaintained since 2019"
+    "note": "React-only, minimal and focused"
   },
   {
     "lib": "virtua",

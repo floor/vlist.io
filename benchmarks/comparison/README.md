@@ -5,7 +5,7 @@ Head-to-head performance comparisons between **vlist** and popular virtualizatio
 ## Available Comparisons
 
 ### React Ecosystem
-- **[react-window](./react-window.js)** - Brian Vaughn's minimalist library (unmaintained since 2019)
+- **[react-window](./react-window.js)** - Brian Vaughn's minimalist library, actively maintained
 - **[TanStack Virtual](./tanstack-virtual.js)** - Headless virtualization from the TanStack team
 - **[Virtua](./virtua.js)** - Modern React library with great DX
 

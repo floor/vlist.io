@@ -180,7 +180,7 @@ export function buildComparisonsOverviewHTML() {
           </a>
           <a href="/benchmarks/react-window" class="comparison-card">
             <strong class="comparison-card__title">react-window</strong>
-            <div class="comparison-card__desc">React library by Brian Vaughn (unmaintained since 2019)</div>
+            <div class="comparison-card__desc">React library by Brian Vaughn, minimal and focused</div>
           </a>
           <a href="/benchmarks/tanstack-virtual" class="comparison-card">
             <strong class="comparison-card__title">TanStack Virtual</strong>
