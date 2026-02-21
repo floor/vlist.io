@@ -853,4 +853,4 @@ headerTemplate: (key) => {
 - [Grid Plugin](./grid.md) — Combine groups with grid layout
 - [Selection Plugin](./selection.md) — Add selection to grouped lists
 - [Plugin System](./README.md) — How plugins work
-- [API Reference](../api/methods.md) — Full API documentation
+- [API Reference](/docs/api/reference) — Full API documentation

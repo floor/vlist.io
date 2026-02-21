@@ -410,9 +410,9 @@ All modern bundlers support ES modules tree-shaking.
 
 ## See Also
 
-- **[Builder Pattern](../guides/builder-pattern.md)** - How to compose plugins
+- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose plugins
 - **[Plugins Overview](../plugins/README.md)** - All available plugins
-- **[Optimization Guide](../guides/optimization.md)** - Performance tuning
+- **[Optimization Guide](/tutorials/optimization)** - Performance tuning
 - **[Benchmarks](./benchmarks.md)** - Performance metrics
 
 ---

@@ -539,7 +539,7 @@ ctx.dataManager.ensureRange(start, end).catch((error) => {
 ## Related Modules
 
 - [context.md](./context.md) - Context passed to handlers
-- [methods.md](../api/methods.md) - Public methods (scrollToIndex used by keyboard handler)
+- [methods.md](/docs/api/reference) - Public methods (scrollToIndex used by keyboard handler)
 - [selection.md](../plugins/selection.md) - Selection state management functions
 - [render.md](./rendering.md) - Viewport state updates
 - [events.md](../api/events.md) - Event emission

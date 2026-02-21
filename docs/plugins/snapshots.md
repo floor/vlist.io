@@ -388,8 +388,8 @@ const snapshot = {
 ## See Also
 
 - **[Plugins Overview](./README.md)** - All available plugins
-- **[Builder Pattern](../guides/builder-pattern.md)** - How to compose plugins
-- **[API Methods](../api/methods.md)** - Complete method reference
+- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose plugins
+- **[API Methods](/docs/api/reference)** - Complete method reference
 - **[Examples](https://vlist.dev/examples/scroll-restore/)** - Interactive example
 
 ---

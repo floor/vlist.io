@@ -219,6 +219,6 @@ if (saved) list.restoreScroll(saved);
 
 ## See Also
 
-- **[Builder Pattern](../guides/builder-pattern.md)** — How `.use()` / `.build()` works and plugin compatibility
-- **[Quick Start](../QUICKSTART.md)** — Copy-paste examples combining multiple plugins
+- **[Builder Pattern](/tutorials/builder-pattern)** — How `.use()` / `.build()` works and plugin compatibility
+- **[Quick Start](/tutorials/quick-start)** — Copy-paste examples combining multiple plugins
 - **[API Reference](../api/reference.md)** — All methods and events

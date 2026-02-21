@@ -253,7 +253,7 @@ item: {
 }
 ```
 
-**⚠️ Important**: The `state` object is **reused** for performance. Templates should read from it immediately and not store the reference. See [optimization.md](../guides/optimization.md) for details.
+**⚠️ Important**: The `state` object is **reused** for performance. Templates should read from it immediately and not store the reference. See [optimization.md](/tutorials/optimization) for details.
 
 #### `SelectionConfig`
 
@@ -871,7 +871,7 @@ const item = list.items[0] as any;
 
 ## Related Modules
 
-- [vlist.md](../guides/getting-started.md) - Main documentation with configuration examples
+- [vlist.md](/tutorials/getting-started) - Main documentation with configuration examples
 - [context.md](../internals/context.md) - Internal context types
 - [render.md](../internals/rendering.md) - Scale state, DOMStructure types
 - [async.md](../plugins/async.md) - DataState, SparseStorage types

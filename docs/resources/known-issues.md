@@ -595,7 +595,7 @@ item: {
 
 **Test coverage:** 40 dedicated accessibility tests (`test/accessibility.test.ts`).
 
-**Full documentation:** [accessibility.md](./guides/accessibility.md)
+**Full documentation:** [accessibility.md]/tutorials/accessibility)
 
 ---
 
@@ -664,12 +664,12 @@ list.restoreScroll(saved);
 
 ## Related Documentation
 
-- [Optimization Guide](../guides/optimization.md) — Implemented performance optimizations
-- [Main Documentation](../guides/getting-started.md) — Configuration and usage
+- [Optimization Guide](/tutorials/optimization) — Implemented performance optimizations
+- [Main Documentation](/tutorials/getting-started) — Configuration and usage
 - [Scale Guide](../plugins/scale.md) — How 1M+ item compression works
-- [Accessibility Guide](../guides/accessibility.md) — WAI-ARIA implementation, keyboard navigation, screen reader support
+- [Accessibility Guide](/tutorials/accessibility) — WAI-ARIA implementation, keyboard navigation, screen reader support
 - [Benchmarks Guide](./benchmarks.md) — Performance suites, scroll FPS architecture, rating system
-- [Styles Guide](../guides/styling.md) — CSS architecture
+- [Styles Guide](/tutorials/styling) — CSS architecture
 
 ---
 

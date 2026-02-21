@@ -180,7 +180,7 @@ function moveFocusUp(
 // With wrap=false: 0 -> 0
 ```
 
-> **⚡ Performance note:** This function mutates `state.focusedIndex` **in-place** and returns the same object to avoid object allocations on keyboard navigation hot paths. See [optimization.md](./guides/optimization.md) for details.
+> **⚡ Performance note:** This function mutates `state.focusedIndex` **in-place** and returns the same object to avoid object allocations on keyboard navigation hot paths. See [optimization.md]/tutorials/optimization) for details.
 
 #### `moveFocusDown`
 
@@ -568,7 +568,7 @@ function selectItems(state, ids, mode) {
 
 - [types.md](../api/types.md) - SelectionMode, SelectionState types
 - [handlers.md](../internals/handlers.md) - Click and keyboard handlers
-- [methods.md](../api/methods.md) - Public selection API methods
+- [methods.md](/docs/api/reference) - Public selection API methods
 - [context.md](../internals/context.md) - Context holds selection state
 
 ---

@@ -430,7 +430,7 @@ const TUNED_PAGE_SIZE = 100;  // vs default 50
 - [scrollbar.md](../plugins/scrollbar.md) - Uses `SCROLL_IDLE_TIMEOUT`, scrollbar constants
 - [async.md](../plugins/async.md) - Uses storage and placeholder constants
 - [handlers.md](./handlers.md) - Uses `LOAD_MORE_THRESHOLD`, `INITIAL_LOAD_SIZE`, loading thresholds
-- [optimization.md](../guides/optimization.md) - Full list of implemented optimizations and configuration options
+- [optimization.md](/tutorials/optimization) - Full list of implemented optimizations and configuration options
 
 ---
 

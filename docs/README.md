@@ -40,7 +40,7 @@ This documentation now focuses on **reference material** only.
 | Reference | Description |
 |-----------|-------------|
 | **[Reference](./api/reference.md)** | Complete API — config types, methods, events, plugin interfaces |
-| **[Methods](./api/methods.md)** | All public methods — data, scroll, selection, lifecycle |
+| **[Methods]/docs/api/reference)** | All public methods — data, scroll, selection, lifecycle |
 
 ### Resources
 
@@ -91,7 +91,7 @@ For contributors and advanced users:
 → [Styling Tutorial](/tutorials/styling)
 
 **See all methods**
-→ [API Methods](./api/methods.md)
+→ [API Methods]/docs/api/reference)
 
 **Learn accessibility**
 → [Accessibility Tutorial](/tutorials/accessibility)

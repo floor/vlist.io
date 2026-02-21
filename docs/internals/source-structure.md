@@ -411,7 +411,7 @@ test/
 
 ## Related Documentation
 
-- [Builder Pattern](../guides/builder-pattern.md) - How plugins work
+- [Builder Pattern](/tutorials/builder-pattern) - How plugins work
 - [Plugin System](../internals/context.md) - BuilderContext internals
 - [Rendering](../internals/rendering.md) - Rendering internals
 
