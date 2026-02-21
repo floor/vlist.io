@@ -116,11 +116,6 @@
         "slug": "internals/constants",
         "name": "Constants",
         "desc": "Default configuration values"
-      },
-      {
-        "slug": "internals/server",
-        "name": "Server Architecture",
-        "desc": "Renderers, shells, navigation JSON, and CSS layers"
       }
     ]
   }
