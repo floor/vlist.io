@@ -35,7 +35,7 @@ interface SourceFile {
 // =============================================================================
 
 const EXAMPLES_DIR = resolve("./examples");
-const SHELL_PATH = join(EXAMPLES_DIR, "shell.html");
+const SHELL_PATH = resolve("./src/server/shells/examples.html");
 const NAV_PATH = join(EXAMPLES_DIR, "navigation.json");
 
 const VARIANT_LABELS: Record<Variant, string> = {

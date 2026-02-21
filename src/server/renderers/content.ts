@@ -78,7 +78,7 @@ export function createContentRenderer(config: ContentConfig) {
   } = config;
 
   const CONTENT_DIR = resolve(contentDir);
-  const SHELL_PATH = resolve("./src/server/shell.html");
+  const SHELL_PATH = resolve("./src/server/shells/content.html");
   const NAV_PATH = join(CONTENT_DIR, "navigation.json");
   const OVERVIEW_PATH = overviewSectionsPath
     ? join(CONTENT_DIR, overviewSectionsPath)

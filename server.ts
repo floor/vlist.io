@@ -415,7 +415,7 @@ function buildLastmodMap(): Map<string, string> {
     gitLastmod(
       "docs/navigation.json",
       "docs/overview.json",
-      "src/server/shell.html",
+      "src/server/shells/content.html",
       "styles/content.css",
     ) ?? FALLBACK_DATE,
   );
@@ -434,7 +434,7 @@ function buildLastmodMap(): Map<string, string> {
     "/tutorials/",
     gitLastmod(
       "tutorials/navigation.json",
-      "src/server/shell.html",
+      "src/server/shells/content.html",
       "styles/content.css",
     ) ?? FALLBACK_DATE,
   );

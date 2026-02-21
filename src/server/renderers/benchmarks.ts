@@ -29,7 +29,7 @@ type Variant = "javascript" | "react" | "vue" | "svelte";
 // =============================================================================
 
 const BENCH_DIR = resolve("./benchmarks");
-const SHELL_PATH = join(BENCH_DIR, "shell.html");
+const SHELL_PATH = resolve("./src/server/shells/benchmarks.html");
 const NAV_PATH = join(BENCH_DIR, "navigation.json");
 
 const VARIANT_LABELS: Record<Variant, string> = {
