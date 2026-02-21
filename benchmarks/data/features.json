@@ -1,83 +1,77 @@
 {
-  "libraries": [
-    "vlist",
-    "vlist/core",
-    "@tanstack/virtual",
-    "react-window",
-    "react-virtuoso"
-  ],
+  "libraries": ["vlist", "@tanstack/virtual", "react-window", "react-virtuoso"],
   "features": [
     {
       "name": "Zero dependencies",
-      "support": ["✅", "✅", "✅", "❌", "✅"]
+      "support": ["✅", "✅", "❌", "✅"]
     },
     {
       "name": "Framework-agnostic",
-      "support": ["✅", "✅", "✅", "❌", "❌"]
+      "support": ["✅", "✅", "❌", "❌"]
     },
     {
       "name": "Variable item heights",
-      "support": ["✅", "✅", "✅", "⚠️", "✅"]
+      "support": ["✅", "✅", "⚠️", "✅"]
     },
     {
       "name": "Grid layout",
-      "support": ["✅", "❌", "✅", "✅", "❌"]
+      "support": ["✅", "✅", "✅", "❌"]
     },
     {
       "name": "Sticky headers / groups",
-      "support": ["✅", "❌", "❌", "❌", "✅"]
+      "support": ["✅", "❌", "❌", "✅"]
     },
     {
       "name": "Reverse mode (chat)",
-      "support": ["✅", "❌", "❌", "❌", "✅"]
+      "support": ["✅", "❌", "❌", "✅"]
     },
     {
       "name": "Built-in selection",
-      "support": ["✅", "❌", "❌", "❌", "❌"]
+      "support": ["✅", "❌", "❌", "❌"]
     },
     {
       "name": "Keyboard navigation",
-      "support": ["✅", "❌", "❌", "❌", "❌"]
+      "support": ["✅", "❌", "❌", "❌"]
     },
     {
       "name": "Infinite scroll adapter",
-      "support": ["✅", "❌", "❌", "❌", "✅"]
+      "support": ["✅", "❌", "❌", "✅"]
     },
     {
       "name": "1M+ item compression",
-      "support": ["✅", "❌", "❌", "❌", "❌"]
+      "support": ["✅", "❌", "❌", "❌"]
     },
     {
       "name": "Window scrolling",
-      "support": ["✅", "✅", "✅", "❌", "✅"]
+      "support": ["✅", "✅", "❌", "✅"]
     },
     {
       "name": "Smooth scrollToIndex",
-      "support": ["✅", "✅", "✅", "✅", "✅"]
+      "support": ["✅", "✅", "✅", "✅"]
     },
     {
       "name": "Auto-height measurement",
-      "support": ["❌", "❌", "✅", "❌", "✅"]
+      "support": ["❌", "✅", "❌", "✅"]
     },
     {
       "name": "Horizontal scrolling",
-      "support": ["❌", "❌", "✅", "✅", "❌"]
+      "support": ["✅", "✅", "✅", "❌"]
     },
     {
       "name": "Scroll save/restore",
-      "support": ["✅", "✅", "❌", "❌", "❌"]
+      "support": ["✅", "❌", "❌", "❌"]
     },
     {
       "name": "React adapter",
-      "support": ["✅", "—", "✅", "✅", "✅"]
+      "support": ["✅", "✅", "✅", "✅"]
     },
     {
       "name": "Vue adapter",
-      "support": ["✅", "—", "✅", "❌", "❌"]
+      "support": ["✅", "✅", "❌", "❌"]
     },
     {
       "name": "Svelte adapter",
-      "support": ["✅", "—", "✅", "❌", "❌"]
+      "support": ["✅", "✅", "❌", "❌"]
     }
   ]
 }
