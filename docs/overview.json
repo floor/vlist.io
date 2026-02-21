@@ -1,0 +1,122 @@
+[
+  {
+    "label": "API Reference",
+    "cards": [
+      {
+        "slug": "api/reference",
+        "name": "Reference",
+        "desc": "Complete API — config, methods, events, types"
+      },
+      {
+        "slug": "api/types",
+        "name": "Types",
+        "desc": "TypeScript type definitions"
+      },
+      {
+        "slug": "api/events",
+        "name": "Events",
+        "desc": "Event system"
+      }
+    ]
+  },
+  {
+    "label": "Plugins",
+    "cards": [
+      {
+        "slug": "plugins/README",
+        "name": "Overview",
+        "desc": "All 8 plugins with examples, costs, and compatibility"
+      },
+      {
+        "slug": "plugins/grid",
+        "name": "Grid",
+        "desc": "2D grid layout with virtualized rows"
+      },
+      {
+        "slug": "plugins/sections",
+        "name": "Sections",
+        "desc": "Grouped lists with sticky or inline headers"
+      },
+      {
+        "slug": "plugins/async",
+        "name": "Async",
+        "desc": "Async data loading with lazy loading and placeholders"
+      },
+      {
+        "slug": "plugins/selection",
+        "name": "Selection",
+        "desc": "Single & multi-select with keyboard navigation"
+      },
+      {
+        "slug": "plugins/scale",
+        "name": "Scale",
+        "desc": "Handle 1M+ items with automatic scroll compression"
+      },
+      {
+        "slug": "plugins/scrollbar",
+        "name": "Scrollbar",
+        "desc": "Custom scrollbar UI with auto-hide and smooth dragging"
+      },
+      {
+        "slug": "plugins/page",
+        "name": "Page",
+        "desc": "Document-level scrolling with native browser scrollbar"
+      },
+      {
+        "slug": "plugins/snapshots",
+        "name": "Snapshots",
+        "desc": "Save and restore scroll position for SPA navigation"
+      }
+    ]
+  },
+  {
+    "label": "Resources",
+    "cards": [
+      {
+        "slug": "resources/benchmarks",
+        "name": "Benchmarks",
+        "desc": "Live performance suites — FPS, render time, memory"
+      },
+      {
+        "slug": "resources/bundle-size",
+        "name": "Bundle Size",
+        "desc": "Bundle analysis and tree-shaking optimization"
+      },
+      {
+        "slug": "resources/testing",
+        "name": "Testing",
+        "desc": "1,181 tests passing, 4,540 assertions"
+      },
+      {
+        "slug": "resources/known-issues",
+        "name": "Known Issues",
+        "desc": "Current limitations and workarounds"
+      },
+      {
+        "slug": "resources/examples",
+        "name": "Examples",
+        "desc": "Interactive example documentation"
+      }
+    ]
+  },
+  {
+    "label": "Internals",
+    "cards": [
+      {
+        "slug": "internals/source-structure",
+        "name": "Source Structure",
+        "desc": "Complete source code map"
+      },
+      {
+        "slug": "internals/rendering",
+        "name": "Rendering",
+        "desc": "DOM rendering and virtualization"
+      },
+      {
+        "slug": "internals/context",
+        "name": "Context",
+        "desc": "BuilderContext and plugin system"
+      }
+    ]
+  }
+]

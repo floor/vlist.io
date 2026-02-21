@@ -1,0 +1,122 @@
+[
+  {
+    "label": "API Reference",
+    "items": [
+      {
+        "slug": "api/reference",
+        "name": "Reference",
+        "desc": "Complete API — config, methods, events, types"
+      },
+      {
+        "slug": "api/types",
+        "name": "Types",
+        "desc": "TypeScript type definitions"
+      },
+      {
+        "slug": "api/events",
+        "name": "Events",
+        "desc": "Event system"
+      }
+    ]
+  },
+  {
+    "label": "Plugins",
+    "items": [
+      {
+        "slug": "plugins/README",
+        "name": "Overview",
+        "desc": "All plugins with examples and costs"
+      },
+      {
+        "slug": "plugins/grid",
+        "name": "Grid",
+        "desc": "2D grid layout (withGrid)"
+      },
+      {
+        "slug": "plugins/sections",
+        "name": "Sections",
+        "desc": "Grouped lists with headers (withSections)"
+      },
+      {
+        "slug": "plugins/async",
+        "name": "Async",
+        "desc": "Lazy data loading (withAsync)"
+      },
+      {
+        "slug": "plugins/selection",
+        "name": "Selection",
+        "desc": "Item selection & keyboard nav (withSelection)"
+      },
+      {
+        "slug": "plugins/scale",
+        "name": "Scale",
+        "desc": "1M+ items (withScale)"
+      },
+      {
+        "slug": "plugins/scrollbar",
+        "name": "Scrollbar",
+        "desc": "Custom scrollbar UI (withScrollbar)"
+      },
+      {
+        "slug": "plugins/page",
+        "name": "Page",
+        "desc": "Document scrolling (withPage)"
+      },
+      {
+        "slug": "plugins/snapshots",
+        "name": "Snapshots",
+        "desc": "Scroll save/restore (withSnapshots)"
+      }
+    ]
+  },
+  {
+    "label": "Resources",
+    "items": [
+      {
+        "slug": "resources/benchmarks",
+        "name": "Benchmarks",
+        "desc": "Performance metrics and live suites"
+      },
+      {
+        "slug": "resources/bundle-size",
+        "name": "Bundle Size",
+        "desc": "Bundle analysis and optimization"
+      },
+      {
+        "slug": "resources/testing",
+        "name": "Testing",
+        "desc": "Test suite and patterns"
+      }
+    ]
+  },
+  {
+    "label": "Internals",
+    "items": [
+      {
+        "slug": "internals/source-structure",
+        "name": "Source Structure",
+        "desc": "Complete source code map"
+      },
+      {
+        "slug": "internals/rendering",
+        "name": "Rendering",
+        "desc": "DOM rendering and virtualization"
+      },
+      {
+        "slug": "internals/context",
+        "name": "Context",
+        "desc": "BuilderContext and plugin system"
+      },
+      {
+        "slug": "internals/handlers",
+        "name": "Handlers",
+        "desc": "Event handler registration"
+      },
+      {
+        "slug": "internals/constants",
+        "name": "Constants",
+        "desc": "Default configuration values"
+      }
+    ]
+  }
+]

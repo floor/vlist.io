@@ -1,0 +1,60 @@
+[
+  {
+    "label": "Suites",
+    "items": [
+      {
+        "slug": "render",
+        "name": "Initial Render",
+        "icon": "⚡",
+        "desc": "Time to create a VList and paint the first frame"
+      },
+      {
+        "slug": "scroll",
+        "name": "Scroll FPS",
+        "icon": "📊",
+        "desc": "Sustained scroll performance and frame budget"
+      },
+      {
+        "slug": "memory",
+        "name": "Memory",
+        "icon": "🧠",
+        "desc": "Heap usage baseline, after render, and after scroll"
+      },
+      {
+        "slug": "scrollto",
+        "name": "ScrollTo",
+        "icon": "🎯",
+        "desc": "Latency of smooth scrollToIndex() animations"
+      }
+    ]
+  },
+  {
+    "label": "Comparisons",
+    "items": [
+      {
+        "slug": "bundle",
+        "name": "Bundle Size",
+        "icon": "📦",
+        "desc": "Minified and gzipped sizes across virtual list libraries"
+      },
+      {
+        "slug": "features",
+        "name": "Features",
+        "icon": "⚖️",
+        "desc": "Feature coverage across popular virtual list libraries"
+      },
+      {
+        "slug": "comparison",
+        "name": "Performance Comparison",
+        "icon": "⚔️",
+        "desc": "Head-to-head performance: vlist vs react-window"
+      },
+      {
+        "slug": "memory-optimization-comparison",
+        "name": "Memory Optimization Impact",
+        "icon": "⚖️",
+        "desc": "Compare baseline vs optimized config to measure memory savings"
+      }
+    ]
+  }
+]

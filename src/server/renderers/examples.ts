@@ -1,11 +1,90 @@
-// examples/renderer.ts
+// src/server/renderers/examples.ts
 // Server-side renderer for examples pages.
 // Assembles shell template + sidebar + example content into full HTML pages.
 
-const SITE = "https://vlist.dev";
-
 import { readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
+import { SITE } from "./config";
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export interface ExampleItem {
+  slug: string;
+  name: string;
+  desc: string;
+}
+
+export interface ExampleGroup {
+  label: string;
+  items: ExampleItem[];
+}
+
+type Variant = "javascript" | "react" | "vue" | "svelte";
+
+interface SourceFile {
+  label: string;
+  id: string;
+  lang: string;
+  code: string;
+}
+
+// =============================================================================
+// Paths & Constants
+// =============================================================================
+
+const EXAMPLES_DIR = resolve("./examples");
+const SHELL_PATH = join(EXAMPLES_DIR, "shell.html");
+const NAV_PATH = join(EXAMPLES_DIR, "navigation.json");
+
+const VARIANT_LABELS: Record<Variant, string> = {
+  javascript: "JavaScript",
+  react: "React",
+  vue: "Vue",
+  svelte: "Svelte",
+};
+
+// =============================================================================
+// Cache
+// =============================================================================
+
+let shellCache: string | null = null;
+let navCache: ExampleGroup[] | null = null;
+let allExamplesCache: Map<string, ExampleItem> | null = null;
+
+function loadShell(): string {
+  if (!shellCache) {
+    shellCache = readFileSync(SHELL_PATH, "utf-8");
+  }
+  return shellCache;
+}
+
+function loadNavigation(): ExampleGroup[] {
+  if (!navCache) {
+    const raw = readFileSync(NAV_PATH, "utf-8");
+    navCache = JSON.parse(raw) as ExampleGroup[];
+  }
+  return navCache;
+}
+
+function getAllExamples(): Map<string, ExampleItem> {
+  if (!allExamplesCache) {
+    allExamplesCache = new Map();
+    for (const group of loadNavigation()) {
+      for (const item of group.items) {
+        allExamplesCache.set(item.slug, item);
+      }
+    }
+  }
+  return allExamplesCache;
+}
+
+export function clearCache(): void {
+  shellCache = null;
+  navCache = null;
+  allExamplesCache = null;
+}
 
 // =============================================================================
 // HTML Escaping
@@ -20,145 +99,9 @@ function escapeHtml(str: string): string {
 }
 
 // =============================================================================
-// Example Configuration
-// =============================================================================
-
-export interface ExampleItem {
-  slug: string;
-  name: string;
-  desc: string;
-}
-
-export interface ExampleGroup {
-  label: string;
-  items: ExampleItem[];
-}
-
-export const EXAMPLE_GROUPS: ExampleGroup[] = [
-  {
-    label: "Getting Started",
-    items: [
-      {
-        slug: "basic",
-        name: "Basic",
-        desc: "Minimal vanilla JS — one function call, zero boilerplate",
-      },
-      {
-        slug: "controls",
-        name: "Controls",
-        desc: "Selection, navigation, scroll events — full API exploration",
-      },
-    ],
-  },
-  {
-    label: "Grid Plugin",
-    items: [
-      {
-        slug: "grid/photo-album",
-        name: "Photo Album",
-        desc: "Grid gallery with withGrid + withScrollbar — 4 frameworks",
-      },
-      {
-        slug: "grid/file-browser",
-        name: "File Browser",
-        desc: "Finder-like file browser with grid/list views — real filesystem API",
-      },
-    ],
-  },
-  {
-    label: "Data Plugin",
-    items: [
-      {
-        slug: "data/large-list",
-        name: "Large List (Scale)",
-        desc: "100K–5M items with withScale — 4 frameworks",
-      },
-      {
-        slug: "data/velocity-loading",
-        name: "Velocity Loading",
-        desc: "Smart loading — skips when scrolling fast",
-      },
-    ],
-  },
-  {
-    label: "Horizontal",
-    items: [
-      {
-        slug: "horizontal/basic",
-        name: "Basic Horizontal",
-        desc: "Horizontal carousel with 10K cards — 4 frameworks",
-      },
-    ],
-  },
-  {
-    label: "Groups Plugin",
-    items: [
-      {
-        slug: "groups/sticky-headers",
-        name: "Sticky Headers",
-        desc: "A–Z contact list with sticky section headers",
-      },
-    ],
-  },
-  {
-    label: "Other Plugins",
-    items: [
-      {
-        slug: "scroll-restore",
-        name: "Snapshots (Scroll Restore)",
-        desc: "Save & restore scroll position across navigations",
-      },
-      {
-        slug: "window-scroll",
-        name: "Window (Page Scroll)",
-        desc: "Document-level scrolling — no inner scrollbar",
-      },
-    ],
-  },
-  {
-    label: "Advanced Examples",
-    items: [
-      {
-        slug: "variable-heights",
-        name: "Variable Heights",
-        desc: "Chat feed with DOM-measured item heights",
-      },
-      {
-        slug: "reverse-chat",
-        name: "Reverse Chat",
-        desc: "Chat UI — reverse mode, prepend history, auto-scroll",
-      },
-      {
-        slug: "wizard-nav",
-        name: "Wizard Navigation",
-        desc: "Button-only navigation, wheel disabled",
-      },
-    ],
-  },
-];
-
-// Flat lookup for quick access
-const ALL_EXAMPLES: Map<string, ExampleItem> = new Map();
-for (const group of EXAMPLE_GROUPS) {
-  for (const item of group.items) {
-    ALL_EXAMPLES.set(item.slug, item);
-  }
-}
-
-// =============================================================================
 // Variant Support
 // =============================================================================
 
-type Variant = "javascript" | "react" | "vue" | "svelte";
-
-const VARIANT_LABELS: Record<Variant, string> = {
-  javascript: "JavaScript",
-  react: "React",
-  vue: "Vue",
-  svelte: "Svelte",
-};
-
-/** Parse variant from query string (e.g., ?variant=react) */
 function parseVariant(url: string): Variant {
   const params = new URL(url, "http://localhost").searchParams;
   const variant = params.get("variant");
@@ -173,7 +116,6 @@ function parseVariant(url: string): Variant {
   return "javascript"; // default
 }
 
-/** Check which variants exist for an example */
 function detectVariants(slug: string): Variant[] {
   const variants: Variant[] = [];
   const exampleDir = join(EXAMPLES_DIR, slug);
@@ -196,45 +138,9 @@ function detectVariants(slug: string): Variant[] {
 }
 
 // =============================================================================
-// Paths
-// =============================================================================
-
-const EXAMPLES_DIR = resolve("./examples");
-const SHELL_PATH = join(EXAMPLES_DIR, "shell.html");
-
-// =============================================================================
-// Template Loading
-// =============================================================================
-
-let shellCache: string | null = null;
-
-function loadShell(): string {
-  if (!shellCache) {
-    shellCache = readFileSync(SHELL_PATH, "utf-8");
-  }
-  return shellCache;
-}
-
-/** Clear the cached template (call when files change in dev) */
-export function clearCache(): void {
-  shellCache = null;
-}
-
-// =============================================================================
 // Source Code Tabs
 // =============================================================================
 
-interface SourceFile {
-  label: string;
-  id: string;
-  lang: string;
-  code: string;
-}
-
-/**
- * Read source files for an example and build a tabbed code viewer.
- * Reads script.js, styles.css, and content.html from the example directory.
- */
 function buildSourceTabs(slug: string, variant?: Variant): string {
   // If variant is provided, look in the variant subdirectory
   const dir = variant
@@ -339,10 +245,6 @@ function buildSourceTabs(slug: string, variant?: Variant): string {
 // Variant Switcher
 // =============================================================================
 
-/**
- * Build the variant switcher UI for examples that have multiple variants.
- * Shows tabs for JavaScript, React, Vue, and Svelte when those variants exist.
- */
 function buildVariantSwitcher(
   slug: string,
   activeVariant: Variant,
@@ -392,7 +294,7 @@ function buildSidebar(activeSlug: string | null, variant?: Variant): string {
   );
   lines.push(`</div>`);
 
-  for (const group of EXAMPLE_GROUPS) {
+  for (const group of loadNavigation()) {
     lines.push(`<div class="sidebar__group">`);
     lines.push(`  <div class="sidebar__label">${group.label}</div>`);
     if (group.items.length === 0) {
@@ -426,7 +328,7 @@ function buildOverviewContent(): string {
     `  <p class="overview__tagline">Interactive examples exploring every vlist feature — from basic lists to million-item stress tests.</p>`,
   );
 
-  for (const group of EXAMPLE_GROUPS) {
+  for (const group of loadNavigation()) {
     sections.push(`  <div class="overview__section">`);
     sections.push(
       `    <div class="overview__section-title">${group.label}</div>`,
@@ -480,9 +382,6 @@ function buildExtraHead(
   tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
 
   // Shared example styles (at example root, optional)
-  // e.g., /dist/examples/grid/photo-album/styles.css
-  // This allows variants to share common styles without duplication
-  // Only add if file exists to avoid 404s in network tab
   const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));
   if (existsSync(sharedCssPath)) {
     tags.push(
@@ -491,9 +390,6 @@ function buildExtraHead(
   }
 
   // Variant-specific styles (optional overrides)
-  // e.g., /dist/examples/grid/photo-album/react/styles.css
-  // Loaded after shared styles to allow variant-specific customization
-  // Only add if file exists to avoid 404s in network tab
   if (variant) {
     const variantCssPath = resolve(
       join("dist", "examples", slug, variant, "styles.css"),
@@ -566,13 +462,8 @@ function assemblePage(
 // Public API
 // =============================================================================
 
-/**
- * Render a examples page.
- *
- * @param slug - Example slug (e.g. "basic", "grid") or null for the overview.
- * @param url - Full request URL for parsing query params
- * @returns A Response with the full HTML page, or null if the example doesn't exist.
- */
+export const EXAMPLE_GROUPS = loadNavigation();
+
 export function renderExamplesPage(
   slug: string | null,
   url?: string,
@@ -591,7 +482,7 @@ export function renderExamplesPage(
   const queryString = url ? new URL(url, "http://localhost").search : "";
 
   // Example page — check it exists in our config
-  const example = ALL_EXAMPLES.get(slug);
+  const example = getAllExamples().get(slug);
   if (!example) return null;
 
   // Check if this example has variants (new structure)

@@ -1,0 +1,102 @@
+[
+  {
+    "label": "Getting Started",
+    "items": [
+      {
+        "slug": "basic",
+        "name": "Basic",
+        "desc": "Minimal vanilla JS — one function call, zero boilerplate"
+      },
+      {
+        "slug": "controls",
+        "name": "Controls",
+        "desc": "Selection, navigation, scroll events — full API exploration"
+      }
+    ]
+  },
+  {
+    "label": "Grid Plugin",
+    "items": [
+      {
+        "slug": "grid/photo-album",
+        "name": "Photo Album",
+        "desc": "Grid gallery with withGrid + withScrollbar — 4 frameworks"
+      },
+      {
+        "slug": "grid/file-browser",
+        "name": "File Browser",
+        "desc": "Finder-like file browser with grid/list views — real filesystem API"
+      }
+    ]
+  },
+  {
+    "label": "Data Plugin",
+    "items": [
+      {
+        "slug": "data/large-list",
+        "name": "Large List (Scale)",
+        "desc": "100K–5M items with withScale — 4 frameworks"
+      },
+      {
+        "slug": "data/velocity-loading",
+        "name": "Velocity Loading",
+        "desc": "Smart loading — skips when scrolling fast"
+      }
+    ]
+  },
+  {
+    "label": "Horizontal",
+    "items": [
+      {
+        "slug": "horizontal/basic",
+        "name": "Basic Horizontal",
+        "desc": "Horizontal carousel with 10K cards — 4 frameworks"
+      }
+    ]
+  },
+  {
+    "label": "Groups Plugin",
+    "items": [
+      {
+        "slug": "groups/sticky-headers",
+        "name": "Sticky Headers",
+        "desc": "A–Z contact list with sticky section headers"
+      }
+    ]
+  },
+  {
+    "label": "Other Plugins",
+    "items": [
+      {
+        "slug": "scroll-restore",
+        "name": "Snapshots (Scroll Restore)",
+        "desc": "Save & restore scroll position across navigations"
+      },
+      {
+        "slug": "window-scroll",
+        "name": "Window (Page Scroll)",
+        "desc": "Document-level scrolling — no inner scrollbar"
+      }
+    ]
+  },
+  {
+    "label": "Advanced Examples",
+    "items": [
+      {
+        "slug": "variable-heights",
+        "name": "Variable Heights",
+        "desc": "Chat feed with DOM-measured item heights"
+      },
+      {
+        "slug": "reverse-chat",
+        "name": "Reverse Chat",
+        "desc": "Chat UI — reverse mode, prepend history, auto-scroll"
+      },
+      {
+        "slug": "wizard-nav",
+        "name": "Wizard Navigation",
+        "desc": "Button-only navigation, wheel disabled"
+      }
+    ]
+  }
+]

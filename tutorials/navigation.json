@@ -1,0 +1,57 @@
+[
+  {
+    "label": "Getting Started",
+    "items": [
+      {
+        "slug": "quick-start",
+        "name": "Quick Start",
+        "desc": "Get started in under 5 minutes"
+      },
+      {
+        "slug": "getting-started",
+        "name": "Getting Started",
+        "desc": "Complete guide to installation and configuration"
+      },
+      {
+        "slug": "builder-pattern",
+        "name": "Builder Pattern",
+        "desc": "Understanding the plugin system"
+      }
+    ]
+  },
+  {
+    "label": "Building Features",
+    "items": [
+      {
+        "slug": "chat-interface",
+        "name": "Chat Interface",
+        "desc": "Create a messaging UI with reverse mode"
+      }
+    ]
+  },
+  {
+    "label": "Advanced Topics",
+    "items": [
+      {
+        "slug": "accessibility",
+        "name": "Accessibility",
+        "desc": "WAI-ARIA and keyboard navigation"
+      },
+      {
+        "slug": "mobile",
+        "name": "Mobile",
+        "desc": "Touch interactions and mobile optimization"
+      },
+      {
+        "slug": "optimization",
+        "name": "Optimization",
+        "desc": "Performance tuning and best practices"
+      },
+      {
+        "slug": "styling",
+        "name": "Styling",
+        "desc": "CSS customization, tokens, and theming"
+      }
+    ]
+  }
+]

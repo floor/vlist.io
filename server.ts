@@ -13,10 +13,16 @@
 //   /                             → Landing page
 
 import { routeApi } from "./src/api/router";
-import { renderExamplesPage, EXAMPLE_GROUPS } from "./examples/renderer";
-import { renderDocsPage, DOC_GROUPS } from "./docs/renderer";
-import { renderTutorialPage, TUTORIAL_GROUPS } from "./tutorials/renderer";
-import { renderBenchmarkPage, BENCH_GROUPS } from "./benchmarks/renderer";
+import {
+  renderExamplesPage,
+  renderDocsPage,
+  renderTutorialPage,
+  renderBenchmarkPage,
+  EXAMPLE_GROUPS,
+  DOC_GROUPS,
+  TUTORIAL_GROUPS,
+  BENCH_GROUPS,
+} from "./src/server/renderers";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
 import { execSync } from "child_process";
 import { join, extname, resolve } from "path";
@@ -356,7 +362,9 @@ const resolveExamples = (pathname: string, url: string): Response | null => {
   }
 
   // Example page: /examples/<slug> or /examples/<category>/<slug>
-  const match = pathname.match(/^\/examples\/([a-z0-9-]+(?:\/[a-z0-9-]+)?)\/?$/);
+  const match = pathname.match(
+    /^\/examples\/([a-z0-9-]+(?:\/[a-z0-9-]+)?)\/?$/,
+  );
   if (match) {
     const slug = match[1];
     const rendered = renderExamplesPage(slug, url);
@@ -401,8 +409,8 @@ function buildLastmodMap(): Map<string, string> {
   // Landing
   map.set("/", gitLastmod("index.html") ?? FALLBACK_DATE);
 
-  // Docs overview → renderer config
-  map.set("/docs/", gitLastmod("docs/renderer.ts") ?? FALLBACK_DATE);
+  // Docs overview → navigation config
+  map.set("/docs/", gitLastmod("docs/navigation.json") ?? FALLBACK_DATE);
 
   // Docs pages → markdown files
   for (const group of DOC_GROUPS) {
@@ -413,8 +421,25 @@ function buildLastmodMap(): Map<string, string> {
     }
   }
 
-  // Examples overview → renderer config
-  map.set("/examples/", gitLastmod("examples/renderer.ts") ?? FALLBACK_DATE);
+  // Tutorials overview → navigation config
+  map.set(
+    "/tutorials/",
+    gitLastmod("tutorials/navigation.json") ?? FALLBACK_DATE,
+  );
+
+  // Tutorials pages → markdown files
+  for (const group of TUTORIAL_GROUPS) {
+    for (const item of group.items) {
+      const file = `tutorials/${item.slug}.md`;
+      map.set(`/tutorials/${item.slug}`, gitLastmod(file) ?? FALLBACK_DATE);
+    }
+  }
+
+  // Examples overview → navigation config
+  map.set(
+    "/examples/",
+    gitLastmod("examples/navigation.json") ?? FALLBACK_DATE,
+  );
 
   // Examples examples → content + script + styles
   for (const group of EXAMPLE_GROUPS) {
@@ -426,10 +451,10 @@ function buildLastmodMap(): Map<string, string> {
     }
   }
 
-  // Benchmarks overview → renderer config
+  // Benchmarks overview → navigation config
   map.set(
     "/benchmarks/",
-    gitLastmod("benchmarks/renderer.ts") ?? FALLBACK_DATE,
+    gitLastmod("benchmarks/navigation.json") ?? FALLBACK_DATE,
   );
 
   // Benchmark suites → shared script + styles
@@ -465,6 +490,14 @@ function renderSitemap(): Response {
     for (const item of group.items) {
       if (item.slug === "") continue; // overview already added
       urls.push({ loc: `/docs/${item.slug}`, priority: "0.7" });
+    }
+  }
+
+  // Tutorials
+  urls.push({ loc: "/tutorials/", priority: "0.9" });
+  for (const group of TUTORIAL_GROUPS) {
+    for (const item of group.items) {
+      urls.push({ loc: `/tutorials/${item.slug}`, priority: "0.7" });
     }
   }
 

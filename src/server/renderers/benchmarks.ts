@@ -1,14 +1,13 @@
-// benchmarks/renderer.ts
+// src/server/renderers/benchmarks.ts
 // Server-side renderer for benchmark pages.
 // Assembles shell template + sidebar + page content into full HTML pages.
 
-const SITE = "https://vlist.dev";
-
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
+import { SITE } from "./config";
 
 // =============================================================================
-// Benchmark Configuration
+// Types
 // =============================================================================
 
 export interface BenchItem {
@@ -23,82 +22,22 @@ export interface BenchGroup {
   items: BenchItem[];
 }
 
-export const BENCH_GROUPS: BenchGroup[] = [
-  {
-    label: "Suites",
-    items: [
-      {
-        slug: "render",
-        name: "Initial Render",
-        icon: "⚡",
-        desc: "Time to create a VList and paint the first frame",
-      },
-      {
-        slug: "scroll",
-        name: "Scroll FPS",
-        icon: "📊",
-        desc: "Sustained scroll performance and frame budget",
-      },
-      {
-        slug: "memory",
-        name: "Memory",
-        icon: "🧠",
-        desc: "Heap usage baseline, after render, and after scroll",
-      },
-      {
-        slug: "scrollto",
-        name: "ScrollTo",
-        icon: "🎯",
-        desc: "Latency of smooth scrollToIndex() animations",
-      },
-    ],
-  },
-  {
-    label: "Comparisons",
-    items: [
-      {
-        slug: "bundle",
-        name: "Bundle Size",
-        icon: "📦",
-        desc: "Minified and gzipped sizes across virtual list libraries",
-      },
-      {
-        slug: "features",
-        name: "Features",
-        icon: "⚖️",
-        desc: "Feature coverage across popular virtual list libraries",
-      },
-      {
-        slug: "comparison",
-        name: "Performance Comparison",
-        icon: "⚔️",
-        desc: "Head-to-head performance: vlist vs react-window",
-      },
-      {
-        slug: "memory-optimization-comparison",
-        name: "Memory Optimization Impact",
-        icon: "⚖️",
-        desc: "Compare baseline vs optimized config to measure memory savings",
-      },
-    ],
-  },
-];
-
-// Flat lookup for quick access
-const ALL_ITEMS: Map<string, BenchItem> = new Map();
-for (const group of BENCH_GROUPS) {
-  for (const item of group.items) {
-    ALL_ITEMS.set(item.slug, item);
-  }
-}
-
-// =============================================================================
-// Variant Support
-// =============================================================================
-
 type Variant = "javascript" | "react" | "vue" | "svelte";
 
-// Variant labels are now in script.js (client-side)
+// =============================================================================
+// Paths & Constants
+// =============================================================================
+
+const BENCH_DIR = resolve("./benchmarks");
+const SHELL_PATH = join(BENCH_DIR, "shell.html");
+const NAV_PATH = join(BENCH_DIR, "navigation.json");
+
+const VARIANT_LABELS: Record<Variant, string> = {
+  javascript: "JavaScript",
+  react: "React",
+  vue: "Vue",
+  svelte: "Svelte",
+};
 
 /** Benchmarks that have variant-based structure */
 const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
@@ -108,7 +47,51 @@ const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
   scrollto: ["javascript", "react", "vue", "svelte"],
 };
 
-/** Parse variant from query string (e.g., ?variant=react) */
+// =============================================================================
+// Cache
+// =============================================================================
+
+let shellCache: string | null = null;
+let navCache: BenchGroup[] | null = null;
+let allItemsCache: Map<string, BenchItem> | null = null;
+
+function loadShell(): string {
+  if (!shellCache) {
+    shellCache = readFileSync(SHELL_PATH, "utf-8");
+  }
+  return shellCache;
+}
+
+function loadNavigation(): BenchGroup[] {
+  if (!navCache) {
+    const raw = readFileSync(NAV_PATH, "utf-8");
+    navCache = JSON.parse(raw) as BenchGroup[];
+  }
+  return navCache;
+}
+
+function getAllItems(): Map<string, BenchItem> {
+  if (!allItemsCache) {
+    allItemsCache = new Map();
+    for (const group of loadNavigation()) {
+      for (const item of group.items) {
+        allItemsCache.set(item.slug, item);
+      }
+    }
+  }
+  return allItemsCache;
+}
+
+export function clearCache(): void {
+  shellCache = null;
+  navCache = null;
+  allItemsCache = null;
+}
+
+// =============================================================================
+// Variant Support
+// =============================================================================
+
 function parseVariant(url: string): Variant {
   const params = new URLSearchParams(url);
   const variant = params.get("variant");
@@ -123,14 +106,10 @@ function parseVariant(url: string): Variant {
   return "javascript"; // default
 }
 
-/** Check which variants exist for a benchmark */
 function detectVariants(slug: string): Variant[] {
   return VARIANT_BENCHMARKS[slug] || [];
 }
 
-/**
- * Build the variant switcher UI for benchmarks that have multiple variants.
- */
 function buildVariantSwitcher(
   slug: string,
   activeVariant: Variant,
@@ -140,13 +119,6 @@ function buildVariantSwitcher(
 
   // If no variants exist, don't show the switcher
   if (variants.length === 0) return "";
-
-  const VARIANT_LABELS: Record<Variant, string> = {
-    javascript: "JavaScript",
-    react: "React",
-    vue: "Vue",
-    svelte: "Svelte",
-  };
 
   const lines: string[] = [];
   lines.push(`<div class="variant-switcher">`);
@@ -183,31 +155,6 @@ function buildVariantSwitcher(
 }
 
 // =============================================================================
-// Paths
-// =============================================================================
-
-const BENCH_DIR = resolve("./benchmarks");
-const SHELL_PATH = join(BENCH_DIR, "shell.html");
-
-// =============================================================================
-// Template Loading
-// =============================================================================
-
-let shellCache: string | null = null;
-
-function loadShell(): string {
-  if (!shellCache) {
-    shellCache = readFileSync(SHELL_PATH, "utf-8");
-  }
-  return shellCache;
-}
-
-/** Clear the cached template (call when files change in dev) */
-export function clearCache(): void {
-  shellCache = null;
-}
-
-// =============================================================================
 // Sidebar Generation
 // =============================================================================
 
@@ -226,7 +173,7 @@ function buildSidebar(activeSlug: string | null, variant?: Variant): string {
   );
   lines.push(`</div>`);
 
-  for (const group of BENCH_GROUPS) {
+  for (const group of loadNavigation()) {
     lines.push(`<div class="sidebar__group">`);
     lines.push(`  <div class="sidebar__label">${group.label}</div>`);
     for (const item of group.items) {
@@ -254,7 +201,7 @@ function buildOverviewContent(): string {
     `  <p class="overview__tagline">Live performance measurements running in your browser. Each benchmark creates a real vlist instance, scrolls it programmatically, and measures actual frame times, render latency, and memory usage.</p>`,
   );
 
-  for (const group of BENCH_GROUPS) {
+  for (const group of loadNavigation()) {
     lines.push(`  <div class="overview__section">`);
     lines.push(`    <div class="overview__section-title">${group.label}</div>`);
     lines.push(`    <div class="overview__grid">`);
@@ -323,13 +270,8 @@ function assemblePage(
 // Public API
 // =============================================================================
 
-/**
- * Render a benchmarks page.
- *
- * @param slug - Benchmark slug (e.g. "render", "scroll", "bundle") or null for overview.
- * @param url - Full request URL for parsing query params
- * @returns A Response with the full HTML page, or null if the benchmark doesn't exist.
- */
+export const BENCH_GROUPS = loadNavigation();
+
 export function renderBenchmarkPage(
   slug: string | null,
   url?: string,
@@ -348,7 +290,7 @@ export function renderBenchmarkPage(
   const queryString = url ? new URL(url).search : "";
 
   // Check the slug exists in our config
-  const item = ALL_ITEMS.get(slug);
+  const item = getAllItems().get(slug);
   if (!item) return null;
 
   // Check if this benchmark has variants
