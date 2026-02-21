@@ -1272,11 +1272,9 @@ When `updateGrid()` is called:
 
 ## Examples
 
-Live examples on vlist.dev:
-- [Grid (JavaScript)](/examples/grid/javascript)
-- [Grid (React)](/examples/grid/react)
-- [Grid (Vue)](/examples/grid/vue)
-- [Grid (Svelte)](/examples/grid/svelte)
+Live interactive examples:
+- [Photo Album](/examples/grid/photo-album) - Responsive photo gallery with aspect ratios
+- [File Browser](/examples/grid/file-browser) - Grid-based file manager interface
 
 ---
 
