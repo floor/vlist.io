@@ -222,7 +222,7 @@ chat.appendItems([newMessage]);
 chat.prependItems(olderMessages);
 ```
 
-See [Reverse Mode Guide](./reverse-mode.md) for the full scrolling contract and edge cases.
+See [Chat Interface Tutorial](./chat-interface) for the full scrolling contract and edge cases.
 
 ---
 
@@ -270,7 +270,7 @@ off()  // unsubscribe
 list.off('scroll', handler)  // or unsubscribe by reference
 ```
 
-See [API Reference](../api/reference.md) for all events.
+See [API Reference](/docs/api/reference) for all events.
 
 ---
 
@@ -320,14 +320,14 @@ Always call `destroy()` when unmounting (SPA route changes, component teardown).
 
 | I want to… | Go to |
 |---|---|
-| Add a grid layout | [Grid Plugin](../plugins/grid.md) |
-| Group items with headers | [Sections Plugin](../plugins/sections.md) |
-| Load data from an API | [Async Plugin](../plugins/async.md) |
-| Add item selection | [Selection Plugin](../plugins/selection.md) |
-| Handle 1M+ items | [Scale Plugin](../plugins/scale.md) |
-| Use a custom scrollbar | [Scrollbar Plugin](../plugins/scrollbar.md) |
-| Scroll the whole page | [Page Plugin](../plugins/page.md) |
-| Build a chat UI | [Reverse Mode Guide](./reverse-mode.md) |
-| Tune for performance | [Optimization Guide](./optimization.md) |
-| Customise styles | [Styling Guide](./styling.md) |
-| Complete API | [API Reference](../api/reference.md) |
+| Add a grid layout | [Grid Plugin](/docs/plugins/grid) |
+| Group items with headers | [Sections Plugin](/docs/plugins/sections) |
+| Load data from an API | [Async Plugin](/docs/plugins/async) |
+| Add item selection | [Selection Plugin](/docs/plugins/selection) |
+| Handle 1M+ items | [Scale Plugin](/docs/plugins/scale) |
+| Use a custom scrollbar | [Scrollbar Plugin](/docs/plugins/scrollbar) |
+| Scroll the whole page | [Page Plugin](/docs/plugins/page) |
+| Build a chat UI | [Chat Interface](./chat-interface) |
+| Tune for performance | [Optimization](./optimization) |
+| Customise styles | [Styling](./styling) |
+| Complete API | [API Reference](/docs/api/reference) |

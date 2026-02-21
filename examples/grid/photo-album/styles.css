@@ -1,8 +1,8 @@
 /* Photo Album — shared styles for all variants (javascript, react, vue, svelte)
    Common styles (.container, h1, .description, .stats, footer)
-   are provided by sandbox/sandbox.css using shell.css design tokens.
+   are provided by example/example.css using shell.css design tokens.
    Panel system (.split-layout, .split-panel, .panel-*)
-   is also provided by sandbox/sandbox.css. */
+   is also provided by example/example.css. */
 
 .split-main {
     padding: 0;

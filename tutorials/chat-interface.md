@@ -53,12 +53,7 @@ Reverse mode:
 | **Activity logs** | System logs, audit trails | `reverse: true` |
 | **Traditional lists** | Contacts, files, products | `reverse: false` (default) |
 
-### Browser Support
 
-- ✅ Chrome/Edge 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ All modern browsers
 
 ## Quick Start
 
@@ -906,7 +901,7 @@ const messages = [...originalMessages].reverse() // Don't do this!
 | **Data order** | Chronological (oldest first) |
 | **Variable heights** | ✅ Fully supported |
 | **Groups (inline)** | ✅ Set `sticky: false` |
-| **Groups (sticky)** | ❌ Not supported |
+| **Groups (sticky)** | ✅ Supported |
 | **Grid layout** | ❌ Not supported |
 | **Horizontal** | ❌ Not supported |
 | **Data adapter** | ✅ Load more at top |
@@ -916,7 +911,7 @@ const messages = [...originalMessages].reverse() // Don't do this!
 
 ## Further Reading
 
-- [Sections Plugin](../plugins/sections.md) — Add date headers to chat UIs
-- [Async Plugin](../plugins/async.md) — Infinite scrolling with async loading
-- [Selection Plugin](../plugins/selection.md) — Add message selection
-- [API Reference](../api/methods.md) — Full API documentation
+- [Sections Plugin](/docs/plugins/sections) — Add date headers to chat UIs
+- [Async Plugin](/docs/plugins/async) — Infinite scrolling with async loading
+- [Selection Plugin](/docs/plugins/selection) — Add message selection
+- [API Reference](/docs/api/reference) — Full API documentation

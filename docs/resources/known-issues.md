@@ -341,7 +341,7 @@ const list = vlist({
 - Public API (`items`, `total`, `scrollToIndex`, data methods) transparently maps between data indices and layout indices
 - Works with fixed and variable item heights, compression, and all existing features
 - 45 new tests for group layout computation, index mapping round-trips, and edge cases
-- Sandbox example: `sandbox/sticky-headers/` — 2,000 contacts grouped A–Z
+- Examples example: `examples/sticky-headers/` — 2,000 contacts grouped A–Z
 - CSS: `.vlist--grouped` modifier, `.vlist-sticky-header` overlay, `--vlist-group-header-bg` custom property
 
 ---

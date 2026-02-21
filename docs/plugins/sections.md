@@ -46,12 +46,7 @@ The plugin:
 - ✅ **Keyboard navigation** — Focus management respects groups
 - ✅ **Pure TypeScript** — Zero dependencies
 
-### Browser Support
 
-- ✅ Chrome/Edge 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ All modern browsers
 
 ## Quick Start
 

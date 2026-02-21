@@ -617,8 +617,7 @@ The library's reliance on native scrolling rather than custom touch handling res
 
 - [Accessibility](accessibility.md) — Screen reader support, ARIA attributes
 - [Performance](optimization.md) — Optimization strategies and benchmarks
-- [Scroll](../plugins/scrollbar.md) — Scroll controller and configuration
-- [Browser Support](../README.md#browser-support) — Compatibility matrix
+- [Scroll](/docs/plugins/scrollbar) — Scroll controller and configuration
 
 ---
 

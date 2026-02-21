@@ -194,7 +194,7 @@ const bigList = vlist({
     template: (item) => `<div>#${item.id}: ${item.name}</div>`,
   },
 })
-  .use(withScale())   // Auto-activates compression
+  .use(withScale())   // Auto-activates scaling for large datasets
   .use(withScrollbar({ autoHide: true }))
   .build();
 ```
@@ -278,8 +278,8 @@ list.removeItem(5);
 
 ## Next Steps
 
-- **[Getting Started](./guides/getting-started.md)** — Installation, configuration, TypeScript
-- **[Builder Pattern](./guides/builder-pattern.md)** — Plugins, composition, bundle costs
-- **[Plugin Docs](./plugins/README.md)** — All plugins with examples
-- **[API Reference](./api/reference.md)** — Complete method and event reference
-- **[Sandbox](https://vlist.dev/sandbox/)** — 34 interactive examples
+- **[Getting Started](./getting-started)** — Installation, configuration, TypeScript
+- **[Builder Pattern](./builder-pattern)** — Plugins, composition, bundle costs
+- **[Plugin Docs](/docs/plugins/README)** — All plugins with examples
+- **[API Reference](/docs/api/reference)** — Complete method and event reference
+- **[Examples](https://vlist.dev/examples/)** — 34 interactive examples

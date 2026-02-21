@@ -170,8 +170,8 @@ const list = builder.build();
 
 ## See Also
 
-- **[Quick Start](../QUICKSTART.md)** — Copy-paste examples for every use case
-- **[Plugins Overview](../plugins/README.md)** — All plugins with correct API
-- **[Grid](../plugins/grid.md)** · **[Sections](../plugins/sections.md)** · **[Async](../plugins/async.md)**
-- **[Selection](../plugins/selection.md)** · **[Scale](../plugins/scale.md)** · **[Scrollbar](../plugins/scrollbar.md)**
-- **[API Reference](../api/reference.md)** — Complete method reference
+- **[Quick Start](./quick-start)** — Copy-paste examples for every use case
+- **[Plugins Overview](/docs/plugins/README)** — All plugins with correct API
+- **[Grid](/docs/plugins/grid)** · **[Sections](/docs/plugins/sections)** · **[Async](/docs/plugins/async)**
+- **[Selection](/docs/plugins/selection)** · **[Scale](/docs/plugins/scale)** · **[Scrollbar](/docs/plugins/scrollbar)**
+- **[API Reference](/docs/api/reference)** — Complete method reference

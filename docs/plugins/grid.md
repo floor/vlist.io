@@ -24,12 +24,7 @@ Grid layout virtualizes **rows**, not individual items. With 1,000 items in a 4-
 - ✅ **Efficient updates** — No instance recreation needed
 - ✅ **Zero dependencies** — Pure TypeScript/JavaScript
 
-### Browser Support
 
-- ✅ Chrome/Edge 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ All modern browsers with CSS `translate` support
 
 ## Quick Start
 
@@ -1278,10 +1273,10 @@ When `updateGrid()` is called:
 ## Examples
 
 Live examples on vlist.dev:
-- [Grid (JavaScript)](https://vlist.dev/sandbox/grid/javascript)
-- [Grid (React)](https://vlist.dev/sandbox/grid/react)
-- [Grid (Vue)](https://vlist.dev/sandbox/grid/vue)
-- [Grid (Svelte)](https://vlist.dev/sandbox/grid/svelte)
+- [Grid (JavaScript)](https://vlist.dev/examples/grid/javascript)
+- [Grid (React)](https://vlist.dev/examples/grid/react)
+- [Grid (Vue)](https://vlist.dev/examples/grid/vue)
+- [Grid (Svelte)](https://vlist.dev/examples/grid/svelte)
 
 ---
 

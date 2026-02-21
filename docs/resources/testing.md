@@ -10,12 +10,12 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 1,701 |
-| Passing tests | 1,701 (100%) ✅ |
-| Total assertions | 5,943 |
-| Test files | 22 |
+| Total tests | 1,181 |
+| Passing tests | 1,181 (100%) ✅ |
+| Total assertions | 4,540 |
+| Test files | 16 |
 | Coverage | 100% test pass rate |
-| Runtime | ~10s |
+| Runtime | ~7.5s |
 
 **Status:** All tests passing after builder pattern and plugin architecture refactoring!
 

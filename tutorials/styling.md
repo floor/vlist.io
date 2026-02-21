@@ -594,20 +594,8 @@ item: {
 
 Always verify your customizations work in both light and dark modes.
 
-## Browser Support
 
-The CSS uses modern features supported in:
-
-- Chrome/Edge 88+
-- Firefox 78+
-- Safari 14+
-
-Required CSS features:
-- CSS Custom Properties (variables)
-- Flexbox
-- `inset` shorthand
-- `backdrop-filter` (graceful degradation)
 
 ---
 
-*See also: [Main Documentation](./guides/getting-started.md) | [Scale Guide](./plugins/scale.md)*
+*See also: [Getting Started](./getting-started) | [API Reference](/docs/api/reference)*

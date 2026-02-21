@@ -20,12 +20,12 @@ let USERS = [];
 
 // Load messages and users from JSON files
 const loadMessages = async () => {
-  const response = await fetch("/sandbox/reverse-chat/messages.json");
+  const response = await fetch("/examples/reverse-chat/messages.json");
   MESSAGES = await response.json();
 };
 
 const loadUsers = async () => {
-  const response = await fetch("/sandbox/reverse-chat/users.json");
+  const response = await fetch("/examples/reverse-chat/users.json");
   USERS = await response.json();
 };
 

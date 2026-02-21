@@ -1,4 +1,4 @@
-// Shared data and utilities for large-list sandbox variants
+// Shared data and utilities for large-list example variants
 // This file is imported by all framework implementations to avoid duplication
 
 // =============================================================================

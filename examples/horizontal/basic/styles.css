@@ -1,6 +1,6 @@
 /* Horizontal Scrolling Example — example-specific styles only
    Common styles (.container, h1, .description, .stats, footer)
-   are provided by sandbox/sandbox.css using shell.css design tokens. */
+   are provided by example/example.css using shell.css design tokens. */
 
 /* List container - full width, responsive height */
 #list-container {

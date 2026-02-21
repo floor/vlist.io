@@ -1,10 +1,10 @@
 # Scale Plugin (Large Datasets)
 
-> Handle 1M+ items with automatic scroll compression (1M+ items) that exceed browser height limits.
+> Handle 1M+ items with automatic scroll scaling that works around browser height limits.
 
 ## Overview
 
-Browsers have a maximum element height limit of approximately **16.7 million pixels**. When a virtual list's total height (`totalItems × itemHeight`) exceeds this limit, we need **compression** to make scrolling work.
+Browsers have a maximum element height limit of approximately **16.7 million pixels**. When a virtual list's total height (`totalItems × itemHeight`) exceeds this limit, we need **scaling** to make scrolling work.
 
 ### The Problem
 
@@ -16,12 +16,29 @@ Result: Scrollbar breaks, can't reach end of list
 
 ### The Solution
 
-vlist automatically detects when compression is needed and switches from native scrolling to **manual wheel-based scrolling**:
+The `withScale()` plugin automatically detects when scaling is needed and switches from native scrolling to **manual wheel-based scrolling**:
 
 1. **Native mode** (`overflow: auto`): Standard browser scrolling for smaller lists
-2. **Compressed mode** (`overflow: hidden`): Manual wheel event handling for large lists
+2. **Scaled mode** (`overflow: hidden`): Manual wheel event handling for large lists
 
-## How Compression Works
+## Installation
+
+```typescript
+import { vlist, withScale, withScrollbar } from '@floor/vlist';
+
+const list = vlist({
+  container: '#app',
+  items: generateItems(2_000_000),
+  item: { height: 48, template: (item) => `<div>${item.id}</div>` },
+})
+  .use(withScale())                      // Auto-activates above browser limit
+  .use(withScrollbar({ autoHide: true }))
+  .build();
+```
+
+**Bundle cost:** +2.2 KB gzipped
+
+## How Scaling Works
 
 ### Key Concepts
 
@@ -29,12 +46,12 @@ vlist automatically detects when compression is needed and switches from native 
 |------|-------------|
 | `actualHeight` | True height if all items rendered: `totalItems × itemHeight` |
 | `virtualHeight` | Capped height used for scroll bounds: `min(actualHeight, 16M)` |
-| `compressionRatio` | `virtualHeight / actualHeight` (1 = no compression, <1 = compressed) |
+| `compressionRatio` | `virtualHeight / actualHeight` (1 = no scaling, <1 = scaled) |
 | `virtualScrollIndex` | The item index at the current scroll position |
 
 ### Scroll Position Mapping
 
-In compressed mode, scroll position maps to item index via ratio:
+In scaled mode, scroll position maps to item index via ratio:
 
 ```javascript
 // Scroll position → Item index
@@ -58,7 +75,7 @@ const position = (itemIndex - virtualScrollIndex) * itemHeight;
 
 This formula ensures:
 - Items at the current scroll position appear at viewport top (position ≈ 0)
-- Items use their full `itemHeight` (no visual compression)
+- Items use their full `itemHeight` (no visual scaling)
 - Consecutive items are exactly `itemHeight` pixels apart
 
 ### Near-Bottom Interpolation
@@ -76,19 +93,19 @@ if (distanceFromBottom <= containerHeight) {
     return containerHeight - totalHeightFromBottom;
   }
   
-  // Otherwise: interpolate between compressed position and actual bottom
+  // Otherwise: interpolate between scaled position and actual bottom
   const interpolation = 1 - (distanceFromBottom / containerHeight);
   // Blend positions to smoothly reach the last items
 }
 ```
 
-**Exact Bottom Positioning:** When scrolled to the absolute bottom (`scrollTop >= maxScroll - 1`), items are positioned from the bottom up to ensure pixel-perfect alignment with zero gap. This prevents the ~20-25px gap that could occur due to compression ratio precision at the edge case of max scroll.
+**Exact Bottom Positioning:** When scrolled to the absolute bottom (`scrollTop >= maxScroll - 1`), items are positioned from the bottom up to ensure pixel-perfect alignment with zero gap.
 
 ## Architecture
 
 ### Scroll Controller
 
-The scroll controller (`src/scroll/controller.ts`) handles all three modes:
+The scroll controller handles all three modes:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -99,7 +116,7 @@ The scroll controller (`src/scroll/controller.ts`) handles all three modes:
 │  - Browser handles scrolling                        │
 │  - Listen to 'scroll' event                         │
 ├─────────────────────────────────────────────────────┤
-│  Compressed Mode (large lists)                      │
+│  Scaled Mode (large lists)                          │
 │  - overflow: hidden                                 │
 │  - Intercept wheel events                           │
 │  - Track virtual scrollPosition                     │
@@ -108,22 +125,24 @@ The scroll controller (`src/scroll/controller.ts`) handles all three modes:
 │  Window Mode (document scrolling)                   │
 │  - overflow: visible (list sits in page flow)       │
 │  - Listen to window 'scroll' event                  │
-│  - Compression is purely mathematical               │
+│  - Scaling is purely mathematical                   │
 │  - No wheel interception or overflow changes        │
 └─────────────────────────────────────────────────────┘
 ```
 
-> **Window mode + compression:** When `scrollElement: window` is set and the list exceeds browser height limits, compression activates but works differently — the content div height is set to the virtual height by `vlist.ts`, and the browser scrolls natively. There is no `overflow: hidden` or wheel interception. The compression ratio-based position mapping is purely mathematical.
+> **Window mode + scaling:** When using `withPage()` and the list exceeds browser height limits, scaling activates but works differently — the content div height is set to the virtual height, and the browser scrolls natively. There is no `overflow: hidden` or wheel interception. The scaling ratio-based position mapping is purely mathematical.
 
 ### Mode Switching
 
-```javascript
-// Automatic detection in vlist.ts
-const compression = getCompressionState(totalItems, itemHeight);
+Scaling activates automatically when needed:
 
-if (compression.isCompressed && !scrollController.isCompressed()) {
-  scrollController.enableCompression(compression);
-} else if (!compression.isCompressed && scrollController.isCompressed()) {
+```javascript
+// Automatic detection
+const scaleState = getScaleState(totalItems, itemHeight);
+
+if (scaleState.isCompressed && !scrollController.isCompressed()) {
+  scrollController.enableCompression(scaleState);
+} else if (!scaleState.isCompressed && scrollController.isCompressed()) {
   scrollController.disableCompression();
 }
 ```
@@ -142,52 +161,50 @@ Position items relative to viewport
 Items appear at correct positions
 ```
 
-## API Reference
+## API
 
-### Compression State
+### No Configuration Required
+
+`withScale()` has no configuration options — it automatically detects when scaling is needed and activates transparently.
 
 ```typescript
-interface CompressionState {
-  isCompressed: boolean;
-  actualHeight: number;
-  virtualHeight: number;
-  ratio: number;
-}
+import { vlist, withScale } from '@floor/vlist';
 
-// Get compression state
-const state = getCompressionState(totalItems, itemHeight);
+const list = vlist({
+  container: '#app',
+  items: millionItems,
+  item: { height: 32, template: renderRow },
+})
+  .use(withScale())
+  .build();
 ```
 
-### Scroll Controller Methods
+### Exported Utilities
+
+For advanced use cases, you can import scaling utilities directly:
 
 ```typescript
-interface ScrollController {
-  getScrollTop(): number;
-  scrollTo(position: number, smooth?: boolean): void;
-  scrollBy(delta: number): void;
-  isAtTop(): boolean;
-  isAtBottom(threshold?: number): boolean;
-  getScrollPercentage(): number;
-  enableCompression(compression: CompressionState): void;
-  disableCompression(): void;
-  isCompressed(): boolean;
-  isWindowMode(): boolean;
-  updateContainerHeight(height: number): void;
-  destroy(): void;
-}
-```
+import {
+  MAX_VIRTUAL_HEIGHT,
+  needsScaling,
+  getMaxItemsWithoutScaling,
+  getScaleInfo,
+  getScaleState,
+} from '@floor/vlist';
 
-### Utility Functions
+// Check if scaling needed
+const needsScale = needsScaling(totalItems, itemHeight);
 
-```typescript
-// Check if compression needed
-needsCompression(totalItems: number, itemHeight: number): boolean
+// Get max items without scaling for given height
+const maxItems = getMaxItemsWithoutScaling(48); // → 333,333 items
 
-// Get max items without compression
-getMaxItemsWithoutCompression(itemHeight: number): number
+// Get human-readable info
+const info = getScaleInfo(totalItems, itemHeight);
+// → "Scaled to 33.3% (1000000 items × 48px = 48.0M px → 16.0M px virtual)"
 
-// Human-readable compression info
-getCompressionInfo(totalItems: number, itemHeight: number): string
+// Get full scale state
+const state = getScaleState(totalItems, itemHeight);
+// → { isCompressed: true, actualHeight: 48000000, virtualHeight: 16000000, ratio: 0.333 }
 ```
 
 ## Constants
@@ -196,152 +213,49 @@ getCompressionInfo(totalItems: number, itemHeight: number): string
 // Maximum virtual height (browser safe limit)
 const MAX_VIRTUAL_HEIGHT = 16_000_000; // 16M pixels
 
-// Max items by height
+// Max items by height (without scaling)
 // 48px → 333,333 items
 // 40px → 400,000 items
 // 32px → 500,000 items
 // 24px → 666,666 items
 ```
 
-## Testing
-
-Run compression tests:
-
-```bash
-bun test test/compression.test.ts
-```
-
-Key test scenarios:
-- Small lists (no compression)
-- Large lists (compression active)
-- Near-bottom interpolation
-- Scroll position ↔ item index mapping
-- Consecutive item spacing
-
-## Current Status
-
-### ✅ Implemented
-
-- [x] Compression detection
-- [x] Manual wheel event handling
-- [x] Viewport-relative item positioning
-- [x] Near-bottom interpolation
-- [x] Smooth scrolling for 1M+ items
-- [x] Automatic mode switching
-- [x] Custom scrollbar for compressed mode
-- [x] Comprehensive tests (284 passing)
-
 ## Custom Scrollbar
 
-The compressed mode uses `overflow: hidden`, which hides the native scrollbar. A custom scrollbar provides:
-- Visual feedback of scroll position
-- Click-to-scroll functionality
-- Drag-to-scroll functionality
-- Auto-hide after idle (configurable)
-
-### API
+Scaled mode uses `overflow: hidden`, which hides the native scrollbar. Use `withScrollbar()` to add a custom scrollbar:
 
 ```typescript
-interface ScrollbarConfig {
-  /** Enable scrollbar (default: auto - enabled when compressed) */
-  enabled?: boolean;
-  
-  /** Auto-hide scrollbar after idle (default: true) */
-  autoHide?: boolean;
-  
-  /** Auto-hide delay in milliseconds (default: 1000) */
-  autoHideDelay?: number;
-  
-  /** Minimum thumb size in pixels (default: 30) */
-  minThumbSize?: number;
-}
+import { vlist, withScale, withScrollbar } from '@floor/vlist';
 
-// Usage
 const list = vlist({
   container: '#app',
-  item: {
-    height: 48,
-    template: (item) => `<div class="item">${item.name}</div>`,
-  },
   items: largeDataset,
-  scrollbar: {
-    enabled: true,
+  item: { height: 48, template: renderItem },
+})
+  .use(withScale())
+  .use(withScrollbar({
     autoHide: true,
     autoHideDelay: 1000,
-  }
-});
+  }))
+  .build();
 ```
 
-### Features
+See [Scrollbar Plugin](./scrollbar.md) for full documentation.
 
-1. **Visual scrollbar track and thumb**
-   - Track: Full height of viewport
-   - Thumb: Size proportional to visible content ratio
-   - Position: Maps to current scroll position
+## Examples
 
-2. **Interactions**
-   - Click on track → Jump to position (centers thumb at click)
-   - Drag thumb → Scroll proportionally
-   - Hover on viewport → Show scrollbar
+### Basic Usage (Million Items)
 
-3. **Styling**
-   - Matches vlist visual style
-   - Auto-hide after idle (configurable)
-   - Full dark mode support
-   - Custom colors via CSS variables
-
-### CSS Variables
-
-```css
-:root {
-  /* Custom Scrollbar (for compressed mode) */
-  --vlist-scrollbar-width: 8px;
-  --vlist-scrollbar-track-bg: transparent;
-  --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);
-  --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5);
-  --vlist-scrollbar-custom-thumb-radius: 4px;
-}
-
-/* Dark mode automatically adjusts */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --vlist-scrollbar-custom-thumb-bg: rgba(255, 255, 255, 0.3);
-    --vlist-scrollbar-custom-thumb-hover-bg: rgba(255, 255, 255, 0.5);
-  }
-}
-```
-
-### Implementation Files
-
-- `src/core/scrollbar.ts` - Scrollbar component
-- `src/styles/vlist.css` - CSS styles (scrollbar section)
-- `test/scrollbar.test.ts` - Unit tests (23 tests)
-
-## Files Reference
-
-| File | Description |
-|------|-------------|
-| `src/core/compression.ts` | Compression calculations |
-| `src/core/scroll.ts` | Scroll controller (native + compressed) |
-| `src/core/render.ts` | Item rendering with compression support |
-| `src/core/virtual.ts` | Viewport state management |
-| `src/core/scrollbar.ts` | Custom scrollbar component |
-| `src/vlist.ts` | Main entry point |
-| `test/compression.test.ts` | Compression tests |
-| `test/scrollbar.test.ts` | Scrollbar tests |
-
-## Example: Million Items
-
-```javascript
-import { vlist, getCompressionInfo } from 'vlist';
+```typescript
+import { vlist, withScale, getScaleInfo } from '@floor/vlist';
 
 const items = Array.from({ length: 1_000_000 }, (_, i) => ({
   id: i,
   name: `Item ${i + 1}`,
 }));
 
-console.log(getCompressionInfo(items.length, 48));
-// "Compressed to 33.3% (1000000 items × 48px = 48.0M px → 16.0M px virtual)"
+console.log(getScaleInfo(items.length, 48));
+// "Scaled to 33.3% (1000000 items × 48px = 48.0M px → 16.0M px virtual)"
 
 const list = vlist({
   container: '#app',
@@ -350,7 +264,10 @@ const list = vlist({
     template: (item) => `<div class="item">${item.name}</div>`,
   },
   items,
-});
+})
+  .use(withScale())
+  .use(withScrollbar())
+  .build();
 
 // Scroll to middle
 list.scrollToIndex(500_000, 'center');
@@ -359,7 +276,133 @@ list.scrollToIndex(500_000, 'center');
 list.scrollToIndex(999_999, 'end');
 ```
 
+### With Grid Layout
+
+```typescript
+import { vlist, withScale, withGrid, withScrollbar } from '@floor/vlist';
+
+const photos = generatePhotos(5_000_000);
+
+const gallery = vlist({
+  container: '#gallery',
+  items: photos,
+  item: {
+    height: 200,
+    template: (photo) => `<img src="${photo.url}" />`,
+  },
+})
+  .use(withGrid({ columns: 6, gap: 16 }))
+  .use(withScale())
+  .use(withScrollbar())
+  .build();
+```
+
+### With Sections
+
+```typescript
+import { vlist, withScale, withSections, withScrollbar } from '@floor/vlist';
+
+const contacts = generateContacts(2_000_000);
+
+const list = vlist({
+  container: '#contacts',
+  items: contacts,
+  item: {
+    height: 56,
+    template: (contact) => `<div>${contact.name}</div>`,
+  },
+})
+  .use(withSections({
+    getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase(),
+    headerHeight: 36,
+    headerTemplate: (letter) => `<div>${letter}</div>`,
+    sticky: true,
+  }))
+  .use(withScale())
+  .use(withScrollbar())
+  .build();
+```
+
+## ViewportState
+
+When scaling is active, the viewport state reflects the scaled state:
+
+```typescript
+list.on('scroll', ({ scrollTop }) => {
+  console.log(list.getViewportState());
+});
+
+// Returns:
+{
+  scrollTop: 5000000,        // Current scroll position
+  containerHeight: 600,      // Viewport height
+  totalHeight: 16000000,     // Virtual height (capped)
+  actualHeight: 48000000,    // True height (uncapped)
+  isCompressed: true,        // Scaling active
+  compressionRatio: 0.333,   // Scale factor
+  visibleRange: { start: 104166, end: 104178 },
+  renderRange: { start: 104163, end: 104181 }
+}
+```
+
+## Performance
+
+Scaling has minimal performance impact:
+
+- **Calculation overhead:** < 1ms per scroll frame
+- **Memory overhead:** ~2-3 KB state
+- **Render performance:** Identical to non-scaled mode
+- **Smooth scrolling:** 60fps with 1M+ items
+
+The plugin only activates when needed, so smaller lists have zero overhead.
+
+## Browser Compatibility
+
+The scale plugin works in all modern browsers:
+
+- ✅ Chrome 90+
+- ✅ Firefox 88+
+- ✅ Safari 14+
+- ✅ Edge 90+
+
+Maximum height limits vary slightly by browser:
+- Chrome/Edge: ~33.5M px
+- Firefox: ~17.8M px
+- Safari: ~16.7M px
+
+The plugin uses a conservative 16M px limit for cross-browser compatibility.
+
+## Combining with Other Plugins
+
+`withScale()` works seamlessly with all other plugins:
+
+| Plugin | Compatible | Notes |
+|--------|------------|-------|
+| `withGrid()` | ✅ Yes | Scales grid rows automatically |
+| `withSections()` | ✅ Yes | Scales grouped layout |
+| `withAsync()` | ✅ Yes | Scales async-loaded data |
+| `withSelection()` | ✅ Yes | No impact on selection |
+| `withScrollbar()` | ✅ Recommended | Custom scrollbar for scaled mode |
+| `withPage()` | ✅ Yes | Mathematical scaling only |
+| `withSnapshots()` | ✅ Yes | No impact on snapshots |
+
+## Known Limitations
+
+1. **Window mode visual quirk:** In window mode with scaling active, rapid scrolling may show a slight jump when switching between scaled and exact positioning near the bottom. This is a visual artifact of the mathematical mapping and doesn't affect functionality.
+
+2. **Wheel event override:** Scaled mode intercepts wheel events, which means custom wheel handling in parent elements may not work as expected.
+
+3. **Native scrollbar hidden:** Scaled mode hides the native scrollbar. Always use `withScrollbar()` when scaling is active.
+
+## Related
+
+- [Scrollbar Plugin](./scrollbar.md) - Custom scrollbar (required for scaled mode)
+- [Grid Plugin](./grid.md) - 2D grid layout with scaling support
+- [Sections Plugin](./sections.md) - Grouped lists with scaling support
+- [Page Plugin](./page.md) - Window scrolling with mathematical scaling
+
 ---
 
-*Last updated: February 2026*
-*Status: Compression and custom scrollbar fully implemented. Window mode compression supported.*
+**Bundle cost:** +2.2 KB gzipped  
+**Status:** Stable  
+**Since:** v0.8.0

@@ -1,12 +1,12 @@
-/* styles/sandbox.css — Styles for SANDBOX OVERVIEW PAGE (static)
+/* styles/examples.css — Styles for EXAMPLES OVERVIEW PAGE (static)
 
-   This stylesheet provides styles for the sandbox index/listing page at /sandbox/
+   This stylesheet provides styles for the examples index/listing page at /examples/
    - Sandbox grid layout
    - Card styles for example listings
    - Footer and GitHub link
 
-   Used in: sandbox/index.html (the overview page only)
-   NOT used in: individual example pages (those use sandbox/styles.css)
+   Used in: examples/index.html (the overview page only)
+   NOT used in: individual example pages (those use examples/styles.css)
 
    This is kept separate and lightweight vs the heavy example styles (941 lines)
    so the landing page loads quickly without unnecessary interactive component styles.
@@ -38,14 +38,14 @@
 
 /* ─── Sandbox Grid ───────────────────────────────────────────────── */
 
-.sandbox-grid {
+.example-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
 
-.sandbox-card {
+.example-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -58,30 +58,30 @@
     transition: all 0.2s ease;
 }
 
-.sandbox-card:hover {
+.example-card:hover {
     background: var(--bg-card-hover);
     border-color: var(--border-hover);
     transform: translateY(-2px);
 }
 
-.sandbox-content {
+.example-content {
     flex: 1;
 }
 
-.sandbox-title {
+.example-title {
     font-size: 15px;
     font-weight: 600;
     color: var(--text);
     margin-bottom: 6px;
 }
 
-.sandbox-description {
+.example-description {
     font-size: 13px;
     line-height: 1.5;
     color: var(--text-muted);
 }
 
-.sandbox-description code {
+.example-description code {
     background: var(--bg-card-hover);
     border: 1px solid var(--border);
     padding: 2px 6px;
@@ -91,13 +91,13 @@
     color: var(--text);
 }
 
-.sandbox-arrow {
+.example-arrow {
     font-size: 20px;
     color: var(--text-dim);
     transition: transform 0.2s ease;
 }
 
-.sandbox-card:hover .sandbox-arrow {
+.example-card:hover .example-arrow {
     transform: translateX(4px);
     color: var(--text-muted);
 }
@@ -152,7 +152,7 @@ footer a:hover {
         font-size: 18px;
     }
 
-    .sandbox-grid {
+    .example-grid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 12px;
     }
@@ -172,20 +172,20 @@ footer a:hover {
         margin-bottom: 12px;
     }
 
-    .sandbox-grid {
+    .example-grid {
         grid-template-columns: 1fr;
         gap: 10px;
     }
 
-    .sandbox-card {
+    .example-card {
         padding: 16px;
     }
 
-    .sandbox-title {
+    .example-title {
         font-size: 14px;
     }
 
-    .sandbox-description {
+    .example-description {
         font-size: 12px;
     }
 

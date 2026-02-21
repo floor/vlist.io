@@ -271,7 +271,7 @@ function buildSuitePage(root, suite) {
           <br>
           <a href="https://github.com/floor/vlist" target="_blank">github.com/floor/vlist</a>
           ·
-          <a href="/sandbox/">Sandbox</a>
+          <a href="/examples/">Examples</a>
           ·
           <a href="/">vlist.dev</a>
         </p>

@@ -192,7 +192,7 @@ interface VListConfig<T extends VListItem = VListItem> {
    * In window mode:
    * - The list participates in the normal page flow (no inner scrollbar)
    * - The browser's native scrollbar controls scrolling
-   * - Compression still works (content height is capped, scroll math is remapped)
+   * - Scaling still works (content height is capped, scroll math is remapped)
    * - Custom scrollbar is disabled (the browser scrollbar is used)
    */
   scrollElement?: Window;
@@ -448,16 +448,16 @@ interface ViewportState {
   /** Container height */
   containerHeight: number;
   
-  /** Total content height (may be capped for compression) */
+  /** Total content height (may be capped for scaling) */
   totalHeight: number;
   
-  /** Actual total height without compression (totalItems × itemHeight) */
+  /** Actual total height without scaling (totalItems × itemHeight) */
   actualHeight: number;
   
-  /** Whether compression is active */
+  /** Whether scaling is active */
   isCompressed: boolean;
   
-  /** Compression ratio (1 = no compression, <1 = compressed) */
+  /** Scaling ratio (1 = no scaling, <1 = scaled) */
   compressionRatio: number;
   
   /** Visible item range */
@@ -873,7 +873,7 @@ const item = list.items[0] as any;
 
 - [vlist.md](../guides/getting-started.md) - Main documentation with configuration examples
 - [context.md](../internals/context.md) - Internal context types
-- [render.md](../internals/rendering.md) - CompressionState, DOMStructure types
+- [render.md](../internals/rendering.md) - Scale state, DOMStructure types
 - [async.md](../plugins/async.md) - DataState, SparseStorage types
 - [selection.md](../plugins/selection.md) - Selection state management
 - [events.md](./events.md) - Event system types

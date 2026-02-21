@@ -1,5 +1,5 @@
 /* Window Scroll Example — example-specific styles only
-   Common styles are provided by sandbox/sandbox.css using shell.css design tokens.
+   Common styles are provided by examples/examples.css using shell.css design tokens.
    This example has a custom layout (no .container) — it uses .page + .hero + sticky bar. */
 
 /* ============================================================================

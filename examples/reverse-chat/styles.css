@@ -1,8 +1,8 @@
 /* Reverse Chat Example — example-specific styles only
    Common styles (.container, h1, .description, .stats, footer)
-   are provided by sandbox/sandbox.css using shell.css design tokens.
+   are provided by examples/examples.css using shell.css design tokens.
    Panel system (.split-layout, .split-panel, .panel-*)
-   is also provided by sandbox/sandbox.css. */
+   is also provided by examples/examples.css. */
 
 .split-layout {
     height: 600px;

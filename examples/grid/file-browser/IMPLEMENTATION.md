@@ -8,7 +8,7 @@ A Finder-like file browser built with **vlist** using the `withGrid` plugin. Thi
 
 ### Frontend (vlist/builder + withGrid)
 
-**Location**: `sandbox/grid/file-browser/javascript/`
+**Location**: `examples/grid/file-browser/javascript/`
 
 - **Grid View**: Uses `withGrid` plugin for 2D virtualized layout with configurable columns (3-6) and gap (4-16px)
 - **List View**: Standard vlist with fixed 40px row height and columnar layout
@@ -217,7 +217,7 @@ cd vlist.dev
 bun run dev
 ```
 
-Navigate to the file-browser example in the sandbox.
+Navigate to the file-browser example in the examples.
 
 ### Configure Allowed Directories
 
@@ -367,7 +367,7 @@ item:dblclick → handleItemDoubleClick(item)
 ### Manual Tests
 
 1. **Start server**: `bun run dev`
-2. **Open file browser** in sandbox
+2. **Open file browser** in examples
 3. **Test grid view**:
    - [ ] Files display with icons
    - [ ] Folders have blue tint on hover

@@ -301,9 +301,9 @@ list.on('item:click', ({ item, index }) => {
 
 ## Examples
 
-See these interactive examples at [vlist.dev/sandbox](https://vlist.dev/sandbox/):
+See these interactive examples at [vlist.dev/examples](https://vlist.dev/examples/):
 
-- **[Window Scroll](https://vlist.dev/sandbox/window-scroll/)** - Infinite scroll with page-level scrolling
+- **[Window Scroll](https://vlist.dev/examples/window-scroll/)** - Infinite scroll with page-level scrolling
 
 ## Best Practices
 
@@ -395,7 +395,7 @@ For better SEO with infinite scroll:
 - **[Async Plugin](./async.md)** - Combine for infinite scroll
 - **[Scrollbar Plugin](./scrollbar.md)** - Alternative: custom scrollbar
 - **[Builder Pattern](../guides/builder-pattern.md)** - How to compose plugins
-- **[Examples](https://vlist.dev/sandbox/)** - Interactive examples
+- **[Examples](https://vlist.dev/examples/)** - Interactive examples
 
 ---
 

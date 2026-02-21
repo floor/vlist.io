@@ -1,31 +1,31 @@
-# Sandbox
+# Examples
 
-The sandbox is an interactive development environment for exploring vlist examples and browsing the source code.
+The examples is an interactive development environment for exploring vlist examples and browsing the source code.
 
 ## Quick Start
 
 ```bash
 # Build and serve
-bun run sandbox
+bun run examples
 
 # Or separately
 bun run build          # Build vlist library
-bun run build:sandbox  # Build sandbox examples
+bun run build:examples  # Build examples examples
 bun run serve          # Start dev server
 ```
 
-Then open http://localhost:3337/sandbox
+Then open http://localhost:3337/examples
 
 ## Structure
 
-The sandbox is organized by plugin architecture, with each folder representing either a plugin or a category of examples:
+The examples is organized by plugin architecture, with each folder representing either a plugin or a category of examples:
 
 ```
-sandbox/
+examples/
 ├── build.ts              # Auto-discovers and builds all examples
 ├── renderer.ts           # Server-side rendering for example pages
-├── index.html            # Sandbox landing page
-├── sandbox.css           # Shared styles
+├── index.html            # Examples landing page
+├── examples.css           # Shared styles
 ├── shell.html            # HTML template wrapper
 │
 ├── basic/                # Getting Started - pure vanilla JS
@@ -81,7 +81,7 @@ sandbox/
 1. Create a new folder in the appropriate plugin category:
 
 ```
-sandbox/my-plugin/my-example/
+examples/my-plugin/my-example/
 ├── content.html
 ├── script.js
 └── styles.css
@@ -90,7 +90,7 @@ sandbox/my-plugin/my-example/
 2. The build script auto-discovers it:
 
 ```bash
-bun run build:sandbox
+bun run build:examples
 # Output: Found 33 examples including my-plugin/my-example
 ```
 
@@ -99,7 +99,7 @@ bun run build:sandbox
 For examples with multiple framework variants:
 
 ```
-sandbox/my-plugin/my-example/
+examples/my-plugin/my-example/
 ├── javascript/
 │   ├── content.html
 │   ├── script.js
@@ -122,21 +122,21 @@ The build script automatically detects nested framework directories.
 
 ## Build Script
 
-`sandbox/build.ts` automatically:
+`examples/build.ts` automatically:
 
-- Recursively scans `sandbox/` for directories containing `script.js`, `script.jsx`, or `script.tsx`
+- Recursively scans `examples/` for directories containing `script.js`, `script.jsx`, or `script.tsx`
 - Detects framework variants (javascript/, react/, vue/, svelte/ subdirectories)
 - Builds all examples in parallel using Bun
-- Outputs to `sandbox/{path}/dist/script.js`
+- Outputs to `examples/{path}/dist/script.js`
 - Reports build times, bundle sizes (minified and gzipped), and CSS sizes
 - Deduplicates React/Vue frameworks when linked (prevents dual framework instances)
 
 ```bash
-bun run build:sandbox
+bun run build:examples
 
 # Output:
-# 🔨 Building sandbox...
-# ✅ sandbox.css                   12.3 KB
+# 🔨 Building examples...
+# ✅ examples.css                   12.3 KB
 # 📦 Found 33 examples: basic, core/basic/javascript, core/basic/react, ...
 # ✅ core/basic/javascript  77ms   11.4 KB → 4.2 KB gzip  css 2.7 KB
 # ✅ core/basic/react     100ms   403.2 KB → 122.3 KB gzip  css 2.7 KB
@@ -150,7 +150,7 @@ bun run build:sandbox
 For development, use watch mode to auto-rebuild on changes:
 
 ```bash
-bun run dev:sandbox
+bun run dev:examples
 ```
 
 ## Dev Server
@@ -215,7 +215,7 @@ This file contains only the example content (not the full HTML document). The se
 ```
 
 The server automatically injects:
-- `sandbox.css` - Shared styles
+- `examples.css` - Shared styles
 - `styles.css` - Example-specific styles
 - `dist/script.js` - Built JavaScript
 

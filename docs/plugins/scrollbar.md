@@ -19,9 +19,10 @@ The scroll module handles all scrolling functionality in vlist, including:
 ## Module Structure
 
 ```
-src/scroll/
+src/features/scrollbar/
 ├── index.ts       # Module exports
-├── controller.ts  # Scroll controller (native + compressed + window + horizontal modes)
+├── plugin.ts      # withScrollbar() plugin
+├── controller.ts  # Scroll controller (native + scaled + window + horizontal modes)
 └── scrollbar.ts   # Custom scrollbar component (vertical + horizontal)
 ```
 
@@ -1388,7 +1389,7 @@ renderIfNeeded();         // ✅ Uses correct value
 
 **Impact:** Only affected non-compressed mode (lists < ~500K items). Compressed mode already worked correctly due to its different scroll mechanism.
 
-**Testing:** Fixed in both builder pattern and core vlist entry points. See `sandbox/builder/large-list` and `sandbox/large-list` examples.
+**Testing:** Fixed in both builder pattern and core vlist entry points. See `examples/builder/large-list` and `examples/large-list` examples.
 
 This pattern already existed in other parts of the codebase (reverse mode, appendItems, prependItems) but was missing from scroll operations. The fix ensures state and DOM updates happen synchronously.
 

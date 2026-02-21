@@ -1,5 +1,5 @@
-// sandbox/renderer.ts
-// Server-side renderer for sandbox pages.
+// examples/renderer.ts
+// Server-side renderer for examples pages.
 // Assembles shell template + sidebar + example content into full HTML pages.
 
 const SITE = "https://vlist.dev";
@@ -176,7 +176,7 @@ function parseVariant(url: string): Variant {
 /** Check which variants exist for an example */
 function detectVariants(slug: string): Variant[] {
   const variants: Variant[] = [];
-  const exampleDir = join(SANDBOX_DIR, slug);
+  const exampleDir = join(EXAMPLES_DIR, slug);
 
   for (const variant of ["javascript", "react", "vue", "svelte"] as Variant[]) {
     const variantDir = join(exampleDir, variant);
@@ -199,8 +199,8 @@ function detectVariants(slug: string): Variant[] {
 // Paths
 // =============================================================================
 
-const SANDBOX_DIR = resolve("./sandbox");
-const SHELL_PATH = join(SANDBOX_DIR, "shell.html");
+const EXAMPLES_DIR = resolve("./examples");
+const SHELL_PATH = join(EXAMPLES_DIR, "shell.html");
 
 // =============================================================================
 // Template Loading
@@ -238,8 +238,8 @@ interface SourceFile {
 function buildSourceTabs(slug: string, variant?: Variant): string {
   // If variant is provided, look in the variant subdirectory
   const dir = variant
-    ? join(SANDBOX_DIR, slug, variant)
-    : join(SANDBOX_DIR, slug);
+    ? join(EXAMPLES_DIR, slug, variant)
+    : join(EXAMPLES_DIR, slug);
 
   const files: { name: string; id: string; lang: string }[] = [
     { name: "script.tsx", id: "tsx", lang: "typescript" },
@@ -271,7 +271,7 @@ function buildSourceTabs(slug: string, variant?: Variant): string {
   // When using variants, also include shared files from the example root
   // directory (e.g. shared.js, styles.css) that aren't in the variant folder
   if (variant) {
-    const rootDir = join(SANDBOX_DIR, slug);
+    const rootDir = join(EXAMPLES_DIR, slug);
     const foundNames = new Set(sources.map((s) => s.label));
 
     const sharedFiles: { name: string; id: string; lang: string }[] = [
@@ -362,7 +362,7 @@ function buildVariantSwitcher(
     // Build URL with variant query param, preserving other params if any
     const params = new URLSearchParams(queryString);
     params.set("variant", variant);
-    const url = `/sandbox/${slug}?${params.toString()}`;
+    const url = `/examples/${slug}?${params.toString()}`;
 
     lines.push(
       `  <a href="${url}" class="variant-switcher__option${activeClass}">${VARIANT_LABELS[variant]}</a>`,
@@ -388,7 +388,7 @@ function buildSidebar(activeSlug: string | null, variant?: Variant): string {
   const overviewActive = activeSlug === null ? " sidebar__link--active" : "";
   lines.push(`<div class="sidebar__group">`);
   lines.push(
-    `  <a href="/sandbox/${queryString}" class="sidebar__link${overviewActive}">Overview</a>`,
+    `  <a href="/examples/${queryString}" class="sidebar__link${overviewActive}">Overview</a>`,
   );
   lines.push(`</div>`);
 
@@ -403,7 +403,7 @@ function buildSidebar(activeSlug: string | null, variant?: Variant): string {
       for (const item of group.items) {
         const active = item.slug === activeSlug ? " sidebar__link--active" : "";
         lines.push(
-          `  <a href="/sandbox/${item.slug}${queryString}" class="sidebar__link${active}">${item.name}</a>`,
+          `  <a href="/examples/${item.slug}${queryString}" class="sidebar__link${active}">${item.name}</a>`,
         );
       }
     }
@@ -421,7 +421,7 @@ function buildOverviewContent(): string {
   const sections: string[] = [];
 
   sections.push(`<div class="overview">`);
-  sections.push(`  <h1 class="overview__title">Sandbox</h1>`);
+  sections.push(`  <h1 class="overview__title">Examples</h1>`);
   sections.push(
     `  <p class="overview__tagline">Interactive examples exploring every vlist feature — from basic lists to million-item stress tests.</p>`,
   );
@@ -444,7 +444,7 @@ function buildOverviewContent(): string {
     } else {
       for (const item of group.items) {
         sections.push(
-          `      <a href="/sandbox/${item.slug}" class="overview__card">`,
+          `      <a href="/examples/${item.slug}" class="overview__card">`,
         );
         sections.push(
           `        <div class="overview__card-title">${item.name}</div>`,
@@ -480,27 +480,27 @@ function buildExtraHead(
   tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
 
   // Shared example styles (at example root, optional)
-  // e.g., /dist/sandbox/grid/photo-album/styles.css
+  // e.g., /dist/examples/grid/photo-album/styles.css
   // This allows variants to share common styles without duplication
   // Only add if file exists to avoid 404s in network tab
-  const sharedCssPath = resolve(join("dist", "sandbox", slug, "styles.css"));
+  const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));
   if (existsSync(sharedCssPath)) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/sandbox/${slug}/styles.css" />`,
+      `<link rel="stylesheet" href="/dist/examples/${slug}/styles.css" />`,
     );
   }
 
   // Variant-specific styles (optional overrides)
-  // e.g., /dist/sandbox/grid/photo-album/react/styles.css
+  // e.g., /dist/examples/grid/photo-album/react/styles.css
   // Loaded after shared styles to allow variant-specific customization
   // Only add if file exists to avoid 404s in network tab
   if (variant) {
     const variantCssPath = resolve(
-      join("dist", "sandbox", slug, variant, "styles.css"),
+      join("dist", "examples", slug, variant, "styles.css"),
     );
     if (existsSync(variantCssPath)) {
       tags.push(
-        `<link rel="stylesheet" href="/dist/sandbox/${slug}/${variant}/styles.css" />`,
+        `<link rel="stylesheet" href="/dist/examples/${slug}/${variant}/styles.css" />`,
       );
     }
   }
@@ -517,8 +517,8 @@ function buildExtraBody(
 
   // Script path — check variant subdirectory first
   const scriptPath = variant
-    ? `/dist/sandbox/${slug}/${variant}/script.js`
-    : `/dist/sandbox/${slug}/script.js`;
+    ? `/dist/examples/${slug}/${variant}/script.js`
+    : `/dist/examples/${slug}/script.js`;
 
   return `<script type="module" src="${scriptPath}"></script>`;
 }
@@ -536,7 +536,7 @@ function assemblePage(
 ): string {
   const shell = loadShell();
 
-  const title = example ? `VList — ${example.name}` : "VList — Sandbox";
+  const title = example ? `VList — ${example.name}` : "VList — Examples";
 
   const description = example
     ? `VList ${example.name.toLowerCase()} example — ${example.desc}`
@@ -548,8 +548,8 @@ function assemblePage(
   const mainClass = "";
 
   const url = slug
-    ? `${SITE}/sandbox/${slug}${queryString || ""}`
-    : `${SITE}/sandbox/`;
+    ? `${SITE}/examples/${slug}${queryString || ""}`
+    : `${SITE}/examples/`;
 
   return shell
     .replace(/{{TITLE}}/g, title)
@@ -567,13 +567,13 @@ function assemblePage(
 // =============================================================================
 
 /**
- * Render a sandbox page.
+ * Render a examples page.
  *
  * @param slug - Example slug (e.g. "basic", "grid") or null for the overview.
  * @param url - Full request URL for parsing query params
  * @returns A Response with the full HTML page, or null if the example doesn't exist.
  */
-export function renderSandboxPage(
+export function renderExamplesPage(
   slug: string | null,
   url?: string,
 ): Response | null {
@@ -602,17 +602,17 @@ export function renderSandboxPage(
   let contentPath: string;
 
   if (hasVariants) {
-    // New structure: sandbox/{example}/{variant}/
+    // New structure: examples/{example}/{variant}/
     if (!variants.includes(variant)) {
       // Requested variant doesn't exist, use first available
       const firstVariant = variants[0];
-      contentPath = join(SANDBOX_DIR, slug, firstVariant, "content.html");
+      contentPath = join(EXAMPLES_DIR, slug, firstVariant, "content.html");
     } else {
-      contentPath = join(SANDBOX_DIR, slug, variant, "content.html");
+      contentPath = join(EXAMPLES_DIR, slug, variant, "content.html");
     }
   } else {
-    // Old structure: sandbox/{example}/ (backward compatibility)
-    contentPath = join(SANDBOX_DIR, slug, "content.html");
+    // Old structure: examples/{example}/ (backward compatibility)
+    contentPath = join(EXAMPLES_DIR, slug, "content.html");
   }
 
   if (!existsSync(contentPath)) return null;

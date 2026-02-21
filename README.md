@@ -1,6 +1,6 @@
 # vlist.dev
 
-Documentation, sandbox, and benchmarks site for the [vlist](https://github.com/floor/vlist) virtual list library.
+Documentation, examples, and benchmarks site for the [vlist](https://github.com/floor/vlist) virtual list library.
 
 **Live:** [https://vlist.dev](https://vlist.dev)
 
@@ -20,14 +20,14 @@ See [BUNDLE_SIZE_COMPARISON.md](./BUNDLE_SIZE_COMPARISON.md) for detailed analys
 | Section | Path | Description |
 |---------|------|-------------|
 | **Landing** | `/` | Feature overview, quick start, and navigation |
-| **Sandbox** | `/sandbox/` | 34 interactive examples — basic lists to million-item stress tests |
+| **Examples** | `/examples/` | 34 interactive examples — basic lists to million-item stress tests |
 | **Docs** | `/docs/` | API reference, configuration, events, methods, styling |
 | **Benchmarks** | `/benchmarks/` | Live performance suites — scroll FPS, render time, memory, bundle size |
 | **API** | `/api/` | Deterministic user data endpoint for demos (1M+ items, zero storage) |
 
-## Sandbox Examples
+## Examples Examples
 
-The sandbox includes **34 interactive examples** demonstrating the builder pattern with explicit plugins:
+The examples includes **34 interactive examples** demonstrating the builder pattern with explicit plugins:
 
 ### By Feature
 
@@ -87,16 +87,16 @@ The `link:libs` script links the local `vlist` package, so changes are reflected
 bun run dev
 ```
 
-This builds the sandbox and benchmarks, then starts the Bun server with `--watch` on port **3338**.
+This builds the examples and benchmarks, then starts the Bun server with `--watch` on port **3338**.
 
 ## Scripts
 
 | Script | Command | Description |
 |--------|---------|-------------|
-| `dev` | `bun run dev` | Build sandbox + benchmarks, start server with watch |
+| `dev` | `bun run dev` | Build examples + benchmarks, start server with watch |
 | `start` | `bun run start` | Start server (no build, no watch) |
-| `build:sandbox` | `bun run build:sandbox` | Build all 14 sandbox examples |
-| `build:sandbox:watch` | `bun run build:sandbox:watch` | Rebuild sandbox on change |
+| `build:examples` | `bun run build:examples` | Build all 14 examples examples |
+| `build:examples:watch` | `bun run build:examples:watch` | Rebuild examples on change |
 | `build:bench` | `bun run build:bench` | Build benchmark suites |
 | `build:bench:watch` | `bun run build:bench:watch` | Rebuild benchmarks on change |
 | `typecheck` | `bun run typecheck` | Run TypeScript type checking |
@@ -110,9 +110,9 @@ vlist.dev/
 │   └── api/                # API routes (user data endpoint)
 │       ├── router.ts
 │       └── users.ts
-├── sandbox/                # Interactive examples (34 total)
-│   ├── build.ts            # Sandbox build script (esbuild)
-│   ├── index.html          # Sandbox index page
+├── examples/                # Interactive examples (34 total)
+│   ├── build.ts            # Examples build script (esbuild)
+│   ├── index.html          # Examples index page
 │   ├── basic/              # Getting Started
 │   ├── controls/           # (JavaScript, React, Vue, Svelte)
 │   ├── core/               # Ultra-Lightweight Core (3.1 KB gzip)
@@ -166,7 +166,7 @@ vlist.dev/
 
 1. `/api/*` → API router
 2. `/dist/*` → vlist package `dist/` (follows symlinks from `bun link`)
-3. `/sandbox/*`, `/docs/*`, `/benchmarks/*` → static files
+3. `/examples/*`, `/docs/*`, `/benchmarks/*` → static files
 6. `/` → landing page
 
 No frameworks, no bundler for the server — just `Bun.serve()`.
@@ -182,7 +182,7 @@ Deployed to **floor.io** via GitHub Actions on push to `main`.
 1. Push to `main` triggers `.github/workflows/deploy.yml`
 2. GitHub Actions SSHs into the server
 3. Pulls latest, replaces `file:` dependencies with registry versions
-4. Runs `bun install`, builds vlist, builds sandbox + benchmarks
+4. Runs `bun install`, builds vlist, builds examples + benchmarks
 5. Restores `package.json` and reloads PM2
 
 **First-time server setup:**

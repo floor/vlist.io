@@ -1,4 +1,4 @@
-// Shared data and utilities for velocity-loading sandbox variants
+// Shared data and utilities for velocity-loading example variants
 // This file is imported by all framework implementations to avoid duplication
 
 // =============================================================================

@@ -14,8 +14,9 @@ The selection module provides immutable state management for item selection. It 
 ## Module Structure
 
 ```
-src/selection/
+src/features/selection/
 ├── index.ts   # Module exports
+├── plugin.ts  # withSelection() plugin
 └── state.ts   # Selection state management
 ```
 

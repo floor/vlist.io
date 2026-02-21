@@ -1,4 +1,4 @@
-// build.ts - Auto-discover and build all sandbox examples in parallel
+// build.ts - Auto-discover and build all examples examples in parallel
 import {
   readdirSync,
   existsSync,
@@ -11,7 +11,7 @@ import { join, resolve } from "path";
 
 const isWatch = process.argv.includes("--watch");
 
-const SANDBOX_DIR = "./sandbox";
+const EXAMPLES_DIR = "./examples";
 const PROJECT_ROOT = resolve(".");
 
 const BUILD_OPTIONS = {
@@ -171,15 +171,15 @@ async function discoverExamples(): Promise<string[]> {
     }
   };
 
-  scan(SANDBOX_DIR, "");
+  scan(EXAMPLES_DIR, "");
   return examples.sort();
 }
 
 async function buildExample(name: string): Promise<BuildResult> {
   const start = performance.now();
-  const exampleDir = join(SANDBOX_DIR, name);
+  const exampleDir = join(EXAMPLES_DIR, name);
   const entrypoint = findEntrypoint(exampleDir);
-  const outdir = join("dist", SANDBOX_DIR, name);
+  const outdir = join("dist", EXAMPLES_DIR, name);
 
   if (!entrypoint) {
     return {
@@ -195,9 +195,9 @@ async function buildExample(name: string): Promise<BuildResult> {
     // Shared styles support: examples with variants (javascript/react/vue/svelte)
     // can have a shared styles.css at the example root that all variants use.
     // Example structure:
-    //   grid/photo-album/styles.css         → shared (built to dist/sandbox/grid/photo-album/)
-    //   grid/photo-album/javascript/*.js    → variant (built to dist/sandbox/grid/photo-album/javascript/)
-    //   grid/photo-album/react/*.jsx        → variant (built to dist/sandbox/grid/photo-album/react/)
+    //   grid/photo-album/styles.css         → shared (built to dist/examples/grid/photo-album/)
+    //   grid/photo-album/javascript/*.js    → variant (built to dist/examples/grid/photo-album/javascript/)
+    //   grid/photo-album/react/*.jsx        → variant (built to dist/examples/grid/photo-album/react/)
     // Each variant can optionally have its own styles.css for overrides.
     const isVariant = ["javascript", "react", "vue", "svelte"].some((v) =>
       name.endsWith(`/${v}`),
@@ -207,7 +207,7 @@ async function buildExample(name: string): Promise<BuildResult> {
       const sharedCssPath = join(parentDir, "styles.css");
       // Get parent example name (e.g., "grid/photo-album" from "grid/photo-album/javascript")
       const parentName = name.split("/").slice(0, -1).join("/");
-      const parentOutdir = join("dist", SANDBOX_DIR, parentName);
+      const parentOutdir = join("dist", EXAMPLES_DIR, parentName);
 
       if (existsSync(sharedCssPath)) {
         if (!existsSync(parentOutdir)) {
@@ -362,8 +362,8 @@ function printSizeTable(results: BuildResult[]): void {
 }
 
 function buildSharedCss(): void {
-  const cssPath = join(SANDBOX_DIR, "styles.css");
-  const outdir = join("dist", SANDBOX_DIR);
+  const cssPath = join(EXAMPLES_DIR, "styles.css");
+  const outdir = join("dist", EXAMPLES_DIR);
 
   if (!existsSync(cssPath)) return;
 
@@ -379,7 +379,7 @@ function buildSharedCss(): void {
 async function main() {
   const totalStart = performance.now();
 
-  console.log("🔨 Building sandbox...\n");
+  console.log("🔨 Building examples...\n");
 
   // Build shared CSS first
   buildSharedCss();
@@ -388,7 +388,7 @@ async function main() {
   const examples = await discoverExamples();
 
   if (examples.length === 0) {
-    console.log("⚠️  No examples found in", SANDBOX_DIR);
+    console.log("⚠️  No examples found in", EXAMPLES_DIR);
     process.exit(0);
   }
 
@@ -422,13 +422,13 @@ async function main() {
 }
 
 async function watchMode() {
-  console.log("👀 Watching sandbox for changes...\n");
+  console.log("👀 Watching examples for changes...\n");
 
   // Initial build
   await main();
 
   // Watch shared styles.css
-  watch(SANDBOX_DIR, { recursive: false }, async (_event, filename) => {
+  watch(EXAMPLES_DIR, { recursive: false }, async (_event, filename) => {
     if (filename === "styles.css") {
       console.log(`\n📝 styles.css changed`);
       buildSharedCss();
@@ -455,18 +455,18 @@ async function watchMode() {
     });
   }
 
-  // Watch each sandbox directory (including nested category folders)
+  // Watch each examples directory (including nested category folders)
   const examples = await discoverExamples();
   const watchedDirs = new Set<string>();
 
   for (const name of examples) {
-    const dir = join(SANDBOX_DIR, name);
+    const dir = join(EXAMPLES_DIR, name);
 
     // For nested examples like "builder/chat", also watch the parent
     // category folder so new examples are detected
     const parts = name.split("/");
     if (parts.length > 1) {
-      const categoryDir = join(SANDBOX_DIR, parts[0]);
+      const categoryDir = join(EXAMPLES_DIR, parts[0]);
       if (!watchedDirs.has(categoryDir)) {
         watchedDirs.add(categoryDir);
         watch(categoryDir, { recursive: true }, async (_event, filename) => {

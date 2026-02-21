@@ -1,537 +1,1182 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>VList — Tiny, blazing-fast virtual list</title>
         <meta
             name="description"
-            content="~7–8 kB zero-dependency virtual list. Constant ~0.1–0.3 MB memory at 1M+ items. 120+ FPS. Grid, sticky headers, reverse chat, selection, compression."
+            content="VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more."
         />
+        <title>VList — Virtual List for the Web</title>
 
-        <meta
-            property="og:title"
-            content="VList — Tiny, blazing-fast virtual list"
-        />
+        <link rel="canonical" href="https://vlist.dev/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://vlist.dev/" />
+        <meta property="og:title" content="VList — Virtual List for the Web" />
         <meta
             property="og:description"
-            content="~7–8 kB zero-dependency virtual list. Constant ~0.1–0.3 MB memory at 1M+ items. 120+ FPS. Grid, sticky headers, reverse chat, selection, compression."
+            content="VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more."
         />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://vlist.dev" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="VList — Virtual List for the Web" />
+        <meta
+            name="twitter:description"
+            content="VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more."
+        />
 
-        <link
-            rel="icon"
-            href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>"
-        />
+        <link rel="stylesheet" href="/styles/shell.css" />
+
+        <!-- Theme: apply before paint to prevent flash -->
+        <script>
+            (function () {
+                var t = localStorage.getItem("vlist-theme");
+                if (!t)
+                    t = window.matchMedia("(prefers-color-scheme: light)")
+                        .matches
+                        ? "light"
+                        : "dark";
+                document.documentElement.setAttribute("data-theme", t);
+            })();
+        </script>
 
         <style>
+            /* ─── Landing Token Overrides ─────────────────────── */
+
             :root {
-                --bg: #0f0f17;
-                --bg-card: #161620;
-                --border: #2a2a38;
-                --text: #e2e2f0;
-                --text-dim: #a0a0c0;
-                --accent: #6a82fb;
-                --accent-dark: #4a5cd8;
+                --text-muted: #7a7a88;
+                --text-dim: #55555f;
+                --bg-card-hover: #1a1a1f;
+                --accent-dim: rgba(102, 126, 234, 0.12);
+                --accent-glow: rgba(102, 126, 234, 0.06);
+                --dropdown-bg: rgba(12, 12, 16, 0.95);
                 --radius: 12px;
-                --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-                --code-bg: #0d1117;
-                --code-text: #c9d1d9;
-                --code-keyword: #ff7b72;
-                --code-string: #a5d6ff;
-                --code-function: #79c0ff;
-                --code-comment: #8b949e;
+                --radius-sm: 8px;
             }
 
             [data-theme="light"] {
-                --bg: #f8f9ff;
-                --bg-card: #ffffff;
-                --border: #e0e0f0;
-                --text: #1a1a2e;
-                --text-dim: #606080;
-                --accent: #5a6fd6;
-                --accent-dark: #3f51b5;
-                --code-bg: #f6f8fa;
-                --code-text: #24292e;
-                --code-keyword: #d73a49;
-                --code-string: #032f62;
-                --code-function: #005cc5;
-                --code-comment: #6a737d;
+                --text-muted: #555568;
+                --text-dim: #8888a0;
+                --bg-card-hover: #e8e8f0;
+                --accent-dim: rgba(74, 92, 216, 0.08);
+                --accent-glow: rgba(74, 92, 216, 0.04);
+                --dropdown-bg: rgba(255, 255, 255, 0.95);
             }
 
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            body {
-                font-family:
-                    system-ui,
-                    -apple-system,
-                    sans-serif;
-                background: var(--bg);
-                color: var(--text);
-                line-height: 1.6;
-                min-height: 100vh;
-            }
-
-            header {
-                position: sticky;
-                top: 0;
-                z-index: 100;
-                background: rgba(15, 15, 23, 0.9);
-                backdrop-filter: blur(12px);
-                border-bottom: 1px solid var(--border);
-            }
+            /* ============================================================
+               Layout
+               ============================================================ */
 
             .container {
-                max-width: 1280px;
+                max-width: 1600px;
                 margin: 0 auto;
                 padding: 0 24px;
             }
 
-            nav.inner {
-                height: 72px;
+            /* ============================================================
+               Mobile Dropdown
+               ============================================================ */
+
+            .dropdown {
+                display: none;
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                background: var(--dropdown-bg);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--border);
+                padding: 12px 24px 16px;
+                z-index: 99;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .dropdown--open {
                 display: flex;
-                align-items: center;
-                justify-content: space-between;
             }
 
-            .logo {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: var(--accent);
+            .dropdown a {
+                display: block;
+                font-size: 14px;
+                color: var(--text-muted);
                 text-decoration: none;
+                padding: 8px 0;
             }
 
-            .nav-links a {
-                color: var(--text-dim);
-                text-decoration: none;
-                margin-left: 28px;
-                font-weight: 500;
-                transition: color 0.2s;
-            }
-
-            .nav-links a:hover {
+            .dropdown a:hover {
                 color: var(--text);
             }
 
-            .theme-toggle {
-                background: none;
-                border: none;
-                color: var(--text-dim);
-                cursor: pointer;
-                font-size: 1.3rem;
-            }
+            /* ============================================================
+               Hero
+               ============================================================ */
 
-            /* Hero */
             .hero {
-                padding: 140px 0 100px;
+                padding: calc(var(--header-height) + 40px) 0 56px;
                 text-align: center;
             }
 
-            .hero h1 {
-                font-size: clamp(3.5rem, 8vw, 6.2rem);
-                font-weight: 800;
-                letter-spacing: -0.05em;
-                line-height: 0.95;
-                margin-bottom: 0.4em;
-                background: linear-gradient(90deg, var(--accent), #a78bfa);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
+            .hero__name {
+                font-size: 78px;
+                font-weight: 700;
+                letter-spacing: -2px;
+                line-height: 1;
+                margin-bottom: 16px;
+                color: var(--text);
             }
 
-            .hero .tagline {
-                font-size: 1.5rem;
-                color: var(--text-dim);
-                max-width: 620px;
-                margin: 0 auto 2.5rem;
+            .hero__tagline {
+                font-size: 22px;
+                color: var(--text-muted);
+                line-height: 1.5;
+                max-width: 480px;
+                margin: 0 auto 32px;
             }
 
-            .stats {
+            .hero__badges {
                 display: flex;
+                justify-content: center;
+                gap: 8px;
                 flex-wrap: wrap;
-                justify-content: center;
-                gap: 1.2rem 2rem;
-                margin: 2rem 0 3rem;
+                margin-bottom: 36px;
             }
 
-            .stat {
-                background: var(--bg-card);
+            .badge {
+                font-size: 15px;
+                padding: 5px 12px;
+                border-radius: 16px;
                 border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 1rem 1.6rem;
-                font-size: 1.1rem;
-                font-weight: 600;
-                box-shadow: var(--shadow-sm);
+                color: var(--text-muted);
+                letter-spacing: 0.2px;
             }
 
-            .stat strong {
+            .badge--accent {
+                border-color: var(--accent);
                 color: var(--accent);
+                background: var(--accent-dim);
             }
 
-            .hero .buttons {
+            .hero__actions {
                 display: flex;
                 justify-content: center;
-                gap: 1.2rem;
+                gap: 12px;
                 flex-wrap: wrap;
             }
 
             .btn {
                 display: inline-flex;
                 align-items: center;
-                gap: 0.6rem;
-                padding: 0.9rem 1.8rem;
-                border-radius: var(--radius);
-                font-size: 1.1rem;
-                font-weight: 600;
+                gap: 8px;
+                padding: 10px 22px;
+                border-radius: var(--radius-sm);
+                font-size: 17px;
+                font-weight: 500;
+                font-family: inherit;
                 text-decoration: none;
-                transition: all 0.22s ease;
-            }
-
-            .btn-primary {
-                background: var(--accent);
-                color: white;
-                border: 1px solid var(--accent);
-            }
-
-            .btn-primary:hover {
-                background: var(--accent-dark);
-                transform: translateY(-1px);
-            }
-
-            .btn-outline {
-                background: transparent;
+                cursor: pointer;
                 border: 1px solid var(--border);
+                transition: all 0.2s ease;
+            }
+
+            .btn--primary {
+                background: var(--accent);
+                color: #ffffff;
+                border-color: var(--accent);
+            }
+
+            .btn--primary:hover {
+                background: #5a6fd6;
+                border-color: #5a6fd6;
+            }
+
+            .btn--ghost {
+                background: transparent;
+                color: var(--text-muted);
+            }
+
+            .btn--ghost:hover {
+                background: var(--bg-card);
+                border-color: var(--border-hover);
                 color: var(--text);
             }
 
-            .btn-outline:hover {
-                border-color: var(--accent);
+            /* ============================================================
+               Install
+               ============================================================ */
+
+            .install {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                margin-bottom: 56px;
+            }
+
+            .install__cmd {
+                font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+                font-size: 17px;
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 10px 18px;
+                color: var(--text-muted);
+            }
+
+            .install__cmd span {
                 color: var(--accent);
-                background: rgba(106, 130, 251, 0.08);
             }
 
-            /* Sections */
-            section {
-                padding: 100px 0;
+            /* ============================================================
+               Sections
+               ============================================================ */
+
+            .section {
+                margin-bottom: 56px;
             }
 
-            h2.section-title {
-                font-size: 2.2rem;
-                font-weight: 700;
-                margin-bottom: 2.5rem;
-                text-align: center;
+            .section__title {
+                font-size: 16px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: var(--text-dim);
+                margin-bottom: 16px;
+                padding-left: 2px;
             }
 
-            .features-grid {
+            /* ============================================================
+               Feature Grid
+               ============================================================ */
+
+            .features {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 1.5rem;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
             }
 
-            .feature-card {
+            .feature {
                 background: var(--bg-card);
                 border: 1px solid var(--border);
                 border-radius: var(--radius);
-                padding: 1.8rem;
-                transition: all 0.25s ease;
+                padding: 20px;
+                transition: border-color 0.2s ease;
             }
 
-            .feature-card:hover {
-                border-color: var(--accent);
-                transform: translateY(-4px);
-                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+            .feature:hover {
+                border-color: var(--border-hover);
             }
 
-            .feature-icon {
-                font-size: 2.4rem;
-                margin-bottom: 1rem;
+            .feature__icon {
+                font-size: 24px;
+                margin-bottom: 10px;
                 display: block;
             }
 
-            .feature-title {
-                font-size: 1.35rem;
+            .feature__name {
+                font-size: 17px;
                 font-weight: 600;
-                margin-bottom: 0.6rem;
+                color: var(--text);
+                margin-bottom: 4px;
             }
 
-            .feature-desc {
-                color: var(--text-dim);
-                font-size: 1rem;
+            .feature__desc {
+                font-size: 15px;
+                color: var(--text-muted);
                 line-height: 1.5;
             }
 
-            /* Quick Start */
-            .quick-start {
+            /* ============================================================
+               Navigation Cards
+               ============================================================ */
+
+            .nav-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .nav-card {
                 background: var(--bg-card);
                 border: 1px solid var(--border);
                 border-radius: var(--radius);
-                padding: 2rem;
-                box-shadow: var(--shadow-sm);
-                max-width: 920px;
-                margin: 0 auto;
+                padding: 24px 20px;
+                text-decoration: none;
+                color: inherit;
+                transition: all 0.2s ease;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
             }
 
-            .quick-start pre {
-                background: var(--code-bg);
-                padding: 1.5rem;
-                border-radius: 8px;
-                overflow-x: auto;
-                font-family: "SF Mono", "Consolas", monospace;
-                font-size: 0.95rem;
+            .nav-card:hover {
+                background: var(--bg-card-hover);
+                border-color: var(--border-hover);
+            }
+
+            .nav-card__icon {
+                font-size: 30px;
+            }
+
+            .nav-card__title {
+                font-size: 20px;
+                font-weight: 600;
+                color: var(--text);
+            }
+
+            .nav-card__desc {
+                font-size: 16px;
+                color: var(--text-muted);
                 line-height: 1.5;
-                position: relative;
             }
 
-            .quick-start code {
-                color: var(--code-text);
+            .nav-card__link {
+                font-size: 15px;
+                color: var(--accent);
+                margin-top: auto;
+                display: flex;
+                align-items: center;
+                gap: 4px;
             }
 
-            .quick-start .kw {
-                color: var(--code-keyword);
-            }
-            .quick-start .str {
-                color: var(--code-string);
-            }
-            .quick-start .fn {
-                color: var(--code-function);
-            }
-            .quick-start .cmt {
-                color: var(--code-comment);
-                font-style: italic;
+            /* ============================================================
+               Examples List
+               ============================================================ */
+
+            .example-grid {
+                display: grid;
+                gap: 6px;
             }
 
-            .copy-btn {
-                position: absolute;
-                top: 0.8rem;
-                right: 0.8rem;
-                background: rgba(255, 255, 255, 0.1);
+            .example-item {
+                background: var(--bg-card);
                 border: 1px solid var(--border);
-                color: var(--text-dim);
-                padding: 0.4rem 0.8rem;
-                border-radius: 6px;
-                font-size: 0.85rem;
-                cursor: pointer;
-                transition: all 0.2s;
+                border-radius: var(--radius-sm);
+                padding: 14px 18px;
+                text-decoration: none;
+                color: inherit;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                transition: all 0.15s ease;
             }
 
-            .copy-btn:hover {
-                background: var(--accent);
-                color: white;
-                border-color: var(--accent);
+            .example-item:hover {
+                background: var(--bg-card-hover);
+                border-color: var(--border-hover);
             }
+
+            .example-item__name {
+                font-size: 17px;
+                font-weight: 500;
+                color: var(--text);
+                min-width: 160px;
+            }
+
+            .example-item__desc {
+                font-size: 15px;
+                color: var(--text-dim);
+                flex: 1;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .example-item__arrow {
+                color: var(--text-dim);
+                font-size: 14px;
+                transition:
+                    transform 0.15s ease,
+                    color 0.15s ease;
+                flex-shrink: 0;
+            }
+
+            .example-item:hover .example-item__arrow {
+                transform: translateX(3px);
+                color: var(--text-muted);
+            }
+
+            /* ============================================================
+               Code Sample
+               ============================================================ */
+
+            .code {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 24px;
+                overflow-x: auto;
+            }
+
+            .code pre {
+                font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+                font-size: 16px;
+                line-height: 1.7;
+                color: var(--text-muted);
+            }
+
+            .code .kw {
+                color: #c792ea;
+            }
+            .code .fn {
+                color: #82aaff;
+            }
+            .code .str {
+                color: #c3e88d;
+            }
+            .code .cm {
+                color: #555;
+            }
+            .code .num {
+                color: #f78c6c;
+            }
+            .code .prop {
+                color: #f07178;
+            }
+            .code .par {
+                color: #89ddff;
+            }
+            .code .op {
+                color: #89ddff;
+            }
+
+            /* ─── Light theme: code ──────────────────────────── */
+
+            [data-theme="light"] .code {
+                background: var(--bg-card);
+            }
+            [data-theme="light"] .code pre {
+                color: var(--text-muted);
+            }
+            [data-theme="light"] .code .kw {
+                color: #7c3aed;
+            }
+            [data-theme="light"] .code .fn {
+                color: #2563eb;
+            }
+            [data-theme="light"] .code .str {
+                color: #16a34a;
+            }
+            [data-theme="light"] .code .cm {
+                color: #94a3b8;
+            }
+            [data-theme="light"] .code .num {
+                color: #ea580c;
+            }
+            [data-theme="light"] .code .prop {
+                color: #dc2626;
+            }
+            [data-theme="light"] .code .par {
+                color: #6366f1;
+            }
+            [data-theme="light"] .code .op {
+                color: #6366f1;
+            }
+
+            /* ============================================================
+               Footer
+               ============================================================ */
 
             footer {
-                padding: 80px 0 40px;
                 text-align: center;
+                padding: 48px 0 40px;
                 color: var(--text-dim);
+                font-size: 16px;
                 border-top: 1px solid var(--border);
             }
 
-            @media (max-width: 768px) {
+            footer a {
+                color: var(--text-muted);
+                text-decoration: none;
+            }
+
+            footer a:hover {
+                color: var(--text);
+            }
+
+            .footer__links {
+                display: flex;
+                justify-content: center;
+                gap: 24px;
+                margin-bottom: 12px;
+            }
+
+            /* ============================================================
+               Responsive
+               ============================================================ */
+
+            /* Reset shell.css 720px breakpoint — landing has no sidebar,
+               so the hamburger collapses at 640px instead */
+            @media (max-width: 720px) {
+                .header__hamburger {
+                    display: none;
+                }
+
+                .header__nav {
+                    display: flex;
+                }
+            }
+
+            /* ─── Tablet ─────────────────────────────────────── */
+
+            @media (max-width: 800px) {
+                .hero__name {
+                    font-size: 64px;
+                }
+
+                .hero__tagline {
+                    font-size: 20px;
+                }
+
+                .features {
+                    grid-template-columns: 1fr 1fr;
+                }
+
+                .nav-card__icon {
+                    font-size: 26px;
+                }
+
+                .nav-card__title {
+                    font-size: 18px;
+                }
+            }
+
+            /* ─── Mobile ─────────────────────────────────────── */
+
+            @media (max-width: 640px) {
+                .header__nav {
+                    display: none;
+                }
+
+                .header__hamburger {
+                    display: block;
+                }
+
+                .dropdown--open {
+                    display: flex;
+                }
+
                 .hero {
-                    padding: 100px 0 80px;
+                    padding: calc(var(--header-height) + 28px) 0 36px;
                 }
-                .hero h1 {
-                    font-size: clamp(3rem, 12vw, 4.8rem);
+
+                .hero__name {
+                    font-size: 48px;
+                    letter-spacing: -1.5px;
                 }
-                section {
-                    padding: 60px 0;
+
+                .hero__tagline {
+                    font-size: 17px;
+                    margin-bottom: 24px;
                 }
-                .stats {
-                    flex-direction: column;
-                    align-items: center;
+
+                .hero__badges {
+                    margin-bottom: 28px;
                 }
-                .quick-start {
-                    padding: 1.5rem;
+
+                .badge {
+                    font-size: 13px;
+                }
+
+                .btn {
+                    font-size: 15px;
+                    padding: 9px 18px;
+                }
+
+                .install__cmd {
+                    font-size: 14px;
+                    padding: 8px 14px;
+                }
+
+                .install {
+                    margin-bottom: 40px;
+                }
+
+                .section__title {
+                    font-size: 14px;
+                }
+
+                .feature__icon {
+                    font-size: 22px;
+                }
+
+                .feature__name {
+                    font-size: 15px;
+                }
+
+                .feature__desc {
+                    font-size: 13px;
+                }
+
+                .nav-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .nav-card {
+                    padding: 20px 18px;
+                }
+
+                .nav-card__icon {
+                    font-size: 24px;
+                }
+
+                .nav-card__title {
+                    font-size: 17px;
+                }
+
+                .nav-card__desc {
+                    font-size: 14px;
+                }
+
+                .nav-card__link {
+                    font-size: 13px;
+                }
+
+                .example-item__name {
+                    font-size: 15px;
+                    min-width: 0;
+                }
+
+                .example-item__desc {
+                    display: none;
+                }
+
+                .code pre {
+                    font-size: 14px;
+                }
+
+                footer {
+                    font-size: 14px;
+                    padding: 36px 0 32px;
+                }
+            }
+
+            /* ─── Small phone ────────────────────────────────── */
+
+            @media (max-width: 420px) {
+                .hero__name {
+                    font-size: 38px;
+                    letter-spacing: -1px;
+                }
+
+                .hero__tagline {
+                    font-size: 16px;
+                }
+
+                .features {
+                    grid-template-columns: 1fr;
+                }
+
+                .badge {
+                    font-size: 12px;
+                    padding: 4px 10px;
+                }
+
+                .btn {
+                    font-size: 14px;
+                    padding: 8px 16px;
                 }
             }
         </style>
     </head>
     <body>
-        <header>
-            <div class="container">
-                <nav class="inner">
-                    <a href="/" class="logo">VList</a>
-                    <div class="nav-links">
-                        <a href="/docs/">Docs</a>
-                        <a href="/sandbox/">Sandbox</a>
-                        <a href="/benchmarks/">Benchmarks</a>
-                        <a href="/api">API</a>
-                        <a href="https://github.com/floor/vlist" target="_blank"
-                            >GitHub</a
-                        >
-                    </div>
-                    <button class="theme-toggle" aria-label="Toggle theme">
-                        🌙
-                    </button>
+        <header class="header">
+            <div class="header__inner">
+                <a href="/" class="header__logo">VList</a>
+                <nav class="header__nav">
+                    <a href="/examples/" class="active">Examples</a>
+                    <a href="/docs/">Docs</a>
+                    <a href="/tutorials/">Tutorials</a>
+                    <a href="/benchmarks/">Benchmarks</a>
+                    <!-- a href="/api">API</a-->
+                    <a href="https://github.com/floor/vlist" target="_blank"
+                        >GitHub</a
+                    >
                 </nav>
+                <button
+                    class="header__theme"
+                    id="theme-toggle"
+                    aria-label="Toggle theme"
+                >
+                    <svg
+                        class="header__theme-sun"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg
+                        class="header__theme-moon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path
+                            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                        />
+                    </svg>
+                </button>
+                <button
+                    class="header__hamburger"
+                    id="hamburger"
+                    aria-label="Toggle menu"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <rect y="3" width="20" height="2" rx="1" />
+                        <rect y="9" width="20" height="2" rx="1" />
+                        <rect y="15" width="20" height="2" rx="1" />
+                    </svg>
+                </button>
             </div>
         </header>
 
-        <main class="container">
+        <nav class="dropdown" id="dropdown">
+            <a href="/docs/">Docs</a>
+            <a href="/examples/">Examples</a>
+            <a href="/benchmarks/">Benchmarks</a>
+            <a href="/api">API</a>
+            <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+        </nav>
+
+        <div class="container">
+            <!-- ========================================================
+                 Hero
+                 ======================================================== -->
+
             <section class="hero">
-                <h1>VList</h1>
-                <p class="tagline">
-                    Tiny virtual list. Blazing fast. Constant memory — even at 1
-                    million items.
+                <h1 class="hero__name">VList</h1>
+                <p class="hero__tagline">
+                    Tiny, blazing-fast virtual list. Constant memory at 1M+
+                    items. Zero deps.
                 </p>
 
-                <div class="stats">
-                    <div class="stat"><strong>~7–8 kB</strong> core</div>
-                    <div class="stat"><strong>120+ FPS</strong> sustained</div>
-                    <div class="stat">
-                        <strong>0.1–0.3 MB</strong> @ 1M items
-                    </div>
-                    <div class="stat"><strong>Zero</strong> dependencies</div>
+                <div class="hero__badges">
+                    <span class="badge badge--accent">v0.8</span>
+                    <span class="badge">TypeScript</span>
+                    <span class="badge">Zero Dependencies</span>
+                    <span class="badge">MIT</span>
+                    <span class="badge">~7–8 kB core</span>
+                    <span class="badge badge--accent"
+                        >120+ FPS • 0.1–0.3 MB @1M</span
+                    >
                 </div>
 
-                <div class="buttons">
-                    <a href="/benchmarks/" class="btn btn-primary"
-                        >Run Benchmarks →</a
+                <div class="hero__actions">
+                    <a href="/examples/" class="btn btn--primary">
+                        Try Examples →
+                    </a>
+                    <a
+                        href="/benchmarks/"
+                        class="btn btn--primary"
+                        style="background: #4a5cd8"
                     >
-                    <a href="/sandbox/" class="btn btn-outline">Try Sandbox</a>
+                        Run Benchmarks →
+                    </a>
                     <a
                         href="https://github.com/floor/vlist"
+                        class="btn btn--ghost"
                         target="_blank"
-                        class="btn btn-outline"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                            />
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Install
+                 ======================================================== -->
+
+            <div class="install">
+                <div class="install__cmd">
+                    <span>npm install @floor/vlist</span>
+                </div>
+            </div>
+
+            <!-- ========================================================
+                 Features
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Features</h2>
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature__icon">⚡</span>
+                        <div class="feature__name">Blazing Fast</div>
+                        <div class="feature__desc">
+                            DOM recycling, RAF batching, O(log n) lookups — 120+
+                            FPS sustained
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📦</span>
+                        <div class="feature__name">Zero Dependencies</div>
+                        <div class="feature__desc">
+                            Pure T
+
+                        ypeScript. Core weighs ~7 KB, full bundle ~42 KB</div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📏</span>
+                        <div class="feature__name">Variable Heights</div>
+                        <div class="feature__desc">
+
+                            Per-item height function with DOM measurement support
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">♾️</span>
+                        <div class="feature__name">Infinite Scroll</div>
+                        <div class="feature__desc">
+                            Async adapter with placeholders, velocity-aware
+                            loading
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🔀</span>
+                        <div class="feature__name">Reverse Mode</div>
+                        <div class="feature__desc">
+                            Chat UIs — start at bottom, prepend history,
+                            auto-scroll
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">☑️</span>
+                        <div class="feature__name">Selection</div>
+                        <div class="feature__desc">
+                            Single &amp; multi-select with full keyboard
+                            navigation
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🔲</span>
+                        <div class="feature__name">Grid Layout</div>
+                        <div class="feature__desc">
+                            Virtualized 2D grid with configurable columns and
+                            gap
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📌</span>
+                        <div class="feature__name">Sticky Headers</div>
+                        <div class="feature__desc">
+                            Grouped lists with sticky section headers (iOS
+                            Contacts–style)
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🗜️</span>
+                        <div class="feature__name">Compression</div>
+                        <div class="feature__desc">
+                            Handle millions of items by compressing scroll space
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Explore
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">                <p
+                    style="
+                        max-width: 720px;
+                        margin: 0 auto 32px;
+                        font-size: 16px;
+                        line-height: 1.6;
+                        color: var(--text-muted);
+                        text-align: center;
+                    "
+                >
+                    VList is the leanest full-featured virtual list —
+                    zero-dependency core (~7–8 kB gzipped) with blazing-fast
+                    scrolling (120+ FPS), constant ultra-low memory (~0.1–0.3 MB
+                    at 1M+ items), sticky sections, grids, reverse chat,
+                    multi-selection, async loading, and compression for massive
+                    lists. Clean builder API + tiny adapters for
+                    React/Vue/Svelte. Minimal DOM (~26 nodes at 100k items),
+                    true constant scaling, and
+                    <a href="/benchmarks/" style="color: var(--accent)"
+                        >live on-demand benchmarks</a
+                    >
+                    prove it — perfect for feeds, logs, galleries, or huge
+                    tables without bloat.
+Explore</h2>
+                <div class="nav-grid">
+                    <a href="/examples/" class="nav-card">
+                        <span class="nav-card__icon">🧪</span>
+                        <div class="nav-card__title">Examples</div>
+                        <div class="nav-card__desc">
+                            14 interactive examples — from basic lists to
+                            million-item stress tests
+                        </div>
+                        <span class="nav-card__link">Browse examples →</span>
+                    </a>
+                    <a href="/docs/" class="nav-card">
+                        <span class="nav-card__icon">📖</span>
+                        <div class="nav-card__title">Documentation</div>
+                        <div class="nav-card__desc">
+                            API reference, configuration, events, methods,
+                            styling, and more
+                        </div>
+                        <span class="nav-card__link">Read docs →</span>
+                    </a>
+                    <a href="/benchmarks/" class="nav-card">
+                        <span class="nav-card__icon">📊</span>
+                        <div class="nav-card__title">Benchmarks</div>
+                        <div class="nav-card__desc">
+                            Live performance tests — scroll FPS, render time,
+                            memory stability, bundle size
+                        </div>
+                        <span class="nav-card__link">Run benchmarks →</span>
+                    </a>
+                    <a href="/api" class="nav-card">
+                        <span class="nav-card__icon">🔌</span>
+                        <div class="nav-card__title">API</div>
+                        <div class="nav-card__desc">
+                            Deterministic user data endpoint for demos — 1M+
+                            items, zero storage
+                        </div>
+                        <span class="nav-card__link">View endpoints →</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Quick Start
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Quick Start</h2>
+                <div class="code">
+                    <pre><span class="kw">import</span> { <span class="fn">createVList</span> } <span class="kw">from</span> <span class="str">"@floor/vlist"</span>
+
+<span class="kw">const</span> list = <span class="fn">createVList</span>({
+  <span class="prop">container</span><span class="par">:</span> document.<span class="fn">getElementById</span>(<span class="str">"list"</span>),
+  <span class="prop">item</span><span class="par">:</span> {
+    <span class="prop">height</span><span class="par">:</span> <span class="num">48</span>,
+    <span class="prop">template</span><span class="par">:</span> (item) <span class="op">=></span> {
+      <span class="kw">const</span> el = document.<span class="fn">createElement</span>(<span class="str">"div"</span>)
+      el.textContent = item.name
+      <span class="kw">return</span> el
+    }
+  },
+  <span class="prop">items</span><span class="par">:</span> Array.<span class="fn">from</span>({ <span class="prop">length</span><span class="par">:</span> <span class="num">10_000</span> }, (_, i) <span class="op">=></span> ({
+    <span class="prop">id</span><span class="par">:</span> i,
+    <span class="prop">name</span><span class="par">:</span> <span class="str">`Item ${i}`</span>
+  }))
+})</pre>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Examples Examples
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Examples Examples (14)</h2>
+                <div class="example-grid">
+                    <a href="/examples/basic" class="example-item">
+                        <span class="example-item__name">Basic</span>
+                        <span class="example-item__desc"
+                            >Pure vanilla JS — 10K items, no dependencies</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/controls" class="example-item">
+                        <span class="example-item__name">Controls</span>
+                        <span class="example-item__desc"
+                            >Selection, navigation, scroll events — full
+                            API</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/core/basic" class="example-item">
+                        <span class="example-item__name">Core (7.8 KB)</span>
+                        <span class="example-item__desc"
+                            >Lightweight build — 83% smaller, same result</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/grid/photo-album" class="example-item">
+                        <span class="example-item__name">Photo Album</span>
+                        <span class="example-item__desc"
+                            >Grid gallery — 4 frameworks (JS, React,
+                            Svelte
+                        , Vue)</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/grid/file-browser" class="example-item">
+                        <span class="example-item__name">File Browser</span>
+                        <span class="example-item__desc"
+                            >Finder-like browser with grid/list views</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/data/large-list" class="example-item">
+                        <span class="example-item__name">Large List</span>
+                        <span class="example-item__desc"
+                            >100K–5M items with compression</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a
+                        href="/examples/data/velocity-loading"
+                        class="example-item"
+                    >
+                        <span class="example-item__name">Velocity Loading</span>
+                        <span class="example-item__desc"
+                            >Smart loading — skips when scrolling fast</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/horizontal/basic" class="example-item">
+                        <span class="example-item__name">Horizontal</span>
+                        <span class="example-item__desc"
+                            >Horizontal carousel with 10K cards</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a
+                        href="/examples/groups/sticky-headers"
+                        class="example-item"
+                    >
+                        <span class="example-item__name">Sticky Headers</span>
+                        <span class="example-item__desc"
+                            >A–Z contact list with sticky section headers</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/scroll-restore" class="example-item">
+                        <span class="example-item__name">Scroll Restore</span>
+                        <span class="example-item__desc"
+                            >Save &amp; restore scroll position across
+                            navigations</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/window-scroll" class="example-item">
+                        <span class="example-item__name">Window Scroll</span>
+                        <span class="example-item__desc"
+                            >Document-level scrolling — no inner scrollbar</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/variable-heights" class="example-item">
+                        <span class="example-item__name">Variable Heights</span>
+                        <span class="example-item__desc"
+                            >Chat feed with DOM-measured item heights</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/reverse-chat" class="example-item">
+                        <span class="example-item__name">Reverse Chat</span>
+                        <span class="example-item__desc"
+                            >Chat UI — reverse mode, prepend history,
+                            auto-scroll</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/wizard-nav" class="example-item">
+                        <span class="example-item__name">Wizard Nav</span>
+                        <span class="example-item__desc"
+                            >Button-only navigation, wheel disabled</span
+                        >
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================================================
+             Footer
+             ============================================================ -->
+
+        <footer>
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://github.com/floor/vlist" target="_blank"
                         >GitHub</a
                     >
+                    <a
+                        href="https://www.npmjs.com/package/vlist"
+                        target="_blank"
+                        >npm</a
+                    >
+                    <a href="/examples/">Examples</a>
+                    <a href="/benchmarks/">Benchmarks</a>
+                    <a href="/docs/">Docs</a>
+                    <a href="/api">API</a>
                 </div>
-            </section>
+                <p>
+                    </p>Built by
+                    <a href="https://floor.io" target="_blank">Floor IO</a>
+                    </
 
-            <section id="features">
-                <h2 class="section-title">Key Features</h2>
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <span class="feature-icon">⚡</span>
-                        <div class="feature-title">Blazing Fast</div>
-                        <div class="feature-desc">
-                            DOM recycling, RAF batching, O(log n) lookups —
-                            stays smooth at high velocity.
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <span class="feature-icon">🧠</span>
-                        <div class="feature-title">Ultra-low Memory</div>
-                        <div class="feature-desc">
-                            Constant ~0.1–0.3 MB overhead — proven at 1M+ items
-                            with live benchmarks.
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <span class="feature-icon">🗜️</span>
-                        <div class="feature-title">Compression</div>
-                        <div class="feature-desc">
-                            Scroll-space compression lets you handle millions of
-                            items without performance collapse.
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <span class="feature-icon">📌</span>
-                        <div class="feature-title">Sticky Headers</div>
-                        <div class="feature-desc">
-                            Grouped lists with iOS-style sticky section headers.
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <span class="feature-icon">🔀</span>
-                        <div class="feature-title">Reverse / Chat Mode</div>
-                        <div class="feature-desc">
-                            Start at bottom, prepend messages, perfect
-                            auto-scroll behavior.
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <span class="feature-icon">☑️</span>
-                        <div class="feature-title">Selection</div>
-                        <div class="feature-desc">
-                            Single & multi-select with full keyboard navigation
-                            & ARIA support.
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <section id="quickstart">
-                <h2 class="section-title">Quick Start</h2>
-                <div class="quick-start">
-                    <p style="margin-bottom: 1.2rem; color: var(--text-dim)">
-                        Install and create a basic vertical list in ~10 lines:
-                    </p>
 
-                    <pre><code><span class="kw">import</span> { vlist } <span class="kw">from</span> <span class="str">"@floor/vlist"</span>;
-<span class="kw">import</span> <span class="str">'@floor/vlist/styles'</span>;
+                p>
+            </div>
+        </footer>
+        <script>
+            (function () {
+                var h = document.getElementById("hamburger");
+                var d = document.getElementById("dropdown");
+                if (!h) return;
+                h.addEventListener("click", function () {
+                    d.classList.toggle("dropdown--open");
+                });
+                d.addEventListener("click", function (e) {
+                    if (e.target.closest("a"))
+                        d.classList.remove("dropdown--open");
+                });
+            })();
+        </script>
 
-<span class="kw">const</span> list = <span class="fn">vlist</span>({
-  <span class="prop">container</span>: <span class="str">'#my-list'</span>,
-  <span class="prop">items</span>: Array.<span class="fn">from</span>({ <span class="prop">length</span>: <span class="num">10000</span> }, (_, i) => ({
-    <span class="prop">id</span>: i,
-    <span class="prop">name</span>: <span class="str">`Item ${i + 1}`</span>
-  })),
-  <span class="prop">item</span>: {
-    <span class="prop">height</span>: <span class="num">48</span>,
-    <span class="prop">template</span>: (item) => <span class="str">`<div style="padding:12px;">${item.name}</div>`</span>
-  }
-}).<span class="fn">build</span>();
-
-<span class="cmt">// Examples of common operations</span>
-list.<span class="fn">scrollToIndex</span>(<span class="num">5000</span>);
-list.<span class="fn">on</span>(<span class="str">'item:click'</span>, ({ item }) => console.<span class="fn">log</span>(item));</code></pre>
-
-                    <button class="copy-btn" onclick="copyCode()">Copy</button>
-                </div>
-            </section>
-
-            <footer>
-                <div class="container">
-                    <p>
-                        Built with zero dependencies • MIT licensed •
-                        <a href="https://github.com/floor/vlist" target="_blank"
-                            >GitHub</a
-                        >
-                    </p>
-                </div>
-            </footer>
-        </main>
+        <!-- ─── Theme toggle ─────────────────────────────────── -->
 
         <script>
-            // Theme toggle
-            document
-                .querySelector(".theme-toggle")
-                .addEventListener("click", () => {
-                    const html = document.documentElement;
-                    const current = html.getAttribute("data-theme");
-                    html.setAttribute(
-                        "data-theme",
-                        current === "light" ? "dark" : "light",
-                    );
-                    localStorage.setItem(
-                        "vlist-theme",
-                        html.getAttribute("data-theme"),
-                    );
+            (function () {
+                var btn = document.getElementById("theme-toggle");
+                if (!btn) return;
+                btn.addEventListener("click", function () {
+                    var current =
+                        document.documentElement.getAttribute("data-theme");
+                    var next = current === "light" ? "dark" : "light";
+                    document.documentElement.setAttribute("data-theme", next);
+                    localStorage.setItem("vlist-theme", next);
                 });
-
-            // Load saved theme
-            const savedTheme = localStorage.getItem("vlist-theme");
-            if (savedTheme) {
-                document.documentElement.setAttribute("data-theme", savedTheme);
-            }
-
-            // Copy code function
-            function copyCode() {
-                const code = document.querySelector(
-                    "#quickstart pre code",
-                ).innerText;
-                navigator.clipboard.writeText(code).then(() => {
-                    const btn = document.querySelector(".copy-btn");
-                    const original = btn.textContent;
-                    btn.textContent = "Copied!";
-                    setTimeout(() => (btn.textContent = original), 2000);
-                });
-            }
+            })();
         </script>
     </body>
 </html>

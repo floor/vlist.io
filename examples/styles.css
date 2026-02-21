@@ -1,13 +1,13 @@
-/* sandbox/styles.css — Shared styles for EXAMPLE PAGES (built to dist/sandbox/)
+/* examples/styles.css — Shared styles for EXAMPLE PAGES (built to dist/examples/)
 
-   This stylesheet provides all the UI components for interactive sandbox examples:
+   This stylesheet provides all the UI components for interactive examples examples:
    - Container, panels, controls, buttons
    - Split layout system
    - Source code drawer with syntax highlighting
    - Theme integration with vlist components
 
-   Used in: shell.html template (all example pages like /sandbox/grid/photo-album/)
-   NOT used in: sandbox/index.html (uses styles/sandbox.css instead)
+   Used in: shell.html template (all example pages like /examples/grid/photo-album/)
+   NOT used in: examples/index.html (uses styles/examples.css instead)
 
    Uses shell.css design tokens for light/dark theme support */
 
@@ -54,7 +54,7 @@ html[data-theme="dark"] {
    ============================================================================ */
 
 .container {
-    --sandbox-radius: 6px;
+    --examples-radius: 6px;
 }
 
 /* ============================================================================
@@ -125,7 +125,7 @@ html[data-theme="dark"] {
     background: var(--bg-card);
     border: 1px solid var(--border);
     padding: 12px 20px;
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     margin-bottom: 16px;
     font-size: 14px;
     color: var(--text-muted);
@@ -155,7 +155,7 @@ html[data-theme="dark"] {
 .controls select {
     padding: 6px 10px;
     border: 1px solid var(--border);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     font-size: 14px;
     background: var(--bg);
     color: var(--text);
@@ -171,7 +171,7 @@ html[data-theme="dark"] {
 .controls button {
     padding: 8px 16px;
     border: 1px solid var(--border);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     background: var(--bg-card);
     color: var(--text);
     font-size: 14px;
@@ -200,7 +200,7 @@ html[data-theme="dark"] {
 }
 
 [id$="-container"] .vlist {
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
 }
 
 /* ============================================================================
@@ -217,7 +217,7 @@ html[data-theme="dark"] {
     flex: 1;
     min-width: 0;
     background-color: var(--bg-card);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     padding: 32px 0;
 }
 
@@ -233,7 +233,7 @@ html[data-theme="dark"] {
     gap: 2px;
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     overflow-x: hidden;
     overflow-y: auto;
 }
@@ -306,7 +306,7 @@ html[data-theme="dark"] {
     width: 64px;
     padding: 5px 8px;
     border: 1px solid var(--border);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     font-size: 13px;
     font-variant-numeric: tabular-nums;
     background: var(--bg);
@@ -329,7 +329,7 @@ html[data-theme="dark"] {
 .panel-select {
     padding: 5px 24px 5px 8px;
     border: 1px solid var(--border);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     font-size: 13px;
     background: var(--bg);
     color: var(--text);
@@ -361,7 +361,7 @@ html[data-theme="dark"] {
     gap: 4px;
     padding: 5px 10px;
     border: 1px solid var(--border);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     background: var(--bg);
     color: var(--text);
     font-size: 12px;
@@ -408,7 +408,7 @@ html[data-theme="dark"] {
 .panel-segmented {
     display: flex;
     border: 1px solid var(--border);
-    border-radius: var(--sandbox-radius);
+    border-radius: var(--examples-radius);
     overflow: hidden;
     flex: 1;
 }

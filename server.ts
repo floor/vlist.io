@@ -3,9 +3,9 @@
 //
 // Serves:
 //   /api/*                        → API routes (users, etc.)
-//   /sandbox/                     → Sandbox overview (server-rendered)
-//   /sandbox/<slug>               → Sandbox example (server-rendered)
-//   /sandbox/<slug>/*             → Sandbox static assets (JS, CSS bundles)
+//   /examples/                     → Examples overview (server-rendered)
+//   /examples/<slug>               → Examples example (server-rendered)
+//   /examples/<slug>/*             → Examples static assets (JS, CSS bundles)
 //   /docs/*                       → Documentation (markdown files)
 //   /benchmarks/*                 → Benchmarks (server-rendered)
 //   /sitemap.xml                  → Dynamic sitemap
@@ -13,8 +13,9 @@
 //   /                             → Landing page
 
 import { routeApi } from "./src/api/router";
-import { renderSandboxPage, EXAMPLE_GROUPS } from "./sandbox/renderer";
+import { renderExamplesPage, EXAMPLE_GROUPS } from "./examples/renderer";
 import { renderDocsPage, DOC_GROUPS } from "./docs/renderer";
+import { renderTutorialPage, TUTORIAL_GROUPS } from "./tutorials/renderer";
 import { renderBenchmarkPage, BENCH_GROUPS } from "./benchmarks/renderer";
 import { existsSync, statSync, readFileSync, realpathSync } from "fs";
 import { execSync } from "child_process";
@@ -308,7 +309,7 @@ const serveFromPackage = (
  *
  * Priority:
  *   1. /api/*                        → API router
- *   2. /sandbox/ or /sandbox/<slug>  → Server-rendered sandbox pages
+ *   2. /examples/ or /examples/<slug>  → Server-rendered examples pages
  *   3. /docs/ or /docs/<slug>        → Server-rendered docs pages
  *   4. /benchmarks/ or /bench/<slug> → Server-rendered benchmark pages
  *   5. /dist/*                       → vlist package dist/
@@ -316,8 +317,8 @@ const serveFromPackage = (
  *   9. /*                            → local root (landing, static assets)
  */
 const resolveStatic = (pathname: string): Response | null => {
-  // /dist/sandbox/* → project root dist/sandbox directory (sandbox build output)
-  if (pathname.startsWith("/dist/sandbox/")) {
+  // /dist/examples/* → project root dist/examples directory (examples build output)
+  if (pathname.startsWith("/dist/examples/")) {
     return serveStatic(pathname);
   }
 
@@ -337,28 +338,28 @@ const resolveStatic = (pathname: string): Response | null => {
 };
 
 // =============================================================================
-// Sandbox Routing
+// Examples Routing
 // =============================================================================
 
 /**
- * Match sandbox routes and render pages server-side.
+ * Match examples routes and render pages server-side.
  *
- * - /sandbox or /sandbox/         → overview page
- * - /sandbox/<slug>               → example page (server-rendered with shell)
- * - /sandbox/<slug>/              → same (trailing slash)
- * - /sandbox/<slug>/dist/*        → falls through (static assets)
+ * - /examples or /examples/         → overview page
+ * - /examples/<slug>               → example page (server-rendered with shell)
+ * - /examples/<slug>/              → same (trailing slash)
+ * - /examples/<slug>/dist/*        → falls through (static assets)
  */
-const resolveSandbox = (pathname: string, url: string): Response | null => {
-  // Overview: /sandbox or /sandbox/
-  if (pathname === "/sandbox" || pathname === "/sandbox/") {
-    return renderSandboxPage(null, url);
+const resolveExamples = (pathname: string, url: string): Response | null => {
+  // Overview: /examples or /examples/
+  if (pathname === "/examples" || pathname === "/examples/") {
+    return renderExamplesPage(null, url);
   }
 
-  // Example page: /sandbox/<slug> or /sandbox/<category>/<slug>
-  const match = pathname.match(/^\/sandbox\/([a-z0-9-]+(?:\/[a-z0-9-]+)?)\/?$/);
+  // Example page: /examples/<slug> or /examples/<category>/<slug>
+  const match = pathname.match(/^\/examples\/([a-z0-9-]+(?:\/[a-z0-9-]+)?)\/?$/);
   if (match) {
     const slug = match[1];
-    const rendered = renderSandboxPage(slug, url);
+    const rendered = renderExamplesPage(slug, url);
     if (rendered) return rendered;
     // Unknown slug — fall through to static file serving
   }
@@ -412,16 +413,16 @@ function buildLastmodMap(): Map<string, string> {
     }
   }
 
-  // Sandbox overview → renderer config
-  map.set("/sandbox/", gitLastmod("sandbox/renderer.ts") ?? FALLBACK_DATE);
+  // Examples overview → renderer config
+  map.set("/examples/", gitLastmod("examples/renderer.ts") ?? FALLBACK_DATE);
 
-  // Sandbox examples → content + script + styles
+  // Examples examples → content + script + styles
   for (const group of EXAMPLE_GROUPS) {
     for (const item of group.items) {
-      const dir = `sandbox/${item.slug}`;
+      const dir = `examples/${item.slug}`;
       const date =
         gitLastmod(`${dir}/content.html`, `${dir}/script.js`) ?? FALLBACK_DATE;
-      map.set(`/sandbox/${item.slug}`, date);
+      map.set(`/examples/${item.slug}`, date);
     }
   }
 
@@ -467,11 +468,11 @@ function renderSitemap(): Response {
     }
   }
 
-  // Sandbox
-  urls.push({ loc: "/sandbox/", priority: "0.9" });
+  // Examples
+  urls.push({ loc: "/examples/", priority: "0.9" });
   for (const group of EXAMPLE_GROUPS) {
     for (const item of group.items) {
-      urls.push({ loc: `/sandbox/${item.slug}`, priority: "0.6" });
+      urls.push({ loc: `/examples/${item.slug}`, priority: "0.6" });
     }
   }
 
@@ -542,9 +543,9 @@ const handleRequest = async (req: Request): Promise<Response> => {
     response = await routeApi(req);
   }
 
-  // 3. Sandbox pages (server-rendered)
+  // 3. Examples pages (server-rendered)
   if (!response) {
-    response = resolveSandbox(pathname, req.url);
+    response = resolveExamples(pathname, req.url);
   }
 
   // 4. Docs pages (server-rendered)
@@ -557,7 +558,19 @@ const handleRequest = async (req: Request): Promise<Response> => {
     }
   }
 
-  // 5. Benchmark pages (server-rendered)
+  // 5. Tutorials pages (server-rendered)
+  if (!response && (pathname === "/tutorials" || pathname === "/tutorials/")) {
+    response = renderTutorialPage(null);
+  } else if (!response) {
+    const tutorialsMatch = pathname.match(
+      /^\/tutorials\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/,
+    );
+    if (tutorialsMatch) {
+      response = renderTutorialPage(tutorialsMatch[1]);
+    }
+  }
+
+  // 6. Benchmark pages (server-rendered)
   if (
     !response &&
     (pathname === "/benchmarks" || pathname === "/benchmarks/")
@@ -598,7 +611,7 @@ console.log(`
   🚀  vlist.dev server
 
   Local:     http://localhost:${PORT}
-  Sandbox:   http://localhost:${PORT}/sandbox
+  Examples:   http://localhost:${PORT}/examples
   API:       http://localhost:${PORT}/api
   Docs:      http://localhost:${PORT}/docs
 

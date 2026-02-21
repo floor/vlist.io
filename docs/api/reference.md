@@ -858,9 +858,9 @@ list.update({ grid: { columns: 2 } })
 
 ### `withScale()`
 
-Enables compression mode for lists with 1M+ items. Without this plugin, VList caps at the browser's maximum `scrollHeight` (~33M px on most browsers), which limits lists to roughly 700K fixed-height items.
+Enables scaling mode for lists with 1M+ items. Without this plugin, VList caps at the browser's maximum `scrollHeight` (~33M px on most browsers), which limits lists to roughly 700K fixed-height items.
 
-With `withScale`, the scroll space is compressed so virtually any item count is representable. The scrollbar and all scroll methods work correctly in compressed mode.
+With `withScale`, the scroll space is scaled so virtually any item count is representable. The scrollbar and all scroll methods work correctly in scaled mode.
 
 ```ts
 import { withScale } from '@floor/vlist'
@@ -871,11 +871,11 @@ const list = vlist({
   item: { height: 32, template: renderRow },
 })
   .use(withScale())
-  .use(withScrollbar())  // scrollbar is compression-aware
+  .use(withScrollbar())  // scrollbar is scale-aware
   .build()
 ```
 
-**No configuration required.** Compression activates automatically when the total height exceeds the browser limit and is transparent to all other plugins.
+**No configuration required.** Scaling activates automatically when the total height exceeds the browser limit and is transparent to all other plugins.
 
 ---
 
@@ -958,10 +958,10 @@ interface Range {
 interface ViewportState {
   scrollTop:        number   // current scroll offset in px
   containerHeight:  number   // visible viewport height in px
-  totalHeight:      number   // DOM scroll height (may be capped by compression)
+  totalHeight:      number   // DOM scroll height (may be capped by scaling)
   actualHeight:     number   // true logical height (items × height)
-  isCompressed:     boolean  // whether scale compression is active
-  compressionRatio: number   // 1 = none, <1 = compressed
+  isCompressed:     boolean  // whether scaling is active
+  compressionRatio: number   // 1 = none, <1 = scaled
   visibleRange:     Range    // indices of items currently in view
   renderRange:      Range    // indices actually rendered (includes overscan)
 }
@@ -1031,7 +1031,7 @@ import {
 | `diffRanges(prev, next)` | Returns items that entered and left the viewport between two ranges. |
 | `MAX_VIRTUAL_HEIGHT` | Browser scroll height limit constant (~33,554,400 px). |
 
-### Scale / Compression Utilities
+### Scale Utilities
 
 ```ts
 import {

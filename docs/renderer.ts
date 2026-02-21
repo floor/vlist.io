@@ -25,52 +25,22 @@ export interface DocGroup {
 
 export const DOC_GROUPS: DocGroup[] = [
   {
-    label: "Introduction",
+    label: "API Reference",
     items: [
       {
-        slug: "QUICKSTART",
-        name: "Quick Start",
-        desc: "Copy-paste examples for every use case",
+        slug: "api/reference",
+        name: "Reference",
+        desc: "Complete API — config, methods, events, types",
       },
       {
-        slug: "guides/getting-started",
-        name: "Configuration",
-        desc: "Install, configure, and understand the core API",
-      },
-    ],
-  },
-  {
-    label: "Guides",
-    items: [
-      {
-        slug: "guides/builder-pattern",
-        name: "Builder Pattern",
-        desc: "Composable plugins — pay only for what you use",
+        slug: "api/types",
+        name: "Types",
+        desc: "TypeScript type definitions",
       },
       {
-        slug: "guides/accessibility",
-        name: "Accessibility",
-        desc: "WAI-ARIA, keyboard navigation, screen readers",
-      },
-      {
-        slug: "guides/mobile",
-        name: "Mobile",
-        desc: "Touch optimization and mobile considerations",
-      },
-      {
-        slug: "guides/optimization",
-        name: "Optimization",
-        desc: "Performance tuning and best practices",
-      },
-      {
-        slug: "guides/reverse-mode",
-        name: "Reverse Mode",
-        desc: "Chat UI with auto-scroll and history loading",
-      },
-      {
-        slug: "guides/styling",
-        name: "Styling",
-        desc: "CSS customization, tokens, variants, dark mode",
+        slug: "api/events",
+        name: "Events",
+        desc: "Event system",
       },
     ],
   },
@@ -125,16 +95,6 @@ export const DOC_GROUPS: DocGroup[] = [
     ],
   },
   {
-    label: "API Reference",
-    items: [
-      {
-        slug: "api/reference",
-        name: "Reference",
-        desc: "Complete API — config, methods, events, types",
-      },
-    ],
-  },
-  {
     label: "Resources",
     items: [
       {
@@ -152,16 +112,21 @@ export const DOC_GROUPS: DocGroup[] = [
         name: "Testing",
         desc: "Test suite and patterns",
       },
-      {
-        slug: "resources/known-issues",
-        name: "Known Issues",
-        desc: "Current limitations and workarounds",
-      },
+      // {
+      //   slug: "resources/known-issues",
+      //   name: "Known Issues",
+      //   desc: "Current limitations and workarounds",
+      // },
     ],
   },
   {
     label: "Internals",
     items: [
+      {
+        slug: "internals/source-structure",
+        name: "Source Structure",
+        desc: "Complete source code map",
+      },
       {
         slug: "internals/rendering",
         name: "Rendering",
@@ -200,7 +165,7 @@ for (const group of DOC_GROUPS) {
 
 // Separate from DOC_GROUPS because the overview page shows a curated subset
 // with descriptions, and omits items that don't have card descriptions (Overview,
-// Sandbox, Variable Heights).
+// Examples, Variable Heights).
 
 interface OverviewSection {
   label: string;

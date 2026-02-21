@@ -209,7 +209,7 @@ Core styles split from optional presets. `dist/vlist.css` (6.7 KB) contains toke
 
 **Problem:** `createPlaceholderManager()` is always instantiated in the data manager, even for static lists with `items: [...]` that never need placeholders. The placeholder module includes structure analysis, field detection, and masked text generation (~300 lines).
 
-**File:** `src/data/manager.ts` — `createDataManager`
+**File:** `src/features/async/manager.ts` — `createDataManager`
 
 **Fix:** Create the placeholder manager lazily, only when the first unloaded item is requested:
 
@@ -395,8 +395,8 @@ With all optimizations enabled:
 
 ## Related Documentation
 
-- [Compression](../plugins/scale.md) - How large list compression works
-- [Async Management](../plugins/async.md) - Sparse storage and chunking
-- [Scroll Controller](../plugins/scrollbar.md) - Velocity tracking and scroll handling
-- [Rendering](../internals/rendering.md) - Element pooling and DOM management
-- [Types](../api/types.md) - Configuration interfaces including `LoadingConfig`
+- [Scale](/docs/plugins/scale) - How large list scaling works
+- [Async Management](/docs/plugins/async) - Sparse storage and chunking
+- [Scroll Controller](/docs/plugins/scrollbar) - Velocity tracking and scroll handling
+- [Rendering](/docs/internals/rendering) - Element pooling and DOM management
+- [Types](/docs/api/types) - Configuration interfaces including `LoadingConfig`

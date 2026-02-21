@@ -10,8 +10,8 @@
   "scripts": {
     "dev": "bun run build:sandbox && bun run build:bench && bun run --watch server.ts",
     "start": "bun run server.ts",
-    "build:sandbox": "bun run sandbox/build.ts",
-    "build:sandbox:watch": "bun run sandbox/build.ts --watch",
+    "build:examples": "bun run examples/build.ts",
+    "build:examples:watch": "bun run examples/build.ts --watch",
     "build:bench": "bun run benchmarks/build.ts",
     "build:bench:watch": "bun run benchmarks/build.ts --watch",
     "typecheck": "tsc --noEmit",
