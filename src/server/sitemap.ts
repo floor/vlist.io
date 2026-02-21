@@ -108,10 +108,10 @@ function buildLastmodMap(): Map<string, string> {
 
   // Benchmark pages → specific suite/comparison files per slug
   const BENCH_FILE_MAP: Record<string, string[]> = {
-    render: ["benchmarks/render/", "benchmarks/suites/render.js"],
-    scroll: ["benchmarks/scroll/", "benchmarks/suites/scroll.js"],
-    memory: ["benchmarks/memory/", "benchmarks/suites/memory.js"],
-    scrollto: ["benchmarks/scrollto/", "benchmarks/suites/scrollto.js"],
+    render: ["benchmarks/render/"],
+    scroll: ["benchmarks/scroll/"],
+    memory: ["benchmarks/memory/"],
+    scrollto: ["benchmarks/scrollto/"],
     "react-window": ["benchmarks/comparison/react-window.js"],
     "tanstack-virtual": ["benchmarks/comparison/tanstack-virtual.js"],
     virtua: ["benchmarks/comparison/virtua.js"],
