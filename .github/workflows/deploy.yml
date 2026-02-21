@@ -52,7 +52,7 @@ jobs:
             bun install --force
 
             # Build sandbox examples and benchmarks (now that vlist is installed from npm)
-            bun run build:sandbox
+            bun run build:examples
             bun run build:bench
 
             # Restore package.json (keep git clean for next pull)
