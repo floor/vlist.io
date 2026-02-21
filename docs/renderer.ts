@@ -174,42 +174,22 @@ interface OverviewSection {
 
 const OVERVIEW_SECTIONS: OverviewSection[] = [
   {
-    label: "Getting Started",
+    label: "API Reference",
     cards: [
       {
-        slug: "QUICKSTART",
-        name: "Quick Start",
-        desc: "Get started in 5 minutes with 7 common patterns",
+        slug: "api/reference",
+        name: "Reference",
+        desc: "Complete API — config, methods, events, types",
       },
       {
-        slug: "guides/getting-started",
-        name: "Getting Started",
-        desc: "Install, configure, and understand the core API",
+        slug: "api/types",
+        name: "Types",
+        desc: "TypeScript type definitions",
       },
       {
-        slug: "guides/builder-pattern",
-        name: "Builder Pattern",
-        desc: "Composable plugins — pay only for what you use",
-      },
-      {
-        slug: "guides/styling",
-        name: "Styling",
-        desc: "CSS customization, tokens, variants, dark mode",
-      },
-      {
-        slug: "guides/accessibility",
-        name: "Accessibility",
-        desc: "WAI-ARIA, keyboard navigation, screen reader support",
-      },
-      {
-        slug: "guides/optimization",
-        name: "Optimization",
-        desc: "Performance tuning and best practices",
-      },
-      {
-        slug: "guides/reverse-mode",
-        name: "Reverse Mode",
-        desc: "Chat UI with auto-scroll and history loading",
+        slug: "api/events",
+        name: "Events",
+        desc: "Event system",
       },
     ],
   },
@@ -264,21 +244,6 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
     ],
   },
   {
-    label: "API Reference",
-    cards: [
-      {
-        slug: "api/reference",
-        name: "Reference",
-        desc: "Complete API — config types, methods, events, plugin interfaces",
-      },
-      {
-        slug: "api/methods",
-        name: "Methods",
-        desc: "All public methods — data, scroll, selection, lifecycle",
-      },
-    ],
-  },
-  {
     label: "Resources",
     cards: [
       {
@@ -294,12 +259,37 @@ const OVERVIEW_SECTIONS: OverviewSection[] = [
       {
         slug: "resources/testing",
         name: "Testing",
-        desc: "1,739 tests, 99.99% coverage, and testing patterns",
+        desc: "1,181 tests passing, 4,540 assertions",
       },
       {
         slug: "resources/known-issues",
         name: "Known Issues",
         desc: "Current limitations and workarounds",
+      },
+      {
+        slug: "resources/examples",
+        name: "Examples",
+        desc: "Interactive example documentation",
+      },
+    ],
+  },
+  {
+    label: "Internals",
+    cards: [
+      {
+        slug: "internals/source-structure",
+        name: "Source Structure",
+        desc: "Complete source code map",
+      },
+      {
+        slug: "internals/rendering",
+        name: "Rendering",
+        desc: "DOM rendering and virtualization",
+      },
+      {
+        slug: "internals/context",
+        name: "Context",
+        desc: "BuilderContext and plugin system",
       },
     ],
   },
@@ -489,7 +479,7 @@ function buildOverviewContent(): string {
   lines.push(`<div class="overview">`);
   lines.push(`  <h1 class="overview__title">Documentation</h1>`);
   lines.push(
-    `  <p class="overview__tagline">API reference, configuration, events, methods, styling, and internals for the vlist virtual list library.</p>`,
+    `  <p class="overview__tagline">Reference documentation for the vlist virtual list library. For learning content, see <a href="/tutorials">Tutorials</a>.</p>`,
   );
 
   for (const section of OVERVIEW_SECTIONS) {
