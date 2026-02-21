@@ -8,17 +8,18 @@ Grid layout transforms a flat list of items into a virtualized 2D grid with conf
 
 ### What It Does
 
-Grid layout virtualizes **rows**, not individual items. With 1,000 items in a 4-column grid:
-- **250 virtual rows** (1000 ÷ 4)
-- Only **~15 rows** rendered at once
+Grid layout virtualizes in the **main scroll axis**, not individual items. With 1,000 items in a 4-column grid:
+- **250 virtual rows** (1000 ÷ 4) in vertical mode, or **250 virtual columns** in horizontal mode
+- Only **~15 rows/columns** rendered at once
 - **~60 DOM nodes** instead of 1,000
 - **94% memory savings**
 
 ### Key Features
 
-- ✅ **Virtualized rows** — Only visible rows are rendered
+- ✅ **Virtualized in main axis** — Only visible rows (vertical) or columns (horizontal) are rendered
+- ✅ **Both orientations** — Works with vertical and horizontal scrolling
 - ✅ **Dynamic columns** — Change columns on the fly without recreation
-- ✅ **Aspect ratio maintenance** — Height auto-adjusts when columns change
+- ✅ **Aspect ratio maintenance** — Size auto-adjusts when columns change
 - ✅ **Gap control** — Configurable spacing between items
 - ✅ **Responsive** — Recalculates on container resize
 - ✅ **Efficient updates** — No instance recreation needed
