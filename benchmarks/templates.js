@@ -88,7 +88,7 @@ export function buildBundlePageHTML(bundleData) {
         <td>${row.min} KB</td>
         <td class="${gzipClass}">${row.gzip} KB</td>
         <td>${row.deps}</td>
-        <td style="font-size:12px;color:var(--text-dim);font-family:inherit;">${escapeHtml(row.note)}</td>
+        <td class="table-note-cell">${escapeHtml(row.note)}</td>
       </tr>
     `;
     })
@@ -106,7 +106,7 @@ export function buildBundlePageHTML(bundleData) {
               <th>Minified</th>
               <th>Gzipped</th>
               <th>Deps</th>
-              <th style="text-align:left;">Notes</th>
+              <th class="table-header-left">Notes</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -172,86 +172,86 @@ export function buildComparisonsOverviewHTML() {
           All benchmarks run live in your browser on real data.
         </p>
 
-        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">📊 Available Comparisons</h3>
-        <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
-          <a href="/benchmarks/performance-comparison" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
-            <strong style="color: var(--primary);">⚔️ Performance Comparison</strong>
-            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Side-by-side performance metrics across all libraries</div>
+        <h3 class="section-title">📊 Available Comparisons</h3>
+        <div class="comparison-grid">
+          <a href="/benchmarks/performance-comparison" class="comparison-card">
+            <strong class="comparison-card__title">⚔️ Performance Comparison</strong>
+            <div class="comparison-card__desc">Side-by-side performance metrics across all libraries</div>
           </a>
-          <a href="/benchmarks/react-window" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
-            <strong style="color: var(--primary);">react-window</strong>
-            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">React library by Brian Vaughn (unmaintained since 2019)</div>
+          <a href="/benchmarks/react-window" class="comparison-card">
+            <strong class="comparison-card__title">react-window</strong>
+            <div class="comparison-card__desc">React library by Brian Vaughn (unmaintained since 2019)</div>
           </a>
-          <a href="/benchmarks/tanstack-virtual" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
-            <strong style="color: var(--primary);">TanStack Virtual</strong>
-            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Headless virtualization from the TanStack team</div>
+          <a href="/benchmarks/tanstack-virtual" class="comparison-card">
+            <strong class="comparison-card__title">TanStack Virtual</strong>
+            <div class="comparison-card__desc">Headless virtualization from the TanStack team</div>
           </a>
-          <a href="/benchmarks/virtua" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
-            <strong style="color: var(--primary);">Virtua</strong>
-            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Modern React virtualization library with great DX</div>
+          <a href="/benchmarks/virtua" class="comparison-card">
+            <strong class="comparison-card__title">Virtua</strong>
+            <div class="comparison-card__desc">Modern React virtualization library with great DX</div>
           </a>
-          <a href="/benchmarks/vue-virtual-scroller" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
-            <strong style="color: var(--primary);">vue-virtual-scroller</strong>
-            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Popular Vue 3 virtualization component</div>
+          <a href="/benchmarks/vue-virtual-scroller" class="comparison-card">
+            <strong class="comparison-card__title">vue-virtual-scroller</strong>
+            <div class="comparison-card__desc">Popular Vue 3 virtualization component</div>
           </a>
         </div>
 
-        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">🔬 Methodology</h3>
-        <div style="background: var(--surface); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid var(--border);">
-          <p style="margin: 0 0 1rem 0;">All benchmarks follow the same rigorous methodology:</p>
+        <h3 class="section-title">🔬 Methodology</h3>
+        <div class="info-box">
+          <p class="info-box__intro">All benchmarks follow the same rigorous methodology:</p>
 
-          <ol style="margin: 0; padding-left: 1.5rem; color: var(--text-dim);">
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Isolated Environment:</strong> Each library runs in a clean container with identical setup
+          <ol class="info-list">
+            <li class="info-list__item">
+              <strong class="info-list__label">Isolated Environment:</strong> Each library runs in a clean container with identical setup
             </li>
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Multiple Iterations:</strong> Render time measured across 5 iterations, median value reported
+            <li class="info-list__item">
+              <strong class="info-list__label">Multiple Iterations:</strong> Render time measured across 5 iterations, median value reported
             </li>
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Garbage Collection:</strong> Manual GC between tests to ensure clean memory baselines
+            <li class="info-list__item">
+              <strong class="info-list__label">Garbage Collection:</strong> Manual GC between tests to ensure clean memory baselines
             </li>
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Real Scrolling:</strong> 5 seconds of programmatic scrolling at 100px/frame with direction changes
+            <li class="info-list__item">
+              <strong class="info-list__label">Real Scrolling:</strong> 5 seconds of programmatic scrolling at 100px/frame with direction changes
             </li>
-            <li style="margin-bottom: 0;">
-              <strong style="color: var(--text);">Native APIs:</strong> Uses Chrome's performance.memory API (requires full metrics mode)
+            <li class="info-list__item">
+              <strong class="info-list__label">Native APIs:</strong> Uses Chrome's performance.memory API (requires full metrics mode)
             </li>
           </ol>
         </div>
 
-        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">📈 Metrics Explained</h3>
-        <table class="bench-bundle__table" style="margin-bottom: 2rem;">
+        <h3 class="section-title">📈 Metrics Explained</h3>
+        <table class="bench-bundle__table metrics-table">
           <thead>
             <tr>
-              <th style="width: 30%;">Metric</th>
-              <th style="text-align: left;">Description</th>
+              <th class="metrics-table__metric-col">Metric</th>
+              <th class="table-header-left">Description</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>Render Time</strong></td>
-              <td style="font-size: 0.9rem; color: var(--text-dim);">
+              <td class="metrics-table__desc">
                 Time from createVList() to first paint. Lower is better.
                 Measures initial setup, DOM creation, and first layout pass.
               </td>
             </tr>
             <tr>
               <td><strong>Memory Usage</strong></td>
-              <td style="font-size: 0.9rem; color: var(--text-dim);">
+              <td class="metrics-table__desc">
                 JavaScript heap size after render (delta from baseline). Lower is better.
                 Includes framework overhead, virtual item state, and DOM nodes.
               </td>
             </tr>
             <tr>
               <td><strong>Scroll FPS</strong></td>
-              <td style="font-size: 0.9rem; color: var(--text-dim);">
+              <td class="metrics-table__desc">
                 Median frames per second during sustained scrolling. Higher is better.
                 120 FPS indicates hitting the monitor refresh rate cap (no dropped frames).
               </td>
             </tr>
             <tr>
               <td><strong>P95 Frame Time</strong></td>
-              <td style="font-size: 0.9rem; color: var(--text-dim);">
+              <td class="metrics-table__desc">
                 95th percentile frame time during scrolling. Lower is better.
                 Measures consistency — lower values mean fewer frame drops and stutters.
               </td>
@@ -259,30 +259,30 @@ export function buildComparisonsOverviewHTML() {
           </tbody>
         </table>
 
-        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">⚠️ Important Notes</h3>
-        <div style="background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
-          <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-dim);">
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Hardware-dependent:</strong> Results vary by CPU, GPU, and browser version
+        <h3 class="section-title">⚠️ Important Notes</h3>
+        <div class="info-box">
+          <ul class="info-list">
+            <li class="info-list__item">
+              <strong class="info-list__label">Hardware-dependent:</strong> Results vary by CPU, GPU, and browser version
             </li>
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Chrome required:</strong> Memory measurements use Chrome-specific APIs
+            <li class="info-list__item">
+              <strong class="info-list__label">Chrome required:</strong> Memory measurements use Chrome-specific APIs
             </li>
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Enable full metrics:</strong> Chrome must be launched with <code>--enable-precise-memory-info</code>
+            <li class="info-list__item">
+              <strong class="info-list__label">Enable full metrics:</strong> Chrome must be launched with <code>--enable-precise-memory-info</code>
             </li>
-            <li style="margin-bottom: 0.75rem;">
-              <strong style="color: var(--text);">Simple items:</strong> Benchmarks use basic text items (no images, complex rendering)
+            <li class="info-list__item">
+              <strong class="info-list__label">Simple items:</strong> Benchmarks use basic text items (no images, complex rendering)
             </li>
-            <li style="margin-bottom: 0;">
-              <strong style="color: var(--text);">Fixed heights:</strong> All comparisons use 48px fixed-height items for consistency
+            <li class="info-list__item">
+              <strong class="info-list__label">Fixed heights:</strong> All comparisons use 48px fixed-height items for consistency
             </li>
           </ul>
         </div>
 
-        <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--text-dim); text-align: center;">
+        <p class="page-footer-note">
           Click any comparison above to run the benchmarks yourself. Source code available in
-          <a href="https://github.com/floor/vlist.dev/tree/main/benchmarks/comparison" target="_blank" style="color: var(--primary);">benchmarks/comparison/</a>
+          <a href="https://github.com/floor/vlist.dev/tree/main/benchmarks/comparison" target="_blank">benchmarks/comparison/</a>
         </p>
       </div>
     </div>
@@ -311,7 +311,7 @@ export function buildPerformanceComparisonHTML(performanceData) {
         <td class="${memoryClass}">${row.memory} MB</td>
         <td>${row.scrollFPS} fps</td>
         <td>${row.p95Frame} ms</td>
-        <td style="font-size:12px;color:var(--text-dim);font-family:inherit;">${escapeHtml(row.ecosystem)}</td>
+        <td class="table-note-cell">${escapeHtml(row.ecosystem)}</td>
       </tr>
     `;
     })
@@ -330,7 +330,7 @@ export function buildPerformanceComparisonHTML(performanceData) {
               <th>Memory Usage</th>
               <th>Scroll FPS</th>
               <th>P95 Frame</th>
-              <th style="text-align:left;">Ecosystem</th>
+              <th class="table-header-left">Ecosystem</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
