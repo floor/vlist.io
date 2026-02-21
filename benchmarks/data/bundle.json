@@ -15,14 +15,7 @@
     "self": true,
     "note": "With common plugins: withSections, withSelection"
   },
-  {
-    "lib": "vlist (all plugins)",
-    "gzip": "16.0",
-    "min": "48.0",
-    "deps": "0",
-    "self": true,
-    "note": "All features: grid, sections, async, selection, scale, scrollbar"
-  },
+
   {
     "lib": "@tanstack/virtual-core",
     "gzip": "5.5",
