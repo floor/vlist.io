@@ -1,142 +1,203 @@
-# Comparison Benchmark
+# Library Comparison Benchmarks
 
-This benchmark compares **vlist** against **react-window** side-by-side to help users make informed decisions based on real performance data.
+Head-to-head performance comparisons between **vlist** and popular virtualization libraries. All benchmarks run live in your browser with identical test conditions.
 
-## What It Tests
+## Available Comparisons
+
+### React Ecosystem
+- **[react-window](./react-window.js)** - Brian Vaughn's minimalist library (unmaintained since 2019)
+- **[TanStack Virtual](./tanstack-virtual.js)** - Headless virtualization from the TanStack team
+- **[Virtua](./virtua.js)** - Modern React library with great DX
+
+### Vue Ecosystem
+- **[vue-virtual-scroller](./vue-virtual-scroller.js)** - Popular Vue 3 virtualization component
+
+## What Each Comparison Tests
+
+All comparisons measure the same 4 metrics:
 
 ### 1. **Initial Render Time**
-- Time to create the list and paint the first frame
-- Measures median time across 5 iterations
-- Lower is better
+- Time from creation to first paint
+- Median of 5 iterations
+- **Lower is better**
 
 ### 2. **Memory Usage**
-- JS heap size after rendering (Chrome only)
-- Measures actual memory footprint
-- Lower is better
+- JS heap size after render (Chrome only)
+- Delta from baseline
+- **Lower is better**
 
-### 3. **Scroll Performance**
-- Sustained scroll FPS over 5 seconds
-- Measures frame consistency (P95 frame time)
-- Higher FPS is better, lower frame time is better
+### 3. **Scroll Performance (FPS)**
+- Sustained scroll over 5 seconds
+- Median frames per second
+- **Higher is better** (120 FPS = monitor cap)
 
-## Why This Comparison?
+### 4. **P95 Frame Time**
+- 95th percentile frame consistency
+- Measures jank/stuttering
+- **Lower is better**
 
-**react-window** is one of the most popular virtual list libraries with:
-- 4M+ weekly downloads
-- Mature, battle-tested codebase
-- Focused on doing one thing well
+## Methodology
 
-Comparing against react-window provides:
-- **Real-world context** - not just synthetic benchmarks
-- **Fair comparison** - both libraries are production-ready
-- **Decision-making data** - helps users choose the right tool
+All benchmarks follow identical methodology to ensure fair comparison:
 
-## Key Differences
+1. **Isolated Environment** - Each library runs in a clean container
+2. **Multiple Iterations** - Render measured 5 times, median reported
+3. **Garbage Collection** - Manual GC between tests for clean baselines
+4. **Real Scrolling** - 5 seconds at 100px/frame with direction changes
+5. **Native APIs** - Uses Chrome's `performance.memory` for accurate measurements
 
-| Feature | vlist | react-window |
-|---------|-------|--------------|
-| **Framework** | Agnostic | React only |
-| **Dependencies** | Zero | Zero |
-| **Bundle Size** | 6-23 KB gzipped | 6.5 KB gzipped |
-| **Tree-shakeable** | ✅ Yes | ❌ No |
-| **Grid Layout** | ✅ Yes | ✅ Yes |
-| **Async Loading** | ✅ Built-in | ❌ Manual |
-| **Sections/Groups** | ✅ With sticky headers | ❌ No |
-| **Selection** | ✅ Built-in | ❌ No |
-| **Custom Scrollbar** | ✅ Yes | ❌ No |
-| **Scale to Millions** | ✅ Auto compression | ✅ Yes |
+See [shared.js](./shared.js) for the implementation.
 
-## How It Works
+## File Structure
 
-### Testing Process
+```
+comparison/
+├── shared.js                    # Shared utilities (454 lines)
+│   ├── Constants (ITEM_HEIGHT, etc.)
+│   ├── findViewport()
+│   ├── measureScrollPerformance()
+│   ├── benchmarkVList()
+│   ├── benchmarkLibrary()
+│   └── calculateComparisonMetrics()
+├── react-window.js              # vs react-window (150 lines)
+├── tanstack-virtual.js          # vs TanStack Virtual (186 lines)
+├── virtua.js                    # vs Virtua (151 lines)
+├── vue-virtual-scroller.js      # vs vue-virtual-scroller (171 lines)
+└── memory-optimization.js       # vlist config comparison
+```
 
-1. **Prepare Environment**
-   - Generate test items
-   - Clear memory with GC
-   - Measure baseline
+## Shared Utilities
 
-2. **Test vlist**
-   - Render 5 times, measure median
-   - Calculate memory footprint
-   - Scroll for 5 seconds, measure FPS
+### `shared.js` - Reusable Code
 
-3. **Test react-window**
-   - Same test process
-   - Same item count
-   - Same container dimensions
+All comparison benchmarks import from `shared.js`:
 
-4. **Compare Results**
-   - Side-by-side metrics
-   - Percentage differences
-   - Winner indicators
+**Constants:**
+- `ITEM_HEIGHT` - Fixed at 48px for consistency
+- `MEASURE_ITERATIONS` - 5 iterations for median calculation
+- `SCROLL_DURATION_MS` - 5 second scroll test
 
-### Fair Testing
+**Functions:**
+- `findViewport(container)` - Locates scrollable element
+- `measureScrollPerformance(viewport, duration)` - FPS measurement
+- `benchmarkVList(container, items, onStatus)` - vlist baseline benchmark
+- `benchmarkLibrary(config)` - Generic benchmark wrapper
+- `calculateComparisonMetrics(vlistResults, libResults, name, ...)` - Metrics calculation
 
-Both libraries:
-- Use the same container size (600px height)
-- Render identical content (simple divs with index)
-- Use the same item height (48px)
-- Test with the same item counts (10K, 100K, 1M)
-- Scroll at the same speed (100px/frame)
+This eliminates ~1,600 lines of duplication across comparison files!
 
-## Interpreting Results
+## Adding a New Comparison
 
-### Render Time
-- **< 30ms**: Excellent, imperceptible to users
-- **30-50ms**: Good, smooth enough
-- **> 50ms**: May feel sluggish on slower devices
+1. **Create the benchmark file** (e.g., `new-library.js`)
 
-### Memory Usage
-- **< 30 MB**: Excellent, very efficient
-- **30-50 MB**: Good, acceptable
-- **> 50 MB**: May cause issues on low-memory devices
+```javascript
+import { defineSuite, generateItems, rateLower, rateHigher } from "../runner.js";
+import { ITEM_HEIGHT, benchmarkVList, benchmarkLibrary, calculateComparisonMetrics } from "./shared.js";
 
-### Scroll FPS
-- **> 55 FPS**: Excellent, buttery smooth
-- **50-55 FPS**: Good, smooth enough
-- **< 50 FPS**: May show visible jank
+// 1. Library-specific loading
+const loadLibraries = async () => { ... };
 
-### P95 Frame Time
-- **< 20ms**: Excellent, consistent 60 FPS
-- **20-30ms**: Good, mostly smooth
-- **> 30ms**: Poor, visible stuttering
+// 2. Library-specific benchmark
+const benchmarkNewLibrary = async (container, items, onStatus) => {
+  const loaded = await loadLibraries();
+  if (!loaded) throw new Error("Library not available");
 
-## Expected Results
+  return benchmarkLibrary({
+    libraryName: "New Library",
+    container,
+    items,
+    onStatus,
+    createComponent: async (container, items) => {
+      // Create and mount your component
+      return instance;
+    },
+    destroyComponent: async (instance) => {
+      // Cleanup
+    },
+  });
+};
 
-Based on typical test runs:
+// 3. Suite definition
+defineSuite({
+  id: "new-library",
+  name: "New Library Comparison",
+  description: "Compare vlist vs New Library performance side-by-side",
+  icon: "⚔️",
+  run: async ({ itemCount, container, onStatus }) => {
+    const items = generateItems(itemCount);
+    const vlistResults = await benchmarkVList(container, items, onStatus);
+    
+    let libResults;
+    try {
+      libResults = await benchmarkNewLibrary(container, items, onStatus);
+    } catch (err) {
+      libResults = { library: "New Library", error: err.message };
+    }
+    
+    return calculateComparisonMetrics(vlistResults, libResults, "New Library", rateLower, rateHigher);
+  },
+});
+```
 
-### 100K Items
-- **Render**: vlist and react-window are comparable (~10-20ms)
-- **Memory**: vlist uses slightly more (~10-20% due to extra features)
-- **Scroll**: Both maintain 60 FPS easily
+2. **Add to navigation** (`benchmarks/navigation.json`)
 
-### 1M Items
-- **Render**: vlist slightly slower (~30-40ms vs 20-30ms) due to compression setup
-- **Memory**: vlist more efficient (~39 MB vs 45-60 MB) due to compression
-- **Scroll**: Both maintain 55+ FPS with compression
+```json
+{
+  "slug": "new-library",
+  "name": "New Library",
+  "icon": "⚔️",
+  "desc": "Head-to-head performance: vlist vs New Library"
+}
+```
 
-## Limitations
+3. **Update sitemap** (`src/server/sitemap.ts`)
 
-### What This Doesn't Test
+```typescript
+"new-library": ["benchmarks/comparison/new-library.js"]
+```
 
-- **Complex templates** - Only tests simple divs
-- **Variable heights** - Fixed height only
-- **Real-world usage** - No user interactions
-- **Production builds** - Uses development mode
-- **Mobile devices** - Desktop browser only
+4. **Import in script.js** (`benchmarks/script.js`)
 
-### Why These Limitations?
+```javascript
+import "./comparison/new-library.js";
+```
 
-We focus on **core virtual scrolling performance** to:
-- Keep tests fast and repeatable
-- Isolate library overhead
-- Provide apples-to-apples comparisons
+5. **Install the library** (if needed)
 
-Real-world performance depends on:
-- Template complexity
-- React/framework overhead
-- Application-specific code
-- User device capabilities
+```bash
+bun add new-library
+```
+
+6. **Rebuild and test**
+
+```bash
+bun run benchmarks/build.ts
+open http://localhost:3338/benchmarks/new-library
+```
+
+That's it! The shared utilities handle everything else.
+
+## Updating Performance Results
+
+When benchmark results change (new vlist version, hardware upgrade, etc.):
+
+1. **Run the benchmarks** at `http://localhost:3338/benchmarks/[library-name]`
+2. **Copy results** from the UI (10K items recommended)
+3. **Update** `../data/performance.json`
+4. **Commit** with message explaining what changed
+
+Example:
+```json
+{
+  "lib": "react-window",
+  "renderTime": "9.1",
+  "memory": "2.26",
+  "scrollFPS": "120.5",
+  "p95Frame": "9.1",
+  "ecosystem": "React",
+  "self": false
+}
+```
 
 ## Running Locally
 
@@ -149,36 +210,73 @@ bun run benchmarks/build.ts
 bun run server.ts
 
 # Open browser
-open http://localhost:3338/benchmarks/react-window
+open http://localhost:3338/benchmarks/comparisons
 ```
+
+### Available URLs
+- `/benchmarks/comparisons` - Overview and methodology
+- `/benchmarks/performance-comparison` - Results table
+- `/benchmarks/react-window` - vs react-window
+- `/benchmarks/tanstack-virtual` - vs TanStack Virtual
+- `/benchmarks/virtua` - vs Virtua
+- `/benchmarks/vue-virtual-scroller` - vs vue-virtual-scroller
+
+## Requirements
+
+- **Chrome browser** - Memory measurements use `performance.memory` API
+- **Full metrics mode** - Launch Chrome with `--enable-precise-memory-info`
+- **Dependencies installed** - All comparison libraries must be in `package.json`
+
+## Typical Results (10K Items)
+
+Based on standard hardware (M1 Mac, Chrome):
+
+| Library | Render | Memory | Scroll FPS | P95 Frame |
+|---------|--------|--------|------------|-----------|
+| **vlist** | ~8.5ms | ~0.24 MB | 120.5 | ~9.2ms |
+| react-window | ~9.1ms | ~2.26 MB | 120.5 | ~9.1ms |
+| TanStack Virtual | ~9.1ms | ~2.26 MB | 120.5 | ~9.1ms |
+| Virtua | ~17.2ms | ~14.3 MB | 120.5 | ~9.0ms |
+| vue-virtual-scroller | ~13.4ms | ~11.0 MB | 120.5 | ~10.4ms |
+
+**Key Insight:** vlist consistently uses 10-60x less memory while maintaining equal or better performance.
+
+## Why These Libraries?
+
+We chose comparison targets based on:
+- **Popularity** - High npm download counts
+- **Quality** - Production-ready, well-maintained
+- **Diversity** - Different ecosystems (React, Vue)
+- **Approach** - Different architectural styles (headless, component-based)
+
+## Limitations
+
+These benchmarks test **core virtualization performance** only:
+
+**Not tested:**
+- Complex templates (images, rich content)
+- Variable heights
+- User interactions
+- Real-world application overhead
+- Mobile devices
+
+**Why?** To isolate library performance from other factors.
+
+## Contributing
+
+Found an issue or want to add a comparison?
+
+1. Check if the library is popular and production-ready
+2. Follow the "Adding a New Comparison" guide above
+3. Ensure consistent methodology (use `shared.js` utilities)
+4. Test thoroughly
+5. Submit a pull request
 
 ## Notes
 
-- **Chrome only**: Memory measurements require Chrome's `performance.memory` API
-- **React required**: react-window tests need React/ReactDOM loaded from CDN
-- **No server required**: All tests run in the browser
-- **Deterministic**: Same results on the same hardware (± variance)
+- All comparisons use the **same shared utilities** for consistency
+- Results are **hardware-dependent** - your mileage may vary
+- Benchmarks are **reproducible** - run them yourself!
+- Data is **versioned** in `../data/performance.json`
 
-## Interpreting Differences
-
-### When vlist is faster
-- Usually due to optimized rendering pipeline
-- May vary by item count and browser
-
-### When react-window is faster
-- Often on initial render with small item counts
-- React-window is highly optimized for its use case
-
-### When they're similar
-- Both are excellent virtual scroll implementations
-- Differences often within margin of error
-
-## Key Takeaway
-
-**Both libraries are excellent choices!**
-
-Choose based on:
-- **vlist**: Framework-agnostic, full-featured, tree-shakeable
-- **react-window**: React-focused, minimal, battle-tested
-
-Performance differences are usually negligible in real-world usage. Pick the one that fits your stack and feature needs!
+For questions or issues, see the main [vlist.dev documentation](../../README.md).
