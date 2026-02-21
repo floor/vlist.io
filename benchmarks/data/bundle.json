@@ -1,27 +1,19 @@
 [
   {
-    "lib": "vlist/core",
-    "gzip": "3.0",
-    "min": "7.3",
+    "lib": "vlist",
+    "gzip": "23.6",
+    "min": "72.0",
     "deps": "0",
     "self": true,
-    "note": "Lightweight entry — no selection, groups, compression"
+    "note": "Full-featured: selection, groups, grid, compression, adapters"
   },
   {
-    "lib": "vlist (full)",
-    "gzip": "13.9",
-    "min": "42.3",
-    "deps": "0",
-    "self": true,
-    "note": "All features: selection, groups, grid, compression, adapter"
-  },
-  {
-    "lib": "@tanstack/virtual",
+    "lib": "@tanstack/virtual-core",
     "gzip": "5.5",
     "min": "14.0",
     "deps": "0",
     "self": false,
-    "note": "Core only — needs framework adapter"
+    "note": "Headless core — needs framework adapter"
   },
   {
     "lib": "react-window",
@@ -32,12 +24,28 @@
     "note": "React-only, unmaintained since 2019"
   },
   {
+    "lib": "virtua",
+    "gzip": "12.8",
+    "min": "38.5",
+    "deps": "0",
+    "self": false,
+    "note": "React-only, modern with great DX"
+  },
+  {
+    "lib": "vue-virtual-scroller",
+    "gzip": "8.3",
+    "min": "24.7",
+    "deps": "1",
+    "self": false,
+    "note": "Vue 3 component, feature-rich"
+  },
+  {
     "lib": "react-virtuoso",
     "gzip": "16.2",
     "min": "54.0",
     "deps": "0",
     "self": false,
-    "note": "React-only, feature-rich"
+    "note": "React-only, feature-rich, actively maintained"
   },
   {
     "lib": "clusterize.js",
