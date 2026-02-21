@@ -1,6 +1,6 @@
-// benchmarks/comparison/suite.js — Library Comparison Benchmark
+// benchmarks/comparison/vue-virtual-scroller.js — vue-virtual-scroller Comparison Benchmark
 //
-// Compares vlist against react-window side-by-side:
+// Compares vlist against vue-virtual-scroller side-by-side:
 //   - Initial render time
 //   - Memory usage
 //   - Scroll performance (FPS)
@@ -26,31 +26,26 @@ import {
   rateHigher,
 } from "../runner.js";
 
-// Dynamic imports for React libraries (loaded on demand)
-let React;
-let ReactDOM;
-let FixedSizeList;
-let VariableSizeList;
+// Dynamic imports for Vue libraries (loaded on demand)
+let Vue;
+let RecycleScroller;
 
 /**
- * Lazy load React and react-window.
+ * Lazy load Vue and vue-virtual-scroller.
  * Returns false if loading fails (libraries not available).
  */
-const loadReactLibraries = async () => {
+const loadVueLibraries = async () => {
   try {
-    if (!React) {
-      React = await import("react");
-      const ReactDOMClient = await import("react-dom/client");
-      ReactDOM = ReactDOMClient;
+    if (!Vue) {
+      Vue = await import("vue");
 
-      // Import react-window from local node_modules (via import map)
-      const reactWindow = await import("react-window");
-      FixedSizeList = reactWindow.FixedSizeList;
-      VariableSizeList = reactWindow.VariableSizeList;
+      // Import vue-virtual-scroller from local node_modules (via import map)
+      const vueVirtualScroller = await import("vue-virtual-scroller");
+      RecycleScroller = vueVirtualScroller.RecycleScroller;
     }
     return true;
   } catch (err) {
-    console.error("[comparison] Failed to load React libraries:", err);
+    console.error("[vue-virtual-scroller] Failed to load Vue libraries:", err);
     return false;
   }
 };
@@ -236,33 +231,49 @@ const benchmarkVList = async (container, items, onStatus) => {
 };
 
 // =============================================================================
-// Benchmark: react-window
+// Benchmark: vue-virtual-scroller
 // =============================================================================
 
 /**
- * Benchmark react-window performance.
+ * Benchmark vue-virtual-scroller performance.
  */
-const benchmarkReactWindow = async (container, items, onStatus) => {
-  onStatus("Testing react-window - preparing...");
+const benchmarkVueVirtualScroller = async (container, items, onStatus) => {
+  onStatus("Testing vue-virtual-scroller - preparing...");
 
   // Ensure libraries are loaded
-  const loaded = await loadReactLibraries();
+  const loaded = await loadVueLibraries();
   if (!loaded) {
-    throw new Error("react-window is not available");
+    throw new Error("vue-virtual-scroller is not available");
   }
 
   // Measure memory before
   await tryGC();
   const memBefore = getHeapUsed();
 
-  // React component for rendering list items
-  const Row = ({ index, style }) => {
-    return React.createElement(
-      "div",
-      { className: "bench-item", style },
-      index,
-    );
+  // Vue component using vue-virtual-scroller
+  const VirtualList = {
+    components: { RecycleScroller },
+    template: `
+      <RecycleScroller
+        :items="items"
+        :item-size="itemHeight"
+        :style="{ height: height + 'px' }"
+        key-field="id"
+      >
+        <template v-slot="{ item }">
+          <div class="bench-item">{{ item.id }}</div>
+        </template>
+      </RecycleScroller>
+    `,
+    props: {
+      items: Array,
+      height: Number,
+      itemHeight: Number,
+    },
   };
+
+  // Prepare items with id field (required by vue-virtual-scroller)
+  const itemsWithId = items.map((item, index) => ({ id: index, ...item }));
 
   // Measure render time
   const renderTimes = [];
@@ -273,40 +284,58 @@ const benchmarkReactWindow = async (container, items, onStatus) => {
 
     const start = performance.now();
 
-    const listComponent = React.createElement(FixedSizeList, {
-      height: container.clientHeight || 600,
-      itemCount: items.length,
-      itemSize: ITEM_HEIGHT,
-      width: "100%",
-      children: Row,
+    const app = Vue.createApp({
+      components: { VirtualList },
+      template: `
+        <VirtualList
+          :items="items"
+          :height="height"
+          :item-height="itemHeight"
+        />
+      `,
+      data() {
+        return {
+          items: itemsWithId,
+          height: container.clientHeight || 600,
+          itemHeight: ITEM_HEIGHT,
+        };
+      },
     });
 
-    const root = ReactDOM.createRoot(container);
-    root.render(listComponent);
+    app.mount(container);
 
     await nextFrame();
     const renderTime = performance.now() - start;
     renderTimes.push(renderTime);
 
-    root.unmount();
+    app.unmount();
   }
 
   // Create final instance for memory and scroll testing
   container.innerHTML = "";
   await tryGC();
 
-  onStatus("Testing react-window - rendering...");
+  onStatus("Testing vue-virtual-scroller - rendering...");
 
-  const listComponent = React.createElement(FixedSizeList, {
-    height: container.clientHeight || 600,
-    itemCount: items.length,
-    itemSize: ITEM_HEIGHT,
-    width: "100%",
-    children: Row,
+  const app = Vue.createApp({
+    components: { VirtualList },
+    template: `
+      <VirtualList
+        :items="items"
+        :height="height"
+        :item-height="itemHeight"
+      />
+    `,
+    data() {
+      return {
+        items: itemsWithId,
+        height: container.clientHeight || 600,
+        itemHeight: ITEM_HEIGHT,
+      };
+    },
   });
 
-  const root = ReactDOM.createRoot(container);
-  root.render(listComponent);
+  app.mount(container);
 
   await waitFrames(3);
 
@@ -315,7 +344,7 @@ const benchmarkReactWindow = async (container, items, onStatus) => {
   const memAfter = getHeapUsed();
 
   // Find viewport and measure scroll performance
-  onStatus("Testing react-window - scrolling...");
+  onStatus("Testing vue-virtual-scroller - scrolling...");
   const viewport = findViewport(container);
   const scrollMetrics = await measureScrollPerformance(
     viewport,
@@ -323,11 +352,11 @@ const benchmarkReactWindow = async (container, items, onStatus) => {
   );
 
   // Cleanup
-  root.unmount();
+  app.unmount();
   container.innerHTML = "";
 
   return {
-    library: "react-window",
+    library: "vue-virtual-scroller",
     renderTime: round(median(renderTimes), 2),
     memoryUsed: memAfter && memBefore ? bytesToMB(memAfter - memBefore) : null,
     scrollFPS: scrollMetrics.medianFPS,
@@ -340,9 +369,9 @@ const benchmarkReactWindow = async (container, items, onStatus) => {
 // =============================================================================
 
 defineSuite({
-  id: "comparison",
-  name: "Library Comparison",
-  description: "Compare vlist vs react-window performance side-by-side",
+  id: "vue-virtual-scroller",
+  name: "vue-virtual-scroller Comparison",
+  description: "Compare vlist vs vue-virtual-scroller performance side-by-side",
   icon: "⚔️",
 
   run: async ({ itemCount, container, onStatus }) => {
@@ -355,18 +384,18 @@ defineSuite({
     await tryGC();
     await waitFrames(5);
 
-    // Benchmark react-window
-    let reactWindowResults;
+    // Benchmark vue-virtual-scroller
+    let vueResults;
     try {
-      reactWindowResults = await benchmarkReactWindow(
+      vueResults = await benchmarkVueVirtualScroller(
         container,
         items,
         onStatus,
       );
     } catch (err) {
-      console.warn("[comparison] react-window test failed:", err);
-      reactWindowResults = {
-        library: "react-window",
+      console.warn("[vue-virtual-scroller] vue-virtual-scroller test failed:", err);
+      vueResults = {
+        library: "vue-virtual-scroller",
         renderTime: null,
         memoryUsed: null,
         scrollFPS: null,
@@ -379,9 +408,9 @@ defineSuite({
     const metrics = [];
 
     // Render Time Comparison
-    if (vlistResults.renderTime && reactWindowResults.renderTime) {
-      const diff = vlistResults.renderTime - reactWindowResults.renderTime;
-      const pct = round((diff / reactWindowResults.renderTime) * 100, 1);
+    if (vlistResults.renderTime && vueResults.renderTime) {
+      const diff = vlistResults.renderTime - vueResults.renderTime;
+      const pct = round((diff / vueResults.renderTime) * 100, 1);
 
       metrics.push({
         label: "vlist Render Time",
@@ -392,11 +421,11 @@ defineSuite({
       });
 
       metrics.push({
-        label: "react-window Render Time",
-        value: reactWindowResults.renderTime,
+        label: "vue-virtual-scroller Render Time",
+        value: vueResults.renderTime,
         unit: "ms",
         better: "lower",
-        rating: rateLower(reactWindowResults.renderTime, 30, 50),
+        rating: rateLower(vueResults.renderTime, 30, 50),
       });
 
       metrics.push({
@@ -405,14 +434,14 @@ defineSuite({
         unit: "%",
         better: "lower",
         rating: pct < 0 ? "good" : pct < 20 ? "ok" : "bad",
-        meta: pct < 0 ? "vlist is faster" : "react-window is faster",
+        meta: pct < 0 ? "vlist is faster" : "vue-virtual-scroller is faster",
       });
     }
 
     // Memory Comparison
-    if (vlistResults.memoryUsed && reactWindowResults.memoryUsed) {
-      const diff = vlistResults.memoryUsed - reactWindowResults.memoryUsed;
-      const pct = round((diff / reactWindowResults.memoryUsed) * 100, 1);
+    if (vlistResults.memoryUsed && vueResults.memoryUsed) {
+      const diff = vlistResults.memoryUsed - vueResults.memoryUsed;
+      const pct = round((diff / vueResults.memoryUsed) * 100, 1);
 
       metrics.push({
         label: "vlist Memory Usage",
@@ -423,11 +452,11 @@ defineSuite({
       });
 
       metrics.push({
-        label: "react-window Memory Usage",
-        value: reactWindowResults.memoryUsed,
+        label: "vue-virtual-scroller Memory Usage",
+        value: vueResults.memoryUsed,
         unit: "MB",
         better: "lower",
-        rating: rateLower(reactWindowResults.memoryUsed, 30, 50),
+        rating: rateLower(vueResults.memoryUsed, 30, 50),
       });
 
       metrics.push({
@@ -436,14 +465,14 @@ defineSuite({
         unit: "%",
         better: "lower",
         rating: pct < 0 ? "good" : pct < 20 ? "ok" : "bad",
-        meta: pct < 0 ? "vlist uses less" : "react-window uses less",
+        meta: pct < 0 ? "vlist uses less" : "vue-virtual-scroller uses less",
       });
     }
 
     // Scroll FPS Comparison
-    if (vlistResults.scrollFPS && reactWindowResults.scrollFPS) {
-      const diff = vlistResults.scrollFPS - reactWindowResults.scrollFPS;
-      const pct = round((diff / reactWindowResults.scrollFPS) * 100, 1);
+    if (vlistResults.scrollFPS && vueResults.scrollFPS) {
+      const diff = vlistResults.scrollFPS - vueResults.scrollFPS;
+      const pct = round((diff / vueResults.scrollFPS) * 100, 1);
 
       metrics.push({
         label: "vlist Scroll FPS",
@@ -454,11 +483,11 @@ defineSuite({
       });
 
       metrics.push({
-        label: "react-window Scroll FPS",
-        value: reactWindowResults.scrollFPS,
+        label: "vue-virtual-scroller Scroll FPS",
+        value: vueResults.scrollFPS,
         unit: "fps",
         better: "higher",
-        rating: rateHigher(reactWindowResults.scrollFPS, 55, 50),
+        rating: rateHigher(vueResults.scrollFPS, 55, 50),
       });
 
       metrics.push({
@@ -467,12 +496,12 @@ defineSuite({
         unit: "%",
         better: "higher",
         rating: pct > 0 ? "good" : pct > -5 ? "ok" : "bad",
-        meta: pct > 0 ? "vlist is smoother" : "react-window is smoother",
+        meta: pct > 0 ? "vlist is smoother" : "vue-virtual-scroller is smoother",
       });
     }
 
     // P95 Frame Time Comparison
-    if (vlistResults.p95FrameTime && reactWindowResults.p95FrameTime) {
+    if (vlistResults.p95FrameTime && vueResults.p95FrameTime) {
       metrics.push({
         label: "vlist P95 Frame Time",
         value: vlistResults.p95FrameTime,
@@ -482,23 +511,23 @@ defineSuite({
       });
 
       metrics.push({
-        label: "react-window P95 Frame Time",
-        value: reactWindowResults.p95FrameTime,
+        label: "vue-virtual-scroller P95 Frame Time",
+        value: vueResults.p95FrameTime,
         unit: "ms",
         better: "lower",
-        rating: rateLower(reactWindowResults.p95FrameTime, 20, 30),
+        rating: rateLower(vueResults.p95FrameTime, 20, 30),
       });
     }
 
-    // Add error metric if react-window failed
-    if (reactWindowResults.error) {
+    // Add error metric if vue-virtual-scroller failed
+    if (vueResults.error) {
       metrics.push({
-        label: "react-window Error",
+        label: "vue-virtual-scroller Error",
         value: 0,
         unit: "",
         better: "lower",
         rating: "bad",
-        meta: reactWindowResults.error,
+        meta: vueResults.error,
       });
     }
 

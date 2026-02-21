@@ -4,6 +4,15 @@
 // and builds the appropriate UI. The shell (header, sidebar) is
 // server-rendered; this script handles the interactive content area.
 
+// Import HTML templates
+import {
+  buildSuitePageHTML,
+  buildBundlePageHTML,
+  buildFeaturesPageHTML,
+  buildComparisonsOverviewHTML,
+  buildPerformanceComparisonHTML,
+} from "./templates.js";
+
 // Import suites (side-effect: each calls defineSuite())
 // All benchmark suites - variants imported statically
 import "./render/javascript/suite.js";
@@ -26,8 +35,11 @@ import "./scrollto/react/suite.js";
 import "./scrollto/vue/suite.js";
 import "./scrollto/svelte/suite.js";
 
-// Comparison suite (compares vlist vs react-window)
-import "./comparison/suite.js";
+// Comparison suites
+import "./comparison/react-window.js";
+import "./comparison/tanstack-virtual.js";
+import "./comparison/virtua.js";
+import "./comparison/vue-virtual-scroller.js";
 
 // Memory optimization comparison
 import "./comparison/memory-optimization.js";
@@ -190,6 +202,55 @@ const FEATURE_DATA = [
   ["Svelte adapter", "✅", "—", "✅", "❌", "❌"],
 ];
 
+// Performance comparison data (10K items benchmark results)
+const PERFORMANCE_DATA = [
+  {
+    lib: "vlist",
+    renderTime: "8.5",
+    memory: "0.24",
+    scrollFPS: "120.5",
+    p95Frame: "9.2",
+    ecosystem: "Vanilla JS",
+    self: true,
+  },
+  {
+    lib: "react-window",
+    renderTime: "9.1",
+    memory: "2.26",
+    scrollFPS: "120.5",
+    p95Frame: "9.1",
+    ecosystem: "React",
+    self: false,
+  },
+  {
+    lib: "TanStack Virtual",
+    renderTime: "9.1",
+    memory: "2.26",
+    scrollFPS: "120.5",
+    p95Frame: "9.1",
+    ecosystem: "React",
+    self: false,
+  },
+  {
+    lib: "Virtua",
+    renderTime: "17.2",
+    memory: "14.3",
+    scrollFPS: "120.5",
+    p95Frame: "9.0",
+    ecosystem: "React",
+    self: false,
+  },
+  {
+    lib: "vue-virtual-scroller",
+    renderTime: "13.4",
+    memory: "10.97",
+    scrollFPS: "120.5",
+    p95Frame: "10.4",
+    ecosystem: "Vue",
+    self: false,
+  },
+];
+
 const FEATURE_LIBS = [
   "vlist",
   "vlist/core",
@@ -232,52 +293,7 @@ function buildSuitePage(root, suite) {
     ? existingVariantSwitcher.outerHTML
     : "";
 
-  root.innerHTML = `
-    ${variantSwitcherHTML}
-    <div class="bench-page">
-      <!-- Header -->
-      <header class="bench-header">
-        <h1 class="bench-header__title">${suite.icon} ${escapeHtml(suite.name)}</h1>
-        <p class="bench-header__desc">${escapeHtml(suite.description)}</p>
-        <div class="bench-header__meta">
-          <span class="bench-tag bench-tag--accent">vlist ${getVlistVersion()}</span>
-          <span class="bench-tag">${navigator.userAgent.includes("Chrome") ? "Chrome — full metrics" : "⚠️ Use Chrome for memory metrics"}</span>
-          <span class="bench-tag">${navigator.hardwareConcurrency || "?"}-core CPU</span>
-        </div>
-      </header>
-
-      <!-- Controls -->
-      <div class="bench-controls" id="bench-controls">
-        <span class="bench-controls__label">Items</span>
-        <div class="bench-controls__sizes" id="bench-sizes"></div>
-        <div class="bench-controls__sep"></div>
-        <button class="bench-run-btn" id="bench-run">▶ Run</button>
-        <span class="bench-status" id="bench-status">Ready</span>
-      </div>
-
-      <!-- Progress -->
-      <div class="bench-progress" id="bench-progress">
-        <div class="bench-progress__bar" id="bench-progress-bar"></div>
-        <div class="bench-progress__text" id="bench-progress-text">0%</div>
-      </div>
-
-      <!-- Suite Card -->
-      <div class="bench-suites" id="bench-suites"></div>
-
-      <!-- Footer -->
-      <footer class="bench-footer">
-        <p>
-          Benchmarks run locally in your browser — results depend on your hardware.
-          <br>
-          <a href="https://github.com/floor/vlist" target="_blank">github.com/floor/vlist</a>
-          ·
-          <a href="/examples/">Examples</a>
-          ·
-          <a href="/">vlist.dev</a>
-        </p>
-      </footer>
-    </div>
-  `;
+  root.innerHTML = buildSuitePageHTML(suite, variantSwitcherHTML);
 
   // Cache DOM refs
   dom.runBtn = root.querySelector("#bench-run");
@@ -302,47 +318,23 @@ function buildSuitePage(root, suite) {
 // =============================================================================
 
 function buildBundlePage(root) {
-  const rows = BUNDLE_DATA.map((row) => {
-    const libClass = row.self
-      ? "bench-bundle__lib bench-bundle__lib--self"
-      : "bench-bundle__lib";
-    const gzipClass = row.self ? "bench-bundle__highlight" : "";
+  root.innerHTML = buildBundlePageHTML(BUNDLE_DATA);
+}
 
-    return `
-      <tr>
-        <td class="${libClass}">${escapeHtml(row.lib)}</td>
-        <td>${row.min} KB</td>
-        <td class="${gzipClass}">${row.gzip} KB</td>
-        <td>${row.deps}</td>
-        <td style="font-size:12px;color:var(--text-dim);font-family:inherit;">${escapeHtml(row.note)}</td>
-      </tr>
-    `;
-  }).join("");
+// =============================================================================
+// Comparisons Overview Page
+// =============================================================================
 
-  root.innerHTML = `
-    <div class="bench-page">
-      <div class="bench-bundle">
-        <h2 class="bench-bundle__title">📦 Bundle Size</h2>
-        <p class="bench-bundle__desc">Minified and gzipped sizes — smaller is better for load time.</p>
-        <table class="bench-bundle__table">
-          <thead>
-            <tr>
-              <th>Library</th>
-              <th>Minified</th>
-              <th>Gzipped</th>
-              <th>Deps</th>
-              <th style="text-align:left;">Notes</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <p class="bench-bundle__note">
-          Sizes measured via local build (Bun) and verified with bundlephobia.com where available.
-          vlist/core is the lightweight entry point for simple lists. The full bundle includes all features.
-        </p>
-      </div>
-    </div>
-  `;
+function buildComparisonsOverviewPage(root) {
+  root.innerHTML = buildComparisonsOverviewHTML();
+}
+
+// =============================================================================
+// Performance Comparison Page
+// =============================================================================
+
+function buildPerformanceComparisonPage(root) {
+  root.innerHTML = buildPerformanceComparisonHTML(PERFORMANCE_DATA);
 }
 
 // =============================================================================
@@ -350,32 +342,7 @@ function buildBundlePage(root) {
 // =============================================================================
 
 function buildFeaturesPage(root) {
-  const headerCells = FEATURE_LIBS.map(
-    (lib) => `<th>${escapeHtml(lib)}</th>`,
-  ).join("");
-
-  const rows = FEATURE_DATA.map(([feature, ...values]) => {
-    const cells = values.map((v) => `<td>${v}</td>`).join("");
-    return `<tr><td>${escapeHtml(feature)}</td>${cells}</tr>`;
-  }).join("");
-
-  root.innerHTML = `
-    <div class="bench-page">
-      <div class="bench-features">
-        <h2 class="bench-features__title">⚖️ Feature Comparison</h2>
-        <p class="bench-features__desc">Feature coverage across popular virtual list libraries.</p>
-        <table class="bench-features__table">
-          <thead>
-            <tr>
-              <th>Feature</th>
-              ${headerCells}
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </div>
-  `;
+  root.innerHTML = buildFeaturesPageHTML(FEATURE_LIBS, FEATURE_DATA);
 }
 
 // =============================================================================
@@ -911,6 +878,10 @@ if (root) {
     buildBundlePage(root);
   } else if (page === "features") {
     buildFeaturesPage(root);
+  } else if (page === "comparisons") {
+    buildComparisonsOverviewPage(root);
+  } else if (page === "performance-comparison") {
+    buildPerformanceComparisonPage(root);
   } else {
     // Suite page (render, scroll, memory, scrollto)
     const variants = detectVariants(page);

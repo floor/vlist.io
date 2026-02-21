@@ -32,6 +32,12 @@
     "label": "Comparisons",
     "items": [
       {
+        "slug": "comparisons",
+        "name": "Overview",
+        "icon": "📋",
+        "desc": "How library comparisons are conducted and what metrics mean"
+      },
+      {
         "slug": "bundle",
         "name": "Bundle Size",
         "icon": "📦",
@@ -44,10 +50,34 @@
         "desc": "Feature coverage across popular virtual list libraries"
       },
       {
-        "slug": "comparison",
+        "slug": "performance-comparison",
         "name": "Performance Comparison",
         "icon": "⚔️",
+        "desc": "Head-to-head performance metrics across all libraries"
+      },
+      {
+        "slug": "react-window",
+        "name": "react-window",
+        "icon": "⚔️",
         "desc": "Head-to-head performance: vlist vs react-window"
+      },
+      {
+        "slug": "tanstack-virtual",
+        "name": "TanStack Virtual",
+        "icon": "⚔️",
+        "desc": "Head-to-head performance: vlist vs TanStack Virtual"
+      },
+      {
+        "slug": "virtua",
+        "name": "Virtua",
+        "icon": "⚔️",
+        "desc": "Head-to-head performance: vlist vs Virtua"
+      },
+      {
+        "slug": "vue-virtual-scroller",
+        "name": "vue-virtual-scroller",
+        "icon": "⚔️",
+        "desc": "Head-to-head performance: vlist vs vue-virtual-scroller"
       },
       {
         "slug": "memory-optimization-comparison",

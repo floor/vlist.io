@@ -1,0 +1,348 @@
+// benchmarks/templates.js — HTML Templates for Benchmark Pages
+//
+// Separates presentation (HTML) from logic (script.js).
+// All static HTML templates and page builders live here.
+
+// =============================================================================
+// Helpers
+// =============================================================================
+
+const escapeHtml = (str) => {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+};
+
+function getVlistVersion() {
+  return "0.4.0"; // TODO: Extract from package.json
+}
+
+// =============================================================================
+// Suite Page Template
+// =============================================================================
+
+export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
+  return `
+    ${variantSwitcherHTML}
+    <div class="bench-page">
+      <!-- Header -->
+      <header class="bench-header">
+        <h1 class="bench-header__title">${suite.icon} ${escapeHtml(suite.name)}</h1>
+        <p class="bench-header__desc">${escapeHtml(suite.description)}</p>
+        <div class="bench-header__meta">
+          <span class="bench-tag bench-tag--accent">vlist ${getVlistVersion()}</span>
+          <span class="bench-tag">${navigator.userAgent.includes("Chrome") ? "Chrome — full metrics" : "⚠️ Use Chrome for memory metrics"}</span>
+          <span class="bench-tag">${navigator.hardwareConcurrency || "?"}-core CPU</span>
+        </div>
+      </header>
+
+      <!-- Controls -->
+      <div class="bench-controls" id="bench-controls">
+        <span class="bench-controls__label">Items</span>
+        <div class="bench-controls__sizes" id="bench-sizes"></div>
+        <div class="bench-controls__sep"></div>
+        <button class="bench-run-btn" id="bench-run">▶ Run</button>
+        <span class="bench-status" id="bench-status">Ready</span>
+      </div>
+
+      <!-- Progress -->
+      <div class="bench-progress" id="bench-progress">
+        <div class="bench-progress__bar" id="bench-progress-bar"></div>
+        <div class="bench-progress__text" id="bench-progress-text">0%</div>
+      </div>
+
+      <!-- Suite Card -->
+      <div class="bench-suites" id="bench-suites"></div>
+
+      <!-- Footer -->
+      <footer class="bench-footer">
+        <p>
+          Benchmarks run locally in your browser — results depend on your hardware.
+          <br>
+          <a href="https://github.com/floor/vlist" target="_blank">github.com/floor/vlist</a>
+          ·
+          <a href="/examples/">Examples</a>
+          ·
+          <a href="/">vlist.dev</a>
+        </p>
+      </footer>
+    </div>
+  `;
+}
+
+// =============================================================================
+// Bundle Size Page Template
+// =============================================================================
+
+export function buildBundlePageHTML(bundleData) {
+  const rows = bundleData
+    .map((row) => {
+      const libClass = row.self
+        ? "bench-bundle__lib bench-bundle__lib--self"
+        : "bench-bundle__lib";
+      const gzipClass = row.self ? "bench-bundle__highlight" : "";
+
+      return `
+      <tr>
+        <td class="${libClass}">${escapeHtml(row.lib)}</td>
+        <td>${row.min} KB</td>
+        <td class="${gzipClass}">${row.gzip} KB</td>
+        <td>${row.deps}</td>
+        <td style="font-size:12px;color:var(--text-dim);font-family:inherit;">${escapeHtml(row.note)}</td>
+      </tr>
+    `;
+    })
+    .join("");
+
+  return `
+    <div class="bench-page">
+      <div class="bench-bundle">
+        <h2 class="bench-bundle__title">📦 Bundle Size</h2>
+        <p class="bench-bundle__desc">Minified and gzipped sizes — smaller is better for load time.</p>
+        <table class="bench-bundle__table">
+          <thead>
+            <tr>
+              <th>Library</th>
+              <th>Minified</th>
+              <th>Gzipped</th>
+              <th>Deps</th>
+              <th style="text-align:left;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <p class="bench-bundle__note">
+          Sizes measured via local build (Bun) and verified with bundlephobia.com where available.
+          vlist/core is the lightweight entry point for simple lists. The full bundle includes all features.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================================================
+// Features Page Template
+// =============================================================================
+
+export function buildFeaturesPageHTML(featureLibs, featureData) {
+  const headerCells = featureLibs
+    .map((lib) => `<th>${escapeHtml(lib)}</th>`)
+    .join("");
+
+  const rows = featureData
+    .map(([feature, ...values]) => {
+      const cells = values.map((v) => `<td>${v}</td>`).join("");
+      return `<tr><td>${escapeHtml(feature)}</td>${cells}</tr>`;
+    })
+    .join("");
+
+  return `
+    <div class="bench-page">
+      <div class="bench-features">
+        <h2 class="bench-features__title">⚖️ Feature Comparison</h2>
+        <p class="bench-features__desc">Feature coverage across popular virtual list libraries.</p>
+        <table class="bench-features__table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              ${headerCells}
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <p class="bench-features__note">
+          ✅ = Supported · ⚠️ = Partial support · ❌ = Not supported · — = Not applicable
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================================================
+// Comparisons Overview Page Template
+// =============================================================================
+
+export function buildComparisonsOverviewHTML() {
+  return `
+    <div class="bench-page">
+      <div class="bench-bundle">
+        <h2 class="bench-bundle__title">⚔️ Library Comparisons</h2>
+        <p class="bench-bundle__desc">
+          Objective, reproducible performance comparisons between vlist and popular virtualization libraries.
+          All benchmarks run live in your browser on real data.
+        </p>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">📊 Available Comparisons</h3>
+        <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+          <a href="/benchmarks/performance-comparison" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
+            <strong style="color: var(--primary);">⚔️ Performance Comparison</strong>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Side-by-side performance metrics across all libraries</div>
+          </a>
+          <a href="/benchmarks/react-window" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
+            <strong style="color: var(--primary);">react-window</strong>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">React library by Brian Vaughn (unmaintained since 2019)</div>
+          </a>
+          <a href="/benchmarks/tanstack-virtual" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
+            <strong style="color: var(--primary);">TanStack Virtual</strong>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Headless virtualization from the TanStack team</div>
+          </a>
+          <a href="/benchmarks/virtua" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
+            <strong style="color: var(--primary);">Virtua</strong>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Modern React virtualization library with great DX</div>
+          </a>
+          <a href="/benchmarks/vue-virtual-scroller" style="display: block; padding: 1rem; background: var(--surface); border-radius: 8px; text-decoration: none; color: inherit; border: 1px solid var(--border);">
+            <strong style="color: var(--primary);">vue-virtual-scroller</strong>
+            <div style="font-size: 0.9rem; color: var(--text-dim); margin-top: 0.25rem;">Popular Vue 3 virtualization component</div>
+          </a>
+        </div>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">🔬 Methodology</h3>
+        <div style="background: var(--surface); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid var(--border);">
+          <p style="margin: 0 0 1rem 0;">All benchmarks follow the same rigorous methodology:</p>
+
+          <ol style="margin: 0; padding-left: 1.5rem; color: var(--text-dim);">
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Isolated Environment:</strong> Each library runs in a clean container with identical setup
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Multiple Iterations:</strong> Render time measured across 5 iterations, median value reported
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Garbage Collection:</strong> Manual GC between tests to ensure clean memory baselines
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Real Scrolling:</strong> 5 seconds of programmatic scrolling at 100px/frame with direction changes
+            </li>
+            <li style="margin-bottom: 0;">
+              <strong style="color: var(--text);">Native APIs:</strong> Uses Chrome's performance.memory API (requires full metrics mode)
+            </li>
+          </ol>
+        </div>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">📈 Metrics Explained</h3>
+        <table class="bench-bundle__table" style="margin-bottom: 2rem;">
+          <thead>
+            <tr>
+              <th style="width: 30%;">Metric</th>
+              <th style="text-align: left;">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Render Time</strong></td>
+              <td style="font-size: 0.9rem; color: var(--text-dim);">
+                Time from createVList() to first paint. Lower is better.
+                Measures initial setup, DOM creation, and first layout pass.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Memory Usage</strong></td>
+              <td style="font-size: 0.9rem; color: var(--text-dim);">
+                JavaScript heap size after render (delta from baseline). Lower is better.
+                Includes framework overhead, virtual item state, and DOM nodes.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Scroll FPS</strong></td>
+              <td style="font-size: 0.9rem; color: var(--text-dim);">
+                Median frames per second during sustained scrolling. Higher is better.
+                120 FPS indicates hitting the monitor refresh rate cap (no dropped frames).
+              </td>
+            </tr>
+            <tr>
+              <td><strong>P95 Frame Time</strong></td>
+              <td style="font-size: 0.9rem; color: var(--text-dim);">
+                95th percentile frame time during scrolling. Lower is better.
+                Measures consistency — lower values mean fewer frame drops and stutters.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.2rem;">⚠️ Important Notes</h3>
+        <div style="background: var(--surface); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border);">
+          <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-dim);">
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Hardware-dependent:</strong> Results vary by CPU, GPU, and browser version
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Chrome required:</strong> Memory measurements use Chrome-specific APIs
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Enable full metrics:</strong> Chrome must be launched with <code>--enable-precise-memory-info</code>
+            </li>
+            <li style="margin-bottom: 0.75rem;">
+              <strong style="color: var(--text);">Simple items:</strong> Benchmarks use basic text items (no images, complex rendering)
+            </li>
+            <li style="margin-bottom: 0;">
+              <strong style="color: var(--text);">Fixed heights:</strong> All comparisons use 48px fixed-height items for consistency
+            </li>
+          </ul>
+        </div>
+
+        <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--text-dim); text-align: center;">
+          Click any comparison above to run the benchmarks yourself. Source code available in
+          <a href="https://github.com/floor/vlist.dev/tree/main/benchmarks/comparison" target="_blank" style="color: var(--primary);">benchmarks/comparison/</a>
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+// =============================================================================
+// Performance Comparison Page Template
+// =============================================================================
+
+export function buildPerformanceComparisonHTML(performanceData) {
+  const rows = performanceData
+    .map((row) => {
+      const libClass = row.self
+        ? "bench-bundle__lib bench-bundle__lib--self"
+        : "bench-bundle__lib";
+
+      // Highlight vlist's best metrics
+      const renderClass = row.self ? "bench-bundle__highlight" : "";
+      const memoryClass = row.self ? "bench-bundle__highlight" : "";
+
+      return `
+      <tr>
+        <td class="${libClass}">${escapeHtml(row.lib)}</td>
+        <td class="${renderClass}">${row.renderTime} ms</td>
+        <td class="${memoryClass}">${row.memory} MB</td>
+        <td>${row.scrollFPS} fps</td>
+        <td>${row.p95Frame} ms</td>
+        <td style="font-size:12px;color:var(--text-dim);font-family:inherit;">${escapeHtml(row.ecosystem)}</td>
+      </tr>
+    `;
+    })
+    .join("");
+
+  return `
+    <div class="bench-page">
+      <div class="bench-bundle">
+        <h2 class="bench-bundle__title">⚔️ Performance Comparison</h2>
+        <p class="bench-bundle__desc">Head-to-head performance metrics at 10,000 items — all benchmarks run in your browser.</p>
+        <table class="bench-bundle__table">
+          <thead>
+            <tr>
+              <th>Library</th>
+              <th>Render Time</th>
+              <th>Memory Usage</th>
+              <th>Scroll FPS</th>
+              <th>P95 Frame</th>
+              <th style="text-align:left;">Ecosystem</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <p class="bench-bundle__note">
+          <strong>Render Time:</strong> Initial render latency (lower is better).<br>
+          <strong>Memory Usage:</strong> JS heap after render (lower is better).<br>
+          <strong>Scroll FPS:</strong> Sustained scroll performance (higher is better, 120 is monitor cap).<br>
+          <strong>P95 Frame Time:</strong> 95th percentile frame time consistency (lower is better).<br>
+          Run individual comparisons for detailed analysis.
+        </p>
+      </div>
+    </div>
+  `;
+}

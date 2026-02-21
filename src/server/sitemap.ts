@@ -112,12 +112,17 @@ function buildLastmodMap(): Map<string, string> {
     scroll: ["benchmarks/scroll/", "benchmarks/suites/scroll.js"],
     memory: ["benchmarks/memory/", "benchmarks/suites/memory.js"],
     scrollto: ["benchmarks/scrollto/", "benchmarks/suites/scrollto.js"],
-    comparison: ["benchmarks/comparison/suite.js"],
+    "react-window": ["benchmarks/comparison/react-window.js"],
+    "tanstack-virtual": ["benchmarks/comparison/tanstack-virtual.js"],
+    virtua: ["benchmarks/comparison/virtua.js"],
+    "vue-virtual-scroller": ["benchmarks/comparison/vue-virtual-scroller.js"],
     "memory-optimization-comparison": [
       "benchmarks/comparison/memory-optimization.js",
     ],
     bundle: ["benchmarks/script.js"],
     features: ["benchmarks/script.js"],
+    comparisons: ["benchmarks/script.js"],
+    "performance-comparison": ["benchmarks/script.js"],
   };
 
   for (const group of BENCH_GROUPS) {

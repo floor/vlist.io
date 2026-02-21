@@ -19,13 +19,16 @@
   },
   "dependencies": {
     "@floor/vlist": "file:../vlist",
+    "@tanstack/react-virtual": "^3.13.18",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "marked": "^17.0.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-window": "1.8.10",
+    "virtua": "^0.48.6",
     "vlist-react": "^0.1.1",
+    "vue-virtual-scroller": "^2.0.0-beta.8",
     "vlist-svelte": "^0.1.1",
     "vlist-vue": "^0.1.1",
     "vue": "^3.5.28"

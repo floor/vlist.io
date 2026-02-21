@@ -84,7 +84,7 @@ Test with JavaScript variant:
 ### 📊 Phase 4: Comparison Benchmarks
 
 **Library Comparison:**  
-http://localhost:3338/benchmarks/comparison
+http://localhost:3338/benchmarks/react-window
 
 Compare vlist vs react-window:
 - [ ] **100K items** - vlist memory should be competitive or better

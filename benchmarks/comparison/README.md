@@ -149,7 +149,7 @@ bun run benchmarks/build.ts
 bun run server.ts
 
 # Open browser
-open http://localhost:3338/benchmarks/comparison
+open http://localhost:3338/benchmarks/react-window
 ```
 
 ## Notes
