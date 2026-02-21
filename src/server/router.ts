@@ -13,32 +13,50 @@ import { compressResponse } from "./compression";
 import { renderSitemap, renderRobots } from "./sitemap";
 
 // =============================================================================
-// Examples Routing
+// Section Resolvers
 // =============================================================================
 
-/**
- * Match examples routes and render pages server-side.
- *
- * - /examples or /examples/        → overview page
- * - /examples/<slug>               → example page (server-rendered with shell)
- * - /examples/<slug>/              → same (trailing slash)
- * - /examples/<slug>/dist/*        → falls through (static assets)
- */
+function routeSystem(pathname: string): Response | null {
+  if (pathname === "/sitemap.xml") return renderSitemap();
+  if (pathname === "/robots.txt") return renderRobots();
+  return null;
+}
+
+function resolveDocs(pathname: string): Response | null {
+  if (pathname === "/docs" || pathname === "/docs/") {
+    return renderDocsPage(null);
+  }
+  const match = pathname.match(/^\/docs\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
+  if (match) return renderDocsPage(match[1]);
+  return null;
+}
+
+function resolveTutorials(pathname: string): Response | null {
+  if (pathname === "/tutorials" || pathname === "/tutorials/") {
+    return renderTutorialPage(null);
+  }
+  const match = pathname.match(/^\/tutorials\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
+  if (match) return renderTutorialPage(match[1]);
+  return null;
+}
+
 function resolveExamples(pathname: string, url: string): Response | null {
   if (pathname === "/examples" || pathname === "/examples/") {
     return renderExamplesPage(null, url);
   }
-
   const match = pathname.match(
     /^\/examples\/([a-z0-9-]+(?:\/[a-z0-9-]+)?)\/?$/,
   );
-  if (match) {
-    const slug = match[1];
-    const rendered = renderExamplesPage(slug, url);
-    if (rendered) return rendered;
-    // Unknown slug — fall through to static file serving
-  }
+  if (match) return renderExamplesPage(match[1], url);
+  return null;
+}
 
+function resolveBenchmarks(pathname: string, url: string): Response | null {
+  if (pathname === "/benchmarks" || pathname === "/benchmarks/") {
+    return renderBenchmarkPage(null, url);
+  }
+  const match = pathname.match(/^\/benchmarks\/([a-z0-9-]+)\/?$/);
+  if (match) return renderBenchmarkPage(match[1], url);
   return null;
 }
 
@@ -51,68 +69,15 @@ export async function handleRequest(req: Request): Promise<Response> {
   const pathname = decodeURIComponent(url.pathname);
   const acceptEncoding = req.headers.get("Accept-Encoding");
 
-  let response: Response | null = null;
-
-  // 1. Sitemap & robots.txt
-  if (pathname === "/sitemap.xml") {
-    response = renderSitemap();
-  } else if (pathname === "/robots.txt") {
-    response = renderRobots();
-  }
-  // 2. API routes
-  else {
-    response = await routeApi(req);
-  }
-
-  // 3. Examples pages (server-rendered)
-  if (!response) {
-    response = resolveExamples(pathname, req.url);
-  }
-
-  // 4. Docs pages (server-rendered)
-  if (!response && (pathname === "/docs" || pathname === "/docs/")) {
-    response = renderDocsPage(null);
-  } else if (!response) {
-    const docsMatch = pathname.match(/^\/docs\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
-    if (docsMatch) {
-      response = renderDocsPage(docsMatch[1]);
-    }
-  }
-
-  // 5. Tutorials pages (server-rendered)
-  if (!response && (pathname === "/tutorials" || pathname === "/tutorials/")) {
-    response = renderTutorialPage(null);
-  } else if (!response) {
-    const tutorialsMatch = pathname.match(
-      /^\/tutorials\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/,
-    );
-    if (tutorialsMatch) {
-      response = renderTutorialPage(tutorialsMatch[1]);
-    }
-  }
-
-  // 6. Benchmark pages (server-rendered)
-  if (
-    !response &&
-    (pathname === "/benchmarks" || pathname === "/benchmarks/")
-  ) {
-    response = renderBenchmarkPage(null, req.url);
-  } else if (!response) {
-    const benchMatch = pathname.match(/^\/benchmarks\/([a-z0-9-]+)\/?$/);
-    if (benchMatch) {
-      response = renderBenchmarkPage(benchMatch[1], req.url);
-    }
-  }
-
-  // 7. Static files (with package resolution)
-  if (!response) {
-    response = resolveStatic(pathname);
-  }
-
-  // 8. 404 fallback
-  if (!response) {
-    response = new Response("Not Found", { status: 404 });
-  }
+  const response =
+    routeSystem(pathname) ??
+    (await routeApi(req)) ??
+    resolveExamples(pathname, req.url) ??
+    resolveDocs(pathname) ??
+    resolveTutorials(pathname) ??
+    resolveBenchmarks(pathname, req.url) ??
+    resolveStatic(pathname) ??
+    new Response("Not Found", { status: 404 });
 
   return compressResponse(response, acceptEncoding, pathname);
 }
