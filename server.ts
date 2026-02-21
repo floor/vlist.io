@@ -409,8 +409,11 @@ function buildLastmodMap(): Map<string, string> {
   // Landing
   map.set("/", gitLastmod("index.html") ?? FALLBACK_DATE);
 
-  // Docs overview → navigation config
-  map.set("/docs/", gitLastmod("docs/navigation.json") ?? FALLBACK_DATE);
+  // Docs overview → both navigation and overview cards
+  map.set(
+    "/docs/",
+    gitLastmod("docs/navigation.json", "docs/overview.json") ?? FALLBACK_DATE,
+  );
 
   // Docs pages → markdown files
   for (const group of DOC_GROUPS) {
@@ -441,13 +444,11 @@ function buildLastmodMap(): Map<string, string> {
     gitLastmod("examples/navigation.json") ?? FALLBACK_DATE,
   );
 
-  // Examples examples → content + script + styles
+  // Examples pages → use the full directory so variants are included
   for (const group of EXAMPLE_GROUPS) {
     for (const item of group.items) {
       const dir = `examples/${item.slug}`;
-      const date =
-        gitLastmod(`${dir}/content.html`, `${dir}/script.js`) ?? FALLBACK_DATE;
-      map.set(`/examples/${item.slug}`, date);
+      map.set(`/examples/${item.slug}`, gitLastmod(`${dir}/`) ?? FALLBACK_DATE);
     }
   }
 
@@ -457,11 +458,27 @@ function buildLastmodMap(): Map<string, string> {
     gitLastmod("benchmarks/navigation.json") ?? FALLBACK_DATE,
   );
 
-  // Benchmark suites → shared script + styles
-  const benchScriptDate = gitLastmod("benchmarks/script.js") ?? FALLBACK_DATE;
+  // Benchmark pages → specific suite/comparison files per slug
+  const BENCH_FILE_MAP: Record<string, string[]> = {
+    render: ["benchmarks/render/", "benchmarks/suites/render.js"],
+    scroll: ["benchmarks/scroll/", "benchmarks/suites/scroll.js"],
+    memory: ["benchmarks/memory/", "benchmarks/suites/memory.js"],
+    scrollto: ["benchmarks/scrollto/", "benchmarks/suites/scrollto.js"],
+    comparison: ["benchmarks/comparison/suite.js"],
+    "memory-optimization-comparison": [
+      "benchmarks/comparison/memory-optimization.js",
+    ],
+    bundle: ["benchmarks/script.js"],
+    features: ["benchmarks/script.js"],
+  };
+
   for (const group of BENCH_GROUPS) {
     for (const item of group.items) {
-      map.set(`/benchmarks/${item.slug}`, benchScriptDate);
+      const files = BENCH_FILE_MAP[item.slug] ?? ["benchmarks/script.js"];
+      map.set(
+        `/benchmarks/${item.slug}`,
+        gitLastmod(...files) ?? FALLBACK_DATE,
+      );
     }
   }
 
