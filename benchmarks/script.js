@@ -20,25 +20,25 @@ import FEATURES_DATA from "./data/features.json";
 
 // Import suites (side-effect: each calls defineSuite())
 // All benchmark suites - variants imported statically
-import "./render/javascript/suite.js";
-import "./render/react/suite.js";
-import "./render/vue/suite.js";
-import "./render/svelte/suite.js";
+import "./suites/render/javascript/suite.js";
+import "./suites/render/react/suite.js";
+import "./suites/render/vue/suite.js";
+import "./suites/render/svelte/suite.js";
 
-import "./scroll/javascript/suite.js";
-import "./scroll/react/suite.js";
-import "./scroll/vue/suite.js";
-import "./scroll/svelte/suite.js";
+import "./suites/scroll/javascript/suite.js";
+import "./suites/scroll/react/suite.js";
+import "./suites/scroll/vue/suite.js";
+import "./suites/scroll/svelte/suite.js";
 
-import "./memory/javascript/suite.js";
-import "./memory/react/suite.js";
-import "./memory/vue/suite.js";
-import "./memory/svelte/suite.js";
+import "./suites/memory/javascript/suite.js";
+import "./suites/memory/react/suite.js";
+import "./suites/memory/vue/suite.js";
+import "./suites/memory/svelte/suite.js";
 
-import "./scrollto/javascript/suite.js";
-import "./scrollto/react/suite.js";
-import "./scrollto/vue/suite.js";
-import "./scrollto/svelte/suite.js";
+import "./suites/scrollto/javascript/suite.js";
+import "./suites/scrollto/react/suite.js";
+import "./suites/scrollto/vue/suite.js";
+import "./suites/scrollto/svelte/suite.js";
 
 // Comparison suites
 import "./comparison/react-window.js";
