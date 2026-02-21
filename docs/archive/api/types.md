@@ -117,8 +117,8 @@ interface ItemConfig<T extends VListItem = VListItem> {
 ```
 
 **Which property to use:**
-- `height` — Required when `direction` is `'vertical'` (the default). Ignored in horizontal mode.
-- `width` — Required when `direction` is `'horizontal'`. Ignored in vertical mode.
+- `height` — Required when `orientation` is `'vertical'` (the default). Ignored in horizontal mode.
+- `width` — Required when `orientation` is `'horizontal'`. Ignored in vertical mode.
 
 **Fixed size** (number): All items have the same size. This is the fastest path — internally uses simple multiplication for O(1) offset calculations with zero overhead.
 
@@ -176,7 +176,7 @@ interface VListConfig<T extends VListItem = VListItem> {
    * - 'horizontal' — Left-to-right scrolling (carousels, timelines). Requires item.width.
    *   Cannot be combined with grid, groups, or window scrolling.
    */
-  direction?: 'vertical' | 'horizontal';
+  orientation?: 'vertical' | 'horizontal';
 
   /** Number of extra items to render outside viewport (default: 3) */
   overscan?: number;

@@ -189,7 +189,7 @@ const blog = vlist({
   .build();
 ```
 
-Cannot combine with `withScrollbar()` or `direction: 'horizontal'`.
+Cannot combine with `withScrollbar()` or `orientation: 'horizontal'`.
 
 → [Full docs](./page.md)
 

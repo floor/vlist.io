@@ -99,7 +99,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 | `item` | `ItemConfig` | — | **Required.** Item sizing and template configuration. |
 | `items` | `T[]` | `[]` | Static items array. Omit when using `withAsync`. |
 | `overscan` | `number` | `3` | Number of extra items rendered outside the viewport in each direction. Higher values reduce blank flashes during fast scrolling at the cost of more DOM nodes. |
-| `direction` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. Use `'horizontal'` for carousels or timelines. Cannot be combined with `groups`, `grid`, or `reverse`. |
+| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. Use `'horizontal'` for carousels or timelines. Cannot be combined with `groups`, `grid`, or `reverse`. |
 | `reverse` | `boolean` | `false` | Reverse mode for chat UIs. List starts scrolled to the bottom; `appendItems()` auto-scrolls if already at bottom; `prependItems()` preserves scroll position. Cannot be combined with `groups` or `grid`. |
 | `classPrefix` | `string` | `'vlist'` | CSS class prefix applied to all internal elements. Override when integrating multiple lists or avoiding conflicts. |
 | `ariaLabel` | `string` | — | Sets `aria-label` on the root listbox element. |
@@ -122,7 +122,7 @@ interface ItemConfig<T extends VListItem = VListItem> {
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `height` | `number \| (index, context?) => number` | — | Item height in pixels. Required for vertical lists. A plain number enables the fast path (zero per-item overhead). A function enables variable heights using a prefix-sum cache for O(log n) lookups. In grid mode, receives `GridHeightContext` as a second argument. |
-| `width` | `number \| (index) => number` | — | Item width in pixels. Required for horizontal lists (`direction: 'horizontal'`). Ignored in vertical mode. |
+| `width` | `number \| (index) => number` | — | Item width in pixels. Required for horizontal lists (`orientation: 'horizontal'`). Ignored in vertical mode. |
 | `template` | `ItemTemplate<T>` | — | **Required.** Render function called for each visible item. May return an HTML string or a live `HTMLElement`. |
 
 **Fixed height (fastest):**

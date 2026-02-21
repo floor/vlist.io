@@ -916,7 +916,7 @@ Grid layout has certain constraints:
 ```typescript
 // Invalid combination
 vlist({
-  direction: 'horizontal',
+  orientation: 'horizontal',
   layout: 'grid',  // ❌ Error!
 });
 ```

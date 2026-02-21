@@ -18,7 +18,7 @@ vlist is a well-optimized, batteries-included virtual list with zero dependencie
 - ✅ Wrap navigation — circular `scrollToIndex` for carousels/wizards via `scroll: { wrap }`
 - ✅ Grid layout with O(1) row/column mapping and compression support
 - ✅ Sticky headers / grouped lists with push-out transitions
-- ✅ Horizontal scrolling via `direction: 'horizontal'` (carousels, timelines)
+- ✅ Horizontal scrolling via `orientation: 'horizontal'` (carousels, timelines)
 - ✅ Reverse mode for chat UIs with scroll-position-preserving prepend
 - ✅ Framework adapters — React, Vue 3, Svelte (< 1 KB each)
 - ✅ Smooth `scrollToIndex` animation with easing
@@ -195,12 +195,12 @@ The core module is fully self-contained — zero imports from the full bundle's 
 
 **Problem:** Some UIs need horizontal lists (carousels, timelines, horizontal menus). Currently vlist is vertical-only.
 
-**Solution:** Added `direction: 'horizontal'` config option with axis-aware rendering, scrolling, and CSS:
+**Solution:** Added `orientation: 'horizontal'` config option with axis-aware rendering, scrolling, and CSS:
 
 ```typescript
 const list = vlist({
   container: '#carousel',
-  direction: 'horizontal', // new option (default: 'vertical')
+  orientation: 'horizontal', // new option (default: 'vertical')
   item: {
     width: 200,  // use width instead of height in horizontal mode
     template: (item) => `<div class="card">${item.title}</div>`,
@@ -210,7 +210,7 @@ const list = vlist({
 ```
 
 **What was implemented:**
-- `direction: 'horizontal'` config option (default: `'vertical'`)
+- `orientation: 'horizontal'` config option (default: `'vertical'`)
 - `item.width` for scroll-axis dimension (replaces `item.height` in horizontal mode)
 - Axis-aware scroll controller: `scrollLeft` ↔ `scrollTop`, `deltaX` ↔ `deltaY`
 - Axis-aware renderer: `translateX` ↔ `translateY`, width sizing ↔ height sizing

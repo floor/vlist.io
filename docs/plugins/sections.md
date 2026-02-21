@@ -442,12 +442,12 @@ As you scroll up through history, older section headers stick at the top - perfe
 |---------------|----------|-------|
 | `reverse: true` + `sticky: false` | ✅ **Yes** | iMessage-style inline date headers |
 | `reverse: true` + `sticky: true` | ✅ **Yes** | Sticky header shows current section while scrolling |
-| `direction: 'horizontal'` + groups | ✅ **Yes** | Horizontal carousels with category headers (sticky headers stick to left edge) |
+| `orientation: 'horizontal'` + groups | ✅ **Yes** | Horizontal carousels with category headers (sticky headers stick to left edge) |
 
 **Choose based on your UI:**
 - `sticky: false` - iMessage, WhatsApp style (headers scroll with content)
 - `sticky: true` - Telegram style (current section header sticks at top/left for navigation)
-- `direction: 'horizontal'` - Photo galleries, product carousels (headers stick to left edge in horizontal mode)
+- `orientation: 'horizontal'` - Photo galleries, product carousels (headers stick to left edge in horizontal mode)
 
 ## API Reference
 
@@ -735,7 +735,7 @@ const gallery = vlist({
 ```typescript
 const carousel = vlist({
   container: '#carousel',
-  direction: 'horizontal',
+  orientation: 'horizontal',
   item: {
     width: 200,
     template: (product) => `

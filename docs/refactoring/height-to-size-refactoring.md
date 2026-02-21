@@ -27,7 +27,7 @@ The vlist library had pervasive semantic incorrectness when used in horizontal m
 ```typescript
 // ❌ BEFORE: Semantically incorrect in horizontal mode
 const carousel = vlist({
-  direction: 'horizontal',
+  orientation: 'horizontal',
   item: {
     width: (index) => items[index].width,  // User provides WIDTH
     template: itemTemplate,
@@ -96,7 +96,7 @@ This massive imbalance revealed that the codebase was **height-centric** even th
 ```typescript
 // ✅ AFTER: Semantically correct in ALL modes
 const carousel = vlist({
-  direction: 'horizontal',
+  orientation: 'horizontal',
   item: {
     width: (index) => items[index].width,
   }
@@ -311,7 +311,7 @@ export interface CompressionState {
 **Vertical Mode (height is main-axis):**
 ```typescript
 const list = vlist({
-  direction: 'vertical',
+  orientation: 'vertical',
   item: { height: 50 }
 });
 
@@ -325,7 +325,7 @@ state.totalSize                // → total height
 **Horizontal Mode (width is main-axis):**
 ```typescript
 const carousel = vlist({
-  direction: 'horizontal',
+  orientation: 'horizontal',
   item: { width: (i) => widths[i] }
 });
 
@@ -342,7 +342,7 @@ The builder handles the abstraction:
 
 ```typescript
 // In builder/core.ts
-const isHorizontal = config.direction === 'horizontal';
+const isHorizontal = config.orientation === 'horizontal';
 const mainAxisValue = isHorizontal ? config.item.width : config.item.height;
 const sizeCache = createSizeCache(mainAxisValue, items.length);
 
@@ -434,7 +434,7 @@ Types:     ✅ Generated successfully
 ```typescript
 const carousel = vlist({
   container: '#carousel',
-  direction: 'horizontal',
+  orientation: 'horizontal',
   items: photos,
   item: {
     width: (index) => photos[index].width,  // 120-340px variable widths

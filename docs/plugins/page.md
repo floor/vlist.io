@@ -199,7 +199,7 @@ The plugin modifies:
 ### ❌ Incompatible With
 
 - `withScrollbar()` - Page uses native browser scrollbar
-- `direction: 'horizontal'` - Page scroll is vertical only
+- `orientation: 'horizontal'` - Page scroll is vertical only
 - `withGrid()` in some cases - Grid works but may need careful styling
 
 **Note:** The builder will throw an error if you try to combine `withPage()` with `withScrollbar()`.

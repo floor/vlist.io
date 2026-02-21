@@ -1,5 +1,5 @@
 // Horizontal Scrolling — React implementation with useVList hook
-// Demonstrates direction: 'horizontal' with item.width
+// Demonstrates orientation: 'horizontal' with item.width
 
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -24,7 +24,7 @@ function App() {
 
   // Initialize vlist
   const { containerRef, instanceRef } = useVList({
-    direction: "horizontal",
+    orientation: "horizontal",
     scroll: { wheel: true },
     ariaLabel: "Horizontal card carousel",
     item: {
@@ -81,7 +81,7 @@ function App() {
         <p className="description">
           React implementation with <code>useVList</code> hook. A horizontal
           virtual list rendering 10,000 cards with{" "}
-          <code>direction: 'horizontal'</code> and{" "}
+          <code>orientation: 'horizontal'</code> and{" "}
           <code>scroll.wheel: true</code>. Scroll with mouse wheel, trackpad
           swipe, or the buttons below. Only visible items are in the DOM.
         </p>
@@ -110,7 +110,7 @@ function App() {
 
       <footer>
         <p>
-          Uses <code>direction: 'horizontal'</code> with <code>item.width</code>{" "}
+          Uses <code>orientation: 'horizontal'</code> with <code>item.width</code>{" "}
           for the main axis and <code>item.height</code> for the cross axis.{" "}
           <code>scroll.wheel: true</code> maps vertical mouse wheel to
           horizontal scroll. Custom scrollbar renders at the bottom

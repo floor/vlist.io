@@ -216,7 +216,7 @@ In window mode:
 - The browser's native scrollbar controls scrolling
 - Compression still works (purely mathematical — no overflow or wheel changes)
 - Custom scrollbar is disabled (the browser scrollbar is used)
-- Cannot be combined with `direction: 'horizontal'`
+- Cannot be combined with `orientation: 'horizontal'`
 
 ```typescript
 vlist({
@@ -329,7 +329,7 @@ The scroll controller operates in multiple modes:
 | **Native** | Small lists (< ~333K items @ 48px) | `overflow: auto`, browser handles scrolling |
 | **Compressed** | Large lists (> browser limit) | `overflow: hidden`, manual wheel handling |
 | **Window** | `scroll.element: window` | `overflow: visible`, browser scrolls the page |
-| **Horizontal** | `direction: 'horizontal'` | `overflow-x: auto`, reads `scrollLeft` instead of `scrollTop` |
+| **Horizontal** | `orientation: 'horizontal'` | `overflow-x: auto`, reads `scrollLeft` instead of `scrollTop` |
 
 ### Mode Switching
 
@@ -379,7 +379,7 @@ Page Layout (Window Mode)
 
 ### Horizontal Scrolling
 
-When `direction: 'horizontal'` is set, the scroll controller adapts all axis-dependent behavior:
+When `orientation: 'horizontal'` is set, the scroll controller adapts all axis-dependent behavior:
 
 | Aspect | Vertical (default) | Horizontal |
 |--------|-------------------|------------|
@@ -802,7 +802,7 @@ Horizontal list with wheel translation and no visible scrollbar:
 ```typescript
 const list = vlist({
   container: '#carousel',
-  direction: 'horizontal',
+  orientation: 'horizontal',
   item: { width: 200, template: renderCard },
   items: cards,
   scroll: { scrollbar: 'none' },
@@ -817,7 +817,7 @@ Horizontal list with no wheel, no scrollbar — arrow buttons only:
 ```typescript
 const list = vlist({
   container: '#carousel',
-  direction: 'horizontal',
+  orientation: 'horizontal',
   item: { width: 200, template: renderCard },
   items: cards,
   scroll: { wheel: false, scrollbar: 'none' },
@@ -984,7 +984,7 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 
 #### Horizontal Scrollbar CSS
 
-When `direction: 'horizontal'` is set, the scrollbar renders along the bottom edge:
+When `orientation: 'horizontal'` is set, the scrollbar renders along the bottom edge:
 
 ```css
 /* Horizontal track — along the bottom */

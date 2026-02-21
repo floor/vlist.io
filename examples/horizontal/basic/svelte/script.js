@@ -1,5 +1,5 @@
 // Horizontal Scrolling — Svelte implementation with vlist action
-// Demonstrates direction: 'horizontal' with item.width
+// Demonstrates orientation: 'horizontal' with item.width
 
 import { vlist, onVListEvent } from "vlist-svelte";
 import {
@@ -23,7 +23,7 @@ const statsEl = document.getElementById("stats");
 
 const action = vlist(container, {
   config: {
-    direction: "horizontal",
+    orientation: "horizontal",
     scroll: { wheel: true },
     ariaLabel: "Horizontal card carousel",
     item: {

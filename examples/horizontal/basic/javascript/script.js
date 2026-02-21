@@ -1,5 +1,5 @@
 // Horizontal Scrolling — Vanilla JavaScript
-// Demonstrates direction: 'horizontal' with item.width
+// Demonstrates orientation: 'horizontal' with item.width
 
 import { vlist } from "vlist";
 import {
@@ -13,7 +13,7 @@ import {
 // Create horizontal virtual list
 const list = vlist({
   container: "#list-container",
-  direction: "horizontal",
+  orientation: "horizontal",
   scroll: { wheel: true },
   ariaLabel: "Horizontal card carousel",
   item: {

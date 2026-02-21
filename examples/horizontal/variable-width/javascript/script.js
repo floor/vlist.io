@@ -1,5 +1,5 @@
 // Horizontal Variable Width — Vanilla JavaScript
-// Demonstrates direction: 'horizontal' with dynamic item.width function
+// Demonstrates orientation: 'horizontal' with dynamic item.width function
 
 import { vlist } from "vlist";
 import {
@@ -12,7 +12,7 @@ import {
 // Create horizontal virtual list with variable widths
 const list = vlist({
   container: "#list-container",
-  direction: "horizontal",
+  orientation: "horizontal",
   scroll: { wheel: true },
   ariaLabel: "Horizontal variable width carousel",
   item: {
