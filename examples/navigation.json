@@ -51,6 +51,11 @@
         "slug": "horizontal/basic",
         "name": "Basic Horizontal",
         "desc": "Horizontal carousel with 10K cards — 4 frameworks"
+      },
+      {
+        "slug": "horizontal/variable-width",
+        "name": "Variable Width",
+        "desc": "Dynamic item widths — width function with prefix-sum cache"
       }
     ]
   },

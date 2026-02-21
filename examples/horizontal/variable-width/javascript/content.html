@@ -1,0 +1,37 @@
+<div class="container">
+    <header>
+        <h1>Horizontal Variable Width</h1>
+        <p class="description">
+            Pure vanilla JavaScript demonstrating horizontal virtual scrolling
+            with <strong>dynamic item widths</strong>. Each of the 1,000 items
+            has a different width (120–340px) calculated via
+            <code>width: (index) => items[index].width</code>. Featured items
+            are wider. Only visible items are in the DOM, regardless of their
+            varying widths.
+        </p>
+    </header>
+
+    <div class="stats" id="stats">Loading...</div>
+
+    <div id="list-container"></div>
+
+    <div class="controls">
+        <button id="btn-start">⏮ Start</button>
+        <button id="btn-featured">⭐ First Featured</button>
+        <button id="btn-center">⏺ Center (500)</button>
+        <button id="btn-end">⏭ End</button>
+        <button id="btn-smooth">🎞 Smooth Scroll</button>
+    </div>
+
+    <footer>
+        <p>
+            Uses <code>direction: 'horizontal'</code> with a
+            <strong>dynamic width function</strong>:
+            <code>width: (index) => items[index].width</code>. The height
+            cache efficiently handles variable widths using prefix sums for
+            O(1) offset lookups and O(log n) binary search for index
+            positioning. Notice how items of different widths scroll smoothly
+            with perfect positioning. ✨
+        </p>
+    </footer>
+</div>
