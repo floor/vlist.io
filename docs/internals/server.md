@@ -8,10 +8,17 @@ complete HTML response.
 
 ## Overview
 
+`server.ts` is a 40-line entry point. All logic lives in `src/server/`:
+
 ```
 src/server/
+├── config.ts            — PORT, ROOT, SITE, VLIST_ROOT
+├── compression.ts       — compressResponse + LRU cache
+├── static.ts            — getMimeType, serveFile, resolveStatic
+├── sitemap.ts           — renderSitemap, renderRobots, gitLastmod, LASTMOD
+├── router.ts            — handleRequest + section resolvers
 ├── renderers/
-│   ├── config.ts        — shared constants (SITE URL)
+│   ├── config.ts        — re-exports SITE from ../config
 │   ├── content.ts       — unified renderer for docs + tutorials
 │   ├── examples.ts      — renderer for examples (variants, source tabs)
 │   ├── benchmarks.ts    — renderer for benchmarks (interactive suites)
@@ -55,6 +62,40 @@ styles/
 
 ---
 
+## Request Routing
+
+`router.ts` exports a single `handleRequest` function. Every section has a named
+resolver that returns `Response | null`. The first non-null response wins:
+
+```typescript
+const response =
+  routeSystem(pathname)            ??   // /sitemap.xml, /robots.txt
+  (await routeApi(req))            ??   // /api/*
+  resolveExamples(pathname, url)   ??   // /examples/*
+  resolveDocs(pathname)            ??   // /docs/*
+  resolveTutorials(pathname)       ??   // /tutorials/*
+  resolveBenchmarks(pathname, url) ??   // /benchmarks/*
+  resolveStatic(pathname)          ??   // everything else (files, assets)
+  new Response("Not Found", { status: 404 });
+```
+
+Each resolver follows the same pattern — overview on exact path, slug match via regex,
+`null` if no match:
+
+```typescript
+function resolveDocs(pathname: string): Response | null {
+  if (pathname === "/docs" || pathname === "/docs/") return renderDocsPage(null);
+  const match = pathname.match(/^\/docs\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
+  if (match) return renderDocsPage(match[1]);
+  return null;
+}
+```
+
+**Adding a new section** is two steps: add a resolver function, then drop it into
+the `??` chain.
+
+---
+
 ## Renderers
 
 ### Unified content renderer
@@ -82,7 +123,7 @@ requests in the same process.
 
 **Request flow:**
 
-1. `render(slug)` is called from `server.ts`
+1. `render(slug)` is called from `router.ts`
 2. Navigation is loaded from `navigation.json` (cached)
 3. Slug is validated against the navigation
 4. Markdown file is read and parsed with a `Marked` instance configured for the slug
@@ -105,8 +146,9 @@ export const guidesRenderer = createContentRenderer({
 });
 ```
 
-Then add the route in `server.ts` following the pattern used for docs and tutorials.
-The shell, sidebar, TOC, and prev/next navigation come for free.
+Export `renderGuidesPage` from the renderer, add a `resolveGuides` function in
+`router.ts`, and drop it into the `??` chain. The shell, sidebar, TOC, and prev/next
+navigation come for free.
 
 ### Examples renderer
 
@@ -218,9 +260,18 @@ alongside their build tooling rather than in `styles/`.
 
 ---
 
+## Compression
+
+All responses pass through `compressResponse` in `src/server/compression.ts`.
+It prefers brotli over gzip and uses an LRU cache (keyed by pathname + content hash)
+to avoid re-compressing identical content on subsequent requests. Responses smaller
+than 1 KB and already-compressed content types are passed through unchanged.
+
+---
+
 ## Sitemap
 
-`/sitemap.xml` is generated dynamically at startup in `buildLastmodMap()`.
+`/sitemap.xml` is generated dynamically at startup in `src/server/sitemap.ts`.
 Each URL's `<lastmod>` date comes from `git log -1 --date=short` against the
 file(s) that actually produce that page's content:
 
@@ -233,7 +284,7 @@ file(s) that actually produce that page's content:
 | `/examples/` | `examples/navigation.json` |
 | `/examples/{slug}` | `examples/{slug}/` (whole directory, covers variants) |
 | `/benchmarks/` | `benchmarks/navigation.json` |
-| `/benchmarks/{slug}` | Suite-specific files per slug (see `BENCH_FILE_MAP` in `server.ts`) |
+| `/benchmarks/{slug}` | Suite-specific files per slug (see `BENCH_FILE_MAP` in `sitemap.ts`) |
 
 If `git log` returns nothing (new file not yet committed), the date falls back to
 today's date (`FALLBACK_DATE`). The map is built once at server startup and reused
