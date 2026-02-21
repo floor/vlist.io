@@ -64,6 +64,15 @@ For contributors and advanced users:
 | **[Constants](./internals/constants.md)** | Default values and configuration constants |
 | **[Code Generator](./internals/code-generator.md)** | Template and code generation utilities |
 
+### Refactoring
+
+Version history and migration guides:
+
+| Document | Description |
+|----------|-------------|
+| **[v0.9.0 Migration Guide](./refactoring/v0.9.0-migration-guide.md)** | Breaking changes and migration from v0.8.2 to v0.9.0 |
+| **[Height → Size Refactoring](./refactoring/height-to-size-refactoring.md)** | Complete dimension-agnostic refactoring details |
+
 ## 🎯 Find What You Need
 
 **Get started quickly**
@@ -98,6 +107,9 @@ For contributors and advanced users:
 
 **Optimise performance**
 → [Optimization Tutorial](/tutorials/optimization)
+
+**Migrate from v0.8.2**
+→ [v0.9.0 Migration Guide](./refactoring/v0.9.0-migration-guide.md)
 
 ## 📖 Documentation Structure
 

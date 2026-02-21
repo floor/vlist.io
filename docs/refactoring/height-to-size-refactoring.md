@@ -6,6 +6,8 @@
 **Version**: 0.8.2 → 0.9.0 (Breaking Changes)  
 **Impact**: Complete semantic overhaul of dimension-specific terminology
 
+**Additional Change (v0.9.0)**: `direction` renamed to `orientation` for semantic clarity
+
 ## Table of Contents
 
 - [Problem Statement](#problem-statement)
@@ -206,6 +208,10 @@ compression.virtualSize               // virtualWidth ✅
   // 5. Update sections API
 - createSectionedHeightFn(layout, height)
 + createSectionedSizeFn(layout, size)
+
+  // 6. Rename direction to orientation (v0.9.0)
+- direction: 'horizontal' | 'vertical'
++ orientation: 'horizontal' | 'vertical'
 ```
 
 ### Search & Replace Migration
@@ -221,6 +227,11 @@ sed -i 's/\.containerHeight/.containerSize/g' **/*.ts
 sed -i 's/\.totalHeight/.totalSize/g' **/*.ts
 sed -i 's/\.actualHeight/.actualSize/g' **/*.ts
 sed -i 's/\.virtualHeight/.virtualSize/g' **/*.ts
+
+# Orientation rename (v0.9.0):
+sed -i "s/direction: 'horizontal'/orientation: 'horizontal'/g" **/*.ts
+sed -i "s/direction: 'vertical'/orientation: 'vertical'/g" **/*.ts
+sed -i 's/config\.direction/config.orientation/g' **/*.ts
 ```
 
 ---
