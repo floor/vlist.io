@@ -167,7 +167,7 @@ src/features/sections/
 - `withSections()` - Plugin function
 - `createGroupLayout()` - Layout calculator (aliased as `createSectionLayout`)
 - `buildLayoutItems()` - Build layout entries
-- `createGroupedHeightFn()` - Height function for sections
+- `createGroupedSizeFn()` - Size function for sections
 - `createStickyHeader()` - Sticky header manager
 - `isGroupHeader()` - Type guard (aliased as `isSectionHeader`)
 

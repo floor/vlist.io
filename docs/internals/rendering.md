@@ -29,44 +29,44 @@ src/render/
 
 ## Key Concepts
 
-### Height Cache (`heights.ts`)
+### Size Cache (`sizes.ts`)
 
-The `HeightCache` abstraction enables both fixed and variable item heights throughout the rendering pipeline. All virtual scrolling and compression functions accept a `HeightCache` instead of a raw `itemHeight: number`.
+The `SizeCache` abstraction enables both fixed and variable item sizes throughout the rendering pipeline. All virtual scrolling and compression functions accept a `SizeCache` instead of a raw `itemSize: number`.
 
 **Two implementations:**
 
 | Implementation | When | Offset Lookup | Index Search | Overhead |
 |----------------|------|---------------|--------------|----------|
-| **Fixed** | `height: number` | O(1) multiplication | O(1) division | Zero — identical to pre-variable-height code |
-| **Variable** | `height: (index) => number` | O(1) prefix-sum lookup | O(log n) binary search | Prefix-sum array rebuilt on data changes |
+| **Fixed** | `size: number` | O(1) multiplication | O(1) division | Zero — identical to pre-variable-size code |
+| **Variable** | `size: (index) => number` | O(1) prefix-sum lookup | O(log n) binary search | Prefix-sum array rebuilt on data changes |
 
 ```typescript
-import { createHeightCache, type HeightCache } from 'vlist';
+import { createSizeCache, type SizeCache } from 'vlist';
 
 // Fixed — zero overhead fast path
-const fixed = createHeightCache(48, totalItems);
+const fixed = createSizeCache(48, totalItems);
 fixed.getOffset(10);      // 480  (10 × 48)
 fixed.indexAtOffset(480);  // 10   (480 / 48)
-fixed.getTotalHeight();    // totalItems × 48
+fixed.getTotalSize();    // totalItems × 48
 
 // Variable — prefix-sum based
-const variable = createHeightCache(
+const variable = createSizeCache(
   (index) => index % 2 === 0 ? 40 : 80,
   totalItems
 );
 variable.getOffset(2);      // 120  (40 + 80)
 variable.indexAtOffset(100); // 1   (binary search)
-variable.getTotalHeight();   // sum of all heights
+variable.getTotalSize();   // sum of all sizes
 ```
 
-**HeightCache interface:**
+**SizeCache interface:**
 
 ```typescript
-interface HeightCache {
-  getOffset(index: number): number;      // Y position of item
-  getHeight(index: number): number;      // Height of specific item
+interface SizeCache {
+  getOffset(index: number): number;      // Position of item
+  getSize(index: number): number;        // Size of specific item
   indexAtOffset(offset: number): number;  // Item at scroll position
-  getTotalHeight(): number;              // Total content height
+  getTotalSize(): number;                // Total content size
   getTotal(): number;                    // Current item count
   rebuild(totalItems: number): void;     // Rebuild after data changes
   isVariable(): boolean;                 // Fixed vs variable
@@ -75,8 +75,8 @@ interface HeightCache {
 
 **Helper functions** (used internally by compression):
 
-- `countVisibleItems(cache, startIndex, containerHeight, totalItems)` — How many items fit in a viewport
-- `countItemsFittingFromBottom(cache, containerHeight, totalItems)` — How many items fit from list end
+- `countVisibleItems(cache, startIndex, containerSize, totalItems)` — How many items fit in a viewport
+- `countItemsFittingFromBottom(cache, containerSize, totalItems)` — How many items fit from list end
 - `getOffsetForVirtualIndex(cache, virtualIndex, totalItems)` — Pixel offset for fractional index (compressed mode)
 
 

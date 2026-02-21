@@ -20,14 +20,14 @@ The bug occurs because Firefox's mouse wheel produces specific deltaY values tha
 ### The Calculation
 
 ```typescript
-const scrollRatio = scrollTop / virtualHeight;
+const scrollRatio = scrollPosition / virtualSize;
 const virtualScrollIndex = scrollRatio * totalItems;
-const virtualScrollOffset = getOffsetForVirtualIndex(heightCache, virtualScrollIndex, totalItems);
+const virtualScrollOffset = getOffsetForVirtualIndex(sizeCache, virtualScrollIndex, totalItems);
 
 // getOffsetForVirtualIndex interpolates:
 const intPart = Math.floor(virtualScrollIndex);
 const fracPart = virtualScrollIndex - intPart;
-return heightCache.getOffset(intPart) + fracPart * heightCache.getHeight(intPart);
+return sizeCache.getOffset(intPart) + fracPart * sizeCache.getSize(intPart);
 ```
 
 ### Firefox Scroll UP Pattern
@@ -35,15 +35,15 @@ return heightCache.getOffset(intPart) + fracPart * heightCache.getHeight(intPart
 When scrolling UP in Firefox with mouse wheel (deltaY ≈ -16px):
 
 ```
-scrollTop=57: vIdx=3.5625 → virtOff = 216 + 0.5625×72 = 256.50
-scrollTop=41: vIdx=2.5625 → virtOff = 144 + 0.5625×72 = 184.50  (diff: 72px!)
-scrollTop=25: vIdx=1.5625 → virtOff = 72  + 0.5625×72 = 112.50  (diff: 72px!)
-scrollTop=9:  vIdx=0.5625 → virtOff = 0   + 0.5625×72 = 40.50   (diff: 72px!)
+scrollPosition=57: vIdx=3.5625 → virtOff = 216 + 0.5625×72 = 256.50
+scrollPosition=41: vIdx=2.5625 → virtOff = 144 + 0.5625×72 = 184.50  (diff: 72px!)
+scrollPosition=25: vIdx=1.5625 → virtOff = 72  + 0.5625×72 = 112.50  (diff: 72px!)
+scrollPosition=9:  vIdx=0.5625 → virtOff = 0   + 0.5625×72 = 40.50   (diff: 72px!)
 ```
 
 **The fractional part stays EXACTLY 0.5625** because:
 - Firefox deltaY = -16px per tick
-- scrollTop decreases by 16px each time
+- scrollPosition decreases by 16px each time
 - 16 / 16,000,000 × 1,000,000 = 1.0 in virtual index space
 - virtualIndex decreases by exactly 1.0, maintaining the same fractional part
 
@@ -52,9 +52,9 @@ scrollTop=9:  vIdx=0.5625 → virtOff = 0   + 0.5625×72 = 40.50   (diff: 72px!)
 Chrome uses different wheel deltaY values (4px increments), causing variable fractional parts:
 
 ```
-scrollTop=12: vIdx=0.7500 (frac=0.7500) → virtOff=54.00
-scrollTop=8:  vIdx=0.5000 (frac=0.5000) → virtOff=36.00  (diff: 18px ✓)
-scrollTop=4:  vIdx=0.2500 (frac=0.2500) → virtOff=18.00  (diff: 18px ✓)
+scrollPosition=12: vIdx=0.7500 (frac=0.7500) → virtOff=54.00
+scrollPosition=8:  vIdx=0.5000 (frac=0.5000) → virtOff=36.00  (diff: 18px ✓)
+scrollPosition=4:  vIdx=0.2500 (frac=0.2500) → virtOff=18.00  (diff: 18px ✓)
 ```
 
 ### Why Firefox Scroll DOWN Works
@@ -62,10 +62,10 @@ scrollTop=4:  vIdx=0.2500 (frac=0.2500) → virtOff=18.00  (diff: 18px ✓)
 When scrolling DOWN in Firefox (deltaY ≈ +19px):
 
 ```
-scrollTop=0:  vIdx=0.0000 (frac=0.0000) → virtOff=0.00
-scrollTop=19: vIdx=1.1875 (frac=0.1875) → virtOff=85.50   (diff: 85.50px ✓)
-scrollTop=38: vIdx=2.3750 (frac=0.3750) → virtOff=171.00  (diff: 85.50px ✓)
-scrollTop=57: vIdx=3.5625 (frac=0.5625) → virtOff=256.50  (diff: 85.50px ✓)
+scrollPosition=0:  vIdx=0.0000 (frac=0.0000) → virtOff=0.00
+scrollPosition=19: vIdx=1.1875 (frac=0.1875) → virtOff=85.50   (diff: 85.50px ✓)
+scrollPosition=38: vIdx=2.3750 (frac=0.3750) → virtOff=171.00  (diff: 85.50px ✓)
+scrollPosition=57: vIdx=3.5625 (frac=0.5625) → virtOff=256.50  (diff: 85.50px ✓)
 ```
 
 The fractional part CHANGES (0.0000 → 0.1875 → 0.3750 → 0.5625), producing smooth offsets.
@@ -74,11 +74,11 @@ The fractional part CHANGES (0.0000 → 0.1875 → 0.3750 → 0.5625), producing
 
 When `virtualScrollOffset` changes by exactly 72px and items shift by one index:
 
-**At scrollTop=57:**
+**At scrollPosition=57:**
 - Item 3 (index=2): offset = 144 - 256.50 = **-112.50px**
 - Item 4 (index=3): offset = 216 - 256.50 = **-40.50px**
 
-**At scrollTop=41 (after scroll up):**
+**At scrollPosition=41 (after scroll up):**
 - Item 2 (index=1): offset = 72 - 184.50 = **-112.50px** ← SAME!
 - Item 3 (index=2): offset = 144 - 184.50 = **-40.50px** ← SAME!
 
@@ -133,8 +133,8 @@ const list = vlist({
 ## Why This Happens
 
 Firefox's mouse wheel implementation produces specific deltaY values:
-- **Scroll UP**: deltaY ≈ -16px → scrollTop decreases by 16px
-- **Scroll DOWN**: deltaY ≈ +19px → scrollTop increases by 19px
+- **Scroll UP**: deltaY ≈ -16px → scrollPosition decreases by 16px
+- **Scroll DOWN**: deltaY ≈ +19px → scrollPosition increases by 19px
 
 With compression ratio 16M/72M = 0.222222:
 - **16px in virtual space = 1.0 in index space** → fractional part stays constant!
@@ -149,8 +149,8 @@ With compression ratio 16M/72M = 0.222222:
 
 ## Attempted Fixes (Before Solution)
 
-### 1. Direct scrollTop Calculation (FAILED)
-**Approach:** Calculate `virtualScrollOffset = (scrollTop / virtualHeight) * actualHeight`
+### 1. Direct scrollPosition Calculation (FAILED)
+**Approach:** Calculate `virtualScrollOffset = (scrollPosition / virtualSize) * actualSize`
 
 **Why it failed:** Mathematically equivalent to the original formula:
 - Old: `getOffsetForVirtualIndex(virtualScrollIndex)` 

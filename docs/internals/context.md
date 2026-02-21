@@ -171,7 +171,7 @@ export const createScrollHandler = <T extends VListItem>(
   ctx: VListContext<T>,
   renderIfNeeded: RenderFunction
 ) => {
-  return (scrollTop: number, direction: 'up' | 'down'): void => {
+  return (scrollPosition: number, direction: 'up' | 'down'): void => {
     if (ctx.state.isDestroyed) return;
     
     // Access data manager
@@ -180,15 +180,15 @@ export const createScrollHandler = <T extends VListItem>(
     // Update viewport state
     ctx.state.viewportState = updateViewportState(
       ctx.state.viewportState,
-      scrollTop,
-      ctx.config.itemHeight,
+      scrollPosition,
+      ctx.config.itemSize,
       total,
       ctx.config.overscan
     );
     
     // Update scrollbar
     if (ctx.scrollbar) {
-      ctx.scrollbar.updatePosition(scrollTop);
+      ctx.scrollbar.updatePosition(scrollPosition);
       ctx.scrollbar.show();
     }
     
@@ -196,7 +196,7 @@ export const createScrollHandler = <T extends VListItem>(
     renderIfNeeded();
     
     // Emit event
-    ctx.emitter.emit('scroll', { scrollTop, direction });
+    ctx.emitter.emit('scroll', { scrollPosition, direction });
   };
 };
 ```
@@ -236,15 +236,15 @@ export const createScrollMethods = <T extends VListItem>(
     const dataState = ctx.dataManager.getState();
     const position = calculateScrollToIndex(
       index,
-      ctx.config.itemHeight,
-      ctx.state.viewportState.containerHeight,
+      ctx.config.itemSize,
+      ctx.state.viewportState.containerSize,
       dataState.total,
       align,
       ctx.getCachedCompression()
     );
     
     if (behavior === 'smooth') {
-      animateScroll(ctx.scrollController.getScrollTop(), position, duration);
+      animateScroll(ctx.scrollController.getScrollPosition(), position, duration);
     } else {
       cancelScroll();
       ctx.scrollController.scrollTo(position);
@@ -264,7 +264,7 @@ export const createScrollMethods = <T extends VListItem>(
     cancelScroll,
     
     getScrollPosition: () => {
-      return ctx.scrollController.getScrollTop();
+      return ctx.scrollController.getScrollPosition();
     }
   };
 };
@@ -330,17 +330,17 @@ To avoid object allocation on every scroll frame, the compression context is reu
 ```typescript
 // Single object reused across calls
 const reusableCompressionCtx: CompressionContext = {
-  scrollTop: 0,
+  scrollPosition: 0,
   totalItems: 0,
-  containerHeight: 0,
+  containerSize: 0,
   rangeStart: 0
 };
 
 const getCompressionContext = (): CompressionContext => {
   // Update values in place
-  reusableCompressionCtx.scrollTop = state.viewportState.scrollTop;
+  reusableCompressionCtx.scrollPosition = state.viewportState.scrollPosition;
   reusableCompressionCtx.totalItems = dataManager.getTotal();
-  reusableCompressionCtx.containerHeight = state.viewportState.containerHeight;
+  reusableCompressionCtx.containerSize = state.viewportState.containerSize;
   reusableCompressionCtx.rangeStart = state.viewportState.renderRange.start;
   return reusableCompressionCtx;
 };
@@ -442,7 +442,7 @@ ctx.state.selectionState = selectItems(ctx.state.selectionState, ids, mode);
 
 ```typescript
 // ❌ Access internal state without checking destroyed
-ctx.state.viewportState.scrollTop = 0;  // Check isDestroyed first!
+ctx.state.viewportState.scrollPosition = 0;  // Check isDestroyed first!
 
 // ❌ Create objects on hot paths
 const state = ctx.dataManager.getState();  // Allocates object

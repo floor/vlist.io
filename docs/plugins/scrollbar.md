@@ -500,7 +500,7 @@ interface ScrollControllerConfig {
 ```typescript
 interface ScrollController {
   /** Get current scroll position */
-  getScrollTop: () => number;
+  getScrollPosition: () => number;
 
   /** Set scroll position */
   scrollTo: (position: number, smooth?: boolean) => void;
@@ -560,7 +560,7 @@ interface ScrollController {
 
 ```typescript
 interface ScrollEventData {
-  scrollTop: number;
+  scrollPosition: number;
   direction: 'up' | 'down';
   velocity: number;
 }
@@ -620,7 +620,7 @@ interface Scrollbar {
   updateBounds: (totalSize: number, containerSize: number) => void;
 
   /** Update thumb position */
-  updatePosition: (scrollTop: number) => void;
+  updatePosition: (scrollPosition: number) => void;
 
   /** Check if scrollbar is visible */
   isVisible: () => boolean;
@@ -654,14 +654,14 @@ throttledScroll.cancel();
 ```typescript
 // Check if at bottom of scrollable area
 function isAtBottom(
-  scrollTop: number,
-  scrollHeight: number,
-  clientHeight: number,
+  scrollPosition: number,
+  scrollSize: number,
+  clientSize: number,
   threshold?: number
 ): boolean;
 
 // Check if at top
-function isAtTop(scrollTop: number, threshold?: number): boolean;
+function isAtTop(scrollPosition: number, threshold?: number): boolean;
 
 // Get scroll percentage (0-1)
 function getScrollPercentage(

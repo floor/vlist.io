@@ -68,17 +68,17 @@ The core issue is in how browsers handle this sequence:
 ```javascript
 // Chrome/Safari:
 1. User scrolls wheel
-2. Browser updates scrollTop immediately (native behavior)
+2. Browser updates scroll position immediately (native behavior)
 3. Browser fires 'scroll' event
 4. JavaScript receives event, starts rendering
-5. Viewport shows new scrollTop but items not rendered yet → BLANK
+5. Viewport shows new scroll position but items not rendered yet → BLANK
 6. Rendering completes (too late)
 
 // Firefox:
 1. User scrolls wheel
 2. Browser fires 'scroll' event (or batches it)
 3. JavaScript renders
-4. Browser updates scrollTop
+4. Browser updates scroll position
 5. Viewport shows rendered items → NO BLANK
 ```
 
@@ -144,11 +144,11 @@ The core issue is in how browsers handle this sequence:
 **Change:**
 ```javascript
 // Before (inaccurate)
-let end = hc.indexAtOffset(scrollTop + containerHeight);
+let end = sc.indexAtOffset(scrollPosition + containerSize);
 if (end < totalItems - 1) end++;  // Only +1 item
 
 // After (accurate)
-const visibleCount = countVisibleItems(hc, start, containerHeight, totalItems);
+const visibleCount = countVisibleItems(sc, start, containerSize, totalItems);
 const end = start + visibleCount;
 ```
 
@@ -181,7 +181,7 @@ if (wheelEnabled && !isHorizontal) {
     const currentScroll = $.sgt();
     const newScroll = Math.max(0, Math.min(
       currentScroll + event.deltaY,
-      $.hc.getTotalHeight() - $.ch
+      $.sc.getTotalSize() - $.cs
     ));
     
     // Update position manually
@@ -193,7 +193,7 @@ if (wheelEnabled && !isHorizontal) {
     $.rfn();  // Synchronous render
     
     // Emit events
-    emitter.emit("scroll", { scrollTop: newScroll, direction });
+    emitter.emit("scroll", { scrollPosition: newScroll, direction });
     
     // Update scrolling state and idle detection
     if (!dom.root.classList.contains(`${classPrefix}--scrolling`)) {

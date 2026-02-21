@@ -44,9 +44,9 @@ const list = vlist({
 
 | Term | Description |
 |------|-------------|
-| `actualHeight` | True height if all items rendered: `totalItems × itemHeight` |
-| `virtualHeight` | Capped height used for scroll bounds: `min(actualHeight, 16M)` |
-| `compressionRatio` | `virtualHeight / actualHeight` (1 = no scaling, <1 = scaled) |
+| `actualSize` | True size if all items rendered: `totalItems × itemSize` |
+| `virtualSize` | Capped size used for scroll bounds: `min(actualSize, 16M)` |
+| `compressionRatio` | `virtualSize / actualSize` (1 = no scaling, <1 = scaled) |
 | `virtualScrollIndex` | The item index at the current scroll position |
 
 ### Scroll Position Mapping
@@ -55,12 +55,12 @@ In scaled mode, scroll position maps to item index via ratio:
 
 ```javascript
 // Scroll position → Item index
-const scrollRatio = scrollTop / virtualHeight;
+const scrollRatio = scrollPosition / virtualSize;
 const itemIndex = Math.floor(scrollRatio * totalItems);
 
 // Item index → Scroll position
 const ratio = itemIndex / totalItems;
-const scrollPosition = ratio * virtualHeight;
+const scrollPos = ratio * virtualSize;
 ```
 
 ### Item Positioning
@@ -68,38 +68,38 @@ const scrollPosition = ratio * virtualHeight;
 Items are positioned **relative to the viewport** (not content):
 
 ```javascript
-const scrollRatio = scrollTop / virtualHeight;
+const scrollRatio = scrollPosition / virtualSize;
 const virtualScrollIndex = scrollRatio * totalItems;
-const position = (itemIndex - virtualScrollIndex) * itemHeight;
+const position = (itemIndex - virtualScrollIndex) * itemSize;
 ```
 
 This formula ensures:
 - Items at the current scroll position appear at viewport top (position ≈ 0)
-- Items use their full `itemHeight` (no visual scaling)
-- Consecutive items are exactly `itemHeight` pixels apart
+- Items use their full `itemSize` (no visual scaling)
+- Consecutive items are exactly `itemSize` pixels apart
 
 ### Near-Bottom Interpolation
 
 Special handling ensures the last items are reachable:
 
 ```javascript
-const maxScroll = virtualHeight - containerHeight;
-const distanceFromBottom = maxScroll - scrollTop;
+const maxScroll = virtualSize - containerSize;
+const distanceFromBottom = maxScroll - scrollPosition;
 
-if (distanceFromBottom <= containerHeight) {
+if (distanceFromBottom <= containerSize) {
   // Special case: at exact max scroll, position from bottom up
-  if (scrollTop >= maxScroll - 1) {
-    const totalHeightFromBottom = totalHeight - itemOffset;
-    return containerHeight - totalHeightFromBottom;
+  if (scrollPosition >= maxScroll - 1) {
+    const totalSizeFromBottom = totalSize - itemOffset;
+    return containerSize - totalSizeFromBottom;
   }
   
   // Otherwise: interpolate between scaled position and actual bottom
-  const interpolation = 1 - (distanceFromBottom / containerHeight);
+  const interpolation = 1 - (distanceFromBottom / containerSize);
   // Blend positions to smoothly reach the last items
 }
 ```
 
-**Exact Bottom Positioning:** When scrolled to the absolute bottom (`scrollTop >= maxScroll - 1`), items are positioned from the bottom up to ensure pixel-perfect alignment with zero gap.
+**Exact Bottom Positioning:** When scrolled to the absolute bottom (`scrollPosition >= maxScroll - 1`), items are positioned from the bottom up to ensure pixel-perfect alignment with zero gap.
 
 ## Architecture
 
@@ -203,8 +203,8 @@ const info = getScaleInfo(totalItems, itemHeight);
 // → "Scaled to 33.3% (1000000 items × 48px = 48.0M px → 16.0M px virtual)"
 
 // Get full scale state
-const state = getScaleState(totalItems, itemHeight);
-// → { isCompressed: true, actualHeight: 48000000, virtualHeight: 16000000, ratio: 0.333 }
+const state = getScaleState(totalItems, itemSize);
+// → { isCompressed: true, actualSize: 48000000, virtualSize: 16000000, ratio: 0.333 }
 ```
 
 ## Constants
@@ -328,16 +328,18 @@ const list = vlist({
 When scaling is active, the viewport state reflects the scaled state:
 
 ```typescript
-list.on('scroll', ({ scrollTop }) => {
+list.on('scroll', ({ scrollPosition }) => {
   console.log(list.getViewportState());
 });
+```
 
 // Returns:
+```typescript
 {
-  scrollTop: 5000000,        // Current scroll position
-  containerHeight: 600,      // Viewport height
-  totalHeight: 16000000,     // Virtual height (capped)
-  actualHeight: 48000000,    // True height (uncapped)
+  scrollPosition: 5000000,   // Current scroll position
+  containerSize: 600,        // Viewport size
+  totalSize: 16000000,       // Virtual size (capped)
+  actualSize: 48000000,      // True size (uncapped)
   isCompressed: true,        // Scaling active
   compressionRatio: 0.333,   // Scale factor
   visibleRange: { start: 104166, end: 104178 },

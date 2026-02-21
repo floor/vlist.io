@@ -20,14 +20,14 @@ The bug occurs because Firefox's mouse wheel produces specific deltaY values tha
 ### The Calculation
 
 ```typescript
-const scrollRatio = scrollTop / virtualHeight;
+const scrollRatio = scrollPosition / virtualSize;
 const virtualScrollIndex = scrollRatio * totalItems;
-const virtualScrollOffset = getOffsetForVirtualIndex(heightCache, virtualScrollIndex, totalItems);
+const virtualScrollOffset = getOffsetForVirtualIndex(sizeCache, virtualScrollIndex, totalItems);
 
 // getOffsetForVirtualIndex interpolates:
 const intPart = Math.floor(virtualScrollIndex);
 const fracPart = virtualScrollIndex - intPart;
-return heightCache.getOffset(intPart) + fracPart * heightCache.getHeight(intPart);
+return sizeCache.getOffset(intPart) + fracPart * sizeCache.getSize(intPart);
 ```
 
 ### Firefox Scroll UP Pattern
@@ -35,15 +35,15 @@ return heightCache.getOffset(intPart) + fracPart * heightCache.getHeight(intPart
 When scrolling UP in Firefox with mouse wheel (deltaY ≈ -16px):
 
 ```
-scrollTop=57: vIdx=3.5625 → virtOff = 216 + 0.5625×72 = 256.50
-scrollTop=41: vIdx=2.5625 → virtOff = 144 + 0.5625×72 = 184.50  (diff: 72px!)
-scrollTop=25: vIdx=1.5625 → virtOff = 72  + 0.5625×72 = 112.50  (diff: 72px!)
-scrollTop=9:  vIdx=0.5625 → virtOff = 0   + 0.5625×72 = 40.50   (diff: 72px!)
+scrollPosition=57: vIdx=3.5625 → virtOff = 216 + 0.5625×72 = 256.50
+scrollPosition=41: vIdx=2.5625 → virtOff = 144 + 0.5625×72 = 184.50  (diff: 72px!)
+scrollPosition=25: vIdx=1.5625 → virtOff = 72  + 0.5625×72 = 112.50  (diff: 72px!)
+scrollPosition=9:  vIdx=0.5625 → virtOff = 0   + 0.5625×72 = 40.50   (diff: 72px!)
 ```
 
 **The fractional part stays EXACTLY 0.5625** because:
 - Firefox deltaY = -16px per tick
-- scrollTop decreases by 16px each time
+- scrollPosition decreases by 16px each time
 - 16 / 16,000,000 × 1,000,000 = 1.0 in virtual index space
 - virtualIndex decreases by exactly 1.0, maintaining the same fractional part
 
@@ -52,9 +52,9 @@ scrollTop=9:  vIdx=0.5625 → virtOff = 0   + 0.5625×72 = 40.50   (diff: 72px!)
 Chrome uses different wheel deltaY values (4px increments), causing variable fractional parts:
 
 ```
-scrollTop=12: vIdx=0.7500 (frac=0.7500) → virtOff=54.00
-scrollTop=8:  vIdx=0.5000 (frac=0.5000) → virtOff=36.00  (diff: 18px ✓)
-scrollTop=4:  vIdx=0.2500 (frac=0.2500) → virtOff=18.00  (diff: 18px ✓)
+scrollPosition=12: vIdx=0.7500 (frac=0.7500) → virtOff=54.00
+scrollPosition=8:  vIdx=0.5000 (frac=0.5000) → virtOff=36.00  (diff: 18px ✓)
+scrollPosition=4:  vIdx=0.2500 (frac=0.2500) → virtOff=18.00  (diff: 18px ✓)
 ```
 
 ### Why Firefox Scroll DOWN Works
@@ -62,10 +62,10 @@ scrollTop=4:  vIdx=0.2500 (frac=0.2500) → virtOff=18.00  (diff: 18px ✓)
 When scrolling DOWN in Firefox (deltaY ≈ +19px):
 
 ```
-scrollTop=0:  vIdx=0.0000 (frac=0.0000) → virtOff=0.00
-scrollTop=19: vIdx=1.1875 (frac=0.1875) → virtOff=85.50   (diff: 85.50px ✓)
-scrollTop=38: vIdx=2.3750 (frac=0.3750) → virtOff=171.00  (diff: 85.50px ✓)
-scrollTop=57: vIdx=3.5625 (frac=0.5625) → virtOff=256.50  (diff: 85.50px ✓)
+scrollPosition=0:  vIdx=0.0000 (frac=0.0000) → virtOff=0.00
+scrollPosition=19: vIdx=1.1875 (frac=0.1875) → virtOff=85.50   (diff: 85.50px ✓)
+scrollPosition=38: vIdx=2.3750 (frac=0.3750) → virtOff=171.00  (diff: 85.50px ✓)
+scrollPosition=57: vIdx=3.5625 (frac=0.5625) → virtOff=256.50  (diff: 85.50px ✓)
 ```
 
 The fractional part CHANGES (0.0000 → 0.1875 → 0.3750 → 0.5625), producing smooth offsets.
@@ -74,11 +74,11 @@ The fractional part CHANGES (0.0000 → 0.1875 → 0.3750 → 0.5625), producing
 
 When `virtualScrollOffset` changes by exactly 72px and items shift by one index:
 
-**At scrollTop=57:**
+**At scrollPosition=57:**
 - Item 3 (index=2): offset = 144 - 256.50 = **-112.50px**
 - Item 4 (index=3): offset = 216 - 256.50 = **-40.50px**
 
-**At scrollTop=41 (after scroll up):**
+**At scrollPosition=41 (after scroll up):**
 - Item 2 (index=1): offset = 72 - 184.50 = **-112.50px** ← SAME!
 - Item 3 (index=2): offset = 144 - 184.50 = **-40.50px** ← SAME!
 
@@ -133,8 +133,8 @@ const list = vlist({
 ## Why This Happens
 
 Firefox's mouse wheel implementation produces specific deltaY values:
-- **Scroll UP**: deltaY ≈ -16px → scrollTop decreases by 16px
-- **Scroll DOWN**: deltaY ≈ +19px → scrollTop increases by 19px
+- **Scroll UP**: deltaY ≈ -16px → scrollPosition decreases by 16px
+- **Scroll DOWN**: deltaY ≈ +19px → scrollPosition increases by 19px
 
 With compression ratio 16M/72M = 0.222222:
 - **16px in virtual space = 1.0 in index space** → fractional part stays constant!
@@ -149,13 +149,13 @@ With compression ratio 16M/72M = 0.222222:
 
 ## Attempted Fixes (Before Solution)
 
-### 1. Direct scrollTop Calculation (FAILED)
-**Approach:** Calculate `virtualScrollOffset = (scrollTop / virtualHeight) * actualHeight`
+### 1. Direct scrollPosition Calculation (FAILED)
+**Approach:** Calculate `virtualScrollOffset = (scrollPosition / virtualSize) * actualSize`
 
 **Why it failed:** Mathematically equivalent to the original formula:
-- Old: `getOffsetForVirtualIndex(virtualScrollIndex)` 
-- New: `scrollRatio * actualHeight`
-- Both equal: `scrollTop * (actualHeight / virtualHeight)`
+- Old: `getOffsetForVirtualIndex(virtualScrollIndex)`
+- New: `scrollRatio * actualSize`
+- Both equal: `scrollPosition * (actualSize / virtualSize)`
 
 Result: Produces identical values, doesn't fix the 72px jump pattern.
 
@@ -163,7 +163,7 @@ Result: Produces identical values, doesn't fix the 72px jump pattern.
 **Approach:** Calculate first visible item's position, then position others with fixed offsets:
 ```typescript
 if (firstItemPosition === null) {
-  firstItemPosition = calculateCompressedItemPosition(firstIndex, scrollTop, ...)
+  firstItemPosition = calculateCompressedItemPosition(firstIndex, scrollPosition, ...)
 }
 offset = firstItemPosition + (itemOffset(index) - itemOffset(firstIndex))
 ```
@@ -182,15 +182,15 @@ These are required for any solution to work properly but don't fix the core math
 
 The positioning math itself is correct — the problem is that Firefox's wheel delta (-16px) maps to exactly one item height (72px) in actual space via the compression ratio (4.5×). This means:
 - The math **cannot** be fixed by changing the positioning formula (all linear formulas produce the same result)
-- The fix must change the **input** (scrollTop values) so that per-frame deltas don't align with item height
+- The fix must change the **input** (scrollPosition values) so that per-frame deltas don't align with item size
 
 ### The Fix
 
 Replace the immediate wheel handler with **lerp-based smooth scroll interpolation** in `vlist/src/features/scale/plugin.ts`.
 
-Instead of immediately setting `virtualScrollTop += deltaY`, we:
-1. Accumulate deltaY into a `targetScrollTop`
-2. On each animation frame, move `virtualScrollTop` toward `targetScrollTop` by a fraction (65%)
+Instead of immediately setting `virtualScrollPosition += deltaY`, we:
+1. Accumulate deltaY into a `targetScrollPosition`
+2. On each animation frame, move `virtualScrollPosition` toward `targetScrollPosition` by a fraction (65%)
 3. This produces intermediate scroll positions that break the exact 72px alignment
 
 ```typescript
@@ -201,7 +201,7 @@ const SNAP_THRESHOLD = 0.5; // Snap when < 0.5px remaining
 // Wheel handler — accumulates into target, starts animation
 const wheelHandler = (e: WheelEvent): void => {
   e.preventDefault();
-  targetScrollTop = clamp(targetScrollTop + e.deltaY, 0, maxScroll);
+  targetScrollPosition = clamp(targetScrollPosition + e.deltaY, 0, maxScroll);
   if (smoothScrollId === null) {
     smoothScrollId = requestAnimationFrame(smoothScrollTick);
   }
@@ -209,15 +209,15 @@ const wheelHandler = (e: WheelEvent): void => {
 
 // Animation tick — converges toward target over multiple frames
 const smoothScrollTick = (): void => {
-  const diff = targetScrollTop - virtualScrollTop;
+  const diff = targetScrollPosition - virtualScrollPosition;
   if (Math.abs(diff) < SNAP_THRESHOLD) {
-    virtualScrollTop = targetScrollTop;
+    virtualScrollPosition = targetScrollPosition;
     smoothScrollId = null;
   } else {
-    virtualScrollTop += diff * LERP_FACTOR;
+    virtualScrollPosition += diff * LERP_FACTOR;
     smoothScrollId = requestAnimationFrame(smoothScrollTick);
   }
-  ctx.scrollController.scrollTo(virtualScrollTop);
+  ctx.scrollController.scrollTo(virtualScrollPosition);
 };
 ```
 
@@ -225,7 +225,7 @@ const smoothScrollTick = (): void => {
 
 For a Firefox scroll-up tick (deltaY = -16px) with lerp = 0.65:
 
-| Frame | Δ virtualScrollTop | Δ actualOffset | Multiple of 72? |
+| Frame | Δ virtualScrollPosition | Δ actualOffset | Multiple of 72? |
 |-------|-------------------|----------------|-----------------|
 | 1 | -10.4px | -46.8px | ❌ No |
 | 2 | -3.64px | -16.4px | ❌ No |

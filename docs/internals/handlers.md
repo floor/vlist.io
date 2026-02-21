@@ -59,7 +59,7 @@ Creates the scroll event handler.
 function createScrollHandler<T extends VListItem>(
   ctx: VListContext<T>,
   renderIfNeeded: RenderFunction
-): (scrollTop: number, direction: 'up' | 'down') => void;
+): (scrollPosition: number, direction: 'up' | 'down') => void;
 
 type RenderFunction = () => void;
 ```
@@ -79,7 +79,7 @@ type RenderFunction = () => void;
 const handleScroll = createScrollHandler(ctx, renderIfNeeded);
 
 // Called by scroll controller
-handleScroll(scrollTop, 'down');
+handleScroll(scrollPosition, 'down');
 ```
 
 **Velocity-Based Loading:**
@@ -204,22 +204,22 @@ dom.root.addEventListener('keydown', handleKeydown);
 const handleScroll = createScrollHandler(ctx, renderIfNeeded);
 
 // What happens when scroll occurs:
-function handleScrollInternal(scrollTop: number, direction: 'up' | 'down') {
+function handleScrollInternal(scrollPosition: number, direction: 'up' | 'down') {
   // 1. Check if destroyed
   if (ctx.state.isDestroyed) return;
   
   // 2. Update viewport state
   ctx.state.viewportState = updateViewportState(
     ctx.state.viewportState,
-    scrollTop,
-    ctx.config.itemHeight,
+    scrollPosition,
+    ctx.config.itemSize,
     ctx.dataManager.getTotal(),
     ctx.config.overscan
   );
   
   // 3. Update scrollbar
   if (ctx.scrollbar) {
-    ctx.scrollbar.updatePosition(scrollTop);
+    ctx.scrollbar.updatePosition(scrollPosition);
     ctx.scrollbar.show();
   }
   
@@ -227,7 +227,7 @@ function handleScrollInternal(scrollTop: number, direction: 'up' | 'down') {
   renderIfNeeded();
   
   // 5. Emit scroll event
-  ctx.emitter.emit('scroll', { scrollTop, direction });
+  ctx.emitter.emit('scroll', { scrollPosition, direction });
   
   // 6. Check for infinite scroll (velocity-gated)
   if (canLoad && shouldLoadMore()) {
@@ -467,7 +467,7 @@ const LOAD_MORE_THRESHOLD = 200;  // pixels from bottom
 // Only when velocity allows loading
 if (canLoad) {
   const distanceFromBottom = 
-    totalHeight - scrollTop - containerHeight;
+    totalSize - scrollPosition - containerSize;
 
   if (distanceFromBottom < LOAD_MORE_THRESHOLD) {
     if (!ctx.dataManager.getIsLoading() && ctx.dataManager.getHasMore()) {
@@ -495,7 +495,7 @@ dom.items.addEventListener('click', handleClick);
 dom.root.addEventListener('keydown', handleKeydown);
 
 // Scroll handler is called by scroll controller, not directly
-// scrollController calls handleScroll(scrollTop, direction)
+// scrollController calls handleScroll(scrollPosition, direction)
 ```
 
 ### Cleanup

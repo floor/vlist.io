@@ -336,7 +336,7 @@ const list = vlist({
 **Implementation details:**
 - New `src/groups/` module: `layout.ts` (group boundary computation, O(log g) index mapping), `sticky.ts` (floating header overlay with push-out transition), `types.ts`
 - Group headers are virtual pseudo-items interleaved with data items via `buildLayoutItems()`
-- `createGroupedHeightFn()` wraps the item height config to return header heights at group boundaries
+- `createGroupedSizeFn()` wraps the item size config to return header sizes at group boundaries
 - Sticky header is an absolutely-positioned overlay element updated on scroll — classic iOS Contacts-style push-out effect when the next group's header approaches
 - Public API (`items`, `total`, `scrollToIndex`, data methods) transparently maps between data indices and layout indices
 - Works with fixed and variable item heights, compression, and all existing features

@@ -271,8 +271,8 @@ list.setItems(newArticles);
 All standard events work with page scrolling:
 
 ```typescript
-list.on('scroll', ({ scrollTop, direction }) => {
-  console.log('Page scrolled to:', scrollTop);
+list.on('scroll', ({ scrollPosition, direction }) => {
+  console.log('Page scrolled to:', scrollPosition);
 });
 
 list.on('range:change', ({ range }) => {

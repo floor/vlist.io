@@ -443,16 +443,16 @@ Current viewport state for virtual scrolling.
 ```typescript
 interface ViewportState {
   /** Current scroll position */
-  scrollTop: number;
+  scrollPosition: number;
   
-  /** Container height */
-  containerHeight: number;
+  /** Container size */
+  containerSize: number;
   
-  /** Total content height (may be capped for scaling) */
-  totalHeight: number;
+  /** Total content size (may be capped for scaling) */
+  totalSize: number;
   
-  /** Actual total height without scaling (totalItems × itemHeight) */
-  actualHeight: number;
+  /** Actual total size without scaling (totalItems × itemSize) */
+  actualSize: number;
   
   /** Whether scaling is active */
   isCompressed: boolean;
@@ -579,7 +579,7 @@ interface VListEvents<T extends VListItem = VListItem> extends EventMap {
   'selection:change': { selected: Array<string | number>; items: T[] };
   
   /** Scroll position changed */
-  'scroll': { scrollTop: number; direction: 'up' | 'down' };
+  'scroll': { scrollPosition: number; direction: 'up' | 'down' };
   
   /** Visible range changed */
   'range:change': { range: Range };

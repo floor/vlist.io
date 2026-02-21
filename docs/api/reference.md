@@ -650,7 +650,7 @@ list.off('item:click', handler)
 | `item:click` | `{ item: T, index: number, event: MouseEvent }` | An item was clicked. |
 | `item:dblclick` | `{ item: T, index: number, event: MouseEvent }` | An item was double-clicked. |
 | `selection:change` | `{ selected: Array<string \| number>, items: T[] }` | The selection set changed. Requires `withSelection`. |
-| `scroll` | `{ scrollTop: number, direction: 'up' \| 'down' }` | Fired on every scroll tick. |
+| `scroll` | `{ scrollPosition: number, direction: 'up' \| 'down' }` | Fired on every scroll tick. |
 | `velocity:change` | `{ velocity: number, reliable: boolean }` | Scroll velocity updated. `reliable` is `false` for the first measurement. |
 | `range:change` | `{ range: Range }` | The visible item range changed (a new row became visible or left the viewport). |
 | `load:start` | `{ offset: number, limit: number }` | Async data fetch started. Requires `withAsync`. |
@@ -956,10 +956,10 @@ interface Range {
 
 ```ts
 interface ViewportState {
-  scrollTop:        number   // current scroll offset in px
-  containerHeight:  number   // visible viewport height in px
-  totalHeight:      number   // DOM scroll height (may be capped by scaling)
-  actualHeight:     number   // true logical height (items × height)
+  scrollPosition:   number   // current scroll offset in px
+  containerSize:    number   // visible viewport size in px
+  totalSize:        number   // DOM scroll size (may be capped by scaling)
+  actualSize:       number   // true logical size (items × size)
   isCompressed:     boolean  // whether scaling is active
   compressionRatio: number   // 1 = none, <1 = scaled
   visibleRange:     Range    // indices of items currently in view
@@ -1005,31 +1005,31 @@ These are exported for advanced use cases — building custom plugins, writing a
 
 ```ts
 import {
-  createHeightCache,
+  createSizeCache,
   simpleVisibleRange,
   calculateRenderRange,
-  calculateTotalHeight,
+  calculateTotalSize,
   calculateItemOffset,
   calculateScrollToIndex,
   clampScrollPosition,
   rangesEqual,
   diffRanges,
-  MAX_VIRTUAL_HEIGHT,
+  MAX_VIRTUAL_SIZE,
 } from '@floor/vlist'
 ```
 
 | Export | Description |
 |--------|-------------|
-| `createHeightCache(config, total)` | Creates a height cache for prefix-sum–based O(log n) height lookups. |
-| `simpleVisibleRange(scrollTop, height, hc, total, out)` | Computes the visible item range for a given scroll position. |
+| `createSizeCache(config, total)` | Creates a size cache for prefix-sum–based O(log n) size lookups. |
+| `simpleVisibleRange(scrollPos, size, sc, total, out)` | Computes the visible item range for a given scroll position. |
 | `calculateRenderRange(visible, overscan, total)` | Expands a visible range by overscan items in each direction. |
-| `calculateTotalHeight(hc, total)` | Computes the total content height. |
-| `calculateItemOffset(hc, index)` | Returns the pixel offset of the item at `index`. |
-| `calculateScrollToIndex(index, hc, viewportH, total, align)` | Computes the scroll position to bring an item into view. |
-| `clampScrollPosition(pos, total, viewportH, hc)` | Clamps a scroll position within valid bounds. |
+| `calculateTotalSize(sc, total)` | Computes the total content size. |
+| `calculateItemOffset(sc, index)` | Returns the pixel offset of the item at `index`. |
+| `calculateScrollToIndex(index, sc, viewportSize, total, align)` | Computes the scroll position to bring an item into view. |
+| `clampScrollPosition(pos, total, viewportSize, sc)` | Clamps a scroll position within valid bounds. |
 | `rangesEqual(a, b)` | Returns `true` if two ranges are identical. |
 | `diffRanges(prev, next)` | Returns items that entered and left the viewport between two ranges. |
-| `MAX_VIRTUAL_HEIGHT` | Browser scroll height limit constant (~33,554,400 px). |
+| `MAX_VIRTUAL_SIZE` | Browser scroll size limit constant (~33,554,400 px). |
 
 ### Scale Utilities
 
@@ -1070,7 +1070,7 @@ import {
 import {
   createSectionLayout,
   buildLayoutItems,
-  createSectionedHeightFn,
+  createSectionedSizeFn,
   createStickyHeader,
   isSectionHeader,
 } from '@floor/vlist'
@@ -1135,8 +1135,8 @@ function withMyFeature(): VListPlugin {
       })
 
       // Register a scroll-phase callback
-      ctx.afterScroll.push((scrollTop, direction) => {
-        console.log('scrolled to', scrollTop)
+      ctx.afterScroll.push((scrollPosition, direction) => {
+        console.log('scrolled to', scrollPosition)
       })
 
       // Expose a public method

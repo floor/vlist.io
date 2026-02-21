@@ -203,7 +203,7 @@ const wrappedHeight = (index) => {
 
 // When updateGrid is called:
 gridState.columns = 2;  // Updates the referenced object
-heightCache.rebuild();  // Recalculates all heights
+sizeCache.rebuild();  // Recalculates all sizes
 ```
 
 ## Configuration
@@ -1139,7 +1139,7 @@ getCol(index) = headers at col 0, items flow normally
 
 - Grid plugin initially sets row-based heights
 - Sections plugin rebuilds with item-based heights (headers + items)
-- Grid plugin overrides `getTotalHeight()` to return sum of column 0 items only
+- Grid plugin overrides `getTotalSize()` to return sum of column 0 items only
 
 This prevents double-counting items in the same row.
 

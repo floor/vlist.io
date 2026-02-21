@@ -37,7 +37,7 @@ Events are fully typed using TypeScript's mapped types:
 interface VListEvents<T extends VListItem> {
   'item:click': { item: T; index: number; event: MouseEvent };
   'selection:change': { selected: Array<string | number>; items: T[] };
-  'scroll': { scrollTop: number; direction: 'up' | 'down' };
+  'scroll': { scrollPosition: number; direction: 'up' | 'down' };
   // ...
 }
 
@@ -146,12 +146,12 @@ Fired on scroll position change.
 
 ```typescript
 interface ScrollPayload {
-  scrollTop: number;
+  scrollPosition: number;
   direction: 'up' | 'down';
 }
 
-list.on('scroll', ({ scrollTop, direction }) => {
-  console.log(`Scrolled ${direction} to ${scrollTop}px`);
+list.on('scroll', ({ scrollPosition, direction }) => {
+  console.log(`Scrolled ${direction} to ${scrollPosition}px`);
 });
 ```
 
@@ -295,8 +295,8 @@ const list = vlist({
 });
 
 // Track scroll position
-list.on('scroll', ({ scrollTop }) => {
-  saveScrollPosition(scrollTop);
+list.on('scroll', ({ scrollPosition }) => {
+  saveScrollPosition(scrollPosition);
 });
 
 // Handle selection changes

@@ -322,9 +322,9 @@ import {
 
 // Use in component
 const visibleRange = calculateVisibleRange(
-  scrollTop,
-  containerHeight,
-  itemHeight,
+  scrollPosition,
+  containerSize,
+  itemSize,
   totalItems
 );
 
