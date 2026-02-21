@@ -442,11 +442,12 @@ As you scroll up through history, older section headers stick at the top - perfe
 |---------------|----------|-------|
 | `reverse: true` + `sticky: false` | ✅ **Yes** | iMessage-style inline date headers |
 | `reverse: true` + `sticky: true` | ✅ **Yes** | Sticky header shows current section while scrolling |
-| `direction: 'horizontal'` + groups | ❌ **No** | Groups only work in vertical mode |
+| `direction: 'horizontal'` + groups | ✅ **Yes** | Horizontal carousels with category headers (sticky headers stick to left edge) |
 
 **Choose based on your UI:**
 - `sticky: false` - iMessage, WhatsApp style (headers scroll with content)
-- `sticky: true` - Telegram style (current section header sticks at top for navigation)
+- `sticky: true` - Telegram style (current section header sticks at top/left for navigation)
+- `direction: 'horizontal'` - Photo galleries, product carousels (headers stick to left edge in horizontal mode)
 
 ## API Reference
 
@@ -728,6 +729,43 @@ const gallery = vlist({
 }))
 .build()
 ```
+
+### Horizontal Product Carousel with Categories
+
+```typescript
+const carousel = vlist({
+  container: '#carousel',
+  direction: 'horizontal',
+  item: {
+    width: 200,
+    template: (product) => `
+      <div class="product-card">
+        <img src="${product.image}" alt="${product.name}">
+        <h4>${product.name}</h4>
+        <p class="price">$${product.price}</p>
+      </div>
+    `
+  },
+  items: sortedProducts
+})
+.use(withSections({
+  getGroupForIndex: (i) => sortedProducts[i].category,
+  headerHeight: 60, // Width in horizontal mode
+  headerTemplate: (category) => `
+    <div class="category-header">
+      <h3>${category}</h3>
+    </div>
+  `,
+  sticky: true // Sticks to left edge in horizontal mode
+}))
+.build()
+```
+
+**Horizontal mode notes:**
+- Headers stick to the **left edge** instead of top
+- `headerHeight` becomes the **width** of the header in horizontal mode
+- Push-out effect happens **leftward** when the next category approaches
+- Perfect for product carousels, photo timelines, story feeds
 
 ## Best Practices
 
