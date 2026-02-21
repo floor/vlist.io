@@ -38,6 +38,8 @@ export interface ContentConfig {
   contentDir: string;
   /** URL prefix (e.g., "/docs" or "/tutorials") */
   urlPrefix: string;
+  /** Section name shown in the header breadcrumb (e.g., "Docs" or "Tutorials") */
+  sectionName: string;
   /** Title suffix for individual pages (e.g., "VList docs" or "VList Tutorials") */
   titleSuffix: string;
   /** Default page title (e.g., "VList — Docs" or "VList Tutorials") */
@@ -66,6 +68,7 @@ export function createContentRenderer(config: ContentConfig) {
   const {
     contentDir,
     urlPrefix,
+    sectionName,
     titleSuffix,
     defaultTitle,
     defaultDescription,
@@ -75,7 +78,7 @@ export function createContentRenderer(config: ContentConfig) {
   } = config;
 
   const CONTENT_DIR = resolve(contentDir);
-  const SHELL_PATH = join(CONTENT_DIR, "shell.html");
+  const SHELL_PATH = resolve("./src/server/shell.html");
   const NAV_PATH = join(CONTENT_DIR, "navigation.json");
   const OVERVIEW_PATH = overviewSectionsPath
     ? join(CONTENT_DIR, overviewSectionsPath)
@@ -411,6 +414,7 @@ export function createContentRenderer(config: ContentConfig) {
       .replace(/{{TITLE}}/g, title)
       .replace(/{{DESCRIPTION}}/g, description)
       .replace(/{{URL}}/g, url)
+      .replace("{{SECTION}}", sectionName)
       .replace("{{SIDEBAR}}", sidebar)
       .replace("{{CONTENT}}", content)
       .replace("{{TOC}}", toc)
@@ -490,6 +494,7 @@ export function createContentRenderer(config: ContentConfig) {
 export const docsRenderer = createContentRenderer({
   contentDir: "./docs",
   urlPrefix: "/docs",
+  sectionName: "Docs",
   titleSuffix: "VList docs",
   defaultTitle: "VList — Docs",
   defaultDescription:
@@ -503,6 +508,7 @@ export const docsRenderer = createContentRenderer({
 export const tutorialsRenderer = createContentRenderer({
   contentDir: "./tutorials",
   urlPrefix: "/tutorials",
+  sectionName: "Tutorials",
   titleSuffix: "VList Tutorials",
   defaultTitle: "Tutorials — VList",
   defaultDescription: "Step-by-step tutorials to learn vlist",

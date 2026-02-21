@@ -409,10 +409,15 @@ function buildLastmodMap(): Map<string, string> {
   // Landing
   map.set("/", gitLastmod("index.html") ?? FALLBACK_DATE);
 
-  // Docs overview → both navigation and overview cards
+  // Docs overview → both navigation and overview cards, plus shared shell
   map.set(
     "/docs/",
-    gitLastmod("docs/navigation.json", "docs/overview.json") ?? FALLBACK_DATE,
+    gitLastmod(
+      "docs/navigation.json",
+      "docs/overview.json",
+      "src/server/shell.html",
+      "styles/content.css",
+    ) ?? FALLBACK_DATE,
   );
 
   // Docs pages → markdown files
@@ -424,10 +429,14 @@ function buildLastmodMap(): Map<string, string> {
     }
   }
 
-  // Tutorials overview → navigation config
+  // Tutorials overview → navigation config, plus shared shell
   map.set(
     "/tutorials/",
-    gitLastmod("tutorials/navigation.json") ?? FALLBACK_DATE,
+    gitLastmod(
+      "tutorials/navigation.json",
+      "src/server/shell.html",
+      "styles/content.css",
+    ) ?? FALLBACK_DATE,
   );
 
   // Tutorials pages → markdown files
