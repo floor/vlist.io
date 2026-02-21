@@ -219,6 +219,69 @@ function createMarkedInstance(currentSlug: string | null) {
   return marked;
 }
 
+// =============================================================================
+// Navigation Helpers
+// =============================================================================
+
+function getPrevNext(currentSlug: string | null): {
+  prev: { slug: string; name: string } | null;
+  next: { slug: string; name: string } | null;
+} {
+  if (!currentSlug) return { prev: null, next: null };
+
+  // Flatten all items
+  const allItems: { slug: string; name: string }[] = [];
+  for (const group of TUTORIAL_GROUPS) {
+    for (const item of group.items) {
+      allItems.push({ slug: item.slug, name: item.name });
+    }
+  }
+
+  const currentIndex = allItems.findIndex((item) => item.slug === currentSlug);
+  if (currentIndex === -1) return { prev: null, next: null };
+
+  return {
+    prev: currentIndex > 0 ? allItems[currentIndex - 1] : null,
+    next:
+      currentIndex < allItems.length - 1 ? allItems[currentIndex + 1] : null,
+  };
+}
+
+function buildPrevNext(currentSlug: string | null): string {
+  const { prev, next } = getPrevNext(currentSlug);
+  if (!prev && !next) return "";
+
+  const lines: string[] = [];
+  lines.push(`<nav class="doc-nav">`);
+
+  if (prev) {
+    lines.push(
+      `  <a href="/tutorials/${prev.slug}" class="doc-nav__link doc-nav__link--prev">`,
+    );
+    lines.push(`    <span class="doc-nav__label">← Previous</span>`);
+    lines.push(`    <span class="doc-nav__title">${prev.name}</span>`);
+    lines.push(`  </a>`);
+  } else {
+    lines.push(`  <div class="doc-nav__spacer"></div>`);
+  }
+
+  if (next) {
+    lines.push(
+      `  <a href="/tutorials/${next.slug}" class="doc-nav__link doc-nav__link--next">`,
+    );
+    lines.push(`    <span class="doc-nav__label">Next →</span>`);
+    lines.push(`    <span class="doc-nav__title">${next.name}</span>`);
+    lines.push(`  </a>`);
+  }
+
+  lines.push(`</nav>`);
+  return lines.join("\n");
+}
+
+// =============================================================================
+// Sidebar Generation
+// =============================================================================
+
 // Build sidebar navigation
 function buildSidebar(activeSlug: string | null): string {
   const lines: string[] = [];
@@ -288,6 +351,7 @@ function assemblePage(
 ): string {
   const shell = loadShell();
   const sidebar = buildSidebar(slug);
+  const prevNext = buildPrevNext(slug);
   const url = slug ? `${SITE}/tutorials/${slug}` : `${SITE}/tutorials/`;
 
   return shell
@@ -296,7 +360,8 @@ function assemblePage(
     .replace(/{{URL}}/g, url)
     .replace("{{SIDEBAR}}", sidebar)
     .replace("{{CONTENT}}", content)
-    .replace("{{TOC}}", toc);
+    .replace("{{TOC}}", toc)
+    .replace("{{PREVNEXT}}", prevNext);
 }
 
 // Main render function
@@ -339,8 +404,11 @@ export function renderTutorialPage(slug: string | null): Response {
   const tocItems = extractToc(mdSource);
   const tocHtml = buildToc(tocItems);
 
-  // Wrap in .md container
-  const content = `<div class="md">${parsedHtml}</div>`;
+  // Build prev/next navigation
+  const prevNextHtml = buildPrevNext(slug);
+
+  // Wrap in .md container with prev/next at bottom
+  const content = `<div class="md">${parsedHtml}${prevNextHtml}</div>`;
 
   // Extract title
   const h1Title = extractTitle(mdSource);

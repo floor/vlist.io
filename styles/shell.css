@@ -713,3 +713,69 @@ html[data-theme] .sidebar__link {
         font-size: 14px;
     }
 }
+
+/* ─── Prev/Next Navigation ────────────────────────────────────────── */
+
+.doc-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 64px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+}
+
+.doc-nav__link {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.doc-nav__link:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+}
+
+.doc-nav__link--prev {
+    text-align: left;
+}
+
+.doc-nav__link--next {
+    text-align: right;
+    grid-column: 2;
+}
+
+.doc-nav__label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+}
+
+.doc-nav__title {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--accent-text);
+}
+
+.doc-nav__spacer {
+    /* Empty space when no prev/next */
+}
+
+[data-theme="light"] .doc-nav__link {
+    background: #f8f8fa;
+    border-color: #e0e0e8;
+}
+
+[data-theme="light"] .doc-nav__link:hover {
+    background: #f0f0f5;
+    border-color: #d0d0d8;
+}
