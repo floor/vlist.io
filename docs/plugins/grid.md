@@ -1273,10 +1273,10 @@ When `updateGrid()` is called:
 ## Examples
 
 Live examples on vlist.dev:
-- [Grid (JavaScript)](https://vlist.dev/examples/grid/javascript)
-- [Grid (React)](https://vlist.dev/examples/grid/react)
-- [Grid (Vue)](https://vlist.dev/examples/grid/vue)
-- [Grid (Svelte)](https://vlist.dev/examples/grid/svelte)
+- [Grid (JavaScript)](/examples/grid/javascript)
+- [Grid (React)](/examples/grid/react)
+- [Grid (Vue)](/examples/grid/vue)
+- [Grid (Svelte)](/examples/grid/svelte)
 
 ---
 

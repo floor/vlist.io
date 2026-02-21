@@ -282,4 +282,4 @@ list.removeItem(5);
 - **[Builder Pattern](./builder-pattern)** — Plugins, composition, bundle costs
 - **[Plugin Docs](/docs/plugins/README)** — All plugins with examples
 - **[API Reference](/docs/api/reference)** — Complete method and event reference
-- **[Examples](https://vlist.dev/examples/)** — 34 interactive examples
+- **[Examples](/examples/)** — 34 interactive examples
