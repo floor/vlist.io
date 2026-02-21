@@ -18,16 +18,13 @@ import {
   percentile,
   rateLower,
 } from "../../runner.js";
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-const ITEM_HEIGHT = 48;
-const WARMUP_JUMPS = 2;
-const MEASURE_JUMPS = 7;
-const SETTLE_TIMEOUT_MS = 5_000;
-const SETTLE_FRAMES = 5;
+import {
+  ITEM_HEIGHT,
+  WARMUP_JUMPS,
+  MEASURE_JUMPS,
+  SETTLE_TIMEOUT_MS,
+  SETTLE_FRAMES,
+} from "../constants.js";
 
 // =============================================================================
 // Vue Component

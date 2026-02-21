@@ -21,15 +21,12 @@ import {
   round,
   rateLower,
 } from "../../runner.js";
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-const ITEM_HEIGHT = 48;
-const SCROLL_DURATION_MS = 10_000;
-const SCROLL_SPEED_PX_PER_FRAME = 100;
-const SETTLE_FRAMES = 20;
+import {
+  ITEM_HEIGHT,
+  SCROLL_DURATION_MS,
+  SCROLL_SPEED_PX_PER_FRAME,
+  SETTLE_FRAMES,
+} from "../constants.js";
 
 // =============================================================================
 // Helpers

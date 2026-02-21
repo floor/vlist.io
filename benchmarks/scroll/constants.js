@@ -17,18 +17,24 @@ export const SCROLL_DURATION_MS = 5000;
 
 /**
  * Scroll speed in pixels per second.
- * Constant rate ensures reproducible results.
+ * Constant rate ensures reproducible results (~120px/frame at 60fps).
  */
-export const SCROLL_SPEED_PX_PER_SEC = 10000;
+export const SCROLL_SPEED_PX_PER_SEC = 7200;
 
 /**
- * Target frame time in milliseconds (60 FPS).
- * Used to calculate dropped frames.
+ * Preflight duration to check rAF rate before benchmark.
+ * Used to detect display throttling.
  */
-export const TARGET_FRAME_TIME = 1000 / 60;
+export const PREFLIGHT_DURATION_MS = 1000;
 
 /**
- * Overscan count for virtual rendering.
- * Number of items to render beyond visible viewport.
+ * Warmup duration to engage compositor before measuring.
+ * Ensures full refresh rate is active.
  */
-export const OVERSCAN = 5;
+export const WAKEUP_DURATION_MS = 500;
+
+/**
+ * FPS threshold below which we warn about rAF throttling.
+ * Indicates display may be in power-saving mode.
+ */
+export const THROTTLE_WARNING_FPS = 50;

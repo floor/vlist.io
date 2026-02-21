@@ -42,17 +42,14 @@ import {
   rateHigher,
   rateLower,
 } from "../../runner.js";
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-const ITEM_HEIGHT = 48;
-const SCROLL_DURATION_MS = 5_000;
-const SCROLL_SPEED_PX_PER_SEC = 7_200; // Constant scroll speed (~120px/frame at 60fps)
-const PREFLIGHT_DURATION_MS = 1_000; // 1s rAF rate check before real benchmark
-const WAKEUP_DURATION_MS = 500; // 0.5s to engage compositor before measuring
-const THROTTLE_WARNING_FPS = 50; // Below this we warn about rAF throttling
+import {
+  ITEM_HEIGHT,
+  SCROLL_DURATION_MS,
+  SCROLL_SPEED_PX_PER_SEC,
+  PREFLIGHT_DURATION_MS,
+  WAKEUP_DURATION_MS,
+  THROTTLE_WARNING_FPS,
+} from "../constants.js";
 
 // =============================================================================
 // Canvas Refresh Rate Driver

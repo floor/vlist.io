@@ -11,24 +11,18 @@ export const ITEM_HEIGHT = 48;
 
 /**
  * Duration to scroll before measuring final memory state.
- * Long enough to trigger any potential memory leaks.
+ * Long enough to trigger any potential memory leaks (10 seconds).
  */
-export const SCROLL_DURATION_MS = 10000;
+export const SCROLL_DURATION_MS = 10_000;
 
 /**
- * Scroll speed in pixels per second.
+ * Scroll speed in pixels per frame.
  * Constant rate ensures reproducible results.
  */
-export const SCROLL_SPEED_PX_PER_SEC = 10000;
+export const SCROLL_SPEED_PX_PER_FRAME = 100;
 
 /**
- * Number of frames to wait for GC to stabilize.
- * Ensures memory measurements are accurate.
+ * Number of frames to wait after scrolling completes.
+ * Allows memory to settle before final measurement.
  */
-export const GC_WAIT_FRAMES = 5;
-
-/**
- * Overscan count for virtual rendering.
- * Number of items to render beyond visible viewport.
- */
-export const OVERSCAN = 5;
+export const SETTLE_FRAMES = 20;

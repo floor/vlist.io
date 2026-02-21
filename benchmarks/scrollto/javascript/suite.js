@@ -17,6 +17,13 @@ import {
   percentile,
   rateLower,
 } from "../../runner.js";
+import {
+  ITEM_HEIGHT,
+  WARMUP_JUMPS,
+  MEASURE_JUMPS,
+  SETTLE_TIMEOUT_MS,
+  SETTLE_FRAMES,
+} from "../constants.js";
 
 // =============================================================================
 // Helpers
@@ -45,16 +52,6 @@ const findViewport = (container) => {
 
   return container.firstElementChild;
 };
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-const ITEM_HEIGHT = 48;
-const WARMUP_JUMPS = 2;
-const MEASURE_JUMPS = 7;
-const SETTLE_TIMEOUT_MS = 5_000; // Max time to wait for scroll to settle
-const SETTLE_FRAMES = 5; // Frames with stable scrollTop = settled
 
 // =============================================================================
 // Core measurement

@@ -10,25 +10,25 @@
 export const ITEM_HEIGHT = 48;
 
 /**
- * Number of scroll positions to test.
- * Random positions are selected across the list height.
+ * Number of warmup jumps before measurement.
+ * Warms up animation engine and stabilizes performance.
  */
-export const TEST_POSITIONS = 10;
+export const WARMUP_JUMPS = 2;
 
 /**
- * Duration to wait for smooth scroll animation to complete.
- * Long enough for the animation to settle at target position.
+ * Number of scrollToIndex jumps to measure for final results.
+ * Median value is reported to eliminate outliers.
  */
-export const SETTLE_DURATION_MS = 1000;
+export const MEASURE_JUMPS = 7;
 
 /**
- * Threshold for considering scroll "settled" (pixels).
- * If scroll position changes less than this, it's considered complete.
+ * Maximum time to wait for scroll to settle at target position.
+ * Prevents infinite waiting if animation fails.
  */
-export const SETTLE_THRESHOLD_PX = 1;
+export const SETTLE_TIMEOUT_MS = 5_000;
 
 /**
- * Overscan count for virtual rendering.
- * Number of items to render beyond visible viewport.
+ * Number of consecutive frames with stable scrollTop to consider scroll settled.
+ * Ensures animation is truly complete, not just paused.
  */
-export const OVERSCAN = 5;
+export const SETTLE_FRAMES = 5;
