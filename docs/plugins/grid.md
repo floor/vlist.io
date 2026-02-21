@@ -912,15 +912,6 @@ Grid layout has certain constraints:
 
 ### Cannot Combine With
 
-❌ **Horizontal Direction** — Grid is inherently 2D
-```typescript
-// Invalid combination
-vlist({
-  orientation: 'horizontal',
-  layout: 'grid',  // ❌ Error!
-});
-```
-
 ❌ **Reverse Mode** — Reverse grid not supported
 ```typescript
 // Invalid combination
@@ -932,7 +923,8 @@ vlist({
 
 ### Can Combine With
 
-✅ **Groups** — Grouped grids with full-width section headers (NEW!)
+✅ **Horizontal Orientation** — Grid works in both vertical and horizontal orientations (NEW!)
+✅ **Groups** — Grouped grids with full-width section headers
 ✅ **Selection** — Single or multiple selection
 ✅ **Compression** — For grids with millions of items
 ✅ **Scrollbar** — Custom scrollbar styling
@@ -940,9 +932,65 @@ vlist({
 ✅ **Adapter** — Infinite scroll grid
 ✅ **Window Scrolling** — Full-page grid layouts
 
+### Horizontal Grid Layouts
+
+✅ **NEW: Grid layouts now work with horizontal orientation!**
+
+In horizontal mode, the grid axes are swapped:
+- **Rows extend horizontally** (main scroll axis)
+- **Columns stack vertically** (cross-axis)
+- Items are positioned using swapped X/Y coordinates
+
+```typescript
+const gallery = vlist({
+  container: '#gallery',
+  orientation: 'horizontal',  // ✅ Now supported!
+  item: {
+    width: 200,   // Required for horizontal
+    height: 150,  // Column height (cross-axis)
+    template: (item) => `<img src="${item.url}" />`,
+  },
+  items: photos,
+})
+  .use(withGrid({ columns: 3, gap: 8 }))  // 3 vertical columns
+  .build();
+```
+
+**How it works:**
+- 3 columns stack vertically in the viewport
+- Rows extend horizontally and virtualize as you scroll right
+- Each "row" contains 3 items (one per column)
+- Scroll horizontally to see more rows
+
+**Visual representation:**
+```
+Vertical Grid (orientation: 'vertical'):
+┌────┬────┬────┬────┐
+│ 1  │ 2  │ 3  │ 4  │ ← Row 0
+├────┼────┼────┼────┤
+│ 5  │ 6  │ 7  │ 8  │ ← Row 1
+└────┴────┴────┴────┘
+   ↓ Scroll down
+
+Horizontal Grid (orientation: 'horizontal'):
+┌────┬────┐
+│ 1  │ 4  │ ← Column 0
+├────┼────┤
+│ 2  │ 5  │ ← Column 1
+├────┼────┤
+│ 3  │ 6  │ ← Column 2
+└────┴────┘
+  → Scroll right
+```
+
+**Use cases:**
+- Horizontal photo galleries with multiple rows
+- Timeline views with vertical lanes
+- Horizontal carousels with stacked content
+
 ### Grid with Groups
 
-✅ **NEW: Grid layouts now support grouped sections with headers!**
+✅ **Grid layouts support grouped sections with headers!**
 
 Headers automatically:
 - Span full width across all columns
