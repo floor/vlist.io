@@ -184,15 +184,15 @@ export function buildComparisonsOverviewHTML() {
           </a>
           <a href="/benchmarks/tanstack-virtual" class="comparison-card">
             <strong class="comparison-card__title">TanStack Virtual</strong>
-            <div class="comparison-card__desc">Headless virtualization from the TanStack team</div>
+            <div class="comparison-card__desc">Headless virtualization for React, Vue, Solid, Svelte</div>
           </a>
           <a href="/benchmarks/virtua" class="comparison-card">
             <strong class="comparison-card__title">Virtua</strong>
-            <div class="comparison-card__desc">Modern React virtualization library with great DX</div>
+            <div class="comparison-card__desc">Zero-config, ~3kB per component for React/Vue/Solid/Svelte</div>
           </a>
           <a href="/benchmarks/vue-virtual-scroller" class="comparison-card">
             <strong class="comparison-card__title">vue-virtual-scroller</strong>
-            <div class="comparison-card__desc">Popular Vue 3 virtualization component</div>
+            <div class="comparison-card__desc">Vue 3 component (2.0 beta, stable 1.x from 2022)</div>
           </a>
         </div>
 

@@ -38,7 +38,7 @@
     "min": "38.5",
     "deps": "0",
     "self": false,
-    "note": "React-only, modern with great DX"
+    "note": "React/Vue/Solid/Svelte, ~3kB per component, actively maintained"
   },
   {
     "lib": "vue-virtual-scroller",
@@ -46,7 +46,7 @@
     "min": "24.7",
     "deps": "1",
     "self": false,
-    "note": "Vue 3 component, feature-rich"
+    "note": "Vue 3 component (2.0.0-beta), stable 1.x last updated Oct 2022"
   },
   {
     "lib": "react-virtuoso",

@@ -5,12 +5,12 @@ Head-to-head performance comparisons between **vlist** and popular virtualizatio
 ## Available Comparisons
 
 ### React Ecosystem
-- **[react-window](./react-window.js)** - Brian Vaughn's minimalist library, actively maintained
-- **[TanStack Virtual](./tanstack-virtual.js)** - Headless virtualization from the TanStack team
-- **[Virtua](./virtua.js)** - Modern React library with great DX
+- **[react-window](./react-window.js)** - Brian Vaughn's minimalist library, actively maintained (v2.2.7, Feb 2026)
+- **[TanStack Virtual](./tanstack-virtual.js)** - Headless virtualization for React, Vue, Solid, Svelte
+- **[Virtua](./virtua.js)** - Zero-config, ~3kB per component for React/Vue/Solid/Svelte
 
 ### Vue Ecosystem
-- **[vue-virtual-scroller](./vue-virtual-scroller.js)** - Popular Vue 3 virtualization component
+- **[vue-virtual-scroller](./vue-virtual-scroller.js)** - Vue 3 component (testing v2.0 beta, stable v1.1.2 from Oct 2022)
 
 ## What Each Comparison Tests
 
