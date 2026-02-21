@@ -17,14 +17,11 @@ import {
   percentile,
   rateLower,
 } from "../../runner.js";
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-const ITEM_HEIGHT = 48;
-const WARMUP_ITERATIONS = 2;
-const MEASURE_ITERATIONS = 7;
+import {
+  ITEM_HEIGHT,
+  WARMUP_ITERATIONS,
+  MEASURE_ITERATIONS,
+} from "../constants.js";
 
 // =============================================================================
 // Vue Component
