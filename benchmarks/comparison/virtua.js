@@ -64,13 +64,14 @@ const benchmarkVirtua = async (container, items, onStatus) => {
   }
 
   // React component using Virtua
-  const VirtualList = ({ items, height }) => {
+  const VirtualList = ({ itemCount, height }) => {
     return React.createElement(
       VirtuaVirtualizer,
       {
         style: { height: `${height}px` },
+        count: itemCount,
       },
-      items.map((item, index) =>
+      (index) =>
         React.createElement(
           "div",
           {
@@ -80,7 +81,6 @@ const benchmarkVirtua = async (container, items, onStatus) => {
           },
           index,
         ),
-      ),
     );
   };
 
@@ -91,7 +91,7 @@ const benchmarkVirtua = async (container, items, onStatus) => {
     onStatus,
     createComponent: async (container, items) => {
       const listComponent = React.createElement(VirtualList, {
-        items,
+        itemCount: items.length,
         height: container.clientHeight || 600,
       });
 
