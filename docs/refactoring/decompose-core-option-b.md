@@ -21,7 +21,7 @@ vlist project priorities: (1) Speed/Smoothness, (2) Memory Efficiency, (3) Bundl
 | Hot-path overhead/frame | **HIGH** | ~50–100ns (negligible) | 0ns ✅ | **Tie** — Both < 0.1% of frame budget |
 | Bundle size | **MEDIUM** | +0.5 KB (71.9 KB) ✅ | **+2.1 KB (73.5 KB)** ❌ | **Option A** — 4.2× better |
 | core.ts lines | **MEDIUM** | 1053 ✅ | **1709** | **Option A** — More compact |
-| materializectx.ts lines | **MEDIUM** | ~668 ✅ | **689** | **Option A** — More compact |
+| materialize.ts lines | **MEDIUM** | ~668 ✅ | **689** | **Option A** — More compact |
 | Mental model | **MEDIUM** | one rule: "use `$`" ✅ | three concepts | **Option A** — Simpler |
 | Hot-path readability | **LOW** | `$.hc`, `$.ls` (short keys) | bare `heightCache`, `lastScrollTop` ✅ | **Option B** — Clearer |
 | Double-call risk | **LOW** | none ✅ | `acc.vtf()()` on 12 of 28 fields ⚠️ | **Option A** — Clearer |
@@ -73,7 +73,7 @@ The extracted factory receives **accessor functions** that close over `materiali
 ### Accessor Object Shape
 
 ```typescript
-// Defined in materializectx.ts
+// Defined in materialize.ts
 export interface MAccessors<T extends VListItem> {
   // Readers — return current value of the closure variable
   hc: () => HeightCache;
@@ -157,7 +157,7 @@ const ctx = createMaterializeCtx(acc, deps);
 ### Factory Usage
 
 ```typescript
-// materializectx.ts
+// materialize.ts
 export const createMaterializeCtx = <T extends VListItem>(
   acc: MAccessors<T>,
   deps: MDeps<T>,
@@ -241,7 +241,7 @@ Phase 1 (pure utility extraction) is identical between Option A and B. Either ch
 
 ### Step 3: Create `MAccessors<T>` interface and factories
 
-New file `builder/materializectx.ts` (different content from Option A):
+New file `builder/materialize.ts` (different content from Option A):
 
 - `MAccessors<T>` — getter/setter interface
 - `MDeps<T>` — immutable deps (same as Option A)
@@ -271,7 +271,7 @@ bun run build --types    # Check bundle size vs baseline (71.4 KB) and Option A 
 |---|---|---|---|---|
 | `dist/index.js` size | **High** | 71.9 KB (+0.5 KB) | **73.5 KB (+2.1 KB)** ❌ | Option A |
 | `core.ts` line count | **Medium** | 1053 lines | **1709 lines** (191 removed) ✅ | Option B |
-| materializectx.ts lines | **Medium** | ~1300 lines | **689 lines** ✅ | Option B |
+| materialize.ts lines | **Medium** | ~1300 lines | **689 lines** ✅ | Option B |
 | Hot-path readability | **Medium** | `$.hc`, `$.ls` (short keys) | bare `heightCache`, `lastScrollTop` ✅ | Option B |
 | Factory readability | **Low** | Simple property access | DOUBLE-CALL pattern ⚠️ | Option A |
 | Accessor boilerplate | **Low** | None (one `$` object) | 48 closures + 130 lines ❌ | Option A |

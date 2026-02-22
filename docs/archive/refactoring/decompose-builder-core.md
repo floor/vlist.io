@@ -31,7 +31,7 @@ Both options were implemented and tested. **Option A is the clear winner** when 
 | Hot-path overhead/frame | **HIGH** | ~50–100ns (negligible) | 0ns ✅ | **Tie** — Both < 1% of frame budget |
 | Bundle size | **MEDIUM** | **71.9 KB (+0.5 KB)** ✅ | 73.5 KB (+2.1 KB) ❌ | **Option A** — Smaller increase |
 | core.ts lines | **MEDIUM** | **1053** ✅ | 1709 | **Option A** — More compact |
-| materializectx.ts lines | **MEDIUM** | **668** ✅ | 689 | **Option A** — More compact |
+| materialize.ts lines | **MEDIUM** | **668** ✅ | 689 | **Option A** — More compact |
 | Mental model | **MEDIUM** | One rule: "use `$`" ✅ | Three concepts | **Option A** — Simpler |
 | Hot-path readability | **LOW** | `$.hc`, `$.ls` (short keys) | bare `heightCache`, `lastScrollTop` ✅ | **Option B** — Clearer |
 | Factory readability | **LOW** | `$.vtf()` (clear) ✅ | `acc.vtf()()` (double-call) ⚠️ | **Option A** — Clearer |
@@ -101,7 +101,7 @@ JavaScript doesn't have pass-by-reference for primitives, so extracting these bl
 
 **Branch:** `refactor/decompose-core-refs-object`
 
-All 28 mutable variables are grouped into a single `$` (MRefs) object. Both `core.ts` and the extracted `materializectx.ts` read/write through `$.xxx`.
+All 28 mutable variables are grouped into a single `$` (MRefs) object. Both `core.ts` and the extracted `materialize.ts` read/write through `$.xxx`.
 
 ```
 // core.ts — before
@@ -116,7 +116,7 @@ $.ch = newMainAxis;
 ```
 
 **Key files:**
-- `builder/materializectx.ts` — `MRefs<T>` interface + `createMaterializeCtx()`, `createDefaultDataProxy()`, `createDefaultScrollProxy()` factories
+- `builder/materialize.ts` — `MRefs<T>` interface + `createMaterializeCtx()`, `createDefaultDataProxy()`, `createDefaultScrollProxy()` factories
 - `builder/core.ts` — creates `$`, passes it to factories, uses `$.xx` everywhere
 
 **Short keys:** Property names survive minification (`$.heightCache` → `e.heightCache` in the bundle, while a bare `let heightCache` → `e`). Using 2–3 character keys (`$.hc` instead of `$.heightCache`) recovered ~2.7 KB of the initial 4.1 KB overhead.
@@ -160,7 +160,7 @@ Instead of a shared mutable object, the extracted factories receive getter/sette
 | Metric | Original | Phase 1 | Phase 2 (Option B) |
 |---|---|---|---|
 | `core.ts` | 1900 | 1500 | **1709** |
-| `materializectx.ts` | - | - | **689** |
+| `materialize.ts` | - | - | **689** |
 | `dist/index.js` | 71.4 KB | 70.5 KB | **73.5 KB** (+2.9%) ❌ |
 | Tests | 1184 | 1184 | **1184** |
 
@@ -182,7 +182,7 @@ Instead of a shared mutable object, the extracted factories receive getter/sette
 ```
 src/builder/
 ├── core.ts              # vlist() + materialize() — down from 1900 to ~1050 lines
-├── materializectx.ts    # BuilderContext, data proxy, scroll proxy factories
+├── materialize.ts    # BuilderContext, data proxy, scroll proxy factories
 ├── velocity.ts          # VelocityTracker
 ├── dom.ts               # DOMStructure, resolveContainer, createDOMStructure
 ├── pool.ts              # createElementPool

@@ -386,7 +386,7 @@ const scrollPosition = isHorizontal
 ### Phase 3: Builder Updates
 - ✅ `src/builder/core.ts`
 - ✅ `src/builder/context.ts`
-- ✅ `src/builder/materializectx.ts`
+- ✅ `src/builder/materialize.ts`
 - ✅ `src/builder/types.ts`
 - ✅ `src/builder/range.ts`
 
@@ -636,7 +636,7 @@ c09b880 - refactor(tests): update all test files to use SizeCache API
 **Builder Core:**
 - `core.ts` - ViewportState initialization updated
 - `context.ts` - Method names updated (rebuildSizeCache, setSizeConfig)
-- `materializectx.ts` - Comments and property access updated
+- `materialize.ts` - Comments and property access updated
 - `types.ts` - BuilderContext interface updated
 
 **:**

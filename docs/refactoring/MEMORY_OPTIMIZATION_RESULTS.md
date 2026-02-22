@@ -341,7 +341,7 @@ enableItemById: false // Default: minimal overhead
 **Files modified:**
 - `vlist/src/builder/types.ts` - Config flag definitions
 - `vlist/src/builder/core.ts` - Flag implementation
-- `vlist/src/builder/materializectx.ts` - Runtime warnings
+- `vlist/src/builder/materialize.ts` - Runtime warnings
 
 **Flags added:**
 ```typescript

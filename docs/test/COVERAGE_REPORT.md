@@ -70,7 +70,7 @@ The vlist library has excellent test coverage with **1,181 passing tests** acros
 **Priority:** MEDIUM - Feature glue code, less critical
 
 ### Materialize Context (84.57% line coverage)
-**File:** `src/builder/materializectx.ts`  
+**File:** `src/builder/materialize.ts`  
 **Uncovered areas:**
 - Lines 264-280: Context initialization
 - Lines 347-352, 442-469: DOM manipulation

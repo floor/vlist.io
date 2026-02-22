@@ -120,7 +120,7 @@ enableItemById: false // Minimal overhead
 **Implementation:**
 - `vlist/src/builder/types.ts` - Config flag definitions
 - `vlist/src/builder/core.ts` - Flag implementation
-- `vlist/src/builder/materializectx.ts` - Data proxy with warnings
+- `vlist/src/builder/materialize.ts` - Data proxy with warnings
 
 **Benchmarks:**
 - `vlist.dev/benchmarks/comparison/memory-optimization.js` - Main test

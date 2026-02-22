@@ -28,7 +28,7 @@ src/builder/
 ├── types.ts           # Builder types (VListFeature, BuilderContext, etc.)
 ├── core.ts            # vlist() factory and materialize()
 ├── context.ts         # BuilderContext creation
-├── materializectx.ts  # Internal materialization context
+├── materialize.ts  # Internal materialization context
 ├── data.ts            # Simple data manager
 ├── dom.ts             # DOM structure creation
 ├── pool.ts            # Element pooling
