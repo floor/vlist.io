@@ -7,13 +7,57 @@
         <title>{{TITLE}}</title>
 
         <link rel="canonical" href="{{URL}}" />
-        <meta property="og:type" content="website" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="article" />
         <meta property="og:url" content="{{URL}}" />
         <meta property="og:title" content="{{TITLE}}" />
         <meta property="og:description" content="{{DESCRIPTION}}" />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:site_name" content="VList" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="{{URL}}" />
         <meta name="twitter:title" content="{{TITLE}}" />
         <meta name="twitter:description" content="{{DESCRIPTION}}" />
+
+        <!-- Additional SEO -->
+        <meta name="author" content="Floor IO" />
+        <meta
+            name="robots"
+            content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+        />
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "TechArticle",
+                "headline": "{{TITLE}}",
+                "description": "{{DESCRIPTION}}",
+                "url": "{{URL}}",
+                "author": {
+                    "@type": "Organization",
+                    "name": "Floor IO",
+                    "url": "https://floor.io"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "VList",
+                    "url": "https://vlist.dev"
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": "{{URL}}"
+                },
+                "inLanguage": "en-US",
+                "isPartOf": {
+                    "@type": "WebSite",
+                    "name": "VList Documentation",
+                    "url": "https://vlist.dev"
+                }
+            }
+        </script>
 
         <link rel="stylesheet" href="/styles/shell.css" />
         <link rel="stylesheet" href="/styles/content.css" />

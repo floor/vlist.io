@@ -186,10 +186,16 @@ export function renderSitemap(): Response {
 
   const xml = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
     ...urls.map((u) => {
       const lastmod = LASTMOD.get(u.loc) ?? FALLBACK_DATE;
-      return `  <url>\n    <loc>${SITE}${u.loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${u.priority}</priority>\n  </url>`;
+      const changefreq =
+        u.priority === "1.0"
+          ? "weekly"
+          : u.priority === "0.9"
+            ? "weekly"
+            : "monthly";
+      return `  <url>\n    <loc>${SITE}${u.loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`;
     }),
     `</urlset>`,
   ].join("\n");

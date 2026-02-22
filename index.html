@@ -10,6 +10,8 @@
         <title>VList — Virtual List for the Web</title>
 
         <link rel="canonical" href="https://vlist.dev/" />
+
+        <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://vlist.dev/" />
         <meta property="og:title" content="VList — Virtual List for the Web" />
@@ -17,12 +19,77 @@
             property="og:description"
             content="VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more."
         />
-        <meta name="twitter:card" content="summary" />
+        <meta property="og:site_name" content="VList" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://vlist.dev/" />
         <meta name="twitter:title" content="VList — Virtual List for the Web" />
         <meta
             name="twitter:description"
             content="VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more."
         />
+
+        <!-- Additional SEO -->
+        <meta name="author" content="Floor IO" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <meta name="keywords" content="virtual list, virtual scroll, infinite scroll, react virtual list, performance, web components, javascript library, zero dependencies" />
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "VList",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Web",
+            "url": "https://vlist.dev",
+            "description": "A lightweight, high-performance virtual list library for the web. Zero dependencies, infinite scroll, selection, grid layout, and more.",
+            "author": {
+                "@type": "Organization",
+                "name": "Floor IO",
+                "url": "https://floor.io"
+            },
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "softwareVersion": "0.9.4",
+            "license": "https://opensource.org/licenses/MIT",
+            "programmingLanguage": {
+                "@type": "ComputerLanguage",
+                "name": "TypeScript"
+            }
+        }
+        </script>
+
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "VList",
+            "url": "https://vlist.dev",
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://vlist.dev/docs/?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+            }
+        }
+        </script>
+
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [{
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://vlist.dev/"
+            }]
+        }
+        </script>
 
         <link rel="stylesheet" href="/styles/shell.css" />
 
