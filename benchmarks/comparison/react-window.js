@@ -20,6 +20,8 @@ import {
   benchmarkVList,
   benchmarkLibrary,
   calculateComparisonMetrics,
+  tryGC,
+  waitFrames,
 } from "./shared.js";
 
 // Dynamic imports for React libraries (loaded on demand)

@@ -17,6 +17,9 @@ import {
   percentile,
 } from "../runner.js";
 
+// Re-export utilities for comparison benchmarks
+export { tryGC, waitFrames };
+
 // =============================================================================
 // Constants
 // =============================================================================
