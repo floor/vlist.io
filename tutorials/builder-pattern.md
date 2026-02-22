@@ -171,7 +171,7 @@ const list = builder.build();
 ## See Also
 
 - **[Quick Start](./quick-start)** — Copy-paste examples for every use case
-- **[Features Overview](/docs/features/README)** — All features with correct API
+- **[Features Overview](/docs/features/overview)** — All features with correct API
 - **[Grid](/docs/features/grid)** · **[Sections](/docs/features/sections)** · **[Async](/docs/features/async)**
 - **[Selection](/docs/features/selection)** · **[Scale](/docs/features/scale)** · **[Scrollbar](/docs/features/scrollbar)**
 - **[API Reference](/docs/api/reference)** — Complete method reference

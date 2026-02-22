@@ -454,7 +454,7 @@ const savedState = ctx.state;  // State will change!
 
 ## Related Modules
 
-- [vlist.md](/tutorials/getting-started) - Main documentation, shows context creation
+- [vlist.md](/) - Main documentation, shows context creation
 - [handlers.md](./handlers.md) - Handlers that use context
 - [methods.md](/docs/api/reference) - Methods that use context
 - [render.md](./rendering.md) - DOMStructure, Renderer interfaces

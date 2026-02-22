@@ -17,7 +17,7 @@
 
 ---
 
-## `withGrid()` — 2D Grid Layout
+## withGrid() — 2D Grid Layout
 
 ```typescript
 import { vlist, withGrid } from '@floor/vlist';
@@ -41,7 +41,7 @@ gallery.update({ grid: { columns: 6 } });
 
 ---
 
-## `withSections()` — Grouped Lists
+## withSections() — Grouped Lists
 
 ```typescript
 import { vlist, withSections } from '@floor/vlist';
@@ -65,7 +65,7 @@ const contacts = vlist({
 
 ---
 
-## `withAsync()` — Lazy Loading
+## withAsync() — Lazy Loading
 
 ```typescript
 import { vlist, withAsync } from '@floor/vlist';
@@ -96,7 +96,7 @@ const feed = vlist({
 
 ---
 
-## `withSelection()` — Item Selection
+## withSelection() — Item Selection
 
 ```typescript
 import { vlist, withSelection } from '@floor/vlist';
@@ -129,7 +129,7 @@ list.update({ selectionMode: 'single' });
 
 ---
 
-## `withScale()` — 1M+ Items
+## withScale() — 1M+ Items
 
 ```typescript
 import { vlist, withScale, withScrollbar } from '@floor/vlist';
@@ -148,7 +148,7 @@ const bigList = vlist({
 
 ---
 
-## `withScrollbar()` — Custom Scrollbar
+## withScrollbar() — Custom Scrollbar
 
 ```typescript
 import { vlist, withScrollbar } from '@floor/vlist';
@@ -173,7 +173,7 @@ const list = vlist({
 
 ---
 
-## `withPage()` — Document Scrolling
+## withPage() — Document Scrolling
 
 ```typescript
 import { vlist, withPage, withAsync } from '@floor/vlist';
@@ -195,7 +195,7 @@ Cannot combine with `withScrollbar()` or `orientation: 'horizontal'`.
 
 ---
 
-## `withSnapshots()` — Scroll Save/Restore
+## withSnapshots() — Scroll Save/Restore
 
 Included in the base — no import needed.
 

@@ -1402,7 +1402,7 @@ This pattern already existed in other parts of the codebase (reverse mode, appen
 - [context.md](../internals/context.md) — Context holds scroll controller
 - [optimization.md](/tutorials/optimization) — Full list of scroll-related optimizations
 - [styles.md](/tutorials/styling) — `.vlist--scrolling` class and CSS containment
-- [vlist.md](/tutorials/getting-started) — Main vlist documentation (window scrolling, scroll save/restore)
+- [vlist.md](/) — Main vlist documentation (window scrolling, scroll save/restore)
 
 ---
 

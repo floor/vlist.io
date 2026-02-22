@@ -411,7 +411,7 @@ All modern bundlers support ES modules tree-shaking.
 ## See Also
 
 - **[Builder Pattern](/tutorials/builder-pattern)** - How to compose features
-- **[Features Overview](../features/README.md)** - All available features
+- **[Features Overview](../features/overview.md)** - All available features
 - **[Optimization Guide](/tutorials/optimization)** - Performance tuning
 - **[Benchmarks](./benchmarks.md)** - Performance metrics
 

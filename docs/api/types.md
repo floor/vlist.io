@@ -871,7 +871,7 @@ const item = list.items[0] as any;
 
 ## Related Modules
 
-- [vlist.md](/tutorials/getting-started) - Main documentation with configuration examples
+- [vlist.md](/) - Main documentation with configuration examples
 - [context.md](../internals/context.md) - Internal context types
 - [render.md](../internals/rendering.md) - Scale state, DOMStructure types
 - [async.md](../features/async.md) - DataState, SparseStorage types

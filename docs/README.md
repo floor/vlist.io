@@ -25,7 +25,7 @@ This documentation now focuses on **reference material** only.
 
 | Feature | Bundle Cost | Description |
 |--------|-------------|-------------|
-| **[Features Overview](./features/README.md)** | – | All features with minimal examples |
+| **[Features Overview](./features/overview.md)** | – | All features with minimal examples |
 | **[Grid](./features/grid.md)** | +4.0 KB | 2D grid layout with virtualised rows |
 | **[Sections](./features/sections.md)** | +4.6 KB | Grouped lists with sticky/inline headers |
 | **[Async](./features/async.md)** | +5.3 KB | Async data loading with lazy loading |

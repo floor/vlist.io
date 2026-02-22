@@ -665,7 +665,7 @@ list.restoreScroll(saved);
 ## Related Documentation
 
 - [Optimization Guide](/tutorials/optimization) — Implemented performance optimizations
-- [Main Documentation](/tutorials/getting-started) — Configuration and usage
+- [Main Documentation](/) — Configuration and usage
 - [Scale Guide](../features/scale.md) — How 1M+ item compression works
 - [Accessibility Guide](/tutorials/accessibility) — WAI-ARIA implementation, keyboard navigation, screen reader support
 - [Benchmarks Guide](./benchmarks.md) — Performance suites, scroll FPS architecture, rating system

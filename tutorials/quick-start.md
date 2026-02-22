@@ -278,8 +278,8 @@ list.removeItem(5);
 
 ## Next Steps
 
-- **[Getting Started](./getting-started)** — Installation, configuration, TypeScript
+- **[Getting Started](/docs/getting-started)** — Installation, configuration, TypeScript
 - **[Builder Pattern](./builder-pattern)** — Features, composition, bundle costs
-- **[Feature Docs](/docs/features/README)** — All features with examples
+- **[Feature Docs](/docs/features/overview)** — All features with examples
 - **[API Reference](/docs/api/reference)** — Complete method and event reference
 - **[Examples](/examples/)** — 34 interactive examples

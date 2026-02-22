@@ -23,7 +23,7 @@
     "label": "Features",
     "cards": [
       {
-        "slug": "features/README",
+        "slug": "features/overview",
         "name": "Overview",
         "desc": "All 8 features with examples, costs, and compatibility"
       },
