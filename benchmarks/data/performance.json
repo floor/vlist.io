@@ -1,17 +1,17 @@
 [
   {
     "lib": "vlist",
-    "renderTime": "8.5",
-    "memory": "0.24",
-    "scrollFPS": "120.5",
-    "p95Frame": "9.2",
+    "renderTime": "8.2",
+    "memory": "0.23",
+    "scrollFPS": "120",
+    "p95Frame": "10.5",
     "ecosystem": "Vanilla JS",
     "self": true
   },
   {
     "lib": "react-window",
-    "renderTime": "9.1",
-    "memory": "2.26",
+    "renderTime": "8.3",
+    "memory": "1.3",
     "scrollFPS": "120.5",
     "p95Frame": "9.1",
     "ecosystem": "React",
@@ -19,28 +19,28 @@
   },
   {
     "lib": "TanStack Virtual",
-    "renderTime": "9.1",
-    "memory": "2.26",
+    "renderTime": "57",
+    "memory": "124.41",
     "scrollFPS": "120.5",
-    "p95Frame": "9.1",
+    "p95Frame": "9.2",
     "ecosystem": "React",
     "self": false
   },
   {
     "lib": "Virtua",
-    "renderTime": "17.2",
-    "memory": "14.3",
+    "renderTime": "1616.4",
+    "memory": "1293.35",
     "scrollFPS": "120.5",
-    "p95Frame": "9.0",
+    "p95Frame": "9.07",
     "ecosystem": "React",
     "self": false
   },
   {
     "lib": "vue-virtual-scroller",
-    "renderTime": "13.4",
-    "memory": "10.97",
+    "renderTime": "877.1",
+    "memory": "900.43",
     "scrollFPS": "120.5",
-    "p95Frame": "10.4",
+    "p95Frame": "10.31",
     "ecosystem": "Vue",
     "self": false
   }
