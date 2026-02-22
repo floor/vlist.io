@@ -1,4 +1,4 @@
-# Scale Plugin (Large Datasets)
+# Scale Feature (Large Datasets)
 
 > Handle 1M+ items with automatic scroll scaling that works around browser height limits.
 
@@ -16,7 +16,7 @@ Result: Scrollbar breaks, can't reach end of list
 
 ### The Solution
 
-The `withScale()` plugin automatically detects when scaling is needed and switches from native scrolling to **manual wheel-based scrolling**:
+The `withScale()` feature automatically detects when scaling is needed and switches from native scrolling to **manual wheel-based scrolling**:
 
 1. **Native mode** (`overflow: auto`): Standard browser scrolling for smaller lists
 2. **Scaled mode** (`overflow: hidden`): Manual wheel event handling for large lists
@@ -240,7 +240,7 @@ const list = vlist({
   .build();
 ```
 
-See [Scrollbar Plugin](./scrollbar.md) for full documentation.
+See [Scrollbar Feature](./scrollbar.md) for full documentation.
 
 ## Examples
 
@@ -356,11 +356,11 @@ Scaling has minimal performance impact:
 - **Render performance:** Identical to non-scaled mode
 - **Smooth scrolling:** 60fps with 1M+ items
 
-The plugin only activates when needed, so smaller lists have zero overhead.
+The feature only activates when needed, so smaller lists have zero overhead.
 
 ## Browser Compatibility
 
-The scale plugin works in all modern browsers:
+The scale feature works in all modern browsers:
 
 - ✅ Chrome 90+
 - ✅ Firefox 88+
@@ -372,13 +372,13 @@ Maximum height limits vary slightly by browser:
 - Firefox: ~17.8M px
 - Safari: ~16.7M px
 
-The plugin uses a conservative 16M px limit for cross-browser compatibility.
+The feature uses a conservative 16M px limit for cross-browser compatibility.
 
-## Combining with Other Plugins
+## Combining with Other Features
 
-`withScale()` works seamlessly with all other plugins:
+`withScale()` works seamlessly with all other features:
 
-| Plugin | Compatible | Notes |
+| Feature | Compatible | Notes |
 |--------|------------|-------|
 | `withGrid()` | ✅ Yes | Scales grid rows automatically |
 | `withSections()` | ✅ Yes | Scales grouped layout |
@@ -398,10 +398,10 @@ The plugin uses a conservative 16M px limit for cross-browser compatibility.
 
 ## Related
 
-- [Scrollbar Plugin](./scrollbar.md) - Custom scrollbar (required for scaled mode)
-- [Grid Plugin](./grid.md) - 2D grid layout with scaling support
-- [Sections Plugin](./sections.md) - Grouped lists with scaling support
-- [Page Plugin](./page.md) - Window scrolling with mathematical scaling
+- [Scrollbar Feature](./scrollbar.md) - Custom scrollbar (required for scaled mode)
+- [Grid Feature](./grid.md) - 2D grid layout with scaling support
+- [Sections Feature](./sections.md) - Grouped lists with scaling support
+- [Page Feature](./page.md) - Window scrolling with mathematical scaling
 
 ---
 

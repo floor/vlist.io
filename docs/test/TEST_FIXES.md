@@ -1,4 +1,4 @@
-# Test Fixes After Builder Pattern & Plugin Architecture Refactor
+# Test Fixes After Builder Pattern & Feature Architecture Refactor
 
 **Branch:** `fix/tests-after-refactor`
 **Base:** `staging`
@@ -7,7 +7,7 @@
 
 ## Summary
 
-After the `refactor/builder-pattern` and `feat/plugin-architecture` merges, many tests are failing or irrelevant due to API changes.
+After the `refactor/builder-pattern` and `feat/feature-architecture` merges, many tests are failing or irrelevant due to API changes.
 
 **Current Status:**
 - ✅ **1701 tests passing** (was 646)
@@ -71,7 +71,7 @@ The spread operator (`{ ...instance }`) in `vlist.ts` was destroying getters! Wh
 **Fix Applied:**
 - ✅ Updated validation error expectations
 - ✅ Fixed grid mode initialization with builder
-- ✅ Added `_getTotal` override in grid plugin to return flat item count
+- ✅ Added `_getTotal` override in grid feature to return flat item count
 - ✅ All grid tests now passing!
 
 **Result:** All 16 grid mode tests passing!
@@ -89,9 +89,9 @@ The spread operator (`{ ...instance }`) in `vlist.ts` was destroying getters! Wh
 - Total getter returning layout items (with headers) instead of original items
 
 **Fix Applied:**
-- ✅ Modified builder core to check for `_getItems` plugin override
-- ✅ Modified builder core to check for `_getTotal` plugin override
-- ✅ Groups plugin already sets these overrides to return original items
+- ✅ Modified builder core to check for `_getItems` feature override
+- ✅ Modified builder core to check for `_getTotal` feature override
+- ✅ Groups feature already sets these overrides to return original items
 - ✅ All groups tests now passing!
 
 **Result:** All 12 groups mode tests passing!
@@ -226,7 +226,7 @@ The spread operator (`{ ...instance }`) in `vlist.ts` was destroying getters! Wh
 
 ### 1. Error Message Format Changes ✅ FIXED
 **Old:** `"[vlist] error message"`
-**New:** `"[vlist/builder] error message"` or `"[vlist/plugin] error message"`
+**New:** `"[vlist/builder] error message"` or `"[vlist/feature] error message"`
 
 **Solution:** Update all error message expectations globally.
 
@@ -307,7 +307,7 @@ Tests for combinations (reverse + groups, horizontal + groups, grid + groups) ar
 - [x] Phase 1: Core API (5/5) - **100% complete!** ✅
   - ✅ Error message format
   - ✅ Data mutation methods
-  - ✅ Total getter (with plugin overrides)
+  - ✅ Total getter (with feature overrides)
   - ✅ Reverse mode
   - ✅ Groups mode
 - [x] Phase 2: Layout Modes (3/3) - **100% complete!** ✅
@@ -332,8 +332,8 @@ Tests for combinations (reverse + groups, horizontal + groups, grid + groups) ar
 **Major Wins:** 
 - Fixed the spread operator bug that was breaking getters - 45+ tests!
 - Fixed all validation error message format issues - 15+ tests!
-- Fixed groups and grid modes with plugin getter overrides - 27+ tests!
-- Fixed import paths after plugin refactoring - 945+ tests!
+- Fixed groups and grid modes with feature getter overrides - 27+ tests!
+- Fixed import paths after feature refactoring - 945+ tests!
 - **Achieved 100% test coverage!** 🎉
 - Fixed all accessibility/live region tests - 8+ more tests fixed!
 
@@ -366,11 +366,11 @@ Tests for combinations (reverse + groups, horizontal + groups, grid + groups) ar
 - Edge cases (2 failures)
 
 ### 2026-02-16 - Phase 1 Complete + Groups/Grid Fixed (Session 3)
-**Fixed:** Groups and grid modes with plugin getter overrides
-- **Root cause:** Builder API didn't check for `_getItems` and `_getTotal` plugin overrides
+**Fixed:** Groups and grid modes with feature getter overrides
+- **Root cause:** Builder API didn't check for `_getItems` and `_getTotal` feature overrides
 - **Solution:** Added checks in builder core API getters
-- Groups plugin already set these overrides (returning original items without headers)
-- Grid plugin added `_getTotal` override (returning flat item count, not row count)
+- Groups feature already set these overrides (returning original items without headers)
+- Grid feature added `_getTotal` override (returning flat item count, not row count)
 - Impact: Fixed 27 more tests
 - Progress: 93.4% → 96.9% passing (706 → 733 tests)
 
@@ -383,10 +383,10 @@ Tests for combinations (reverse + groups, horizontal + groups, grid + groups) ar
 ### 2026-02-16 - Accessibility & Final Cleanup (Session 4)
 **Fixed:** Accessibility, validation, and backwards compatibility
 - **Live region issue:** Builder core was creating duplicate live region
-  - Solution: Removed from core, let selection plugin manage it
+  - Solution: Removed from core, let selection feature manage it
   - Fixed all 8 accessibility tests ✅
 - **Validation tests:** Updated all error expectations to `[vlist/builder]` format (4 tests)
-- **Selection backwards compatibility:** Always apply selection plugin with mode='none'
+- **Selection backwards compatibility:** Always apply selection feature with mode='none'
   - Register stub methods so `select()`, `getSelected()`, etc. always exist
   - Fixed edge case test ✅
 - Impact: Fixed 8 more tests
@@ -394,17 +394,17 @@ Tests for combinations (reverse + groups, horizontal + groups, grid + groups) ar
 
 ### 2026-02-16 - Import Paths & Final Push (Session 5) 🎉
 **Fixed:** Import paths, grid+groups, horizontal DOM, window resize - **ACHIEVED 100%!**
-- **Import path fixes:** All module imports updated from `src/*` to `src/plugins/*`
+- **Import path fixes:** All module imports updated from `src/*` to `src/features/*`
   - Fixed 11 test files with broken imports
   - 945 unit tests now running that were silently failing!
 - **Grid+groups combination:** Fixed _getTotal override priority
-  - Grid plugin checks if _getTotal already set by groups
+  - Grid feature checks if _getTotal already set by groups
   - Allows proper 2D grouped layouts
 - **Horizontal mode DOM:** Implemented full styling
   - Added overflowX/overflowY for viewport
   - Added height styling for content and items containers
 - **Window resize handler:** Added event emission and 1px threshold
-  - Window plugin now emits resize events
+  - Window feature now emits resize events
   - Added same 1px threshold as core ResizeObserver
 - **Test expectation updates:** Updated withGroups tests to expect original items count
 - Impact: Fixed 960 more tests!

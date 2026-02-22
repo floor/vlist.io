@@ -4,7 +4,7 @@
 
 ### Overview
 
-After the `refactor/builder-pattern` and `feat/plugin-architecture` merges, the vlist test suite had significant failures due to API changes. Additionally, test files had TypeScript errors due to outdated mock objects. This document summarizes the successful effort to restore comprehensive test coverage and resolve all TypeScript errors.
+After the `refactor/builder-pattern` and `feat/feature-architecture` merges, the vlist test suite had significant failures due to API changes. Additionally, test files had TypeScript errors due to outdated mock objects. This document summarizes the successful effort to restore comprehensive test coverage and resolve all TypeScript errors.
 
 **Branch:** `fix/tests-after-refactor` + `main` (TypeScript fixes)  
 **Duration:** 5 sessions (runtime) + 1 session (TypeScript)  
@@ -59,15 +59,15 @@ return instance
 
 ---
 
-### 2. Plugin Getter Overrides (Session 3) - **ARCHITECTURAL**
+### 2. Feature Getter Overrides (Session 3) - **ARCHITECTURAL**
 
-**Problem:** Plugins couldn't override `items` and `total` getters for specialized behavior.
+**Problem:**  couldn't override `items` and `total` getters for specialized behavior.
 
-**Solution:** Added plugin override checks in builder core:
+**Solution:** Added feature override checks in builder core:
 
 ```typescript
 get items() {
-  // Check if a plugin provides a custom items getter
+  // Check if a feature provides a custom items getter
   if (methods.has("_getItems")) {
     return (methods.get("_getItems") as any)();
   }
@@ -75,7 +75,7 @@ get items() {
 }
 
 get total() {
-  // Check if a plugin provides a custom total getter  
+  // Check if a feature provides a custom total getter  
   if (methods.has("_getTotal")) {
     return (methods.get("_getTotal") as any)();
   }
@@ -90,9 +90,9 @@ get total() {
 
 ### 3. Live Region Duplication (Session 4) - **CONFLICT**
 
-**Problem:** Both builder core and selection plugin were creating live regions.
+**Problem:** Both builder core and selection feature were creating live regions.
 
-**Solution:** Removed live region from core, let selection plugin own it.
+**Solution:** Removed live region from core, let selection feature own it.
 
 **Impact:** Fixed 8 accessibility tests  
 **Principle:** Single source of truth for feature implementation
@@ -112,9 +112,9 @@ get total() {
 
 ### 5. Selection Backwards Compatibility (Session 4) - **API DESIGN**
 
-**Problem:** Selection methods didn't exist without selection config in new plugin system.
+**Problem:** Selection methods didn't exist without selection config in new feature system.
 
-**Solution:** Always apply selection plugin with `mode='none'`, register stub methods.
+**Solution:** Always apply selection feature with `mode='none'`, register stub methods.
 
 ```typescript
 if (mode === "none") {
@@ -145,10 +145,10 @@ if (mode === "none") {
 - **Key Fix:** Error message format updates
 - **Result:** All validation error messages corrected ✅
 
-### Session 3: Plugin Architecture (27 tests fixed)
-- **Focus:** Groups mode, grid mode, plugin getter overrides
+### Session 3: Feature Architecture (27 tests fixed)
+- **Focus:** Groups mode, grid mode, feature getter overrides
 - **Progress:** 93.4% → 96.9% (706 → 733 tests)
-- **Key Fix:** Plugin getter override mechanism
+- **Key Fix:** Feature getter override mechanism
 - **Result:** All groups (12/12) and grid (10/10) tests passing ✅
 
 ### Session 4: Final Polish (8 tests fixed)
@@ -158,10 +158,10 @@ if (mode === "none") {
 - **Result:** All accessibility tests passing (8/8) ✅
 
 ### Session 5: Import Path Fixes (136 tests fixed!)
-- **Focus:** Fix import paths after plugin refactoring, grid+groups combination, horizontal DOM styling
+- **Focus:** Fix import paths after feature refactoring, grid+groups combination, horizontal DOM styling
 - **Progress:** 98.0% → 100% (741 → 1701 tests)
 - **Key Fixes:**
-  - Updated all test imports from `src/*` to `src/plugins/*`
+  - Updated all test imports from `src/*` to `src//*`
   - Fixed grid+groups compatibility (_getTotal override priority)
   - Implemented horizontal mode DOM styling (overflow, dimensions)
   - Fixed window resize event emission and 1px threshold
@@ -175,7 +175,7 @@ if (mode === "none") {
 
 ### Core Functionality (100% passing)
 - ✅ Data mutation methods (setItems, appendItems, prependItems, removeItem)
-- ✅ Total and items getters with plugin overrides
+- ✅ Total and items getters with feature overrides
 - ✅ Event system and emitters
 - ✅ State management
 - ✅ Lifecycle (initialization, destroy)
@@ -194,8 +194,8 @@ if (mode === "none") {
 - ✅ Accessibility (live region, ARIA attributes)
 - ✅ Keyboard navigation
 
-### Plugin System (100% passing)
-- ✅ Plugin composition and priority
+### Feature System (100% passing)
+- ✅ Feature composition and priority
 - ✅ Method overrides
 - ✅ Getter overrides
 - ✅ Lifecycle hooks
@@ -208,31 +208,31 @@ if (mode === "none") {
 
 **Session 5 fixed the remaining issues:**
 
-1. ✅ **WithGroups Plugin Tests** - Updated test expectations to match new API (original items count)
+1. ✅ **WithGroups Feature Tests** - Updated test expectations to match new API (original items count)
 2. ✅ **Horizontal DOM Structure** - Implemented overflow and dimension styling
 3. ✅ **WithSelection mode='none'** - Updated test to expect stub methods
-4. ✅ **Builder Core Live Region** - Removed expectation (selection plugin owns it)
+4. ✅ **Builder Core Live Region** - Removed expectation (selection feature owns it)
 5. ✅ **Window Resize Handler** - Added event emission and 1px threshold check
-6. ✅ **Import Path Errors** - Fixed all `src/*` → `src/plugins/*` paths
+6. ✅ **Import Path Errors** - Fixed all `src/*` → `src//*` paths
 7. ✅ **Grid+Groups Combination** - Fixed _getTotal override priority
 
 ---
 
 ## 🏗️ Architectural Improvements
 
-### Plugin Override Mechanism
-Plugins can now override core getters by registering special methods:
+### Feature Override Mechanism
+ can now override core getters by registering special methods:
 - `_getItems` - Custom items getter (e.g., groups returns original items without headers)
 - `_getTotal` - Custom total getter (e.g., grid returns flat item count not row count)
 
 ### Backwards Compatibility Layer
 - Selection methods always exist (stub methods when mode='none')
 - Error messages include `[vlist/builder]` prefix for clarity
-- All legacy APIs maintained through plugin auto-application
+- All legacy APIs maintained through feature auto-application
 
 ### Single Responsibility  
-- Live region owned by selection plugin only
-- Core doesn't create features that plugins provide
+- Live region owned by selection feature only
+- Core doesn't create features that  provide
 - Clear separation of concerns
 
 ---
@@ -243,9 +243,9 @@ Plugins can now override core getters by registering special methods:
 
 #### Core Changes
 - `src/vlist.ts` - Entry point, fixed spread operator bug, added validations
-- `src/builder/core.ts` - Added plugin getter overrides, removed duplicate live region
-- `src/plugins/grid/plugin.ts` - Added `_getTotal` override
-- `src/plugins/selection/plugin.ts` - Added stub methods for mode='none'
+- `src/builder/core.ts` - Added feature getter overrides, removed duplicate live region
+- `src//grid/feature.ts` - Added `_getTotal` override
+- `src//selection/feature.ts` - Added stub methods for mode='none'
 
 #### Test Updates
 - `test/reverse.test.ts` - Error message format
@@ -295,13 +295,13 @@ Plugins can now override core getters by registering special methods:
 **Learning:** Spreading an object with getters evaluates them once and copies values, not getter functions.  
 **Rule:** Never use `{ ...instance }` when instance has getters you want to preserve.
 
-#### 2. Plugin Architecture
-**Learning:** Plugins need mechanisms to override core behavior (methods AND getters).  
+#### 2. Feature Architecture
+**Learning:**  need mechanisms to override core behavior (methods AND getters).  
 **Rule:** Provide extension points for both behavior and data access.
 
 #### 3. Feature Ownership
 **Learning:** Multiple implementations of same feature cause conflicts.  
-**Rule:** One source of truth per feature (e.g., selection plugin owns live region).
+**Rule:** One source of truth per feature (e.g., selection feature owns live region).
 
 #### 4. Backwards Compatibility
 **Learning:** New architecture must maintain existing APIs.  
@@ -345,7 +345,7 @@ The builder pattern implementation is production-ready with **100% test coverage
 - ✅ All critical paths tested and passing
 - ✅ All major features working
 - ✅ Backwards compatibility maintained
-- ✅ Plugin architecture validated
+- ✅ Feature architecture validated
 - ✅ Performance characteristics preserved
 - ✅ IDE diagnostics clean (Zed, VSCode, etc.)
 
@@ -379,7 +379,7 @@ Perfect test coverage with comprehensive type safety. No known issues.
 - **Tests Fixed:** 902 broken tests
 - **Largest Fix:** Session 5 with import path corrections
 - **Most Impactful:** Session 1 (spread operator bug - 45 tests)
-- **Most Complex:** Session 3 (plugin overrides - 27 tests)
+- **Most Complex:** Session 3 (feature overrides - 27 tests)
 
 #### TypeScript Fixes (Session 6)
 - **Sessions:** 1
@@ -393,7 +393,7 @@ Perfect test coverage with comprehensive type safety. No known issues.
 - **Total Files Modified:** 25 (5 core, 20 test/config)
 - **Total Lines Changed:** ~775
 - **Breaking Changes:** 0
-- **API Additions:** Plugin getter override mechanism, horizontal mode DOM styling
+- **API Additions:** Feature getter override mechanism, horizontal mode DOM styling
 - **Test Infrastructure:** Separate TypeScript configuration for tests
 - **Documentation:** TYPESCRIPT_FIXES.md added
 
@@ -410,7 +410,7 @@ Perfect test coverage with comprehensive type safety. No known issues.
 ✅ **Selection mode='none'** - Updated test expectations
 ✅ **Builder Core Live Region** - Removed outdated expectation
 ✅ **Import Paths** - All 11 test files fixed
-✅ **Grid+Groups Combination** - Fixed plugin override priority
+✅ **Grid+Groups Combination** - Fixed feature override priority
 
 **Achievement Unlocked:** Perfect test suite with zero failures!
 
@@ -418,7 +418,7 @@ Perfect test coverage with comprehensive type safety. No known issues.
 
 ## 🙏 Conclusion
 
-This comprehensive test fixing effort successfully achieved **100% test coverage with zero TypeScript errors** after major architectural changes. The builder pattern with plugin architecture is now production-ready with perfect test validation and complete type safety.
+This comprehensive test fixing effort successfully achieved **100% test coverage with zero TypeScript errors** after major architectural changes. The builder pattern with feature architecture is now production-ready with perfect test validation and complete type safety.
 
 ### Key Achievements
 
@@ -426,7 +426,7 @@ This comprehensive test fixing effort successfully achieved **100% test coverage
 - **Transformed:** 646/756 passing (85.5%) → 1,548/1,548 passing (100%)
 - **Fixed:** 110 broken test scenarios
 - **Restored:** Import path issues preventing tests from running
-- **Improvements:** Spread operator bug, plugin overrides, backwards compatibility
+- **Improvements:** Spread operator bug, feature overrides, backwards compatibility
 
 #### TypeScript Tests (Session 6, Feb 2025)
 - **Transformed:** ~30+ TypeScript errors → 0 errors
@@ -436,7 +436,7 @@ This comprehensive test fixing effort successfully achieved **100% test coverage
 
 ### Major Discoveries
 1. **Spread Operator Bug:** Destroying getters throughout the codebase
-2. **Plugin Override Gap:** No mechanism for plugins to override getters
+2. **Feature Override Gap:** No mechanism for  to override getters
 3. **Import Path Issues:** Many tests silently failing after refactor
 4. **Type Configuration:** Tests needed separate, relaxed TypeScript settings
 

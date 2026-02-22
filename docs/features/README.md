@@ -1,10 +1,10 @@
-# Plugins
+# Features
 
-> All plugins are tree-shaken — you only pay for what you import and use.
+> All features are tree-shaken — you only pay for what you import and use.
 
 ## Quick Reference
 
-| Plugin | Cost | Description |
+| Feature | Cost | Description |
 |---|---|---|
 | `withGrid()` | +4.0 KB | 2D grid layout (virtualises by row) |
 | `withSections()` | +4.6 KB | Grouped lists with sticky or inline section headers |
@@ -219,6 +219,6 @@ if (saved) list.restoreScroll(saved);
 
 ## See Also
 
-- **[Builder Pattern](/tutorials/builder-pattern)** — How `.use()` / `.build()` works and plugin compatibility
-- **[Quick Start](/tutorials/quick-start)** — Copy-paste examples combining multiple plugins
+- **[Builder Pattern](/tutorials/builder-pattern)** — How `.use()` / `.build()` works and feature compatibility
+- **[Quick Start](/tutorials/quick-start)** — Copy-paste examples combining multiple features
 - **[API Reference](../api/reference.md)** — All methods and events

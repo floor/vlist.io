@@ -79,7 +79,7 @@ Pure functions with zero dependencies on `materialize()` closure state. Extracte
 | `builder/range.ts` | `calcVisibleRange`, `applyOverscan`, `calcScrollToPosition` | 80 |
 | `builder/scroll.ts` | `easeInOutQuad`, `resolveScrollArgs`, `DEFAULT_SMOOTH_DURATION` | 54 |
 
-For HeightCache and Emitter, the inlined copies in `core.ts` were simplified duplicates of modules that already existed in `rendering/heights.ts` and `events/emitter.ts`. Both are functionally equivalent, so the inlined copies were deleted and replaced with imports from the existing modules. This deduplication actually made the bundle **smaller** since the rendering and events modules were already pulled into the bundle by plugins.
+For HeightCache and Emitter, the inlined copies in `core.ts` were simplified duplicates of modules that already existed in `rendering/heights.ts` and `events/emitter.ts`. Both are functionally equivalent, so the inlined copies were deleted and replaced with imports from the existing modules. This deduplication actually made the bundle **smaller** since the rendering and events modules were already pulled into the bundle by features.
 
 ### Phase 1 Results
 
@@ -280,14 +280,14 @@ const $: MRefs<T> = {
 **Solution:** Already configurable, but document better
 **Estimated savings:** Negligible (elements are recycled)
 
-### Plugin Memory Audits
+### Feature Memory Audits
 
-Audit each plugin's memory footprint:
+Audit each feature's memory footprint:
 - `withData` — may cache ranges unnecessarily
 - `withSelection` — selection Set grows with selected items
 - `withCompression` — additional state for virtual scrolling
 
-Document memory impact in plugin docs.
+Document memory impact in feature docs.
 
 ---
 
@@ -322,7 +322,7 @@ bun run benchmark:compare   # vs competitors
 2. **Fix items array copy** ← Biggest memory win (~20 MB per 100K items)
 3. **Create benchmark suite** ← Validate performance claims
 4. **Make idToIndex optional** ← Medium memory win (~3 MB per 100K items)
-5. **Audit plugin memory** ← Document and optimize
+5. **Audit feature memory** ← Document and optimize
 6. **Profile production workloads** ← Real-world validation
 
 ---

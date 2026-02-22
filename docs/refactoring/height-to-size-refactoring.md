@@ -2,7 +2,7 @@
 
 **Status**: ✅ Complete  
 **Branch**: `refactor/height-to-size-cache`  
-**Date**: January 2025  
+**Date**: January 2026  
 **Version**: 0.8.2 → 0.9.0 (Breaking Changes)  
 **Impact**: Complete semantic overhaul of dimension-specific terminology
 
@@ -137,7 +137,7 @@ compression.virtualSize               // virtualWidth ✅
 | `totalHeight` | `totalSize` | Property |
 | `actualHeight` | `actualSize` | Property |
 
-### CompressionState (Scale Plugin)
+### CompressionState (Scale Feature)
 
 | Old | New | Scope |
 |-----|-----|-------|
@@ -157,9 +157,9 @@ compression.virtualSize               // virtualWidth ✅
 
 | Old | New | Notes |
 |-----|-----|-------|
-| `baseHeight` | `baseSize` | Grid/sections plugin |
+| `baseHeight` | `baseSize` | Grid/sections feature |
 | `itemHeight` | `itemSize` | When referring to main-axis |
-| `groupedHeightFn` | `groupedSizeFn` | Sections plugin |
+| `groupedHeightFn` | `groupedSizeFn` | Sections feature |
 
 **Note:** Variables like `containerHeight` that refer to the actual HEIGHT dimension (cross-axis in horizontal mode) are kept as-is.
 
@@ -217,7 +217,7 @@ compression.virtualSize               // virtualWidth ✅
 ### Search & Replace Migration
 
 ```bash
-# For external plugins or custom code:
+# For external  or custom code:
 sed -i 's/HeightCache/SizeCache/g' **/*.ts
 sed -i 's/createHeightCache/createSizeCache/g' **/*.ts
 sed -i 's/\.getHeight(/.getSize(/g' **/*.ts
@@ -390,17 +390,17 @@ const scrollPosition = isHorizontal
 - ✅ `src/builder/types.ts`
 - ✅ `src/builder/range.ts`
 
-### Phase 4: Plugin Updates
-- ✅ `src/features/grid/plugin.ts`
+### Phase 4: Feature Updates
+- ✅ `src/features/grid/feature.ts`
 - ✅ `src/features/grid/renderer.ts`
-- ✅ `src/features/sections/plugin.ts`
+- ✅ `src/features/sections/feature.ts`
 - ✅ `src/features/sections/layout.ts`
 - ✅ `src/features/sections/sticky.ts`
 - ✅ `src/features/sections/index.ts`
-- ✅ `src/features/scale/plugin.ts`
-- ✅ `src/features/async/plugin.ts`
-- ✅ `src/features/selection/plugin.ts`
-- ✅ `src/features/snapshots/plugin.ts`
+- ✅ `src/features/scale/feature.ts`
+- ✅ `src/features/async/feature.ts`
+- ✅ `src/features/selection/feature.ts`
+- ✅ `src/features/snapshots/feature.ts`
 
 ### Phase 5: Test Updates
 - ✅ All test files updated to use new API
@@ -562,7 +562,7 @@ We're doing a **clean break at v0.9.0**:
 ```bash
 # Branch: refactor/height-to-size-cache (10 commits)
 
-cc19d18 - fix(async): fix scrollPosition parameter usage in async plugin
+cc19d18 - fix(async): fix scrollPosition parameter usage in async feature
   - Use scrollPosition parameter (not undefined scrollTop variable)
   - Formatting cleanup in afterScroll callbacks
   - All tests passing ✅
@@ -570,7 +570,7 @@ cc19d18 - fix(async): fix scrollPosition parameter usage in async plugin
 daf2916 - fix(events): complete scroll event API migration to scrollPosition
   - Update scroll event to emit scrollPosition property
   - Fix afterScroll handler parameter names
-  - Fix scale/plugin scrollbar callback
+  - Fix scale/feature scrollbar callback
   - All 1,181 tests passing ✅
 
 6b17814 - fix(types): complete dimension-agnostic refactoring
@@ -612,7 +612,7 @@ c09b880 - refactor(tests): update all test files to use SizeCache API
 
 7beda1d - refactor(core): update entire codebase to use SizeCache
   - Update 17 source files
-  - Update builder context and all plugins
+  - Update builder context and all 
   - Update all imports heights → sizes
 
 3e883da - refactor(core): add SizeCache implementation and tests
@@ -639,7 +639,7 @@ c09b880 - refactor(tests): update all test files to use SizeCache API
 - `materializectx.ts` - Comments and property access updated
 - `types.ts` - BuilderContext interface updated
 
-**Plugins:**
+**:**
 - `grid/` - baseHeight → baseSize, comments updated
 - `sections/` - baseHeight → baseSize, createGroupedSizeFn
 - `scale/` - All compression code uses virtualSize/actualSize
@@ -687,7 +687,7 @@ At v0.8.x, we're allowed to make breaking changes. Once we hit v1.0, this would 
 ### What Breaks
 
 - ✅ All external TypeScript code using vlist (caught at compile time)
-- ✅ Any plugins importing internal APIs
+- ✅ Any  importing internal APIs
 - ✅ Direct references to ViewportState or CompressionState
 
 ### What Doesn't Break
@@ -703,7 +703,7 @@ At v0.8.x, we're allowed to make breaking changes. Once we hit v1.0, this would 
 |-----------|--------|------|
 | Basic users | None | 0 min |
 | TypeScript users | Fix compile errors | 5-15 min |
-| Plugin developers | Update imports & types | 15-30 min |
+| Feature developers | Update imports & types | 15-30 min |
 | Advanced users | Update state access | 10-20 min |
 
 TypeScript makes migration **trivial** - the compiler finds all breaking changes.
@@ -740,7 +740,7 @@ This was more than a simple rename - it was a **complete semantic overhaul** tha
 - ✅ Viewport state (dimension-agnostic properties)
 - ✅ Compression system (size-based compression)
 - ✅ All builder internals
-- ✅ All 8 feature plugins
+- ✅ All 8 feature 
 - ✅ All 1,181 tests
 - ✅ Public API exports
 - ✅ Event APIs

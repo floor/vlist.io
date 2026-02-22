@@ -42,7 +42,7 @@ list.on('item:click', ({ item }) => console.log(item))
 
 ### `vlist(config)`
 
-Creates a `VListBuilder` — a chainable object that lets you compose feature plugins before finalizing the list.
+Creates a `VListBuilder` — a chainable object that lets you compose feature features before finalizing the list.
 
 ```ts
 function vlist<T extends VListItem>(config: BuilderConfig<T>): VListBuilder<T>
@@ -52,10 +52,10 @@ function vlist<T extends VListItem>(config: BuilderConfig<T>): VListBuilder<T>
 
 | Method | Description |
 |--------|-------------|
-| `.use(plugin)` | Register a feature plugin. Chainable. |
-| `.build()` | Materialize the list — creates DOM, initializes all plugins, returns the instance API. |
+| `.use(feature)` | Register a feature feature. Chainable. |
+| `.build()` | Materialize the list — creates DOM, initializes all features, returns the instance API. |
 
-**Example with plugins:**
+**Example with features:**
 
 ```ts
 import { vlist, withSelection, withScrollbar, withSnapshots } from '@floor/vlist'
@@ -503,7 +503,7 @@ getScrollPosition(): number
 
 ### Scroll Snapshot Methods
 
-> Requires `withSnapshots()` plugin.
+> Requires `withSnapshots()` feature.
 
 #### `getScrollSnapshot()`
 
@@ -543,7 +543,7 @@ list.restoreScroll(snap)
 
 ### Selection Methods
 
-> Requires `withSelection()` plugin.
+> Requires `withSelection()` feature.
 
 #### `select(...ids)`
 
@@ -680,12 +680,12 @@ useEffect(() => {
 
 ---
 
-## Plugin System
+## Feature System
 
-Plugins are registered with `.use()` before `.build()`. Each plugin has a unique name and an optional priority (lower = runs first, default 50). Plugins extend the instance with new methods and wire into the scroll/render pipeline.
+Features are registered with `.use()` before `.build()`. Each feature has a unique name and an optional priority (lower = runs first, default 50). Features extend the instance with new methods and wire into the scroll/render pipeline.
 
 ```ts
-vlist(config).use(pluginA).use(pluginB).build()
+vlist(config).use(featureA).use(featureB).build()
 ```
 
 ---
@@ -775,7 +775,7 @@ interface AdapterResponse<T> {
 
 ### `withScrollbar(options?)`
 
-Attaches the custom scrollbar. Without this plugin, VList has no visible scrollbar unless you use `scroll.scrollbar: 'native'`.
+Attaches the custom scrollbar. Without this feature, VList has no visible scrollbar unless you use `scroll.scrollbar: 'native'`.
 
 ```ts
 import { withScrollbar } from '@floor/vlist'
@@ -858,7 +858,7 @@ list.update({ grid: { columns: 2 } })
 
 ### `withScale()`
 
-Enables scaling mode for lists with 1M+ items. Without this plugin, VList caps at the browser's maximum `scrollHeight` (~33M px on most browsers), which limits lists to roughly 700K fixed-height items.
+Enables scaling mode for lists with 1M+ items. Without this feature, VList caps at the browser's maximum `scrollHeight` (~33M px on most browsers), which limits lists to roughly 700K fixed-height items.
 
 With `withScale`, the scroll space is scaled so virtually any item count is representable. The scrollbar and all scroll methods work correctly in scaled mode.
 
@@ -875,7 +875,7 @@ const list = vlist({
   .build()
 ```
 
-**No configuration required.** Scaling activates automatically when the total height exceeds the browser limit and is transparent to all other plugins.
+**No configuration required.** Scaling activates automatically when the total height exceeds the browser limit and is transparent to all other features.
 
 ---
 
@@ -999,7 +999,7 @@ type EventHandler<T> = (payload: T) => void
 
 ## Low-Level Exports
 
-These are exported for advanced use cases — building custom plugins, writing adapters, or integrating with framework wrappers.
+These are exported for advanced use cases — building custom features, writing adapters, or integrating with framework wrappers.
 
 ### Rendering Utilities
 
@@ -1113,14 +1113,14 @@ import {
 
 ---
 
-## Plugin Authoring
+## Feature Authoring
 
-Create your own plugins by implementing `VListPlugin`:
+Create your own features by implementing `VListFeature`:
 
 ```ts
-import type { VListPlugin, BuilderContext } from '@floor/vlist'
+import type { VListFeature, BuilderContext } from '@floor/vlist'
 
-function withMyFeature(): VListPlugin {
+function withMyFeature(): VListFeature {
   return {
     name: 'my-feature',
     priority: 60,

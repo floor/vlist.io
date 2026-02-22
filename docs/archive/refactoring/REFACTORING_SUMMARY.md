@@ -23,7 +23,7 @@ Successfully refactored VList library from dual-entry (monolithic + builder) to 
 
 ```
 Before                          After
-src/plugins/          →         src/features/
+src/features/          →         src/features/
 src/render/           →         src/rendering/
 src/vlist.ts          →         src/core/full.ts
 src/core.ts           →         src/core/lite.ts
@@ -40,7 +40,7 @@ src/core-light.ts     →         src/core/minimal.ts
 | `window` | **page** | Page-level scrolling more intuitive |
 | `groups` | **sections** | Clearer for grouped lists with headers |
 
-#### 3. Plugin Function Renames
+#### 3. Feature Function Renames
 
 ```typescript
 withCompression() → withScale()
@@ -53,7 +53,7 @@ withGroups()      → withSections()
 
 **Before:**
 ```typescript
-import { createVList } from 'vlist'  // 20-23 KB gzip, all plugins
+import { createVList } from 'vlist'  // 20-23 KB gzip, all features
 ```
 
 **After:**
@@ -90,11 +90,11 @@ const list = vlist(config)
 ead5edf docs: add refactoring completion summary
 495e945 test: update all test imports for new module structure
 8cf28dd refactor: update build script for new module structure
-c173f70 refactor: update all imports and rename plugin functions
+c173f70 refactor: update all imports and rename feature functions
 33a6e8e refactor: reorganize core files into core/ directory
 3e6de21 refactor: rename rendering files
 7e4d22c refactor: rename feature modules for clarity
-97dda13 refactor: rename plugins/ to features/ and render/ to rendering/
+97dda13 refactor: rename features/ to features/ and render/ to rendering/
 5047475 docs: add comprehensive refactoring plan for module organization
 ```
 
@@ -160,7 +160,7 @@ f7d7909 feat(sandbox): reduce message delay in reverse-chat example
 
 ### ✅ VList Library
 
-1. **Clear module organization** - `features/` and `rendering/` instead of `plugins/` and `render/`
+1. **Clear module organization** - `features/` and `rendering/` instead of `features/` and `render/`
 2. **Intuitive naming** - `scale`, `async`, `sections`, `page` instead of confusing names
 3. **Builder-only API** - Single entry point with optimal tree-shaking
 4. **2-3x smaller bundles** - Users pay only for what they use
@@ -172,7 +172,7 @@ f7d7909 feat(sandbox): reduce message delay in reverse-chat example
 1. **Most examples updated** - 28/34 examples using new API
 2. **Bundle size improvements** - 45-60% smaller across the board
 3. **Real-world validation** - New API works great in practice
-4. **Clear patterns** - Examples demonstrate proper plugin usage
+4. **Clear patterns** - Examples demonstrate proper feature usage
 
 ---
 
@@ -180,7 +180,7 @@ f7d7909 feat(sandbox): reduce message delay in reverse-chat example
 
 ### VList Library
 
-1. **Update package.json exports** - Remove old plugin exports
+1. **Update package.json exports** - Remove old feature exports
 2. **Update README.md** - Document new API
 3. **Create migration guide** - Help users transition
 4. **Publish beta version** - Get community feedback
@@ -205,9 +205,9 @@ f7d7909 feat(sandbox): reduce message delay in reverse-chat example
 ### Developer Experience
 
 ✅ **Clear API** - No confusion about which entry point to use  
-✅ **Explicit plugins** - Developers know exactly what's included  
+✅ **Explicit features** - Developers know exactly what's included  
 ✅ **Modern pattern** - Follows industry standards (Zustand, TanStack)  
-✅ **Better discoverability** - IDE autocomplete shows all plugins  
+✅ **Better discoverability** - IDE autocomplete shows all features  
 
 ### Maintainability
 
@@ -230,7 +230,7 @@ src/
 │   ├── lite.ts          # 10KB version (future export)
 │   └── minimal.ts       # 3KB version (future export)
 ├── builder/             # Unchanged
-├── features/            # Renamed from plugins/
+├── features/            # Renamed from features/
 │   ├── scale/          # Large dataset handling
 │   ├── async/          # Async data loading
 │   ├── scrollbar/      # Custom scrollbar UI
@@ -251,7 +251,7 @@ src/
 
 ### API Examples
 
-**Minimal usage (no plugins):**
+**Minimal usage (no features):**
 ```typescript
 import { vlist } from 'vlist'
 
@@ -263,7 +263,7 @@ const list = vlist({
 // Bundle: ~8 KB gzip
 ```
 
-**With plugins:**
+**With features:**
 ```typescript
 import { vlist, withGrid, withSections, withSelection } from 'vlist'
 
@@ -281,7 +281,7 @@ const list = vlist({
   }))
   .use(withSelection({ mode: 'multiple' }))
   .build()
-// Bundle: ~12 KB gzip (only includes used plugins)
+// Bundle: ~12 KB gzip (only includes used features)
 ```
 
 ---
@@ -332,7 +332,7 @@ const list = vlist({
 This refactoring represents a **major improvement** in both the VList library architecture and its developer experience:
 
 🎉 **2-3x smaller bundles** through optimal tree-shaking  
-🎉 **Clear, intuitive API** with explicit plugin usage  
+🎉 **Clear, intuitive API** with explicit feature usage  
 🎉 **Modern library patterns** following industry standards  
 🎉 **Production ready** with all tests passing  
 🎉 **Real-world validated** through example updates  

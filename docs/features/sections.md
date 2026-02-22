@@ -1,14 +1,14 @@
-# Sections Plugin
+# Sections Feature
 
 > Grouped lists with sticky or inline section headers.
 
 ## Overview
 
-The sections plugin transforms a flat list into sections with headers. Perfect for alphabetically sorted contacts, categorized items, or any list that needs visual grouping.
+The sections feature transforms a flat list into sections with headers. Perfect for alphabetically sorted contacts, categorized items, or any list that needs visual grouping.
 
 ### What It Does
 
-The sections plugin:
+The sections feature:
 - ✅ **Inserts section headers** at group boundaries
 - ✅ **Sticky headers** (optional) — iOS Contacts style
 - ✅ **Index mapping** — Translates between data indices and layout indices
@@ -30,7 +30,7 @@ const contacts = [
 ]
 ```
 
-The plugin:
+The feature:
 1. **Groups items** by first letter: A, B, C...
 2. **Inserts headers** at boundaries: [A-header, Alice, Amy, B-header, Bob, C-header, Carol...]
 3. **Virtualizes everything** — Only visible headers + items are rendered
@@ -87,10 +87,10 @@ const contacts = vlist({
 
 ## Configuration
 
-### GroupsPluginConfig
+### GroupsFeatureConfig
 
 ```typescript
-interface GroupsPluginConfig {
+interface GroupsFeatureConfig {
   /** Returns group key for item at index (required) */
   getGroupForIndex: (index: number) => string
 
@@ -191,7 +191,7 @@ sticky: false // iMessage style (inline date headers)
 
 ### How Sticky Headers Work
 
-When `sticky: true` (default), the plugin creates a special sticky header element that:
+When `sticky: true` (default), the feature creates a special sticky header element that:
 
 1. **Positions above the viewport** — Uses `position: absolute` with `top: 0`
 2. **Updates on scroll** — Shows the current section's header
@@ -351,7 +351,7 @@ Use data indices, not layout indices:
 // Scroll to Bob (3rd contact in data array)
 contacts.scrollToIndex(2, 'start')
 
-// The plugin translates:
+// The feature translates:
 // Data index 2 → Layout index 4 (after A-header, Alice, Amy, B-header)
 ```
 
@@ -359,7 +359,7 @@ contacts.scrollToIndex(2, 'start')
 
 ### Chat UI with Date Headers
 
-The sections plugin **works seamlessly with reverse mode** - both sticky and inline headers are supported:
+The sections feature **works seamlessly with reverse mode** - both sticky and inline headers are supported:
 
 ```typescript
 import { vlist } from 'vlist'
@@ -451,11 +451,11 @@ As you scroll up through history, older section headers stick at the top - perfe
 
 ## API Reference
 
-### Plugin Priority
+### Feature Priority
 
 **Priority:** `10` (runs early)
 
-The sections plugin runs before most other plugins because it:
+The sections feature runs before most other features because it:
 - Transforms the item list (inserts headers)
 - Replaces the height function
 - Modifies the template
@@ -521,7 +521,7 @@ contacts.on('scroll', ({ scrollTop, direction }) => {
 
 ### CSS Classes
 
-The plugin adds `.vlist--grouped` to the root element:
+The feature adds `.vlist--grouped` to the root element:
 
 ```css
 .vlist--grouped {
@@ -888,7 +888,7 @@ headerTemplate: (key) => {
 
 ## Further Reading
 
-- [Grid Plugin](./grid.md) — Combine groups with grid layout
-- [Selection Plugin](./selection.md) — Add selection to grouped lists
-- [Plugin System](./README.md) — How plugins work
+- [Grid Feature](./grid.md) — Combine groups with grid layout
+- [Selection Feature](./selection.md) — Add selection to grouped lists
+- [Feature System](./README.md) — How features work
 - [API Reference](/docs/api/reference) — Full API documentation

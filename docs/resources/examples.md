@@ -18,7 +18,7 @@ Then open http://localhost:3337/examples
 
 ## Structure
 
-The examples is organized by plugin architecture, with each folder representing either a plugin or a category of examples:
+The examples is organized by feature architecture, with each folder representing either a feature or a category of examples:
 
 ```
 examples/
@@ -42,18 +42,18 @@ examples/
 │       ├── vue/          # 213.6KB gzip
 │       └── svelte/       # 4.2KB gzip
 │
-├── grid/                 # Grid Plugin (vlist/grid)
+├── grid/                 # Grid Feature (vlist/grid)
 │   └── photo-album/
 │       ├── javascript/
 │       ├── react/
 │       ├── vue/
 │       └── svelte/
 │
-├── data/                 # Data Plugin (vlist (withAsync))
+├── data/                 # Data Feature (vlist (withAsync))
 │   ├── large-list/       # withScale (4 frameworks)
 │   └── velocity-loading/ # Async loading
 │
-├── groups/               # Sections Plugin (vlist (withSections))
+├── groups/               # Sections Feature (vlist (withSections))
 │   └── sticky-headers/   # A-Z contact list
 │
 ├── horizontal/           # Horizontal scrolling
@@ -78,10 +78,10 @@ examples/
 
 ### Single Framework Example
 
-1. Create a new folder in the appropriate plugin category:
+1. Create a new folder in the appropriate feature category:
 
 ```
-examples/my-plugin/my-example/
+examples/my-feature/my-example/
 ├── content.html
 ├── script.js
 └── styles.css
@@ -91,7 +91,7 @@ examples/my-plugin/my-example/
 
 ```bash
 bun run build:examples
-# Output: Found 33 examples including my-plugin/my-example
+# Output: Found 33 examples including my-feature/my-example
 ```
 
 ### Multi-Framework Example
@@ -99,7 +99,7 @@ bun run build:examples
 For examples with multiple framework variants:
 
 ```
-examples/my-plugin/my-example/
+examples/my-feature/my-example/
 ├── javascript/
 │   ├── content.html
 │   ├── script.js
@@ -243,9 +243,9 @@ const list = vlist({
 });
 ```
 
-### Builder Pattern with Plugins
+### Builder Pattern with Features
 
-Using `vlist/builder` for composable plugins:
+Using `vlist/builder` for composable features:
 
 ```javascript
 import { vlist } from "vlist/builder";
@@ -298,12 +298,12 @@ createRoot(document.getElementById("react-root")!).render(<App />);
 
 ## Organization Guidelines
 
-### When to Create a Plugin Folder
+### When to Create a Feature Folder
 
-Create a dedicated plugin folder (e.g., `grid/`, `data/`, `groups/`) when:
-- The example demonstrates a specific vlist plugin (e.g., `vlist/grid`, `vlist (withAsync)`)
-- You plan to have multiple examples for that plugin
-- The plugin is documented and stable
+Create a dedicated feature folder (e.g., `grid/`, `data/`, `groups/`) when:
+- The example demonstrates a specific vlist feature (e.g., `vlist/grid`, `vlist (withAsync)`)
+- You plan to have multiple examples for that feature
+- The feature is documented and stable
 
 ### When to Use Framework Variants
 

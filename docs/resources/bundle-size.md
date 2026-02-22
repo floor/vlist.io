@@ -1,10 +1,10 @@
 # Bundle Size & Tree-Shaking
 
-> How vlist achieves 2-3x smaller bundles through explicit plugin imports and perfect tree-shaking.
+> How vlist achieves 2-3x smaller bundles through explicit feature imports and perfect tree-shaking.
 
 ## Overview
 
-VList uses a **builder pattern with explicit plugins**. You import only the features you need, and bundlers eliminate everything else.
+VList uses a **builder pattern with explicit features**. You import only the features you need, and bundlers eliminate everything else.
 
 ```typescript
 import { vlist, withGrid, withSelection } from 'vlist';
@@ -26,7 +26,7 @@ All measurements from production builds (minified + gzipped):
 
 ### Real-World Examples
 
-| Example | Minified | Gzipped | Plugins Used |
+| Example | Minified | Gzipped | Features Used |
 |---------|----------|---------|--------------|
 | **Basic list** | 22.5 KB | **8.2 KB** | None |
 | **Controls** | 30.6 KB | **10.5 KB** | `withSelection()` |
@@ -37,11 +37,11 @@ All measurements from production builds (minified + gzipped):
 | **Large dataset** | 31.9 KB | **9.9 KB** | `withScale()` + `withScrollbar()` |
 | **File browser** | 46.2 KB | **15.3 KB** | `withGrid()` + `withSections()` + `withScrollbar()` |
 
-### Plugin Costs
+### Feature Costs
 
-Each plugin adds incrementally to the base bundle:
+Each feature adds incrementally to the base bundle:
 
-| Plugin | Incremental Cost (Gzipped) | Description |
+| Feature | Incremental Cost (Gzipped) | Description |
 |--------|---------------------------|-------------|
 | **Base** | 7.7 KB | Core virtualization |
 | `withGrid()` | +4.0 KB | 2D grid layout |
@@ -148,7 +148,7 @@ const list = vlist({ ... })
   .build();
 
 // Final bundle: 11.7 KB gzipped
-// Eliminated: ~10 KB of unused plugins
+// Eliminated: ~10 KB of unused features
 ```
 
 ## Bundle Analysis
@@ -208,7 +208,7 @@ vlist({ ... })
 
 **Bundle:**
 - Base: 7.7 KB gzipped
-- Plugins: +8.3 KB gzipped
+- Features: +8.3 KB gzipped
 - **Total: ~16 KB gzipped**
 
 Still smaller than traditional virtual lists!
@@ -227,15 +227,15 @@ import * as VList from 'vlist';  // Imports everything
 import { vlist, withGrid } from 'vlist';  // Only what you use
 ```
 
-### 2. Lazy Load Heavy Plugins
+### 2. Lazy Load Heavy Features
 
-For plugins only needed in certain views, use dynamic imports:
+For features only needed in certain views, use dynamic imports:
 
 ```typescript
 // Base list loads immediately
 const list = vlist({ ... }).build();
 
-// Grid plugin loads on demand
+// Grid feature loads on demand
 button.addEventListener('click', async () => {
   const { withGrid } = await import('vlist');
   
@@ -248,7 +248,7 @@ button.addEventListener('click', async () => {
 
 **Benefit:** Initial page load is smaller, grid code loads when needed.
 
-### 3. Conditional Plugin Loading
+### 3. Conditional Feature Loading
 
 ```typescript
 import { vlist, withSections } from 'vlist';
@@ -263,7 +263,7 @@ if (groupBy !== 'none') {
 const list = builder.build();
 ```
 
-**Benefit:** Bundle includes conditional plugin only if your app logic uses it.
+**Benefit:** Bundle includes conditional feature only if your app logic uses it.
 
 ### 4. Use CDN for Examples/Prototypes
 
@@ -294,7 +294,7 @@ npx webpack-bundle-analyzer stats.json
 
 **Rollup:**
 ```bash
-npx rollup-plugin-visualizer
+npx rollup-feature-visualizer
 ```
 
 **Vite:**
@@ -313,8 +313,8 @@ import { vlist, withGrid, withSelection } from 'vlist';
 
 **Bundle analyzer should show:**
 - ✅ `vlist/builder/core.js` (builder core)
-- ✅ `vlist/features/grid/` (grid plugin)
-- ✅ `vlist/features/selection/` (selection plugin)
+- ✅ `vlist/features/grid/` (grid feature)
+- ✅ `vlist/features/selection/` (selection feature)
 - ❌ NO `features/async/`
 - ❌ NO `features/scale/`
 - ❌ NO `features/sections/`
@@ -336,9 +336,9 @@ import { vlist, withGrid, withSelection } from 'vlist';
 
 8 KB gzipped is **very small** for all that functionality.
 
-### "Adding plugins makes the bundle bigger"
+### "Adding features makes the bundle bigger"
 
-**Answer:** Yes, that's expected! Each plugin adds specific functionality:
+**Answer:** Yes, that's expected! Each feature adds specific functionality:
 - withGrid adds 2D layout calculations
 - withAsync adds data fetching and sparse storage
 - withSelection adds selection state and keyboard navigation
@@ -353,14 +353,14 @@ The key is you **only pay for what you use**. Traditional virtual lists bundle e
 
 ### ✅ Do
 
-- Import only the plugins you actually use
+- Import only the features you actually use
 - Use dynamic imports for conditional features
 - Check bundle analysis in production builds
-- Measure before and after adding plugins
+- Measure before and after adding features
 
 ### ❌ Don't
 
-- Don't import plugins you don't use
+- Don't import features you don't use
 - Don't use wildcard imports (`import * from 'vlist'`)
 - Don't worry about 1-2 KB differences (focus on features)
 - Don't sacrifice functionality to save bytes (8-12 KB is already tiny)
@@ -370,7 +370,7 @@ The key is you **only pay for what you use**. Traditional virtual lists bundle e
 ### Q: Why is vlist smaller than other virtual lists?
 
 **A:** Three reasons:
-1. **Builder pattern** - Only used plugins are bundled
+1. **Builder pattern** - Only used features are bundled
 2. **Self-contained core** - No module overhead
 3. **Zero dependencies** - No external libraries
 
@@ -387,11 +387,11 @@ All modern bundlers support ES modules tree-shaking.
 
 ### Q: Can I see the exact bundle composition?
 
-**A:** Yes! Use webpack-bundle-analyzer or rollup-plugin-visualizer. You'll see each imported module and its size.
+**A:** Yes! Use webpack-bundle-analyzer or rollup-feature-visualizer. You'll see each imported module and its size.
 
-### Q: What if I need all plugins?
+### Q: What if I need all features?
 
-**A:** Even with all plugins, vlist is ~16 KB gzipped - still smaller than most virtual lists with basic features!
+**A:** Even with all features, vlist is ~16 KB gzipped - still smaller than most virtual lists with basic features!
 
 ### Q: How much overhead does the builder add?
 
@@ -410,8 +410,8 @@ All modern bundlers support ES modules tree-shaking.
 
 ## See Also
 
-- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose plugins
-- **[Plugins Overview](../plugins/README.md)** - All available plugins
+- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose features
+- **[Features Overview](../features/README.md)** - All available features
 - **[Optimization Guide](/tutorials/optimization)** - Performance tuning
 - **[Benchmarks](./benchmarks.md)** - Performance metrics
 

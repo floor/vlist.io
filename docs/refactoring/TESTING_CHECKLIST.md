@@ -91,11 +91,11 @@ Compare vlist vs react-window:
 - [ ] **100K items** - vlist render time should be competitive
 - [ ] **100K items** - vlist scroll FPS should be competitive
 
-### 🔌 Phase 5: Plugin Testing
+### 🔌 Phase 5: Feature Testing
 
-Test with plugins to ensure they still work:
+Test with features to ensure they still work:
 
-**Selection Plugin:**
+**Selection Feature:**
 - [ ] Select items by clicking
 - [ ] Select multiple items (Shift+click)
 - [ ] Keyboard navigation (Arrow keys)
@@ -103,24 +103,24 @@ Test with plugins to ensure they still work:
 - [ ] `getSelectedItems()` returns correct items
 - [ ] Selection classes applied correctly
 
-**Grid Plugin:**
+**Grid Feature:**
 - [ ] Grid renders correctly
 - [ ] Scroll works smoothly
 - [ ] Selection works with grid
 - [ ] Prepend/append items work
 
-**Scrollbar Plugin:**
+**Scrollbar Feature:**
 - [ ] Scrollbar appears
 - [ ] Dragging works
 - [ ] Proportional to content
 - [ ] Works with selection
 
-**Sections Plugin:**
+**Sections Feature:**
 - [ ] Sections render correctly
 - [ ] Headers are sticky
 - [ ] Selection works across sections
 
-**Snapshots Plugin:**
+**Snapshots Feature:**
 - [ ] `captureSnapshot()` works
 - [ ] `restoreSnapshot()` works
 - [ ] Works with selection state
@@ -223,7 +223,7 @@ Use this template to document any issues:
 **Issue #X: [Brief description]**
 
 - **Severity:** Critical / High / Medium / Low
-- **Component:** [e.g., Selection plugin, Memory benchmark]
+- **Component:** [e.g., Selection feature, Memory benchmark]
 - **Steps to reproduce:**
   1. ...
   2. ...
@@ -254,7 +254,7 @@ Before committing, verify:
 - [ ] All automated tests pass (1181/1181)
 - [ ] All memory benchmarks show ~0.04 MB constant usage
 - [ ] All performance benchmarks meet targets (>55 FPS, <500ms render)
-- [ ] All plugins work correctly
+- [ ] All features work correctly
 - [ ] All edge cases handled
 - [ ] No console errors or warnings
 - [ ] Visual testing complete
@@ -288,7 +288,7 @@ After committing (if tests pass):
 - Automated tests: ✅ Pass / ❌ Fail
 - Memory benchmarks: ✅ Pass / ❌ Fail
 - Performance benchmarks: ✅ Pass / ❌ Fail
-- Plugin testing: ✅ Pass / ❌ Fail
+- Feature testing: ✅ Pass / ❌ Fail
 - Integration testing: ✅ Pass / ❌ Fail
 - Edge cases: ✅ Pass / ❌ Fail
 - Visual testing: ✅ Pass / ❌ Fail

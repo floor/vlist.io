@@ -15,7 +15,7 @@ The data module handles all data-related operations in vlist, designed for effic
 ```
 src/features/async/
 ├── index.ts       # Module exports
-├── plugin.ts      # withAsync() plugin
+├── feature.ts      # withAsync() feature
 ├── manager.ts     # Data manager (main coordinator)
 ├── sparse.ts      # Sparse storage implementation
 └── placeholder.ts # Placeholder generation

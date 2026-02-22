@@ -20,50 +20,50 @@
     ]
   },
   {
-    "label": "Plugins",
+    "label": "Features",
     "cards": [
       {
-        "slug": "plugins/README",
+        "slug": "features/README",
         "name": "Overview",
-        "desc": "All 8 plugins with examples, costs, and compatibility"
+        "desc": "All 8 features with examples, costs, and compatibility"
       },
       {
-        "slug": "plugins/grid",
+        "slug": "features/grid",
         "name": "Grid",
         "desc": "2D grid layout with virtualized rows"
       },
       {
-        "slug": "plugins/sections",
+        "slug": "features/sections",
         "name": "Sections",
         "desc": "Grouped lists with sticky or inline headers"
       },
       {
-        "slug": "plugins/async",
+        "slug": "features/async",
         "name": "Async",
         "desc": "Async data loading with lazy loading and placeholders"
       },
       {
-        "slug": "plugins/selection",
+        "slug": "features/selection",
         "name": "Selection",
         "desc": "Single & multi-select with keyboard navigation"
       },
       {
-        "slug": "plugins/scale",
+        "slug": "features/scale",
         "name": "Scale",
         "desc": "Handle 1M+ items with automatic scroll compression"
       },
       {
-        "slug": "plugins/scrollbar",
+        "slug": "features/scrollbar",
         "name": "Scrollbar",
         "desc": "Custom scrollbar UI with auto-hide and smooth dragging"
       },
       {
-        "slug": "plugins/page",
+        "slug": "features/page",
         "name": "Page",
         "desc": "Document-level scrolling with native browser scrollbar"
       },
       {
-        "slug": "plugins/snapshots",
+        "slug": "features/snapshots",
         "name": "Snapshots",
         "desc": "Save and restore scroll position for SPA navigation"
       }
@@ -115,7 +115,7 @@
       {
         "slug": "internals/context",
         "name": "Context",
-        "desc": "BuilderContext and plugin system"
+        "desc": "BuilderContext and feature system"
       }
     ]
   }

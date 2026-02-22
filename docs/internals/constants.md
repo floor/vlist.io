@@ -427,8 +427,8 @@ const TUNED_PAGE_SIZE = 100;  // vs default 50
 ## Related Modules
 
 - [render.md](./rendering.md) - Uses `DEFAULT_OVERSCAN`, `MAX_VIRTUAL_HEIGHT`
-- [scrollbar.md](../plugins/scrollbar.md) - Uses `SCROLL_IDLE_TIMEOUT`, scrollbar constants
-- [async.md](../plugins/async.md) - Uses storage and placeholder constants
+- [scrollbar.md](../features/scrollbar.md) - Uses `SCROLL_IDLE_TIMEOUT`, scrollbar constants
+- [async.md](../features/async.md) - Uses storage and placeholder constants
 - [handlers.md](./handlers.md) - Uses `LOAD_MORE_THRESHOLD`, `INITIAL_LOAD_SIZE`, loading thresholds
 - [optimization.md](/tutorials/optimization) - Full list of implemented optimizations and configuration options
 

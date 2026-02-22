@@ -333,7 +333,7 @@ benchmarks/
 | `benchmarks/{name}/{variant}/suite.js` | Individual benchmark suite implementations (16 total) |
 | `benchmarks/renderer.ts` | Server-side rendering for benchmark pages (SSR variant switcher) |
 | `benchmarks/styles.css` | Benchmark page styles |
-| `benchmarks/build.ts` | Bun build script with framework deduplication plugin |
+| `benchmarks/build.ts` | Bun build script with framework deduplication feature |
 | `styles/shell.css` | Shared styles including variant switcher component |
 
 ### Build
@@ -350,9 +350,9 @@ Output goes to `benchmarks/dist/`:
 
 ### Framework Deduplication
 
-The build uses a **Bun plugin** to ensure React and Vue are deduplicated when vlist is linked (symlinked during development). Without this plugin, Bun would bundle React from both `vlist.dev/node_modules` and `vlist/node_modules`, causing "Invalid hook call" errors.
+The build uses a **Bun feature** to ensure React and Vue are deduplicated when vlist is linked (symlinked during development). Without this feature, Bun would bundle React from both `vlist.dev/node_modules` and `vlist/node_modules`, causing "Invalid hook call" errors.
 
-**Plugin configuration** (`benchmarks/build.ts`):
+**Feature configuration** (`benchmarks/build.ts`):
 - Forces all `react` and `react-dom` imports to resolve from project root
 - Resolves Vue to compiler-included build (`vue.esm-bundler.js`) for template string support
 - Ensures single framework instance in the bundle

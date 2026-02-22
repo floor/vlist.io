@@ -13,10 +13,10 @@ Complete dependency analysis including:
 - Module analysis by directory
 - Most critical files (types.ts: 26 dependents)
 - Coupling analysis
-- Feature plugin consistency analysis (100% pattern compliance)
+- Feature feature consistency analysis (100% pattern compliance)
 - Leaf nodes and foundation layer
 - Dependency tree highlights
-- Architectural patterns (Plugin, Layered, Index Barrel, Type Centralization)
+- Architectural patterns (Feature, Layered, Index Barrel, Type Centralization)
 - Potential issues and risk analysis
 - Complexity metrics and heat maps
 - Best practices observed
@@ -43,7 +43,7 @@ First-pass analysis including:
 - Orphan files (entry points)
 - Key dependencies breakdown
 - Core architecture overview
-- Plugin architecture pattern
+- Feature architecture pattern
 - Health metrics
 - Module breakdown by category
 
@@ -55,9 +55,9 @@ Complete dependency graph showing all 46 TypeScript files and their 131 dependen
 **Best for:** Understanding overall project structure and relationships.
 
 ### [deps-features.svg](./deps-features.svg) (62KB) 🔌
-Feature modules dependency graph (28 files across 8 feature plugins).
+Feature modules dependency graph (28 files across 8 feature features).
 
-**Best for:** Understanding plugin architecture and feature isolation.
+**Best for:** Understanding feature architecture and feature isolation.
 
 ### [deps-builder.svg](./deps-builder.svg) (23KB) 🏗️
 Builder system dependency graph (5 files).
@@ -81,7 +81,7 @@ Raw dependency data in JSON format.
 ### ✅ Strengths
 - **Zero circular dependencies** - Clean acyclic graph
 - **Low coupling** - 2.85 avg deps/file (target: <4.0)
-- **High consistency** - All 8 plugins follow identical pattern
+- **High consistency** - All 8 features follow identical pattern
 - **Strong types** - Central types.ts with 26 dependents
 - **Feature isolation** - Only 1 cross-feature dependency
 
@@ -147,7 +147,7 @@ madge --json --extensions ts src/ > deps-analysis.json
 ### For Code Reviews
 1. Check **DEPENDENCY_METRICS.md** for metric changes
 2. Run `madge --circular` to ensure no new cycles
-3. Verify new code follows plugin pattern consistency
+3. Verify new code follows feature pattern consistency
 
 ### For Refactoring
 1. Consult **MADGE_ANALYTICS_REPORT.md** section on "Most Critical Files"

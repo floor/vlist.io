@@ -10,7 +10,7 @@
 
 **Average reduction:** 45-60% smaller bundles  
 **Best improvement:** 60% (basic example: 20.6 → 8.2 KB gzip)  
-**Method:** Monolithic API → Builder-only API with explicit plugins
+**Method:** Monolithic API → Builder-only API with explicit features
 
 ---
 
@@ -18,7 +18,7 @@
 
 All measurements in **gzipped** size (what users actually download):
 
-| Example | Before (Monolithic) | After (Builder) | Improvement | Plugins Used |
+| Example | Before (Monolithic) | After (Builder) | Improvement | Features Used |
 |---------|---------------------|-----------------|-------------|--------------|
 | **basic** | 20.6 KB | **8.2 KB** | **🎉 60% smaller** | None |
 | **controls** | 21.3 KB | **10.5 KB** | **🎉 51% smaller** | `withSelection()` |
@@ -45,7 +45,7 @@ All measurements in **gzipped** size (what users actually download):
 
 ## Analysis by Complexity
 
-### Simple Examples (No Plugins or Minimal)
+### Simple Examples (No Features or Minimal)
 
 | Example | Before | After | Improvement |
 |---------|--------|-------|-------------|
@@ -54,11 +54,11 @@ All measurements in **gzipped** size (what users actually download):
 | variable-heights | 23.3 KB | 10.9 KB | **53% smaller** |
 
 **Average:** **57% reduction** for simple use cases  
-**Insight:** Monolithic API was bundling ~12 KB of unused plugins!
+**Insight:** Monolithic API was bundling ~12 KB of unused features!
 
-### Medium Complexity (1-2 Plugins)
+### Medium Complexity (1-2 Features)
 
-| Example | Before | After | Plugins | Improvement |
+| Example | Before | After | Features | Improvement |
 |---------|--------|-------|---------|-------------|
 | controls | 21.3 KB | 10.5 KB | `withSelection()` | **51% smaller** |
 | scroll-restore | 21.2 KB | 10.4 KB | `withSelection()` | **51% smaller** |
@@ -66,27 +66,27 @@ All measurements in **gzipped** size (what users actually download):
 | groups/sticky-headers | 22.5 KB | 12.3 KB | `withSections()` | **45% smaller** |
 | reverse-chat | 22.1 KB | 11.9 KB | `withSections()` | **46% smaller** |
 
-**Average:** **48% reduction** with 1-2 plugins  
-**Insight:** Even with plugins, still 2x smaller than monolithic!
+**Average:** **48% reduction** with 1-2 features  
+**Insight:** Even with features, still 2x smaller than monolithic!
 
-### Complex Examples (3+ Plugins)
+### Complex Examples (3+ Features)
 
-| Example | Before | After | Plugins | Improvement |
+| Example | Before | After | Features | Improvement |
 |---------|--------|-------|---------|-------------|
 | window-scroll | 21.3 KB | 13.5 KB | `withPage()` + `withAsync()` | **37% smaller** |
 | data/velocity-loading | 21.7 KB | 15.0 KB | `withSelection()` + `withAsync()` | **31% smaller** |
 | grid/file-browser | 22.8 KB | 15.3 KB | `withGrid()` + `withScrollbar()` + `withSections()` | **33% smaller** |
 
-**Average:** **34% reduction** with multiple plugins  
-**Insight:** Tree-shaking still saves ~7 KB even with many plugins!
+**Average:** **34% reduction** with multiple features  
+**Insight:** Tree-shaking still saves ~7 KB even with many features!
 
 ---
 
-## Plugin Cost Breakdown
+## Feature Cost Breakdown
 
-Based on builder examples, here's what each plugin adds:
+Based on builder examples, here's what each feature adds:
 
-| Plugin | Incremental Cost (Gzipped) | Use Case |
+| Feature | Incremental Cost (Gzipped) | Use Case |
 |--------|---------------------------|----------|
 | **Base builder** | 7.7 KB | Core virtualization |
 | `withSelection()` | +2.3 KB | Single/multiple item selection |
@@ -98,7 +98,7 @@ Based on builder examples, here's what each plugin adds:
 | `withPage()` | +0.9 KB | Document-level scrolling |
 | `withSnapshots()` | Included in base | Scroll save/restore |
 
-**Monolithic overhead:** ~13 KB of unused plugins always bundled
+**Monolithic overhead:** ~13 KB of unused features always bundled
 
 ---
 
@@ -115,8 +115,8 @@ const list = createVList({
   grid: { columns: 4 }  // Config-based
 })
 
-// Bundle: ALL plugins included = 20-23 KB gzip
-// Tree-shaking: ❌ Not possible (all plugins imported internally)
+// Bundle: ALL features included = 20-23 KB gzip
+// Tree-shaking: ❌ Not possible (all features imported internally)
 ```
 
 ### After: Builder API
@@ -132,7 +132,7 @@ const list = vlist({
   .build()
 
 // Bundle: ONLY builder + grid = 11.7 KB gzip
-// Tree-shaking: ✅ Optimal (only imported plugins included)
+// Tree-shaking: ✅ Optimal (only imported features included)
 ```
 
 ---
@@ -173,7 +173,7 @@ Estimated CO₂ reduction:
 
 These examples were already using the builder pattern - showing consistent results:
 
-| Example | Minified | Gzipped | Plugins |
+| Example | Minified | Gzipped | Features |
 |---------|----------|---------|---------|
 | builder/basic | 21.7 KB | 7.7 KB | None |
 | builder/chat | 26.2 KB | 9.6 KB | + sections |
@@ -181,13 +181,13 @@ These examples were already using the builder pattern - showing consistent resul
 | builder/large-list | 31.9 KB | 9.9 KB | + scale |
 | builder/photo-album | 34.3 KB | 11.7 KB | + grid |
 
-**Observation:** Examples using same plugins have identical bundle sizes regardless of folder location. This proves tree-shaking works perfectly!
+**Observation:** Examples using same features have identical bundle sizes regardless of folder location. This proves tree-shaking works perfectly!
 
 ---
 
 ## Ultra-Lightweight Core
 
-For users who don't need plugins at all:
+For users who don't need features at all:
 
 | Entry Point | Minified | Gzipped | Features |
 |-------------|----------|---------|----------|
@@ -207,14 +207,14 @@ Actual needs (simple list): ~8 KB gzip
 Waste: 12-15 KB (60-65% overhead)
 ```
 
-**All examples bundled unused plugins regardless of configuration!**
+**All examples bundled unused features regardless of configuration!**
 
 ### 2. Builder Pattern Delivers Optimal Results
 
 ```
-Simple usage:     7-9 KB gzip   (0-1 plugins)
-Medium usage:    10-12 KB gzip  (2-3 plugins)
-Complex usage:   13-16 KB gzip  (4+ plugins)
+Simple usage:     7-9 KB gzip   (0-1 features)
+Medium usage:    10-12 KB gzip  (2-3 features)
+Complex usage:   13-16 KB gzip  (4+ features)
 ```
 
 **Users pay only for what they use!** ✅
@@ -224,11 +224,11 @@ Complex usage:   13-16 KB gzip  (4+ plugins)
 **Before:** All examples ~22 KB ± 10% (misleading - same size for different complexity)  
 **After:** 8-16 KB ± 40% (reflects actual feature usage)
 
-This variance is **healthy** - it shows accurate plugin costs!
+This variance is **healthy** - it shows accurate feature costs!
 
 ### 4. Tree-Shaking Works Perfectly
 
-Examples using identical plugins produce identical bundles:
+Examples using identical features produce identical bundles:
 - `builder/photo-album` = `grid/photo-album/javascript` = 11.7 KB gzip ✅
 - `builder/large-list` = `data/large-list/javascript` = 9.9 KB gzip ✅
 
@@ -243,7 +243,7 @@ The refactoring from monolithic to builder-only API delivers:
 ✅ **47% average bundle size reduction** (10.3 KB saved per example)  
 ✅ **60% reduction** in best case (simple examples)  
 ✅ **Perfect tree-shaking** - only used features included  
-✅ **Transparent costs** - developers see exact plugin impact  
+✅ **Transparent costs** - developers see exact feature impact  
 ✅ **Production validated** - all 34 examples building successfully  
 
 **Total bandwidth savings:** 350 KB gzipped across 34 examples  

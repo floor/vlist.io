@@ -10,7 +10,7 @@ This document provides an accurate reference for the current source structure of
 vlist/src/
 ├── builder/           # Core builder system
 ├── events/            # Event emitter
-├── features/          # Feature plugins (tree-shakeable)
+├── features/          # Feature features (tree-shakeable)
 ├── rendering/         # Virtual scrolling & rendering
 ├── styles/            # CSS styles
 ├── constants.ts       # Global constants
@@ -20,12 +20,12 @@ vlist/src/
 
 ## Builder System
 
-The builder system provides the core API and plugin architecture.
+The builder system provides the core API and feature architecture.
 
 ```
 src/builder/
 ├── index.ts           # Builder exports
-├── types.ts           # Builder types (VListPlugin, BuilderContext, etc.)
+├── types.ts           # Builder types (VListFeature, BuilderContext, etc.)
 ├── core.ts            # vlist() factory and materialize()
 ├── context.ts         # BuilderContext creation
 ├── materializectx.ts  # Internal materialization context
@@ -40,8 +40,8 @@ src/builder/
 **Key exports:**
 - `vlist()` - Main factory function
 - `VListBuilder` - Chainable builder interface
-- `BuilderContext` - Plugin context interface
-- `VListPlugin` - Plugin interface
+- `BuilderContext` - Feature context interface
+- `VListFeature` - Feature interface
 
 ## Events System
 
@@ -57,114 +57,114 @@ src/events/
 - `createEmitter()` - Event emitter factory
 - `Emitter` - Emitter type
 
-## Features (Plugins)
+## Features (Features)
 
-All plugins follow the same structure: `index.ts` (exports), `plugin.ts` (plugin implementation), and supporting modules.
+All features follow the same structure: `index.ts` (exports), `feature.ts` (feature implementation), and supporting modules.
 
-### Async Plugin
+### Async Feature
 
 Asynchronous data loading with lazy loading and placeholders.
 
 ```
 src/features/async/
 ├── index.ts           # Module exports
-├── plugin.ts          # withAsync() plugin
+├── feature.ts          # withAsync() feature
 ├── manager.ts         # Data manager (coordinator)
 ├── sparse.ts          # Sparse storage implementation
 └── placeholder.ts     # Placeholder generation
 ```
 
 **Key exports:**
-- `withAsync()` - Plugin function
+- `withAsync()` - Feature function
 - `createDataManager()` - Data manager factory
 - `createSparseStorage()` - Sparse storage factory
 - `createPlaceholderManager()` - Placeholder manager factory
 
-### Grid Plugin
+### Grid Feature
 
 2D grid layout with virtualized rows.
 
 ```
 src/features/grid/
 ├── index.ts           # Module exports
-├── plugin.ts          # withGrid() plugin
+├── feature.ts          # withGrid() feature
 ├── layout.ts          # Grid layout calculations
 ├── renderer.ts        # Grid renderer
 └── types.ts           # Grid types
 ```
 
 **Key exports:**
-- `withGrid()` - Plugin function
+- `withGrid()` - Feature function
 - `createGridLayout()` - Layout calculator
 - `createGridRenderer()` - Grid renderer factory
 - `GridConfig`, `GridLayout`, `GridPosition` - Types
 
-### Page Plugin
+### Page Feature
 
 Document-level (window) scrolling.
 
 ```
 src/features/page/
 ├── index.ts           # Module exports
-└── plugin.ts          # withPage() plugin
+└── feature.ts          # withPage() feature
 ```
 
 **Key exports:**
-- `withPage()` - Plugin function
+- `withPage()` - Feature function
 
-### Scale Plugin
+### Scale Feature
 
 Handles 1M+ items with scroll space scaling.
 
 ```
 src/features/scale/
 ├── index.ts           # Module exports (re-exports from rendering/scale)
-└── plugin.ts          # withScale() plugin
+└── feature.ts          # withScale() feature
 ```
 
 **Key exports:**
-- `withScale()` - Plugin function
+- `withScale()` - Feature function
 - Re-exports from `rendering/scale.ts`:
   - `getCompressionState()` - Get scale state
   - `needsCompression()` - Check if scaling needed
   - `getCompressionInfo()` - Human-readable info
   - `calculateCompressed*()` - Scale calculations
 
-**Note:** The plugin re-exports utilities from `src/rendering/scale.ts` where the actual scaling logic lives.
+**Note:** The feature re-exports utilities from `src/rendering/scale.ts` where the actual scaling logic lives.
 
-### Scrollbar Plugin
+### Scrollbar Feature
 
 Custom scrollbar component with auto-hide.
 
 ```
 src/features/scrollbar/
 ├── index.ts           # Module exports
-├── plugin.ts          # withScrollbar() plugin
+├── feature.ts          # withScrollbar() feature
 ├── controller.ts      # Scroll controller (native + scaled + window modes)
 └── scrollbar.ts       # Custom scrollbar component
 ```
 
 **Key exports:**
-- `withScrollbar()` - Plugin function
+- `withScrollbar()` - Feature function
 - `createScrollController()` - Scroll controller factory
 - `createScrollbar()` - Scrollbar component factory
 - `rafThrottle()` - RAF throttle utility
 
-### Sections Plugin
+### Sections Feature
 
 Grouped lists with sticky or inline headers.
 
 ```
 src/features/sections/
 ├── index.ts           # Module exports
-├── plugin.ts          # withSections() plugin
+├── feature.ts          # withSections() feature
 ├── layout.ts          # Section layout calculations
 ├── sticky.ts          # Sticky header implementation
 └── types.ts           # Section types
 ```
 
 **Key exports:**
-- `withSections()` - Plugin function
+- `withSections()` - Feature function
 - `createGroupLayout()` - Layout calculator (aliased as `createSectionLayout`)
 - `buildLayoutItems()` - Build layout entries
 - `createGroupedSizeFn()` - Size function for sections
@@ -173,36 +173,36 @@ src/features/sections/
 
 **Note:** Internally uses "group" terminology, but exports are aliased to "section" for public API.
 
-### Selection Plugin
+### Selection Feature
 
 Item selection with keyboard navigation.
 
 ```
 src/features/selection/
 ├── index.ts           # Module exports
-├── plugin.ts          # withSelection() plugin
+├── feature.ts          # withSelection() feature
 └── state.ts           # Selection state management
 ```
 
 **Key exports:**
-- `withSelection()` - Plugin function
+- `withSelection()` - Feature function
 - `createSelectionState()` - Selection state factory
 - `selectItems()`, `deselectItems()`, `toggleSelection()` - Selection operations
 - `selectAll()`, `clearSelection()` - Bulk operations
 - `isSelected()`, `getSelectedIds()`, `getSelectedItems()` - Queries
 
-### Snapshots Plugin
+### Snapshots Feature
 
 Scroll position save/restore for SPA navigation.
 
 ```
 src/features/snapshots/
 ├── index.ts           # Module exports
-└── plugin.ts          # withSnapshots() plugin
+└── feature.ts          # withSnapshots() feature
 ```
 
 **Key exports:**
-- `withSnapshots()` - Plugin function
+- `withSnapshots()` - Feature function
 
 ## Rendering System
 
@@ -244,7 +244,7 @@ import '@floor/vlist/styles';
 
 Main package entry point. Exports everything from all domains:
 - Builder API (`vlist`, types)
-- All plugins (`withGrid`, `withSections`, etc.)
+- All features (`withGrid`, `withSections`, etc.)
 - Rendering utilities
 - Selection utilities
 - Event system
@@ -267,26 +267,26 @@ Core TypeScript types:
 
 Global constants used across the codebase.
 
-## Plugin Structure Pattern
+## Feature Structure Pattern
 
-All plugins follow this pattern:
+All features follow this pattern:
 
 ```
-src/features/<plugin-name>/
+src/features/<feature-name>/
 ├── index.ts           # Public exports
-├── plugin.ts          # Plugin function (withX)
+├── feature.ts          # Feature function (withX)
 ├── <feature>.ts       # Core feature implementation
 └── types.ts           # Types (if needed)
 ```
 
-**Plugin function signature:**
+**Feature function signature:**
 ```typescript
-export function withPluginName(config?: PluginConfig): VListPlugin {
+export function withFeatureName(config?: FeatureConfig): VListFeature {
   return {
-    name: 'plugin-name',
+    name: 'feature-name',
     priority: 50,
     setup(ctx: BuilderContext) {
-      // Plugin implementation
+      // Feature implementation
     },
     destroy() {
       // Cleanup
@@ -303,7 +303,7 @@ export function withPluginName(config?: PluginConfig): VListPlugin {
 // Main entry point
 import { vlist } from '@floor/vlist';
 
-// Plugins
+// Features
 import { withGrid, withSections, withAsync } from '@floor/vlist';
 
 // Utilities
@@ -361,14 +361,14 @@ import { getScaleState } from '@floor/vlist';
 **Actual convention (as observed):**
 - Files: `camelCase.ts` (e.g., `controller.ts`, `manager.ts`, `placeholder.ts`)
 - Directories: `lowercase` (e.g., `async`, `grid`, `scrollbar`)
-- Entry points: `index.ts`, `plugin.ts`
+- Entry points: `index.ts`, `feature.ts`
 
 ## Module Boundaries
 
 ### Clear Separation
 
 - **builder/** - Core builder, no feature logic
-- **features/** - All optional plugins, zero coupling between plugins
+- **features/** - All optional features, zero coupling between features
 - **rendering/** - Pure calculations, no DOM outside renderer.ts
 - **events/** - Generic event system, no vlist-specific logic
 
@@ -378,7 +378,7 @@ import { getScaleState } from '@floor/vlist';
 features/* → builder/ ✅
 features/* → rendering/ ✅
 features/* → events/ ✅
-features/* → features/* ❌ (plugins don't depend on each other)
+features/* → features/* ❌ (features don't depend on each other)
 builder/ → features/* ❌ (builder is feature-agnostic)
 rendering/ → builder/ ❌ (rendering is pure)
 ```
@@ -388,11 +388,11 @@ rendering/ → builder/ ❌ (rendering is pure)
 The codebase is structured for optimal tree-shaking:
 
 1. **Explicit imports** - No barrel exports for internal modules
-2. **Plugin isolation** - Each plugin is self-contained
+2. **Feature isolation** - Each feature is self-contained
 3. **Direct re-exports** - `index.ts` files re-export directly, no intermediate processing
 4. **Pure functions** - Most utilities are pure functions with no side effects
 
-**Result:** Users only ship code for plugins they use.
+**Result:** Users only ship code for features they use.
 
 ## Testing
 
@@ -411,8 +411,8 @@ test/
 
 ## Related Documentation
 
-- [Builder Pattern](/tutorials/builder-pattern) - How plugins work
-- [Plugin System](../internals/context.md) - BuilderContext internals
+- [Builder Pattern](/tutorials/builder-pattern) - How features work
+- [Feature System](../internals/context.md) - BuilderContext internals
 - [Rendering](../internals/rendering.md) - Rendering internals
 
 ---

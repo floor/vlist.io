@@ -15,7 +15,7 @@ Successfully reorganized VList library from dual-entry (monolithic + builder) to
 ```
 Before:                          After:
 src/                             src/
-├── plugins/              →      ├── features/
+├── features/              →      ├── features/
 │   ├── compression/      →      │   ├── scale/
 │   ├── data/             →      │   ├── async/
 │   ├── scroll/           →      │   ├── scrollbar/
@@ -48,7 +48,7 @@ src/                             src/
 | `render` | **rendering** | Better as noun (the process of rendering) |
 | `virtual.ts` | **viewport.ts** | More precise than "virtual" |
 
-### 3. Plugin Function Renames ✅
+### 3. Feature Function Renames ✅
 
 ```typescript
 // Before → After
@@ -62,10 +62,10 @@ withGroups()      → withSections()
 
 **Before (Monolithic + Builder):**
 ```typescript
-// vlist - monolithic (20-23 KB gzip, all plugins bundled)
+// vlist - monolithic (20-23 KB gzip, all features bundled)
 import { createVList } from 'vlist'
 
-// vlist/builder - explicit plugins (8-12 KB gzip)
+// vlist/builder - explicit features (8-12 KB gzip)
 import { vlist } from 'vlist/builder'
 import { withGrid } from 'vlist/grid'
 ```
@@ -100,7 +100,7 @@ Kept for future potential exposure but not in public API currently.
 ```
 Basic example:    62.9 KB minified → 20.6 KB gzip
 Full featured:    ~70 KB minified → ~23 KB gzip
-(All plugins bundled regardless of usage)
+(All features bundled regardless of usage)
 ```
 
 ### After Refactoring (Builder)
@@ -141,11 +141,11 @@ bun run analyze:orphans  ✅ No orphaned files
 ```
 495e945 test: update all test imports for new module structure
 8cf28dd refactor: update build script for new module structure
-c173f70 refactor: update all imports and rename plugin functions
+c173f70 refactor: update all imports and rename feature functions
 33a6e8e refactor: reorganize core files into core/ directory
 3e6de21 refactor: rename rendering files
 7e4d22c refactor: rename feature modules for clarity
-97dda13 refactor: rename plugins/ to features/ and render/ to rendering/
+97dda13 refactor: rename features/ to features/ and render/ to rendering/
 5047475 docs: add comprehensive refactoring plan for module organization
 ```
 
@@ -181,7 +181,7 @@ const list = vlist({
 ✅ **Single, clear API** - No confusion about which entry point to use  
 ✅ **Optimal tree-shaking** - Users pay only for features they use (2-3x smaller)  
 ✅ **Intuitive naming** - Clear module names (scale, async, sections, page)  
-✅ **Explicit plugin usage** - Developers know exactly what's included  
+✅ **Explicit feature usage** - Developers know exactly what's included  
 ✅ **Modern library pattern** - Follows Zustand, TanStack, Radix approach  
 ✅ **Backward compatible** - Old core files preserved for future use  
 ✅ **Maintainable** - Clear structure, easy to extend  
@@ -199,7 +199,7 @@ const list = vlist({
 
 ❌ **Before:** Confusing dual API (monolithic vs builder)  
 ❌ **Before:** Misleading names (compression, data, window)  
-❌ **Before:** Suboptimal tree-shaking (all plugins bundled)  
+❌ **Before:** Suboptimal tree-shaking (all features bundled)  
 ❌ **Before:** 20-23 KB baseline regardless of usage  
 
 ✅ **After:** Single builder API  

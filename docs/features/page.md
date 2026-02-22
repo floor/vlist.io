@@ -1,10 +1,10 @@
-# Page Plugin
+# Page Feature
 
 > Document-level scrolling - use the browser's native scrollbar instead of container scrolling.
 
 ## Overview
 
-The `withPage()` plugin enables **page-level scrolling** where the list participates in the document flow instead of scrolling within a container. Perfect for blog posts, infinite scroll feeds, and full-page lists.
+The `withPage()` feature enables **page-level scrolling** where the list participates in the document flow instead of scrolling within a container. Perfect for blog posts, infinite scroll feeds, and full-page lists.
 
 **Import:**
 ```typescript
@@ -45,7 +45,7 @@ The list now scrolls with the page, using the browser's native scrollbar.
 withPage()  // That's it!
 ```
 
-The plugin automatically:
+The feature automatically:
 - ✅ Changes scroll element from container to `window`
 - ✅ Uses document scroll position
 - ✅ Adjusts viewport calculations for page-level scrolling
@@ -179,7 +179,7 @@ Scrollbar appears on the page. List height is dynamic based on content.
 
 ### Technical Details
 
-The plugin modifies:
+The feature modifies:
 
 1. **Scroll element:** `window` instead of container
 2. **Scroll position:** `window.scrollY` instead of `container.scrollTop`
@@ -252,7 +252,7 @@ The native page scrollbar provides:
 
 ## API
 
-The `withPage()` plugin doesn't add any new methods. All standard VList methods work:
+The `withPage()` feature doesn't add any new methods. All standard VList methods work:
 
 ```typescript
 const list = vlist({ ... })
@@ -391,10 +391,10 @@ For better SEO with infinite scroll:
 
 ## See Also
 
-- **[Plugins Overview](./README.md)** - All available plugins
-- **[Async Plugin](./async.md)** - Combine for infinite scroll
-- **[Scrollbar Plugin](./scrollbar.md)** - Alternative: custom scrollbar
-- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose plugins
+- **[Features Overview](./README.md)** - All available features
+- **[Async Feature](./async.md)** - Combine for infinite scroll
+- **[Scrollbar Feature](./scrollbar.md)** - Alternative: custom scrollbar
+- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose features
 - **[Examples](/examples/)** - Interactive examples
 
 ---

@@ -19,7 +19,7 @@ This index provides an overview of all reports and how to use them.
    - Module analysis by directory
    - Most critical files (types.ts: 26 dependents)
    - Coupling analysis
-   - Feature plugin consistency analysis (100% pattern compliance)
+   - Feature feature consistency analysis (100% pattern compliance)
    - Architectural patterns
    - Risk analysis and recommendations
    - **Overall Grade: A+** (Maintainability Score: 95/100)
@@ -47,9 +47,9 @@ Complete dependency graph showing all 46 TypeScript files and their 131 dependen
 **Use for:** Understanding overall project structure and relationships.
 
 ### [deps-features.svg](./deps-features.svg) (62KB)
-Feature modules dependency graph (28 files across 8 feature plugins).
+Feature modules dependency graph (28 files across 8 feature features).
 
-**Use for:** Understanding plugin architecture and feature isolation.
+**Use for:** Understanding feature architecture and feature isolation.
 
 ### [deps-builder.svg](./deps-builder.svg) (23KB)
 Builder system dependency graph (5 files).
@@ -72,7 +72,7 @@ Raw dependency data in JSON format for custom analysis or tooling integration.
 
 - **Zero circular dependencies** - Clean acyclic dependency graph
 - **Low coupling** - 2.85 avg dependencies per file (target: <4.0)
-- **High consistency** - All 8 feature plugins follow identical pattern
+- **High consistency** - All 8 feature features follow identical pattern
 - **Strong type safety** - Central types.ts with 26 dependents
 - **Feature isolation** - Only 1 cross-feature dependency (scale → scrollbar)
 
@@ -103,7 +103,7 @@ The VList codebase demonstrates exemplary dependency management with best-in-cla
 
 ### For Code Reviews
 1. Check **DEPENDENCY_METRICS.md** for metric changes
-2. Verify new code follows plugin pattern consistency
+2. Verify new code follows feature pattern consistency
 3. Ensure no new circular dependencies introduced
 
 ### For Refactoring

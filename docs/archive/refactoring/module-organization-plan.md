@@ -14,12 +14,12 @@ Transform VList from dual-entry (monolithic + builder) to **builder-only** with 
 src/
 ├── core.ts              # 10KB lite version (variable heights)
 ├── core-light.ts        # 3KB minimal version (fixed heights only)
-├── vlist.ts             # Monolithic auto-plugin applier (20KB+)
+├── vlist.ts             # Monolithic auto-feature applier (20KB+)
 ├── index.ts             # Main export (monolithic)
 ├── types.ts
 ├── constants.ts
 ├── builder/             # Builder pattern implementation
-├── plugins/             # All plugins
+├── features/             # All features
 │   ├── compression/     # Large dataset handling
 │   ├── data/           # Async loading
 │   ├── scroll/         # Scrollbar UI
@@ -50,7 +50,7 @@ src/
 │   ├── lite.ts         # 10KB version (was: core.ts)
 │   └── minimal.ts      # 3KB version (was: core-light.ts)
 ├── builder/             # Unchanged
-├── features/            # Renamed from plugins/
+├── features/            # Renamed from features/
 │   ├── scale/          # Renamed from compression/
 │   ├── async/          # Renamed from data/
 │   ├── scrollbar/      # Renamed from scroll/
@@ -71,10 +71,10 @@ src/
 
 ## Phase 1: Rename Directories
 
-### 1.1 Rename `plugins/` → `features/`
+### 1.1 Rename `features/` → `features/`
 
 ```bash
-git mv src/plugins src/features
+git mv src/features src/features
 ```
 
 **Rationale:** "Features" better describes what they are from user perspective. More neutral term.
@@ -96,7 +96,7 @@ git mv src/features/compression src/features/scale
 ```
 
 **Files to update internally:**
-- `src/features/scale/plugin.ts` - rename `withCompression` → `withScale`
+- `src/features/scale/feature.ts` - rename `withCompression` → `withScale`
 - `src/features/scale/index.ts` - update exports
 
 **Rationale:** "Scale" better conveys handling large datasets, not data compression.
@@ -108,7 +108,7 @@ git mv src/features/data src/features/async
 ```
 
 **Files to update internally:**
-- `src/features/async/plugin.ts` - rename `withData` → `withAsync`
+- `src/features/async/feature.ts` - rename `withData` → `withAsync`
 - `src/features/async/index.ts` - update exports
 
 **Rationale:** Explicitly about asynchronous data loading, not just "data" (too vague).
@@ -132,7 +132,7 @@ git mv src/features/window src/features/page
 ```
 
 **Files to update internally:**
-- `src/features/page/plugin.ts` - rename `withWindow` → `withPage`
+- `src/features/page/feature.ts` - rename `withWindow` → `withPage`
 - `src/features/page/index.ts` - update exports
 
 **Rationale:** "Page" better conveys document-level scrolling than generic "window".
@@ -144,7 +144,7 @@ git mv src/features/groups src/features/sections
 ```
 
 **Files to update internally:**
-- `src/features/sections/plugin.ts` - rename `withGroups` → `withSections`
+- `src/features/sections/feature.ts` - rename `withGroups` → `withSections`
 - `src/features/sections/index.ts` - update exports
 - `src/features/sections/types.ts` - rename types (GroupsConfig → SectionsConfig, etc.)
 
@@ -193,7 +193,7 @@ git mv src/core-light.ts src/core/minimal.ts
 ### 4.3 Update core files
 
 **`src/core/full.ts`** (was: vlist.ts):
-- Keep smart plugin auto-application logic
+- Keep smart feature auto-application logic
 - This will NOT be exposed in public API (internal only)
 
 **`src/core/lite.ts`** (was: core.ts):
@@ -219,7 +219,7 @@ export { createVList } from './vlist'
 // Main builder export
 export { vlist } from './builder'
 
-// Feature plugins - tree-shakeable
+// Feature features - tree-shakeable
 export { withScale } from './features/scale'
 export { withAsync } from './features/async'
 export { withScrollbar } from './features/scrollbar'
@@ -256,7 +256,7 @@ export type {
   VListBuilder,
   BuiltVList,
   BuilderConfig,
-  VListPlugin,
+  VListFeature,
 } from './builder'
 
 // Feature types
@@ -295,17 +295,17 @@ export type {
 
 ### 6.1 Search and replace across all files
 
-**Plugin/Feature imports:**
+**Feature/Feature imports:**
 ```typescript
 // Old → New
-'./plugins/compression' → './features/scale'
-'./plugins/data' → './features/async'
-'./plugins/scroll' → './features/scrollbar'
-'./plugins/window' → './features/page'
-'./plugins/groups' → './features/sections'
-'./plugins/grid' → './features/grid'
-'./plugins/selection' → './features/selection'
-'./plugins/snapshots' → './features/snapshots'
+'./features/compression' → './features/scale'
+'./features/data' → './features/async'
+'./features/scroll' → './features/scrollbar'
+'./features/window' → './features/page'
+'./features/groups' → './features/sections'
+'./features/grid' → './features/grid'
+'./features/selection' → './features/selection'
+'./features/snapshots' → './features/snapshots'
 ```
 
 **Rendering imports:**
@@ -333,15 +333,15 @@ export type {
 - `src/builder/context.ts`
 - `src/builder/data.ts`
 
-**Features (all plugin.ts files):**
-- `src/features/scale/plugin.ts`
-- `src/features/async/plugin.ts`
-- `src/features/scrollbar/plugin.ts`
-- `src/features/page/plugin.ts`
-- `src/features/sections/plugin.ts`
-- `src/features/grid/plugin.ts`
-- `src/features/selection/plugin.ts`
-- `src/features/snapshots/plugin.ts`
+**Features (all feature.ts files):**
+- `src/features/scale/feature.ts`
+- `src/features/async/feature.ts`
+- `src/features/scrollbar/feature.ts`
+- `src/features/page/feature.ts`
+- `src/features/sections/feature.ts`
+- `src/features/grid/feature.ts`
+- `src/features/selection/feature.ts`
+- `src/features/snapshots/feature.ts`
 
 **Rendering:**
 - `src/rendering/index.ts`
@@ -417,7 +417,7 @@ Search and replace across all files:
 ### 9.1 Update build script if needed
 
 Check `build.ts` for any references to old paths:
-- Remove separate entry points for plugins
+- Remove separate entry points for features
 - Ensure single entry point builds correctly
 - Verify tree-shaking works
 
@@ -432,8 +432,8 @@ Check `tsconfig.json` for any path mappings that need updating.
 All test files need import updates:
 ```typescript
 // Old
-import { withCompression } from '../src/plugins/compression'
-import { withData } from '../src/plugins/data'
+import { withCompression } from '../src/features/compression'
+import { withData } from '../src/features/data'
 
 // New
 import { withScale } from '../src/features/scale'
@@ -454,7 +454,7 @@ Fix any broken tests.
 
 Search for old terminology and update:
 - "compression" → "scale" (in context of large datasets)
-- "data plugin" → "async plugin"
+- "data feature" → "async feature"
 - "groups" → "sections"
 - "window scroll" → "page scroll"
 

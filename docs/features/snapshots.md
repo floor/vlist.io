@@ -1,14 +1,14 @@
-# Snapshots Plugin
+# Snapshots Feature
 
 > Save and restore scroll position for SPA navigation and tab switching.
 
 ## Overview
 
-The `withSnapshots()` plugin enables **scroll position save/restore** for seamless navigation in Single Page Applications. Capture the exact scroll position and restore it later, preserving the user's place in the list.
+The `withSnapshots()` feature enables **scroll position save/restore** for seamless navigation in Single Page Applications. Capture the exact scroll position and restore it later, preserving the user's place in the list.
 
 **Import:**
 ```typescript
-// Included in base builder - no need to import plugin
+// Included in base builder - no need to import feature
 import { vlist } from 'vlist';
 ```
 
@@ -299,7 +299,7 @@ list.on('scroll', () => {
 
 ## Compatibility
 
-### Works With All Plugins
+### Works With All Features
 
 ✅ `withGrid()` - Saves first visible row  
 ✅ `withSections()` - Saves data index (not layout index)  
@@ -387,8 +387,8 @@ const snapshot = {
 
 ## See Also
 
-- **[Plugins Overview](./README.md)** - All available plugins
-- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose plugins
+- **[Features Overview](./README.md)** - All available features
+- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose features
 - **[API Methods](/docs/api/reference)** - Complete method reference
 - **[Examples](/examples/scroll-restore/)** - Interactive example
 

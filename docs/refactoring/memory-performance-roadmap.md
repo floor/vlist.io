@@ -30,7 +30,7 @@
 7. selectionSet                varies   📊 Depends on selection count
 8. refs object (Option A)      ~0.3 KB  ✅ Minimal
 9. Event listeners/callbacks   ~1 KB    ✅ Minimal
-10. Plugin state               varies   📊 Needs audit
+10. Feature state               varies   📊 Needs audit
 
 TOTAL (100K items):            ~24 MB per instance
 ```
@@ -204,16 +204,16 @@ getItemById: (id: string | number) => {
 
 ---
 
-## 📊 Medium Priority: Plugin Memory Audits
+## 📊 Medium Priority: Feature Memory Audits
 
-### Plugins to Audit
+### Features to Audit
 
-#### 1. `withData` Plugin
+#### 1. `withData` Feature
 - May cache ranges unnecessarily
 - Check if placeholders consume extra memory
 - Consider lazy loading strategies
 
-#### 2. `withSelection` Plugin
+#### 2. `withSelection` Feature
 ```typescript
 // Current: Set grows with selected items
 const selectionSet: Set<string | number> = new Set();
@@ -231,15 +231,15 @@ const selectedRanges = [
 ];
 ```
 
-#### 3. `withCompression` Plugin
+#### 3. `withCompression` Feature
 - Additional state for virtual scrolling
 - Measure heap impact with heap snapshots
 - Document memory trade-offs
 
 ### Action Items
 
-1. Create `docs/plugins/memory-impact.md`
-2. Document memory footprint for each plugin
+1. Create `docs/features/memory-impact.md`
+2. Document memory footprint for each feature
 3. Add memory benchmarks to test suite
 4. Offer memory-efficient alternatives where possible
 
@@ -290,7 +290,7 @@ const selectedRanges = [
 - **Measure:** Minified + gzipped size
 - **Current:** vlist = 23.7 KB gzipped
 - **Comparison:** react-window = ~3 KB, @tanstack/react-virtual = ~5 KB
-- **Note:** vlist includes more features (plugins, compression, etc.)
+- **Note:** vlist includes more features (features, compression, etc.)
 
 ### Benchmark Suite Structure
 
@@ -401,12 +401,12 @@ const destroy = (): void => {
 
 **Goal:** Validate or adjust "fastest library" claim with data
 
-### Phase 3: Plugin Memory Audits (1-2 weeks)
-- [ ] Audit withData plugin memory usage
-- [ ] Audit withSelection plugin (consider range-based API)
-- [ ] Audit withCompression plugin
-- [ ] Document memory impact in plugin docs
-- [ ] Add memory benchmarks for each plugin
+### Phase 3: Feature Memory Audits (1-2 weeks)
+- [ ] Audit withData feature memory usage
+- [ ] Audit withSelection feature (consider range-based API)
+- [ ] Audit withCompression feature
+- [ ] Document memory impact in feature docs
+- [ ] Add memory benchmarks for each feature
 
 **Goal:** Complete memory story for all features
 

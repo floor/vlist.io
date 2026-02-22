@@ -4,7 +4,7 @@
 
 ## Overview
 
-vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with JSDOM for DOM simulation. The test suite is organized by module, mirroring the `src/` directory structure with `test/plugins/` matching `src/plugins/` for easy navigation.
+vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with JSDOM for DOM simulation. The test suite is organized by module, mirroring the `src/` directory structure with `test/features/` matching `src/features/` for easy navigation.
 
 **Current stats:**
 
@@ -17,7 +17,7 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 | Coverage | 100% test pass rate |
 | Runtime | ~7.5s |
 
-**Status:** All tests passing after builder pattern and plugin architecture refactoring!
+**Status:** All tests passing after builder pattern and feature architecture refactoring!
 
 ## Quick Start
 
@@ -47,10 +47,10 @@ test/
 ├── adapters/
 │   └── svelte.test.ts          # Svelte action adapter
 ├── builder/
-│   └── index.test.ts           # Composable builder & plugin system
+│   └── index.test.ts           # Composable builder & feature system
 ├── events/
 │   └── index.test.ts           # Event emitter
-├── plugins/                    # Plugin tests (mirrors src/plugins/)
+├── features/                    # Feature tests (mirrors src/features/)
 │   ├── data/
 │   │   ├── index.test.ts       # Data manager (coordinator)
 │   │   ├── sparse.test.ts      # Sparse chunk storage
@@ -80,9 +80,9 @@ test/
 
 **Structure Benefits:**
 - ✅ 1:1 mapping with `src/` directory structure
-- ✅ Easy to find tests for specific modules (`test/plugins/grid/` → `src/plugins/grid/`)
-- ✅ Clear separation: core tests vs plugin tests
-- ✅ Scalable as new plugins are added
+- ✅ Easy to find tests for specific modules (`test/features/grid/` → `src/features/grid/`)
+- ✅ Clear separation: core tests vs feature tests
+- ✅ Scalable as new features are added
 
 ## Test Inventory
 
@@ -95,26 +95,26 @@ test/
 | `vlist-coverage.test.ts` | 58 | Full `vlist` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
 | `context.test.ts` | 20 | Context creation, wiring, state management |
 
-### Builder & Plugins
+### Builder & Features
 
 | File | Tests | What it covers |
 |------|------:|----------------|
-| `builder/index.test.ts` | 233 | Composable builder (`vlist().use().build()`) — builder core, validation, plugin system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withSections`, plugin combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration tests |
+| `builder/index.test.ts` | 233 | Composable builder (`vlist().use().build()`) — builder core, validation, feature system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withSections`, feature combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration tests |
 
-### Plugin Tests (mirrors `src/plugins/`)
+### Feature Tests (mirrors `src/features/`)
 
 | File | Tests | What it covers |
 |------|------:|----------------|
-| `plugins/data/index.test.ts` | 113 | Data manager — setItems, setTotal, updateItem, removeItem, getters, loadRange, ensureRange, loadInitial, loadMore, reload, clear, reset, eviction, concurrent dedup, sparse array expansion |
-| `plugins/data/sparse.test.ts` | 111 | Sparse storage — chunk creation, get/set, ranges, LRU eviction, cache limits, loaded range tracking, clear, stats |
-| `plugins/data/placeholder.test.ts` | 63 | Placeholder generation — structure analysis, string/number/boolean field masking, arrays, nested objects |
-| `plugins/scroll/controller.test.ts` | 119 | Scroll controller — native, compressed, window, horizontal modes, velocity tracking, stale gap detection, smoothing, compression enable/disable, wheel handling, idle detection |
-| `plugins/scroll/scrollbar.test.ts` | 55 | Custom scrollbar — creation, position updates, show/hide, drag interaction, auto-hide, destroy |
-| `plugins/selection/index.test.ts` | 61 | Selection state — single/multiple modes, toggle, range select, clear, keyboard focus |
-| `plugins/grid/layout.test.ts` | 55 | Grid math — row/column calculation, item ranges, column width, offsets, round-trips |
-| `plugins/grid/renderer.test.ts` | 50 | Grid rendering — positioning, gap handling, resize, variable columns |
-| `plugins/groups/layout.test.ts` | 44 | Group layout — header positioning, item offset, group boundaries |
-| `plugins/groups/sticky.test.ts` | 47 | Sticky headers — scroll tracking, transition, out-of-bounds, invalidation |
+| `features/data/index.test.ts` | 113 | Data manager — setItems, setTotal, updateItem, removeItem, getters, loadRange, ensureRange, loadInitial, loadMore, reload, clear, reset, eviction, concurrent dedup, sparse array expansion |
+| `features/data/sparse.test.ts` | 111 | Sparse storage — chunk creation, get/set, ranges, LRU eviction, cache limits, loaded range tracking, clear, stats |
+| `features/data/placeholder.test.ts` | 63 | Placeholder generation — structure analysis, string/number/boolean field masking, arrays, nested objects |
+| `features/scroll/controller.test.ts` | 119 | Scroll controller — native, compressed, window, horizontal modes, velocity tracking, stale gap detection, smoothing, compression enable/disable, wheel handling, idle detection |
+| `features/scroll/scrollbar.test.ts` | 55 | Custom scrollbar — creation, position updates, show/hide, drag interaction, auto-hide, destroy |
+| `features/selection/index.test.ts` | 61 | Selection state — single/multiple modes, toggle, range select, clear, keyboard focus |
+| `features/grid/layout.test.ts` | 55 | Grid math — row/column calculation, item ranges, column width, offsets, round-trips |
+| `features/grid/renderer.test.ts` | 50 | Grid rendering — positioning, gap handling, resize, variable columns |
+| `features/groups/layout.test.ts` | 44 | Group layout — header positioning, item offset, group boundaries |
+| `features/groups/sticky.test.ts` | 47 | Sticky headers — scroll tracking, transition, out-of-bounds, invalidation |
 
 ### Core & Rendering
 
@@ -146,7 +146,7 @@ test/
 
 **Current Status:** ✅ **1701/1701 tests passing (100%)**
 
-After the builder pattern and plugin architecture refactoring, all tests have been updated and are passing. The test suite provides comprehensive coverage of all features, modes, and edge cases.
+After the builder pattern and feature architecture refactoring, all tests have been updated and are passing. The test suite provides comprehensive coverage of all features, modes, and edge cases.
 
 Coverage is configured in `bunfig.toml`:
 
@@ -209,33 +209,33 @@ The lcov report is written to `coverage/lcov.info`.
 | `src/render/virtual.ts` | 94.74% | 95.83% |
 | **Adapters** |
 | `src/adapters/svelte.ts` | 100% | 100% |
-| **Plugins** |
-| `src/plugins/compression/plugin.ts` | 81.25% | 89.01% |
-| `src/plugins/data/index.ts` | 100% | 100% |
-| `src/plugins/data/manager.ts` | 100% | 100% |
-| `src/plugins/data/placeholder.ts` | 100% | 100% |
-| `src/plugins/data/plugin.ts` | 61.11% | 80.25% |
-| `src/plugins/data/sparse.ts` | 100% | 100% |
-| `src/plugins/grid/layout.ts` | 100% | 96.00% |
-| `src/plugins/grid/plugin.ts` | 81.82% | 76.45% |
-| `src/plugins/grid/renderer.ts` | 100% | 100% |
-| `src/plugins/groups/layout.ts` | 100% | 100% |
-| `src/plugins/groups/plugin.ts` | 100% | 96.02% |
-| `src/plugins/groups/sticky.ts` | 100% | 100% |
-| `src/plugins/groups/types.ts` | 100% | 100% |
-| `src/plugins/scroll/controller.ts` | 100% | 97.87% |
-| `src/plugins/scroll/index.ts` | 100% | 100% |
-| `src/plugins/scroll/plugin.ts` | 87.50% | 100% |
-| `src/plugins/scroll/scrollbar.ts` | 90.48% | 97.00% |
-| `src/plugins/selection/index.ts` | 100% | 100% |
-| `src/plugins/selection/plugin.ts` | 80.00% | 99.26% |
-| `src/plugins/selection/state.ts` | 100% | 100% |
-| `src/plugins/snapshots/plugin.ts` | 100% | 100% |
-| `src/plugins/window/plugin.ts` | 77.78% | 74.65% |
+| **Features** |
+| `src/features/compression/feature.ts` | 81.25% | 89.01% |
+| `src/features/data/index.ts` | 100% | 100% |
+| `src/features/data/manager.ts` | 100% | 100% |
+| `src/features/data/placeholder.ts` | 100% | 100% |
+| `src/features/data/feature.ts` | 61.11% | 80.25% |
+| `src/features/data/sparse.ts` | 100% | 100% |
+| `src/features/grid/layout.ts` | 100% | 96.00% |
+| `src/features/grid/feature.ts` | 81.82% | 76.45% |
+| `src/features/grid/renderer.ts` | 100% | 100% |
+| `src/features/groups/layout.ts` | 100% | 100% |
+| `src/features/groups/feature.ts` | 100% | 96.02% |
+| `src/features/groups/sticky.ts` | 100% | 100% |
+| `src/features/groups/types.ts` | 100% | 100% |
+| `src/features/scroll/controller.ts` | 100% | 97.87% |
+| `src/features/scroll/index.ts` | 100% | 100% |
+| `src/features/scroll/feature.ts` | 87.50% | 100% |
+| `src/features/scroll/scrollbar.ts` | 90.48% | 97.00% |
+| `src/features/selection/index.ts` | 100% | 100% |
+| `src/features/selection/feature.ts` | 80.00% | 99.26% |
+| `src/features/selection/state.ts` | 100% | 100% |
+| `src/features/snapshots/feature.ts` | 100% | 100% |
+| `src/features/window/feature.ts` | 77.78% | 74.65% |
 
 **Key Coverage Notes:**
 - Builder core: 75.58% lines (uncovered: error paths, edge cases)
-- All plugin core logic: 95%+ function coverage
+- All feature core logic: 95%+ function coverage
 - Data structures (heights, sparse, placeholder): 100% coverage
 - Critical rendering paths: fully covered
 | **All source files** | **95.57%** | **97.19%** |
@@ -247,9 +247,9 @@ Some lines remain uncovered due to JSDOM limitations, defensive code, and edge c
 | File | Lines | Reason |
 |------|-------|--------|
 | `builder/core.ts` | ~24% uncovered | Error paths, edge cases, compression branches, window mode paths that require real browser environment |
-| `plugins/window/plugin.ts` | 88-94, 100-110 | **Window scroll mode** — JSDOM doesn't support real window scrolling with proper coordinates |
-| `plugins/data/plugin.ts` | 144-151, 171-174, etc. | **Velocity-aware loading** — Requires real scroll velocity tracking which depends on timing |
-| `plugins/grid/plugin.ts` | 247-304, 354, 401-403 | **updateGrid method** and some edge cases in grid configuration changes |
+| `features/window/feature.ts` | 88-94, 100-110 | **Window scroll mode** — JSDOM doesn't support real window scrolling with proper coordinates |
+| `features/data/feature.ts` | 144-151, 171-174, etc. | **Velocity-aware loading** — Requires real scroll velocity tracking which depends on timing |
+| `features/grid/feature.ts` | 247-304, 354, 401-403 | **updateGrid method** and some edge cases in grid configuration changes |
 | `render/renderer.ts` | 211-226, 584-647 | **Legacy renderer paths** and some template edge cases |
 | `vlist.ts` | 144-170 | **update() method** — Backwards compatibility warnings for unsupported operations |
 
@@ -412,7 +412,7 @@ const simulateScroll = (list: BuiltVList<TestItem>, scrollTop: number): void => 
 
 ### Integration Testing for Scroll Virtualization
 
-**Critical pattern**: Plugin integration tests must verify scroll-triggered rendering, not just initial render. Many plugins (like `withGrid`) replace render functions but may not properly calculate visible/render ranges on scroll.
+**Critical pattern**: Feature integration tests must verify scroll-triggered rendering, not just initial render. Many features (like `withGrid`) replace render functions but may not properly calculate visible/render ranges on scroll.
 
 ```typescript
 it("should virtualize and render multiple rows on scroll", () => {
@@ -449,10 +449,10 @@ it("should virtualize and render multiple rows on scroll", () => {
 
 **Why this matters:**
 
-- Initial render tests only verify plugin setup, not ongoing virtualization
-- Plugins that replace render functions may miss range calculation
+- Initial render tests only verify feature setup, not ongoing virtualization
+- Features that replace render functions may miss range calculation
 - Without scroll tests, bugs show in production but pass all tests
-- This pattern caught the grid plugin bug where only first row rendered
+- This pattern caught the grid feature bug where only first row rendered
 
 **Helper used:**
 
@@ -507,14 +507,14 @@ describe("myFeature", () => {
 });
 ```
 
-### Builder Plugin Test Template
+### Builder Feature Test Template
 
 ```typescript
 import { vlist } from "../src/builder/core";
-import { withSelection } from "../src/selection/plugin";
-import { withScrollbar } from "../src/scroll/plugin";
+import { withSelection } from "../src/selection/feature";
+import { withScrollbar } from "../src/scroll/feature";
 
-describe("withMyPlugin plugin", () => {
+describe("withMyFeature feature", () => {
   let container: HTMLElement;
   let list: BuiltVList<TestItem> | null = null;
 
@@ -530,25 +530,25 @@ describe("withMyPlugin plugin", () => {
     container.remove();
   });
 
-  it("should add plugin functionality", () => {
+  it("should add feature functionality", () => {
     list = vlist<TestItem>({
       container,
       item: { height: 40, template },
       items: createTestItems(20),
     })
-      .use(withMyPlugin({ option: "value" }))
+      .use(withMyFeature({ option: "value" }))
       .build();
 
-    expect(list.myPluginMethod).toBeDefined();
+    expect(list.myFeatureMethod).toBeDefined();
   });
 
-  it("should work with other plugins", () => {
+  it("should work with other features", () => {
     list = vlist<TestItem>({
       container,
       item: { height: 40, template },
       items: createTestItems(20),
     })
-      .use(withMyPlugin())
+      .use(withMyFeature())
       .use(withSelection({ mode: "multiple" }))
       .use(withScrollbar())
       .build();
@@ -562,12 +562,12 @@ describe("withMyPlugin plugin", () => {
 ### Running a Subset
 
 ```bash
-# By file path (note: now under test/plugins/)
-bun test test/plugins/scroll/controller.test.ts
+# By file path (note: now under test/features/)
+bun test test/features/scroll/controller.test.ts
 
-# Test a specific plugin
-bun test test/plugins/grid/
-bun test test/plugins/groups/
+# Test a specific feature
+bun test test/features/grid/
+bun test test/features/groups/
 
 # Test the builder
 bun test test/builder/
@@ -581,24 +581,24 @@ bun test --test-name-pattern "selection"
 
 ## Test Structure Reorganization
 
-**Recent Update (2026-02-16):** The test structure was reorganized to mirror the `src/` directory structure after the plugin architecture refactoring.
+**Recent Update (2026-02-16):** The test structure was reorganized to mirror the `src/` directory structure after the feature architecture refactoring.
 
 **Key Changes:**
-- Plugin tests moved to `test/plugins/` subdirectory
+- Feature tests moved to `test/features/` subdirectory
 - Builder tests moved to `test/builder/` subdirectory
 - Clear 1:1 mapping with source code structure
 
 **Migration:**
-- `test/grid/` → `test/plugins/grid/`
-- `test/groups/` → `test/plugins/groups/`
-- `test/selection/` → `test/plugins/selection/`
-- `test/scroll/` → `test/plugins/scroll/`
-- `test/data/` → `test/plugins/data/`
+- `test/grid/` → `test/features/grid/`
+- `test/groups/` → `test/features/groups/`
+- `test/selection/` → `test/features/selection/`
+- `test/scroll/` → `test/features/scroll/`
+- `test/data/` → `test/features/data/`
 - `test/builder.test.ts` → `test/builder/index.test.ts`
 
 **Benefits:**
-- Easy navigation: find tests for `src/plugins/grid/` at `test/plugins/grid/`
-- Scalable: new plugins follow same pattern
+- Easy navigation: find tests for `src/features/grid/` at `test/features/grid/`
+- Scalable: new features follow same pattern
 - Consistent: test structure matches source structure
 - Maintainable: clear organization as project grows
 
@@ -616,4 +616,4 @@ bun test test/builder.test.ts
 
 ---
 
-*For module-specific implementation details, see the corresponding module documentation: [data](./plugins/async.md), [scroll](./plugins/scrollbar.md), [render](./internals/rendering.md), [selection](./plugins/selection.md), [events](./api/events.md), [handlers](./internals/handlers.md), [methods]/docs/api/reference), [accessibility]/tutorials/accessibility).*
+*For module-specific implementation details, see the corresponding module documentation: [data](./features/async.md), [scroll](./features/scrollbar.md), [render](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [handlers](./internals/handlers.md), [methods]/docs/api/reference), [accessibility]/tutorials/accessibility).*

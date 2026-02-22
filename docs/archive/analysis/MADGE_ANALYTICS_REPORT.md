@@ -14,7 +14,7 @@ The VList codebase demonstrates **excellent architectural health** with:
 ✅ **Zero circular dependencies** - Clean, acyclic dependency graph  
 ✅ **Low average coupling** - 2.85 dependencies per file  
 ✅ **Modular design** - Clear separation between features and core  
-✅ **Consistent patterns** - All plugins follow same dependency structure  
+✅ **Consistent patterns** - All features follow same dependency structure  
 ✅ **Type-safe foundation** - Central types.ts with 26 dependents  
 
 ---
@@ -50,7 +50,7 @@ Level 1-2 (Core Infrastructure):
 
 Level 3-5 (Business Logic):
   - builder/context.ts, core.ts
-  - Feature plugins (async, grid, sections, etc.)
+  - Feature features (async, grid, sections, etc.)
   - Feature managers and layouts
 
 Level 6-8 (Integration):
@@ -69,14 +69,14 @@ Level 9 (Entry Point):
 | 9 | index.ts | Main package entry point |
 | 8 | vlist.ts | Core VList class integration |
 | 8 | features/scale/index.ts | Scale feature aggregator |
-| 7 | features/scale/plugin.ts | Scale plugin implementation |
+| 7 | features/scale/feature.ts | Scale feature implementation |
 | 6 | builder/index.ts | Builder system entry |
 | 6 | features/*/index.ts (7 files) | Feature aggregators |
 | 5 | builder/context.ts | Builder context management |
 | 5 | builder/core.ts | Core builder logic |
-| 5 | features/async/plugin.ts | Async loading plugin |
+| 5 | features/async/feature.ts | Async loading feature |
 
-**Analysis:** Depth of 9 is acceptable for a modular library with plugin architecture. The hierarchy is logical and well-structured.
+**Analysis:** Depth of 9 is acceptable for a modular library with feature architecture. The hierarchy is logical and well-structured.
 
 ---
 
@@ -122,7 +122,7 @@ Level 9 (Entry Point):
 
 **Analysis:** 
 - **types.ts** is the central type hub (26 dependents) - changes require careful review
-- **builder/types.ts** (12 dependents) - critical for plugin architecture
+- **builder/types.ts** (12 dependents) - critical for feature architecture
 - Type definition files dominate the top 10 - indicates strong type safety
 
 ---
@@ -136,15 +136,15 @@ Level 9 (Entry Point):
 | **builder/context.ts** | 4 | builder, events, features, rendering |
 | **builder/types.ts** | 4 | builder, events, features, rendering |
 | **index.ts** | 4 | builder, events, features, rendering |
-| **features/async/plugin.ts** | 3 | builder, features, rendering |
-| **features/grid/plugin.ts** | 3 | builder, features, rendering |
-| **features/scale/plugin.ts** | 3 | builder, features, rendering |
-| **features/sections/plugin.ts** | 3 | builder, features, rendering |
-| **features/selection/plugin.ts** | 3 | builder, features, rendering |
+| **features/async/feature.ts** | 3 | builder, features, rendering |
+| **features/grid/feature.ts** | 3 | builder, features, rendering |
+| **features/scale/feature.ts** | 3 | builder, features, rendering |
+| **features/sections/feature.ts** | 3 | builder, features, rendering |
+| **features/selection/feature.ts** | 3 | builder, features, rendering |
 
 **Analysis:**
 - High coupling in **builder/context.ts** and **builder/types.ts** is acceptable - they orchestrate the system
-- All **feature plugins** follow identical pattern (score 3) - excellent consistency
+- All **feature features** follow identical pattern (score 3) - excellent consistency
 - **index.ts** naturally has high coupling as main entry point
 
 ### Coupling Score Distribution
@@ -153,7 +153,7 @@ Level 9 (Entry Point):
 Score 0 (isolated):        38 files (83%)
 Score 1:                   0 files
 Score 2:                   5 files (11%)
-Score 3 (plugin pattern):  5 files (11%)
+Score 3 (feature pattern):  5 files (11%)
 Score 4 (orchestrators):   3 files (7%)
 ```
 
@@ -161,11 +161,11 @@ Score 4 (orchestrators):   3 files (7%)
 
 ---
 
-## 🔌 Feature Plugin Analysis
+## 🔌 Feature Feature Analysis
 
-All 8 feature plugins follow a **consistent dependency pattern**:
+All 8 feature features follow a **consistent dependency pattern**:
 
-### Plugin Dependency Matrix
+### Feature Dependency Matrix
 
 | Feature | Builder | Rendering | Other Features | Core | Total Deps |
 |---------|---------|-----------|----------------|------|------------|
@@ -180,11 +180,11 @@ All 8 feature plugins follow a **consistent dependency pattern**:
 
 **Pattern Analysis:**
 
-✅ **100% consistency** - All plugins depend on `builder/types.ts`  
-✅ **100% consistency** - All plugins depend on core `types.ts`  
+✅ **100% consistency** - All features depend on `builder/types.ts`  
+✅ **100% consistency** - All features depend on core `types.ts`  
 ✅ **Type safety** - Strong typing enforced across all features  
 ✅ **Isolation** - Only 1 inter-feature dependency (scale → scrollbar)  
-✅ **Rendering integration** - 5/8 plugins use rendering layer  
+✅ **Rendering integration** - 5/8 features use rendering layer  
 
 **Exception:** `scale` → `scrollbar` dependency is logical (scale affects scrollbar appearance)
 
@@ -231,28 +231,28 @@ index.ts (13 deps)
 ```
 vlist.ts (10 deps)
 ├── builder/index.ts
-├── features/async/plugin.ts
-├── features/grid/plugin.ts
-├── features/page/plugin.ts
-├── features/scale/plugin.ts
-├── features/scrollbar/plugin.ts
-├── features/sections/plugin.ts
-├── features/selection/plugin.ts
-├── features/snapshots/plugin.ts
+├── features/async/feature.ts
+├── features/grid/feature.ts
+├── features/page/feature.ts
+├── features/scale/feature.ts
+├── features/scrollbar/feature.ts
+├── features/sections/feature.ts
+├── features/selection/feature.ts
+├── features/snapshots/feature.ts
 └── types.ts
 ```
 
-**Observation:** Clean aggregation pattern - entry points import feature indices, vlist.ts imports plugins directly.
+**Observation:** Clean aggregation pattern - entry points import feature indices, vlist.ts imports features directly.
 
 ---
 
 ## 🎨 Architectural Patterns
 
-### 1. Plugin Pattern ✅
+### 1. Feature Pattern ✅
 
 **Consistency Score:** 100%
 
-All feature plugins follow identical structure:
+All feature features follow identical structure:
 - Import from `builder/types.ts`
 - Import from core `types.ts`
 - Optionally import from `rendering/index.ts`
@@ -273,7 +273,7 @@ Foundation (0 deps)     → types, constants, utilities
 ↓
 Core Infrastructure     → rendering, events, builder data
 ↓
-Business Logic          → plugins, managers, layouts
+Business Logic          → features, managers, layouts
 ↓
 Integration             → feature indices, builder index
 ↓
@@ -287,7 +287,7 @@ No layer violations detected. Dependencies flow downward only.
 **Usage:** Every multi-file directory has an `index.ts`
 
 **Examples:**
-- `features/async/index.ts` - Aggregates manager, placeholder, plugin, sparse
+- `features/async/index.ts` - Aggregates manager, placeholder, feature, sparse
 - `rendering/index.ts` - Exports heights, renderer, scale, viewport
 - `builder/index.ts` - Exports builder API
 
@@ -381,7 +381,7 @@ Files with many dependents require extra caution:
 ### ✅ What's Working Well
 
 1. **Zero Circular Dependencies** - No dependency cycles anywhere
-2. **Consistent Plugin Pattern** - All 8 plugins follow identical structure
+2. **Consistent Feature Pattern** - All 8 features follow identical structure
 3. **Strong Type Safety** - Central type files with 26+ dependents
 4. **Feature Isolation** - Only 1 cross-feature dependency
 5. **Layered Architecture** - Clear separation of concerns
@@ -399,7 +399,7 @@ Files with many dependents require extra caution:
 
 **Actions:**
 - ✅ Keep circular dependency count at zero
-- ✅ Maintain plugin pattern consistency for new features
+- ✅ Maintain feature pattern consistency for new features
 - ✅ Preserve feature isolation (avoid cross-feature deps)
 - ✅ Continue using central type files
 
@@ -408,7 +408,7 @@ Files with many dependents require extra caution:
 **Actions:**
 - Add pre-commit hook: `madge --circular --extensions ts src/`
 - Create integration tests for high-impact files (types.ts, builder/types.ts)
-- Document plugin architecture pattern in CONTRIBUTING.md
+- Document feature architecture pattern in CONTRIBUTING.md
 - Set up automated dependency graph generation in CI
 
 ### Priority 3: Monitor Growth 📊
@@ -442,7 +442,7 @@ The VList codebase demonstrates **exemplary dependency management**:
 
 **Key Strengths:**
 1. No circular dependencies
-2. Consistent plugin pattern across all features
+2. Consistent feature pattern across all features
 3. Low average coupling (2.85 deps/file)
 4. Clear layered architecture
 5. Strong type foundation

@@ -20,50 +20,50 @@
     ]
   },
   {
-    "label": "Plugins",
+    "label": "Features",
     "items": [
       {
-        "slug": "plugins/README",
+        "slug": "features/README",
         "name": "Overview",
-        "desc": "All plugins with examples and costs"
+        "desc": "All features with examples and costs"
       },
       {
-        "slug": "plugins/grid",
+        "slug": "features/grid",
         "name": "Grid",
         "desc": "2D grid layout (withGrid)"
       },
       {
-        "slug": "plugins/sections",
+        "slug": "features/sections",
         "name": "Sections",
         "desc": "Grouped lists with headers (withSections)"
       },
       {
-        "slug": "plugins/async",
+        "slug": "features/async",
         "name": "Async",
         "desc": "Lazy data loading (withAsync)"
       },
       {
-        "slug": "plugins/selection",
+        "slug": "features/selection",
         "name": "Selection",
         "desc": "Item selection & keyboard nav (withSelection)"
       },
       {
-        "slug": "plugins/scale",
+        "slug": "features/scale",
         "name": "Scale",
         "desc": "1M+ items (withScale)"
       },
       {
-        "slug": "plugins/scrollbar",
+        "slug": "features/scrollbar",
         "name": "Scrollbar",
         "desc": "Custom scrollbar UI (withScrollbar)"
       },
       {
-        "slug": "plugins/page",
+        "slug": "features/page",
         "name": "Page",
         "desc": "Document scrolling (withPage)"
       },
       {
-        "slug": "plugins/snapshots",
+        "slug": "features/snapshots",
         "name": "Snapshots",
         "desc": "Scroll save/restore (withSnapshots)"
       }
@@ -105,7 +105,7 @@
       {
         "slug": "internals/context",
         "name": "Context",
-        "desc": "BuilderContext and plugin system"
+        "desc": "BuilderContext and feature system"
       },
       {
         "slug": "internals/handlers",

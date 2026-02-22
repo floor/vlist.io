@@ -1133,7 +1133,7 @@ height: (index, context) => context ? context.columnWidth * 0.75 : 200
 ### updateGrid() doesn't work
 
 **Check:**
-1. Using default entry point or builder with `withGrid` plugin
+1. Using default entry point or builder with `withGrid` feature
 2. Grid context available: `layout: 'grid'` was specified
 
 ### Images not loading
@@ -1153,7 +1153,7 @@ height: (index, context) => context ? context.columnWidth * 0.75 : 200
 
 ## Grid+Groups Technical Details
 
-When grid and sections plugins are combined, special coordination is required to handle:
+When grid and sections features are combined, special coordination is required to handle:
 - Full-width headers that span all columns
 - Headers forcing new rows in the grid flow
 - Correct height calculations (row-based vs item-based)
@@ -1162,11 +1162,11 @@ When grid and sections plugins are combined, special coordination is required to
 
 **1. Layout Transformation**
 
-The sections plugin transforms the flat item list by inserting header pseudo-items:
+The sections feature transforms the flat item list by inserting header pseudo-items:
 
 ```
 Items: [file1, file2, file3, ...]
-         ↓ (sections plugin)
+         ↓ (sections feature)
 Layout: [header, file1, header, file2, file3, header, ...]
 ```
 
@@ -1186,9 +1186,9 @@ getCol(index) = headers at col 0, items flow normally
 
 **3. Height Cache Strategy**
 
-- Grid plugin initially sets row-based heights
-- Sections plugin rebuilds with item-based heights (headers + items)
-- Grid plugin overrides `getTotalSize()` to return sum of column 0 items only
+- Grid feature initially sets row-based heights
+- Sections feature rebuilds with item-based heights (headers + items)
+- Grid feature overrides `getTotalSize()` to return sum of column 0 items only
 
 This prevents double-counting items in the same row.
 
@@ -1240,13 +1240,13 @@ Not recommended for:
 
 ### How Context is Injected
 
-When you provide a height function, the grid plugin wraps it:
+When you provide a height function, the grid feature wraps it:
 
 ```typescript
 // Your function:
 const userHeight = (index, context) => context.columnWidth * 0.75;
 
-// Grid plugin wraps it:
+// Grid feature wraps it:
 const wrappedHeight = (index) => {
   // Calculate current context
   const innerWidth = containerWidth - 2;  // Account for borders

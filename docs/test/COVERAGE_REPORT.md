@@ -15,11 +15,11 @@ The vlist library has excellent test coverage with **1,181 passing tests** acros
 | **Core Builder** | 84.62% | 90.01% | ✅ Good |
 | **DOM Utilities** | 100% | 97.96% | ✅ Excellent |
 | **Event System** | 100% | 100% | ✅ Perfect |
-| **Async/Data Plugins** | 100% | 100% | ✅ Perfect |
+| **Async/Data Features** | 100% | 100% | ✅ Perfect |
 | **Grid Layout** | 91.67% | 36.57% | ⚠️ Needs work |
-| **Grid Plugin** | 66.67% | 70.36% | ⚠️ Needs work |
+| **Grid Feature** | 66.67% | 70.36% | ⚠️ Needs work |
 | **Grid Renderer** | 100% | 100% | ✅ Perfect |
-| **Scale Plugin** | 86.96% | 90.27% | ✅ Good |
+| **Scale Feature** | 86.96% | 90.27% | ✅ Good |
 | **Scrollbar** | 90.48% | 97.00% | ✅ Excellent |
 | **Sections/Groups** | 82.61% | 85.22% | ✅ Good |
 | **Selection** | 80.65% | 99.29% | ✅ Excellent |
@@ -42,7 +42,7 @@ The vlist library has excellent test coverage with **1,181 passing tests** acros
 ### Excellent Coverage (>95%)
 - **Scrollbar Controller** (97.87% lines)
 - **DOM Builder** (97.96% lines)
-- **Selection Plugin** (99.29% lines)
+- **Selection Feature** (99.29% lines)
 - **Viewport** (95.83% lines)
 
 ## Areas Needing Attention ⚠️
@@ -59,15 +59,15 @@ The vlist library has excellent test coverage with **1,181 passing tests** acros
 
 **Priority:** HIGH - Core feature needs better coverage
 
-### Grid Plugin (70.36% line coverage)
-**File:** `src/features/grid/plugin.ts`  
+### Grid Feature (70.36% line coverage)
+**File:** `src/features/grid/feature.ts`  
 **Uncovered areas:**
-- Lines 219-243: Plugin initialization
+- Lines 219-243: Feature initialization
 - Lines 249-301: State management
 - Lines 351, 398-400: Event handlers
 - Lines 474-475: Cleanup
 
-**Priority:** MEDIUM - Plugin glue code, less critical
+**Priority:** MEDIUM - Feature glue code, less critical
 
 ### Materialize Context (84.57% line coverage)
 **File:** `src/builder/materializectx.ts`  
@@ -93,7 +93,7 @@ The vlist library has excellent test coverage with **1,181 passing tests** acros
 test/
 ├── builder/           # Core builder tests
 ├── events/            # Event system tests
-├── plugins/           # Feature plugin tests
+├── features/           # Feature feature tests
 │   ├── data/         # Async/placeholder/sparse
 │   ├── grid/         # Grid layout & renderer
 │   ├── groups/       # Section/group layout
@@ -118,11 +118,11 @@ The grid layout module has excellent function coverage (91.67%) but poor line co
 - Test gap handling with different configurations
 - Test position calculations for all item types
 
-### 2. Add Grid Plugin Integration Tests (Priority: MEDIUM)
-The grid plugin has decent coverage but is missing tests for initialization and state management.
+### 2. Add Grid Feature Integration Tests (Priority: MEDIUM)
+The grid feature has decent coverage but is missing tests for initialization and state management.
 
 **Action items:**
-- Test plugin initialization with various configs
+- Test feature initialization with various configs
 - Test state updates and event propagation
 - Test cleanup/destroy lifecycle
 

@@ -55,7 +55,7 @@ When scrolling very fast with mouse wheel on Chrome/Safari, blank areas appear w
 
 ### Why Compression Mode Works
 
-Lists with >350K items automatically use `withScale` plugin which:
+Lists with >350K items automatically use `withScale` feature which:
 - Uses custom scrollbar (not native scrolling)
 - Intercepts wheel events and handles them manually
 - Renders **synchronously** before updating scroll position
@@ -291,7 +291,7 @@ if (wheelEnabled && !isHorizontal) {
 
 ## Alternative Solutions Considered
 
-### Option A: Use Compression/Scale Plugin by Default
+### Option A: Use Compression/Scale Feature by Default
 
 **Pros:**
 - Proven solution (works for large lists)
@@ -328,10 +328,10 @@ if (wheelEnabled && !isHorizontal) {
 - Current solution: **95/100** - Works great, small compromise
 - Compression everywhere: **100/100** - Architecturally pure, but +2-3 KB gzipped
 
-### Option C: Extract Wheel Handling from Scale Plugin
+### Option C: Extract Wheel Handling from Scale Feature
 
 **Pros:**
-- Lighter weight than full scale plugin
+- Lighter weight than full scale feature
 - More maintainable than browser detection
 
 **Cons:**
@@ -348,7 +348,7 @@ if (wheelEnabled && !isHorizontal) {
 Keep the wheel interception solution - it works, has minimal impact, and preserves accessibility.
 
 ### Long-term (To Evaluate)
-Consider making compression/scale plugin default behavior for consistency and maintainability. The bundle size increase (~2-3 KB gzipped) may be worth the architectural cleanliness.
+Consider making compression/scale feature default behavior for consistency and maintainability. The bundle size increase (~2-3 KB gzipped) may be worth the architectural cleanliness.
 
 ### Monitoring
 Monitor for:
@@ -439,12 +439,12 @@ The current solution works perfectly but represents a philosophical compromise:
 
 **Architectural purity:**
 - Pure native: Let browser handle everything (doesn't work - causes blank areas)
-- Pure custom: Handle everything ourselves (works perfectly - compression plugin)
+- Pure custom: Handle everything ourselves (works perfectly - compression feature)
 - Hybrid (current): Mix of both (works, but feels like a hack)
 
 ### The "Proper" Solution
 
-Use `withScale` plugin approach for **all lists**:
+Use `withScale` feature approach for **all lists**:
 
 ```javascript
 // Consistent custom scrolling for everything

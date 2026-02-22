@@ -21,7 +21,7 @@ The scroll module handles all scrolling functionality in vlist, including:
 ```
 src/features/scrollbar/
 ├── index.ts       # Module exports
-├── plugin.ts      # withScrollbar() plugin
+├── feature.ts      # withScrollbar() feature
 ├── controller.ts  # Scroll controller (native + scaled + window + horizontal modes)
 └── scrollbar.ts   # Custom scrollbar component (vertical + horizontal)
 ```

@@ -10,7 +10,7 @@ This directory contains documentation for major refactoring efforts in the VList
 Complete documentation of the major refactoring that reorganized VList from a dual-entry system to a builder-only architecture with clearer module naming.
 
 **Key Changes:**
-- Renamed `plugins/` → `features/` for clarity
+- Renamed `features/` → `features/` for clarity
 - Renamed `render/` → `rendering/` (noun form)
 - Improved module names: `compression` → `scale`, `data` → `async`, `scroll` → `scrollbar`, etc.
 - Single builder-only entry point (removed monolithic API)
@@ -53,7 +53,7 @@ The detailed plan that guided the module organization refactoring, including:
 ```
 Before:                          After:
 src/                             src/
-├── plugins/              →      ├── features/
+├── features/              →      ├── features/
 │   ├── compression/      →      │   ├── scale/
 │   ├── data/             →      │   ├── async/
 │   ├── scroll/           →      │   ├── scrollbar/
@@ -112,7 +112,7 @@ const list = vlist(config)
 ✅ Single, clear API (no confusion)  
 ✅ Optimal tree-shaking  
 ✅ Intuitive naming  
-✅ Explicit plugin usage  
+✅ Explicit feature usage  
 ✅ Modern library pattern  
 
 ## 🔗 Related Documentation
@@ -120,7 +120,7 @@ const list = vlist(config)
 - [Architecture Overview](../internals/) - Internal architecture details
 - [Dependency Analysis](../analysis/) - Madge dependency reports
 - [API Documentation](../api/) - Public API reference
-- [Plugin Guides](../plugins/) - Individual plugin documentation
+- [Feature Guides](../features/) - Individual feature documentation
 
 ## 📅 History
 

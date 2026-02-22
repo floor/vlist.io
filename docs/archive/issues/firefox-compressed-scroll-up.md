@@ -5,7 +5,7 @@
 
 ## Environment
 - **Browser**: Firefox only (Chrome, Brave, Safari work correctly)
-- **Mode**: Compressed lists only (`withScale` plugin)
+- **Mode**: Compressed lists only (`withScale` feature)
 - **Scroll Direction**: Scroll UP only (scroll down works fine)
 - **Input Method**: Mouse wheel only (touchpad works correctly)
 
@@ -113,7 +113,7 @@ const list = vlist({
   container: "#list-container",
   item: { height: 72, template: itemTemplate },
 })
-  .use(withScale())  // ← Compression plugin
+  .use(withScale())  // ← Compression feature
   .build();
 ```
 
@@ -186,7 +186,7 @@ The positioning math itself is correct — the problem is that Firefox's wheel d
 
 ### The Fix
 
-Replace the immediate wheel handler with **lerp-based smooth scroll interpolation** in `vlist/src/features/scale/plugin.ts`.
+Replace the immediate wheel handler with **lerp-based smooth scroll interpolation** in `vlist/src/features/scale/feature.ts`.
 
 Instead of immediately setting `virtualScrollTop += deltaY`, we:
 1. Accumulate deltaY into a `targetScrollTop`
@@ -248,7 +248,7 @@ mtrl-addons has a `smoothing` option in its wheel handler that multiplies deltaY
 
 ### Files Changed
 
-- **`vlist/src/features/scale/plugin.ts`** — Smooth scroll interpolation in wheel handler
+- **`vlist/src/features/scale/feature.ts`** — Smooth scroll interpolation in wheel handler
 - **`vlist/src/rendering/scale.ts`** — Removed debug logging, cleaned up comments
 
 ---
