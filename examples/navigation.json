@@ -15,7 +15,7 @@
     ]
   },
   {
-    "label": "Grid Plugin",
+    "label": "Grid Feature",
     "items": [
       {
         "slug": "grid/photo-album",
@@ -30,7 +30,7 @@
     ]
   },
   {
-    "label": "Data Plugin",
+    "label": "Data Feature",
     "items": [
       {
         "slug": "data/large-list",
@@ -60,7 +60,7 @@
     ]
   },
   {
-    "label": "Groups Plugin",
+    "label": "Groups Feature",
     "items": [
       {
         "slug": "groups/sticky-headers",
@@ -70,7 +70,7 @@
     ]
   },
   {
-    "label": "Other Plugins",
+    "label": "Other Features",
     "items": [
       {
         "slug": "scroll-restore",

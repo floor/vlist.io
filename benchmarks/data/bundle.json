@@ -5,7 +5,7 @@
     "min": "23.0",
     "deps": "0",
     "self": true,
-    "note": "Core virtualizer only — import { vlist }, no plugins"
+    "note": "Core virtualizer only — import { vlist }, no features"
   },
   {
     "lib": "vlist (typical)",
@@ -13,7 +13,7 @@
     "min": "37.0",
     "deps": "0",
     "self": true,
-    "note": "With common plugins: withSections, withSelection"
+    "note": "With common features: withSections, withSelection"
   },
 
   {

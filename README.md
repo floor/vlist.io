@@ -9,7 +9,7 @@ Documentation, examples, and benchmarks site for the [vlist](https://github.com/
 🎉 **VList v0.6.0** - Complete refactoring to builder-only API with optimal tree-shaking!
 
 - **2-3x smaller bundles** (22 KB → 8-12 KB gzipped)
-- **Builder pattern** with explicit plugins
+- **Builder pattern** with explicit features
 - **Clear naming** - `withScale`, `withAsync`, `withSections`, `withPage`
 - **All 34 examples updated** to demonstrate new API
 
@@ -27,14 +27,14 @@ See [BUNDLE_SIZE_COMPARISON.md](./BUNDLE_SIZE_COMPARISON.md) for detailed analys
 
 ## Examples Examples
 
-The examples includes **34 interactive examples** demonstrating the builder pattern with explicit plugins:
+The examples includes **34 interactive examples** demonstrating the builder pattern with explicit features:
 
 ### By Feature
 
 | Feature | Examples | Bundle Size (Gzipped) |
 |---------|----------|-----------------------|
 | **Getting Started** | Basic, Controls | 8.2 - 10.5 KB |
-| **Core (Ultra-Light)** | Basic Core | **3.1 KB** (no plugins) |
+| **Core (Ultra-Light)** | Basic Core | **3.1 KB** (no features) |
 | **Layout** | Grid (Photo Album, File Browser), Horizontal | 8.6 - 15.3 KB |
 | **Grouped Lists** | Sticky Headers (Sections), Reverse Chat | 11.9 - 12.3 KB |
 | **Large Datasets** | Large List (Scale), Velocity Loading | 9.9 - 15.0 KB |
@@ -43,7 +43,7 @@ The examples includes **34 interactive examples** demonstrating the builder patt
 
 ### Builder Pattern Examples
 
-All examples now use the **builder API** with explicit plugins:
+All examples now use the **builder API** with explicit features:
 
 ```typescript
 import { vlist, withGrid, withSections } from 'vlist';
@@ -117,34 +117,34 @@ vlist.dev/
 │   ├── controls/           # (JavaScript, React, Vue, Svelte)
 │   ├── core/               # Ultra-Lightweight Core (3.1 KB gzip)
 │   │   └── basic/          # (JavaScript, React, Vue, Svelte)
-│   ├── grid/               # Grid Layout Plugin
+│   ├── grid/               # Grid Layout Feature
 │   │   ├── photo-album/    # (JavaScript, React, Vue, Svelte)
 │   │   └── file-browser/   # File browser demo
-│   ├── data/               # Async Loading Plugin
+│   ├── data/               # Async Loading Feature
 │   │   ├── large-list/     # (JavaScript, React, Vue, Svelte)
 │   │   └── velocity-loading/
 │   ├── horizontal/         # Horizontal Direction
 │   │   └── basic/          # (JavaScript, React, Vue, Svelte)
-│   ├── groups/             # Sections Plugin (was: groups)
+│   ├── groups/             # Sections Feature (was: groups)
 │   │   └── sticky-headers/
-│   ├── scroll-restore/     # Snapshots Plugin
-│   ├── window-scroll/      # Page Plugin (was: window)
+│   ├── scroll-restore/     # Snapshots Feature
+│   ├── window-scroll/      # Page Feature (was: window)
 │   ├── variable-heights/   # Advanced Examples
 │   ├── reverse-chat/       # Reverse + Sections
 │   ├── wizard-nav/         # Button-only navigation
 │   └── builder/            # Builder Pattern Examples
 │       ├── basic/
 │       ├── controls/
-│       ├── large-list/     # Scale plugin (was: compression)
+│       ├── large-list/     # Scale feature (was: compression)
 │       ├── photo-album/
 │       └── chat/
 ├── benchmarks/             # Performance test suites
 ├── docs/                   # Markdown documentation (API reference)
 │   ├── README.md
-│   ├── plugins.md          # Plugin system guide
-│   ├── grid.md             # Grid plugin details
-│   ├── data.md             # Async plugin details
-│   ├── groups.md           # Sections plugin details
+│   ├── features.md          # Feature system guide
+│   ├── grid.md             # Grid feature details
+│   ├── data.md             # Async feature details
+│   ├── groups.md           # Sections feature details
 │   └── ...                 # More guides
 ├── nginx/                  # nginx vhost config
 │   └── vlist.dev.conf
@@ -214,7 +214,7 @@ Local `file:` paths are used in development. The deploy script swaps them for re
 
 - **[REFACTORING_SUMMARY.md](./REFACTORING_SUMMARY.md)** - Complete refactoring overview
 - **[BUNDLE_SIZE_COMPARISON.md](./BUNDLE_SIZE_COMPARISON.md)** - Before/after bundle analysis
-- **[docs/plugins.md](./docs/plugins.md)** - Plugin system guide
+- **[docs/features.md](./docs/features.md)** - Feature system guide
 - **[docs/builder.md](./docs/builder.md)** - Builder pattern documentation
 
 ## License
