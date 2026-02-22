@@ -46,6 +46,7 @@ import "./comparison/react-window.js";
 import "./comparison/tanstack-virtual.js";
 import "./comparison/virtua.js";
 import "./comparison/vue-virtual-scroller.js";
+import "./comparison/solidjs.js";
 
 // =============================================================================
 // Variant Support

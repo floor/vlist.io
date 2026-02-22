@@ -196,6 +196,10 @@ export function buildComparisonsOverviewHTML() {
             <strong class="comparison-card__title">vue-virtual-scroller</strong>
             <div class="comparison-card__desc">Vue 3 component (2.0 beta, stable 1.x from 2022)</div>
           </a>
+          <a href="/benchmarks/solidjs" class="comparison-card">
+            <strong class="comparison-card__title">🔷 SolidJS</strong>
+            <div class="comparison-card__desc">Head-to-head performance: vlist vs TanStack Virtual (SolidJS)</div>
+          </a>
         </div>
 
         <h3 class="section-title">🔬 Methodology</h3>

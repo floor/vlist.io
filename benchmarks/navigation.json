@@ -68,6 +68,12 @@
         "desc": "Head-to-head performance: vlist vs TanStack Virtual"
       },
       {
+        "slug": "solidjs",
+        "name": "SolidJS",
+        "icon": "⚔️",
+        "desc": "Head-to-head performance: vlist vs TanStack Virtual (SolidJS)"
+      },
+      {
         "slug": "virtua",
         "name": "Virtua",
         "icon": "⚔️",
