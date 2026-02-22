@@ -64,14 +64,21 @@ const benchmarkVirtua = async (container, items, onStatus) => {
   }
 
   // React component using Virtua
+  // Note: Virtua uses a render prop pattern where children is a function
+  // that receives index and returns the element for that index
   const VirtualList = ({ itemCount, height }) => {
+    // Generate an array of indices for Virtua to virtualize
+    const indices = React.useMemo(
+      () => Array.from({ length: itemCount }, (_, i) => i),
+      [itemCount]
+    );
+
     return React.createElement(
       VirtuaVirtualizer,
       {
         style: { height: `${height}px` },
-        count: itemCount,
       },
-      (index) =>
+      indices.map((index) =>
         React.createElement(
           "div",
           {
@@ -81,6 +88,7 @@ const benchmarkVirtua = async (container, items, onStatus) => {
           },
           index,
         ),
+      ),
     );
   };
 
