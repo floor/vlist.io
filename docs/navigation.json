@@ -1,5 +1,14 @@
 [
   {
+    "items": [
+      {
+        "slug": "getting-started",
+        "name": "Getting Started",
+        "desc": "Complete guide to installation and configuration"
+      }
+    ]
+  },
+  {
     "label": "API Reference",
     "items": [
       {

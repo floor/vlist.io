@@ -116,14 +116,16 @@ export function createContentRenderer(config: ContentConfig) {
         overviewCache = JSON.parse(raw) as OverviewSection[];
       } else {
         // Use navigation groups as overview sections
-        overviewCache = loadNavigation().map((group) => ({
-          label: group.label,
-          cards: group.items.map((item) => ({
-            slug: item.slug,
-            name: item.name,
-            desc: item.desc,
-          })),
-        }));
+        overviewCache = loadNavigation()
+          .filter((group) => group.label)
+          .map((group) => ({
+            label: group.label,
+            cards: group.items.map((item) => ({
+              slug: item.slug,
+              name: item.name,
+              desc: item.desc,
+            })),
+          }));
       }
     }
     return overviewCache;
@@ -327,7 +329,9 @@ export function createContentRenderer(config: ContentConfig) {
 
     for (const group of loadNavigation()) {
       lines.push(`<div class="sidebar__group">`);
-      lines.push(`  <div class="sidebar__label">${group.label}</div>`);
+      if (group.label) {
+        lines.push(`  <div class="sidebar__label">${group.label}</div>`);
+      }
       for (const item of group.items) {
         const href =
           item.slug === "" ? `${urlPrefix}/` : `${urlPrefix}/${item.slug}`;

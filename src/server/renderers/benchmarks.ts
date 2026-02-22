@@ -175,7 +175,9 @@ function buildSidebar(activeSlug: string | null, variant?: Variant): string {
 
   for (const group of loadNavigation()) {
     lines.push(`<div class="sidebar__group">`);
-    lines.push(`  <div class="sidebar__label">${group.label}</div>`);
+    if (group.label) {
+      lines.push(`  <div class="sidebar__label">${group.label}</div>`);
+    }
     for (const item of group.items) {
       const active = item.slug === activeSlug ? " sidebar__link--active" : "";
       lines.push(
@@ -202,6 +204,7 @@ function buildOverviewContent(): string {
   );
 
   for (const group of loadNavigation()) {
+    if (!group.label) continue;
     lines.push(`  <div class="overview__section">`);
     lines.push(`    <div class="overview__section-title">${group.label}</div>`);
     lines.push(`    <div class="overview__grid">`);

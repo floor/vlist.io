@@ -296,7 +296,9 @@ function buildSidebar(activeSlug: string | null, variant?: Variant): string {
 
   for (const group of loadNavigation()) {
     lines.push(`<div class="sidebar__group">`);
-    lines.push(`  <div class="sidebar__label">${group.label}</div>`);
+    if (group.label) {
+      lines.push(`  <div class="sidebar__label">${group.label}</div>`);
+    }
     if (group.items.length === 0) {
       lines.push(
         `  <span class="sidebar__link sidebar__link--soon">Coming soon</span>`,
@@ -329,6 +331,7 @@ function buildOverviewContent(): string {
   );
 
   for (const group of loadNavigation()) {
+    if (!group.label) continue;
     sections.push(`  <div class="overview__section">`);
     sections.push(
       `    <div class="overview__section-title">${group.label}</div>`,

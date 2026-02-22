@@ -8,11 +8,6 @@
         "desc": "Get started in under 5 minutes"
       },
       {
-        "slug": "getting-started",
-        "name": "Getting Started",
-        "desc": "Complete guide to installation and configuration"
-      },
-      {
         "slug": "builder-pattern",
         "name": "Builder Pattern",
         "desc": "Understanding the feature system"
