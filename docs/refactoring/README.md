@@ -128,7 +128,7 @@ const list = vlist(config)
   - Branch: `refactor/module-organization`
   - Duration: ~2.5 hours
   - Result: ✅ All tests passing, 2-3x bundle size reduction
-- **February 2025** - Decompose `builder/core.ts` (in progress)
+- **February 2026** - Decompose `builder/core.ts` (in progress)
   - Branch: `refactor/decompose-core-refs-object` (Option A complete)
   - Branch: `refactor/decompose-core-getter-setter` (Option B planned)
   - Option A result: core.ts 1900 → 1053 lines, bundle +0.7% (71.4 → 71.9 KB), 1184 tests pass

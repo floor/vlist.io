@@ -292,7 +292,7 @@ const gallery = vlist({
 **Result:**
 ```
 ┌────────────────────────────────────────┐
-│ January 2025 (full-width header)       │
+│ January 2026 (full-width header)       │
 ├──────────┬──────────┬──────────┬───────┤
 │ Photo 1  │ Photo 2  │ Photo 3  │ Photo │
 │          │          │          │   4   │
@@ -300,7 +300,7 @@ const gallery = vlist({
 │ Photo 5  │ Photo 6  │ Photo 7  │ Photo │
 │          │          │          │   8   │
 ├────────────────────────────────────────┤
-│ February 2025 (full-width header)      │
+│ February 2026 (full-width header)      │
 ├──────────┬──────────┬──────────┬───────┤
 │ Photo 9  │ Photo 10 │ Photo 11 │ Photo │
 │          │          │          │  12   │

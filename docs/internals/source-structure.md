@@ -417,6 +417,6 @@ test/
 
 ---
 
-**Last Updated:** January 2025  
+**Last Updated:** January 2026  
 **Version:** v0.8+  
 **Accuracy:** Verified against actual source code
