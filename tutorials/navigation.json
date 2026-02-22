@@ -15,7 +15,7 @@
       {
         "slug": "builder-pattern",
         "name": "Builder Pattern",
-        "desc": "Understanding the plugin system"
+        "desc": "Understanding the feature system"
       }
     ]
   },

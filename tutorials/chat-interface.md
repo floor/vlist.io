@@ -911,7 +911,7 @@ const messages = [...originalMessages].reverse() // Don't do this!
 
 ## Further Reading
 
-- [Sections Plugin](/docs/plugins/sections) — Add date headers to chat UIs
-- [Async Plugin](/docs/plugins/async) — Infinite scrolling with async loading
-- [Selection Plugin](/docs/plugins/selection) — Add message selection
+- [Sections Feature](/docs/features/sections) — Add date headers to chat UIs
+- [Async Feature](/docs/features/async) — Infinite scrolling with async loading
+- [Selection Feature](/docs/features/selection) — Add message selection
 - [API Reference](/docs/api/reference) — Full API documentation

@@ -264,9 +264,9 @@ list.removeItem(5);
 
 ---
 
-## Available Plugins
+## Available Features
 
-| Plugin | Cost | Description |
+| Feature | Cost | Description |
 |--------|------|-------------|
 | `withGrid()` | +4.0 KB | 2D grid layout |
 | `withSections()` | +4.6 KB | Grouped lists with headers |
@@ -279,7 +279,7 @@ list.removeItem(5);
 ## Next Steps
 
 - **[Getting Started](./getting-started)** — Installation, configuration, TypeScript
-- **[Builder Pattern](./builder-pattern)** — Plugins, composition, bundle costs
-- **[Plugin Docs](/docs/plugins/README)** — All plugins with examples
+- **[Builder Pattern](./builder-pattern)** — Features, composition, bundle costs
+- **[Feature Docs](/docs/features/README)** — All features with examples
 - **[API Reference](/docs/api/reference)** — Complete method and event reference
 - **[Examples](/examples/)** — 34 interactive examples

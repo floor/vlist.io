@@ -8,12 +8,12 @@ Different use cases need different features. A contact list doesn't need async l
 
 | Configuration | Bundle | vs. monolithic |
 |---|---|---|
-| Base (no plugins) | 7.7 KB | – |
+| Base (no features) | 7.7 KB | – |
 | + Selection | 10.0 KB | 2.1× smaller |
 | + Grid + Scrollbar | 11.7 KB | 1.8× smaller |
 | + Sections | 12.3 KB | 1.8× smaller |
 | + Async + Page | 13.5 KB | 1.6× smaller |
-| All plugins | ~16 KB | 1.4× smaller |
+| All features | ~16 KB | 1.4× smaller |
 
 **Traditional virtual lists:** 20–23 KB minimum (all features bundled).
 
@@ -37,7 +37,7 @@ const builder = vlist({
 // builder is NOT a list yet
 ```
 
-### 2. `.use(plugin)` — add features
+### 2. `.use(feature)` — add features
 
 ```typescript
 import { withSelection, withScrollbar } from '@floor/vlist';
@@ -47,7 +47,7 @@ builder
   .use(withScrollbar({ autoHide: true }));
 ```
 
-Each `.use()` returns the builder, so calls chain. Plugins auto-sort by internal priority — you don't need to worry about order.
+Each `.use()` returns the builder, so calls chain. Features auto-sort by internal priority — you don't need to worry about order.
 
 ### 3. `.build()` — get the instance
 
@@ -64,9 +64,9 @@ list.destroy();
 
 ---
 
-## Available Plugins
+## Available Features
 
-| Plugin | Import | Cost | Description |
+| Feature | Import | Cost | Description |
 |---|---|---|---|
 | `withGrid()` | `@floor/vlist` | +4.0 KB | 2D grid layout (virtualises by row) |
 | `withSections()` | `@floor/vlist` | +4.6 KB | Grouped lists with sticky or inline headers |
@@ -79,7 +79,7 @@ list.destroy();
 
 ---
 
-## Plugin Compatibility
+## Feature Compatibility
 
 | Combination | Works? |
 |---|---|
@@ -93,7 +93,7 @@ list.destroy();
 | `withPage()` + `withScrollbar()` | ❌ Conflicting scroll ownership |
 | `reverse: true` + `direction: 'horizontal'` | ❌ Reverse requires vertical |
 
-The builder throws at runtime if you combine incompatible plugins.
+The builder throws at runtime if you combine incompatible features.
 
 ---
 
@@ -143,9 +143,9 @@ browser.on('selection:change', ({ selectedIds }) => {
 
 ---
 
-## Conditional Plugins
+## Conditional Features
 
-Plugins can be added conditionally before calling `.build()`:
+Features can be added conditionally before calling `.build()`:
 
 ```typescript
 import { vlist, withGrid, withSelection } from '@floor/vlist';
@@ -171,7 +171,7 @@ const list = builder.build();
 ## See Also
 
 - **[Quick Start](./quick-start)** — Copy-paste examples for every use case
-- **[Plugins Overview](/docs/plugins/README)** — All plugins with correct API
-- **[Grid](/docs/plugins/grid)** · **[Sections](/docs/plugins/sections)** · **[Async](/docs/plugins/async)**
-- **[Selection](/docs/plugins/selection)** · **[Scale](/docs/plugins/scale)** · **[Scrollbar](/docs/plugins/scrollbar)**
+- **[Features Overview](/docs/features/README)** — All features with correct API
+- **[Grid](/docs/features/grid)** · **[Sections](/docs/features/sections)** · **[Async](/docs/features/async)**
+- **[Selection](/docs/features/selection)** · **[Scale](/docs/features/scale)** · **[Scrollbar](/docs/features/scrollbar)**
 - **[API Reference](/docs/api/reference)** — Complete method reference

@@ -395,8 +395,8 @@ With all optimizations enabled:
 
 ## Related Documentation
 
-- [Scale](/docs/plugins/scale) - How large list scaling works
-- [Async Management](/docs/plugins/async) - Sparse storage and chunking
-- [Scroll Controller](/docs/plugins/scrollbar) - Velocity tracking and scroll handling
+- [Scale](/docs/features/scale) - How large list scaling works
+- [Async Management](/docs/features/async) - Sparse storage and chunking
+- [Scroll Controller](/docs/features/scrollbar) - Velocity tracking and scroll handling
 - [Rendering](/docs/internals/rendering) - Element pooling and DOM management
 - [Types](/docs/api/types) - Configuration interfaces including `LoadingConfig`

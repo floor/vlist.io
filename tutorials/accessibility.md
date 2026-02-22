@@ -518,7 +518,7 @@ In compressed mode (1M+ items), all ARIA attributes work identically. The `aria-
 
 ## Related Documentation
 
-- [Selection](/docs/plugins/selection) — Selection state management and keyboard interaction internals
+- [Selection](/docs/features/selection) — Selection state management and keyboard interaction internals
 - [Handlers](/docs/internals/handlers) — Scroll, click, and keyboard event handler implementation
 - [Render](/docs/internals/rendering) — Element pool, DOM structure, and renderer details
 - [Styles](./styling) — CSS tokens, variants, focus ring, and dark mode

@@ -458,7 +458,7 @@ thumb.addEventListener('touchend', handleThumbTouchEnd);
 
 ### 2. Pull-to-Refresh Support
 
-Optional plugin for pull-to-refresh on mobile:
+Optional feature for pull-to-refresh on mobile:
 
 ```javascript
 .use(withPullToRefresh({
@@ -617,7 +617,7 @@ The library's reliance on native scrolling rather than custom touch handling res
 
 - [Accessibility](accessibility.md) — Screen reader support, ARIA attributes
 - [Performance](optimization.md) — Optimization strategies and benchmarks
-- [Scroll](/docs/plugins/scrollbar) — Scroll controller and configuration
+- [Scroll](/docs/features/scrollbar) — Scroll controller and configuration
 
 ---
 

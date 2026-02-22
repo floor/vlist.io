@@ -128,7 +128,7 @@ scroll?: {
 
 ### Window / page scrolling
 
-Pass `window` as the scroll element to let the whole page scroll instead of the container. This is also what `withPage()` does — use the plugin when you want to avoid configuring it manually.
+Pass `window` as the scroll element to let the whole page scroll instead of the container. This is also what `withPage()` does — use the feature when you want to avoid configuring it manually.
 
 ```typescript
 const list = vlist({
@@ -309,7 +309,7 @@ chat.on('item:click', ({ item }) => {
 ## Lifecycle
 
 ```typescript
-list.destroy()  // Removes DOM, unbinds all listeners, cleans up plugins
+list.destroy()  // Removes DOM, unbinds all listeners, cleans up features
 ```
 
 Always call `destroy()` when unmounting (SPA route changes, component teardown).
@@ -320,13 +320,13 @@ Always call `destroy()` when unmounting (SPA route changes, component teardown).
 
 | I want to… | Go to |
 |---|---|
-| Add a grid layout | [Grid Plugin](/docs/plugins/grid) |
-| Group items with headers | [Sections Plugin](/docs/plugins/sections) |
-| Load data from an API | [Async Plugin](/docs/plugins/async) |
-| Add item selection | [Selection Plugin](/docs/plugins/selection) |
-| Handle 1M+ items | [Scale Plugin](/docs/plugins/scale) |
-| Use a custom scrollbar | [Scrollbar Plugin](/docs/plugins/scrollbar) |
-| Scroll the whole page | [Page Plugin](/docs/plugins/page) |
+| Add a grid layout | [Grid Feature](/docs/features/grid) |
+| Group items with headers | [Sections Feature](/docs/features/sections) |
+| Load data from an API | [Async Feature](/docs/features/async) |
+| Add item selection | [Selection Feature](/docs/features/selection) |
+| Handle 1M+ items | [Scale Feature](/docs/features/scale) |
+| Use a custom scrollbar | [Scrollbar Feature](/docs/features/scrollbar) |
+| Scroll the whole page | [Page Feature](/docs/features/page) |
 | Build a chat UI | [Chat Interface](./chat-interface) |
 | Tune for performance | [Optimization](./optimization) |
 | Customise styles | [Styling](./styling) |
