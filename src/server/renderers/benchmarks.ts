@@ -22,7 +22,7 @@ export interface BenchGroup {
   items: BenchItem[];
 }
 
-type Variant = "javascript" | "react" | "vue" | "svelte";
+type Variant = "javascript" | "react" | "vue" | "svelte" | "solidjs";
 
 // =============================================================================
 // Paths & Constants
@@ -37,14 +37,15 @@ const VARIANT_LABELS: Record<Variant, string> = {
   react: "React",
   vue: "Vue",
   svelte: "Svelte",
+  solidjs: "SolidJS",
 };
 
 /** Benchmarks that have variant-based structure */
 const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
-  render: ["javascript", "react", "vue", "svelte"],
-  scroll: ["javascript", "react", "vue", "svelte"],
-  memory: ["javascript", "react", "vue", "svelte"],
-  scrollto: ["javascript", "react", "vue", "svelte"],
+  render: ["javascript", "react", "vue", "svelte", "solidjs"],
+  scroll: ["javascript", "react", "vue", "svelte", "solidjs"],
+  memory: ["javascript", "react", "vue", "svelte", "solidjs"],
+  scrollto: ["javascript", "react", "vue", "svelte", "solidjs"],
 };
 
 // =============================================================================
@@ -99,7 +100,8 @@ function parseVariant(url: string): Variant {
     variant === "javascript" ||
     variant === "react" ||
     variant === "vue" ||
-    variant === "svelte"
+    variant === "svelte" ||
+    variant === "solidjs"
   ) {
     return variant;
   }
@@ -124,7 +126,13 @@ function buildVariantSwitcher(
   lines.push(`<div class="variant-switcher">`);
 
   // Always show all 4 variants, mark missing ones as disabled
-  const allVariants: Variant[] = ["javascript", "react", "vue", "svelte"];
+  const allVariants: Variant[] = [
+    "javascript",
+    "react",
+    "vue",
+    "svelte",
+    "solidjs",
+  ];
 
   for (const variant of allVariants) {
     const exists = variants.includes(variant);

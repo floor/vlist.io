@@ -38,24 +38,6 @@
         "desc": "How library comparisons are conducted and what metrics mean"
       },
       {
-        "slug": "bundle",
-        "name": "Bundle Size",
-        "icon": "📦",
-        "desc": "Minified and gzipped sizes across virtual list libraries"
-      },
-      {
-        "slug": "features",
-        "name": "Features",
-        "icon": "⚖️",
-        "desc": "Feature coverage across popular virtual list libraries"
-      },
-      {
-        "slug": "performance-comparison",
-        "name": "Performance Comparison",
-        "icon": "⚔️",
-        "desc": "Head-to-head performance metrics across all libraries"
-      },
-      {
         "slug": "react-window",
         "name": "react-window",
         "icon": "⚔️",
@@ -84,6 +66,29 @@
         "name": "vue-virtual-scroller",
         "icon": "⚔️",
         "desc": "Head-to-head performance: vlist vs vue-virtual-scroller"
+      }
+    ]
+  },
+  {
+    "label": "Results",
+    "items": [
+      {
+        "slug": "bundle",
+        "name": "Bundle Size",
+        "icon": "📦",
+        "desc": "Minified and gzipped sizes across virtual list libraries"
+      },
+      {
+        "slug": "features",
+        "name": "Features",
+        "icon": "⚖️",
+        "desc": "Feature coverage across popular virtual list libraries"
+      },
+      {
+        "slug": "performance-comparison",
+        "name": "Performance Comparison",
+        "icon": "⚔️",
+        "desc": "Head-to-head performance metrics across all libraries"
       }
     ]
   }

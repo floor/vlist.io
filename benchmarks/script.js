@@ -23,21 +23,25 @@ import vlistPackage from "@floor/vlist/package.json";
 // All benchmark suites - variants imported statically
 import "./suites/render/javascript/suite.js";
 import "./suites/render/react/suite.js";
+import "./suites/render/solidjs/suite.js";
 import "./suites/render/vue/suite.js";
 import "./suites/render/svelte/suite.js";
 
 import "./suites/scroll/javascript/suite.js";
 import "./suites/scroll/react/suite.js";
+import "./suites/scroll/solidjs/suite.js";
 import "./suites/scroll/vue/suite.js";
 import "./suites/scroll/svelte/suite.js";
 
 import "./suites/memory/javascript/suite.js";
 import "./suites/memory/react/suite.js";
+import "./suites/memory/solidjs/suite.js";
 import "./suites/memory/vue/suite.js";
 import "./suites/memory/svelte/suite.js";
 
 import "./suites/scrollto/javascript/suite.js";
 import "./suites/scrollto/react/suite.js";
+import "./suites/scrollto/solidjs/suite.js";
 import "./suites/scrollto/vue/suite.js";
 import "./suites/scrollto/svelte/suite.js";
 
@@ -54,10 +58,10 @@ import "./comparison/solidjs.js";
 
 /** Benchmarks that have variant-based structure */
 const VARIANT_BENCHMARKS = {
-  render: ["javascript", "react", "vue", "svelte"],
-  scroll: ["javascript", "react", "vue", "svelte"],
-  memory: ["javascript", "react", "vue", "svelte"],
-  scrollto: ["javascript", "react", "vue", "svelte"],
+  render: ["javascript", "react", "solidjs", "vue", "svelte"],
+  scroll: ["javascript", "react", "solidjs", "vue", "svelte"],
+  memory: ["javascript", "react", "solidjs", "vue", "svelte"],
+  scrollto: ["javascript", "react", "solidjs", "vue", "svelte"],
 };
 
 /**
@@ -86,12 +90,13 @@ function buildVariantSwitcher(benchmark, activeVariant) {
   const VARIANT_LABELS = {
     javascript: "JavaScript",
     react: "React",
+    solidjs: "SolidJS",
     vue: "Vue",
     svelte: "Svelte",
   };
 
-  // Always show all 4 variants, mark missing ones as disabled
-  const allVariants = ["javascript", "react", "vue", "svelte"];
+  // Always show all 5 variants, mark missing ones as disabled
+  const allVariants = ["javascript", "react", "solidjs", "vue", "svelte"];
 
   let html = '<div class="variant-switcher">';
   for (const variant of allVariants) {
