@@ -9,12 +9,7 @@
 // This benchmark helps users make informed decisions by showing
 // real performance differences between libraries.
 
-import {
-  defineSuite,
-  generateItems,
-  rateLower,
-  rateHigher,
-} from "../runner.js";
+import { defineSuite, rateLower, rateHigher } from "../runner.js";
 import {
   ITEM_HEIGHT,
   benchmarkVList,
@@ -56,7 +51,7 @@ const loadReactLibraries = async () => {
 /**
  * Benchmark TanStack Virtual performance.
  */
-const benchmarkTanStackVirtual = async (container, items, onStatus) => {
+const benchmarkTanStackVirtual = async (container, itemCount, onStatus) => {
   // Ensure libraries are loaded
   const loaded = await loadReactLibraries();
   if (!loaded) {
@@ -64,11 +59,11 @@ const benchmarkTanStackVirtual = async (container, items, onStatus) => {
   }
 
   // React component using TanStack Virtual
-  const VirtualList = ({ items, height }) => {
+  const VirtualList = ({ itemCount, height }) => {
     const parentRef = React.useRef(null);
 
     const virtualizer = useVirtualizer({
-      count: items.length,
+      count: itemCount,
       getScrollElement: () => parentRef.current,
       estimateSize: () => ITEM_HEIGHT,
       overscan: 5,
@@ -118,11 +113,11 @@ const benchmarkTanStackVirtual = async (container, items, onStatus) => {
   return benchmarkLibrary({
     libraryName: "TanStack Virtual",
     container,
-    items,
+    itemCount,
     onStatus,
-    createComponent: async (container, items) => {
+    createComponent: async (container, itemCount) => {
       const listComponent = React.createElement(VirtualList, {
-        items,
+        itemCount,
         height: container.clientHeight || 600,
       });
 
@@ -147,19 +142,17 @@ defineSuite({
   icon: "⚔️",
 
   run: async ({ itemCount, container, onStatus }) => {
-    onStatus("Preparing items...");
+    onStatus("Preparing benchmark...");
 
-    const items = generateItems(itemCount);
-
-    // Benchmark vlist
-    const vlistResults = await benchmarkVList(container, items, onStatus);
+    // Benchmark vlist (no pre-generated items needed)
+    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
 
     // Benchmark TanStack Virtual
     let tanstackResults;
     try {
       tanstackResults = await benchmarkTanStackVirtual(
         container,
-        items,
+        itemCount,
         onStatus,
       );
     } catch (err) {

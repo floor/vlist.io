@@ -9,12 +9,7 @@
 // This benchmark helps users make informed decisions by showing
 // real performance differences between libraries.
 
-import {
-  defineSuite,
-  generateItems,
-  rateLower,
-  rateHigher,
-} from "../runner.js";
+import { defineSuite, rateLower, rateHigher } from "../runner.js";
 import {
   ITEM_HEIGHT,
   benchmarkVList,
@@ -53,7 +48,7 @@ const loadVueLibraries = async () => {
 /**
  * Benchmark vue-virtual-scroller performance.
  */
-const benchmarkVueVirtualScroller = async (container, items, onStatus) => {
+const benchmarkVueVirtualScroller = async (container, itemCount, onStatus) => {
   // Ensure libraries are loaded
   const loaded = await loadVueLibraries();
   if (!loaded) {
@@ -64,45 +59,50 @@ const benchmarkVueVirtualScroller = async (container, items, onStatus) => {
   const VirtualList = {
     components: { RecycleScroller },
     template: `
-      <RecycleScroller
-        :items="items"
-        :item-size="itemHeight"
-        :style="{ height: height + 'px' }"
-        key-field="id"
-      >
-        <template v-slot="{ item }">
-          <div class="bench-item">{{ item.id }}</div>
-        </template>
-      </RecycleScroller>
+      <div class="vue-scroller-wrapper" :style="{ height: height + 'px', width: '100%' }">
+        <RecycleScroller
+          :items="itemsArray"
+          :item-size="48"
+          :style="{ height: '100%' }"
+          key-field="id"
+        >
+          <template v-slot="{ item }">
+            <div class="bench-item" style="height: 48px; box-sizing: border-box;">{{ item.id }}</div>
+          </template>
+        </RecycleScroller>
+      </div>
     `,
     props: {
-      items: Array,
+      itemCount: Number,
       height: Number,
       itemHeight: Number,
     },
+    computed: {
+      itemsArray() {
+        // Generate minimal items array with id field (required by vue-virtual-scroller)
+        return Array.from({ length: this.itemCount }, (_, i) => ({ id: i }));
+      },
+    },
   };
-
-  // Prepare items with id field (required by vue-virtual-scroller)
-  const itemsWithId = items.map((item, index) => ({ id: index, ...item }));
 
   return benchmarkLibrary({
     libraryName: "vue-virtual-scroller",
     container,
-    items,
+    itemCount,
     onStatus,
-    createComponent: async (container, items) => {
+    createComponent: async (container, itemCount) => {
       const app = Vue.createApp({
         components: { VirtualList },
         template: `
           <VirtualList
-            :items="items"
+            :item-count="itemCount"
             :height="height"
             :item-height="itemHeight"
           />
         `,
         data() {
           return {
-            items: itemsWithId,
+            itemCount: itemCount,
             height: container.clientHeight || 600,
             itemHeight: ITEM_HEIGHT,
           };
@@ -129,19 +129,17 @@ defineSuite({
   icon: "⚔️",
 
   run: async ({ itemCount, container, onStatus }) => {
-    onStatus("Preparing items...");
+    onStatus("Preparing benchmark...");
 
-    const items = generateItems(itemCount);
-
-    // Benchmark vlist
-    const vlistResults = await benchmarkVList(container, items, onStatus);
+    // Benchmark vlist (no pre-generated items needed)
+    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
 
     // Benchmark vue-virtual-scroller
     let vueResults;
     try {
       vueResults = await benchmarkVueVirtualScroller(
         container,
-        items,
+        itemCount,
         onStatus,
       );
     } catch (err) {

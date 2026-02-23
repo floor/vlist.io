@@ -198,8 +198,7 @@ export const generateItems = (count) => {
  * @param {number} index
  * @returns {string}
  */
-export const benchmarkTemplate = (item, index) =>
-  `<div class="bench-item">${index}</div>`;
+export const benchmarkTemplate = (item, index) => String(index);
 
 // =============================================================================
 // Rating Helpers

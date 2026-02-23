@@ -9,12 +9,7 @@
 // This benchmark helps users make informed decisions by showing
 // real performance differences between libraries.
 
-import {
-  defineSuite,
-  generateItems,
-  rateLower,
-  rateHigher,
-} from "../runner.js";
+import { defineSuite, rateLower, rateHigher } from "../runner.js";
 import {
   ITEM_HEIGHT,
   benchmarkVList,
@@ -56,7 +51,7 @@ const loadReactLibraries = async () => {
 /**
  * Benchmark Virtua performance.
  */
-const benchmarkVirtua = async (container, items, onStatus) => {
+const benchmarkVirtua = async (container, itemCount, onStatus) => {
   // Ensure libraries are loaded
   const loaded = await loadReactLibraries();
   if (!loaded) {
@@ -70,7 +65,7 @@ const benchmarkVirtua = async (container, items, onStatus) => {
     // Generate an array of indices for Virtua to virtualize
     const indices = React.useMemo(
       () => Array.from({ length: itemCount }, (_, i) => i),
-      [itemCount]
+      [itemCount],
     );
 
     return React.createElement(
@@ -95,11 +90,11 @@ const benchmarkVirtua = async (container, items, onStatus) => {
   return benchmarkLibrary({
     libraryName: "Virtua",
     container,
-    items,
+    itemCount,
     onStatus,
-    createComponent: async (container, items) => {
+    createComponent: async (container, itemCount) => {
       const listComponent = React.createElement(VirtualList, {
-        itemCount: items.length,
+        itemCount: itemCount,
         height: container.clientHeight || 600,
       });
 
@@ -124,17 +119,15 @@ defineSuite({
   icon: "⚔️",
 
   run: async ({ itemCount, container, onStatus }) => {
-    onStatus("Preparing items...");
+    onStatus("Preparing benchmark...");
 
-    const items = generateItems(itemCount);
-
-    // Benchmark vlist
-    const vlistResults = await benchmarkVList(container, items, onStatus);
+    // Benchmark vlist (no pre-generated items needed)
+    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
 
     // Benchmark Virtua
     let virtuaResults;
     try {
-      virtuaResults = await benchmarkVirtua(container, items, onStatus);
+      virtuaResults = await benchmarkVirtua(container, itemCount, onStatus);
     } catch (err) {
       console.warn("[virtua] Virtua test failed:", err);
       virtuaResults = {

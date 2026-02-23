@@ -137,12 +137,16 @@ export const measureScrollPerformance = async (viewport, durationMs) => {
  * Measures render time, memory usage, scroll FPS, and P95 frame time.
  *
  * @param {HTMLElement} container - Container element
- * @param {Array} items - Items to render
+ * @param {number} itemCount - Number of items to render
  * @param {Function} onStatus - Status callback
  * @returns {Promise<{library: string, renderTime: number, memoryUsed: number|null, scrollFPS: number, p95FrameTime: number}>}
  */
-export const benchmarkVList = async (container, items, onStatus) => {
+export const benchmarkVList = async (container, itemCount, onStatus) => {
   onStatus("Testing vlist - preparing...");
+
+  // Generate minimal items array (just indices, very fast)
+  // The template only uses index, so we don't need full item objects
+  const items = Array.from({ length: itemCount }, (_, i) => i);
 
   // Measure memory before
   await tryGC();
@@ -150,6 +154,10 @@ export const benchmarkVList = async (container, items, onStatus) => {
 
   // Measure render time across multiple iterations
   const renderTimes = [];
+
+  // Hide container during measurements to prevent visual glitches
+  const originalVisibility = container.style.visibility;
+  container.style.visibility = "hidden";
 
   for (let i = 0; i < MEASURE_ITERATIONS; i++) {
     container.innerHTML = "";
@@ -173,6 +181,9 @@ export const benchmarkVList = async (container, items, onStatus) => {
 
     list.destroy();
   }
+
+  // Restore visibility
+  container.style.visibility = originalVisibility;
 
   // Create final instance for memory and scroll testing
   container.innerHTML = "";
@@ -228,7 +239,7 @@ export const benchmarkVList = async (container, items, onStatus) => {
  * @param {Object} config - Benchmark configuration
  * @param {string} config.libraryName - Name of the library
  * @param {HTMLElement} config.container - Container element
- * @param {Array} config.items - Items to render
+ * @param {number} config.itemCount - Number of items to render
  * @param {Function} config.onStatus - Status callback
  * @param {Function} config.createComponent - Function that creates and mounts the component
  * @param {Function} config.destroyComponent - Function that destroys/unmounts the component
@@ -238,7 +249,7 @@ export const benchmarkLibrary = async (config) => {
   const {
     libraryName,
     container,
-    items,
+    itemCount,
     onStatus,
     createComponent,
     destroyComponent,
@@ -253,6 +264,10 @@ export const benchmarkLibrary = async (config) => {
   // Measure render time across multiple iterations
   const renderTimes = [];
 
+  // Hide container during measurements to prevent visual glitches
+  const originalVisibility = container.style.visibility;
+  container.style.visibility = "hidden";
+
   for (let i = 0; i < MEASURE_ITERATIONS; i++) {
     container.innerHTML = "";
     await nextFrame();
@@ -260,7 +275,7 @@ export const benchmarkLibrary = async (config) => {
     const start = performance.now();
 
     // Library-specific component creation
-    const instance = await createComponent(container, items);
+    const instance = await createComponent(container, itemCount);
 
     await nextFrame();
     const renderTime = performance.now() - start;
@@ -270,13 +285,16 @@ export const benchmarkLibrary = async (config) => {
     await destroyComponent(instance);
   }
 
+  // Restore visibility
+  container.style.visibility = originalVisibility;
+
   // Create final instance for memory and scroll testing
   container.innerHTML = "";
   await tryGC();
 
   onStatus(`Testing ${libraryName} - rendering...`);
 
-  const instance = await createComponent(container, items);
+  const instance = await createComponent(container, itemCount);
 
   await waitFrames(3);
 
