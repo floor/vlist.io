@@ -189,33 +189,6 @@ export function buildComparisonsOverviewHTML() {
           All benchmarks run live in your browser on real data.
         </p>
 
-        <h3 class="section-title">📊 Available Comparisons</h3>
-        <div class="comparison-grid">
-          <a href="/benchmarks/performance-comparison" class="comparison-card">
-            <strong class="comparison-card__title">⚔️ Performance Comparison</strong>
-            <div class="comparison-card__desc">Side-by-side performance metrics across all libraries</div>
-          </a>
-          <a href="/benchmarks/react-window" class="comparison-card">
-            <strong class="comparison-card__title">react-window</strong>
-            <div class="comparison-card__desc">React library by Brian Vaughn, minimal and focused</div>
-          </a>
-          <a href="/benchmarks/tanstack-virtual" class="comparison-card">
-            <strong class="comparison-card__title">TanStack Virtual</strong>
-            <div class="comparison-card__desc">Headless virtualization for React, Vue, Solid, Svelte</div>
-          </a>
-          <a href="/benchmarks/virtua" class="comparison-card">
-            <strong class="comparison-card__title">Virtua</strong>
-            <div class="comparison-card__desc">Zero-config, ~3kB per component for React/Vue/Solid/Svelte</div>
-          </a>
-          <a href="/benchmarks/vue-virtual-scroller" class="comparison-card">
-            <strong class="comparison-card__title">vue-virtual-scroller</strong>
-            <div class="comparison-card__desc">Vue 3 component (2.0 beta, stable 1.x from 2022)</div>
-          </a>
-          <a href="/benchmarks/solidjs" class="comparison-card">
-            <strong class="comparison-card__title">🔷 SolidJS</strong>
-            <div class="comparison-card__desc">Head-to-head performance: vlist vs TanStack Virtual (SolidJS)</div>
-          </a>
-        </div>
 
         <h3 class="section-title">🔬 Methodology</h3>
         <div class="info-box">
@@ -223,19 +196,19 @@ export function buildComparisonsOverviewHTML() {
 
           <ol class="info-list">
             <li class="info-list__item">
-              <strong class="info-list__label">Isolated Environment:</strong> Each library runs in a clean container with identical setup
+              <strong class="info-list__label">Randomized Order:</strong> A coin flip decides whether vlist or the competitor runs first, eliminating GC bleed and JIT warmth bias
             </li>
             <li class="info-list__item">
-              <strong class="info-list__label">Multiple Iterations:</strong> Render time measured across 5 iterations, median value reported
+              <strong class="info-list__label">Isolated Environment:</strong> Each library runs in a clean container with GC + settle barrier between runs
             </li>
             <li class="info-list__item">
-              <strong class="info-list__label">Garbage Collection:</strong> Manual GC between tests to ensure clean memory baselines
+              <strong class="info-list__label">Multiple Iterations:</strong> Render time measured across 5 iterations (median); memory measured across 3 attempts (median of valid readings)
             </li>
             <li class="info-list__item">
               <strong class="info-list__label">Real Scrolling:</strong> 5 seconds of programmatic scrolling at 100px/frame with direction changes
             </li>
             <li class="info-list__item">
-              <strong class="info-list__label">Native APIs:</strong> Uses Chrome's performance.memory API (requires full metrics mode)
+              <strong class="info-list__label">Native APIs:</strong> Uses Chrome's performance.memory API and performance.mark/measure for DevTools integration
             </li>
           </ol>
         </div>
@@ -302,7 +275,7 @@ export function buildComparisonsOverviewHTML() {
         </div>
 
         <p class="page-footer-note">
-          Click any comparison above to run the benchmarks yourself. Source code available in
+          Select a comparison from the sidebar to run the benchmarks yourself. Source code available in
           <a href="https://github.com/floor/vlist.dev/tree/main/benchmarks/comparison" target="_blank">benchmarks/comparison/</a>
         </p>
       </div>
