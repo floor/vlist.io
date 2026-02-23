@@ -144,10 +144,10 @@ export const getHeapUsed = () => {
  * separate a fast library from a slow one.
  */
 export const STRESS_LEVELS = [
-  { id: "none", label: "None", ms: 0 },
-  { id: "light", label: "Light", ms: 3 },
-  { id: "medium", label: "Medium", ms: 5 },
-  { id: "heavy", label: "Heavy", ms: 7 },
+  { id: "none", label: "0", ms: 0 },
+  { id: "light", label: "3", ms: 3 },
+  { id: "medium", label: "5", ms: 5 },
+  { id: "heavy", label: "7", ms: 7 },
 ];
 
 /**

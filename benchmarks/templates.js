@@ -47,7 +47,7 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
           suite.comparison
             ? `
         <div class="bench-controls__sep"></div>
-        <span class="bench-controls__label">Stress</span>
+        <span class="bench-controls__label">Stress ms</span>
         <div class="bench-controls__sizes" id="bench-stress">
           ${STRESS_LEVELS.map(
             (level, i) =>
