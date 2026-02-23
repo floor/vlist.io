@@ -55,7 +55,12 @@ const loadReactLibraries = async () => {
 /**
  * Benchmark react-window performance.
  */
-const benchmarkReactWindow = async (container, itemCount, onStatus) => {
+const benchmarkReactWindow = async (
+  container,
+  itemCount,
+  onStatus,
+  stressMs = 0,
+) => {
   // Ensure libraries are loaded
   const loaded = await loadReactLibraries();
   if (!loaded) {
@@ -76,6 +81,7 @@ const benchmarkReactWindow = async (container, itemCount, onStatus) => {
     container,
     itemCount,
     onStatus,
+    stressMs,
     createComponent: async (container, itemCount) => {
       const listComponent = React.createElement(FixedSizeList, {
         height: container.clientHeight || 600,
@@ -104,12 +110,18 @@ defineSuite({
   name: "react-window Comparison",
   description: "Compare vlist vs react-window performance side-by-side",
   icon: "⚔️",
+  comparison: true,
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
     onStatus("Preparing benchmark...");
 
     // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
+    const vlistResults = await benchmarkVList(
+      container,
+      itemCount,
+      onStatus,
+      stressMs,
+    );
     await tryGC();
     await waitFrames(5);
 
@@ -120,6 +132,7 @@ defineSuite({
         container,
         itemCount,
         onStatus,
+        stressMs,
       );
     } catch (err) {
       console.warn("[react-window] react-window test failed:", err);

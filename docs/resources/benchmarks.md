@@ -1,10 +1,13 @@
 # Benchmarks
 
-The benchmark page (`/benchmarks/`) runs four live performance suites directly in the browser against a real vlist instance. Each suite creates a vlist, exercises it programmatically, and reports measured metrics with quality ratings.
+The benchmark page (`/benchmarks/`) runs two categories of live performance suites directly in the browser:
+
+1. **Framework variant suites** — Test vlist itself across JS, React, SolidJS, Vue, and Svelte
+2. **Library comparison suites** — Compare vlist against other virtual list libraries (TanStack Virtual, react-window, Virtua, vue-virtual-scroller)
 
 **URL:** `/benchmarks/` (served by vlist.dev)
 
-All benchmarks are available in **five framework variants**:
+All framework variant benchmarks are available in **five variants**:
 - **JavaScript** — Pure `vlist()` API (baseline)
 - **React** — `useVList()` hook with `createRoot()` / `unmount()`
 - **SolidJS** — `useVList()` hook with fine-grained reactivity
@@ -15,12 +18,24 @@ This allows direct comparison of vlist performance across different framework in
 
 ## Quick Reference
 
+### Framework Variant Suites
+
 | Suite | What it measures | Key metric | Variants |
 |-------|-----------------|------------|----------|
 | **Initial Render** | Time from `vlist()` to first painted frame | Median (ms) | JS, React, SolidJS, Vue, Svelte |
 | **Scroll FPS** | Sustained scroll rendering throughput over 5s | Avg FPS, Frame budget (ms) | JS, React, SolidJS, Vue, Svelte |
 | **Memory** | Heap usage after render and after 10s of scrolling | Scroll delta (MB) | JS, React, SolidJS, Vue, Svelte |
 | **scrollToIndex** | Latency of smooth `scrollToIndex()` animation | Median (ms) | JS, React, SolidJS, Vue, Svelte |
+
+### Library Comparison Suites
+
+| Suite | Compares against | Metrics |
+|-------|-----------------|---------|
+| **TanStack Virtual** | `@tanstack/react-virtual` | Render time, memory, scroll FPS, P95 frame time |
+| **react-window** | `react-window` | Render time, memory, scroll FPS, P95 frame time |
+| **Virtua** | `virtua` (React) | Render time, memory, scroll FPS, P95 frame time |
+| **vue-virtual-scroller** | `vue-virtual-scroller` | Render time, memory, scroll FPS, P95 frame time |
+| **SolidJS** | `@tanstack/solid-virtual` | Render time, memory, scroll FPS, P95 frame time |
 
 All suites can be run at three item counts: **10K**, **100K**, and **1M**.
 
@@ -163,7 +178,7 @@ Based on initial render benchmark data:
 
 ---
 
-## Suites
+## Framework Variant Suites
 
 ### ⚡ Initial Render
 
@@ -212,6 +227,82 @@ Measures the latency of `scrollToIndex()` with smooth animation — the time fro
 | **Min** | ms | Fastest navigation |
 | **p95** | ms | 95th percentile latency |
 | **Max** | ms | Slowest single navigation |
+
+---
+
+## Library Comparison Suites
+
+The comparison benchmarks (`benchmarks/comparison/`) run vlist head-to-head against other virtual list libraries. Each suite measures both libraries using the same methodology and reports side-by-side metrics with percentage differences.
+
+### Measurement Methodology
+
+Each comparison runs in **three isolated phases**:
+
+| Phase | What | How |
+|-------|------|-----|
+| **1. Timing** | Render time (median of 5 iterations) | `performance.mark()` + `performance.measure()` |
+| **2. Memory** | Heap delta for a single mounted instance | `measureMemoryDelta()` with `settleHeap()` isolation |
+| **3. Scroll** | FPS and P95 frame time over 5s | `requestAnimationFrame` loop with bidirectional scrolling |
+
+**Why three separate phases?** Render iterations create and destroy components repeatedly, generating garbage that contaminates heap snapshots. By isolating memory measurement into its own phase — with aggressive GC settling between phases — we get reliable heap deltas instead of GC timing artifacts.
+
+### Timing: `performance.mark/measure`
+
+Render iterations use the Performance Timeline API (`performance.mark()` + `performance.measure()`) instead of manual `performance.now()` diffing. This provides:
+
+- Structured timing entries visible in the DevTools Performance panel
+- Automatic high-resolution timestamps
+- Clean measurement lifecycle (marks are cleared after each iteration)
+
+### Memory: Isolated Heap Deltas
+
+Memory measurement uses `measureMemoryDelta()` from `runner.js`:
+
+1. **`settleHeap()`** — 3 cycles of `gc()` + 150ms + 5 frames to flush residual garbage from prior phases
+2. **Baseline snapshot** — `performance.memory.usedJSHeapSize` 
+3. **Create component** — Mount the library's virtual list
+4. **Settle** — Wait for frames + gentle GC to reclaim transient allocations
+5. **Final snapshot** — Second heap reading
+6. **Validate** — If `delta < 0`, return `null` (GC artifact, not real data)
+
+When either library's memory measurement is unreliable (null), the memory comparison row shows "Memory measurement unavailable" instead of misleading numbers.
+
+### Comparison Metrics
+
+| Metric | Unit | Better | Description |
+|--------|------|--------|-------------|
+| **vlist Render Time** | ms | Lower | Median render time across 5 iterations |
+| **{Library} Render Time** | ms | Lower | Same measurement for the compared library |
+| **Render Time Difference** | % | Lower | Percentage difference (negative = vlist faster) |
+| **vlist Memory Usage** | MB | Lower | Heap delta after mounting vlist |
+| **{Library} Memory Usage** | MB | Lower | Heap delta after mounting the compared library |
+| **Memory Difference** | % | Lower | Percentage difference (negative = vlist uses less) |
+| **vlist Scroll FPS** | fps | Higher | Median FPS during 5s bidirectional scroll |
+| **{Library} Scroll FPS** | fps | Higher | Same for the compared library |
+| **FPS Difference** | % | Higher | Percentage difference (positive = vlist smoother) |
+| **vlist P95 Frame Time** | ms | Lower | 95th percentile frame time (consistency) |
+| **{Library} P95 Frame Time** | ms | Lower | Same for the compared library |
+
+### Known Limitations
+
+**Architectural asymmetry:** vlist is a zero-dependency vanilla JS library. Libraries like TanStack Virtual require React. The benchmark includes framework runtime overhead (fiber tree, reconciliation, effects) in the compared library's numbers. This is the real cost users pay, but it measures **framework + library**, not just the virtualization algorithm.
+
+**FPS ceiling:** On high-refresh-rate displays, both libraries often saturate the display's refresh rate (e.g. 120 fps). When both hit the ceiling, FPS shows 0% difference — which is accurate but not differentiating. Use CPU throttling in DevTools (4x/6x) to see real differences under load.
+
+**Memory API limitations:** `performance.memory.usedJSHeapSize` is Chrome-only and non-deterministic. Even with `settleHeap()` isolation, results can vary between runs. The negative-delta rejection prevents impossible values, but small positive values (< 0.1 MB) should be treated as approximate.
+
+**Execution order:** vlist always runs first. While Phase 2 memory measurement is isolated with `settleHeap()`, the JIT compiler may behave differently for the first vs second library tested.
+
+### Comparison Source Files
+
+| File | Purpose |
+|------|---------|
+| `benchmarks/comparison/shared.js` | Shared infrastructure — `benchmarkVList()`, `benchmarkLibrary()`, `calculateComparisonMetrics()` |
+| `benchmarks/comparison/tanstack-virtual.js` | TanStack Virtual (React) comparison suite |
+| `benchmarks/comparison/react-window.js` | react-window comparison suite |
+| `benchmarks/comparison/virtua.js` | Virtua (React) comparison suite |
+| `benchmarks/comparison/vue-virtual-scroller.js` | vue-virtual-scroller comparison suite |
+| `benchmarks/comparison/solidjs.js` | TanStack Virtual (SolidJS) comparison suite |
 
 ---
 
@@ -312,7 +403,9 @@ Thresholds adapt to context. For example, at 1M items the render time thresholds
 - **Use your laptop screen** — external monitors may run at 30Hz, capping rAF
 - **Disable Low Power Mode** (macOS) — throttles display refresh rate
 - **Use Chrome** — the memory suite requires `performance.memory`
+- **Launch with `--enable-precise-memory-info`** — improves heap measurement granularity for memory and comparison suites
 - **Run multiple times** — results vary slightly between runs; look for consistency
+- **Use CPU throttling** (comparison suites) — DevTools → Performance → 4x/6x slowdown reveals real FPS differences when both libraries cap at display refresh rate
 
 ---
 
@@ -320,30 +413,43 @@ Thresholds adapt to context. For example, at 1M items the render time thresholds
 
 ### Structure
 
-Benchmarks now use a variant-based directory structure:
+Benchmarks use a variant-based directory structure for framework suites, plus a flat structure for library comparisons:
 
 ```
 benchmarks/
-├── render/
-│   ├── javascript/suite.js   # Pure vlist API
-│   ├── react/suite.js         # useVList hook
-│   ├── vue/suite.js           # useVList composable
-│   └── svelte/suite.js        # vlist action
-├── scroll/
-│   ├── javascript/suite.js
-│   ├── react/suite.js
-│   ├── vue/suite.js
-│   └── svelte/suite.js
-├── memory/
-│   ├── javascript/suite.js
-│   ├── react/suite.js
-│   ├── vue/suite.js
-│   └── svelte/suite.js
-└── scrollto/
-    ├── javascript/suite.js
-    ├── react/suite.js
-    ├── vue/suite.js
-    └── svelte/suite.js
+├── runner.js                  # Benchmark engine — registry, timing, memory utilities
+├── suites/
+│   ├── render/
+│   │   ├── javascript/suite.js   # Pure vlist API
+│   │   ├── react/suite.js         # useVList hook
+│   │   ├── solidjs/suite.js       # useVList hook (fine-grained)
+│   │   ├── vue/suite.js           # useVList composable
+│   │   └── svelte/suite.js        # vlist action
+│   ├── scroll/
+│   │   ├── javascript/suite.js
+│   │   ├── react/suite.js
+│   │   ├── solidjs/suite.js
+│   │   ├── vue/suite.js
+│   │   └── svelte/suite.js
+│   ├── memory/
+│   │   ├── javascript/suite.js
+│   │   ├── react/suite.js
+│   │   ├── solidjs/suite.js
+│   │   ├── vue/suite.js
+│   │   └── svelte/suite.js
+│   └── scrollto/
+│       ├── javascript/suite.js
+│       ├── react/suite.js
+│       ├── solidjs/suite.js
+│       ├── vue/suite.js
+│       └── svelte/suite.js
+└── comparison/
+    ├── shared.js              # Shared comparison infrastructure
+    ├── tanstack-virtual.js    # vs TanStack Virtual (React)
+    ├── react-window.js        # vs react-window
+    ├── virtua.js              # vs Virtua (React)
+    ├── vue-virtual-scroller.js # vs vue-virtual-scroller
+    └── solidjs.js             # vs TanStack Virtual (SolidJS)
 ```
 
 ### Key Files
@@ -351,12 +457,28 @@ benchmarks/
 | File | Purpose |
 |------|---------|
 | `benchmarks/script.js` | Dashboard UI, variant switcher, result rendering |
-| `benchmarks/runner.js` | Benchmark engine — suite registry, execution, utilities |
-| `benchmarks/{name}/{variant}/suite.js` | Individual benchmark suite implementations (16 total) |
+| `benchmarks/runner.js` | Benchmark engine — suite registry, execution, timing & memory utilities |
+| `benchmarks/suites/{name}/{variant}/suite.js` | Individual benchmark suite implementations (20 total) |
+| `benchmarks/comparison/shared.js` | Comparison infrastructure — isolated 3-phase measurement |
+| `benchmarks/comparison/*.js` | Library comparison suite definitions (5 total) |
 | `benchmarks/renderer.ts` | Server-side rendering for benchmark pages (SSR variant switcher) |
 | `benchmarks/styles.css` | Benchmark page styles |
 | `benchmarks/build.ts` | Bun build script with framework deduplication feature |
 | `styles/shell.css` | Shared styles including variant switcher component |
+
+### Runner Utilities
+
+Key functions exported from `runner.js`:
+
+| Function | Purpose |
+|----------|---------|
+| `measureDuration(label, fn)` | Time an async function via `performance.mark()` + `performance.measure()` — DevTools-integrated |
+| `settleHeap(cycles)` | Aggressive GC settling — 3 cycles of `gc()` + 150ms + 5 frames |
+| `measureMemoryDelta(create)` | Isolated heap delta with `settleHeap()` baseline and negative-value rejection |
+| `tryGC()` | Light GC attempt — single `gc()` call + 100ms + 3 frames |
+| `getHeapUsed()` | Read `performance.memory.usedJSHeapSize` (Chrome-only, returns `null` if unavailable) |
+| `median(values)` | Compute median of an array |
+| `percentile(sorted, p)` | Compute percentile from sorted array |
 
 ### Build
 

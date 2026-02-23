@@ -48,7 +48,12 @@ const loadVueLibraries = async () => {
 /**
  * Benchmark vue-virtual-scroller performance.
  */
-const benchmarkVueVirtualScroller = async (container, itemCount, onStatus) => {
+const benchmarkVueVirtualScroller = async (
+  container,
+  itemCount,
+  onStatus,
+  stressMs = 0,
+) => {
   // Ensure libraries are loaded
   const loaded = await loadVueLibraries();
   if (!loaded) {
@@ -90,6 +95,7 @@ const benchmarkVueVirtualScroller = async (container, itemCount, onStatus) => {
     container,
     itemCount,
     onStatus,
+    stressMs,
     createComponent: async (container, itemCount) => {
       const app = Vue.createApp({
         components: { VirtualList },
@@ -127,12 +133,18 @@ defineSuite({
   name: "vue-virtual-scroller Comparison",
   description: "Compare vlist vs vue-virtual-scroller performance side-by-side",
   icon: "⚔️",
+  comparison: true,
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
     onStatus("Preparing benchmark...");
 
     // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
+    const vlistResults = await benchmarkVList(
+      container,
+      itemCount,
+      onStatus,
+      stressMs,
+    );
 
     // Benchmark vue-virtual-scroller
     let vueResults;
@@ -141,6 +153,7 @@ defineSuite({
         container,
         itemCount,
         onStatus,
+        stressMs,
       );
     } catch (err) {
       console.warn(

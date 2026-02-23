@@ -51,7 +51,12 @@ const loadSolidLibraries = async () => {
 /**
  * Benchmark TanStack Virtual (SolidJS) performance.
  */
-const benchmarkTanStackSolid = async (container, itemCount, onStatus) => {
+const benchmarkTanStackSolid = async (
+  container,
+  itemCount,
+  onStatus,
+  stressMs = 0,
+) => {
   // Ensure libraries are loaded
   const loaded = await loadSolidLibraries();
   if (!loaded) {
@@ -67,6 +72,7 @@ const benchmarkTanStackSolid = async (container, itemCount, onStatus) => {
     container,
     itemCount,
     onStatus,
+    stressMs,
     createComponent: async (container, itemCount) => {
       let scrollElement;
       let dispose;
@@ -144,12 +150,18 @@ defineSuite({
   description:
     "Compare vlist vs TanStack Virtual (SolidJS) performance side-by-side",
   icon: "🔷",
+  comparison: true,
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
     onStatus("Preparing benchmark...");
 
     // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
+    const vlistResults = await benchmarkVList(
+      container,
+      itemCount,
+      onStatus,
+      stressMs,
+    );
     await tryGC();
     await waitFrames(5);
 
@@ -160,6 +172,7 @@ defineSuite({
         container,
         itemCount,
         onStatus,
+        stressMs,
       );
     } catch (err) {
       console.warn("[solidjs] TanStack Virtual (SolidJS) test failed:", err);

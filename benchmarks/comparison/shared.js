@@ -2,15 +2,20 @@
 //
 // Common functions and constants used across all library comparison benchmarks.
 // Eliminates code duplication and ensures consistent methodology.
+//
+// Memory measurement is isolated from render iterations to prevent GC
+// cross-contamination between phases. Negative deltas are rejected as
+// artifacts. Timing uses performance.mark/measure for DevTools integration.
 
 import { vlist } from "vlist";
 import {
-  generateItems,
   benchmarkTemplate,
   nextFrame,
   waitFrames,
   tryGC,
-  getHeapUsed,
+  measureDuration,
+  measureMemoryDelta,
+  burnCpu,
   bytesToMB,
   round,
   median,
@@ -69,9 +74,14 @@ export const findViewport = (container) => {
  *
  * @param {HTMLElement} viewport - Scrollable element
  * @param {number} durationMs - Duration to scroll in milliseconds
+ * @param {number} [stressMs=0] - CPU burn per frame (simulates app workload)
  * @returns {Promise<{medianFPS: number, medianFrameTime: number, p95FrameTime: number, totalFrames: number}>}
  */
-export const measureScrollPerformance = async (viewport, durationMs) => {
+export const measureScrollPerformance = async (
+  viewport,
+  durationMs,
+  stressMs = 0,
+) => {
   const frameTimes = [];
   let lastTime = performance.now();
   let scrollPos = 0;
@@ -108,6 +118,12 @@ export const measureScrollPerformance = async (viewport, durationMs) => {
       frameTimes.push(frameTime);
       lastTime = now;
 
+      // Simulate additional CPU work (stress mode).
+      // Burns BEFORE the scroll update so the library's rendering
+      // competes for the remaining frame budget — just like in a
+      // real app where other components consume CPU time.
+      if (stressMs > 0) burnCpu(stressMs);
+
       // Update scroll position (bidirectional)
       scrollPos += SCROLL_SPEED_PX_PER_FRAME * direction;
 
@@ -134,25 +150,34 @@ export const measureScrollPerformance = async (viewport, durationMs) => {
 
 /**
  * Benchmark vlist performance (used as baseline in all comparisons).
- * Measures render time, memory usage, scroll FPS, and P95 frame time.
+ *
+ * Three isolated phases:
+ *   1. TIMING  — render iterations with performance.mark/measure
+ *   2. MEMORY  — isolated create with heap delta validation
+ *   3. SCROLL  — FPS and P95 frame time
  *
  * @param {HTMLElement} container - Container element
  * @param {number} itemCount - Number of items to render
  * @param {Function} onStatus - Status callback
+ * @param {number} [stressMs=0] - CPU burn per frame during scroll (simulates app workload)
  * @returns {Promise<{library: string, renderTime: number, memoryUsed: number|null, scrollFPS: number, p95FrameTime: number}>}
  */
-export const benchmarkVList = async (container, itemCount, onStatus) => {
+export const benchmarkVList = async (
+  container,
+  itemCount,
+  onStatus,
+  stressMs = 0,
+) => {
   onStatus("Testing vlist - preparing...");
 
   // Generate minimal items array (just indices, very fast)
-  // The template only uses index, so we don't need full item objects
   const items = Array.from({ length: itemCount }, (_, i) => i);
 
-  // Measure memory before
-  await tryGC();
-  const memBefore = getHeapUsed();
+  // ── Phase 1: TIMING ────────────────────────────────────────────────────
+  // Measure render time across multiple iterations using performance.mark/measure.
+  // No memory measurement here — iterations create/destroy garbage that would
+  // pollute heap snapshots.
 
-  // Measure render time across multiple iterations
   const renderTimes = [];
 
   // Hide container during measurements to prevent visual glitches
@@ -163,9 +188,44 @@ export const benchmarkVList = async (container, itemCount, onStatus) => {
     container.innerHTML = "";
     await nextFrame();
 
-    const start = performance.now();
+    const { duration, result: tempList } = await measureDuration(
+      `vlist-render-${i}`,
+      async () => {
+        const list = vlist({
+          container,
+          item: {
+            height: ITEM_HEIGHT,
+            template: benchmarkTemplate,
+          },
+        }).build();
 
-    const list = vlist({
+        list.setItems(items);
+        await nextFrame();
+        return list;
+      },
+    );
+
+    renderTimes.push(duration);
+
+    // Destroy the instance — it was only for timing
+    tempList.destroy();
+    container.innerHTML = "";
+  }
+
+  // Restore visibility
+  container.style.visibility = originalVisibility;
+
+  // ── Phase 2: MEMORY ────────────────────────────────────────────────────
+  // Fully isolated from Phase 1. settleHeap() flushes garbage from the
+  // render iterations before we take the baseline snapshot.
+
+  container.innerHTML = "";
+
+  onStatus("Testing vlist - measuring memory...");
+
+  let list;
+  const memoryDelta = await measureMemoryDelta(async () => {
+    list = vlist({
       container,
       item: {
         height: ITEM_HEIGHT,
@@ -174,55 +234,34 @@ export const benchmarkVList = async (container, itemCount, onStatus) => {
     }).build();
 
     list.setItems(items);
+    await waitFrames(3);
+  });
 
-    await nextFrame();
-    const renderTime = performance.now() - start;
-    renderTimes.push(renderTime);
+  const memoryUsed = memoryDelta !== null ? bytesToMB(memoryDelta) : null;
 
-    list.destroy();
-  }
+  // ── Phase 3: SCROLL ────────────────────────────────────────────────────
+  // Uses the instance from Phase 2 (still mounted).
 
-  // Restore visibility
-  container.style.visibility = originalVisibility;
-
-  // Create final instance for memory and scroll testing
-  container.innerHTML = "";
-  await tryGC();
-
-  onStatus("Testing vlist - rendering...");
-
-  const list = vlist({
-    container,
-    item: {
-      height: ITEM_HEIGHT,
-      template: benchmarkTemplate,
-    },
-  }).build();
-
-  list.setItems(items);
-
-  await waitFrames(3);
-
-  // Measure memory after render
-  await tryGC();
-  const memAfter = getHeapUsed();
-
-  // Find viewport and measure scroll performance
-  onStatus("Testing vlist - scrolling...");
+  onStatus(
+    stressMs > 0
+      ? `Testing vlist - scrolling (stress ${stressMs}ms)...`
+      : "Testing vlist - scrolling...",
+  );
   const viewport = findViewport(container);
   const scrollMetrics = await measureScrollPerformance(
     viewport,
     SCROLL_DURATION_MS,
+    stressMs,
   );
 
   // Cleanup
-  list.destroy();
+  if (list) list.destroy();
   container.innerHTML = "";
 
   return {
     library: "vlist",
     renderTime: round(median(renderTimes), 2),
-    memoryUsed: memAfter && memBefore ? bytesToMB(memAfter - memBefore) : null,
+    memoryUsed,
     scrollFPS: scrollMetrics.medianFPS,
     p95FrameTime: scrollMetrics.p95FrameTime,
   };
@@ -234,7 +273,11 @@ export const benchmarkVList = async (container, itemCount, onStatus) => {
 
 /**
  * Generic benchmark wrapper for any library.
- * Handles the standard benchmark flow: render iterations, memory measurement, scroll testing.
+ *
+ * Three isolated phases:
+ *   1. TIMING  — render iterations with performance.mark/measure
+ *   2. MEMORY  — isolated create with heap delta validation
+ *   3. SCROLL  — FPS and P95 frame time
  *
  * @param {Object} config - Benchmark configuration
  * @param {string} config.libraryName - Name of the library
@@ -243,6 +286,7 @@ export const benchmarkVList = async (container, itemCount, onStatus) => {
  * @param {Function} config.onStatus - Status callback
  * @param {Function} config.createComponent - Function that creates and mounts the component
  * @param {Function} config.destroyComponent - Function that destroys/unmounts the component
+ * @param {number} [config.stressMs=0] - CPU burn per frame during scroll
  * @returns {Promise<Object>} Benchmark results
  */
 export const benchmarkLibrary = async (config) => {
@@ -253,15 +297,13 @@ export const benchmarkLibrary = async (config) => {
     onStatus,
     createComponent,
     destroyComponent,
+    stressMs = 0,
   } = config;
+
+  // ── Phase 1: TIMING ────────────────────────────────────────────────────
 
   onStatus(`Testing ${libraryName} - preparing...`);
 
-  // Measure memory before
-  await tryGC();
-  const memBefore = getHeapUsed();
-
-  // Measure render time across multiple iterations
   const renderTimes = [];
 
   // Hide container during measurements to prevent visual glitches
@@ -272,42 +314,53 @@ export const benchmarkLibrary = async (config) => {
     container.innerHTML = "";
     await nextFrame();
 
-    const start = performance.now();
+    const { duration, result: instance } = await measureDuration(
+      `${libraryName}-render-${i}`,
+      async () => {
+        const inst = await createComponent(container, itemCount);
+        await nextFrame();
+        return inst;
+      },
+    );
 
-    // Library-specific component creation
-    const instance = await createComponent(container, itemCount);
+    renderTimes.push(duration);
 
-    await nextFrame();
-    const renderTime = performance.now() - start;
-    renderTimes.push(renderTime);
-
-    // Library-specific cleanup
+    // Destroy — this instance was only for timing
     await destroyComponent(instance);
   }
 
   // Restore visibility
   container.style.visibility = originalVisibility;
 
-  // Create final instance for memory and scroll testing
+  // ── Phase 2: MEMORY ────────────────────────────────────────────────────
+  // Fully isolated from Phase 1. settleHeap() inside measureMemoryDelta
+  // flushes iteration garbage before the baseline snapshot.
+
   container.innerHTML = "";
-  await tryGC();
 
-  onStatus(`Testing ${libraryName} - rendering...`);
+  onStatus(`Testing ${libraryName} - measuring memory...`);
 
-  const instance = await createComponent(container, itemCount);
+  let instance;
+  const memoryDelta = await measureMemoryDelta(async () => {
+    instance = await createComponent(container, itemCount);
+    await waitFrames(3);
+  });
 
-  await waitFrames(3);
+  const memoryUsed = memoryDelta !== null ? bytesToMB(memoryDelta) : null;
 
-  // Measure memory after render
-  await tryGC();
-  const memAfter = getHeapUsed();
+  // ── Phase 3: SCROLL ────────────────────────────────────────────────────
+  // Uses the instance from Phase 2 (still mounted).
 
-  // Find viewport and measure scroll performance
-  onStatus(`Testing ${libraryName} - scrolling...`);
+  onStatus(
+    stressMs > 0
+      ? `Testing ${libraryName} - scrolling (stress ${stressMs}ms)...`
+      : `Testing ${libraryName} - scrolling...`,
+  );
   const viewport = findViewport(container);
   const scrollMetrics = await measureScrollPerformance(
     viewport,
     SCROLL_DURATION_MS,
+    stressMs,
   );
 
   // Cleanup
@@ -317,7 +370,7 @@ export const benchmarkLibrary = async (config) => {
   return {
     library: libraryName,
     renderTime: round(median(renderTimes), 2),
-    memoryUsed: memAfter && memBefore ? bytesToMB(memAfter - memBefore) : null,
+    memoryUsed,
     scrollFPS: scrollMetrics.medianFPS,
     p95FrameTime: scrollMetrics.p95FrameTime,
   };
@@ -330,6 +383,10 @@ export const benchmarkLibrary = async (config) => {
 /**
  * Calculate comparison metrics between vlist and another library.
  * Returns array of metric objects for display.
+ *
+ * Handles null/unavailable memory gracefully — if either library's memory
+ * measurement was unreliable (negative delta, API unavailable), the memory
+ * comparison section is omitted entirely rather than showing misleading data.
  *
  * @param {Object} vlistResults - vlist benchmark results
  * @param {Object} libResults - Library benchmark results
@@ -379,7 +436,15 @@ export const calculateComparisonMetrics = (
   }
 
   // Memory Comparison
-  if (vlistResults.memoryUsed && libResults.memoryUsed) {
+  // Only shown when BOTH measurements are valid (non-null, positive).
+  // If either is null the measurement was unreliable and we skip entirely
+  // rather than displaying misleading data.
+  if (
+    vlistResults.memoryUsed != null &&
+    vlistResults.memoryUsed > 0 &&
+    libResults.memoryUsed != null &&
+    libResults.memoryUsed > 0
+  ) {
     const diff = vlistResults.memoryUsed - libResults.memoryUsed;
     const pct = round((diff / libResults.memoryUsed) * 100, 1);
 
@@ -406,6 +471,46 @@ export const calculateComparisonMetrics = (
       better: "lower",
       rating: pct < 0 ? "good" : pct < 20 ? "ok" : "bad",
       meta: pct < 0 ? "vlist uses less" : `${libraryName} uses less`,
+    });
+  } else {
+    // At least one measurement was unreliable — show individual values where
+    // available, and a note row explaining why the comparison can't be computed.
+    // Uses `displayValue` to override the numeric rendering with "—" for
+    // unavailable measurements.
+
+    const vlistMem = vlistResults.memoryUsed;
+    const libMem = libResults.memoryUsed;
+    const vlistValid = vlistMem != null && vlistMem > 0;
+    const libValid = libMem != null && libMem > 0;
+
+    metrics.push({
+      label: "vlist Memory Usage",
+      value: vlistValid ? vlistMem : 0,
+      unit: vlistValid ? "MB" : "",
+      better: "lower",
+      rating: vlistValid ? rateLower(vlistMem, 30, 50) : undefined,
+      displayValue: vlistValid ? undefined : "—",
+      meta: vlistValid ? undefined : "GC artifact — measurement discarded",
+    });
+
+    metrics.push({
+      label: `${libraryName} Memory Usage`,
+      value: libValid ? libMem : 0,
+      unit: libValid ? "MB" : "",
+      better: "lower",
+      rating: libValid ? rateLower(libMem, 30, 50) : undefined,
+      displayValue: libValid ? undefined : "—",
+      meta: libValid ? undefined : "GC artifact — measurement discarded",
+    });
+
+    metrics.push({
+      label: "Memory Difference",
+      value: 0,
+      unit: "",
+      better: "lower",
+      rating: "ok",
+      displayValue: "—",
+      meta: "Retry or launch Chrome with --enable-precise-memory-info",
     });
   }
 

@@ -145,6 +145,7 @@ const FEATURE_DATA = FEATURES_DATA.features.map((f) => [f.name, ...f.support]);
 // =============================================================================
 
 let selectedItemCounts = [ITEM_COUNTS[DEFAULT_ITEM_COUNT_INDEX]];
+let selectedStressMs = 0;
 let isRunning = false;
 let abortController = null;
 
@@ -186,6 +187,24 @@ function buildSuitePage(root, suite) {
 
   // Build size buttons
   buildSizeButtons(root.querySelector("#bench-sizes"));
+
+  // Wire up stress buttons (comparison suites only)
+  const stressContainer = root.querySelector("#bench-stress");
+  if (stressContainer) {
+    const stressBtns = stressContainer.querySelectorAll(".bench-stress-btn");
+    stressBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (isRunning) return;
+        selectedStressMs = parseInt(btn.dataset.stress, 10);
+        stressBtns.forEach((b) =>
+          b.classList.toggle(
+            "bench-size-btn--active",
+            b.dataset.stress === btn.dataset.stress,
+          ),
+        );
+      });
+    });
+  }
 
   // Build suite card (single)
   buildSuiteCards(root.querySelector("#bench-suites"), [suite]);
@@ -436,11 +455,18 @@ const renderMetrics = (suiteId, itemCount) => {
       const ratingClass = metric.rating
         ? ` bench-metric--${metric.rating}`
         : "";
+      const valueText =
+        metric.displayValue != null
+          ? escapeHtml(metric.displayValue)
+          : metric.value.toLocaleString();
+      const metaHtml = metric.meta
+        ? `<span class="bench-metric__meta">${escapeHtml(metric.meta)}</span>`
+        : "";
       return `
         <div class="bench-metric${ratingClass}">
-          <span class="bench-metric__label">${escapeHtml(metric.label)}</span>
+          <span class="bench-metric__label">${escapeHtml(metric.label)}${metaHtml}</span>
           <span class="bench-metric__value">
-            ${metric.value.toLocaleString()}
+            ${valueText}
             ${metric.unit ? `<span class="bench-metric__unit">${escapeHtml(metric.unit)}</span>` : ""}
           </span>
         </div>
@@ -487,6 +513,7 @@ const handleSuiteRunClick = async (suiteId) => {
     await runBenchmarks({
       itemCounts: selectedItemCounts,
       suiteIds: [suiteId],
+      stressMs: selectedStressMs,
       getContainer: (sid) => getViewportContainer(sid),
       signal: abortController.signal,
 

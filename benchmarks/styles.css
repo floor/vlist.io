@@ -356,6 +356,16 @@
 .bench-metric__label {
     font-size: 13px;
     color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bench-metric__meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+    opacity: 0.7;
 }
 
 .bench-metric__value {

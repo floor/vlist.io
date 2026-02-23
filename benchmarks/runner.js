@@ -129,6 +129,162 @@ export const getHeapUsed = () => {
   return null;
 };
 
+// =============================================================================
+// CPU Stress — simulated app workload
+// =============================================================================
+
+/**
+ * Available stress levels for comparison benchmarks.
+ * Each level burns a fixed amount of CPU time per frame during scroll
+ * measurement, simulating an application with other work alongside
+ * the virtual list.
+ *
+ * At "heavy" (6 ms per frame) on a 120 Hz display (8.33 ms budget),
+ * only ~2.3 ms remains for the library's own rendering — enough to
+ * separate a fast library from a slow one.
+ */
+export const STRESS_LEVELS = [
+  { id: "none", label: "None", ms: 0 },
+  { id: "light", label: "Light", ms: 3 },
+  { id: "medium", label: "Medium", ms: 5 },
+  { id: "heavy", label: "Heavy", ms: 7 },
+];
+
+/**
+ * Burn CPU for approximately `targetMs` milliseconds.
+ *
+ * Uses a tight busy-wait loop with `performance.now()` as the exit
+ * condition. The loop body cannot be dead-code-eliminated because
+ * `performance.now()` reads the system clock (observable side-effect).
+ *
+ * @param {number} targetMs - Milliseconds of CPU time to consume
+ */
+export const burnCpu = (targetMs) => {
+  if (targetMs <= 0) return;
+  const end = performance.now() + targetMs;
+  while (performance.now() < end) {
+    /* busy wait */
+  }
+};
+
+// =============================================================================
+// Performance Timeline — mark/measure timing
+// =============================================================================
+
+/** @type {number} Unique counter for non-colliding mark names */
+let _measureId = 0;
+
+/**
+ * Measure the duration of an async function using the Performance Timeline API
+ * (`performance.mark` + `performance.measure`).
+ *
+ * This gives structured timing data that integrates with the browser DevTools
+ * Performance panel, and avoids manual `performance.now()` diffing.
+ *
+ * Falls back to `performance.now()` if the mark/measure API throws.
+ *
+ * @template T
+ * @param {string} label - Human-readable label (used in DevTools)
+ * @param {() => Promise<T>} fn - Async function to time
+ * @returns {Promise<{duration: number, result: T}>}
+ */
+export const measureDuration = async (label, fn) => {
+  const id = _measureId++;
+  const startMark = `bench-start-${id}`;
+  const endMark = `bench-end-${id}`;
+  const measureName = `bench-${label}-${id}`;
+
+  try {
+    performance.mark(startMark);
+    const result = await fn();
+    performance.mark(endMark);
+
+    const entry = performance.measure(measureName, startMark, endMark);
+    const duration = entry.duration;
+
+    // Clean up to avoid leaking entries
+    performance.clearMarks(startMark);
+    performance.clearMarks(endMark);
+    performance.clearMeasures(measureName);
+
+    return { duration, result };
+  } catch (err) {
+    // Clean up on error, then re-throw
+    try {
+      performance.clearMarks(startMark);
+      performance.clearMarks(endMark);
+      performance.clearMeasures(measureName);
+    } catch (_) {
+      /* ignore cleanup errors */
+    }
+    throw err;
+  }
+};
+
+// =============================================================================
+// Robust Memory Measurement
+// =============================================================================
+
+/**
+ * Aggressive heap settling — multiple GC + wait cycles.
+ *
+ * More thorough than `tryGC()`. Designed for memory measurements where
+ * residual garbage from previous operations must be reclaimed before
+ * taking a heap snapshot.
+ *
+ * @param {number} [cycles=3] - Number of GC + settle cycles
+ */
+export const settleHeap = async (cycles = 3) => {
+  for (let i = 0; i < cycles; i++) {
+    if (typeof globalThis.gc === "function") {
+      globalThis.gc();
+    }
+    await wait(150);
+    await waitFrames(5);
+  }
+};
+
+/**
+ * Take a validated heap delta measurement.
+ *
+ * Measures the memory cost of a create/settle cycle by snapshotting the heap
+ * before and after. Rejects negative deltas (GC artifacts) and returns `null`
+ * when the measurement is unreliable or the API is unavailable.
+ *
+ * Uses `settleHeap()` before the baseline for maximum isolation from previous
+ * benchmark phases.
+ *
+ * @param {() => Promise<void>} create - Mount the component (must leave it alive)
+ * @param {number} [settleFrames=5] - Frames to wait after creation before measuring
+ * @returns {Promise<number|null>} Memory delta in bytes, or null if unreliable
+ */
+export const measureMemoryDelta = async (create, settleFrames = 5) => {
+  // Aggressive settle to flush garbage from prior phases
+  await settleHeap();
+
+  const before = getHeapUsed();
+  if (before === null) return null;
+
+  // Create the component under test
+  await create();
+  await waitFrames(settleFrames);
+
+  // Gentle GC to reclaim transient allocations (createElement temporaries, etc.)
+  // but not so aggressive that we reclaim the component itself
+  await tryGC();
+
+  const after = getHeapUsed();
+  if (after === null) return null;
+
+  const delta = after - before;
+
+  // Negative delta means GC reclaimed more old garbage than the component
+  // allocated — this is a measurement artifact, not real data
+  if (delta < 0) return null;
+
+  return delta;
+};
+
 /**
  * Format bytes as human-readable MB.
  * @param {number} bytes
@@ -238,6 +394,7 @@ export const rateHigher = (value, goodThreshold, okThreshold) => {
  * @typedef {Object} RunOptions
  * @property {number[]} [itemCounts] - Item counts to test (default: [10_000, 100_000, 1_000_000])
  * @property {string[]} [suiteIds] - Which suites to run (default: all)
+ * @property {number} [stressMs=0] - CPU burn per frame during scroll (comparison suites only)
  * @property {HTMLElement} container - Offscreen container element
  * @property {(result: BenchmarkResult) => void} [onResult] - Called after each suite+itemCount
  * @property {(suiteId: string, itemCount: number, message: string) => void} [onStatus] - Progress updates
@@ -258,6 +415,7 @@ export const runBenchmarks = async (options) => {
   const {
     itemCounts = [10_000, 100_000, 1_000_000],
     suiteIds,
+    stressMs = 0,
     container,
     getContainer,
     onResult,
@@ -314,6 +472,7 @@ export const runBenchmarks = async (options) => {
           itemCount,
           container: runContainer,
           onStatus: status,
+          stressMs,
         });
 
         result = {

@@ -51,7 +51,12 @@ const loadReactLibraries = async () => {
 /**
  * Benchmark TanStack Virtual performance.
  */
-const benchmarkTanStackVirtual = async (container, itemCount, onStatus) => {
+const benchmarkTanStackVirtual = async (
+  container,
+  itemCount,
+  onStatus,
+  stressMs = 0,
+) => {
   // Ensure libraries are loaded
   const loaded = await loadReactLibraries();
   if (!loaded) {
@@ -115,6 +120,7 @@ const benchmarkTanStackVirtual = async (container, itemCount, onStatus) => {
     container,
     itemCount,
     onStatus,
+    stressMs,
     createComponent: async (container, itemCount) => {
       const listComponent = React.createElement(VirtualList, {
         itemCount,
@@ -140,12 +146,18 @@ defineSuite({
   name: "TanStack Virtual Comparison",
   description: "Compare vlist vs TanStack Virtual performance side-by-side",
   icon: "⚔️",
+  comparison: true,
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
     onStatus("Preparing benchmark...");
 
     // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
+    const vlistResults = await benchmarkVList(
+      container,
+      itemCount,
+      onStatus,
+      stressMs,
+    );
 
     // Benchmark TanStack Virtual
     let tanstackResults;
@@ -154,6 +166,7 @@ defineSuite({
         container,
         itemCount,
         onStatus,
+        stressMs,
       );
     } catch (err) {
       console.warn("[tanstack-virtual] TanStack Virtual test failed:", err);

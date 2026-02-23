@@ -51,7 +51,12 @@ const loadReactLibraries = async () => {
 /**
  * Benchmark Virtua performance.
  */
-const benchmarkVirtua = async (container, itemCount, onStatus) => {
+const benchmarkVirtua = async (
+  container,
+  itemCount,
+  onStatus,
+  stressMs = 0,
+) => {
   // Ensure libraries are loaded
   const loaded = await loadReactLibraries();
   if (!loaded) {
@@ -92,6 +97,7 @@ const benchmarkVirtua = async (container, itemCount, onStatus) => {
     container,
     itemCount,
     onStatus,
+    stressMs,
     createComponent: async (container, itemCount) => {
       const listComponent = React.createElement(VirtualList, {
         itemCount: itemCount,
@@ -117,17 +123,28 @@ defineSuite({
   name: "Virtua Comparison",
   description: "Compare vlist vs Virtua performance side-by-side",
   icon: "⚔️",
+  comparison: true,
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
     onStatus("Preparing benchmark...");
 
     // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(container, itemCount, onStatus);
+    const vlistResults = await benchmarkVList(
+      container,
+      itemCount,
+      onStatus,
+      stressMs,
+    );
 
     // Benchmark Virtua
     let virtuaResults;
     try {
-      virtuaResults = await benchmarkVirtua(container, itemCount, onStatus);
+      virtuaResults = await benchmarkVirtua(
+        container,
+        itemCount,
+        onStatus,
+        stressMs,
+      );
     } catch (err) {
       console.warn("[virtua] Virtua test failed:", err);
       virtuaResults = {

@@ -4,6 +4,7 @@
 // All static HTML templates and page builders live here.
 
 import vlistPackage from "@floor/vlist/package.json";
+import { STRESS_LEVELS } from "./runner.js";
 
 // =============================================================================
 // Helpers
@@ -42,6 +43,20 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
       <div class="bench-controls" id="bench-controls">
         <span class="bench-controls__label">Items</span>
         <div class="bench-controls__sizes" id="bench-sizes"></div>
+        ${
+          suite.comparison
+            ? `
+        <div class="bench-controls__sep"></div>
+        <span class="bench-controls__label">Stress</span>
+        <div class="bench-controls__sizes" id="bench-stress">
+          ${STRESS_LEVELS.map(
+            (level, i) =>
+              `<button class="bench-size-btn bench-stress-btn${i === 0 ? " bench-size-btn--active" : ""}" data-stress="${level.ms}" title="${level.ms === 0 ? "No extra CPU load" : `Burn ${level.ms}ms of CPU per frame during scroll`}">${level.label}</button>`,
+          ).join("")}
+        </div>
+        `
+            : ""
+        }
         <div class="bench-controls__sep"></div>
         <button class="bench-run-btn" id="bench-run">▶ Run</button>
         <span class="bench-status" id="bench-status">Ready</span>
