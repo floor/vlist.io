@@ -13,7 +13,12 @@
 // real performance differences between libraries.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
+import {
+  ITEM_HEIGHT,
+  benchmarkLibrary,
+  runComparison,
+  createRealisticReactChildren,
+} from "./shared.js";
 
 // Dynamic imports for React libraries (loaded on demand)
 let React;
@@ -63,12 +68,12 @@ const benchmarkReactWindow = async (
     throw new Error("react-window is not available");
   }
 
-  // React component for rendering list items
+  // React component for rendering list items (realistic template)
   const Row = ({ index, style }) => {
     return React.createElement(
       "div",
       { className: "bench-item", style },
-      index,
+      ...createRealisticReactChildren(React, index),
     );
   };
 

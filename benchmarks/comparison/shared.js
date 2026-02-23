@@ -20,10 +20,15 @@ import {
   round,
   median,
   percentile,
+  ITEM_NAMES,
+  ITEM_BADGES,
 } from "../runner.js";
 
 // Re-export utilities for comparison benchmarks
 export { tryGC, waitFrames };
+
+// Re-export item data arrays for comparison suite renderers (React, Vue, Solid)
+export { ITEM_NAMES, ITEM_BADGES };
 
 // =============================================================================
 // Constants
@@ -34,6 +39,106 @@ export const MEASURE_ITERATIONS = 5;
 export const MEMORY_ATTEMPTS = 3;
 export const SCROLL_DURATION_MS = 5000;
 export const SCROLL_SPEED_PX_PER_FRAME = 100;
+
+// =============================================================================
+// Helper: Realistic React item children
+// =============================================================================
+
+/**
+ * Create React children for a realistic list item.
+ *
+ * Shared across TanStack Virtual, react-window, and Virtua so all three
+ * React-based competitors render the exact same DOM structure as vlist's
+ * `benchmarkTemplate`.
+ *
+ * @param {typeof import("react")} React - React module
+ * @param {number} index - Item index
+ * @returns {React.ReactNode[]} Array of React elements
+ */
+export const createRealisticReactChildren = (React, index) => {
+  const n = ITEM_NAMES[index % ITEM_NAMES.length];
+  const n2 = ITEM_NAMES[(index + 3) % ITEM_NAMES.length];
+  return [
+    React.createElement(
+      "div",
+      { key: "a", className: "bench-item__avatar" },
+      `${n[0]}${n2[0]}`,
+    ),
+    React.createElement(
+      "div",
+      { key: "c", className: "bench-item__content" },
+      React.createElement(
+        "div",
+        { className: "bench-item__title" },
+        `${n} — Item ${index}`,
+      ),
+      React.createElement(
+        "div",
+        { className: "bench-item__sub" },
+        "Lorem ipsum dolor sit amet",
+      ),
+    ),
+    React.createElement(
+      "div",
+      { key: "m", className: "bench-item__meta" },
+      React.createElement(
+        "span",
+        { className: "bench-item__badge" },
+        ITEM_BADGES[index % ITEM_BADGES.length],
+      ),
+      React.createElement(
+        "span",
+        { className: "bench-item__time" },
+        `${(index % 59) + 1}m`,
+      ),
+    ),
+  ];
+};
+
+/**
+ * Populate a DOM element with realistic item children.
+ *
+ * Shared helper for SolidJS (and any other suite that uses raw DOM).
+ * Mirrors the same structure as `benchmarkTemplate` and
+ * `createRealisticReactChildren`.
+ *
+ * @param {HTMLElement} el - Parent item element
+ * @param {number} index - Item index
+ */
+export const populateRealisticDOMChildren = (el, index) => {
+  const n = ITEM_NAMES[index % ITEM_NAMES.length];
+  const n2 = ITEM_NAMES[(index + 3) % ITEM_NAMES.length];
+
+  const avatar = document.createElement("div");
+  avatar.className = "bench-item__avatar";
+  avatar.textContent = `${n[0]}${n2[0]}`;
+
+  const content = document.createElement("div");
+  content.className = "bench-item__content";
+  const title = document.createElement("div");
+  title.className = "bench-item__title";
+  title.textContent = `${n} — Item ${index}`;
+  const sub = document.createElement("div");
+  sub.className = "bench-item__sub";
+  sub.textContent = "Lorem ipsum dolor sit amet";
+  content.appendChild(title);
+  content.appendChild(sub);
+
+  const meta = document.createElement("div");
+  meta.className = "bench-item__meta";
+  const badge = document.createElement("span");
+  badge.className = "bench-item__badge";
+  badge.textContent = ITEM_BADGES[index % ITEM_BADGES.length];
+  const time = document.createElement("span");
+  time.className = "bench-item__time";
+  time.textContent = `${(index % 59) + 1}m`;
+  meta.appendChild(badge);
+  meta.appendChild(time);
+
+  el.appendChild(avatar);
+  el.appendChild(content);
+  el.appendChild(meta);
+};
 
 // =============================================================================
 // Helper: Find scrollable viewport

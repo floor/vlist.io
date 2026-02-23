@@ -13,7 +13,12 @@
 // real performance differences between libraries.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
+import {
+  ITEM_HEIGHT,
+  benchmarkLibrary,
+  runComparison,
+  createRealisticReactChildren,
+} from "./shared.js";
 
 // Dynamic imports for React libraries (loaded on demand)
 let React;
@@ -106,7 +111,7 @@ const benchmarkTanStackVirtual = async (
                 transform: `translateY(${virtualRow.start}px)`,
               },
             },
-            virtualRow.index,
+            ...createRealisticReactChildren(React, virtualRow.index),
           ),
         ),
       ),

@@ -666,6 +666,72 @@
     line-height: 1;
 }
 
+/* Realistic template — child elements */
+.bench-item__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary, #7c4dff);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.bench-item__content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bench-item__title {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bench-item__sub {
+    font-size: 11px;
+    color: var(--text-dim, #888);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400;
+}
+
+.bench-item__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    margin-left: 12px;
+    flex-shrink: 0;
+}
+
+.bench-item__badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(124, 77, 255, 0.15);
+    color: var(--primary, #7c4dff);
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.bench-item__time {
+    font-size: 10px;
+    color: var(--text-dim, #888);
+    font-weight: 400;
+}
+
 /* Vue virtual scroller specific styles */
 .vue-scroller-wrapper {
     width: 100%;

@@ -10,7 +10,12 @@
 // and JIT warmth bias. See docs/benchmarks/comparison-audit.md Priority 3.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
+import {
+  ITEM_HEIGHT,
+  benchmarkLibrary,
+  runComparison,
+  populateRealisticDOMChildren,
+} from "./shared.js";
 
 // Dynamic imports for SolidJS libraries (loaded on demand)
 let solidJs;
@@ -111,7 +116,8 @@ const benchmarkTanStackSolid = async (
                 createEffect(() => {
                   itemEl.style.height = `${virtualItem.size}px`;
                   itemEl.style.transform = `translateY(${virtualItem.start}px)`;
-                  itemEl.textContent = String(virtualItem.index);
+                  itemEl.innerHTML = "";
+                  populateRealisticDOMChildren(itemEl, virtualItem.index);
                 });
 
                 return itemEl;

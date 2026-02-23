@@ -13,7 +13,13 @@
 // real performance differences between libraries.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
+import {
+  ITEM_HEIGHT,
+  ITEM_NAMES,
+  ITEM_BADGES,
+  benchmarkLibrary,
+  runComparison,
+} from "./shared.js";
 
 // Dynamic imports for Vue libraries (loaded on demand)
 let Vue;
@@ -70,7 +76,17 @@ const benchmarkVueVirtualScroller = async (
           key-field="id"
         >
           <template v-slot="{ item }">
-            <div class="bench-item" style="height: 48px; box-sizing: border-box;">{{ item.id }}</div>
+            <div class="bench-item" style="height: 48px; box-sizing: border-box;">
+              <div class="bench-item__avatar">{{ item.initials }}</div>
+              <div class="bench-item__content">
+                <div class="bench-item__title">{{ item.name }} — Item {{ item.id }}</div>
+                <div class="bench-item__sub">Lorem ipsum dolor sit amet</div>
+              </div>
+              <div class="bench-item__meta">
+                <span class="bench-item__badge">{{ item.badge }}</span>
+                <span class="bench-item__time">{{ item.time }}</span>
+              </div>
+            </div>
           </template>
         </RecycleScroller>
       </div>
@@ -82,8 +98,15 @@ const benchmarkVueVirtualScroller = async (
     },
     computed: {
       itemsArray() {
-        // Generate minimal items array with id field (required by vue-virtual-scroller)
-        return Array.from({ length: this.itemCount }, (_, i) => ({ id: i }));
+        return Array.from({ length: this.itemCount }, (_, i) => ({
+          id: i,
+          initials:
+            ITEM_NAMES[i % ITEM_NAMES.length][0] +
+            ITEM_NAMES[(i + 3) % ITEM_NAMES.length][0],
+          name: ITEM_NAMES[i % ITEM_NAMES.length],
+          badge: ITEM_BADGES[i % ITEM_BADGES.length],
+          time: `${(i % 59) + 1}m`,
+        }));
       },
     },
   };

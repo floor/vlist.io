@@ -13,7 +13,12 @@
 // real performance differences between libraries.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
+import {
+  ITEM_HEIGHT,
+  benchmarkLibrary,
+  runComparison,
+  createRealisticReactChildren,
+} from "./shared.js";
 
 // Dynamic imports for React libraries (loaded on demand)
 let React;
@@ -62,8 +67,6 @@ const benchmarkVirtua = async (
   }
 
   // React component using Virtua
-  // Note: Virtua uses a render prop pattern where children is a function
-  // that receives index and returns the element for that index
   const VirtualList = ({ itemCount, height }) => {
     // Generate an array of indices for Virtua to virtualize
     const indices = React.useMemo(
@@ -84,7 +87,7 @@ const benchmarkVirtua = async (
             className: "bench-item",
             style: { height: `${ITEM_HEIGHT}px` },
           },
-          index,
+          ...createRealisticReactChildren(React, index),
         ),
       ),
     );

@@ -348,13 +348,39 @@ export const generateItems = (count) => {
 };
 
 /**
- * Simple item template for benchmarks.
- * Intentionally minimal — we're measuring vlist overhead, not template cost.
- * @param {Object} item
- * @param {number} index
- * @returns {string}
+ * Realistic item data — shared across all benchmark suites so every
+ * framework renders the exact same DOM structure and text content.
  */
-export const benchmarkTemplate = (item, index) => String(index);
+export const ITEM_NAMES = [
+  "Alice",
+  "Bob",
+  "Carol",
+  "Dave",
+  "Eve",
+  "Frank",
+  "Grace",
+  "Hank",
+  "Iris",
+  "Jack",
+];
+export const ITEM_BADGES = ["Active", "New", "VIP", "Pro"];
+
+/**
+ * Realistic item template for benchmarks.
+ *
+ * Produces 7 child elements per item: avatar, content wrapper, title,
+ * subtitle, meta wrapper, badge, and timestamp. This mirrors a typical
+ * list row in a production application (contacts, messages, data tables).
+ *
+ * @param {*} item - Item value (unused, kept for signature parity)
+ * @param {number} index - Item index
+ * @returns {string} HTML string
+ */
+export const benchmarkTemplate = (item, index) => {
+  const n = ITEM_NAMES[index % ITEM_NAMES.length];
+  const n2 = ITEM_NAMES[(index + 3) % ITEM_NAMES.length];
+  return `<div class="bench-item__avatar">${n[0]}${n2[0]}</div><div class="bench-item__content"><div class="bench-item__title">${n} — Item ${index}</div><div class="bench-item__sub">Lorem ipsum dolor sit amet</div></div><div class="bench-item__meta"><span class="bench-item__badge">${ITEM_BADGES[index % ITEM_BADGES.length]}</span><span class="bench-item__time">${(index % 59) + 1}m</span></div>`;
+};
 
 // =============================================================================
 // Rating Helpers

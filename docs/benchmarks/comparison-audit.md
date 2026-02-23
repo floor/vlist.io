@@ -177,8 +177,8 @@ Comparison suites now have a **Stress** selector in the controls bar (None / Lig
 - `benchmarks/script.js` — Wires up stress button click handlers, passes `selectedStressMs` to runner
 
 **Still TODO:**
-- **Heavy template variant** — Render items with 5-10 child elements, computed styles, and event bindings
-- **Rapid scroll reversals** — Stress test layout recalculation and DOM recycling
+- ~~**Heavy template variant**~~ ✅ DONE — "Template" toggle (Simple / Realistic) added. Realistic mode renders 7 child elements per item (avatar, content wrapper, title, subtitle, meta wrapper, badge, timestamp). Shared helpers (`createRealisticReactChildren`, `populateRealisticDOMChildren`, `benchmarkTemplateRealistic`) ensure all libraries render identical DOM structure. `templateMode` threaded through `runner.js` → `suite.run()` → `runComparison()` → both benchmark functions.
+- **Rapid scroll reversals** — Stress test layout recalculation and DOM recycling (still TODO)
 
 ### Priority 3: Randomize Execution Order — ✅ DONE
 
@@ -232,6 +232,6 @@ The pitch — "comparable performance with zero dependencies and framework freed
 | Scroll FPS | ✅ Fixed (stress mode) | CPU stress selector (None/Light/Medium/Heavy) reveals real FPS differences |
 | P95 Frame Time | ✅ Honest, TanStack wins | Keep as-is |
 | Execution Order | ✅ Fixed | Randomized via `runComparison()` helper; meta row shows which ran first |
-| Template Complexity | ⚠️ Trivially minimal | Add heavy variant |
+| Template Complexity | ✅ Fixed | Simple/Realistic toggle; realistic = 7 child elements per item |
 
-**Bottom line:** The benchmark infrastructure is solid and well-engineered. The three most critical issues — memory measurement, FPS ceiling, and execution order — have been fixed. Remaining items (context disclaimer, heavy templates) are tracked above.
+**Bottom line:** The benchmark infrastructure is solid and well-engineered. The four most critical issues — memory measurement, FPS ceiling, execution order, and template complexity — have been fixed. Remaining items (context disclaimer, rapid scroll reversals) are tracked above.
