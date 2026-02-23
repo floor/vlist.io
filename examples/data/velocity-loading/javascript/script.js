@@ -26,16 +26,14 @@ import {
 // Storage key for snapshots
 const STORAGE_KEY = "vlist-velocity-loading-snapshot";
 
-// Get initial total from snapshot if available
-const savedSnapshot = sessionStorage.getItem(STORAGE_KEY);
-let total = undefined;
-if (savedSnapshot) {
+// Parse saved snapshot (if any) to configure autoLoad + restore
+const savedRaw = sessionStorage.getItem(STORAGE_KEY);
+let snapshot = undefined;
+if (savedRaw) {
   try {
-    const snapshot = JSON.parse(savedSnapshot);
-    // Use a known total (1M items in this example)
-    total = TOTAL_ITEMS;
+    snapshot = JSON.parse(savedRaw);
   } catch (e) {
-    // Ignore
+    // Corrupt data — ignore
   }
 }
 
@@ -46,7 +44,7 @@ let currentVelocity = 0;
 let currentScrollTop = 0;
 let isLoading = false;
 let saveSnapshotTimeoutId = null;
-let isRestoringSnapshot = false;
+let isRestoringSnapshot = !!snapshot;
 
 // DOM references (will be set after DOM loads)
 let statRequestsEl, statLoadedEl, statVelocityEl, statScrollTopEl;
@@ -115,7 +113,8 @@ function updateControls() {
   }
 }
 
-// Create list with adapter
+// Build list — snapshot restoration happens automatically via withSnapshots({ restore })
+// before the browser's first paint, so the user never sees position 0.
 const list = vlist({
   container: "#list-container",
   ariaLabel: "Virtual user list with velocity-based loading",
@@ -140,8 +139,8 @@ const list = vlist({
           return result;
         },
       },
-      autoLoad: false,
-      total: total,
+      autoLoad: !snapshot,
+      total: snapshot?.total,
       storage: {
         chunkSize: 25,
       },
@@ -152,7 +151,7 @@ const list = vlist({
   )
   .use(withScale())
   .use(withScrollbar({ autoHide: true }))
-  .use(withSnapshots())
+  .use(withSnapshots({ restore: snapshot }))
   .build();
 
 // Get DOM references
@@ -179,30 +178,25 @@ const btnResetStats = document.getElementById("btn-reset-stats");
 
 // Auto-save snapshot when scroll becomes idle
 function scheduleSaveSnapshot() {
-  // Don't save while restoring
-  if (isRestoringSnapshot) {
-    return;
-  }
+  if (isRestoringSnapshot) return;
 
   if (saveSnapshotTimeoutId) {
     clearTimeout(saveSnapshotTimeoutId);
   }
   saveSnapshotTimeoutId = setTimeout(() => {
-    const snapshot = list.getScrollSnapshot();
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    const snap = list.getScrollSnapshot();
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
     saveSnapshotTimeoutId = null;
-  }, 500); // Save 500ms after scroll stops
+  }, 500);
 }
 
 // Event bindings
-// Track scroll position
 list.on("scroll", ({ scrollTop }) => {
   currentScrollTop = scrollTop;
   updateStatsBar();
   scheduleSaveSnapshot();
 });
 
-// Use velocity from plugin (smoothed with circular buffer)
 list.on("velocity:change", ({ velocity }) => {
   currentVelocity = velocity;
   updateControls();
@@ -225,6 +219,13 @@ list.on("load:end", ({ items }) => {
 list.on("selection:change", () => {
   scheduleSaveSnapshot();
 });
+
+// Re-enable saving after restore settles
+if (isRestoringSnapshot) {
+  setTimeout(() => {
+    isRestoringSnapshot = false;
+  }, 2000);
+}
 
 // Controls
 btnToggleApi.addEventListener("click", async () => {
@@ -289,29 +290,3 @@ btnResetStats.addEventListener("click", () => {
 btnToggleApi.textContent = formatApiSource(getUseRealApi());
 updateControls();
 updateStatsBar();
-
-// Try to restore snapshot or load initial data
-if (savedSnapshot) {
-  // Restore from snapshot
-  try {
-    const snapshot = JSON.parse(savedSnapshot);
-    isRestoringSnapshot = true;
-
-    // restoreScroll handles: sizeCache rebuild, compression, content size,
-    // scroll position, and loading the visible range at the restored position
-    list.restoreScroll(snapshot);
-
-    // Re-enable saving after 2 seconds to ensure stability
-    setTimeout(() => {
-      isRestoringSnapshot = false;
-    }, 2000);
-  } catch (e) {
-    console.error("[Example] Restoration failed:", e);
-    // If restoration fails, just load from start
-    isRestoringSnapshot = false;
-    list.reload();
-  }
-} else {
-  // No snapshot - load from start
-  list.reload();
-}
