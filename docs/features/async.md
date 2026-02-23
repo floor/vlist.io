@@ -21,6 +21,96 @@ src/features/async/
 └── placeholder.ts # Placeholder generation
 ```
 
+## withAsync Configuration
+
+The `withAsync` feature is the main API for adding async data loading to vlist:
+
+```typescript
+import { vlist } from 'vlist'
+import { withAsync } from 'vlist/async'
+
+const list = vlist({
+  container: '#app',
+  item: { height: 48, template: renderItem }
+})
+.use(withAsync({
+  adapter: {
+    read: async ({ offset, limit }) => {
+      const res = await fetch(`/api/items?offset=${offset}&limit=${limit}`)
+      const data = await res.json()
+      return { items: data.items, total: data.total }
+    }
+  },
+  autoLoad: true,  // Load data immediately (default: true)
+  storage: {
+    chunkSize: 100,      // Items per chunk (default: 100)
+    maxCachedItems: 10000 // Max items in memory (default: 10000)
+  },
+  loading: {
+    cancelThreshold: 15,  // Cancel load above this velocity (default: 15)
+    preloadThreshold: 2,  // Preload above this velocity (default: 2)
+    preloadAhead: 50      // Items to preload (default: 50)
+  }
+}))
+.build()
+```
+
+### Configuration Options
+
+#### `adapter` (required)
+Async data source with a `read` function:
+- **Input**: `{ offset: number, limit: number, signal?: AbortSignal }`
+- **Output**: `Promise<{ items: T[], total: number, hasMore?: boolean, cursor?: string }>`
+
+#### `autoLoad` (optional)
+Whether to automatically load initial data. Default: `true`
+- Set to `false` if you need to initialize state before loading
+- Call `list.reload()` when ready to load data
+
+#### `total` (optional)
+Initial total count when `autoLoad: false`. Prevents vlist from thinking the list is empty.
+
+#### `storage` (optional)
+Configure sparse storage behavior:
+- `chunkSize`: Number of items per chunk (default: 100)
+  - **Important**: Should match your API pagination size for optimal performance
+  - Example: If your API returns 25 items per page, use `chunkSize: 25`
+- `maxCachedItems`: Maximum items in memory before eviction (default: 10000)
+
+#### `loading` (optional)
+Velocity-based loading optimization:
+- `cancelThreshold`: Velocity (px/ms) above which loading is skipped (default: 15)
+- `preloadThreshold`: Velocity (px/ms) for preloading ahead (default: 2)
+- `preloadAhead`: Number of items to preload in scroll direction (default: 50)
+
+### Example: Deferred Loading
+
+```typescript
+const list = vlist({ /* ... */ })
+.use(withAsync({
+  adapter: myAdapter,
+  autoLoad: false,  // Don't load immediately
+  total: 0          // Start with empty list
+}))
+.build()
+
+// Later, after setting filters/state:
+list.reload()  // Now load data
+```
+
+### Example: Custom Chunk Size
+
+```typescript
+const list = vlist({ /* ... */ })
+.use(withAsync({
+  adapter: myAdapter,
+  storage: {
+    chunkSize: 25  // Match API page size
+  }
+}))
+.build()
+```
+
 ## Key Concepts
 
 ### Sparse Storage
