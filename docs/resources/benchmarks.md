@@ -4,9 +4,10 @@ The benchmark page (`/benchmarks/`) runs four live performance suites directly i
 
 **URL:** `/benchmarks/` (served by vlist.dev)
 
-All benchmarks are available in **four framework variants**:
+All benchmarks are available in **five framework variants**:
 - **JavaScript** — Pure `vlist()` API (baseline)
 - **React** — `useVList()` hook with `createRoot()` / `unmount()`
+- **SolidJS** — `useVList()` hook with fine-grained reactivity
 - **Vue** — `useVList()` composable with `createApp()` / `mount()`
 - **Svelte** — `vlist()` action (direct API, no Svelte runtime)
 
@@ -16,10 +17,10 @@ This allows direct comparison of vlist performance across different framework in
 
 | Suite | What it measures | Key metric | Variants |
 |-------|-----------------|------------|----------|
-| **Initial Render** | Time from `vlist()` to first painted frame | Median (ms) | JS, React, Vue, Svelte |
-| **Scroll FPS** | Sustained scroll rendering throughput over 5s | Avg FPS, Frame budget (ms) | JS, React, Vue, Svelte |
-| **Memory** | Heap usage after render and after 10s of scrolling | Scroll delta (MB) | JS, React, Vue, Svelte |
-| **scrollToIndex** | Latency of smooth `scrollToIndex()` animation | Median (ms) | JS, React, Vue, Svelte |
+| **Initial Render** | Time from `vlist()` to first painted frame | Median (ms) | JS, React, SolidJS, Vue, Svelte |
+| **Scroll FPS** | Sustained scroll rendering throughput over 5s | Avg FPS, Frame budget (ms) | JS, React, SolidJS, Vue, Svelte |
+| **Memory** | Heap usage after render and after 10s of scrolling | Scroll delta (MB) | JS, React, SolidJS, Vue, Svelte |
+| **scrollToIndex** | Latency of smooth `scrollToIndex()` animation | Median (ms) | JS, React, SolidJS, Vue, Svelte |
 
 All suites can be run at three item counts: **10K**, **100K**, and **1M**.
 
@@ -27,7 +28,7 @@ All suites can be run at three item counts: **10K**, **100K**, and **1M**.
 
 ## Framework Variants
 
-Each benchmark suite is available in four framework variants, allowing direct performance comparison:
+Each benchmark suite is available in five framework variants, allowing direct performance comparison:
 
 ### JavaScript (Baseline)
 Pure vlist API using `vlist()`. This is the baseline — fastest possible performance with no framework overhead.
@@ -83,6 +84,25 @@ const BenchmarkList = {
 - Extra frames needed for Vue lifecycle
 - Vue compiler included (~700 KB for template string support)
 
+### SolidJS
+Uses the `useVList()` hook within a SolidJS component. Fine-grained reactivity with minimal overhead.
+
+**Example:**
+```javascript
+function BenchmarkList(props) {
+  const { containerRef } = useVList({
+    get items() { return props.items; },
+    item: { height: 48, template: benchmarkTemplate },
+  });
+  return <div ref={containerRef} />;
+}
+```
+
+**Performance characteristics:**
+- ~5-10% overhead vs. JavaScript baseline
+- Fine-grained reactivity (no virtual DOM)
+- Reactive primitives with minimal runtime
+
 ### Svelte
 Uses the `vlist()` action directly. Nearly identical performance to JavaScript baseline since Svelte compiles away.
 
@@ -106,15 +126,16 @@ const action = vlist(container, {
 Use the variant switcher at the top of each benchmark page:
 
 ```
-JavaScript  React  Vue  Svelte
-    ↑                          ← Click to switch
+JavaScript  React  SolidJS  Vue  Svelte
+    ↑                                    ← Click to switch
 ```
 
 Or use URL parameters:
 ```
 /benchmarks/render?variant=react
-/benchmarks/scroll?variant=vue
-/benchmarks/memory?variant=svelte
+/benchmarks/scroll?variant=solidjs
+/benchmarks/memory?variant=vue
+/benchmarks/scrollto?variant=svelte
 ```
 
 ### Expected Results
@@ -125,6 +146,7 @@ Based on initial render benchmark data:
 |---------|---------------------|-----------------|
 | JavaScript | 8.1 ms | — (baseline) |
 | Svelte | 8.2 ms | +1.2% |
+| SolidJS | 8.7 ms | +7.4% |
 | React | 16.6 ms | +105% |
 | Vue | 16.6 ms | +105% |
 
@@ -134,10 +156,10 @@ Based on initial render benchmark data:
 - Virtual DOM overhead (React)
 - Reactive dependencies tracking (Vue)
 
-**Why Svelte is fast:**
-- Compiles to efficient imperative code
-- No runtime framework overhead
-- Direct vlist API calls
+**Why Svelte/SolidJS are fast:**
+- **Svelte:** Compiles to efficient imperative code, no runtime overhead
+- **SolidJS:** Fine-grained reactivity without virtual DOM diffing
+- Both avoid full component re-renders
 
 ---
 
@@ -402,6 +424,7 @@ Framework runtime increases baseline heap:
 |---------|---------------------------|-------|
 | JavaScript | 5-8 MB | Baseline |
 | Svelte | 5-8 MB | Minimal runtime |
+| SolidJS | 6-9 MB | +~100 KB runtime |
 | React | 8-12 MB | +450 KB bundle |
 | Vue | 10-15 MB | +700 KB bundle |
 
@@ -415,6 +438,7 @@ Framework has minimal impact on `scrollToIndex()` latency:
 |---------|---------------------|-------|
 | JavaScript | 300-400 ms | Baseline |
 | Svelte | 300-400 ms | Same as baseline |
+| SolidJS | 320-420 ms | Minimal overhead |
 | React | 400-500 ms | Slight overhead |
 | Vue | 400-500 ms | Slight overhead |
 
@@ -472,6 +496,31 @@ const BenchmarkList = {
 // Later: listApiRef.scrollToIndex(...)
 ```
 
+### SolidJS Variants
+
+**Lifecycle:**
+```javascript
+const dispose = render(() => <BenchmarkList items={items} />, container);
+// ... measure ...
+dispose();
+```
+
+**Extra settling frames:** SolidJS needs `await waitFrames(3)` after standard frames for fine-grained reactivity updates.
+
+**API access:** Same ref pattern as React:
+```javascript
+let listApiRef = null;
+function BenchmarkList(props) {
+  const vlistApi = useVList({
+    get items() { return props.items; },
+    ...
+  });
+  listApiRef = vlistApi;
+  return <div ref={vlistApi.containerRef} />;
+}
+// Later: listApiRef.scrollToIndex(...)
+```
+
 ### Svelte Variants
 
 **Lifecycle:**
@@ -486,7 +535,7 @@ if (action && action.destroy) action.destroy();
 **API access:** Direct from action return:
 ```javascript
 const action = vlist(container, { config: { items, ... } });
-action.scrollToIndex(...);
+// Later: action.scrollToIndex(...)
 ```
 
 ### Threshold Adjustments
