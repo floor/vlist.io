@@ -15,7 +15,7 @@ export const ITEM_HEIGHT = 72;
 // =============================================================================
 
 let apiDelay = 0;
-let useRealApi = false; // Start with simulated by default
+let useRealApi = true; // Start with live API by default
 
 export const setApiDelay = (delay) => {
   apiDelay = delay;

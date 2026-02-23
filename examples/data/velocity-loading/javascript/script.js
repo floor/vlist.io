@@ -7,6 +7,7 @@ import {
   withAsync,
   withScale,
   withScrollbar,
+  withSnapshots,
 } from "vlist";
 import {
   CANCEL_LOAD_VELOCITY_THRESHOLD,
@@ -22,12 +23,30 @@ import {
   formatLoadedCount,
 } from "../shared.js";
 
+// Storage key for snapshots
+const STORAGE_KEY = "vlist-velocity-loading-snapshot";
+
+// Get initial total from snapshot if available
+const savedSnapshot = sessionStorage.getItem(STORAGE_KEY);
+let total = undefined;
+if (savedSnapshot) {
+  try {
+    const snapshot = JSON.parse(savedSnapshot);
+    // Use a known total (1M items in this example)
+    total = TOTAL_ITEMS;
+  } catch (e) {
+    // Ignore
+  }
+}
+
 // Stats tracking
 let loadRequests = 0;
 let loadedCount = 0;
 let currentVelocity = 0;
 let currentScrollTop = 0;
 let isLoading = false;
+let saveSnapshotTimeoutId = null;
+let isRestoringSnapshot = false;
 
 // DOM references (will be set after DOM loads)
 let statRequestsEl, statLoadedEl, statVelocityEl, statScrollTopEl;
@@ -121,6 +140,11 @@ const list = vlist({
           return result;
         },
       },
+      autoLoad: false,
+      total: total,
+      storage: {
+        chunkSize: 25,
+      },
       loading: {
         cancelThreshold: CANCEL_LOAD_VELOCITY_THRESHOLD,
       },
@@ -128,6 +152,7 @@ const list = vlist({
   )
   .use(withScale())
   .use(withScrollbar({ autoHide: true }))
+  .use(withSnapshots())
   .build();
 
 // Get DOM references
@@ -152,11 +177,29 @@ const btnEnd = document.getElementById("btn-end");
 const btnReload = document.getElementById("btn-reload");
 const btnResetStats = document.getElementById("btn-reset-stats");
 
+// Auto-save snapshot when scroll becomes idle
+function scheduleSaveSnapshot() {
+  // Don't save while restoring
+  if (isRestoringSnapshot) {
+    return;
+  }
+
+  if (saveSnapshotTimeoutId) {
+    clearTimeout(saveSnapshotTimeoutId);
+  }
+  saveSnapshotTimeoutId = setTimeout(() => {
+    const snapshot = list.getScrollSnapshot();
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    saveSnapshotTimeoutId = null;
+  }, 500); // Save 500ms after scroll stops
+}
+
 // Event bindings
 // Track scroll position
 list.on("scroll", ({ scrollTop }) => {
   currentScrollTop = scrollTop;
   updateStatsBar();
+  scheduleSaveSnapshot();
 });
 
 // Use velocity from plugin (smoothed with circular buffer)
@@ -177,6 +220,10 @@ list.on("load:end", ({ items }) => {
   loadedCount += items.length;
   updateControls();
   updateStatsBar();
+});
+
+list.on("selection:change", () => {
+  scheduleSaveSnapshot();
 });
 
 // Controls
@@ -242,3 +289,29 @@ btnResetStats.addEventListener("click", () => {
 btnToggleApi.textContent = formatApiSource(getUseRealApi());
 updateControls();
 updateStatsBar();
+
+// Try to restore snapshot or load initial data
+if (savedSnapshot) {
+  // Restore from snapshot
+  try {
+    const snapshot = JSON.parse(savedSnapshot);
+    isRestoringSnapshot = true;
+
+    // restoreScroll handles: sizeCache rebuild, compression, content size,
+    // scroll position, and loading the visible range at the restored position
+    list.restoreScroll(snapshot);
+
+    // Re-enable saving after 2 seconds to ensure stability
+    setTimeout(() => {
+      isRestoringSnapshot = false;
+    }, 2000);
+  } catch (e) {
+    console.error("[Example] Restoration failed:", e);
+    // If restoration fails, just load from start
+    isRestoringSnapshot = false;
+    list.reload();
+  }
+} else {
+  // No snapshot - load from start
+  list.reload();
+}
