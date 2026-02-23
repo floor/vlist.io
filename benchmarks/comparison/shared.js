@@ -31,6 +31,7 @@ export { tryGC, waitFrames };
 
 export const ITEM_HEIGHT = 48;
 export const MEASURE_ITERATIONS = 5;
+export const MEMORY_ATTEMPTS = 3;
 export const SCROLL_DURATION_MS = 5000;
 export const SCROLL_SPEED_PX_PER_FRAME = 100;
 
@@ -145,6 +146,75 @@ export const measureScrollPerformance = async (
 };
 
 // =============================================================================
+// Helper: Retry memory measurement
+// =============================================================================
+
+/**
+ * Measure memory usage with multiple attempts for reliability.
+ *
+ * A single `measureMemoryDelta()` call can return null when GC reclaims
+ * stale garbage during the snapshot window, producing a negative delta.
+ * Running multiple attempts and taking the median of valid readings
+ * dramatically reduces the chance of reporting "—" to the user.
+ *
+ * The last attempt's instance is kept alive (not destroyed) so Phase 3
+ * (scroll) can reuse it directly.
+ *
+ * @param {Object} opts
+ * @param {HTMLElement} opts.container - Benchmark container
+ * @param {() => Promise<*>} opts.createFn - Creates and returns a component instance
+ * @param {(instance: *) => Promise<void>} opts.destroyFn - Destroys a component instance
+ * @param {Function} opts.onStatus - Status callback
+ * @param {string} opts.label - Library name for status messages
+ * @param {number} [opts.attempts=MEMORY_ATTEMPTS] - Max measurement attempts
+ * @returns {Promise<{memoryUsed: number|null, instance: *}>}
+ */
+const measureMemoryWithRetries = async ({
+  container,
+  createFn,
+  destroyFn,
+  onStatus,
+  label,
+  attempts = MEMORY_ATTEMPTS,
+}) => {
+  const validDeltas = [];
+  let instance = null;
+
+  for (let i = 0; i < attempts; i++) {
+    // Destroy previous attempt's instance before retrying
+    if (instance) {
+      await destroyFn(instance);
+      instance = null;
+    }
+    container.innerHTML = "";
+
+    onStatus(
+      attempts > 1
+        ? `Testing ${label} - measuring memory (${i + 1}/${attempts})...`
+        : `Testing ${label} - measuring memory...`,
+    );
+
+    let inst;
+    const delta = await measureMemoryDelta(async () => {
+      inst = await createFn();
+      await waitFrames(3);
+    });
+
+    instance = inst;
+
+    if (delta !== null) {
+      validDeltas.push(delta);
+    }
+  }
+
+  const memoryUsed =
+    validDeltas.length > 0 ? bytesToMB(median(validDeltas)) : null;
+
+  // instance is still mounted — caller uses it for Phase 3 (scroll)
+  return { memoryUsed, instance };
+};
+
+// =============================================================================
 // Benchmark: vlist (baseline)
 // =============================================================================
 
@@ -153,7 +223,7 @@ export const measureScrollPerformance = async (
  *
  * Three isolated phases:
  *   1. TIMING  — render iterations with performance.mark/measure
- *   2. MEMORY  — isolated create with heap delta validation
+ *   2. MEMORY  — up to MEMORY_ATTEMPTS isolated measurements (median)
  *   3. SCROLL  — FPS and P95 frame time
  *
  * @param {HTMLElement} container - Container element
@@ -216,31 +286,31 @@ export const benchmarkVList = async (
   container.style.visibility = originalVisibility;
 
   // ── Phase 2: MEMORY ────────────────────────────────────────────────────
-  // Fully isolated from Phase 1. settleHeap() flushes garbage from the
-  // render iterations before we take the baseline snapshot.
+  // Up to MEMORY_ATTEMPTS isolated measurements. settleHeap() inside each
+  // attempt flushes garbage before the baseline snapshot. The median of
+  // valid readings is used; null only when ALL attempts fail.
 
-  container.innerHTML = "";
+  const { memoryUsed, instance: list } = await measureMemoryWithRetries({
+    container,
+    createFn: () => {
+      const l = vlist({
+        container,
+        item: {
+          height: ITEM_HEIGHT,
+          template: benchmarkTemplate,
+        },
+      }).build();
 
-  onStatus("Testing vlist - measuring memory...");
-
-  let list;
-  const memoryDelta = await measureMemoryDelta(async () => {
-    list = vlist({
-      container,
-      item: {
-        height: ITEM_HEIGHT,
-        template: benchmarkTemplate,
-      },
-    }).build();
-
-    list.setItems(items);
-    await waitFrames(3);
+      l.setItems(items);
+      return l;
+    },
+    destroyFn: (l) => l.destroy(),
+    onStatus,
+    label: "vlist",
   });
 
-  const memoryUsed = memoryDelta !== null ? bytesToMB(memoryDelta) : null;
-
   // ── Phase 3: SCROLL ────────────────────────────────────────────────────
-  // Uses the instance from Phase 2 (still mounted).
+  // Uses the instance from the last memory attempt (still mounted).
 
   onStatus(
     stressMs > 0
@@ -276,7 +346,7 @@ export const benchmarkVList = async (
  *
  * Three isolated phases:
  *   1. TIMING  — render iterations with performance.mark/measure
- *   2. MEMORY  — isolated create with heap delta validation
+ *   2. MEMORY  — up to MEMORY_ATTEMPTS isolated measurements (median)
  *   3. SCROLL  — FPS and P95 frame time
  *
  * @param {Object} config - Benchmark configuration
@@ -333,23 +403,20 @@ export const benchmarkLibrary = async (config) => {
   container.style.visibility = originalVisibility;
 
   // ── Phase 2: MEMORY ────────────────────────────────────────────────────
-  // Fully isolated from Phase 1. settleHeap() inside measureMemoryDelta
-  // flushes iteration garbage before the baseline snapshot.
+  // Up to MEMORY_ATTEMPTS isolated measurements. settleHeap() inside each
+  // attempt flushes garbage before the baseline snapshot. The median of
+  // valid readings is used; null only when ALL attempts fail.
 
-  container.innerHTML = "";
-
-  onStatus(`Testing ${libraryName} - measuring memory...`);
-
-  let instance;
-  const memoryDelta = await measureMemoryDelta(async () => {
-    instance = await createComponent(container, itemCount);
-    await waitFrames(3);
+  const { memoryUsed, instance } = await measureMemoryWithRetries({
+    container,
+    createFn: () => createComponent(container, itemCount),
+    destroyFn: destroyComponent,
+    onStatus,
+    label: libraryName,
   });
 
-  const memoryUsed = memoryDelta !== null ? bytesToMB(memoryDelta) : null;
-
   // ── Phase 3: SCROLL ────────────────────────────────────────────────────
-  // Uses the instance from Phase 2 (still mounted).
+  // Uses the instance from the last memory attempt (still mounted).
 
   onStatus(
     stressMs > 0
@@ -575,6 +642,112 @@ export const calculateComparisonMetrics = (
       meta: libResults.error,
     });
   }
+
+  return metrics;
+};
+
+// =============================================================================
+// Randomized Comparison Runner
+// =============================================================================
+
+/**
+ * Run a comparison benchmark with randomized execution order.
+ *
+ * Flips a coin to decide whether vlist or the competitor runs first,
+ * eliminating two systematic biases:
+ *   1. GC from the first runner bleeding into the second's memory phase
+ *   2. JIT warmth differences between first and second runner
+ *
+ * A `tryGC()` + `waitFrames(5)` barrier is always inserted between the
+ * two runs regardless of order.
+ *
+ * Appends an informational "Execution Order" row to the returned metrics
+ * so reviewers can see which library ran first in each run.
+ *
+ * @param {Object} opts
+ * @param {HTMLElement} opts.container - Benchmark container element
+ * @param {number} opts.itemCount - Number of items to render
+ * @param {Function} opts.onStatus - Status callback
+ * @param {number} [opts.stressMs=0] - CPU burn per frame during scroll
+ * @param {string} opts.libraryName - Display name of the competitor library
+ * @param {Function} opts.benchmarkCompetitor - async (container, itemCount, onStatus, stressMs) => results
+ * @param {Function} opts.rateLower - Rating function for lower-is-better metrics
+ * @param {Function} opts.rateHigher - Rating function for higher-is-better metrics
+ * @returns {Promise<Array>} Array of metric objects from calculateComparisonMetrics
+ */
+export const runComparison = async ({
+  container,
+  itemCount,
+  onStatus,
+  stressMs = 0,
+  libraryName,
+  benchmarkCompetitor,
+  rateLower: rateLowerFn,
+  rateHigher: rateHigherFn,
+}) => {
+  onStatus("Preparing benchmark...");
+
+  const vlistFirst = Math.random() < 0.5;
+  const firstRunner = vlistFirst ? "vlist" : libraryName;
+
+  let vlistResults;
+  let libResults;
+
+  const runVList = async () => {
+    return benchmarkVList(container, itemCount, onStatus, stressMs);
+  };
+
+  const runCompetitor = async () => {
+    try {
+      return await benchmarkCompetitor(
+        container,
+        itemCount,
+        onStatus,
+        stressMs,
+      );
+    } catch (err) {
+      console.warn(`[comparison] ${libraryName} test failed:`, err);
+      return {
+        library: libraryName,
+        renderTime: null,
+        memoryUsed: null,
+        scrollFPS: null,
+        p95FrameTime: null,
+        error: err.message,
+      };
+    }
+  };
+
+  if (vlistFirst) {
+    vlistResults = await runVList();
+    await tryGC();
+    await waitFrames(5);
+    libResults = await runCompetitor();
+  } else {
+    libResults = await runCompetitor();
+    await tryGC();
+    await waitFrames(5);
+    vlistResults = await runVList();
+  }
+
+  const metrics = calculateComparisonMetrics(
+    vlistResults,
+    libResults,
+    libraryName,
+    rateLowerFn,
+    rateHigherFn,
+  );
+
+  // Append execution order note for transparency
+  metrics.push({
+    label: "Execution Order",
+    value: 0,
+    unit: "",
+    better: "none",
+    rating: "info",
+    displayValue: "",
+    meta: `${firstRunner} ran first (randomized to reduce ordering bias)`,
+  });
 
   return metrics;
 };

@@ -6,18 +6,11 @@
 //   - Scroll performance (FPS)
 //   - P95 frame time (consistency)
 //
-// This benchmark helps users make informed decisions by showing
-// real performance differences between libraries.
+// Execution order is randomized per run to eliminate GC bleed-through
+// and JIT warmth bias. See docs/benchmarks/comparison-audit.md Priority 3.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import {
-  ITEM_HEIGHT,
-  benchmarkVList,
-  benchmarkLibrary,
-  calculateComparisonMetrics,
-  tryGC,
-  waitFrames,
-} from "./shared.js";
+import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
 
 // Dynamic imports for SolidJS libraries (loaded on demand)
 let solidJs;
@@ -153,46 +146,15 @@ defineSuite({
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
-    onStatus("Preparing benchmark...");
-
-    // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(
+    return runComparison({
       container,
       itemCount,
       onStatus,
       stressMs,
-    );
-    await tryGC();
-    await waitFrames(5);
-
-    // Benchmark TanStack Virtual (SolidJS)
-    let solidResults;
-    try {
-      solidResults = await benchmarkTanStackSolid(
-        container,
-        itemCount,
-        onStatus,
-        stressMs,
-      );
-    } catch (err) {
-      console.warn("[solidjs] TanStack Virtual (SolidJS) test failed:", err);
-      solidResults = {
-        library: "TanStack Virtual (SolidJS)",
-        renderTime: null,
-        memoryUsed: null,
-        scrollFPS: null,
-        p95FrameTime: null,
-        error: err.message,
-      };
-    }
-
-    // Calculate comparison metrics
-    return calculateComparisonMetrics(
-      vlistResults,
-      solidResults,
-      "TanStack Virtual (SolidJS)",
+      libraryName: "TanStack Virtual (SolidJS)",
+      benchmarkCompetitor: benchmarkTanStackSolid,
       rateLower,
       rateHigher,
-    );
+    });
   },
 });

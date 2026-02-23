@@ -6,16 +6,14 @@
 //   - Scroll performance (FPS)
 //   - P95 frame time (consistency)
 //
+// Execution order is randomized per run to eliminate GC bleed and JIT
+// warmth biases. See docs/benchmarks/comparison-audit.md Priority 3.
+//
 // This benchmark helps users make informed decisions by showing
 // real performance differences between libraries.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import {
-  ITEM_HEIGHT,
-  benchmarkVList,
-  benchmarkLibrary,
-  calculateComparisonMetrics,
-} from "./shared.js";
+import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
 
 // Dynamic imports for Vue libraries (loaded on demand)
 let Vue;
@@ -136,47 +134,15 @@ defineSuite({
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
-    onStatus("Preparing benchmark...");
-
-    // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(
+    return runComparison({
       container,
       itemCount,
       onStatus,
       stressMs,
-    );
-
-    // Benchmark vue-virtual-scroller
-    let vueResults;
-    try {
-      vueResults = await benchmarkVueVirtualScroller(
-        container,
-        itemCount,
-        onStatus,
-        stressMs,
-      );
-    } catch (err) {
-      console.warn(
-        "[vue-virtual-scroller] vue-virtual-scroller test failed:",
-        err,
-      );
-      vueResults = {
-        library: "vue-virtual-scroller",
-        renderTime: null,
-        memoryUsed: null,
-        scrollFPS: null,
-        p95FrameTime: null,
-        error: err.message,
-      };
-    }
-
-    // Calculate comparison metrics
-    return calculateComparisonMetrics(
-      vlistResults,
-      vueResults,
-      "vue-virtual-scroller",
+      libraryName: "vue-virtual-scroller",
+      benchmarkCompetitor: benchmarkVueVirtualScroller,
       rateLower,
       rateHigher,
-    );
+    });
   },
 });

@@ -1,4 +1,4 @@
-// benchmarks/comparison/suite.js — react-window Comparison Benchmark
+// benchmarks/comparison/react-window.js — react-window Comparison Benchmark
 //
 // Compares vlist against react-window side-by-side:
 //   - Initial render time
@@ -6,18 +6,14 @@
 //   - Scroll performance (FPS)
 //   - P95 frame time (consistency)
 //
+// Execution order is randomized per run to eliminate GC bleed-through
+// and JIT warmth bias. See docs/benchmarks/comparison-audit.md Priority 3.
+//
 // This benchmark helps users make informed decisions by showing
 // real performance differences between libraries.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import {
-  ITEM_HEIGHT,
-  benchmarkVList,
-  benchmarkLibrary,
-  calculateComparisonMetrics,
-  tryGC,
-  waitFrames,
-} from "./shared.js";
+import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
 
 // Dynamic imports for React libraries (loaded on demand)
 let React;
@@ -113,46 +109,15 @@ defineSuite({
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
-    onStatus("Preparing benchmark...");
-
-    // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(
+    return runComparison({
       container,
       itemCount,
       onStatus,
       stressMs,
-    );
-    await tryGC();
-    await waitFrames(5);
-
-    // Benchmark react-window
-    let reactWindowResults;
-    try {
-      reactWindowResults = await benchmarkReactWindow(
-        container,
-        itemCount,
-        onStatus,
-        stressMs,
-      );
-    } catch (err) {
-      console.warn("[react-window] react-window test failed:", err);
-      reactWindowResults = {
-        library: "react-window",
-        renderTime: null,
-        memoryUsed: null,
-        scrollFPS: null,
-        p95FrameTime: null,
-        error: err.message,
-      };
-    }
-
-    // Calculate comparison metrics
-    return calculateComparisonMetrics(
-      vlistResults,
-      reactWindowResults,
-      "react-window",
+      libraryName: "react-window",
+      benchmarkCompetitor: benchmarkReactWindow,
       rateLower,
       rateHigher,
-    );
+    });
   },
 });

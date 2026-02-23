@@ -180,16 +180,18 @@ Comparison suites now have a **Stress** selector in the controls bar (None / Lig
 - **Heavy template variant** — Render items with 5-10 child elements, computed styles, and event bindings
 - **Rapid scroll reversals** — Stress test layout recalculation and DOM recycling
 
-### Priority 3: Randomize Execution Order — 🔲 TODO
+### Priority 3: Randomize Execution Order — ✅ DONE
 
-Alternate which library runs first across iterations to eliminate ordering bias:
+Execution order is now randomized per run via the `runComparison()` helper in
+`benchmarks/comparison/shared.js`. Each suite flips a coin to decide whether
+vlist or the competitor runs first. A `tryGC()` + `waitFrames(5)` barrier is
+always inserted between the two runs regardless of order. An informational
+"Execution Order" row is appended to every result set showing which library
+ran first (e.g. "vlist ran first (randomized to reduce ordering bias)").
 
-```
-Iteration 1: vlist first  → TanStack second
-Iteration 2: TanStack first → vlist second
-Iteration 3: vlist first  → TanStack second
-...
-```
+All 5 comparison suites (`tanstack-virtual.js`, `react-window.js`, `virtua.js`,
+`vue-virtual-scroller.js`, `solidjs.js`) now delegate to `runComparison()`
+instead of duplicating the sequencing logic.
 
 ### Priority 4: Add Context Disclaimer — 🔲 TODO
 
@@ -225,11 +227,11 @@ The pitch — "comparable performance with zero dependencies and framework freed
 
 | Metric | Status | Action |
 |--------|--------|--------|
-| Memory | ✅ Fixed | Isolated phases, negative rejection, `settleHeap()` |
+| Memory | ✅ Fixed | Isolated phases, negative rejection, `settleHeap()`, 3-attempt retry with median |
 | Render Time | ✅ Partially fixed | Now uses `performance.mark/measure`; disclaimer still TODO |
 | Scroll FPS | ✅ Fixed (stress mode) | CPU stress selector (None/Light/Medium/Heavy) reveals real FPS differences |
 | P95 Frame Time | ✅ Honest, TanStack wins | Keep as-is |
-| Execution Order | ⚠️ vlist always first | Randomize |
+| Execution Order | ✅ Fixed | Randomized via `runComparison()` helper; meta row shows which ran first |
 | Template Complexity | ⚠️ Trivially minimal | Add heavy variant |
 
-**Bottom line:** The benchmark infrastructure is solid and well-engineered. The two most critical issues — memory measurement and FPS ceiling — have been fixed. Remaining items (execution order randomization, context disclaimer, heavy templates) are tracked above.
+**Bottom line:** The benchmark infrastructure is solid and well-engineered. The three most critical issues — memory measurement, FPS ceiling, and execution order — have been fixed. Remaining items (context disclaimer, heavy templates) are tracked above.

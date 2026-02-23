@@ -6,16 +6,14 @@
 //   - Scroll performance (FPS)
 //   - P95 frame time (consistency)
 //
+// Execution order is randomized per run to eliminate GC bleed-through
+// and JIT warmth bias (see docs/benchmarks/comparison-audit.md Priority 3).
+//
 // This benchmark helps users make informed decisions by showing
 // real performance differences between libraries.
 
 import { defineSuite, rateLower, rateHigher } from "../runner.js";
-import {
-  ITEM_HEIGHT,
-  benchmarkVList,
-  benchmarkLibrary,
-  calculateComparisonMetrics,
-} from "./shared.js";
+import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
 
 // Dynamic imports for React libraries (loaded on demand)
 let React;
@@ -149,44 +147,15 @@ defineSuite({
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
-    onStatus("Preparing benchmark...");
-
-    // Benchmark vlist (no pre-generated items needed)
-    const vlistResults = await benchmarkVList(
+    return runComparison({
       container,
       itemCount,
       onStatus,
       stressMs,
-    );
-
-    // Benchmark TanStack Virtual
-    let tanstackResults;
-    try {
-      tanstackResults = await benchmarkTanStackVirtual(
-        container,
-        itemCount,
-        onStatus,
-        stressMs,
-      );
-    } catch (err) {
-      console.warn("[tanstack-virtual] TanStack Virtual test failed:", err);
-      tanstackResults = {
-        library: "TanStack Virtual",
-        renderTime: null,
-        memoryUsed: null,
-        scrollFPS: null,
-        p95FrameTime: null,
-        error: err.message,
-      };
-    }
-
-    // Calculate comparison metrics
-    return calculateComparisonMetrics(
-      vlistResults,
-      tanstackResults,
-      "TanStack Virtual",
+      libraryName: "TanStack Virtual",
+      benchmarkCompetitor: benchmarkTanStackVirtual,
       rateLower,
       rateHigher,
-    );
+    });
   },
 });

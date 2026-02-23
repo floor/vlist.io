@@ -397,6 +397,22 @@
     color: #f44336;
 }
 
+/* Informational note (e.g. execution order) */
+.bench-metric--info {
+    opacity: 0.6;
+    min-height: 32px;
+}
+
+.bench-metric--info .bench-metric__label {
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
+.bench-metric--info .bench-metric__meta {
+    font-size: 11px;
+    opacity: 1;
+}
+
 /* Placeholder when no results yet */
 .bench-metric--empty {
     justify-content: center;
