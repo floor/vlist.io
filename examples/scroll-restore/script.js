@@ -1,5 +1,5 @@
 // Scroll Save/Restore Example
-// Demonstrates getScrollSnapshot() and restoreScroll() for SPA navigation
+// Demonstrates getScrollSnapshot() and withSnapshots({ restore }) for SPA navigation
 
 import { vlist, withSelection, withSnapshots } from "vlist";
 
@@ -63,7 +63,16 @@ const goBackBtn = document.getElementById("go-back");
 let list = null;
 let snapshotUpdateId = null;
 
-function createList() {
+/**
+ * Create (or recreate) the list.
+ *
+ * @param {import('vlist').ScrollSnapshot} [snapshot]
+ *   Optional snapshot to restore automatically after build().
+ *   When provided it is passed to `withSnapshots({ restore })` which
+ *   schedules `restoreScroll()` via `queueMicrotask` — the user never
+ *   sees position 0.
+ */
+function createList(snapshot) {
   list = vlist({
     container: listContainer,
     ariaLabel: "Employee list",
@@ -86,7 +95,7 @@ function createList() {
     items,
   })
     .use(withSelection({ mode: "multiple" }))
-    .use(withSnapshots())
+    .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
     .build();
 
   // Live stats
@@ -110,8 +119,8 @@ function createList() {
   // Live snapshot preview (throttled)
   const updateSnapshotPreview = () => {
     if (!list) return;
-    const snapshot = list.getScrollSnapshot();
-    snapshotCodeEl.textContent = formatSnapshot(snapshot);
+    const snap = list.getScrollSnapshot();
+    snapshotCodeEl.textContent = formatSnapshot(snap);
     snapshotUpdateId = null;
   };
 
@@ -146,6 +155,7 @@ function formatSnapshot(snapshot) {
   const parts = [
     `  "index": ${snapshot.index}`,
     `  "offsetInItem": ${Math.round(snapshot.offsetInItem * 100) / 100}`,
+    `  "total": ${snapshot.total}`,
   ];
 
   if (snapshot.selectedIds && snapshot.selectedIds.length > 0) {
@@ -188,23 +198,13 @@ function goBack() {
   detailPage.classList.add("hidden");
   listPage.classList.remove("hidden");
 
-  // 2. Recreate the list
-  createList();
-
-  // 3. Restore from snapshot
+  // 2. Read saved snapshot
   const raw = sessionStorage.getItem(STORAGE_KEY);
-  if (raw) {
-    const snapshot = JSON.parse(raw);
-    list.restoreScroll(snapshot);
+  const snapshot = raw ? JSON.parse(raw) : undefined;
 
-    // Update the live preview to show restored state
-    requestAnimationFrame(() => {
-      if (list) {
-        const current = list.getScrollSnapshot();
-        snapshotCodeEl.textContent = formatSnapshot(current);
-      }
-    });
-  }
+  // 3. Recreate the list — snapshot is passed to withSnapshots({ restore })
+  //    so scroll + selection are restored automatically after build().
+  createList(snapshot);
 }
 
 // ---------------------------------------------------------------------------
@@ -219,21 +219,28 @@ goBackBtn.addEventListener("click", goBack);
 // ---------------------------------------------------------------------------
 
 function init() {
-  createList();
-
-  // Pre-select a handful of items to make the demo more interesting
-  list.select(3, 7, 12, 25, 42);
-
-  // If there's already a saved snapshot (e.g. page refresh), restore it
+  // Check for a previously saved snapshot (e.g. hard page refresh)
   const raw = sessionStorage.getItem(STORAGE_KEY);
+  let snapshot;
+
   if (raw) {
     try {
-      const snapshot = JSON.parse(raw);
-      list.restoreScroll(snapshot);
-      sessionStorage.removeItem(STORAGE_KEY);
+      snapshot = JSON.parse(raw);
     } catch {
       // Ignore corrupted data
     }
+    sessionStorage.removeItem(STORAGE_KEY);
+  }
+
+  // Create the list — if a snapshot exists it is passed directly to
+  // withSnapshots({ restore }) for automatic restoration.
+  createList(snapshot);
+
+  // Pre-select a handful of items to make the demo more interesting
+  // (only when there's no snapshot to restore — otherwise the snapshot
+  // already carries its own selectedIds).
+  if (!snapshot) {
+    list.select(3, 7, 12, 25, 42);
   }
 }
 

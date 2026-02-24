@@ -2,9 +2,9 @@
     <header>
         <h1>Scroll Save/Restore</h1>
         <p class="description">
-            Scroll and select items, then "navigate away". When you come
-            back, the scroll position and selection are perfectly
-            restored from a JSON snapshot — just like a real SPA.
+            Scroll and select items, then "navigate away". When you come back,
+            the scroll position and selection are perfectly restored from a JSON
+            snapshot — just like a real SPA.
         </p>
     </header>
 
@@ -25,7 +25,9 @@
 
         <div class="snapshot-panel" id="snapshot-panel">
             <div class="snapshot-label">Live snapshot preview</div>
-            <pre class="snapshot-code" id="snapshot-code">{ index: 0, offsetInItem: 0 }</pre>
+            <pre class="snapshot-code" id="snapshot-code">
+{ index: 0, offsetInItem: 0 }</pre
+            >
         </div>
     </div>
 
@@ -46,8 +48,8 @@
                 ← Go Back &amp; Restore
             </button>
             <p class="detail-hint">
-                The list will be recreated and the scroll position +
-                selection will be restored from the saved snapshot.
+                The list will be recreated and the scroll position + selection
+                will be restored from the saved snapshot.
             </p>
         </div>
     </div>
@@ -55,7 +57,7 @@
     <footer>
         <p>
             Uses <code>getScrollSnapshot()</code> and
-            <code>restoreScroll()</code> — snapshots are plain JSON,
+            <code>withSnapshots({ restore })</code> — snapshots are plain JSON,
             perfect for <code>sessionStorage</code>. ✨
         </p>
     </footer>
