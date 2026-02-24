@@ -5,33 +5,36 @@ Head-to-head performance comparisons between **vlist** and popular virtualizatio
 ## Available Comparisons
 
 ### React Ecosystem
-- **[react-window](./react-window.js)** - Brian Vaughn's minimalist library, actively maintained (v2.2.7, Feb 2026)
-- **[TanStack Virtual](./tanstack-virtual.js)** - Headless virtualization for React, Vue, Solid, Svelte
-- **[Virtua](./virtua.js)** - Zero-config, ~3kB per component for React/Vue/Solid/Svelte
+- **[react-window](./react-window.js)** — Brian Vaughn's minimalist library, component-based with fixed/variable size lists
+- **[TanStack Virtual](./tanstack-virtual.js)** — Headless virtualization hook (`useVirtualizer`) for React
+- **[Virtua](./virtua.js)** — Zero-config `<VList>` component (~3 kB per component)
 
 ### Vue Ecosystem
-- **[vue-virtual-scroller](./vue-virtual-scroller.js)** - Vue 3 component (testing v2.0 beta, stable v1.1.2 from Oct 2022)
+- **[vue-virtual-scroller](./vue-virtual-scroller.js)** — `<RecycleScroller>` component with DOM recycling for Vue 3
+
+### SolidJS Ecosystem
+- **[TanStack Virtual (SolidJS)](./solidjs.js)** — `createVirtualizer` with fine-grained reactivity
 
 ## What Each Comparison Tests
 
 All comparisons measure the same 4 metrics:
 
-### 1. **Initial Render Time**
+### 1. Initial Render Time
 - Time from creation to first paint
 - Median of 5 iterations
 - **Lower is better**
 
-### 2. **Memory Usage**
-- JS heap size after render (Chrome only)
-- Delta from baseline
+### 2. Memory Usage
+- JS heap delta after render (Chrome only)
+- Up to 3 isolated measurement attempts, median of valid readings
 - **Lower is better**
 
-### 3. **Scroll Performance (FPS)**
-- Sustained scroll over 5 seconds
+### 3. Scroll Performance (FPS)
+- Sustained bidirectional scroll over 5 seconds at 100 px/frame
 - Median frames per second
-- **Higher is better** (120 FPS = monitor cap)
+- **Higher is better** (120 FPS = typical monitor cap)
 
-### 4. **P95 Frame Time**
+### 4. P95 Frame Time
 - 95th percentile frame consistency
 - Measures jank/stuttering
 - **Lower is better**
@@ -40,11 +43,15 @@ All comparisons measure the same 4 metrics:
 
 All benchmarks follow identical methodology to ensure fair comparison:
 
-1. **Isolated Environment** - Each library runs in a clean container
-2. **Multiple Iterations** - Render measured 5 times, median reported
-3. **Garbage Collection** - Manual GC between tests for clean baselines
-4. **Real Scrolling** - 5 seconds at 100px/frame with direction changes
-5. **Native APIs** - Uses Chrome's `performance.memory` for accurate measurements
+1. **Isolated Phases** — Timing, memory, and scroll measured in separate phases to prevent cross-contamination
+2. **Multiple Iterations** — Render measured 5 times, median reported
+3. **Garbage Collection** — `settleHeap()` between phases (3 cycles of `gc()` + 150 ms + 5 frames)
+4. **Randomized Execution Order** — Coin-flip decides whether vlist or the competitor runs first, eliminating GC bleed and JIT warmth bias
+5. **GC Barrier** — `tryGC()` + `waitFrames(5)` between the two library runs
+6. **Realistic Templates** — All libraries render identical DOM structures (avatar + content + metadata)
+7. **Real Scrolling** — 5 seconds of bidirectional scrolling with direction changes
+8. **Native APIs** — Uses `performance.mark/measure` for timing and `performance.memory` for heap snapshots
+9. **CPU Stress Testing** — Optional `stressMs` parameter burns CPU per scroll frame to simulate real-world app overhead
 
 See [shared.js](./shared.js) for the implementation.
 
@@ -52,89 +59,100 @@ See [shared.js](./shared.js) for the implementation.
 
 ```
 comparison/
-├── shared.js                    # Shared utilities (454 lines)
-│   ├── Constants (ITEM_HEIGHT, etc.)
+├── shared.js                    # Shared utilities (~865 lines)
+│   ├── Constants (ITEM_HEIGHT, MEASURE_ITERATIONS, etc.)
+│   ├── createRealisticReactChildren()
+│   ├── populateRealisticDOMChildren()
 │   ├── findViewport()
 │   ├── measureScrollPerformance()
+│   ├── measureMemoryWithRetries()
 │   ├── benchmarkVList()
 │   ├── benchmarkLibrary()
-│   └── calculateComparisonMetrics()
-├── react-window.js              # vs react-window (150 lines)
-├── tanstack-virtual.js          # vs TanStack Virtual (186 lines)
-├── virtua.js                    # vs Virtua (151 lines)
-├── vue-virtual-scroller.js      # vs vue-virtual-scroller (171 lines)
-└── memory-optimization.js       # vlist config comparison
+│   ├── calculateComparisonMetrics()
+│   └── runComparison()
+├── react-window.js              # vs react-window
+├── tanstack-virtual.js          # vs TanStack Virtual (React)
+├── virtua.js                    # vs Virtua (React)
+├── vue-virtual-scroller.js      # vs vue-virtual-scroller (Vue 3)
+└── solidjs.js                   # vs TanStack Virtual (SolidJS)
 ```
 
 ## Shared Utilities
 
-### `shared.js` - Reusable Code
+### `shared.js` — Reusable Code
 
 All comparison benchmarks import from `shared.js`:
 
 **Constants:**
-- `ITEM_HEIGHT` - Fixed at 48px for consistency
-- `MEASURE_ITERATIONS` - 5 iterations for median calculation
-- `SCROLL_DURATION_MS` - 5 second scroll test
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `ITEM_HEIGHT` | 48 px | Fixed row height for all benchmarks |
+| `MEASURE_ITERATIONS` | 5 | Render iterations for median calculation |
+| `MEMORY_ATTEMPTS` | 3 | Retries for reliable heap measurement |
+| `SCROLL_DURATION_MS` | 5000 | Scroll test duration |
+| `SCROLL_SPEED_PX_PER_FRAME` | 100 | Pixels scrolled per animation frame |
 
 **Functions:**
-- `findViewport(container)` - Locates scrollable element
-- `measureScrollPerformance(viewport, duration)` - FPS measurement
-- `benchmarkVList(container, items, onStatus)` - vlist baseline benchmark
-- `benchmarkLibrary(config)` - Generic benchmark wrapper
-- `calculateComparisonMetrics(vlistResults, libResults, name, ...)` - Metrics calculation
 
-This eliminates ~1,600 lines of duplication across comparison files!
+| Function | Purpose |
+|----------|---------|
+| `benchmarkVList(container, itemCount, onStatus, stressMs)` | vlist baseline — 3-phase measurement (timing → memory → scroll) |
+| `benchmarkLibrary(config)` | Generic wrapper — same 3-phase measurement for any library |
+| `runComparison(opts)` | Randomized runner — coin-flip execution order + GC barrier + metrics calculation |
+| `calculateComparisonMetrics(vlist, lib, name, ...)` | Builds side-by-side metrics array with percentage diffs and ratings |
+| `findViewport(container)` | Locates scrollable element — tries `.vlist-viewport`, then depth-first search |
+| `measureScrollPerformance(viewport, duration, stressMs)` | rAF loop with bidirectional scrolling, returns median FPS + P95 frame time |
+| `measureMemoryWithRetries(config)` | Up to `MEMORY_ATTEMPTS` isolated heap measurements, returns median of valid readings |
+| `createRealisticReactChildren(React, index)` | Shared React element tree for consistent templates |
+| `populateRealisticDOMChildren(el, index)` | Same structure via raw DOM (for SolidJS) |
 
 ## Adding a New Comparison
 
 1. **Create the benchmark file** (e.g., `new-library.js`)
 
 ```javascript
-import { defineSuite, generateItems, rateLower, rateHigher } from "../runner.js";
-import { ITEM_HEIGHT, benchmarkVList, benchmarkLibrary, calculateComparisonMetrics } from "./shared.js";
+import { defineSuite, rateLower, rateHigher } from "../runner.js";
+import { ITEM_HEIGHT, benchmarkLibrary, runComparison } from "./shared.js";
 
 // 1. Library-specific loading
-const loadLibraries = async () => { ... };
+const loadLibraries = async () => { /* dynamic imports */ };
 
 // 2. Library-specific benchmark
-const benchmarkNewLibrary = async (container, items, onStatus) => {
+const benchmarkNewLibrary = async (container, itemCount, onStatus, stressMs = 0) => {
   const loaded = await loadLibraries();
   if (!loaded) throw new Error("Library not available");
 
   return benchmarkLibrary({
     libraryName: "New Library",
     container,
-    items,
+    itemCount,
     onStatus,
-    createComponent: async (container, items) => {
-      // Create and mount your component
+    stressMs,
+    createComponent: async (container, itemCount) => {
+      // Mount the library's virtual list, return instance handle
       return instance;
     },
     destroyComponent: async (instance) => {
-      // Cleanup
+      // Cleanup / unmount
     },
   });
 };
 
-// 3. Suite definition
+// 3. Suite definition using runComparison() for randomized execution
 defineSuite({
   id: "new-library",
   name: "New Library Comparison",
   description: "Compare vlist vs New Library performance side-by-side",
   icon: "⚔️",
-  run: async ({ itemCount, container, onStatus }) => {
-    const items = generateItems(itemCount);
-    const vlistResults = await benchmarkVList(container, items, onStatus);
-    
-    let libResults;
-    try {
-      libResults = await benchmarkNewLibrary(container, items, onStatus);
-    } catch (err) {
-      libResults = { library: "New Library", error: err.message };
-    }
-    
-    return calculateComparisonMetrics(vlistResults, libResults, "New Library", rateLower, rateHigher);
+  comparison: true,
+  run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
+    return runComparison({
+      container, itemCount, onStatus, stressMs,
+      libraryName: "New Library",
+      benchmarkCompetitor: benchmarkNewLibrary,
+      rateLower, rateHigher,
+    });
   },
 });
 ```
@@ -175,7 +193,7 @@ bun run benchmarks/build.ts
 open http://localhost:3338/benchmarks/new-library
 ```
 
-That's it! The shared utilities handle everything else.
+The `shared.js` utilities handle all measurement infrastructure — you only need to implement `createComponent` and `destroyComponent`.
 
 ## Updating Performance Results
 
@@ -214,18 +232,19 @@ open http://localhost:3338/benchmarks/comparisons
 ```
 
 ### Available URLs
-- `/benchmarks/comparisons` - Overview and methodology
-- `/benchmarks/performance-comparison` - Results table
-- `/benchmarks/react-window` - vs react-window
-- `/benchmarks/tanstack-virtual` - vs TanStack Virtual
-- `/benchmarks/virtua` - vs Virtua
-- `/benchmarks/vue-virtual-scroller` - vs vue-virtual-scroller
+- `/benchmarks/comparisons` — Overview and methodology
+- `/benchmarks/performance-comparison` — Results table
+- `/benchmarks/react-window` — vs react-window
+- `/benchmarks/tanstack-virtual` — vs TanStack Virtual
+- `/benchmarks/virtua` — vs Virtua
+- `/benchmarks/vue-virtual-scroller` — vs vue-virtual-scroller
+- `/benchmarks/solidjs` — vs TanStack Virtual (SolidJS)
 
 ## Requirements
 
-- **Chrome browser** - Memory measurements use `performance.memory` API
-- **Full metrics mode** - Launch Chrome with `--enable-precise-memory-info`
-- **Dependencies installed** - All comparison libraries must be in `package.json`
+- **Chrome browser** — Memory measurements use `performance.memory` API
+- **Full metrics mode** — Launch Chrome with `--enable-precise-memory-info`
+- **Dependencies installed** — All comparison libraries must be in `package.json`
 
 ## Typical Results (10K Items)
 
@@ -233,21 +252,21 @@ Based on standard hardware (M1 Mac, Chrome):
 
 | Library | Render | Memory | Scroll FPS | P95 Frame |
 |---------|--------|--------|------------|-----------|
-| **vlist** | ~8.5ms | ~0.24 MB | 120.5 | ~9.2ms |
-| react-window | ~9.1ms | ~2.26 MB | 120.5 | ~9.1ms |
-| TanStack Virtual | ~9.1ms | ~2.26 MB | 120.5 | ~9.1ms |
-| Virtua | ~17.2ms | ~14.3 MB | 120.5 | ~9.0ms |
-| vue-virtual-scroller | ~13.4ms | ~11.0 MB | 120.5 | ~10.4ms |
+| **vlist** | ~8.5 ms | ~0.24 MB | 120.5 | ~9.2 ms |
+| react-window | ~9.1 ms | ~2.26 MB | 120.5 | ~9.1 ms |
+| TanStack Virtual | ~9.1 ms | ~2.26 MB | 120.5 | ~9.1 ms |
+| Virtua | ~17.2 ms | ~14.3 MB | 120.5 | ~9.0 ms |
+| vue-virtual-scroller | ~13.4 ms | ~11.0 MB | 120.5 | ~10.4 ms |
 
-**Key Insight:** vlist consistently uses 10-60x less memory while maintaining equal or better performance.
+**Key insight:** vlist consistently uses 10–60× less memory while maintaining equal or better performance.
 
 ## Why These Libraries?
 
-We chose comparison targets based on:
-- **Popularity** - High npm download counts
-- **Quality** - Production-ready, well-maintained
-- **Diversity** - Different ecosystems (React, Vue)
-- **Approach** - Different architectural styles (headless, component-based)
+Selection criteria:
+- **Popularity** — High npm download counts and community adoption
+- **Quality** — Production-ready, actively maintained
+- **Diversity** — Different ecosystems (React, Vue, SolidJS)
+- **Approach** — Different architectural styles (headless, component-based, zero-config)
 
 ## Limitations
 
@@ -257,26 +276,20 @@ These benchmarks test **core virtualization performance** only:
 - Complex templates (images, rich content)
 - Variable heights
 - User interactions
-- Real-world application overhead
 - Mobile devices
 
+**Partially addressed:**
+- Real-world application overhead — use `stressMs` to simulate CPU load per frame
+
 **Why?** To isolate library performance from other factors.
-
-## Contributing
-
-Found an issue or want to add a comparison?
-
-1. Check if the library is popular and production-ready
-2. Follow the "Adding a New Comparison" guide above
-3. Ensure consistent methodology (use `shared.js` utilities)
-4. Test thoroughly
-5. Submit a pull request
 
 ## Notes
 
 - All comparisons use the **same shared utilities** for consistency
-- Results are **hardware-dependent** - your mileage may vary
-- Benchmarks are **reproducible** - run them yourself!
+- Execution order is **randomized** per run to eliminate ordering bias
+- All libraries render **identical DOM structures** for fair comparison
+- Results are **hardware-dependent** — your mileage may vary
+- Benchmarks are **reproducible** — run them yourself!
 - Data is **versioned** in `../data/performance.json`
 
-For questions or issues, see the main [vlist.dev documentation](../../README.md).
+For full documentation, see [docs/resources/benchmarks.md](../../docs/resources/benchmarks.md) → Library Comparison Suites.
