@@ -181,8 +181,8 @@ height: (index, context) => {
 ### How It Works
 
 1. **On initialization**: Height function called with grid context
-2. **On column change**: Grid state updated, height cache rebuilt
-3. **On resize**: Container width updated, grid recalculates
+2. **On column change** (`updateGrid()`): Grid state updated, height cache rebuilt
+3. **On resize**: Cross-axis dimension updated, height cache rebuilt (dynamic heights only)
 4. **Height function always uses current state** — No stale closures!
 
 The grid state is **mutable** and always reflects the current configuration:
@@ -1309,7 +1309,7 @@ const wrappedHeight = (index) => {
 
 ### Context Update Flow
 
-When `updateGrid()` is called:
+**When `updateGrid()` is called:**
 
 ```
 1. Validate new columns/gap
@@ -1336,6 +1336,32 @@ When `updateGrid()` is called:
    ↓
 ✓ Grid updated with maintained aspect ratio!
 ```
+
+**When the container is resized (ResizeObserver):**
+
+```
+1. Resize handler receives (width, height)
+   ↓
+2. Resolve cross-axis dimension
+   └→ Vertical: width   Horizontal: height
+   ↓
+3. Update grid state object
+   └→ gridState.containerWidth = cross-axis dimension
+   ↓
+4. Update grid renderer column widths
+   ↓
+5. If dynamic height function:
+   │  Rebuild size cache (re-calls height fn with new context)
+   │  Update content size
+   │  Clear and re-render
+   ↓
+   If fixed height:
+   │  Renderer re-sizes and repositions visible items
+   ↓
+✓ Grid adapts to new container size!
+```
+
+> **Note:** With fixed heights, only column widths change on resize — row heights stay the same and the size cache is not rebuilt. With dynamic height functions, the full rebuild ensures aspect ratios are maintained.
 
 ### Performance Characteristics
 
