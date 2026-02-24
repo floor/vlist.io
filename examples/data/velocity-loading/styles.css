@@ -88,7 +88,7 @@
 /* ============================================================================
    Placeholder skeleton — driven by .vlist-item--placeholder on the wrapper.
    The template is identical for real and placeholder items; mask characters
-   (█) set the natural width, CSS hides them and shows skeleton blocks.
+   (x) set the natural width, CSS hides them and shows skeleton blocks.
    ============================================================================ */
 
 .vlist-item--placeholder .item-avatar {

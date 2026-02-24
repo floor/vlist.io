@@ -76,7 +76,7 @@ export const fetchItems = (offset, limit) =>
 // The renderer adds .vlist-item--placeholder on the wrapper element,
 // so CSS handles the visual difference (skeleton blocks, shimmer, etc).
 // Placeholder items carry the same fields as real data, filled with
-// mask characters (█) sized to match actual data from the first batch.
+// mask characters (x) sized to match actual data from the first batch.
 // =============================================================================
 
 export const itemTemplate = (item, index) => {
