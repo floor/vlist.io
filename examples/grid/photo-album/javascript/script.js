@@ -82,20 +82,29 @@ function createGrid(orientation, columns, gap) {
   const container = document.getElementById("grid-container");
   container.innerHTML = "";
 
-  // Calculate item dimensions to maintain 4:3 landscape aspect ratio
-  const innerWidth = container.clientWidth - 2; // account for border
-  const colWidth = (innerWidth - (columns - 1) * gap) / columns;
+  // Calculate item dimensions to maintain 4:3 landscape aspect ratio.
+  // colWidth = cross-axis cell size:
+  //   vertical mode  → derived from container width  (cross-axis = horizontal)
+  //   horizontal mode → derived from container height (cross-axis = vertical)
+  let colWidth;
+  if (orientation === "horizontal") {
+    const innerHeight = container.clientHeight - 2; // account for border
+    colWidth = (innerHeight - (columns - 1) * gap) / columns;
+  } else {
+    const innerWidth = container.clientWidth - 2;
+    colWidth = (innerWidth - (columns - 1) * gap) / columns;
+  }
 
   let height, width;
   if (orientation === "horizontal") {
-    // After the renderer fix: CSS width = horizontal extent = item.width - gap
-    //                         CSS height = vertical extent   = colWidth
+    // CSS width = horizontal extent = item.width - gap (main axis)
+    // CSS height = vertical extent  = colWidth         (cross axis)
     // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
     //   → item.width = colWidth * (4/3) + gap
     width = Math.round(colWidth * (4 / 3) + gap);
     height = Math.round(colWidth); // cross-axis (vertical extent)
   } else {
-    // Vertical: CSS width = colWidth, CSS height = item.height - gap
+    // CSS width = colWidth, CSS height = item.height - gap
     // For 4:3: item.height ≈ colWidth * 0.75
     width = Math.round(colWidth);
     height = Math.round(colWidth * 0.75);

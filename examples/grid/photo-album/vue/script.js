@@ -117,16 +117,32 @@ const App = {
       // Clear container
       containerRef.value.innerHTML = "";
 
-      // Calculate item dimensions to maintain 4:3 landscape aspect ratio
-      const innerWidth = containerRef.value.clientWidth - 2; // account for border
-      const colWidth =
-        (innerWidth - (columns.value - 1) * gap.value) / columns.value;
+      // Calculate item dimensions to maintain 4:3 landscape aspect ratio.
+      // colWidth = cross-axis cell size:
+      //   vertical mode  → derived from container width  (cross-axis = horizontal)
+      //   horizontal mode → derived from container height (cross-axis = vertical)
+      let colWidth;
+      if (orientation.value === "horizontal") {
+        const innerHeight = containerRef.value.clientHeight - 2;
+        colWidth =
+          (innerHeight - (columns.value - 1) * gap.value) / columns.value;
+      } else {
+        const innerWidth = containerRef.value.clientWidth - 2;
+        colWidth =
+          (innerWidth - (columns.value - 1) * gap.value) / columns.value;
+      }
 
       let height, width;
       if (orientation.value === "horizontal") {
+        // CSS width = horizontal extent = item.width - gap (main axis)
+        // CSS height = vertical extent  = colWidth         (cross axis)
+        // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
+        //   → item.width = colWidth * (4/3) + gap
         width = Math.round(colWidth * (4 / 3) + gap.value);
-        height = Math.round(colWidth);
+        height = Math.round(colWidth); // cross-axis (vertical extent)
       } else {
+        // CSS width = colWidth, CSS height = item.height - gap
+        // For 4:3: item.height ≈ colWidth * 0.75
         width = Math.round(colWidth);
         height = Math.round(colWidth * 0.75);
       }
