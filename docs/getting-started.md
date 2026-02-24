@@ -103,7 +103,7 @@ interface VListConfig<T> {
   };
   items?: T[];                          // Static items (omit when using withAsync)
   overscan?: number;                    // Extra items rendered outside viewport (default: 3)
-  direction?: 'vertical' | 'horizontal'; // Default: 'vertical'
+  orientation?: 'vertical' | 'horizontal'; // Default: 'vertical'
   reverse?: boolean;                    // Start at bottom (chat UI). Default: false
   classPrefix?: string;                 // CSS class prefix (default: 'vlist')
   ariaLabel?: string;                   // Accessible label for the list element
@@ -164,7 +164,7 @@ document.querySelector('#next').addEventListener('click', () => {
 ```typescript
 const carousel = vlist({
   container: '#carousel',
-  direction: 'horizontal',
+  orientation: 'horizontal',
   items: slides,
   item: { width: 800, height: 400, template: renderSlide },
   scroll: { wheel: false, wrap: true },
@@ -175,12 +175,12 @@ const carousel = vlist({
 
 ## Horizontal Scrolling
 
-Set `direction: 'horizontal'` and provide `width` instead of (or alongside) `height`:
+Set `orientation: 'horizontal'` and provide `width` instead of (or alongside) `height`:
 
 ```typescript
 const timeline = vlist({
   container: '#timeline',
-  direction: 'horizontal',
+  orientation: 'horizontal',
   items: events,
   item: {
     width: (i) => events[i].duration * 40,  // variable width
@@ -190,7 +190,7 @@ const timeline = vlist({
 }).build();
 ```
 
-**Restrictions:** `withGrid()`, `withSections()`, and `reverse: true` require vertical direction.
+**Restrictions:** `withGrid()`, `withSections()`, and `reverse: true` require vertical orientation.
 
 ---
 

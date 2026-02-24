@@ -88,10 +88,10 @@ list.destroy();
 | `withSections()` + `withSelection()` | ✅ Selectable grouped list |
 | `withAsync()` + `withScale()` | ✅ Large async dataset |
 | `withPage()` + `withAsync()` | ✅ Infinite scroll feed |
-| `withGrid()` + `direction: 'horizontal'` | ❌ Grid requires vertical |
-| `withSections()` + `direction: 'horizontal'` | ❌ Sections require vertical |
+| `withGrid()` + `orientation: 'horizontal'` | ❌ Grid requires vertical |
+| `withSections()` + `orientation: 'horizontal'` | ❌ Sections require vertical |
 | `withPage()` + `withScrollbar()` | ❌ Conflicting scroll ownership |
-| `reverse: true` + `direction: 'horizontal'` | ❌ Reverse requires vertical |
+| `reverse: true` + `orientation: 'horizontal'` | ❌ Reverse requires vertical |
 
 The builder throws at runtime if you combine incompatible features.
 

@@ -199,7 +199,7 @@ interface VListConfig {
    * - With an adapter, "load more" triggers near the TOP (loading older content)
    *
    * Items stay in chronological order (oldest = index 0, newest = last).
-   * Cannot be combined with `direction: 'horizontal'`.
+   * Cannot be combined with `orientation: 'horizontal'`.
    *
    * @default false
    */
@@ -836,18 +836,18 @@ chat.prependItems(olderMessages)
 chat.scrollToIndex(before.start + olderMessages.length)
 ```
 
-### Error: "horizontal direction cannot be combined with reverse mode"
+### Error: "horizontal orientation cannot be combined with reverse mode"
 
 **Symptom:** Error when using both.
 
-**Cause:** Reverse mode only works in vertical direction.
+**Cause:** Reverse mode only works in vertical orientation.
 
-**Solution:** Remove `direction: 'horizontal'`:
+**Solution:** Remove `orientation: 'horizontal'`:
 
 ```typescript
 const chat = vlist({
   container: '#chat',
-  // direction: 'horizontal', // Remove this
+  // orientation: 'horizontal', // Remove this
   reverse: true,
   item: { height: 60, template: render },
   items: messages

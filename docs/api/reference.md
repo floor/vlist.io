@@ -85,7 +85,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
   item:         ItemConfig<T>
   items?:       T[]
   overscan?:    number
-  direction?:   'vertical' | 'horizontal'
+  orientation?: 'vertical' | 'horizontal'
   reverse?:     boolean
   classPrefix?: string
   ariaLabel?:   string

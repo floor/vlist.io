@@ -223,7 +223,7 @@ const list = vlist({
 ```typescript
 const carousel = vlist({
   container: '#carousel',
-  direction: 'horizontal',
+  orientation: 'horizontal',
   items: cards,
   item: {
     width: 300,

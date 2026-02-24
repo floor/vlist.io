@@ -84,7 +84,7 @@ import 'vlist/styles/extras';
 
 | Class | Description |
 |-------|-------------|
-| `.vlist--horizontal` | Applied to root when `direction: 'horizontal'`. Swaps scroll axis, item positioning, and border direction. Sets `aria-orientation="horizontal"`. |
+| `.vlist--horizontal` | Applied to root when `orientation: 'horizontal'`. Swaps scroll axis, item positioning, and border direction. Sets `aria-orientation="horizontal"`. |
 | `.vlist--grid` | Applied to root when `layout: 'grid'` |
 | `.vlist--grouped` | Applied to root when `groups` config is present |
 

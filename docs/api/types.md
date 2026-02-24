@@ -171,7 +171,7 @@ interface VListConfig<T extends VListItem = VListItem> {
   adapter?: VListAdapter<T>;
   
   /**
-   * Scroll direction (default: 'vertical').
+   * Scroll orientation (default: 'vertical').
    * - 'vertical' — Standard top-to-bottom scrolling. Requires item.height.
    * - 'horizontal' — Left-to-right scrolling (carousels, timelines). Requires item.width.
    *   Cannot be combined with grid, groups, or window scrolling.
