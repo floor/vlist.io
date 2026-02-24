@@ -4,20 +4,18 @@
 
 ## Overview
 
-vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with JSDOM for DOM simulation. The test suite is organized by module, mirroring the `src/` directory structure with `test/features/` matching `src/features/` for easy navigation.
+vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with JSDOM for DOM simulation. The test suite is organized by module, mirroring the `src/` directory structure for easy navigation.
 
 **Current stats:**
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 1,181 |
-| Passing tests | 1,181 (100%) ✅ |
-| Total assertions | 4,540 |
-| Test files | 16 |
-| Coverage | 100% test pass rate |
-| Runtime | ~7.5s |
-
-**Status:** All tests passing after builder pattern and feature architecture refactoring!
+| Total tests | 1,686 |
+| Passing tests | 1,686 (100%) ✅ |
+| Total assertions | 4,990 |
+| Test files | 36 |
+| Coverage | 97.17% lines, 95.51% functions |
+| Runtime | ~10s |
 
 ## Quick Start
 
@@ -29,10 +27,14 @@ bun test
 bun test --coverage
 
 # Run a specific test file
-bun test test/data/index.test.ts
+bun test test/rendering/sizes.test.ts
 
 # Run tests matching a name pattern
-bun test --test-name-pattern="reverse mode"
+bun test --test-name-pattern="velocity"
+
+# Run a directory
+bun test test/builder/
+bun test test/features/grid/
 
 # Generate lcov report (for CI/editors)
 bun test --coverage --coverage-reporter=lcov
@@ -44,114 +46,149 @@ Tests mirror the source directory layout for easy navigation:
 
 ```
 test/
-├── adapters/
-│   └── svelte.test.ts          # Svelte action adapter
-├── builder/
-│   └── index.test.ts           # Composable builder & feature system
-├── events/
-│   └── index.test.ts           # Event emitter
-├── features/                    # Feature tests (mirrors src/features/)
-│   ├── data/
-│   │   ├── index.test.ts       # Data manager (coordinator)
-│   │   ├── sparse.test.ts      # Sparse chunk storage
-│   │   └── placeholder.test.ts # Placeholder generation
-│   ├── grid/
-│   │   ├── layout.test.ts      # Grid layout math
-│   │   └── renderer.test.ts    # Grid rendering
-│   ├── groups/
-│   │   ├── layout.test.ts      # Group layout
-│   │   └── sticky.test.ts      # Sticky group headers
-│   ├── scroll/
-│   │   ├── controller.test.ts  # Scroll controller (all modes)
-│   │   └── scrollbar.test.ts   # Custom scrollbar
-│   └── selection/
-│       └── index.test.ts       # Selection state
-├── render/
-│   ├── compression.test.ts     # Height compression (1M+ items)
-│   ├── heights.test.ts         # Height cache
-│   ├── renderer.test.ts        # DOM renderer & element pool
-│   └── virtual.test.ts         # Viewport calculation
-├── accessibility.test.ts       # WAI-ARIA, keyboard nav, screen readers
-├── core.test.ts                # Core vlist (legacy monolithic)
-├── integration.test.ts         # Cross-module integration
-├── reverse.test.ts             # Reverse mode (chat UI)
-└── vlist-coverage.test.ts      # Full vlist edge cases & coverage
+├── builder/                         # Builder system (src/builder/)
+│   ├── context.test.ts             # Context creation & wiring
+│   ├── core.test.ts                # Builder core (TODO)
+│   ├── data.test.ts                # Data handling (TODO)
+│   ├── dom.test.ts                 # DOM operations (TODO)
+│   ├── index.test.ts               # Composable builder, features, integration
+│   ├── materialize.test.ts         # DOM materialization & rendering
+│   ├── measured.test.ts            # Measured heights
+│   ├── pool.test.ts                # Element pool (DOM recycling)
+│   ├── range.test.ts               # Range calculations
+│   ├── scroll.test.ts              # Scroll handling
+│   └── velocity.test.ts            # Scroll velocity tracking
+├── events/                          # Event system (src/events/)
+│   └── emitter.test.ts             # Event emitter
+├── features/                        # Feature tests (src/features/)
+│   ├── async/                      # Async data loading
+│   │   ├── feature.test.ts         # withAsync feature integration
+│   │   ├── manager.test.ts         # Data manager (coordinator)
+│   │   ├── placeholder.test.ts     # Placeholder generation
+│   │   └── sparse.test.ts          # Sparse chunk storage
+│   ├── grid/                       # Grid layout
+│   │   ├── feature.test.ts         # withGrid feature integration
+│   │   ├── layout.test.ts          # Grid layout math
+│   │   └── renderer.test.ts        # Grid rendering
+│   ├── page/                       # Pagination
+│   │   └── feature.test.ts         # withPage feature (TODO)
+│   ├── scale/                      # Touch scroll & compression
+│   │   └── feature.test.ts         # withScale touch handling
+│   ├── scrollbar/                  # Custom scrollbar
+│   │   ├── controller.test.ts      # Scroll controller (all modes)
+│   │   ├── feature.test.ts         # withScrollbar feature (TODO)
+│   │   └── scrollbar.test.ts       # Custom scrollbar UI
+│   ├── sections/                   # Sections & sticky headers
+│   │   ├── feature.test.ts         # withSections feature (TODO)
+│   │   ├── layout.test.ts          # Section layout
+│   │   └── sticky.test.ts          # Sticky headers (TODO)
+│   ├── selection/                  # Item selection
+│   │   ├── feature.test.ts         # withSelection feature (TODO)
+│   │   ├── index.test.ts           # Selection state management
+│   │   └── state.test.ts           # Selection state (TODO)
+│   └── snapshots/                  # Scroll snapshots
+│       └── feature.test.ts         # withSnapshots save/restore
+└── rendering/                       # Rendering system (src/rendering/)
+    ├── measured.test.ts             # Measured height tracking
+    ├── renderer.test.ts             # DOM renderer & element pool
+    ├── scale.test.ts                # Height compression (1M+ items)
+    ├── sizes.test.ts                # Size cache
+    └── viewport.test.ts             # Viewport calculation
 ```
 
 **Structure Benefits:**
 - ✅ 1:1 mapping with `src/` directory structure
-- ✅ Easy to find tests for specific modules (`test/features/grid/` → `src/features/grid/`)
-- ✅ Clear separation: core tests vs feature tests
+- ✅ Easy to find tests: `src/features/grid/` → `test/features/grid/`
+- ✅ Clear separation: builder, features, rendering, events
 - ✅ Scalable as new features are added
+- ✅ TODO stubs for modules awaiting comprehensive tests
 
 ## Test Inventory
 
-### Core & Integration
+### Builder System
 
-| File | Tests | What it covers |
-|------|------:|----------------|
-| `core.test.ts` | 218 | `vlist` from `vlist/core` — initialization, items, data methods, scroll, events, templates, rendering, overscan, destroy, large lists, edge cases, height cache, emitter, DOM structure, element pool, visible range, scroll position, overscan, render branches |
-| `integration.test.ts` | 126 | Cross-module scenarios — horizontal mode, grid compression, groups data, reverse data, selection, event lifecycle, variable heights, validation, wrap mode, destroy idempotency |
-| `vlist-coverage.test.ts` | 58 | Full `vlist` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
-| `context.test.ts` | 20 | Context creation, wiring, state management |
+| File | Tests | Assertions | What it covers |
+|------|------:|----------:|----------------|
+| `builder/index.test.ts` | 233 | 531 | Composable builder (`vlist().use().build()`) — builder core, validation, feature system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withSections`, feature combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration |
+| `builder/materialize.test.ts` | 85 | 171 | DOM materialization — element creation, positioning, template application, update cycles, render range handling |
+| `builder/measured.test.ts` | 41 | 121 | Measured heights — dynamic height tracking, resize detection, height cache updates |
+| `builder/range.test.ts` | 36 | 180 | Range calculations — visible range, render range, overscan, edge cases |
+| `builder/velocity.test.ts` | 30 | 70 | Velocity tracker — sample collection, stale gap detection, momentum calculation, smoothing |
+| `builder/scroll.test.ts` | 28 | 62 | Scroll handling — scroll event processing, position tracking, direction detection |
+| `builder/pool.test.ts` | 23 | 41 | Element pool — DOM element recycling, acquire/release, pool limits |
+| `builder/context.test.ts` | — | — | Context creation, wiring, state management (TODO) |
+| `builder/core.test.ts` | — | — | Builder core (TODO) |
+| `builder/data.test.ts` | — | — | Data handling (TODO) |
+| `builder/dom.test.ts` | — | — | DOM operations (TODO) |
 
-### Builder & Features
+### Feature Tests
 
-| File | Tests | What it covers |
-|------|------:|----------------|
-| `builder/index.test.ts` | 233 | Composable builder (`vlist().use().build()`) — builder core, validation, feature system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withSections`, feature combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration tests |
+| File | Tests | Assertions | What it covers |
+|------|------:|----------:|----------------|
+| `features/async/manager.test.ts` | 113 | 215 | Data manager — setItems, setTotal, updateItem, removeItem, getters, loadRange, ensureRange, loadInitial, loadMore, reload, clear, reset, eviction, concurrent dedup, sparse array expansion |
+| `features/async/sparse.test.ts` | 111 | 272 | Sparse storage — chunk creation, get/set, ranges, LRU eviction, cache limits, loaded range tracking, clear, stats |
+| `features/scrollbar/controller.test.ts` | 119 | 193 | Scroll controller — native, compressed, window, horizontal modes, velocity tracking, stale gap detection, smoothing, compression enable/disable, wheel handling, idle detection |
+| `features/grid/layout.test.ts` | 94 | 245 | Grid math — row/column calculation, item ranges, column width, offsets, round-trips, groups-aware layout with `isHeaderFn` |
+| `features/grid/renderer.test.ts` | 53 | 134 | Grid rendering — positioning, gap handling, resize, variable columns |
+| `features/grid/feature.test.ts` | 52 | 66 | withGrid integration — builder integration, scroll virtualization, column updates |
+| `features/scrollbar/scrollbar.test.ts` | 55 | 68 | Custom scrollbar — creation, position updates, show/hide, drag interaction, auto-hide, destroy |
+| `features/async/placeholder.test.ts` | 47 | 91 | Placeholder generation — structure analysis, string/number/boolean field masking, arrays, nested objects |
+| `features/sections/layout.test.ts` | 47 | 328 | Section layout — header positioning, item offset, group boundaries |
+| `features/snapshots/feature.test.ts` | 47 | 79 | Snapshots — getScrollSnapshot, restoreScroll, auto-restore via config, NaN guards, sizeCache rebuild, loadVisibleRange |
+| `features/async/feature.test.ts` | 42 | 53 | withAsync integration — adapter loading, data flow, error handling |
+| `features/selection/index.test.ts` | 61 | 100 | Selection state — single/multiple modes, toggle, range select, clear, keyboard focus |
+| `features/scale/feature.test.ts` | 26 | 48 | Touch scroll — touch drag, momentum/inertial scroll, edge clamping, cancellation, horizontal mode, touchcancel, destroy cleanup |
 
-### Feature Tests (mirrors `src/features/`)
+### Rendering
 
-| File | Tests | What it covers |
-|------|------:|----------------|
-| `features/data/index.test.ts` | 113 | Data manager — setItems, setTotal, updateItem, removeItem, getters, loadRange, ensureRange, loadInitial, loadMore, reload, clear, reset, eviction, concurrent dedup, sparse array expansion |
-| `features/data/sparse.test.ts` | 111 | Sparse storage — chunk creation, get/set, ranges, LRU eviction, cache limits, loaded range tracking, clear, stats |
-| `features/data/placeholder.test.ts` | 63 | Placeholder generation — structure analysis, string/number/boolean field masking, arrays, nested objects |
-| `features/scroll/controller.test.ts` | 119 | Scroll controller — native, compressed, window, horizontal modes, velocity tracking, stale gap detection, smoothing, compression enable/disable, wheel handling, idle detection |
-| `features/scroll/scrollbar.test.ts` | 55 | Custom scrollbar — creation, position updates, show/hide, drag interaction, auto-hide, destroy |
-| `features/selection/index.test.ts` | 61 | Selection state — single/multiple modes, toggle, range select, clear, keyboard focus |
-| `features/grid/layout.test.ts` | 55 | Grid math — row/column calculation, item ranges, column width, offsets, round-trips |
-| `features/grid/renderer.test.ts` | 50 | Grid rendering — positioning, gap handling, resize, variable columns |
-| `features/groups/layout.test.ts` | 44 | Group layout — header positioning, item offset, group boundaries |
-| `features/groups/sticky.test.ts` | 47 | Sticky headers — scroll tracking, transition, out-of-bounds, invalidation |
+| File | Tests | Assertions | What it covers |
+|------|------:|----------:|----------------|
+| `rendering/sizes.test.ts` | 83 | 1,006 | Size cache — fixed heights, function-based heights, total height, resize, range calculations |
+| `rendering/viewport.test.ts` | 78 | 116 | Viewport state — visible range, render range, overscan, compression ratio, edge cases |
+| `rendering/measured.test.ts` | 57 | 561 | Measured heights — dynamic height tracking, cache management |
+| `rendering/scale.test.ts` | 50 | 92 | Compression — threshold detection, ratio calculation, virtual-to-actual mapping, large item counts |
+| `rendering/renderer.test.ts` | 43 | 101 | DOM renderer — element pool overflow, aria-setsize updates, template re-application |
 
-### Core & Rendering
+### Events
 
-| File | Tests | What it covers |
-|------|------:|----------------|
-| `render/heights.test.ts` | 83 | Height cache — fixed heights, function-based heights, total height, resize, range calculations |
-| `render/virtual.test.ts` | 78 | Viewport state — visible range, render range, overscan, compression ratio, edge cases |
-| `render/compression.test.ts` | 50 | Compression — threshold detection, ratio calculation, virtual-to-actual mapping, large item counts |
-| `render/renderer.test.ts` | 15 | DOM renderer — element pool overflow, aria-setsize updates, template re-application, resolveContainer |
-| `events/index.test.ts` | 22 | Event emitter — subscribe, emit, unsubscribe, once, error isolation, listener count |
+| File | Tests | Assertions | What it covers |
+|------|------:|----------:|----------------|
+| `events/emitter.test.ts` | 22 | 46 | Event emitter — subscribe, emit, unsubscribe, once, error isolation, listener count |
 
-### Integration & Coverage
+### TODO Stubs
 
-| File | Tests | What it covers |
-|------|------:|----------------|
-| `core.test.ts` | 218 | Legacy `vlist` from `vlist/core` — comprehensive coverage of monolithic implementation |
-| `integration.test.ts` | 126 | Cross-module scenarios — horizontal mode, grid compression, groups data, reverse data, selection, event lifecycle, variable heights, validation, wrap mode, destroy idempotency |
-| `vlist-coverage.test.ts` | 58 | Full `vlist` from `vlist` — scrollbar modes, grid gap, idle callbacks, compression transitions, sticky headers, event off(), window resize, adapter loading, reverse with adapter, groups scrollToIndex |
+Several feature files have placeholder tests awaiting comprehensive coverage:
 
-### Cross-Cutting
+| File | Status | Notes |
+|------|--------|-------|
+| `builder/core.test.ts` | TODO | Builder core module |
+| `builder/data.test.ts` | TODO | Builder data handling |
+| `builder/dom.test.ts` | TODO | Builder DOM operations |
+| `builder/context.test.ts` | TODO | Context creation & wiring |
+| `features/page/feature.test.ts` | TODO | withPage pagination feature |
+| `features/scrollbar/feature.test.ts` | TODO | withScrollbar feature integration |
+| `features/sections/feature.test.ts` | TODO | withSections feature integration |
+| `features/sections/sticky.test.ts` | TODO | Sticky header behavior |
+| `features/selection/feature.test.ts` | TODO | withSelection feature integration |
+| `features/selection/state.test.ts` | TODO | Selection state internals |
 
-| File | Tests | What it covers |
-|------|------:|----------------|
-| `accessibility.test.ts` | 40 | aria-setsize, aria-posinset, unique element IDs, aria-activedescendant, aria-busy, live region announcements, baseline ARIA attributes, core vlist ARIA, grid mode ARIA, keyboard navigation ARIA |
-| `reverse.test.ts` | 36 | Reverse mode — validation (rejects groups/grid), initial scroll to bottom, appendItems auto-scroll, prependItems scroll preservation, setItems, data methods, selection, events, scroll save/restore, variable heights, edge cases |
-| `adapters/svelte.test.ts` | 18 | Svelte action — lifecycle (create/destroy), option passing, reactive updates, event forwarding |
+These stubs follow the pattern:
+```vlist/test/features/page/feature.test.ts#L1-8
+describe("features/page/plugin.ts", () => {
+  it("should add tests for this module", () => {
+    // TODO: Add comprehensive tests
+  });
+});
+```
 
 ## Coverage
 
-**Current Status:** ✅ **1701/1701 tests passing (100%)**
-
-After the builder pattern and feature architecture refactoring, all tests have been updated and are passing. The test suite provides comprehensive coverage of all features, modes, and edge cases.
-
 Coverage is configured in `bunfig.toml`:
 
-```toml
+```vlist/bunfig.toml#L1-5
 [test]
+
+# Only report coverage for source files, not the bundled dist output
 coverageSkipTestFiles = true
 coveragePathIgnorePatterns = ["dist/**"]
 ```
@@ -162,9 +199,6 @@ coveragePathIgnorePatterns = ["dist/**"]
 ### Running Coverage
 
 ```bash
-# Run all tests
-bun test
-
 # Text report to console
 bun test --coverage
 
@@ -172,94 +206,85 @@ bun test --coverage
 bun test --coverage --coverage-reporter=lcov
 ```
 
-**Test Statistics:**
-- Total tests: 1,701
-- Passing: 1,701 (100%) ✅
-- Total assertions: 5,943
-- Test files: 22
-- Runtime: ~11s
-
-**Code Coverage:**
-- Line coverage: 92.96%
-- Function coverage: 95.07%
-- All critical paths covered
-
 The lcov report is written to `coverage/lcov.info`.
 
-### Coverage Breakdown
+### Coverage Summary
 
-**Overall Coverage:** 92.96% lines, 95.07% functions
+**Overall: 97.17% lines, 95.51% functions**
 
-| File | Lines | Functions |
-|------|------:|----------:|
-| **Core & Builder** |
-| `src/builder/core.ts` | 75.58% | 92.48% |
-| `src/builder/index.ts` | 100% | 100% |
-| `src/core.ts` | 95.65% | 98.13% |
-| `src/vlist.ts` | 50.00% | 76.11% |
+| Category | Lines | Functions |
+|----------|------:|----------:|
+| **Builder** | | |
+| `src/builder/core.ts` | 86.34% | 81.48% |
+| `src/builder/dom.ts` | 97.96% | 100% |
+| `src/builder/materialize.ts` | 97.61% | 79.12% |
+| `src/builder/pool.ts` | 100% | 100% |
+| `src/builder/range.ts` | 100% | 100% |
+| `src/builder/scroll.ts` | 100% | 100% |
+| `src/builder/velocity.ts` | 100% | 100% |
 | `src/constants.ts` | 100% | 100% |
-| **Events** |
+| **Events** | | |
 | `src/events/emitter.ts` | 100% | 100% |
 | `src/events/index.ts` | 100% | 100% |
-| **Rendering** |
-| `src/render/compression.ts` | 100% | 89.58% |
-| `src/render/heights.ts` | 100% | 100% |
-| `src/render/index.ts` | 100% | 100% |
-| `src/render/renderer.ts` | 77.78% | 68.91% |
-| `src/render/virtual.ts` | 94.74% | 95.83% |
-| **Adapters** |
-| `src/adapters/svelte.ts` | 100% | 100% |
-| **Features** |
-| `src/features/compression/feature.ts` | 81.25% | 89.01% |
-| `src/features/data/index.ts` | 100% | 100% |
-| `src/features/data/manager.ts` | 100% | 100% |
-| `src/features/data/placeholder.ts` | 100% | 100% |
-| `src/features/data/feature.ts` | 61.11% | 80.25% |
-| `src/features/data/sparse.ts` | 100% | 100% |
-| `src/features/grid/layout.ts` | 100% | 96.00% |
-| `src/features/grid/feature.ts` | 81.82% | 76.45% |
+| **Rendering** | | |
+| `src/rendering/index.ts` | 100% | 100% |
+| `src/rendering/measured.ts` | 100% | 100% |
+| `src/rendering/renderer.ts` | 96.59% | 96.43% |
+| `src/rendering/scale.ts` | 90.00% | 100% |
+| `src/rendering/sizes.ts` | 100% | 100% |
+| `src/rendering/viewport.ts` | 95.83% | 94.74% |
+| **Features — Async** | | |
+| `src/features/async/feature.ts` | 89.90% | 75.00% |
+| `src/features/async/index.ts` | 100% | 100% |
+| `src/features/async/manager.ts` | 100% | 100% |
+| `src/features/async/placeholder.ts` | 100% | 100% |
+| `src/features/async/sparse.ts` | 100% | 100% |
+| **Features — Grid** | | |
+| `src/features/grid/feature.ts` | 98.01% | 86.96% |
+| `src/features/grid/layout.ts` | 97.71% | 100% |
 | `src/features/grid/renderer.ts` | 100% | 100% |
-| `src/features/groups/layout.ts` | 100% | 100% |
-| `src/features/groups/feature.ts` | 100% | 96.02% |
-| `src/features/groups/sticky.ts` | 100% | 100% |
-| `src/features/groups/types.ts` | 100% | 100% |
-| `src/features/scroll/controller.ts` | 100% | 97.87% |
-| `src/features/scroll/index.ts` | 100% | 100% |
-| `src/features/scroll/feature.ts` | 87.50% | 100% |
-| `src/features/scroll/scrollbar.ts` | 90.48% | 97.00% |
+| **Features — Page** | | |
+| (no coverage — TODO tests) | | |
+| **Features — Scale** | | |
+| `src/features/scale/feature.ts` | 88.18% | 86.96% |
+| **Features — Scrollbar** | | |
+| `src/features/scrollbar/controller.ts` | 97.87% | 100% |
+| `src/features/scrollbar/feature.ts` | 89.06% | 75.00% |
+| `src/features/scrollbar/index.ts` | 100% | 100% |
+| `src/features/scrollbar/scrollbar.ts` | 97.00% | 90.48% |
+| **Features — Sections** | | |
+| `src/features/sections/feature.ts` | 85.22% | 82.61% |
+| `src/features/sections/index.ts` | 100% | 100% |
+| `src/features/sections/layout.ts` | 100% | 100% |
+| `src/features/sections/sticky.ts` | 86.07% | 100% |
+| `src/features/sections/types.ts` | 100% | 100% |
+| **Features — Selection** | | |
+| `src/features/selection/feature.ts` | 99.29% | 80.65% |
 | `src/features/selection/index.ts` | 100% | 100% |
-| `src/features/selection/feature.ts` | 80.00% | 99.26% |
 | `src/features/selection/state.ts` | 100% | 100% |
+| **Features — Snapshots** | | |
 | `src/features/snapshots/feature.ts` | 100% | 100% |
-| `src/features/window/feature.ts` | 77.78% | 74.65% |
-
-**Key Coverage Notes:**
-- Builder core: 75.58% lines (uncovered: error paths, edge cases)
-- All feature core logic: 95%+ function coverage
-- Data structures (heights, sparse, placeholder): 100% coverage
-- Critical rendering paths: fully covered
-| **All source files** | **95.57%** | **97.19%** |
 
 ### Uncovered Lines
 
 Some lines remain uncovered due to JSDOM limitations, defensive code, and edge cases:
 
-| File | Lines | Reason |
-|------|-------|--------|
-| `builder/core.ts` | ~24% uncovered | Error paths, edge cases, compression branches, window mode paths that require real browser environment |
-| `features/window/feature.ts` | 88-94, 100-110 | **Window scroll mode** — JSDOM doesn't support real window scrolling with proper coordinates |
-| `features/data/feature.ts` | 144-151, 171-174, etc. | **Velocity-aware loading** — Requires real scroll velocity tracking which depends on timing |
-| `features/grid/feature.ts` | 247-304, 354, 401-403 | **updateGrid method** and some edge cases in grid configuration changes |
-| `render/renderer.ts` | 211-226, 584-647 | **Legacy renderer paths** and some template edge cases |
-| `vlist.ts` | 144-170 | **update() method** — Backwards compatibility warnings for unsupported operations |
+| File | Uncovered | Reason |
+|------|-----------|--------|
+| `builder/core.ts` | ~14% uncovered | Error paths, edge cases, compression branches, window mode paths requiring real browser |
+| `builder/materialize.ts` | ~2% uncovered | Edge cases in DOM diffing |
+| `features/async/feature.ts` | ~10% uncovered | Velocity-aware loading paths depending on real scroll timing |
+| `features/scale/feature.ts` | ~12% uncovered | Touch momentum physics, browser-specific paths |
+| `features/sections/feature.ts` | ~15% uncovered | Complex section reflow paths |
+| `features/sections/sticky.ts` | ~14% uncovered | Sticky header transitions requiring real layout |
+| `rendering/scale.ts` | ~10% uncovered | Compression edge cases at extreme ratios |
+| `rendering/viewport.ts` | ~4% uncovered | Defensive bounds checks |
 
-**Note:** Despite gaps in line coverage, all critical paths are tested through integration tests. The uncovered lines are primarily:
-- Error handling paths (throw statements)
-- Defensive code for edge cases
-- Browser-specific features requiring real DOM
-- Backwards compatibility warnings
-
-**All 1701 functional tests pass (100%)** validating the system works correctly end-to-end.
+**Note:** Despite gaps in line coverage, all critical paths are tested through integration tests in `builder/index.test.ts`. The uncovered lines are primarily:
+- Error handling paths (throw statements, defensive guards)
+- Browser-specific features requiring real DOM/layout
+- Touch/momentum physics edge cases
+- Backwards compatibility code paths
 
 ## Testing Patterns
 
@@ -267,11 +292,13 @@ Some lines remain uncovered due to JSDOM limitations, defensive code, and edge c
 
 Every test file that touches the DOM uses JSDOM with a shared `beforeAll`/`afterAll` lifecycle:
 
-```typescript
-import { beforeAll, afterAll } from "bun:test";
-import { JSDOM } from "jsdom";
-
+```vlist/test/features/snapshots/feature.test.ts#L22-49
 let dom: JSDOM;
+let originalDocument: any;
+let originalWindow: any;
+let originalQueueMicrotask: any;
+
+let originalRAF: any;
 
 beforeAll(() => {
   dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
@@ -279,23 +306,34 @@ beforeAll(() => {
     pretendToBeVisual: true,
   });
 
+  originalDocument = global.document;
+  originalWindow = global.window;
+  originalQueueMicrotask = global.queueMicrotask;
+  originalRAF = global.requestAnimationFrame;
+
   global.document = dom.window.document;
   global.window = dom.window as any;
   global.HTMLElement = dom.window.HTMLElement;
-  // ... other globals
-});
 
-afterAll(() => {
-  // Restore originals
-  dom.window.close();
+  // JSDOM doesn't provide requestAnimationFrame — polyfill with setTimeout
+  if (!global.requestAnimationFrame) {
+    global.requestAnimationFrame = (cb: FrameRequestCallback): number =>
+      setTimeout(() => cb(performance.now()), 0) as unknown as number;
+  }
 });
 ```
+
+Key points:
+- Save original globals before overwriting
+- Restore in `afterAll` to prevent test pollution
+- `pretendToBeVisual: true` enables `requestAnimationFrame` in JSDOM
+- Always close the JSDOM window in cleanup
 
 ### ResizeObserver Mock
 
 JSDOM doesn't include `ResizeObserver`. Tests that use `vlist` or the builder (which use `ResizeObserver` internally) must provide a mock:
 
-```typescript
+```/dev/null/resizeobserver-mock.ts#L1-20
 global.ResizeObserver = class MockResizeObserver {
   private callback: ResizeObserverCallback;
 
@@ -323,7 +361,7 @@ global.ResizeObserver = class MockResizeObserver {
 
 Tests that create vlist instances use a container helper with `clientHeight`/`clientWidth` defined (JSDOM doesn't compute layout):
 
-```typescript
+```/dev/null/container-helper.ts#L1-7
 const createContainer = (): HTMLElement => {
   const container = document.createElement("div");
   Object.defineProperty(container, "clientHeight", { value: 600 });
@@ -333,31 +371,38 @@ const createContainer = (): HTMLElement => {
 };
 ```
 
-### Mock Context Pattern
+### requestAnimationFrame Mock
 
-Handler tests use a mock `VListContext` to test handlers in isolation without creating a full vlist instance:
+Since JSDOM doesn't always provide `requestAnimationFrame`, tests mock it with `setTimeout`:
 
-```typescript
-const ctx = {
-  config: createMockConfig({ hasAdapter: true }),
-  dom: createMockDOM(),
-  dataManager: createMockDataManager(items),
-  scrollController: createMockScrollController(),
-  renderer: createMockRenderer(),
-  emitter: createMockEmitter(),
-  state: createMockState(),
-  // ...
+```/dev/null/raf-mock.ts#L1-7
+global.requestAnimationFrame = (cb: FrameRequestCallback): number => {
+  return setTimeout(() => cb(performance.now()), 0) as unknown as number;
 };
 
-const handler = createScrollHandler(ctx, renderCallback);
-handler(scrollTop, direction);
+global.cancelAnimationFrame = (id: number): void => {
+  clearTimeout(id);
+};
+```
+
+### Simulating Scroll Events
+
+JSDOM doesn't fire scroll events when `scrollTop` is set. Tests use a helper:
+
+```/dev/null/scroll-helper.ts#L1-6
+const simulateScroll = (list: BuiltVList<TestItem>, scrollTop: number): void => {
+  const viewport = list.element.querySelector(".vlist-viewport") as HTMLElement;
+  if (!viewport) return;
+  viewport.scrollTop = scrollTop;
+  viewport.dispatchEvent(new dom.window.Event("scroll"));
+};
 ```
 
 ### Async Adapter Testing
 
 Tests for data loading use controlled-resolution adapters to simulate network behavior:
 
-```typescript
+```/dev/null/async-adapter-pattern.ts#L1-24
 let resolveRead: ((v: any) => void) | null = null;
 
 const adapter = {
@@ -383,80 +428,44 @@ resolveRead!(undefined);
 await loadPromise;
 ```
 
-### requestAnimationFrame Mock
-
-Since JSDOM doesn't have `requestAnimationFrame`, tests mock it with `setTimeout`:
-
-```typescript
-global.requestAnimationFrame = (cb: FrameRequestCallback): number => {
-  return setTimeout(() => cb(performance.now()), 0) as unknown as number;
-};
-
-global.cancelAnimationFrame = (id: number): void => {
-  clearTimeout(id);
-};
-```
-
-### Simulating Scroll Events
-
-JSDOM doesn't fire scroll events when `scrollTop` is set. Tests use a helper:
-
-```typescript
-const simulateScroll = (list: BuiltVList<TestItem>, scrollTop: number): void => {
-  const viewport = list.element.querySelector(".vlist-viewport") as HTMLElement;
-  if (!viewport) return;
-  viewport.scrollTop = scrollTop;
-  viewport.dispatchEvent(new dom.window.Event("scroll"));
-};
-```
-
 ### Integration Testing for Scroll Virtualization
 
-**Critical pattern**: Feature integration tests must verify scroll-triggered rendering, not just initial render. Many features (like `withGrid`) replace render functions but may not properly calculate visible/render ranges on scroll.
+Feature integration tests must verify scroll-triggered rendering, not just initial render. Many features (like `withGrid`) replace render functions but may not properly calculate visible/render ranges on scroll.
 
-```typescript
+```/dev/null/scroll-virtualization-test.ts#L1-24
 it("should virtualize and render multiple rows on scroll", () => {
-  // Use tall container to show multiple rows
-  container.style.height = "600px";
-
   list = vlist<TestItem>({
     container,
     item: { height: 100, template },
-    items: createTestItems(600), // Many items
+    items: createTestItems(600),
   })
     .use(withGrid({ columns: 4 }))
     .build();
 
   // Initial: verify first rows rendered
   let indices = getRenderedIndices(list);
-  expect(indices.length).toBeGreaterThan(16); // More than 1 row
+  expect(indices.length).toBeGreaterThan(16);
   const firstMax = Math.max(...indices);
-  expect(firstMax).toBeLessThan(60); // Still near top
+  expect(firstMax).toBeLessThan(60);
 
   // Scroll down significantly
   simulateScroll(list, 2000);
-  flush(); // Wait for RAF
+  flush();
 
   indices = getRenderedIndices(list);
   const secondMin = Math.min(...indices);
-  const secondMax = Math.max(...indices);
-
-  // Range should have shifted - virtualization working!
   expect(secondMin).toBeGreaterThan(50); // Past initial rows
-  expect(secondMax).toBeGreaterThan(firstMax); // Further than before
 });
 ```
 
 **Why this matters:**
-
 - Initial render tests only verify feature setup, not ongoing virtualization
 - Features that replace render functions may miss range calculation
 - Without scroll tests, bugs show in production but pass all tests
-- This pattern caught the grid feature bug where only first row rendered
 
-**Helper used:**
+**Helpers:**
 
-```typescript
+```/dev/null/scroll-test-helpers.ts#L1-7
 const getRenderedIndices = (list: BuiltVList<TestItem>): number[] => {
   const elements = list.element.querySelectorAll("[data-index]");
   return Array.from(elements).map((el) =>
@@ -467,93 +476,124 @@ const getRenderedIndices = (list: BuiltVList<TestItem>): number[] => {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 ```
 
+### Unit-Level Testing (No DOM)
+
+Pure logic modules (velocity, range, sizes, sparse storage) can be tested without JSDOM. Import the module directly and test with plain values:
+
+```vlist/test/builder/velocity.test.ts#L20-29
+describe("velocity constants", () => {
+  it("should have correct default values", () => {
+    expect(VELOCITY_SAMPLE_COUNT).toBe(5);
+    expect(STALE_GAP_MS).toBe(100);
+    expect(MIN_RELIABLE_SAMPLES).toBe(2);
+  });
+});
+```
+
+This pattern is used in:
+- `builder/velocity.test.ts` — velocity tracker math
+- `builder/range.test.ts` — range calculations
+- `features/async/sparse.test.ts` — sparse chunk storage
+- `features/async/placeholder.test.ts` — placeholder generation
+- `rendering/sizes.test.ts` — size cache
+- `rendering/viewport.test.ts` — viewport calculations
+- `rendering/scale.test.ts` — compression math
+
 ## Writing New Tests
 
 ### Conventions
 
-- **File naming**: `<module>.test.ts`, placed next to the module in the test directory tree
+- **File naming**: `<module>.test.ts`, placed in the test directory tree mirroring `src/`
 - **Imports**: use `from "bun:test"` for `describe`, `it`, `expect`, `mock`, `beforeEach`, `afterEach`, `beforeAll`, `afterAll`
 - **Structure**: `describe` blocks grouped by feature, `it` blocks for individual behaviors
 - **Assertions**: prefer specific matchers (`toBe`, `toEqual`, `toBeGreaterThan`) over generic `toBeTruthy`
 - **Cleanup**: always destroy vlist instances and remove containers in `afterEach`
 - **Mocking**: use `mock(() => {})` from bun:test for function spies
+- **Section comments**: use `// ===` banners to separate setup, constants, and test groups
 
-### Test Template
+### Test Template (Pure Logic)
 
-```typescript
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+For modules without DOM dependency:
 
-describe("myFeature", () => {
-  let container: HTMLElement;
+```/dev/null/test-template-pure.ts#L1-22
+import { describe, it, expect } from "bun:test";
+import { myFunction } from "../../src/module/path";
 
-  beforeEach(() => {
-    container = createContainer();
+// =============================================================================
+// myFunction
+// =============================================================================
+
+describe("myFunction", () => {
+  it("should handle basic input", () => {
+    const result = myFunction(input);
+    expect(result).toBe(expected);
   });
 
-  afterEach(() => {
-    container.remove();
-  });
-
-  it("should do something specific", () => {
-    // Arrange
-    const items = createTestItems(20);
-
-    // Act
-    const result = myFunction(items);
-
-    // Assert
-    expect(result).toBe(expectedValue);
+  it("should handle edge case", () => {
+    const result = myFunction(edgeInput);
+    expect(result).toEqual(expectedEdge);
   });
 });
 ```
 
-### Builder Feature Test Template
+### Test Template (DOM / Builder)
 
-```typescript
-import { vlist } from "../src/builder/core";
-import { withSelection } from "../src/selection/feature";
-import { withScrollbar } from "../src/scroll/feature";
+For tests requiring JSDOM and the builder:
 
-describe("withMyFeature feature", () => {
+```/dev/null/test-template-dom.ts#L1-50
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "bun:test";
+import { JSDOM } from "jsdom";
+import { vlist } from "../../src/builder/core";
+import { withMyFeature } from "../../src/features/myfeature/feature";
+import type { BuiltVList } from "../../src/builder/types";
+import type { VListItem } from "../../src/types";
+
+// =============================================================================
+// JSDOM Setup
+// =============================================================================
+
+let dom: JSDOM;
+
+beforeAll(() => {
+  dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
+    url: "http://localhost/",
+    pretendToBeVisual: true,
+  });
+  global.document = dom.window.document;
+  global.window = dom.window as any;
+  global.HTMLElement = dom.window.HTMLElement;
+  // ... mock ResizeObserver, requestAnimationFrame as needed
+});
+
+afterAll(() => {
+  dom.window.close();
+});
+
+// =============================================================================
+// Tests
+// =============================================================================
+
+interface TestItem extends VListItem { id: number; name: string; }
+
+describe("withMyFeature", () => {
   let container: HTMLElement;
   let list: BuiltVList<TestItem> | null = null;
 
-  beforeEach(() => {
-    container = createContainer();
-  });
-
+  beforeEach(() => { container = createContainer(); });
   afterEach(() => {
-    if (list) {
-      list.destroy();
-      list = null;
-    }
+    if (list) { list.destroy(); list = null; }
     container.remove();
   });
 
   it("should add feature functionality", () => {
     list = vlist<TestItem>({
       container,
-      item: { height: 40, template },
-      items: createTestItems(20),
+      item: { height: 40, template: (el, item) => { el.textContent = item.name; } },
+      items: Array.from({ length: 20 }, (_, i) => ({ id: i, name: `Item ${i}` })),
     })
       .use(withMyFeature({ option: "value" }))
       .build();
 
-    expect(list.myFeatureMethod).toBeDefined();
-  });
-
-  it("should work with other features", () => {
-    list = vlist<TestItem>({
-      container,
-      item: { height: 40, template },
-      items: createTestItems(20),
-    })
-      .use(withMyFeature())
-      .use(withSelection({ mode: "multiple" }))
-      .use(withScrollbar())
-      .build();
-
-    // Test combined functionality
     expect(list.element).toBeDefined();
   });
 });
@@ -562,58 +602,42 @@ describe("withMyFeature feature", () => {
 ### Running a Subset
 
 ```bash
-# By file path (note: now under test/features/)
-bun test test/features/scroll/controller.test.ts
+# By file path
+bun test test/features/scrollbar/controller.test.ts
 
-# Test a specific feature
+# By directory — all files in a feature
 bun test test/features/grid/
-bun test test/features/groups/
+bun test test/features/async/
 
-# Test the builder
+# All builder tests
 bun test test/builder/
 
-# Test by pattern
-bun test --test-name-pattern "grid"
-bun test --test-name-pattern "selection"
-```
-
----
-
-## Test Structure Reorganization
-
-**Recent Update (2026-02-16):** The test structure was reorganized to mirror the `src/` directory structure after the feature architecture refactoring.
-
-**Key Changes:**
-- Feature tests moved to `test/features/` subdirectory
-- Builder tests moved to `test/builder/` subdirectory
-- Clear 1:1 mapping with source code structure
-
-**Migration:**
-- `test/grid/` → `test/features/grid/`
-- `test/groups/` → `test/features/groups/`
-- `test/selection/` → `test/features/selection/`
-- `test/scroll/` → `test/features/scroll/`
-- `test/data/` → `test/features/data/`
-- `test/builder.test.ts` → `test/builder/index.test.ts`
-
-**Benefits:**
-- Easy navigation: find tests for `src/features/grid/` at `test/features/grid/`
-- Scalable: new features follow same pattern
-- Consistent: test structure matches source structure
-- Maintainable: clear organization as project grows
-
-**All 1701 tests continue to pass (100%) after reorganization.**
+# All rendering tests
+bun test test/rendering/
 
 # By test name pattern
+bun test --test-name-pattern="velocity"
 bun test --test-name-pattern="compression"
-
-# By directory (all files in data/)
-bun test test/data/
-
-# Builder tests only
-bun test test/builder.test.ts
+bun test --test-name-pattern="grid"
 ```
+
+## Source ↔ Test Mapping
+
+| Source Directory | Test Directory | Files |
+|-----------------|---------------|------:|
+| `src/builder/` | `test/builder/` | 11 |
+| `src/events/` | `test/events/` | 1 |
+| `src/features/async/` | `test/features/async/` | 4 |
+| `src/features/grid/` | `test/features/grid/` | 3 |
+| `src/features/page/` | `test/features/page/` | 1 |
+| `src/features/scale/` | `test/features/scale/` | 1 |
+| `src/features/scrollbar/` | `test/features/scrollbar/` | 3 |
+| `src/features/sections/` | `test/features/sections/` | 3 |
+| `src/features/selection/` | `test/features/selection/` | 3 |
+| `src/features/snapshots/` | `test/features/snapshots/` | 1 |
+| `src/rendering/` | `test/rendering/` | 5 |
+| **Total** | | **36** |
 
 ---
 
-*For module-specific implementation details, see the corresponding module documentation: [data](./features/async.md), [scroll](./features/scrollbar.md), [render](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [context](./internals/context.md), [methods](/docs/api/reference), [accessibility](/tutorials/accessibility).*
+*For module-specific implementation details, see the corresponding module documentation: [async data](./features/async.md), [scrollbar](./features/scrollbar.md), [rendering](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [sections](./features/sections.md), [snapshots](./features/snapshots.md), [scale](./features/scale.md).*
