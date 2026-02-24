@@ -82,10 +82,24 @@ function createGrid(orientation, columns, gap) {
   const container = document.getElementById("grid-container");
   container.innerHTML = "";
 
-  // Calculate row height from column width to maintain 4:3 aspect ratio
+  // Calculate item dimensions to maintain 4:3 landscape aspect ratio
   const innerWidth = container.clientWidth - 2; // account for border
   const colWidth = (innerWidth - (columns - 1) * gap) / columns;
-  const height = Math.round(colWidth * 0.75);
+
+  let height, width;
+  if (orientation === "horizontal") {
+    // After the renderer fix: CSS width = horizontal extent = item.width - gap
+    //                         CSS height = vertical extent   = colWidth
+    // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
+    //   → item.width = colWidth * (4/3) + gap
+    width = Math.round(colWidth * (4 / 3) + gap);
+    height = Math.round(colWidth); // cross-axis (vertical extent)
+  } else {
+    // Vertical: CSS width = colWidth, CSS height = item.height - gap
+    // For 4:3: item.height ≈ colWidth * 0.75
+    width = Math.round(colWidth);
+    height = Math.round(colWidth * 0.75);
+  }
 
   list = vlist({
     container: "#grid-container",
@@ -93,7 +107,7 @@ function createGrid(orientation, columns, gap) {
     orientation,
     item: {
       height,
-      width: orientation === "horizontal" ? colWidth : undefined,
+      width: orientation === "horizontal" ? width : undefined,
       template: itemTemplate,
     },
     items,
@@ -114,7 +128,7 @@ function createGrid(orientation, columns, gap) {
   });
 
   updateStats();
-  updateGridInfo(orientation, columns, gap, height);
+  updateGridInfo(orientation, columns, gap, width, height);
 }
 
 // =============================================================================
@@ -155,12 +169,17 @@ function updateStats() {
     ` · <strong>Virtualized:</strong> ${saved}%`;
 }
 
-function updateGridInfo(orientation, columns, gap, rowHeight) {
+function updateGridInfo(orientation, columns, gap, width, height) {
+  // Show visual dimensions (what you actually see on screen)
+  const displayW = orientation === "horizontal" ? width - gap : width;
+  const displayH =
+    orientation === "horizontal" ? height : Math.max(0, height - gap);
+
   gridInfoEl.innerHTML =
     `<strong>Orientation:</strong> ${orientation}` +
     ` · <strong>Columns:</strong> ${columns}` +
     ` · <strong>Gap:</strong> ${gap}px` +
-    ` · <strong>Row height:</strong> ${rowHeight}px` +
+    ` · <strong>Item:</strong> ${displayW}×${displayH}px` +
     ` · <strong>Aspect:</strong> 4:3`;
 }
 
