@@ -79,7 +79,8 @@ const App = {
       orientation: "vertical",
       columns: 4,
       gap: 8,
-      rowHeight: 0,
+      width: 0,
+      height: 0,
     });
 
     // Refs
@@ -116,18 +117,27 @@ const App = {
       // Clear container
       containerRef.value.innerHTML = "";
 
-      // Calculate row height from column width to maintain 4:3 aspect ratio
+      // Calculate item dimensions to maintain 4:3 landscape aspect ratio
       const innerWidth = containerRef.value.clientWidth - 2; // account for border
       const colWidth =
         (innerWidth - (columns.value - 1) * gap.value) / columns.value;
-      const height = Math.round(colWidth * 0.75);
+
+      let height, width;
+      if (orientation.value === "horizontal") {
+        width = Math.round(colWidth * (4 / 3) + gap.value);
+        height = Math.round(colWidth);
+      } else {
+        width = Math.round(colWidth);
+        height = Math.round(colWidth * 0.75);
+      }
 
       // Update grid info
       gridInfo.value = {
         orientation: orientation.value,
         columns: columns.value,
         gap: gap.value,
-        rowHeight: height,
+        width,
+        height,
       };
 
       // Create new instance with builder pattern
@@ -137,7 +147,7 @@ const App = {
         orientation: orientation.value,
         item: {
           height,
-          width: orientation.value === "horizontal" ? colWidth : undefined,
+          width: orientation.value === "horizontal" ? width : undefined,
           template: itemTemplate,
         },
         items,
@@ -220,16 +230,16 @@ const App = {
 
       <div class="stats">
         <strong>Photos:</strong> ${ITEM_COUNT}
-        · <strong>Rows:</strong> {{ stats.rows }}
+        · <strong>{{ orientation === 'horizontal' ? 'Columns' : 'Rows' }}:</strong> {{ stats.rows }}
         · <strong>DOM:</strong> {{ stats.domNodes }}
         · <strong>Virtualized:</strong> {{ stats.saved }}%
       </div>
 
       <div class="grid-info">
         <strong>Orientation:</strong> {{ gridInfo.orientation }}
-        · <strong>Columns:</strong> {{ gridInfo.columns }}
+        · <strong>{{ orientation === 'horizontal' ? 'Rows' : 'Columns' }}:</strong> {{ gridInfo.columns }}
         · <strong>Gap:</strong> {{ gridInfo.gap }}px
-        · <strong>Row height:</strong> {{ gridInfo.rowHeight }}px
+        · <strong>Item:</strong> {{ orientation === 'horizontal' ? gridInfo.width - gridInfo.gap : gridInfo.width }}×{{ orientation === 'horizontal' ? gridInfo.height : Math.max(0, gridInfo.height - gridInfo.gap) }}px
         · <strong>Aspect:</strong> 4:3
       </div>
 
@@ -264,7 +274,7 @@ const App = {
             </div>
 
             <div class="panel-row">
-              <label class="panel-label">Columns</label>
+              <label class="panel-label">{{ orientation === 'horizontal' ? 'Rows' : 'Columns' }}</label>
               <div class="panel-btn-group" id="columns-buttons">
                 <button
                   v-for="cols in [2, 3, 4, 5, 6]"

@@ -141,6 +141,7 @@ const gridInfoEl = document.getElementById("grid-info");
 const detailEl = document.getElementById("photo-detail");
 const orientationButtons = document.getElementById("orientation-buttons");
 const columnsButtons = document.getElementById("columns-buttons");
+const columnsLabel = document.getElementById("columns-label");
 const gapButtons = document.getElementById("gap-buttons");
 
 // =============================================================================
@@ -158,26 +159,30 @@ function scheduleStatsUpdate() {
 }
 
 function updateStats() {
+  const isH = currentOrientation === "horizontal";
   const domNodes = document.querySelectorAll(".vlist-item").length;
-  const totalRows = Math.ceil(ITEM_COUNT / currentColumns);
+  const totalGroups = Math.ceil(ITEM_COUNT / currentColumns);
   const saved = ((1 - domNodes / ITEM_COUNT) * 100).toFixed(1);
+  const groupLabel = isH ? "Columns" : "Rows";
 
   statsEl.innerHTML =
     `<strong>Photos:</strong> ${ITEM_COUNT}` +
-    ` · <strong>Rows:</strong> ${totalRows}` +
+    ` · <strong>${groupLabel}:</strong> ${totalGroups}` +
     ` · <strong>DOM:</strong> ${domNodes}` +
     ` · <strong>Virtualized:</strong> ${saved}%`;
 }
 
 function updateGridInfo(orientation, columns, gap, width, height) {
+  const isH = orientation === "horizontal";
+  const crossLabel = isH ? "Rows" : "Columns";
+
   // Show visual dimensions (what you actually see on screen)
-  const displayW = orientation === "horizontal" ? width - gap : width;
-  const displayH =
-    orientation === "horizontal" ? height : Math.max(0, height - gap);
+  const displayW = isH ? width - gap : width;
+  const displayH = isH ? height : Math.max(0, height - gap);
 
   gridInfoEl.innerHTML =
     `<strong>Orientation:</strong> ${orientation}` +
-    ` · <strong>Columns:</strong> ${columns}` +
+    ` · <strong>${crossLabel}:</strong> ${columns}` +
     ` · <strong>Gap:</strong> ${gap}px` +
     ` · <strong>Item:</strong> ${displayW}×${displayH}px` +
     ` · <strong>Aspect:</strong> 4:3`;
@@ -219,6 +224,9 @@ orientationButtons.addEventListener("click", (e) => {
       b.dataset.orientation === orientation,
     );
   });
+
+  // Update label to reflect cross-axis meaning
+  columnsLabel.textContent = orientation === "horizontal" ? "Rows" : "Columns";
 
   createGrid(currentOrientation, currentColumns, currentGap);
 });

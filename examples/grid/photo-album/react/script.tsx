@@ -82,7 +82,8 @@ function App() {
     orientation: "vertical" as "vertical" | "horizontal",
     columns: 4,
     gap: 8,
-    rowHeight: 0,
+    width: 0,
+    height: 0,
   });
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -118,13 +119,21 @@ function App() {
     // Clear container
     containerRef.current.innerHTML = "";
 
-    // Calculate row height from column width to maintain 4:3 aspect ratio
+    // Calculate item dimensions to maintain 4:3 landscape aspect ratio
     const innerWidth = containerRef.current.clientWidth - 2; // account for border
     const colWidth = (innerWidth - (columns - 1) * gap) / columns;
-    const height = Math.round(colWidth * 0.75);
+
+    let height: number, width: number;
+    if (orientation === "horizontal") {
+      width = Math.round(colWidth * (4 / 3) + gap);
+      height = Math.round(colWidth);
+    } else {
+      width = Math.round(colWidth);
+      height = Math.round(colWidth * 0.75);
+    }
 
     // Update grid info
-    setGridInfo({ orientation, columns, gap, rowHeight: height });
+    setGridInfo({ orientation, columns, gap, width, height });
 
     // Create new instance
     instanceRef.current = vlist({
@@ -133,7 +142,7 @@ function App() {
       orientation,
       item: {
         height,
-        width: orientation === "horizontal" ? colWidth : undefined,
+        width: orientation === "horizontal" ? width : undefined,
         template: itemTemplate,
       },
       items,
@@ -189,16 +198,25 @@ function App() {
       </header>
 
       <div className="stats">
-        <strong>Photos:</strong> {ITEM_COUNT} · <strong>Rows:</strong>{" "}
+        <strong>Photos:</strong> {ITEM_COUNT} ·{" "}
+        <strong>{orientation === "horizontal" ? "Columns" : "Rows"}:</strong>{" "}
         {stats.rows} · <strong>DOM:</strong> {stats.domNodes} ·{" "}
         <strong>Virtualized:</strong> {stats.saved}%
       </div>
 
       <div className="grid-info">
         <strong>Orientation:</strong> {gridInfo.orientation} ·{" "}
-        <strong>Columns:</strong> {gridInfo.columns} · <strong>Gap:</strong>{" "}
-        {gridInfo.gap}px · <strong>Row height:</strong> {gridInfo.rowHeight}px ·{" "}
-        <strong>Aspect:</strong> 4:3
+        <strong>{orientation === "horizontal" ? "Rows" : "Columns"}:</strong>{" "}
+        {gridInfo.columns} · <strong>Gap:</strong> {gridInfo.gap}px ·{" "}
+        <strong>Item:</strong>{" "}
+        {orientation === "horizontal"
+          ? gridInfo.width - gridInfo.gap
+          : gridInfo.width}
+        ×
+        {orientation === "horizontal"
+          ? gridInfo.height
+          : Math.max(0, gridInfo.height - gridInfo.gap)}
+        px · <strong>Aspect:</strong> 4:3
       </div>
 
       <div className="split-layout">
@@ -228,7 +246,9 @@ function App() {
             </div>
 
             <div className="panel-row">
-              <label className="panel-label">Columns</label>
+              <label className="panel-label">
+                {orientation === "horizontal" ? "Rows" : "Columns"}
+              </label>
               <div className="panel-btn-group">
                 {[2, 3, 4, 5, 6].map((cols) => (
                   <button

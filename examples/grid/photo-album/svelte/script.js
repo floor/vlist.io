@@ -68,6 +68,7 @@ const gridInfoEl = document.getElementById("grid-info");
 const detailEl = document.getElementById("photo-detail");
 const orientationButtons = document.getElementById("orientation-buttons");
 const columnsButtons = document.getElementById("columns-buttons");
+const columnsLabel = document.getElementById("columns-label");
 const gapButtons = document.getElementById("gap-buttons");
 
 // =============================================================================
@@ -96,10 +97,24 @@ function createGrid(orientation, columns, gap) {
   // Clear container
   container.innerHTML = "";
 
-  // Calculate row height from column width to maintain 4:3 aspect ratio
+  // Calculate item dimensions to maintain 4:3 landscape aspect ratio
   const innerWidth = container.clientWidth - 2; // account for border
   const colWidth = (innerWidth - (columns - 1) * gap) / columns;
-  const height = Math.round(colWidth * 0.75);
+
+  let height, width;
+  if (orientation === "horizontal") {
+    // After the renderer fix: CSS width = horizontal extent = item.width - gap
+    //                         CSS height = vertical extent   = colWidth
+    // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
+    //   → item.width = colWidth * (4/3) + gap
+    width = Math.round(colWidth * (4 / 3) + gap);
+    height = Math.round(colWidth); // cross-axis (vertical extent)
+  } else {
+    // Vertical: CSS width = colWidth, CSS height = item.height - gap
+    // For 4:3: item.height ≈ colWidth * 0.75
+    width = Math.round(colWidth);
+    height = Math.round(colWidth * 0.75);
+  }
 
   // Create vlist action with builder pattern
   action = vlist(container, {
@@ -113,7 +128,7 @@ function createGrid(orientation, columns, gap) {
       },
       item: {
         height,
-        width: orientation === "horizontal" ? colWidth : undefined,
+        width: orientation === "horizontal" ? width : undefined,
         template: itemTemplate,
       },
       items,
@@ -127,7 +142,7 @@ function createGrid(orientation, columns, gap) {
       listInstance = inst;
       bindListEvents();
       updateStats();
-      updateGridInfo(orientation, columns, gap, height);
+      updateGridInfo(orientation, columns, gap, width, height);
     },
   });
 }
@@ -164,23 +179,32 @@ function scheduleStatsUpdate() {
 }
 
 function updateStats() {
+  const isH = currentOrientation === "horizontal";
   const domNodes = document.querySelectorAll(".vlist-item").length;
-  const totalRows = Math.ceil(ITEM_COUNT / currentColumns);
+  const totalGroups = Math.ceil(ITEM_COUNT / currentColumns);
   const saved = ((1 - domNodes / ITEM_COUNT) * 100).toFixed(1);
+  const groupLabel = isH ? "Columns" : "Rows";
 
   statsEl.innerHTML =
     `<strong>Photos:</strong> ${ITEM_COUNT}` +
-    ` · <strong>Rows:</strong> ${totalRows}` +
+    ` · <strong>${groupLabel}:</strong> ${totalGroups}` +
     ` · <strong>DOM:</strong> ${domNodes}` +
     ` · <strong>Virtualized:</strong> ${saved}%`;
 }
 
-function updateGridInfo(orientation, columns, gap, rowHeight) {
+function updateGridInfo(orientation, columns, gap, width, height) {
+  const isH = orientation === "horizontal";
+  const crossLabel = isH ? "Rows" : "Columns";
+
+  // Show visual dimensions (what you actually see on screen)
+  const displayW = isH ? width - gap : width;
+  const displayH = isH ? height : Math.max(0, height - gap);
+
   gridInfoEl.innerHTML =
     `<strong>Orientation:</strong> ${orientation}` +
-    ` · <strong>Columns:</strong> ${columns}` +
+    ` · <strong>${crossLabel}:</strong> ${columns}` +
     ` · <strong>Gap:</strong> ${gap}px` +
-    ` · <strong>Row height:</strong> ${rowHeight}px` +
+    ` · <strong>Item:</strong> ${displayW}×${displayH}px` +
     ` · <strong>Aspect:</strong> 4:3`;
 }
 
@@ -220,6 +244,9 @@ orientationButtons.addEventListener("click", (e) => {
       b.dataset.orientation === orientation,
     );
   });
+
+  // Update label to reflect cross-axis meaning
+  columnsLabel.textContent = orientation === "horizontal" ? "Rows" : "Columns";
 
   createGrid(currentOrientation, currentColumns, currentGap);
 });
