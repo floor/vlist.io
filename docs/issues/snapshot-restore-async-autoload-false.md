@@ -1,6 +1,6 @@
 # Snapshot Restoration with Async + autoLoad:false Issue
 
-**Date:** January 2025  
+**Date:** January 2026  
 **Status:** 🟢 Fixed  
 **Severity:** High - Breaks scroll position restoration when using `autoLoad: false`  
 **Affects:** `withSnapshots` + `withAsync` with `autoLoad: false`
@@ -269,6 +269,6 @@ All 1548 existing tests pass after the fix. The async feature test was updated t
 
 ---
 
-**Last Updated:** January 2025  
-**Fixed:** January 2025  
+**Last Updated:** January 2026
+**Fixed:** January 2026
 **Reporter:** Development team
