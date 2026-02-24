@@ -230,6 +230,32 @@ ctx.resolvedConfig      // { horizontal: boolean } — for the rare feature that
 
 Features that need to do DOM work (like `withScrollbar` rendering a thumb along the correct edge, or `withSections` positioning a sticky header) check `ctx.resolvedConfig.horizontal` at their own DOM boundary — keeping the same pattern of axis-neutral math with thin DOM translation.
 
+### Grid: Cross-Axis Resolution
+
+The `withGrid` feature is a notable example of axis-aware design. A grid has **two** axes to manage: the main axis (scroll direction) and the cross-axis (where columns or rows are laid out). The grid's `columns` parameter always controls the number of **cross-axis divisions** — regardless of orientation.
+
+The grid resolves the cross-axis container dimension once at setup:
+
+```typescript
+// In withGrid feature setup
+const getCrossAxisSize = (): number =>
+  isHorizontal ? dom.viewport.clientHeight : ctx.getContainerWidth();
+```
+
+This value is fed into the grid layout and renderer as `containerWidth` (an axis-neutral name meaning "cross-axis container dimension"). The grid layout's `getColumnWidth()` then divides this by the number of columns to produce the cross-axis cell size.
+
+| | Vertical grid | Horizontal grid |
+|---|---|---|
+| `columns` means | Number of columns | Number of **rows** |
+| Cross-axis dimension | `viewport.clientWidth` | `viewport.clientHeight` |
+| `getColumnWidth()` divides | Container width | Container height |
+| CSS `style.width` | Cross-axis cell size | Main-axis item size |
+| CSS `style.height` | Main-axis item size | Cross-axis cell size |
+
+The renderer also swaps `style.width` and `style.height` when `isHorizontal`, so that CSS properties always match their visual meaning (width = horizontal extent, height = vertical extent).
+
+This design means the grid layout math (`getColumnWidth`, `getColumnOffset`, `getRow`, `getCol`) stays completely axis-neutral — it works with "cross-axis container dimension" and "number of divisions" without knowing which physical axis it's operating on. Only the feature setup and the renderer's `applySizeStyles` contain orientation-specific branches.
+
 ## The Naming Convention
 
 The axis-neutral vocabulary follows a consistent pattern:

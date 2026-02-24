@@ -89,10 +89,12 @@ The `item.height` function can receive an optional second parameter with grid co
 
 ```typescript
 interface GridHeightContext {
-  containerWidth: number;  // Current container width (px)
-  columns: number;         // Number of columns
+  containerWidth: number;  // Cross-axis container dimension (px)
+                           // Vertical mode: viewport width
+                           // Horizontal mode: viewport height
+  columns: number;         // Number of cross-axis divisions
   gap: number;             // Gap between items (px)
-  columnWidth: number;     // Calculated width per column (px)
+  columnWidth: number;     // Calculated cross-axis cell size (px)
 }
 
 type HeightFunction = (
@@ -187,8 +189,11 @@ The grid state is **mutable** and always reflects the current configuration:
 
 ```typescript
 // Internal implementation (simplified)
+// containerWidth = cross-axis container dimension:
+//   vertical mode  → dom.viewport.clientWidth
+//   horizontal mode → dom.viewport.clientHeight
 const gridState = {
-  containerWidth: dom.viewport.clientWidth,
+  containerWidth: getCrossAxisSize(),
   columns: 4,
   gap: 8,
 };
@@ -935,52 +940,84 @@ vlist({
 
 ### Horizontal Grid Layouts
 
-✅ **NEW: Grid layouts now work with horizontal orientation!**
+✅ Grid layouts work with horizontal orientation.
 
-In horizontal mode, the grid axes are swapped:
-- **Rows extend horizontally** (main scroll axis)
-- **Columns stack vertically** (cross-axis)
-- Items are positioned using swapped X/Y coordinates
+In horizontal mode, the grid axes are swapped relative to vertical mode:
+
+| Concept | Vertical mode | Horizontal mode |
+|---------|--------------|-----------------|
+| Scroll direction | ↓ Down | → Right |
+| Cross-axis | Horizontal (width) | Vertical (height) |
+| `columns` parameter | Number of columns | Number of **rows** |
+| Cross-axis cell size | Derived from container **width** | Derived from container **height** |
+| Main-axis item size | `item.height` | `item.width` |
+| CSS `style.width` | Cross-axis cell size | Main-axis item size |
+| CSS `style.height` | Main-axis item size | Cross-axis cell size |
+
+The `columns` parameter in `withGrid()` always controls the number of **cross-axis divisions**. In vertical mode these are columns; in horizontal mode they are visually **rows** that stack vertically.
+
+**Cross-axis sizing from container height:**
+In horizontal mode, the grid derives cell sizes from the container **height** (the cross-axis dimension), not the width. This means rows automatically fill the visible container height. When you select 3 rows, each row occupies roughly one-third of the container height.
 
 ```typescript
 const gallery = vlist({
   container: '#gallery',
-  orientation: 'horizontal',  // ✅ Now supported!
+  orientation: 'horizontal',
   item: {
-    width: 200,   // Required for horizontal
-    height: 150,  // Column height (cross-axis)
+    // item.width = main-axis size (horizontal scroll direction)
+    // item.height = cross-axis row height (derived from container height)
+    width: 264,    // main-axis: horizontal extent per item
+    height: 192,   // cross-axis: visual row height
     template: (item) => `<img src="${item.url}" />`,
   },
   items: photos,
 })
-  .use(withGrid({ columns: 3, gap: 8 }))  // 3 vertical columns
+  .use(withGrid({ columns: 3, gap: 8 }))  // 3 rows stacked vertically
   .build();
 ```
 
-**How it works:**
-- 3 columns stack vertically in the viewport
-- Rows extend horizontally and virtualize as you scroll right
-- Each "row" contains 3 items (one per column)
-- Scroll horizontally to see more rows
+**4:3 aspect ratio in horizontal mode:**
+
+Because CSS dimensions are swapped by the renderer, the aspect ratio formula differs from vertical mode:
+
+```typescript
+// Container height is the cross-axis in horizontal mode
+const innerHeight = container.clientHeight - 2;
+const rowHeight = (innerHeight - (rows - 1) * gap) / rows;
+
+// For 4:3 landscape: visual_width / visual_height = 4/3
+//   visual_width  = item.width - gap  (CSS width = main axis)
+//   visual_height = rowHeight         (CSS height = cross axis)
+//   → item.width = rowHeight * (4/3) + gap
+const width = Math.round(rowHeight * (4 / 3) + gap);
+const height = Math.round(rowHeight);
+```
+
+Compare with vertical mode where `colWidth` comes from the container **width**:
+```typescript
+const innerWidth = container.clientWidth - 2;
+const colWidth = (innerWidth - (columns - 1) * gap) / columns;
+const height = Math.round(colWidth * 0.75);  // 4:3
+```
 
 **Visual representation:**
 ```
 Vertical Grid (orientation: 'vertical'):
 ┌────┬────┬────┬────┐
-│ 1  │ 2  │ 3  │ 4  │ ← Row 0
-├────┼────┼────┼────┤
+│ 1  │ 2  │ 3  │ 4  │ ← Row 0        Cross-axis divisions = columns
+├────┼────┼────┼────┤                  Cell size from container WIDTH
 │ 5  │ 6  │ 7  │ 8  │ ← Row 1
 └────┴────┴────┴────┘
    ↓ Scroll down
 
 Horizontal Grid (orientation: 'horizontal'):
-┌────┬────┐
-│ 1  │ 4  │ ← Column 0
-├────┼────┤
-│ 2  │ 5  │ ← Column 1
-├────┼────┤
-│ 3  │ 6  │ ← Column 2
-└────┴────┘
+┌────┬────┬────┐
+│ 1  │ 4  │ 7  │ ← Row 0             Cross-axis divisions = rows
+├────┼────┼────┤                      Cell size from container HEIGHT
+│ 2  │ 5  │ 8  │ ← Row 1
+├────┼────┼────┤
+│ 3  │ 6  │ 9  │ ← Row 2
+└────┴────┴────┘
   → Scroll right
 ```
 
@@ -1248,16 +1285,18 @@ const userHeight = (index, context) => context.columnWidth * 0.75;
 
 // Grid feature wraps it:
 const wrappedHeight = (index) => {
-  // Calculate current context
+  // containerWidth = cross-axis container dimension:
+  //   vertical mode  → viewport width
+  //   horizontal mode → viewport height
   const innerWidth = containerWidth - 2;  // Account for borders
   const totalGaps = (columns - 1) * gap;
   const columnWidth = (innerWidth - totalGaps) / columns;
   
   const context = {
-    containerWidth,
+    containerWidth,  // cross-axis dimension (not always the CSS width!)
     columns,
     gap,
-    columnWidth,
+    columnWidth,     // cross-axis cell size
   };
   
   // Call your function
@@ -1280,6 +1319,8 @@ When `updateGrid()` is called:
 3. Update grid layout (mutable columns/gap vars)
    ↓
 4. Update grid state object (referenced in closure)
+   └→ containerWidth = cross-axis dimension
+       (viewport width in vertical, viewport height in horizontal)
    ↓
 5. Recalculate total rows (items ÷ new columns)
    ↓
