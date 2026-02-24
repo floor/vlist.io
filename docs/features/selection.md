@@ -567,7 +567,7 @@ function selectItems(state, ids, mode) {
 ## Related Modules
 
 - [types.md](../api/types.md) - SelectionMode, SelectionState types
-- [handlers.md](../internals/handlers.md) - Click and keyboard handlers
+- [Context](../internals/context.md) - BuilderContext wires click and keyboard handlers
 - [methods.md](/docs/api/reference) - Public selection API methods
 - [context.md](../internals/context.md) - Context holds selection state
 

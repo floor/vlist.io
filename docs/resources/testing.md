@@ -616,4 +616,4 @@ bun test test/builder.test.ts
 
 ---
 
-*For module-specific implementation details, see the corresponding module documentation: [data](./features/async.md), [scroll](./features/scrollbar.md), [render](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [handlers](./internals/handlers.md), [methods]/docs/api/reference), [accessibility]/tutorials/accessibility).*
+*For module-specific implementation details, see the corresponding module documentation: [data](./features/async.md), [scroll](./features/scrollbar.md), [render](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [context](./internals/context.md), [methods](/docs/api/reference), [accessibility](/tutorials/accessibility).*

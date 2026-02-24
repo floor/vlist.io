@@ -25,6 +25,11 @@
         "slug": "api/events",
         "name": "Events",
         "desc": "Event system"
+      },
+      {
+        "slug": "api/constants",
+        "name": "Constants",
+        "desc": "Default values and thresholds"
       }
     ]
   },
@@ -100,6 +105,11 @@
         "slug": "resources/testing",
         "name": "Testing",
         "desc": "Test suite and patterns"
+      },
+      {
+        "slug": "resources/roadmap",
+        "name": "Roadmap",
+        "desc": "Completion analysis and competitive position"
       }
     ]
   },
@@ -107,8 +117,8 @@
     "label": "Internals",
     "items": [
       {
-        "slug": "internals/source-structure",
-        "name": "Source Structure",
+        "slug": "internals/structure",
+        "name": "Structure",
         "desc": "Complete source code map"
       },
       {
@@ -122,14 +132,9 @@
         "desc": "BuilderContext and feature system"
       },
       {
-        "slug": "internals/handlers",
-        "name": "Handlers",
-        "desc": "Event handler registration"
-      },
-      {
-        "slug": "internals/constants",
-        "name": "Constants",
-        "desc": "Default configuration values"
+        "slug": "internals/orientation",
+        "name": "Orientation",
+        "desc": "How vertical and horizontal share one code path"
       }
     ]
   }

@@ -16,6 +16,11 @@
         "slug": "api/events",
         "name": "Events",
         "desc": "Event system"
+      },
+      {
+        "slug": "api/constants",
+        "name": "Constants",
+        "desc": "Default values and thresholds"
       }
     ]
   },
@@ -98,6 +103,11 @@
         "desc": "Current limitations and workarounds"
       },
       {
+        "slug": "resources/roadmap",
+        "name": "Roadmap",
+        "desc": "Completion analysis and competitive position"
+      },
+      {
         "slug": "resources/examples",
         "name": "Examples",
         "desc": "Interactive example documentation"
@@ -108,8 +118,8 @@
     "label": "Internals",
     "cards": [
       {
-        "slug": "internals/source-structure",
-        "name": "Source Structure",
+        "slug": "internals/structure",
+        "name": "Structure",
         "desc": "Complete source code map"
       },
       {
@@ -121,6 +131,11 @@
         "slug": "internals/context",
         "name": "Context",
         "desc": "BuilderContext and feature system"
+      },
+      {
+        "slug": "internals/orientation",
+        "name": "Orientation",
+        "desc": "How vertical and horizontal share one code path"
       }
     ]
   }

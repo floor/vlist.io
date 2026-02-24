@@ -1398,8 +1398,7 @@ This pattern already existed in other parts of the codebase (reverse mode, appen
 - [methods.md](/docs/api/reference#snapshot-methods) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
 - [scale.md](./scale.md) — Compression state for large lists
 - [render.md](../internals/rendering.md) — Viewport state management
-- [handlers.md](../internals/handlers.md) — Scroll event handler
-- [context.md](../internals/context.md) — Context holds scroll controller
+- [Context](../internals/context.md) — BuilderContext holds scroll controller and wires event handlers
 - [optimization.md](/tutorials/optimization) — Full list of scroll-related optimizations
 - [styles.md](/tutorials/styling) — `.vlist--scrolling` class and CSS containment
 - [vlist.md](/) — Main vlist documentation (window scrolling, scroll save/restore)

@@ -1,31 +1,38 @@
-# Render Module
+# Rendering Module
 
 > DOM rendering, virtualization, and compression for vlist.
 
 ## Overview
 
-The render module is responsible for all DOM-related operations in vlist. It handles:
+The rendering module is responsible for all DOM-related operations in vlist. It handles:
 
-- **Height Cache**: Efficient size management for fixed and variable item heights (or widths in horizontal mode)
-- **DOM Structure**: Creating and managing the vlist DOM hierarchy (axis-aware for horizontal scrolling)
-- **Element Rendering**: Efficiently rendering items using an element pool with axis-aware positioning
+- **Size Cache**: Efficient size management for fixed and variable item sizes (height or width depending on orientation)
+- **DOM Structure**: Creating and managing the vlist DOM hierarchy (axis-aware, lives in `builder/dom.ts`)
+- **Element Rendering**: Efficiently rendering items using an element pool with axis-aware positioning (pool lives in `builder/pool.ts`)
 - **Virtual Scrolling**: Calculating visible ranges and viewport state
 - **Compression**: Handling large lists (1M+ items) that exceed browser limits
 
 ## Module Structure
 
 ```
-src/render/
+src/rendering/
 ├── index.ts        # Module exports
-├── dom.ts          # DOM structure, container resolution, content height/width (shared with core)
-├── pool.ts         # Element pool for DOM element recycling (shared with core)
-├── heights.ts      # Height/width cache for fixed and variable item sizes (shared with core)
+├── sizes.ts        # Size cache for fixed and variable item sizes (axis-neutral)
 ├── renderer.ts     # DOM rendering with compression support (axis-aware)
-├── virtual.ts      # Virtual scrolling calculations
-└── compression.ts  # Large list compression logic
+├── viewport.ts     # Virtual scrolling calculations and viewport state
+└── scale.ts        # Large list compression logic (1M+ items)
 ```
 
-> **Shared modules:** `dom.ts`, `pool.ts`, and `heights.ts` have zero dependencies on compression or other heavy vlist internals. They are imported by both the full `vlist` renderer and the lightweight `vlist/core` entry point, eliminating code duplication while preserving tree-shaking.
+Related modules in `builder/`:
+
+```
+src/builder/
+├── dom.ts          # DOM structure, container resolution (axis-aware)
+├── pool.ts         # Element pool for DOM element recycling
+└── ...
+```
+
+> **Shared modules:** `sizes.ts` has zero dependencies on compression or other heavy vlist internals. DOM structure (`builder/dom.ts`) and element pooling (`builder/pool.ts`) are shared by both the full `vlist` builder and the lightweight `vlist/core` entry point, eliminating code duplication while preserving tree-shaking.
 
 ## Key Concepts
 
@@ -650,10 +657,11 @@ calculateCompressedVisibleRange(scrollTop, containerHeight, itemHeight, totalIte
 
 ## Related Modules
 
-- [scale.md](../features/scale.md) - Detailed compression documentation
-- [scrollbar.md](../features/scrollbar.md) - Scroll controller
-- [context.md](./context.md) - Context that holds renderer reference
-- [handlers.md](./handlers.md) - Scroll handler triggers rendering
+- [Scale](../features/scale.md) — Detailed compression documentation
+- [Scrollbar](../features/scrollbar.md) — Scroll controller
+- [Context](./context.md) — Context that holds renderer reference and wires event handlers
+- [Orientation](./orientation.md) — How the axis-neutral SizeCache enables both vertical and horizontal scrolling
+- [Structure](./structure.md) — Complete source code map
 
 ---
 

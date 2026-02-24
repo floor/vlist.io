@@ -50,6 +50,7 @@ This documentation now focuses on **reference material** only.
 | **[Bundle Size](./resources/bundle-size.md)** | Bundle size analysis and optimisation |
 | **[Testing](./resources/testing.md)** | Test suite, coverage, and patterns |
 | **[Known Issues](./resources/known-issues.md)** | Current limitations and workarounds |
+| **[Roadmap](./resources/roadmap.md)** | Completion analysis and competitive position |
 | **[Examples](./resources/examples.md)** | Interactive example documentation |
 
 ### Internals
@@ -58,11 +59,10 @@ For contributors and advanced users:
 
 | Internal | Description |
 |----------|-------------|
+| **[Structure](./internals/structure.md)** | Complete source code map |
 | **[Rendering](./internals/rendering.md)** | DOM rendering, virtualisation, element pooling |
 | **[Context](./internals/context.md)** | BuilderContext and feature system internals |
-| **[Handlers](./internals/handlers.md)** | Event handler registration and execution |
-| **[Constants](./internals/constants.md)** | Default values and configuration constants |
-| **[Code Generator](./internals/code-generator.md)** | Template and code generation utilities |
+| **[Orientation](./internals/orientation.md)** | How vertical and horizontal share one code path |
 
 ### Refactoring
 

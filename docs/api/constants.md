@@ -1,6 +1,6 @@
-# Constants Module
+# Constants
 
-> Default values and magic numbers for vlist configuration.
+> Default values, thresholds, and magic numbers for vlist configuration.
 
 ## Overview
 
@@ -263,7 +263,7 @@ const SCROLL_IDLE_TIMEOUT = 150;
 - Post-scroll cleanup
 - Re-enabling CSS transitions (removing `.vlist--scrolling` class)
 
-> **Note:** This value is now configurable via the `idleTimeout` option on `VListConfig`. The constant serves as the default. See [optimization.md](./optimization.md#configuration-options) for tuning tips (e.g., increase to 200-300ms on mobile/touch devices).
+> **Note:** This value is now configurable via the `idleTimeout` option on `VListConfig`. The constant serves as the default. See [optimization.md](/tutorials/optimization#configuration-options) for tuning tips (e.g., increase to 200-300ms on mobile/touch devices).
 
 #### `DEFAULT_WHEEL_SENSITIVITY`
 
@@ -307,7 +307,7 @@ const DEFAULT_PRELOAD_AHEAD = 50;
 
 **Purpose**: Controls how many extra items are fetched ahead during medium-velocity scrolling. Higher values help slow APIs; lower values suit heavy templates.
 
-> **Note:** All three loading constants are configurable via the `loading` option on `VListConfig`. See [optimization.md](./optimization.md#configuration-options) for the velocity-based loading strategy table.
+> **Note:** All three loading constants are configurable via the `loading` option on `VListConfig`. See [optimization.md](/tutorials/optimization#configuration-options) for the velocity-based loading strategy table.
 
 ## Usage Examples
 
@@ -424,14 +424,15 @@ const TUNED_CHUNK_SIZE = 200;  // vs default 100
 const TUNED_PAGE_SIZE = 100;  // vs default 50
 ```
 
-## Related Modules
+## Related Documentation
 
-- [render.md](./rendering.md) - Uses `DEFAULT_OVERSCAN`, `MAX_VIRTUAL_HEIGHT`
-- [scrollbar.md](../features/scrollbar.md) - Uses `SCROLL_IDLE_TIMEOUT`, scrollbar constants
-- [async.md](../features/async.md) - Uses storage and placeholder constants
-- [handlers.md](./handlers.md) - Uses `LOAD_MORE_THRESHOLD`, `INITIAL_LOAD_SIZE`, loading thresholds
-- [optimization.md](/tutorials/optimization) - Full list of implemented optimizations and configuration options
+- [Rendering](../internals/rendering.md) — Uses `DEFAULT_OVERSCAN`, `MAX_VIRTUAL_HEIGHT`
+- [Scrollbar](../features/scrollbar.md) — Uses `SCROLL_IDLE_TIMEOUT`, scrollbar constants
+- [Async](../features/async.md) — Uses storage and placeholder constants
+- [Context](../internals/context.md) — BuilderContext that wires scroll, click, and keyboard handlers
+- [Optimization](/tutorials/optimization) — Full list of implemented optimizations and configuration options
+- [API Reference](./reference.md) — Complete API config, methods, events, types
 
 ---
 
-*The constants module provides a central reference for all configurable values in vlist.*
+*Central reference for all default values and configurable thresholds in vlist.*

@@ -455,8 +455,8 @@ const savedState = ctx.state;  // State will change!
 ## Related Modules
 
 - [vlist.md](/) - Main documentation, shows context creation
-- [handlers.md](./handlers.md) - Handlers that use context
-- [methods.md](/docs/api/reference) - Methods that use context
+- [Rendering](./rendering.md) - Rendering module that uses context
+- [API Reference](/docs/api/reference) - Public methods that use context
 - [render.md](./rendering.md) - DOMStructure, Renderer interfaces
 - [async.md](../features/async.md) - DataManager interface
 - [scrollbar.md](../features/scrollbar.md) - ScrollController interface

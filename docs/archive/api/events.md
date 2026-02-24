@@ -432,8 +432,7 @@ list.on('error', ({ error, context }) => {
 ## Related Modules
 
 - [types.md](./types.md) - Event type definitions
-- [handlers.md](../internals/handlers.md) - Event handlers that emit events
-- [context.md](../internals/context.md) - Context holds emitter reference
+- [Context](../internals/context.md) - BuilderContext holds emitter and wires event handlers
 
 ---
 
