@@ -1,8 +1,14 @@
 // src/server/compression.ts
-// Response compression with brotli/gzip and an LRU cache.
+// Response compression with pre-compressed file support and an LRU fallback.
+//
+// Priority:
+//   1. Serve pre-compressed .br/.gz files (generated at build time — instant)
+//   2. Fall back to synchronous compression with an LRU cache (slow first hit)
 
 import { gzipSync, brotliCompressSync } from "zlib";
 import { createHash } from "crypto";
+import { existsSync, readFileSync } from "fs";
+import { resolve, join } from "path";
 
 // =============================================================================
 // Cache
@@ -47,9 +53,81 @@ function shouldCompress(contentType: string): boolean {
 // Public API
 // =============================================================================
 
+// =============================================================================
+// Pre-compressed file lookup
+// =============================================================================
+
+/**
+ * Resolve a URL pathname to a filesystem path for pre-compressed files.
+ * Only works for /dist/* paths (build output).
+ */
+function resolveDistPath(pathname: string): string | null {
+  if (!pathname.startsWith("/dist/")) return null;
+  const filePath = resolve(join(".", pathname));
+  // Security: ensure we stay within the project
+  if (!filePath.startsWith(resolve("."))) return null;
+  return filePath;
+}
+
+/**
+ * Try to serve a pre-compressed file (.br or .gz) generated at build time.
+ * Returns null if no pre-compressed file exists.
+ */
+function tryPreCompressed(
+  response: Response,
+  acceptEncoding: string,
+  pathname: string,
+): Response | null {
+  const filePath = resolveDistPath(pathname);
+  if (!filePath) return null;
+
+  const lowerEncoding = acceptEncoding.toLowerCase();
+  const headers = new Headers(response.headers);
+  headers.set("Vary", "Accept-Encoding");
+
+  // Prefer brotli
+  if (lowerEncoding.includes("br")) {
+    const brPath = filePath + ".br";
+    if (existsSync(brPath)) {
+      const content = readFileSync(brPath);
+      headers.set("Content-Encoding", "br");
+      headers.set("Content-Length", content.length.toString());
+      return new Response(content, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+  }
+
+  // Fallback to gzip
+  if (lowerEncoding.includes("gzip")) {
+    const gzPath = filePath + ".gz";
+    if (existsSync(gzPath)) {
+      const content = readFileSync(gzPath);
+      headers.set("Content-Encoding", "gzip");
+      headers.set("Content-Length", content.length.toString());
+      return new Response(content, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+  }
+
+  return null;
+}
+
+// =============================================================================
+// Public API
+// =============================================================================
+
 /**
  * Compress a response based on the Accept-Encoding header.
- * Prefers brotli over gzip. Uses an LRU cache to avoid re-compressing.
+ *
+ * 1. Try pre-compressed .br/.gz files (instant, generated at build time)
+ * 2. Fall back to synchronous compression with an LRU cache
+ *
  * Returns the original response unchanged for non-compressible content.
  */
 export async function compressResponse(
@@ -64,6 +142,11 @@ export async function compressResponse(
     return response;
   }
 
+  // ── Fast path: serve pre-compressed build output ──
+  const preCompressed = tryPreCompressed(response, acceptEncoding, pathname);
+  if (preCompressed) return preCompressed;
+
+  // ── Slow path: compress on the fly with LRU cache ──
   try {
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

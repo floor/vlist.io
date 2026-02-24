@@ -8,6 +8,7 @@ import {
   watch,
 } from "fs";
 import { join, resolve } from "path";
+import { brotliCompressSync, gzipSync, constants } from "zlib";
 
 const isWatch = process.argv.includes("--watch");
 
@@ -120,6 +121,25 @@ function formatKB(bytes: number): string {
 function gzipSize(path: string): number {
   const raw = readFileSync(path);
   return Bun.gzipSync(new Uint8Array(raw)).byteLength;
+}
+
+/**
+ * Pre-compress a file with brotli and gzip, writing .br and .gz siblings.
+ * This avoids expensive synchronous compression at serve time.
+ */
+function preCompress(filePath: string): void {
+  const raw = readFileSync(filePath);
+  if (raw.length < 1024) return; // skip tiny files
+
+  const br = brotliCompressSync(raw, {
+    params: {
+      [constants.BROTLI_PARAM_QUALITY]: 6, // good balance of speed vs ratio
+    },
+  });
+  writeFileSync(filePath + ".br", br);
+
+  const gz = gzipSync(raw, { level: 6 });
+  writeFileSync(filePath + ".gz", gz);
 }
 
 interface SizeInfo {
@@ -288,10 +308,11 @@ async function buildExample(name: string): Promise<BuildResult> {
       }
     }
 
-    // Measure JS bundle size
+    // Measure JS bundle size and pre-compress
     const jsPath = join(outdir, "script.js");
     const jsMin = Bun.file(jsPath).size;
     const jsGzip = gzipSize(jsPath);
+    preCompress(jsPath);
 
     return {
       name,
