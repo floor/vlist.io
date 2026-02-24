@@ -48,42 +48,24 @@ const fetchItems = async (offset, limit) => {
   return { items, total: TOTAL_ITEMS, hasMore: end < TOTAL_ITEMS };
 };
 
-// Template — renders real items or placeholder skeletons
-const itemTemplate = (item, index) => {
-  if (item._isPlaceholder) {
-    return `
-      <div class="result-item">
-        <div class="result-icon result-icon--placeholder"></div>
-        <div class="result-body">
-          <div class="result-title result-title--placeholder"></div>
-          <div class="result-description result-description--placeholder"></div>
-          <div class="result-meta">
-            <span class="result-domain result-domain--placeholder"></span>
-            <span class="result-date result-date--placeholder"></span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  return `
+// Template — single template for both real items and placeholders.
+// The renderer adds .vlist-item--placeholder on the wrapper element,
+// so CSS handles the visual difference (skeleton blocks, shimmer, etc).
+const itemTemplate = (item, index) => `
     <div class="result-item">
-      <div class="result-icon" style="background: ${item.categoryColor}">${item.icon}</div>
+      <div class="result-icon" style="background: ${item.categoryColor || ""}">${item.icon || ""}</div>
       <div class="result-body">
-        <div class="result-title">${item.title}</div>
-        <div class="result-description">${item.description}</div>
+        <div class="result-title">${item.title || ""}</div>
+        <div class="result-description">${item.description || ""}</div>
         <div class="result-meta">
-          <span class="result-domain">${item.domain}</span>
-          <span class="result-sep">·</span>
-          <span class="result-date">${item.date}</span>
-          <span class="result-sep">·</span>
-          <span class="result-category" style="color: ${item.categoryColor}">${item.category}</span>
+          <span class="result-domain">${item.domain || ""}</span>
+          <span class="result-date">${item.date || ""}</span>
+          <span class="result-category" style="color: ${item.categoryColor || ""}">${item.category || ""}</span>
         </div>
       </div>
       <div class="result-index">#${index + 1}</div>
     </div>
   `;
-};
 
 // Create the virtual list with window scrolling + adapter
 const list = vlist({
@@ -172,7 +154,7 @@ if (delayInput) {
 
 // Log clicks
 list.on("item:click", ({ item, index }) => {
-  if (!item._isPlaceholder) {
+  if (!String(item.id).startsWith("__placeholder_")) {
     console.log(`Clicked: ${item.title} at index ${index}`);
   }
 });

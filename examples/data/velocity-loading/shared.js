@@ -72,35 +72,26 @@ export const fetchItems = (offset, limit) =>
   useRealApi ? fetchFromApi(offset, limit) : fetchSimulated(offset, limit);
 
 // =============================================================================
-// Templates
+// Template — single template for both real items and placeholders.
+// The renderer adds .vlist-item--placeholder on the wrapper element,
+// so CSS handles the visual difference (skeleton blocks, shimmer, etc).
+// Placeholder items carry the same fields as real data, filled with
+// mask characters (█) sized to match actual data from the first batch.
 // =============================================================================
 
-export const placeholderTemplate = () => `
-  <div class="item-content">
-    <div class="item-avatar item-avatar--placeholder"></div>
-    <div class="item-details">
-      <div class="item-name item-name--placeholder"></div>
-      <div class="item-email item-email--placeholder"></div>
-      <div class="item-role item-role--placeholder"></div>
-    </div>
-  </div>
-`;
-
 export const itemTemplate = (item, index) => {
-  if (item._isPlaceholder) return placeholderTemplate();
-
   const displayName = item.firstName
     ? `${item.firstName} ${item.lastName}`
-    : item.name;
-  const avatarText = item.avatar || displayName[0];
+    : item.name || "";
+  const avatarText = item.avatar || displayName[0] || "";
 
   return `
     <div class="item-content">
       <div class="item-avatar">${avatarText}</div>
       <div class="item-details">
         <div class="item-name">${displayName} (#${index + 1})</div>
-        <div class="item-email">${item.email}</div>
-        <div class="item-role">${item.role}</div>
+        <div class="item-email">${item.email || ""}</div>
+        <div class="item-role">${item.role || ""}</div>
       </div>
     </div>
   `;

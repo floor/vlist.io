@@ -296,62 +296,33 @@
 }
 
 /* ============================================================================
-   Placeholder Skeletons
+   Placeholder Skeletons — driven by .vlist-item--placeholder on the wrapper.
+   The template is identical for real and placeholder items; mask characters
+   (█) set the natural width, CSS hides them and shows skeleton blocks.
    ============================================================================ */
 
-.result-icon--placeholder {
-    background: var(--border);
-    animation: placeholder-pulse 1.5s ease-in-out infinite;
+.vlist-item--placeholder .result-icon {
+    background: var(--border) !important;
+    color: transparent;
 }
 
-.result-title--placeholder {
-    background: var(--border);
-    border-radius: 4px;
-    width: 220px;
-    height: 14px;
-    animation: placeholder-pulse 1.5s ease-in-out infinite;
-}
-
-.result-description--placeholder {
+.vlist-item--placeholder .result-title,
+.vlist-item--placeholder .result-description,
+.vlist-item--placeholder .result-domain,
+.vlist-item--placeholder .result-date,
+.vlist-item--placeholder .result-category {
+    color: transparent;
     background: var(--border);
     border-radius: 4px;
-    width: 340px;
-    max-width: 80%;
-    height: 13px;
-    margin-top: 4px;
-    animation: placeholder-pulse 1.5s ease-in-out infinite;
-    animation-delay: 0.1s;
+    width: fit-content;
 }
 
-.result-domain--placeholder {
-    display: inline-block;
-    background: var(--border);
-    border-radius: 3px;
-    width: 70px;
-    height: 11px;
-    animation: placeholder-pulse 1.5s ease-in-out infinite;
-    animation-delay: 0.2s;
+.vlist-item--placeholder .result-index {
+    color: transparent;
 }
 
-.result-date--placeholder {
-    display: inline-block;
-    background: var(--border);
-    border-radius: 3px;
-    width: 55px;
-    height: 11px;
-    margin-left: 10px;
-    animation: placeholder-pulse 1.5s ease-in-out infinite;
-    animation-delay: 0.3s;
-}
-
-@keyframes placeholder-pulse {
-    0%,
-    100% {
-        opacity: 0.4;
-    }
-    50% {
-        opacity: 0.8;
-    }
+.vlist-item--placeholder .result-sep {
+    visibility: hidden;
 }
 
 /* Item hover */
