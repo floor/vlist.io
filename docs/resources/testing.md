@@ -10,12 +10,14 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 1,763 |
-| Passing tests | 1,763 (100%) ✅ |
-| Total assertions | 5,178 |
+| Total tests | 1,848 |
+| Passing tests | 1,848 (100%) ✅ |
+| Total assertions | 5,334 |
 | Test files | 36 |
-| Coverage | 97.25% lines, 95.63% functions |
+| Coverage | 93.98% lines, 92.86% functions |
 | Runtime | ~10s |
+
+> **Coverage note:** Overall percentages decreased from 97%→94% because `page/feature.ts` (window scroll mode) is now imported by its test file, adding ~60 uncovered lines to the report. Previously it was invisible to coverage since no test imported it. The actual amount of tested code *increased*.
 
 ## Quick Start
 
@@ -116,10 +118,10 @@ test/
 | `builder/velocity.test.ts` | 30 | 70 | Velocity tracker — sample collection, stale gap detection, momentum calculation, smoothing |
 | `builder/scroll.test.ts` | 28 | 62 | Scroll handling — scroll event processing, position tracking, direction detection |
 | `builder/pool.test.ts` | 23 | 41 | Element pool — DOM element recycling, acquire/release, pool limits |
-| `builder/context.test.ts` | — | — | Context creation, wiring, state management (TODO) |
-| `builder/core.test.ts` | — | — | Builder core (TODO) |
+| `builder/context.test.ts` | 1 | 1 | Export verification (fully covered by `index.test.ts` — 233 tests via builder pipeline) |
+| `builder/core.test.ts` | 3 | 5 | Smoke tests — vlist() export, builder shape, use() chaining (fully covered by `index.test.ts`) |
 | `builder/data.test.ts` | 78 | 186 | SimpleDataManager — factory, getItem, isItemLoaded, getItemsInRange, setItems (full/partial/offset), updateItem, removeItem, setTotal, clear, reset, callbacks (onStateChange, onItemsLoaded), stub methods, edge cases |
-| `builder/dom.test.ts` | — | — | DOM operations (TODO) |
+| `builder/dom.test.ts` | 10 | 16 | resolveContainer (string selector, HTMLElement, error message), createDOMStructure (nesting, classes, ARIA, horizontal mode) |
 
 ### Feature Tests
 
@@ -137,8 +139,13 @@ test/
 | `features/snapshots/feature.test.ts` | 47 | 79 | Snapshots — getScrollSnapshot, restoreScroll, auto-restore via config, NaN guards, sizeCache rebuild, loadVisibleRange |
 | `features/async/feature.test.ts` | 42 | 53 | withAsync integration — adapter loading, data flow, error handling |
 | `features/selection/index.test.ts` | 61 | 100 | Selection state — single/multiple modes, toggle, range select, clear, keyboard focus |
+| `features/selection/feature.test.ts` | 30 | 42 | withSelection integration — factory, modes, click/keyboard handlers, 7 public methods (select/deselect/toggleSelect/selectAll/clearSelection/getSelected/getSelectedItems), initial selection, single vs multiple mode, ARIA live region, none mode |
 | `features/selection/state.test.ts` | 1 | 2 | Smoke check (fully covered by `index.test.ts` — 61 tests via barrel export) |
 | `features/scale/feature.test.ts` | 26 | 48 | Touch scroll — touch drag, momentum/inertial scroll, edge clamping, cancellation, horizontal mode, touchcancel, destroy cleanup |
+| `features/scrollbar/feature.test.ts` | 13 | 14 | withScrollbar integration — factory, config variants, DOM class, afterScroll/resize/destroy handler registration |
+| `features/sections/feature.test.ts` | 10 | 12 | withSections integration — factory, config variants, DOM class, template/size replacement, afterScroll handler, destroy cleanup |
+| `features/sections/sticky.test.ts` | 5 | 8 | createStickyHeader — factory, DOM append/remove, destroy cleanup, double-destroy safety, empty layout |
+| `features/page/feature.test.ts` | 20 | 35 | withPage (window scroll) — factory, DOM modifications (overflow, height, scrollbar class), context delegation (disableViewportResize, disableWheelHandler, setScrollTarget, setScrollFns, setContainerDimensions), scroll position functions, handler registration, destroy cleanup |
 
 ### Rendering
 
@@ -156,29 +163,20 @@ test/
 |------|------:|----------:|----------------|
 | `events/emitter.test.ts` | 22 | 46 | Event emitter — subscribe, emit, unsubscribe, once, error isolation, listener count |
 
-### TODO Stubs
+### Coverage Notes
 
-Several feature files have placeholder tests awaiting comprehensive coverage:
+Several modules are primarily tested through integration tests in `builder/index.test.ts` (233 tests, 531 assertions). Their dedicated test files contain smoke tests + documentation noting indirect coverage:
 
-| File | Status | Notes |
-|------|--------|-------|
-| `builder/core.test.ts` | TODO | Builder core module |
-| `builder/dom.test.ts` | TODO | Builder DOM operations (same logic tested in `rendering/renderer.test.ts`) |
-| `builder/context.test.ts` | TODO | Context creation & wiring |
-| `features/page/feature.test.ts` | TODO | withPage pagination feature |
-| `features/scrollbar/feature.test.ts` | TODO | withScrollbar feature integration |
-| `features/sections/feature.test.ts` | TODO | withSections feature integration |
-| `features/sections/sticky.test.ts` | TODO | Sticky header behavior |
-| `features/selection/feature.test.ts` | TODO | withSelection feature integration |
+| File | Tests | Coverage via |
+|------|------:|-------------|
+| `builder/core.test.ts` | 3 | `builder/index.test.ts` — 86% lines via full builder pipeline |
+| `builder/context.test.ts` | 1 | `builder/index.test.ts` — every `.build()` call creates a context |
+| `builder/dom.test.ts` | 10 | Also tested in `rendering/renderer.test.ts` (same logic, different module) |
+| `features/selection/state.test.ts` | 1 | `selection/index.test.ts` — 61 tests cover 100% of state.ts via barrel |
 
-These stubs follow the pattern:
-```vlist/test/features/page/feature.test.ts#L1-8
-describe("features/page/plugin.ts", () => {
-  it("should add tests for this module", () => {
-    // TODO: Add comprehensive tests
-  });
-});
-```
+Feature integration tests wire their respective modules into the builder context using mock contexts. They verify factory shape, config validation, DOM modifications, handler registration, public method registration, and destroy cleanup — but do not duplicate the unit-level logic tests already in sibling files (e.g., `scrollbar.test.ts`, `controller.test.ts`, `layout.test.ts`).
+
+The `page/feature.test.ts` tests are limited by JSDOM's inability to support `getBoundingClientRect()`, `window.scrollTo()`, and real layout calculations. They verify everything testable without a real browser: DOM style changes, context method delegation, handler registration, and cleanup.
 
 ## Coverage
 
@@ -209,7 +207,9 @@ The lcov report is written to `coverage/lcov.info`.
 
 ### Coverage Summary
 
-**Overall: 97.25% lines, 95.63% functions**
+**Overall: 93.98% lines, 92.86% functions**
+
+> The overall percentage decreased from 97%→94% because `page/feature.ts` (window scroll mode, ~175 lines) is now imported by its test file and counted in the report. Previously it was invisible since no test touched it. See the Page entry below for details.
 
 | Category | Lines | Functions |
 |----------|------:|----------:|
@@ -243,7 +243,7 @@ The lcov report is written to `coverage/lcov.info`.
 | `src/features/grid/layout.ts` | 97.71% | 100% |
 | `src/features/grid/renderer.ts` | 100% | 100% |
 | **Features — Page** | | |
-| (no coverage — TODO tests) | | |
+| `src/features/page/feature.ts` | 57.14% | 77.78% |
 | **Features — Scale** | | |
 | `src/features/scale/feature.ts` | 88.18% | 86.96% |
 | **Features — Scrollbar** | | |
@@ -273,9 +273,11 @@ Some lines remain uncovered due to JSDOM limitations, defensive code, and edge c
 | `builder/core.ts` | ~14% uncovered | Error paths, edge cases, compression branches, window mode paths requiring real browser |
 | `builder/materialize.ts` | ~2% uncovered | Edge cases in DOM diffing |
 | `features/async/feature.ts` | ~10% uncovered | Velocity-aware loading paths depending on real scroll timing |
+| `features/page/feature.ts` | ~43% uncovered | Window scroll mode — `getBoundingClientRect()`, `window.scrollTo()`, resize listener internals all require real browser layout. Tests cover factory, DOM modifications, context delegation, and cleanup |
 | `features/scale/feature.ts` | ~12% uncovered | Touch momentum physics, browser-specific paths |
+| `features/scrollbar/feature.ts` | ~11% uncovered | Edge cases in destroy cleanup path |
 | `features/sections/feature.ts` | ~15% uncovered | Complex section reflow paths |
-| `features/sections/sticky.ts` | ~14% uncovered | Sticky header transitions requiring real layout |
+| `features/sections/sticky.ts` | ~14% uncovered | Sticky header transitions requiring real layout (style assignment fails in JSDOM) |
 | `rendering/scale.ts` | ~10% uncovered | Compression edge cases at extreme ratios |
 | `rendering/viewport.ts` | ~4% uncovered | Defensive bounds checks |
 
