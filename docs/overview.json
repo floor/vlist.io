@@ -43,6 +43,11 @@
         "desc": "Async data loading with lazy loading and placeholders"
       },
       {
+        "slug": "features/placeholders",
+        "name": "Placeholders",
+        "desc": "Realistic skeleton loading states with zero template duplication"
+      },
+      {
         "slug": "features/selection",
         "name": "Selection",
         "desc": "Single & multi-select with keyboard navigation"

@@ -52,6 +52,11 @@
         "desc": "Lazy data loading (withAsync)"
       },
       {
+        "slug": "features/placeholders",
+        "name": "Placeholders",
+        "desc": "Realistic skeleton loading states"
+      },
+      {
         "slug": "features/selection",
         "name": "Selection",
         "desc": "Item selection & keyboard nav (withSelection)"
