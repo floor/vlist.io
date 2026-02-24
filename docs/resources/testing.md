@@ -10,14 +10,21 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 1,848 |
-| Passing tests | 1,848 (100%) ✅ |
-| Total assertions | 5,334 |
-| Test files | 36 |
-| Coverage | 93.98% lines, 92.86% functions |
-| Runtime | ~10s |
+| Total tests | 2,107 |
+| Passing tests | 2,107 (100%) ✅ |
+| Total assertions | 5,673 |
+| Test files | 42 |
+| Coverage | 94.29% lines, 93.14% functions |
+| Runtime | ~20s |
 
-> **Coverage note:** Overall percentages decreased from 97%→94% because `page/feature.ts` (window scroll mode) is now imported by its test file, adding ~60 uncovered lines to the report. Previously it was invisible to coverage since no test imported it. The actual amount of tested code *increased*.
+**Phase 1 (Critical Gaps) ✅ COMPLETE:**
+- Added 75 new tests across 3 files (boundary, recovery, async integration)
+- Focused on boundary conditions, error recovery, and async robustness
+
+**Phase 2 (Robustness) ✅ COMPLETE:**
+- Added 184 new tests across 3 files (integration, memory, performance)
+- Cross-feature integration scenarios, memory leak detection, performance benchmarks
+- Coverage improved: lines 94.03% → 94.29%, functions 92.95% → 93.14%
 
 ## Quick Start
 
@@ -38,6 +45,17 @@ bun test --test-name-pattern="velocity"
 bun test test/builder/
 bun test test/features/grid/
 
+# Run Phase 1 tests (boundary, recovery, async integration)
+bun test test/builder/boundary.test.ts
+bun test test/builder/recovery.test.ts
+bun test test/features/async/integration.test.ts
+
+# Run Phase 2 tests (integration, memory, performance)
+bun test test/integration/
+bun test test/integration/features.test.ts
+bun test test/integration/memory.test.ts
+bun test test/integration/performance.test.ts
+
 # Generate lcov report (for CI/editors)
 bun test --coverage --coverage-reporter=lcov
 ```
@@ -49,6 +67,7 @@ Tests mirror the source directory layout for easy navigation:
 ```
 test/
 ├── builder/                         # Builder system (src/builder/)
+│   ├── boundary.test.ts            # Edge cases: empty lists, extreme sizes, invalid values (Phase 1)
 │   ├── context.test.ts             # Context creation & wiring
 │   ├── core.test.ts                # Builder core (TODO)
 │   ├── data.test.ts                # Data handling (TODO)
@@ -58,6 +77,7 @@ test/
 │   ├── measured.test.ts            # Measured heights
 │   ├── pool.test.ts                # Element pool (DOM recycling)
 │   ├── range.test.ts               # Range calculations
+│   ├── recovery.test.ts            # Error handling: invalid config, adapter errors, state corruption (Phase 1)
 │   ├── scroll.test.ts              # Scroll handling
 │   └── velocity.test.ts            # Scroll velocity tracking
 ├── events/                          # Event system (src/events/)
@@ -65,6 +85,7 @@ test/
 ├── features/                        # Feature tests (src/features/)
 │   ├── async/                      # Async data loading
 │   │   ├── feature.test.ts         # withAsync feature integration
+│   │   ├── integration.test.ts     # Async loading states, race conditions, memory (Phase 1)
 │   │   ├── manager.test.ts         # Data manager (coordinator)
 │   │   ├── placeholder.test.ts     # Placeholder generation
 │   │   └── sparse.test.ts          # Sparse chunk storage
@@ -90,6 +111,10 @@ test/
 │   │   └── state.test.ts           # Selection state (TODO)
 │   └── snapshots/                  # Scroll snapshots
 │       └── feature.test.ts         # withSnapshots save/restore
+├── integration/                     # Cross-cutting integration tests (Phase 2)
+│   ├── features.test.ts            # Cross-feature interactions, dblclick, wrap mode, conflicts
+│   ├── memory.test.ts              # Memory leak detection, DOM cleanup, create/destroy cycles
+│   └── performance.test.ts         # Performance benchmarks, timing bounds, virtualization
 └── rendering/                       # Rendering system (src/rendering/)
     ├── measured.test.ts             # Measured height tracking
     ├── renderer.test.ts             # DOM renderer & element pool
@@ -104,8 +129,33 @@ test/
 - ✅ Clear separation: builder, features, rendering, events
 - ✅ Scalable as new features are added
 - ✅ TODO stubs for modules awaiting comprehensive tests
+- ✅ Integration tests for cross-feature scenarios, memory, and performance
 
 ## Test Inventory
+
+### Phase 1: Critical Gaps ✅ COMPLETE
+
+| File | Tests | What it covers |
+|------|------:|----------------|
+| `builder/boundary.test.ts` | 27 | Empty lists (0 items), single item lists, extreme datasets (100k-1M items), extreme dimensions (1px-10000px items), zero-dimension containers, invalid values (negative/NaN/0), rapid data mutations, viewport resizing edge cases |
+| `builder/recovery.test.ts` | 26 | Invalid configuration handling, adapter errors (sync/async/malformed), ResizeObserver requirements, state corruption recovery, event handler errors, memory leak prevention, multiple destroy calls safety |
+| `features/async/integration.test.ts` | 22 | Loading state transitions (aria-busy), error recovery and graceful degradation, race conditions with rapid scroll, memory leak detection, placeholder→content transitions, concurrent request handling, edge cases with async |
+
+**Phase 1 Results:** ✅ **75 new tests, all passing (100%)**
+
+These tests ensure vlist handles edge cases gracefully and recovers from errors without crashing. Coverage maintained at 94%+ while adding comprehensive boundary condition and error handling tests.
+
+### Phase 2: Robustness ✅ COMPLETE
+
+| File | Tests | Assertions | What it covers |
+|------|------:|----------:|----------------|
+| `integration/features.test.ts` | 87 | 130 | Double-click events (`item:dblclick`), horizontal mode with features, wrap mode `scrollToIndex`, feature method collision/conflict detection, group header click skip, scrollbar content size updates, scroll `wheel:false` config, scroll idle detection (scrolling class toggle), cross-feature destroy ordering (6 combos), async+snapshots, async+selection, async+grid, grid+selection, scale+selection, reverse+selection, reverse+snapshots, sections+grid combined, sections sticky+scroll, data operations with features, custom class prefix propagation, ARIA with selection, velocity events+idle, concurrent scroll+data |
+| `integration/memory.test.ts` | 47 | 62 | DOM cleanup after destroy (root, items, scrollbar, sticky, grid, ARIA live region), create/destroy cycles with no DOM accumulation (7 feature combos + async), async destroy during pending load, event listener leak detection (accumulation, unsub, off, post-destroy), ResizeObserver disconnect tracking, timer cleanup (idle, animation frames, cancelScroll), element pool cleanup, double-destroy safety (8 feature combos), data change cleanup (setItems, append/remove, scroll+render), feature state cleanup (selection, snapshots, async reload), large dataset cleanup (100K, 1M, replace cycles) |
+| `integration/performance.test.ts` | 50 | 55 | Init timing: 10K (<100ms), 100K (<500ms), 1M compressed (<2s), with features (<200ms). Render cycles: single scroll (<5–20ms), 100 consecutive (<50–100ms), compressed (<100ms). Data ops: setItems 10K (<50ms), append/prepend 1K (<10ms), updateItem (<1ms), removeItem (<5ms). Destroy: all sizes <10ms. scrollToIndex: all sizes <2–20ms. Selection: select 1K (<200ms), selectAll 10K (<100ms). Snapshots: capture <1ms, restore <5ms. Compression transitions, feature overhead bounds, virtualization correctness (rendered count stays bounded) |
+
+**Phase 2 Results:** ✅ **184 new tests, all passing (100%)**
+
+Phase 2 tests verify that features work correctly together, resources are properly cleaned up, and operations complete within reasonable time bounds. Coverage improved: lines 94.03% → 94.29%, functions 92.95% → 93.14%. Notable improvements: `builder/core.ts` 88.44% → 91.87% (+3.4%), `async/feature.ts` 89.90% → 96.94% (+7%).
 
 ### Builder System
 
@@ -113,15 +163,17 @@ test/
 |------|------:|----------:|----------------|
 | `builder/index.test.ts` | 233 | 531 | Composable builder (`vlist().use().build()`) — builder core, validation, feature system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withSections`, feature combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration |
 | `builder/materialize.test.ts` | 85 | 171 | DOM materialization — element creation, positioning, template application, update cycles, render range handling |
+| `builder/data.test.ts` | 78 | 186 | SimpleDataManager — factory, getItem, isItemLoaded, getItemsInRange, setItems (full/partial/offset), updateItem, removeItem, setTotal, clear, reset, callbacks (onStateChange, onItemsLoaded), stub methods, edge cases |
 | `builder/measured.test.ts` | 41 | 121 | Measured heights — dynamic height tracking, resize detection, height cache updates |
 | `builder/range.test.ts` | 36 | 180 | Range calculations — visible range, render range, overscan, edge cases |
 | `builder/velocity.test.ts` | 30 | 70 | Velocity tracker — sample collection, stale gap detection, momentum calculation, smoothing |
 | `builder/scroll.test.ts` | 28 | 62 | Scroll handling — scroll event processing, position tracking, direction detection |
+| `builder/boundary.test.ts` | 27 | 26 | Edge cases — empty lists (0 items), single item lists, extreme datasets (100k-1M items), extreme dimensions (1px-10000px), zero-dimension containers, invalid values (negative/NaN/0), rapid data mutations *(Phase 1)* |
+| `builder/recovery.test.ts` | 26 | 26 | Error handling — invalid config, adapter errors (sync/async/malformed), ResizeObserver requirements, state corruption recovery, event handler errors, memory leak prevention, multiple destroy safety *(Phase 1)* |
 | `builder/pool.test.ts` | 23 | 41 | Element pool — DOM element recycling, acquire/release, pool limits |
-| `builder/context.test.ts` | 1 | 1 | Export verification (fully covered by `index.test.ts` — 233 tests via builder pipeline) |
-| `builder/core.test.ts` | 3 | 5 | Smoke tests — vlist() export, builder shape, use() chaining (fully covered by `index.test.ts`) |
-| `builder/data.test.ts` | 78 | 186 | SimpleDataManager — factory, getItem, isItemLoaded, getItemsInRange, setItems (full/partial/offset), updateItem, removeItem, setTotal, clear, reset, callbacks (onStateChange, onItemsLoaded), stub methods, edge cases |
 | `builder/dom.test.ts` | 10 | 16 | resolveContainer (string selector, HTMLElement, error message), createDOMStructure (nesting, classes, ARIA, horizontal mode) |
+| `builder/core.test.ts` | 3 | 5 | Smoke tests — vlist() export, builder shape, use() chaining (fully covered by `index.test.ts`) |
+| `builder/context.test.ts` | 1 | 1 | Export verification (fully covered by `index.test.ts` — 233 tests via builder pipeline) |
 
 ### Feature Tests
 
@@ -129,6 +181,7 @@ test/
 |------|------:|----------:|----------------|
 | `features/async/manager.test.ts` | 113 | 215 | Data manager — setItems, setTotal, updateItem, removeItem, getters, loadRange, ensureRange, loadInitial, loadMore, reload, clear, reset, eviction, concurrent dedup, sparse array expansion |
 | `features/async/sparse.test.ts` | 111 | 272 | Sparse storage — chunk creation, get/set, ranges, LRU eviction, cache limits, loaded range tracking, clear, stats |
+| `features/async/integration.test.ts` | 22 | 22 | Loading state transitions (aria-busy), error recovery, race conditions with rapid scroll, memory leak detection, placeholder→content transitions, concurrent request handling, edge cases with async *(Phase 1)* |
 | `features/scrollbar/controller.test.ts` | 119 | 193 | Scroll controller — native, compressed, window, horizontal modes, velocity tracking, stale gap detection, smoothing, compression enable/disable, wheel handling, idle detection |
 | `features/grid/layout.test.ts` | 94 | 245 | Grid math — row/column calculation, item ranges, column width, offsets, round-trips, groups-aware layout with `isHeaderFn` |
 | `features/grid/renderer.test.ts` | 53 | 134 | Grid rendering — positioning, gap handling, resize, variable columns |
@@ -165,11 +218,23 @@ test/
 
 ### Coverage Notes
 
+**Phase 1 ✅ COMPLETE - Critical Gaps Addressed:**
+- **Edge Cases (27 tests):** Comprehensive boundary condition testing including empty lists, single items, extreme dataset sizes (1M+ items), extreme dimensions (1px to 10000px), zero-dimension containers, invalid values (negative/NaN/0), and rapid data mutations
+- **Error Handling (26 tests):** Full error recovery testing including invalid configs, adapter failures, ResizeObserver requirements, state corruption, event handler errors, memory leak prevention, and multiple destroy safety
+- **Async Adapter (22 tests):** Deep testing of loading states (aria-busy), error recovery, race conditions with rapid scroll, memory management, placeholder transitions, and edge cases
+
+**Phase 2 ✅ COMPLETE - Robustness Addressed:**
+- **Integration Scenarios (87 tests):** Cross-feature interactions (dblclick events, horizontal mode, wrap mode scrollToIndex, method collision/conflict detection, group header click skip, scroll config, idle detection, 20+ feature combinations, data operations with features, ARIA, velocity events, concurrent operations)
+- **Memory Leak Detection (47 tests):** DOM cleanup verification, create/destroy cycles with DOM node counting, event listener leak detection, ResizeObserver disconnect tracking, timer cleanup, element pool cleanup, double-destroy safety across all features, large dataset cleanup (100K–1M items)
+- **Performance Benchmarks (50 tests):** Timing bounds for initialization (10K–1M items), render cycles, data operations, destroy, scrollToIndex, selection, snapshots, compression transitions, feature overhead comparison, virtualization correctness
+
+**Combined Impact:** Added 259 tests across 6 files, coverage at 94.29% lines / 93.14% functions. All 2,107 tests passing.
+
 Several modules are primarily tested through integration tests in `builder/index.test.ts` (233 tests, 531 assertions). Their dedicated test files contain smoke tests + documentation noting indirect coverage:
 
 | File | Tests | Coverage via |
 |------|------:|-------------|
-| `builder/core.test.ts` | 3 | `builder/index.test.ts` — 86% lines via full builder pipeline |
+| `builder/core.test.ts` | 3 | `builder/index.test.ts` — 88% lines via full builder pipeline |
 | `builder/context.test.ts` | 1 | `builder/index.test.ts` — every `.build()` call creates a context |
 | `builder/dom.test.ts` | 10 | Also tested in `rendering/renderer.test.ts` (same logic, different module) |
 | `features/selection/state.test.ts` | 1 | `selection/index.test.ts` — 61 tests cover 100% of state.ts via barrel |
@@ -177,6 +242,11 @@ Several modules are primarily tested through integration tests in `builder/index
 Feature integration tests wire their respective modules into the builder context using mock contexts. They verify factory shape, config validation, DOM modifications, handler registration, public method registration, and destroy cleanup — but do not duplicate the unit-level logic tests already in sibling files (e.g., `scrollbar.test.ts`, `controller.test.ts`, `layout.test.ts`).
 
 The `page/feature.test.ts` tests are limited by JSDOM's inability to support `getBoundingClientRect()`, `window.scrollTo()`, and real layout calculations. They verify everything testable without a real browser: DOM style changes, context method delegation, handler registration, and cleanup.
+
+**Next Steps (Phase 3 - Optional):**
+- Phase 3: Cross-browser compatibility scenarios, real browser E2E tests
+
+**Note:** Phase 1 + 2 coverage is sufficient for production use. Remaining gaps are primarily in window mode (requires real browser), touch momentum physics, and defensive error paths.
 
 ## Coverage
 
@@ -207,15 +277,15 @@ The lcov report is written to `coverage/lcov.info`.
 
 ### Coverage Summary
 
-**Overall: 93.98% lines, 92.86% functions**
+**Overall: 94.29% lines, 93.14% functions** (2,107 tests)
 
-> The overall percentage decreased from 97%→94% because `page/feature.ts` (window scroll mode, ~175 lines) is now imported by its test file and counted in the report. Previously it was invisible since no test touched it. See the Page entry below for details.
+After Phase 2: Added 184 new tests focused on cross-feature integration, memory leak detection, and performance benchmarks. Coverage improved from 94.03% → 94.29% lines, 92.95% → 93.14% functions. Notable improvements: `builder/core.ts` +3.4%, `async/feature.ts` +7%.
 
-| Category | Lines | Functions |
-|----------|------:|----------:|
-| **Builder** | | |
-| `src/builder/core.ts` | 86.34% | 81.48% |
-| `src/builder/dom.ts` | 97.96% | 100% |
+| Category | Lines | Functions | Notes |
+|----------|------:|----------:|-------|
+| **Builder** | | | |
+| `src/builder/core.ts` | 91.87% | 87.04% | Improved with Phase 2 (was 88.44%) |
+| `src/builder/dom.ts` | 100% | 100% |
 | `src/builder/materialize.ts` | 97.61% | 79.12% |
 | `src/builder/pool.ts` | 100% | 100% |
 | `src/builder/range.ts` | 100% | 100% |
@@ -232,8 +302,8 @@ The lcov report is written to `coverage/lcov.info`.
 | `src/rendering/scale.ts` | 90.00% | 100% |
 | `src/rendering/sizes.ts` | 100% | 100% |
 | `src/rendering/viewport.ts` | 95.83% | 94.74% |
-| **Features — Async** | | |
-| `src/features/async/feature.ts` | 89.90% | 75.00% |
+| **Features — Async** | | | |
+| `src/features/async/feature.ts` | 96.94% | 80.95% | Improved with Phase 2 (was 89.90%) |
 | `src/features/async/index.ts` | 100% | 100% |
 | `src/features/async/manager.ts` | 100% | 100% |
 | `src/features/async/placeholder.ts` | 100% | 100% |
@@ -270,9 +340,9 @@ Some lines remain uncovered due to JSDOM limitations, defensive code, and edge c
 
 | File | Uncovered | Reason |
 |------|-----------|--------|
-| `builder/core.ts` | ~14% uncovered | Error paths, edge cases, compression branches, window mode paths requiring real browser |
+| `builder/core.ts` | ~8% uncovered | Horizontal wheel handler, measurement flush paths, window mode paths requiring real browser. Improved from ~14% by Phase 2 integration tests (dblclick, wrap mode, conflict detection, idle detection, scroll config) |
 | `builder/materialize.ts` | ~2% uncovered | Edge cases in DOM diffing |
-| `features/async/feature.ts` | ~10% uncovered | Velocity-aware loading paths depending on real scroll timing |
+| `features/async/feature.ts` | ~3% uncovered | A few velocity-aware loading paths depending on real scroll timing. Improved from ~10% by Phase 2 integration tests |
 | `features/page/feature.ts` | ~43% uncovered | Window scroll mode — `getBoundingClientRect()`, `window.scrollTo()`, resize listener internals all require real browser layout. Tests cover factory, DOM modifications, context delegation, and cleanup |
 | `features/scale/feature.ts` | ~12% uncovered | Touch momentum physics, browser-specific paths |
 | `features/scrollbar/feature.ts` | ~11% uncovered | Edge cases in destroy cleanup path |
@@ -281,10 +351,10 @@ Some lines remain uncovered due to JSDOM limitations, defensive code, and edge c
 | `rendering/scale.ts` | ~10% uncovered | Compression edge cases at extreme ratios |
 | `rendering/viewport.ts` | ~4% uncovered | Defensive bounds checks |
 
-**Note:** Despite gaps in line coverage, all critical paths are tested through integration tests in `builder/index.test.ts`. The uncovered lines are primarily:
-- Error handling paths (throw statements, defensive guards)
-- Browser-specific features requiring real DOM/layout
-- Touch/momentum physics edge cases
+**Note:** Despite gaps in line coverage, all critical paths are tested through integration tests in `builder/index.test.ts` (233 tests) and `integration/features.test.ts` (87 tests). The uncovered lines are primarily:
+- Browser-specific features requiring real DOM/layout (window scroll, touch momentum)
+- Horizontal wheel handler (requires real WheelEvent with deltaX/deltaY)
+- Measurement flush during scroll (requires real ResizeObserver timing)
 - Backwards compatibility code paths
 
 ## Testing Patterns
@@ -626,9 +696,9 @@ bun test --test-name-pattern="grid"
 
 | Source Directory | Test Directory | Files |
 |-----------------|---------------|------:|
-| `src/builder/` | `test/builder/` | 11 |
+| `src/builder/` | `test/builder/` | 13 |
 | `src/events/` | `test/events/` | 1 |
-| `src/features/async/` | `test/features/async/` | 4 |
+| `src/features/async/` | `test/features/async/` | 5 |
 | `src/features/grid/` | `test/features/grid/` | 3 |
 | `src/features/page/` | `test/features/page/` | 1 |
 | `src/features/scale/` | `test/features/scale/` | 1 |
@@ -637,7 +707,8 @@ bun test --test-name-pattern="grid"
 | `src/features/selection/` | `test/features/selection/` | 3 |
 | `src/features/snapshots/` | `test/features/snapshots/` | 1 |
 | `src/rendering/` | `test/rendering/` | 5 |
-| **Total** | | **36** |
+| *(cross-cutting)* | `test/integration/` | 3 |
+| **Total** | | **42** |
 
 ---
 
