@@ -254,7 +254,6 @@
     min-width: 80px;
     max-width: 120px;
     margin-top: 6px;
-    background: var(--surface-container-highest) !important;
     border-radius: 6px;
     display: block;
 }
@@ -263,13 +262,11 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--surface-container-highest) !important;
     flex-shrink: 0;
 }
 
 .item-name--placeholder,
 .item-email--placeholder {
-    background: var(--surface-container-highest) !important;
     border-radius: 6px;
     display: block;
 }

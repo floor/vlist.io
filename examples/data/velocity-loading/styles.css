@@ -92,13 +92,13 @@
    ============================================================================ */
 
 .vlist-item--placeholder .item-avatar {
-    background: var(--vlist-placeholder-bg, #e0e0e4);
+    background-color: rgba(102, 126, 234, 0.8);
     color: transparent;
 }
 
 .vlist-item--placeholder .item-name {
     color: transparent;
-    background: var(--vlist-placeholder-bg, #e0e0e4);
+    background-color: var(--vlist-placeholder-bg);
     border-radius: 4px;
     width: fit-content;
     min-width: 40%;
@@ -107,7 +107,7 @@
 
 .vlist-item--placeholder .item-email {
     color: transparent;
-    background: var(--vlist-placeholder-bg, #e0e0e4);
+    background-color: var(--vlist-placeholder-bg);
     border-radius: 4px;
     width: fit-content;
     min-width: 50%;
@@ -116,17 +116,11 @@
 
 .vlist-item--placeholder .item-role {
     color: transparent;
-    background: var(--vlist-placeholder-bg, #e0e0e4);
+    background-color: var(--vlist-placeholder-bg);
     border-radius: 4px;
     width: fit-content;
     min-width: 20%;
     line-height: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --vlist-placeholder-bg: #2a2d35;
-    }
 }
 
 /* ============================================================================
