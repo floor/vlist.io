@@ -127,6 +127,11 @@
         "desc": "DOM rendering and virtualization"
       },
       {
+        "slug": "internals/measurement",
+        "name": "Measurement",
+        "desc": "Item Auto-Size Measurement"
+      },
+      {
         "slug": "internals/context",
         "name": "Context",
         "desc": "BuilderContext and feature system"
