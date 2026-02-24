@@ -52,6 +52,8 @@ import "./comparison/virtua.js";
 import "./comparison/vue-virtual-scroller.js";
 import "./comparison/solidjs.js";
 
+import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
+
 // =============================================================================
 // Variant Support
 // =============================================================================
@@ -146,6 +148,7 @@ const FEATURE_DATA = FEATURES_DATA.features.map((f) => [f.name, ...f.support]);
 
 let selectedItemCounts = [ITEM_COUNTS[DEFAULT_ITEM_COUNT_INDEX]];
 let selectedStressMs = 0;
+let selectedScrollSpeed = SCROLL_SPEEDS[0].pxPerSec;
 let isRunning = false;
 let abortController = null;
 
@@ -200,6 +203,24 @@ function buildSuitePage(root, suite) {
           b.classList.toggle(
             "bench-size-btn--active",
             b.dataset.stress === btn.dataset.stress,
+          ),
+        );
+      });
+    });
+  }
+
+  // Wire up scroll speed buttons (scroll suites only)
+  const speedContainer = root.querySelector("#bench-scroll-speed");
+  if (speedContainer) {
+    const speedBtns = speedContainer.querySelectorAll(".bench-speed-btn");
+    speedBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (isRunning) return;
+        selectedScrollSpeed = parseInt(btn.dataset.speed, 10);
+        speedBtns.forEach((b) =>
+          b.classList.toggle(
+            "bench-size-btn--active",
+            b.dataset.speed === btn.dataset.speed,
           ),
         );
       });
@@ -514,6 +535,7 @@ const handleSuiteRunClick = async (suiteId) => {
       itemCounts: selectedItemCounts,
       suiteIds: [suiteId],
       stressMs: selectedStressMs,
+      scrollSpeed: selectedScrollSpeed,
       getContainer: (sid) => getViewportContainer(sid),
       signal: abortController.signal,
 

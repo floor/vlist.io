@@ -146,28 +146,35 @@ export const populateRealisticDOMChildren = (el, index) => {
 
 /**
  * Find the scrollable viewport element in a container.
- * Tries vlist's viewport first, then looks for overflow containers.
+ * Tries vlist's viewport first, then searches the subtree for any
+ * element with overflow scrolling (depth-first). This handles React
+ * libraries that wrap the scroll container in extra divs, which
+ * varies across browsers (Firefox in particular).
  */
 export const findViewport = (container) => {
   // Check for vlist viewport first
   const vp = container.querySelector(".vlist-viewport");
   if (vp) return vp;
 
-  // Look for any child with overflow scrolling
-  for (const child of container.children) {
-    const style = getComputedStyle(child);
-    if (
-      style.overflow === "auto" ||
-      style.overflow === "scroll" ||
-      style.overflowY === "auto" ||
-      style.overflowY === "scroll"
-    ) {
-      return child;
+  // Depth-first search for any descendant with overflow scrolling
+  const walk = (el) => {
+    for (const child of el.children) {
+      const style = getComputedStyle(child);
+      if (
+        style.overflow === "auto" ||
+        style.overflow === "scroll" ||
+        style.overflowY === "auto" ||
+        style.overflowY === "scroll"
+      ) {
+        return child;
+      }
+      const found = walk(child);
+      if (found) return found;
     }
-  }
+    return null;
+  };
 
-  // Fallback to first child
-  return container.firstElementChild;
+  return walk(container) || container.firstElementChild;
 };
 
 // =============================================================================

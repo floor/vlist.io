@@ -5,6 +5,7 @@
 
 import vlistPackage from "@floor/vlist/package.json";
 import { STRESS_LEVELS } from "./runner.js";
+import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
 
 // =============================================================================
 // Helpers
@@ -52,6 +53,20 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
           ${STRESS_LEVELS.map(
             (level, i) =>
               `<button class="bench-size-btn bench-stress-btn${i === 0 ? " bench-size-btn--active" : ""}" data-stress="${level.ms}" title="${level.ms === 0 ? "No extra CPU load" : `Burn ${level.ms}ms of CPU per frame during scroll`}">${level.label}</button>`,
+          ).join("")}
+        </div>
+        `
+            : ""
+        }
+        ${
+          suite.hasScrollSpeed
+            ? `
+        <div class="bench-controls__sep"></div>
+        <span class="bench-controls__label">Speed</span>
+        <div class="bench-controls__sizes" id="bench-scroll-speed">
+          ${SCROLL_SPEEDS.map(
+            (speed, i) =>
+              `<button class="bench-size-btn bench-speed-btn${i === 0 ? " bench-size-btn--active" : ""}" data-speed="${speed.pxPerSec}" title="${speed.pxPerSec.toLocaleString()} px/s — ${speed.id} scroll speed">${speed.label}</button>`,
           ).join("")}
         </div>
         `

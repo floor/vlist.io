@@ -22,6 +22,27 @@ export const SCROLL_DURATION_MS = 5000;
 export const SCROLL_SPEED_PX_PER_SEC = 7200;
 
 /**
+ * Available scroll speed presets for benchmarking at different intensities.
+ *
+ * - 1× (7200 px/s): Normal browsing pace — ~2.5 items/frame at 60fps.
+ *   This is the default and matches real-world casual scrolling.
+ *
+ * - 2× (14400 px/s): Fast flick scroll — ~5 items/frame at 60fps.
+ *   Simulates aggressive touch scrolling or fast mouse wheel.
+ *
+ * - 10× (72000 px/s): Stress test — ~25 items/frame at 60fps.
+ *   Pushes the virtual list to its limits with extreme DOM churn.
+ *
+ * Each speed causes progressively more item recycling per frame,
+ * exposing performance cliffs that are invisible at normal speed.
+ */
+export const SCROLL_SPEEDS = [
+  { id: "normal", label: "1×", pxPerSec: 7200 },
+  { id: "fast", label: "2×", pxPerSec: 14400 },
+  { id: "extreme", label: "10×", pxPerSec: 72000 },
+];
+
+/**
  * Preflight duration to check rAF rate before benchmark.
  * Used to detect display throttling.
  */

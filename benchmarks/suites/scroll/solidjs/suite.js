@@ -87,7 +87,12 @@ const findViewport = (container) => {
   return container.firstElementChild;
 };
 
-const measureScrollFPS = async (container, items, onProgress) => {
+const measureScrollFPS = async (
+  container,
+  items,
+  onProgress,
+  scrollSpeed = SCROLL_SPEED_PX_PER_SEC,
+) => {
   container.innerHTML = "";
   await waitFrames(2);
 
@@ -203,7 +208,7 @@ const measureScrollFPS = async (container, items, onProgress) => {
       lastScrollTime = now;
       scrollDriverTicks++;
 
-      const pxDelta = (SCROLL_SPEED_PX_PER_SEC * dt) / 1000;
+      const pxDelta = (scrollSpeed * dt) / 1000;
       scrollPos += pxDelta * scrollDirection;
 
       if (scrollPos >= maxScroll) {
@@ -309,8 +314,14 @@ defineSuite({
   name: "Scroll FPS (SolidJS)",
   description: `Sustained programmatic scrolling for ${SCROLL_DURATION_MS / 1000}s — measures rendering throughput`,
   icon: "📜",
+  hasScrollSpeed: true,
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({
+    itemCount,
+    container,
+    onStatus,
+    scrollSpeed = SCROLL_SPEED_PX_PER_SEC,
+  }) => {
     const items = generateItems(itemCount);
 
     const refreshDriver = createRefreshRateDriver();
@@ -362,14 +373,20 @@ defineSuite({
       await tryGC();
     }
 
-    onStatus(`Scrolling for ${SCROLL_DURATION_MS / 1000}s...`);
+    const speedLabel = `${scrollSpeed / 1000} px/ms`;
+    onStatus(`Scrolling at ${speedLabel} for ${SCROLL_DURATION_MS / 1000}s...`);
     const { frameTimes, frameWorkTimes, totalFrames, scrollDriverRate } =
-      await measureScrollFPS(container, items, (progress) => {
-        const remaining = Math.ceil(
-          (1 - progress) * (SCROLL_DURATION_MS / 1000),
-        );
-        onStatus(`Scrolling... ${remaining}s remaining`);
-      });
+      await measureScrollFPS(
+        container,
+        items,
+        (progress) => {
+          const remaining = Math.ceil(
+            (1 - progress) * (SCROLL_DURATION_MS / 1000),
+          );
+          onStatus(`Scrolling at ${speedLabel}... ${remaining}s remaining`);
+        },
+        scrollSpeed,
+      );
 
     refreshDriver.stop();
 

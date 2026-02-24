@@ -67,12 +67,26 @@ const benchmarkTanStackVirtual = async (
   }
 
   // React component using TanStack Virtual
+  //
+  // On Firefox the ref isn't populated before the first render cycle,
+  // so getScrollElement() returns null and the virtualizer crashes on
+  // scrollHeight access. We force a re-render once the ref is assigned
+  // via useState, and guard getVirtualItems/getTotalSize behind the
+  // null check so the first paint is an empty shell.
   const VirtualList = ({ itemCount, height }) => {
     const parentRef = React.useRef(null);
+    const [scrollEl, setScrollEl] = React.useState(null);
+
+    // Callback ref: fires when the DOM node mounts, triggering a
+    // re-render that hands the real element to the virtualizer.
+    const refCallback = React.useCallback((node) => {
+      parentRef.current = node;
+      setScrollEl(node);
+    }, []);
 
     const virtualizer = useVirtualizer({
       count: itemCount,
-      getScrollElement: () => parentRef.current,
+      getScrollElement: () => scrollEl,
       estimateSize: () => ITEM_HEIGHT,
       overscan: 5,
     });
@@ -80,41 +94,43 @@ const benchmarkTanStackVirtual = async (
     return React.createElement(
       "div",
       {
-        ref: parentRef,
+        ref: refCallback,
         style: {
           height: `${height}px`,
           overflow: "auto",
           width: "100%",
         },
       },
-      React.createElement(
-        "div",
-        {
-          style: {
-            height: `${virtualizer.getTotalSize()}px`,
-            width: "100%",
-            position: "relative",
-          },
-        },
-        virtualizer.getVirtualItems().map((virtualRow) =>
-          React.createElement(
+      scrollEl
+        ? React.createElement(
             "div",
             {
-              key: virtualRow.index,
-              className: "bench-item",
               style: {
-                position: "absolute",
-                top: 0,
-                left: 0,
+                height: `${virtualizer.getTotalSize()}px`,
                 width: "100%",
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
+                position: "relative",
               },
             },
-            ...createRealisticReactChildren(React, virtualRow.index),
-          ),
-        ),
-      ),
+            virtualizer.getVirtualItems().map((virtualRow) =>
+              React.createElement(
+                "div",
+                {
+                  key: virtualRow.index,
+                  className: "bench-item",
+                  style: {
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  },
+                },
+                ...createRealisticReactChildren(React, virtualRow.index),
+              ),
+            ),
+          )
+        : null,
     );
   };
 

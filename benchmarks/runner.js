@@ -442,6 +442,7 @@ export const runBenchmarks = async (options) => {
     itemCounts = [10_000, 100_000, 1_000_000],
     suiteIds,
     stressMs = 0,
+    scrollSpeed = 0,
     container,
     getContainer,
     onResult,
@@ -499,6 +500,7 @@ export const runBenchmarks = async (options) => {
           container: runContainer,
           onStatus: status,
           stressMs,
+          scrollSpeed,
         });
 
         result = {

@@ -164,7 +164,12 @@ const findViewport = (container) => {
  * @param {(progress: number) => void} [onProgress] - Progress callback (0-1)
  * @returns {Promise<{frameTimes: number[], frameWorkTimes: number[], totalFrames: number, scrollDriverRate: number}>}
  */
-const measureScrollFPS = async (container, items, onProgress) => {
+const measureScrollFPS = async (
+  container,
+  items,
+  onProgress,
+  scrollSpeed = SCROLL_SPEED_PX_PER_SEC,
+) => {
   container.innerHTML = "";
 
   const list = vlist({
@@ -322,7 +327,7 @@ const measureScrollFPS = async (container, items, onProgress) => {
       lastScrollTime = now;
       scrollDriverTicks++;
 
-      const pxDelta = (SCROLL_SPEED_PX_PER_SEC * dt) / 1000;
+      const pxDelta = (scrollSpeed * dt) / 1000;
       scrollPos += pxDelta * scrollDirection;
 
       // Bounce at top/bottom
@@ -457,8 +462,14 @@ defineSuite({
   name: "Scroll FPS (JavaScript)",
   description: `Sustained programmatic scrolling for ${SCROLL_DURATION_MS / 1000}s — measures rendering throughput`,
   icon: "📜",
+  hasScrollSpeed: true,
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({
+    itemCount,
+    container,
+    onStatus,
+    scrollSpeed = SCROLL_SPEED_PX_PER_SEC,
+  }) => {
     const items = generateItems(itemCount);
 
     // =====================================================================
@@ -529,14 +540,20 @@ defineSuite({
     // =====================================================================
     // Phase 4: Measure
     // =====================================================================
-    onStatus(`Scrolling for ${SCROLL_DURATION_MS / 1000}s...`);
+    const speedLabel = `${scrollSpeed / 1000} px/ms`;
+    onStatus(`Scrolling at ${speedLabel} for ${SCROLL_DURATION_MS / 1000}s...`);
     const { frameTimes, frameWorkTimes, totalFrames, scrollDriverRate } =
-      await measureScrollFPS(container, items, (progress) => {
-        const remaining = Math.ceil(
-          (1 - progress) * (SCROLL_DURATION_MS / 1000),
-        );
-        onStatus(`Scrolling... ${remaining}s remaining`);
-      });
+      await measureScrollFPS(
+        container,
+        items,
+        (progress) => {
+          const remaining = Math.ceil(
+            (1 - progress) * (SCROLL_DURATION_MS / 1000),
+          );
+          onStatus(`Scrolling at ${speedLabel}... ${remaining}s remaining`);
+        },
+        scrollSpeed,
+      );
 
     // Stop the canvas driver now that measurement is complete
     refreshDriver.stop();
