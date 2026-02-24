@@ -553,7 +553,7 @@ See [benchmarks.md](./resources/benchmarks.md) for full documentation.
 
 ---
 
-### 11. Auto-Height Measurement
+### 11. ✅ Auto-Height Measurement
 
 **Priority:** Low (Phase 4 polish — requires variable heights first).
 
@@ -565,12 +565,16 @@ See [benchmarks.md](./resources/benchmarks.md) for full documentation.
 item: {
   estimatedHeight: 48,
   template: myTemplate,
-  // vlist renders item, measures with getBoundingClientRect(),
+  // vlist renders item, measures with ResizeObserver,
   // caches actual height, adjusts scroll position
 }
 ```
 
-**Challenge:** Measuring causes layout, which is expensive. Must be batched and amortized — only measure items as they enter the viewport for the first time, then cache forever (or until data changes).
+**Implementation:** Shipped as Mode B. A `MeasuredSizeCache` wraps the existing variable `SizeCache` with measurement tracking. Items are rendered unconstrained, measured via `ResizeObserver`, and scroll position is corrected immediately per-batch (Direction C) to avoid visual jumps. Content size updates are deferred during scrolling to keep the scrollbar stable. Stick-to-bottom logic ensures scrolling to the end works correctly.
+
+- `src/rendering/measured.ts` — `MeasuredSizeCache` implementation (57 unit tests)
+- `src/builder/core.ts` — Config resolution, ResizeObserver wiring, scroll correction
+- `vlist.dev/examples/auto-size/` — Social feed demo (5,000 variable-height posts)
 
 ---
 
@@ -644,12 +648,12 @@ list.restoreScroll(saved);
 | 8 | Reverse mode (chat) | 🟡 Medium | Medium-Large | 3 | ✅ Done |
 | 9 | Framework adapters | 🟡 Medium | Small each | 3 | ✅ Done |
 | 10 | Public benchmarks | 🟠 High | Medium | 4 | ✅ Done |
-| 11 | Auto-height measurement | 🟢 Low | Medium | 4 | 🟡 Pending |
+| 11 | Auto-height measurement | 🟢 Low | Medium | 4 | ✅ Done |
 | 12 | Enhanced accessibility | 🟡 Medium | Small-Medium | 4 | ✅ Done |
 | 13 | Scroll save/restore | 🟢 Low | Small | 4 | ✅ Done |
 | 14 | Scroll config (wheel, scrollbar, wrap) | 🟡 Medium | Medium | 4 | ✅ Done |
 
-**Summary: 14 of 14 features shipped.** All phases complete. Only one low-priority nice-to-have remains (auto-height measurement).
+**Summary: 14 of 14 features shipped.** All phases complete. The full roadmap is done.
 
 ---
 
@@ -673,5 +677,5 @@ list.restoreScroll(saved);
 
 ---
 
-*Last updated: February 2026*
-*Status: 14/14 shipped. All phases complete. Only one low-priority nice-to-have remains (auto-height measurement).*
+*Last updated: July 2025*
+*Status: 14/14 shipped. All phases complete. Full roadmap done.*

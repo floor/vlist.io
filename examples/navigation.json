@@ -88,6 +88,11 @@
     "label": "Advanced Examples",
     "items": [
       {
+        "slug": "auto-size",
+        "name": "Auto-Size Measurement",
+        "desc": "Social feed with estimatedHeight — measures after render (Mode B)"
+      },
+      {
         "slug": "variable-heights",
         "name": "Variable Heights",
         "desc": "Chat feed with DOM-measured item heights"

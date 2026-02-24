@@ -18,6 +18,7 @@ The rendering module is responsible for all DOM-related operations in vlist. It 
 src/rendering/
 ├── index.ts        # Module exports
 ├── sizes.ts        # Size cache for fixed and variable item sizes (axis-neutral)
+├── measured.ts     # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts     # DOM rendering with compression support (axis-aware)
 ├── viewport.ts     # Virtual scrolling calculations and viewport state
 └── scale.ts        # Large list compression logic (1M+ items)
@@ -36,16 +37,17 @@ src/builder/
 
 ## Key Concepts
 
-### Size Cache (`sizes.ts`)
+### Size Cache (`sizes.ts`, `measured.ts`)
 
-The `SizeCache` abstraction enables both fixed and variable item sizes throughout the rendering pipeline. All virtual scrolling and compression functions accept a `SizeCache` instead of a raw `itemSize: number`.
+The `SizeCache` abstraction enables fixed, variable, and measured item sizes throughout the rendering pipeline. All virtual scrolling and compression functions accept a `SizeCache` instead of a raw `itemSize: number`.
 
-**Two implementations:**
+**Three implementations:**
 
 | Implementation | When | Offset Lookup | Index Search | Overhead |
 |----------------|------|---------------|--------------|----------|
 | **Fixed** | `size: number` | O(1) multiplication | O(1) division | Zero — identical to pre-variable-size code |
 | **Variable** | `size: (index) => number` | O(1) prefix-sum lookup | O(log n) binary search | Prefix-sum array rebuilt on data changes |
+| **Measured** | `estimatedHeight: number` | O(1) prefix-sum lookup | O(log n) binary search | Same as Variable + Map lookup for measured sizes |
 
 ```typescript
 import { createSizeCache, type SizeCache } from 'vlist';
@@ -79,6 +81,8 @@ interface SizeCache {
   isVariable(): boolean;                 // Fixed vs variable
 }
 ```
+
+The **Measured** implementation (`measured.ts`) wraps a Variable cache with a `Map<number, number>` of measured sizes. Unmeasured items fall back to the estimated size. Once measured, an item behaves identically to a variable-size item. See [Measurement](./measurement.md) for full details on `ResizeObserver` wiring, scroll correction, and content size deferral.
 
 **Helper functions** (used internally by compression):
 
@@ -657,6 +661,7 @@ calculateCompressedVisibleRange(scrollTop, containerHeight, itemHeight, totalIte
 
 ## Related Modules
 
+- [Measurement](./measurement.md) — Auto-size measurement (Mode B): MeasuredSizeCache, ResizeObserver wiring, scroll correction
 - [Scale](../features/scale.md) — Detailed compression documentation
 - [Scrollbar](../features/scrollbar.md) — Scroll controller
 - [Context](./context.md) — Context that holds renderer reference and wires event handlers

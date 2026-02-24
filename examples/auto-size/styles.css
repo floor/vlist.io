@@ -1,0 +1,208 @@
+/* Auto-Size Example — social feed with estimatedHeight (Mode B)
+   Common styles (.container, h1, .description, .stats, footer)
+   are provided by examples/examples.css using shell.css design tokens. */
+
+/* ==========================================================================
+   Controls
+   ========================================================================== */
+
+.controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.control-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.control-btn:active {
+    transform: scale(0.97);
+}
+
+/* ==========================================================================
+   Mode badge
+   ========================================================================== */
+
+.mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* ==========================================================================
+   List container
+   ========================================================================== */
+
+#list-container {
+    height: 600px;
+    background: var(--vlist-bg);
+    border-radius: 2px;
+}
+
+/* ==========================================================================
+   vlist item overrides
+   ========================================================================== */
+
+#list-container .vlist-item {
+    padding: 0;
+    border-bottom: none;
+    cursor: default;
+}
+
+/* ==========================================================================
+   Post card
+   ========================================================================== */
+
+.post {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--vlist-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.post__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.post__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 12px;
+    flex-shrink: 0;
+    letter-spacing: -0.3px;
+}
+
+.post__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.post__user {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--vlist-text);
+}
+
+.post__time {
+    font-size: 12px;
+    color: var(--vlist-text-muted);
+}
+
+/* ==========================================================================
+   Post body text
+   ========================================================================== */
+
+.post__body {
+    font-size: 14px;
+    color: var(--vlist-text);
+    opacity: 0.88;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* ==========================================================================
+   Image placeholder
+   ========================================================================== */
+
+.post__image {
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.post__image-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    letter-spacing: 0.2px;
+}
+
+/* ==========================================================================
+   Tags
+   ========================================================================== */
+
+.post__tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.post__tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent, #667eea);
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   Action bar
+   ========================================================================== */
+
+.post__actions {
+    display: flex;
+    gap: 4px;
+    padding-top: 2px;
+}
+
+.post__action {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--vlist-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+
+.post__action:hover {
+    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.08));
+    color: var(--vlist-text);
+}
+
+.post__action:active {
+    transform: scale(0.96);
+}

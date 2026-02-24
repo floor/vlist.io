@@ -212,6 +212,7 @@ Virtual scrolling calculations and rendering logic.
 src/rendering/
 ├── index.ts           # Rendering exports
 ├── heights.ts         # Height cache (prefix-sum array)
+├── measured.ts        # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts        # DOM renderer
 ├── scale.ts           # Scaling calculations for 1M+ items
 └── viewport.ts        # Viewport state management
@@ -219,6 +220,7 @@ src/rendering/
 
 **Key exports:**
 - `createHeightCache()` - Height cache factory
+- `createMeasuredSizeCache()` - Measured size cache factory (Mode B)
 - `createRenderer()` - Renderer factory
 - `createDOMStructure()` - DOM structure factory
 - Viewport utilities: `calculateRenderRange()`, `calculateTotalHeight()`, etc.

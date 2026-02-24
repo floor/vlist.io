@@ -65,12 +65,13 @@ interface SizeCache {
 }
 ```
 
-Two implementations share this interface:
+Three implementations share this interface:
 
 | Implementation | When | Complexity | How |
 |---------------|------|------------|-----|
 | **Fixed** | `item.height: 48` or `item.width: 200` | O(1) everything | Pure multiplication: `offset = index * size` |
 | **Variable** | `item.height: (i) => sizes[i]` | O(1) offset, O(log n) search | Prefix-sum array with binary search |
+| **Measured** | `item.estimatedHeight: 120` | Same as Variable + Map lookup | Wraps Variable with measurement tracking ([details](./measurement.md)) |
 
 The factory picks the right one:
 
@@ -86,7 +87,7 @@ const createSizeCache = (
 };
 ```
 
-Every module that needs item sizes — viewport calculations, compression, grid layout, sections, snapshots — depends only on `SizeCache`. None of them import anything axis-specific.
+Every module that needs item sizes — viewport calculations, compression, grid layout, sections, snapshots — depends only on `SizeCache`. None of them import anything axis-specific. The `MeasuredSizeCache` (Mode B) extends this interface with measurement tracking — once an item is measured, it behaves identically to a variable-size item. See [Measurement](./measurement.md) for details.
 
 ## Core Layer: ViewportState
 
@@ -326,6 +327,7 @@ The middle four steps (`SizeCache` → `Viewport` → `Range` → core render ma
 | File | Role |
 |------|------|
 | `src/rendering/sizes.ts` | `SizeCache` interface and implementations (fixed + variable) |
+| `src/rendering/measured.ts` | `MeasuredSizeCache` implementation (auto-size measurement, Mode B) |
 | `src/rendering/viewport.ts` | `ViewportState`, `CompressionState`, range calculations |
 | `src/builder/core.ts` | Builder with `isHorizontal` resolution and DOM translation |
 | `src/builder/dom.ts` | DOM structure creation with axis-aware layout |
@@ -333,6 +335,7 @@ The middle four steps (`SizeCache` → `Viewport` → `Range` → core render ma
 
 ## Related Documentation
 
+- [Measurement](./measurement.md) — How auto-size measurement (Mode B) extends the SizeCache with ResizeObserver-based measurement
 - [Height-to-Size Refactoring](../refactoring/height-to-size-refactoring.md) — The commit-by-commit story of how this architecture was built
 - [Rendering Internals](./rendering.md) — DOM rendering and virtualization
 - [Structure](./structure.md) — Complete source code map

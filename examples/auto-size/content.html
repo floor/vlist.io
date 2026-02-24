@@ -1,0 +1,34 @@
+<div class="container">
+    <header>
+        <h1>Auto-Size Measurement <span class="mode-badge" id="mode-badge">Mode B</span></h1>
+        <p class="description">
+            Social feed where item heights are <strong>unknown upfront</strong>.
+            Uses <code>estimatedHeight: 120</code> — vlist renders with that guess,
+            measures actual DOM height via <code>ResizeObserver</code>, caches the
+            result, and corrects scroll position so you see no jump.
+            Compare with <a href="/examples/variable-heights/">Variable Heights</a>
+            which pre-measures at init (Mode A).
+        </p>
+    </header>
+
+    <div class="stats" id="stats">Loading...</div>
+
+    <div class="controls">
+        <button id="jump-top" class="control-btn">⬆ Top</button>
+        <button id="jump-middle" class="control-btn">◆ Middle</button>
+        <button id="jump-bottom" class="control-btn">⬇ Bottom</button>
+        <button id="jump-random" class="control-btn">🎲 Random</button>
+    </div>
+
+    <div id="list-container"></div>
+
+    <footer>
+        <p>
+            Items are rendered with an estimated height of 120 px. After the
+            browser lays them out, a <code>ResizeObserver</code> fires with the
+            real size — the prefix-sum cache updates, scroll position corrects,
+            and from then on the item behaves like a known-size item (Mode A).
+            No per-frame measurement, no layout thrashing. ⚡
+        </p>
+    </footer>
+</div>
