@@ -10,11 +10,11 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 1,686 |
-| Passing tests | 1,686 (100%) ✅ |
-| Total assertions | 4,990 |
+| Total tests | 1,763 |
+| Passing tests | 1,763 (100%) ✅ |
+| Total assertions | 5,178 |
 | Test files | 36 |
-| Coverage | 97.17% lines, 95.51% functions |
+| Coverage | 97.25% lines, 95.63% functions |
 | Runtime | ~10s |
 
 ## Quick Start
@@ -118,7 +118,7 @@ test/
 | `builder/pool.test.ts` | 23 | 41 | Element pool — DOM element recycling, acquire/release, pool limits |
 | `builder/context.test.ts` | — | — | Context creation, wiring, state management (TODO) |
 | `builder/core.test.ts` | — | — | Builder core (TODO) |
-| `builder/data.test.ts` | — | — | Data handling (TODO) |
+| `builder/data.test.ts` | 78 | 186 | SimpleDataManager — factory, getItem, isItemLoaded, getItemsInRange, setItems (full/partial/offset), updateItem, removeItem, setTotal, clear, reset, callbacks (onStateChange, onItemsLoaded), stub methods, edge cases |
 | `builder/dom.test.ts` | — | — | DOM operations (TODO) |
 
 ### Feature Tests
@@ -137,6 +137,7 @@ test/
 | `features/snapshots/feature.test.ts` | 47 | 79 | Snapshots — getScrollSnapshot, restoreScroll, auto-restore via config, NaN guards, sizeCache rebuild, loadVisibleRange |
 | `features/async/feature.test.ts` | 42 | 53 | withAsync integration — adapter loading, data flow, error handling |
 | `features/selection/index.test.ts` | 61 | 100 | Selection state — single/multiple modes, toggle, range select, clear, keyboard focus |
+| `features/selection/state.test.ts` | 1 | 2 | Smoke check (fully covered by `index.test.ts` — 61 tests via barrel export) |
 | `features/scale/feature.test.ts` | 26 | 48 | Touch scroll — touch drag, momentum/inertial scroll, edge clamping, cancellation, horizontal mode, touchcancel, destroy cleanup |
 
 ### Rendering
@@ -162,15 +163,13 @@ Several feature files have placeholder tests awaiting comprehensive coverage:
 | File | Status | Notes |
 |------|--------|-------|
 | `builder/core.test.ts` | TODO | Builder core module |
-| `builder/data.test.ts` | TODO | Builder data handling |
-| `builder/dom.test.ts` | TODO | Builder DOM operations |
+| `builder/dom.test.ts` | TODO | Builder DOM operations (same logic tested in `rendering/renderer.test.ts`) |
 | `builder/context.test.ts` | TODO | Context creation & wiring |
 | `features/page/feature.test.ts` | TODO | withPage pagination feature |
 | `features/scrollbar/feature.test.ts` | TODO | withScrollbar feature integration |
 | `features/sections/feature.test.ts` | TODO | withSections feature integration |
 | `features/sections/sticky.test.ts` | TODO | Sticky header behavior |
 | `features/selection/feature.test.ts` | TODO | withSelection feature integration |
-| `features/selection/state.test.ts` | TODO | Selection state internals |
 
 These stubs follow the pattern:
 ```vlist/test/features/page/feature.test.ts#L1-8
@@ -210,7 +209,7 @@ The lcov report is written to `coverage/lcov.info`.
 
 ### Coverage Summary
 
-**Overall: 97.17% lines, 95.51% functions**
+**Overall: 97.25% lines, 95.63% functions**
 
 | Category | Lines | Functions |
 |----------|------:|----------:|
