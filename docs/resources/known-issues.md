@@ -563,18 +563,28 @@ See [benchmarks.md](./resources/benchmarks.md) for full documentation.
 
 ```typescript
 item: {
-  estimatedHeight: 48,
+  estimatedHeight: 120,
   template: myTemplate,
   // vlist renders item, measures with ResizeObserver,
-  // caches actual height, adjusts scroll position
+  // caches actual size, adjusts scroll position
 }
 ```
 
-**Implementation:** Shipped as Mode B. A `MeasuredSizeCache` wraps the existing variable `SizeCache` with measurement tracking. Items are rendered unconstrained, measured via `ResizeObserver`, and scroll position is corrected immediately per-batch (Direction C) to avoid visual jumps. Content size updates are deferred during scrolling to keep the scrollbar stable. Stick-to-bottom logic ensures scrolling to the end works correctly.
+**Implementation:** Shipped as Mode B. See [Auto-Size Measurement](../internals/measurement.md) for the full internals.
 
-- `src/rendering/measured.ts` — `MeasuredSizeCache` implementation (57 unit tests)
-- `src/builder/core.ts` — Config resolution, ResizeObserver wiring, scroll correction
-- `vlist.dev/examples/auto-size/` — Social feed demo (5,000 variable-height posts)
+Summary:
+- `MeasuredSizeCache` (`src/rendering/measured.ts`) wraps the variable `SizeCache` with a `Map<number, number>` of measured sizes. Unmeasured items fall back to the estimate; once measured, an item behaves identically to Mode A.
+- Items are rendered unconstrained so the browser lays out at natural content height, then `ResizeObserver` records the real size and constrains the element.
+- **Direction C scroll correction** — applied immediately per-batch in the `ResizeObserver` callback, even during active scrolling. Per-batch deltas are small and masked by the user's own scroll motion, so there is no visible jump.
+- **Content size deferral** — `updateContentSize()` is deferred during scrolling to keep the scrollbar thumb stable, then flushed on scroll idle.
+- **Stick-to-bottom** — if the user was at the scroll end before content size grew, the viewport snaps to the new maximum on flush.
+- Works for both orientations: `estimatedHeight` (vertical) and `estimatedWidth` (horizontal).
+
+**Source files:**
+- `src/rendering/measured.ts` — `MeasuredSizeCache` (57 unit tests)
+- `src/builder/core.ts` — config resolution, `ResizeObserver` wiring, scroll correction, content size deferral
+- `src/types.ts` — `estimatedHeight` / `estimatedWidth` on `ItemConfig`
+- `examples/auto-size/` — social feed demo (5,000 variable-height posts)
 
 ---
 
@@ -668,6 +678,7 @@ list.restoreScroll(saved);
 
 ## Related Documentation
 
+- [Auto-Size Measurement](../internals/measurement.md) — Full internals of Mode B: MeasuredSizeCache, ResizeObserver wiring, scroll correction, content size deferral
 - [Optimization Guide](/tutorials/optimization) — Implemented performance optimizations
 - [Main Documentation](/) — Configuration and usage
 - [Scale Guide](../features/scale.md) — How 1M+ item compression works
