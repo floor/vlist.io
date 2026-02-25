@@ -10,6 +10,7 @@
         "@tanstack/solid-virtual": "^3.13.18",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
+        "eta": "^4.5.1",
         "marked": "^17.0.1",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
@@ -332,6 +333,8 @@
     "estree-walker": ["estree-walker@2.0.2", "", {}, "sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w=="],
 
     "esutils": ["esutils@2.0.3", "", {}, "sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g=="],
+
+    "eta": ["eta@4.5.1", "", {}, "sha512-EaNCGm+8XEIU7YNcc+THptWAO5NfKBHHARxt+wxZljj9bTr/+arRoOm9/MpGt4n6xn9fLnPFRSoLD0WFYGFUxQ=="],
 
     "fdir": ["fdir@6.5.0", "", { "peerDependencies": { "picomatch": "^3 || ^4" }, "optionalPeers": ["picomatch"] }, "sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg=="],
 

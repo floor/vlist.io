@@ -1,0 +1,31 @@
+[
+  {
+    "label": "Docs",
+    "href": "/docs/",
+    "external": false,
+    "key": "docs"
+  },
+  {
+    "label": "Examples",
+    "href": "/examples/",
+    "external": false,
+    "key": "examples"
+  },
+  {
+    "label": "Tutorials",
+    "href": "/tutorials/",
+    "external": false,
+    "key": "tutorials"
+  },
+  {
+    "label": "Benchmarks",
+    "href": "/benchmarks/",
+    "external": false,
+    "key": "benchmarks"
+  },
+  {
+    "label": "GitHub",
+    "href": "https://github.com/floor/vlist",
+    "external": true
+  }
+]

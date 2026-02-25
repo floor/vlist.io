@@ -4,6 +4,21 @@
 export { SITE } from "./config";
 
 export {
+  loadShell,
+  loadNavigation,
+  buildSidebar,
+  buildSidebarWithOverview,
+  getValidSlugs,
+  findNavItem,
+  clearShellCache,
+  clearNavCache,
+  clearAllCaches,
+  type RendererConfig,
+  type BaseNavItem,
+  type BaseNavGroup,
+} from "./base";
+
+export {
   renderDocsPage,
   renderTutorialPage,
   clearDocsCache,

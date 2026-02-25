@@ -1,10 +1,19 @@
 // src/server/renderers/examples.ts
-// Server-side renderer for examples pages.
-// Assembles shell template + sidebar + example content into full HTML pages.
+// Server-side renderer for example pages.
+// Assembles shell template + sidebar + example content + source tabs.
 
-import { readFileSync, existsSync } from "fs";
+import { existsSync } from "fs";
+import { readFileSync } from "fs";
 import { join, resolve } from "path";
+import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
 import { SITE } from "./config";
+import {
+  loadShell,
+  loadNavigation,
+  buildSidebarWithOverview,
+  clearAllCaches,
+  type BaseNavGroup,
+} from "./base";
 
 // =============================================================================
 // Types
@@ -49,29 +58,13 @@ const VARIANT_LABELS: Record<Variant, string> = {
 // Cache
 // =============================================================================
 
-let shellCache: string | null = null;
-let navCache: ExampleGroup[] | null = null;
 let allExamplesCache: Map<string, ExampleItem> | null = null;
-
-function loadShell(): string {
-  if (!shellCache) {
-    shellCache = readFileSync(SHELL_PATH, "utf-8");
-  }
-  return shellCache;
-}
-
-function loadNavigation(): ExampleGroup[] {
-  if (!navCache) {
-    const raw = readFileSync(NAV_PATH, "utf-8");
-    navCache = JSON.parse(raw) as ExampleGroup[];
-  }
-  return navCache;
-}
 
 function getAllExamples(): Map<string, ExampleItem> {
   if (!allExamplesCache) {
     allExamplesCache = new Map();
-    for (const group of loadNavigation()) {
+    const groups = loadNavigation<ExampleGroup[]>(NAV_PATH);
+    for (const group of groups) {
       for (const item of group.items) {
         allExamplesCache.set(item.slug, item);
       }
@@ -81,8 +74,7 @@ function getAllExamples(): Map<string, ExampleItem> {
 }
 
 export function clearCache(): void {
-  shellCache = null;
-  navCache = null;
+  clearAllCaches();
   allExamplesCache = null;
 }
 
@@ -280,41 +272,18 @@ function buildVariantSwitcher(
 // =============================================================================
 
 function buildSidebar(activeSlug: string | null, variant?: Variant): string {
-  const lines: string[] = [];
-
   // Build query string to preserve variant across navigation
   const queryString =
     variant && variant !== "javascript" ? `?variant=${variant}` : "";
 
-  // Overview link
-  const overviewActive = activeSlug === null ? " sidebar__link--active" : "";
-  lines.push(`<div class="sidebar__group">`);
-  lines.push(
-    `  <a href="/examples/${queryString}" class="sidebar__link${overviewActive}">Overview</a>`,
+  const groups = loadNavigation<ExampleGroup[]>(NAV_PATH);
+  return buildSidebarWithOverview(
+    groups as BaseNavGroup[],
+    activeSlug,
+    "/examples",
+    "Overview",
+    queryString,
   );
-  lines.push(`</div>`);
-
-  for (const group of loadNavigation()) {
-    lines.push(`<div class="sidebar__group">`);
-    if (group.label) {
-      lines.push(`  <div class="sidebar__label">${group.label}</div>`);
-    }
-    if (group.items.length === 0) {
-      lines.push(
-        `  <span class="sidebar__link sidebar__link--soon">Coming soon</span>`,
-      );
-    } else {
-      for (const item of group.items) {
-        const active = item.slug === activeSlug ? " sidebar__link--active" : "";
-        lines.push(
-          `  <a href="/examples/${item.slug}${queryString}" class="sidebar__link${active}">${item.name}</a>`,
-        );
-      }
-    }
-    lines.push(`</div>`);
-  }
-
-  return lines.join("\n");
 }
 
 // =============================================================================
@@ -327,10 +296,11 @@ function buildOverviewContent(): string {
   sections.push(`<div class="overview">`);
   sections.push(`  <h1 class="overview__title">Examples</h1>`);
   sections.push(
-    `  <p class="overview__tagline">Interactive examples exploring every vlist feature — from basic lists to million-item stress tests.</p>`,
+    `  <p class="overview__tagline">Interactive examples for the VList virtual list library — from basic lists to million-item stress tests.</p>`,
   );
 
-  for (const group of loadNavigation()) {
+  const groups = loadNavigation<ExampleGroup[]>(NAV_PATH);
+  for (const group of groups) {
     if (!group.label) continue;
     sections.push(`  <div class="overview__section">`);
     sections.push(
@@ -433,7 +403,7 @@ function assemblePage(
   variant?: Variant,
   queryString?: string,
 ): string {
-  const shell = loadShell();
+  const shell = loadShell(SHELL_PATH);
 
   const title = example ? `VList — ${example.name}` : "VList — Examples";
 
@@ -441,154 +411,54 @@ function assemblePage(
     ? `VList ${example.name.toLowerCase()} example — ${example.desc}`
     : "Interactive examples for the VList virtual list library — from basic lists to million-item stress tests.";
 
-  const sidebar = buildSidebar(slug, variant);
-  const extraHead = buildExtraHead(slug, example, variant);
-  const extraBody = buildExtraBody(slug, example, variant);
-  const mainClass = "";
-
   const url = slug
     ? `${SITE}/examples/${slug}${queryString || ""}`
     : `${SITE}/examples/`;
 
-  return shell
-    .replace(/{{TITLE}}/g, title)
-    .replace(/{{DESCRIPTION}}/g, description)
-    .replace(/{{URL}}/g, url)
-    .replace(/{{SECTION}}/g, "Examples")
-    .replace(
-      /{{#if SECTION_LINK}}[\s\S]*?{{\/if}}/g,
-      '<a href="/examples/" class="header__section">Examples</a>',
-    )
-    .replace("{{SIDEBAR}}", sidebar)
-    .replace("{{CONTENT}}", content)
-    .replace("{{EXTRA_HEAD}}", extraHead)
-    .replace("{{EXTRA_BODY}}", extraBody)
-    .replace("{{MAIN_CLASS}}", mainClass)
-    .replace(
-      /{{EXTRA_STYLES}}/g,
-      '<link rel="stylesheet" href="/dist/examples/styles.css" />',
-    )
-    .replace(/{{OG_TYPE}}/g, "website")
-    .replace(/{{TWITTER_CARD}}/g, "summary")
-    .replace(/{{#if SEO_ENHANCED}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{#if HAS_IMPORTMAP}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{#if HAS_TOC}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{TOC}}/g, "")
-    .replace(/{{#if HAS_SYNTAX_HIGHLIGHTING}}[\s\S]*?{{\/if}}/g, () => {
-      return `<!-- ─── Syntax highlighting (client-side) ────────── -->
+  return render(shell, {
+    // Page content
+    TITLE: title,
+    DESCRIPTION: description,
+    URL: url,
+    SECTION: "Examples",
+    SECTION_LINK: "/examples/",
+    SECTION_KEY: "examples",
+    SIDEBAR: buildSidebar(slug, variant),
+    CONTENT: content,
 
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
-        <script>
-            hljs.highlightAll();
-        </script>`;
-    })
-    .replace(/{{#if HAS_ACTIVE_NAV}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{#if HAS_SOURCE_TABS}}[\s\S]*?{{\/if}}/g, () => {
-      return `<!-- ─── Source tab switching ─────────────────────── -->
+    // Styles & scripts
+    EXTRA_STYLES: '<link rel="stylesheet" href="/dist/examples/styles.css" />',
+    EXTRA_HEAD: buildExtraHead(slug, example, variant),
+    EXTRA_BODY: buildExtraBody(slug, example, variant),
+    MAIN_CLASS: "",
 
-        <script>
-            (function () {
-                var source = document.querySelector(".source");
-                if (!source) return;
-                var tabs = source.querySelectorAll(".source__tab");
-                var panels = source.querySelectorAll(".source__panel");
-                var toggle = document.getElementById("source-toggle");
-                var activeTab = null;
-                var sourceHeader = source.querySelector(".source__header");
+    // SEO metadata
+    OG_TYPE: "website",
+    OG_SITE_NAME: null,
+    TWITTER_CARD: "summary",
 
-                sourceHeader.addEventListener(
-                    "wheel",
-                    function (e) {
-                        e.preventDefault();
-                    },
-                    { passive: false },
-                );
+    // Feature flags
+    SEO_ENHANCED: false,
+    HAS_IMPORTMAP: false,
+    HAS_TOC: false,
+    HAS_SYNTAX_HIGHLIGHTING: true,
+    HAS_ACTIVE_NAV: false,
+    HAS_SOURCE_TABS: true,
+    PAGE_ATTR: null,
 
-                function updateSourceHeight() {
-                    var header = document.querySelector(
-                        ".content .container header",
-                    );
-                    if (!header) return;
-                    var headerBottom = header.getBoundingClientRect().bottom;
-                    var bodyHeight =
-                        window.innerHeight - headerBottom - 20 - 41;
-                    source.style.setProperty(
-                        "--source-body-height",
-                        Math.max(200, bodyHeight) + "px",
-                    );
-                }
+    // Navigation
+    NAV_ITEMS: loadHeaderNavigation(),
 
-                window.addEventListener("resize", function () {
-                    if (activeTab) {
-                        updateSourceHeight();
-                    }
-                });
-
-                function openTab(id) {
-                    updateSourceHeight();
-                    tabs.forEach(function (t) {
-                        t.classList.remove("source__tab--active");
-                    });
-                    panels.forEach(function (p) {
-                        p.classList.remove("source__panel--active");
-                    });
-                    var tab = source.querySelector('[data-tab="' + id + '"]');
-                    if (tab) tab.classList.add("source__tab--active");
-                    var panel = source.querySelector(
-                        '[data-panel="' + id + '"]',
-                    );
-                    if (panel) panel.classList.add("source__panel--active");
-                    source.classList.add("source--open");
-                    activeTab = id;
-                }
-
-                function closeDrawer() {
-                    source.classList.remove("source--open");
-                    tabs.forEach(function (t) {
-                        t.classList.remove("source__tab--active");
-                    });
-                    panels.forEach(function (p) {
-                        p.classList.remove("source__panel--active");
-                    });
-                    activeTab = null;
-                }
-
-                tabs.forEach(function (tab) {
-                    tab.addEventListener("click", function () {
-                        var id = tab.getAttribute("data-tab");
-                        if (activeTab === id) {
-                            closeDrawer();
-                        } else {
-                            openTab(id);
-                        }
-                    });
-                });
-
-                if (toggle) {
-                    toggle.addEventListener("click", function () {
-                        if (activeTab) {
-                            closeDrawer();
-                        } else {
-                            var firstTab = source.querySelector(".source__tab");
-                            if (firstTab)
-                                openTab(firstTab.getAttribute("data-tab"));
-                        }
-                    });
-                }
-            })();
-        </script>`;
-    })
-    .replace(/{{#if PAGE_ATTR}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{#if OG_SITE_NAME}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{PAGE_ATTR}}/g, "");
+    // Unused/empty fields
+    TOC: "",
+  });
 }
 
 // =============================================================================
 // Public API
 // =============================================================================
 
-export const EXAMPLE_GROUPS = loadNavigation();
+export const EXAMPLE_GROUPS = loadNavigation<ExampleGroup[]>(NAV_PATH);
 
 export function renderExamplesPage(
   slug: string | null,

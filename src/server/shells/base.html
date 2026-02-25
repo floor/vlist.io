@@ -3,27 +3,27 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="{{DESCRIPTION}}" />
-        <title>{{TITLE}}</title>
+        <meta name="description" content="<%= it.DESCRIPTION %>" />
+        <title><%= it.TITLE %></title>
 
-        <link rel="canonical" href="{{URL}}" />
+        <link rel="canonical" href="<%= it.URL %>" />
 
         <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="{{OG_TYPE}}" />
-        <meta property="og:url" content="{{URL}}" />
-        <meta property="og:title" content="{{TITLE}}" />
-        <meta property="og:description" content="{{DESCRIPTION}}" />
-        {{#if OG_SITE_NAME}}
-        <meta property="og:site_name" content="{{OG_SITE_NAME}}" />
-        {{/if}}
+        <meta property="og:type" content="<%= it.OG_TYPE %>" />
+        <meta property="og:url" content="<%= it.URL %>" />
+        <meta property="og:title" content="<%= it.TITLE %>" />
+        <meta property="og:description" content="<%= it.DESCRIPTION %>" />
+        <% if (it.OG_SITE_NAME) { %>
+        <meta property="og:site_name" content="<%= it.OG_SITE_NAME %>" />
+        <% } %>
 
         <!-- Twitter -->
-        <meta name="twitter:card" content="{{TWITTER_CARD}}" />
-        <meta name="twitter:url" content="{{URL}}" />
-        <meta name="twitter:title" content="{{TITLE}}" />
-        <meta name="twitter:description" content="{{DESCRIPTION}}" />
+        <meta name="twitter:card" content="<%= it.TWITTER_CARD %>" />
+        <meta name="twitter:url" content="<%= it.URL %>" />
+        <meta name="twitter:title" content="<%= it.TITLE %>" />
+        <meta name="twitter:description" content="<%= it.DESCRIPTION %>" />
 
-        {{#if SEO_ENHANCED}}
+        <% if (it.SEO_ENHANCED) { %>
         <!-- Additional SEO -->
         <meta name="author" content="Floor IO" />
         <meta
@@ -36,9 +36,9 @@
             {
                 "@context": "https://schema.org",
                 "@type": "TechArticle",
-                "headline": "{{TITLE}}",
-                "description": "{{DESCRIPTION}}",
-                "url": "{{URL}}",
+                "headline": "<%= it.TITLE %>",
+                "description": "<%= it.DESCRIPTION %>",
+                "url": "<%= it.URL %>",
                 "author": {
                     "@type": "Organization",
                     "name": "Floor IO",
@@ -51,7 +51,7 @@
                 },
                 "mainEntityOfPage": {
                     "@type": "WebPage",
-                    "@id": "{{URL}}"
+                    "@id": "<%= it.URL %>"
                 },
                 "inLanguage": "en-US",
                 "isPartOf": {
@@ -61,16 +61,16 @@
                 }
             }
         </script>
-        {{/if}}
+        <% } %>
 
         <!-- Common styles -->
         <link rel="stylesheet" href="/styles/shell.css" />
         <link rel="stylesheet" href="/styles/themes/index.css" />
 
         <!-- Page-specific styles -->
-        {{EXTRA_STYLES}}
+        <%~ it.EXTRA_STYLES %>
 
-        {{#if HAS_IMPORTMAP}}
+        <% if (it.HAS_IMPORTMAP) { %>
         <!-- Import map for module resolution -->
         <script type="importmap">
             {
@@ -84,7 +84,7 @@
                 }
             }
         </script>
-        {{/if}}
+        <% } %>
 
         <!-- Theme: apply before paint to prevent flash -->
         <script>
@@ -109,7 +109,7 @@
             })();
         </script>
 
-        {{EXTRA_HEAD}}
+        <%~ it.EXTRA_HEAD %>
     </head>
     <body>
         <!-- ─── Header ───────────────────────────────────── -->
@@ -118,21 +118,20 @@
             <div class="header__inner">
                 <a href="/" class="header__logo">VList</a>
                 <span class="header__sep">/</span>
-                {{#if SECTION_LINK}}
-                <a href="{{SECTION_LINK}}" class="header__section"
-                    >{{SECTION}}</a
+
+                <% if (it.SECTION_LINK) { %>
+                <a href="<%= it.SECTION_LINK %>" class="header__section"
+                    ><%= it.SECTION %></a
                 >
-                {{else}}
-                <span class="header__section">{{SECTION}}</span>
-                {{/if}}
+                <% } else { %>
+                <span class="header__section"><%= it.SECTION %></span>
+                <% } %>
                 <nav class="header__nav" id="header-nav">
-                    <a href="/examples/">Examples</a>
-                    <a href="/docs/">Docs</a>
-                    <a href="/tutorials/">Tutorials</a>
-                    <a href="/benchmarks/">Benchmarks</a>
-                    <a href="https://github.com/floor/vlist" target="_blank"
-                        >GitHub</a
+                    <% it.NAV_ITEMS.forEach(function(item) { %>
+                    <a href="<%= item.href %>"<% if (item.key && item.key === it.SECTION_KEY) { %> class="active"<% } %><% if (item.external) { %> target="_blank"<% } %>
+                        ><%= item.label %></a
                     >
+                    <% }); %>
                 </nav>
                 <div class="header__palette-wrapper">
                     <button
@@ -310,18 +309,18 @@
         <!-- ─── Layout ───────────────────────────────────── -->
 
         <div class="layout">
-            <nav class="sidebar" id="sidebar">{{SIDEBAR}}</nav>
+            <nav class="sidebar" id="sidebar"><%~ it.SIDEBAR %></nav>
 
-            <main class="content{{MAIN_CLASS}}"{{#if PAGE_ATTR}} id="content" data-page="{{PAGE_ATTR}}"{{/if}}>
-                {{CONTENT}}
+            <main class="content<%= it.MAIN_CLASS || '' %>"<% if (it.PAGE_ATTR) { %> id="content" data-page="<%= it.PAGE_ATTR %>"<% } %>>
+                <%~ it.CONTENT %>
             </main>
 
-            {{#if HAS_TOC}}{{TOC}}{{/if}}
+            <% if (it.HAS_TOC) { %><%~ it.TOC %><% } %>
         </div>
 
-        {{EXTRA_BODY}}
+        <%~ it.EXTRA_BODY %>
 
-        {{#if HAS_SYNTAX_HIGHLIGHTING}}
+        <% if (it.HAS_SYNTAX_HIGHLIGHTING) { %>
         <!-- ─── Syntax highlighting (client-side) ────────── -->
 
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
@@ -332,9 +331,9 @@
         <script>
             hljs.highlightAll();
         </script>
-        {{/if}}
+        <% } %>
 
-        {{#if HAS_ACTIVE_NAV}}
+        <% if (it.HAS_ACTIVE_NAV) { %>
         <!-- ─── Active nav link ───────────────────────────── -->
 
         <script>
@@ -350,7 +349,7 @@
                 }
             })();
         </script>
-        {{/if}}
+        <% } %>
 
         <!-- ─── Mobile toggle ────────────────────────────── -->
 
@@ -477,7 +476,7 @@
             })();
         </script>
 
-        {{#if HAS_TOC}}
+        <% if (it.HAS_TOC) { %>
         <!-- ─── TOC active link highlighting ─────────────── -->
 
         <script>
@@ -540,9 +539,9 @@
                 updateActive();
             })();
         </script>
-        {{/if}}
+        <% } %>
 
-        {{#if HAS_SOURCE_TABS}}
+        <% if (it.HAS_SOURCE_TABS) { %>
         <!-- ─── Source tab switching ─────────────────────── -->
 
         <script>
@@ -639,6 +638,6 @@
                 }
             })();
         </script>
-        {{/if}}
+        <% } %>
     </body>
 </html>

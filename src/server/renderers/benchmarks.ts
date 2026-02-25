@@ -2,9 +2,16 @@
 // Server-side renderer for benchmark pages.
 // Assembles shell template + sidebar + page content into full HTML pages.
 
-import { readFileSync } from "fs";
 import { join, resolve } from "path";
+import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
 import { SITE } from "./config";
+import {
+  loadShell,
+  loadNavigation,
+  buildSidebarWithOverview,
+  clearAllCaches,
+  type BaseNavGroup,
+} from "./base";
 
 // =============================================================================
 // Types
@@ -49,32 +56,16 @@ const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
 };
 
 // =============================================================================
-// Cache
+// Cache & Loaders
 // =============================================================================
 
-let shellCache: string | null = null;
-let navCache: BenchGroup[] | null = null;
 let allItemsCache: Map<string, BenchItem> | null = null;
-
-function loadShell(): string {
-  if (!shellCache) {
-    shellCache = readFileSync(SHELL_PATH, "utf-8");
-  }
-  return shellCache;
-}
-
-function loadNavigation(): BenchGroup[] {
-  if (!navCache) {
-    const raw = readFileSync(NAV_PATH, "utf-8");
-    navCache = JSON.parse(raw) as BenchGroup[];
-  }
-  return navCache;
-}
 
 function getAllItems(): Map<string, BenchItem> {
   if (!allItemsCache) {
     allItemsCache = new Map();
-    for (const group of loadNavigation()) {
+    const groups = loadNavigation<BenchGroup[]>(NAV_PATH);
+    for (const group of groups) {
       for (const item of group.items) {
         allItemsCache.set(item.slug, item);
       }
@@ -84,8 +75,7 @@ function getAllItems(): Map<string, BenchItem> {
 }
 
 export function clearCache(): void {
-  shellCache = null;
-  navCache = null;
+  clearAllCaches();
   allItemsCache = null;
 }
 
@@ -167,35 +157,18 @@ function buildVariantSwitcher(
 // =============================================================================
 
 function buildSidebar(activeSlug: string | null, variant?: Variant): string {
-  const lines: string[] = [];
-
   // Build query string to preserve variant across navigation
   const queryString =
     variant && variant !== "javascript" ? `?variant=${variant}` : "";
 
-  // Overview link (standalone, no group label)
-  const overviewActive = activeSlug === null ? " sidebar__link--active" : "";
-  lines.push(`<div class="sidebar__group">`);
-  lines.push(
-    `  <a href="/benchmarks/${queryString}" class="sidebar__link${overviewActive}">Overview</a>`,
+  const groups = loadNavigation<BenchGroup[]>(NAV_PATH);
+  return buildSidebarWithOverview(
+    groups as BaseNavGroup[],
+    activeSlug,
+    "/benchmarks",
+    "Overview",
+    queryString,
   );
-  lines.push(`</div>`);
-
-  for (const group of loadNavigation()) {
-    lines.push(`<div class="sidebar__group">`);
-    if (group.label) {
-      lines.push(`  <div class="sidebar__label">${group.label}</div>`);
-    }
-    for (const item of group.items) {
-      const active = item.slug === activeSlug ? " sidebar__link--active" : "";
-      lines.push(
-        `  <a href="/benchmarks/${item.slug}${queryString}" class="sidebar__link${active}">${item.name}</a>`,
-      );
-    }
-    lines.push(`</div>`);
-  }
-
-  return lines.join("\n");
 }
 
 // =============================================================================
@@ -211,7 +184,7 @@ function buildOverviewContent(): string {
     `  <p class="overview__tagline">Live performance measurements running in your browser. Each benchmark creates a real vlist instance, scrolls it programmatically, and measures actual frame times, render latency, and memory usage.</p>`,
   );
 
-  for (const group of loadNavigation()) {
+  for (const group of loadNavigation<BenchGroup[]>(NAV_PATH)) {
     if (!group.label) continue;
     lines.push(`  <div class="overview__section">`);
     lines.push(`    <div class="overview__section-title">${group.label}</div>`);
@@ -247,7 +220,7 @@ function assemblePage(
   variant?: Variant,
   queryString?: string,
 ): string {
-  const shell = loadShell();
+  const shell = loadShell(SHELL_PATH);
 
   const title = item ? `VList — ${item.name} Benchmark` : "VList — Benchmarks";
 
@@ -267,61 +240,51 @@ function assemblePage(
     ? `${SITE}/benchmarks/${slug}${queryString || ""}`
     : `${SITE}/benchmarks/`;
 
-  return shell
-    .replace(/{{TITLE}}/g, title)
-    .replace(/{{DESCRIPTION}}/g, description)
-    .replace(/{{URL}}/g, url)
-    .replace(/{{SECTION}}/g, "Benchmarks")
-    .replace(
-      /{{#if SECTION_LINK}}[\s\S]*?{{\/if}}/g,
-      '<span class="header__section">Benchmarks</span>',
-    )
-    .replace("{{SIDEBAR}}", sidebar)
-    .replace("{{CONTENT}}", content)
-    .replace("{{EXTRA_BODY}}", extraBody)
-    .replace(
-      /{{EXTRA_STYLES}}/g,
+  return render(shell, {
+    // Page content
+    TITLE: title,
+    DESCRIPTION: description,
+    URL: url,
+    SECTION: "Benchmarks",
+    SECTION_LINK: null,
+    SECTION_KEY: "benchmarks",
+    SIDEBAR: sidebar,
+    CONTENT: content,
+
+    // Styles & scripts
+    EXTRA_STYLES:
       '<link rel="stylesheet" href="/dist/vlist.css" />\n    <link rel="stylesheet" href="/benchmarks/dist/styles.css" />',
-    )
-    .replace(/{{OG_TYPE}}/g, "website")
-    .replace(/{{OG_SITE_NAME}}/g, "")
-    .replace(/{{TWITTER_CARD}}/g, "summary")
-    .replace(/{{#if SEO_ENHANCED}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{#if HAS_IMPORTMAP}}[\s\S]*?{{\/if}}/g, () => {
-      return `<!-- Import map for module resolution -->
-        <script type="importmap">
-            {
-                "imports": {
-                    "vlist": "/dist/index.js",
-                    "vlist/": "/dist/",
-                    "react": "/node_modules/react/index.js",
-                    "react-dom/client": "/node_modules/react-dom/client.js",
-                    "vue": "/node_modules/vue/dist/vue.esm-bundler.js",
-                    "react-window": "/node_modules/react-window/dist/index.esm.js"
-                }
-            }
-        </script>`;
-    })
-    .replace(/{{#if HAS_TOC}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{TOC}}/g, "")
-    .replace(/{{#if HAS_SYNTAX_HIGHLIGHTING}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{#if HAS_ACTIVE_NAV}}[\s\S]*?{{\/if}}/g, "")
-    .replace(/{{#if HAS_SOURCE_TABS}}[\s\S]*?{{\/if}}/g, "")
-    .replace(
-      .replace(/{{#if PAGE_ATTR}}[\s\S]*?{{\/if}}/g,
-        page ? ` id="content" data-page="${page}"` : "",
-      )
-      .replace(/{{#if OG_SITE_NAME}}[\s\S]*?{{\/if}}/g, "")
-      .replace(/{{EXTRA_HEAD}}/g, "")
-      .replace(/{{MAIN_CLASS}}/g, "")
-      .replace(/{{PAGE_ATTR}}/g, page);
+    EXTRA_HEAD: "",
+    EXTRA_BODY: extraBody,
+    MAIN_CLASS: "",
+
+    // SEO metadata
+    OG_TYPE: "website",
+    OG_SITE_NAME: null,
+    TWITTER_CARD: "summary",
+
+    // Feature flags
+    SEO_ENHANCED: false,
+    HAS_IMPORTMAP: true,
+    HAS_TOC: false,
+    HAS_SYNTAX_HIGHLIGHTING: false,
+    HAS_ACTIVE_NAV: false,
+    HAS_SOURCE_TABS: false,
+    PAGE_ATTR: page,
+
+    // Navigation
+    NAV_ITEMS: loadHeaderNavigation(),
+
+    // Unused/empty fields
+    TOC: "",
+  });
 }
 
 // =============================================================================
 // Public API
 // =============================================================================
 
-export const BENCH_GROUPS = loadNavigation();
+export const BENCH_GROUPS = loadNavigation<BenchGroup[]>(NAV_PATH);
 
 export function renderBenchmarkPage(
   slug: string | null,

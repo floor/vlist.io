@@ -5,7 +5,18 @@
 import { readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
 import { Marked, type Tokens } from "marked";
+import {
+  render as renderEta,
+  loadNavigation as loadHeaderNavigation,
+} from "../config/eta";
 import { SITE } from "./config";
+import {
+  loadShell as loadShellBase,
+  loadNavigation as loadNavigationBase,
+  getValidSlugs as getValidSlugsBase,
+  clearAllCaches,
+  type BaseNavGroup,
+} from "./base";
 
 // =============================================================================
 // Types
@@ -85,28 +96,18 @@ export function createContentRenderer(config: ContentConfig) {
     : null;
 
   // Cache
-  let shellCache: string | null = null;
-  let navCache: NavGroup[] | null = null;
   let overviewCache: OverviewSection[] | null = null;
-  let validSlugsCache: Set<string> | null = null;
 
   // ===========================================================================
   // Loaders
   // ===========================================================================
 
   function loadShell(): string {
-    if (!shellCache) {
-      shellCache = readFileSync(SHELL_PATH, "utf-8");
-    }
-    return shellCache;
+    return loadShellBase(SHELL_PATH);
   }
 
   function loadNavigation(): NavGroup[] {
-    if (!navCache) {
-      const raw = readFileSync(NAV_PATH, "utf-8");
-      navCache = JSON.parse(raw) as NavGroup[];
-    }
-    return navCache;
+    return loadNavigationBase<NavGroup[]>(NAV_PATH);
   }
 
   function loadOverviewSections(): OverviewSection[] {
@@ -132,22 +133,12 @@ export function createContentRenderer(config: ContentConfig) {
   }
 
   function getValidSlugs(): Set<string> {
-    if (!validSlugsCache) {
-      validSlugsCache = new Set<string>();
-      for (const group of loadNavigation()) {
-        for (const item of group.items) {
-          validSlugsCache.add(item.slug);
-        }
-      }
-    }
-    return validSlugsCache;
+    return getValidSlugsBase(loadNavigation() as BaseNavGroup[]);
   }
 
   function clearCache(): void {
-    shellCache = null;
-    navCache = null;
+    clearAllCaches();
     overviewCache = null;
-    validSlugsCache = null;
   }
 
   // ===========================================================================
@@ -410,109 +401,45 @@ export function createContentRenderer(config: ContentConfig) {
     toc: string = "",
   ): string {
     const shell = loadShell();
-    const sidebar = buildSidebar(slug);
-    const prevNext = buildPrevNext(slug);
     const url = slug ? `${SITE}${urlPrefix}/${slug}` : `${SITE}${urlPrefix}/`;
 
-    return shell
-      .replace(/{{TITLE}}/g, title)
-      .replace(/{{DESCRIPTION}}/g, description)
-      .replace(/{{URL}}/g, url)
-      .replace(/{{SECTION}}/g, sectionName)
-      .replace(
-        /{{#if SECTION_LINK}}[\s\S]*?{{\/if}}/g,
-        `<a href="${urlPrefix}/" class="header__section">${sectionName}</a>`,
-      )
-      .replace("{{SIDEBAR}}", sidebar)
-      .replace("{{CONTENT}}", content)
-      .replace("{{TOC}}", toc)
-      .replace(
-        /{{EXTRA_STYLES}}/g,
-        '<link rel="stylesheet" href="/styles/content.css" />',
-      )
-      .replace(/{{OG_TYPE}}/g, "article")
-      .replace(
-        /{{#if OG_SITE_NAME}}[\s\S]*?{{\/if}}/g,
-        '<meta property="og:site_name" content="VList" />',
-      )
-      .replace(/{{TWITTER_CARD}}/g, "summary_large_image")
-      .replace(/{{#if SEO_ENHANCED}}[\s\S]*?{{\/if}}/g, () => {
-        return `<!-- Additional SEO -->
-        <meta name="author" content="Floor IO" />
-        <meta
-            name="robots"
-            content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
-        />
+    return renderEta(shell, {
+      // Page content
+      TITLE: title,
+      DESCRIPTION: description,
+      URL: url,
+      SECTION: sectionName,
+      SECTION_LINK: `${urlPrefix}/`,
+      SECTION_KEY: urlPrefix === "/docs" ? "docs" : "tutorials",
+      SIDEBAR: buildSidebar(slug),
+      CONTENT: content + buildPrevNext(slug),
 
-        <!-- JSON-LD Structured Data -->
-        <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "TechArticle",
-                "headline": "${title}",
-                "description": "${description}",
-                "url": "${url}",
-                "author": {
-                    "@type": "Organization",
-                    "name": "Floor IO",
-                    "url": "https://floor.io"
-                },
-                "publisher": {
-                    "@type": "Organization",
-                    "name": "VList",
-                    "url": "https://vlist.dev"
-                },
-                "mainEntityOfPage": {
-                    "@type": "WebPage",
-                    "@id": "${url}"
-                },
-                "inLanguage": "en-US",
-                "isPartOf": {
-                    "@type": "WebSite",
-                    "name": "VList Documentation",
-                    "url": "https://vlist.dev"
-                }
-            }
-        </script>`;
-      })
-      .replace(/{{#if HAS_IMPORTMAP}}[\s\S]*?{{\/if}}/g, "")
-      .replace(/{{#if HAS_TOC}}[\s\S]*?{{\/if}}/g, toc ? "true" : "")
-      .replace(/{{#if HAS_SYNTAX_HIGHLIGHTING}}[\s\S]*?{{\/if}}/g, () => {
-        return `<!-- ─── Syntax highlighting (client-side) ────────── -->
+      // Styles & scripts
+      EXTRA_STYLES: '<link rel="stylesheet" href="/styles/content.css" />',
+      EXTRA_HEAD: "",
+      EXTRA_BODY: "",
+      MAIN_CLASS: "",
 
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/typescript.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/bash.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/scss.min.js"></script>
-        <script>
-            hljs.highlightAll();
-        </script>`;
-      })
-      .replace(/{{#if HAS_ACTIVE_NAV}}[\s\S]*?{{\/if}}/g, () => {
-        return `<!-- ─── Active nav link ───────────────────────────── -->
+      // SEO metadata
+      OG_TYPE: "article",
+      OG_SITE_NAME: "VList",
+      TWITTER_CARD: "summary_large_image",
 
-        <script>
-            (function () {
-                var links = document.querySelectorAll("#header-nav a");
-                var path = window.location.pathname;
-                for (var i = 0; i < links.length; i++) {
-                    var href = links[i].getAttribute("href");
-                    if (href && href !== "/" && path.startsWith(href)) {
-                        links[i].classList.add("active");
-                        break;
-                    }
-                }
-            })();
-        </script>`;
-      })
-      .replace(/{{#if HAS_SOURCE_TABS}}[\s\S]*?{{\/if}}/g, "")
-      .replace(/{{#if PAGE_ATTR}}[\s\S]*?{{\/if}}/g, "")
-      .replace(/{{EXTRA_HEAD}}/g, "")
-      .replace(/{{EXTRA_BODY}}/g, "")
-      .replace(/{{MAIN_CLASS}}/g, "")
-      .replace(/{{PAGE_ATTR}}/g, "")
-      .replace("{{PREVNEXT}}", prevNext);
+      // Feature flags
+      SEO_ENHANCED: true,
+      HAS_IMPORTMAP: false,
+      HAS_TOC: !!toc,
+      HAS_SYNTAX_HIGHLIGHTING: true,
+      HAS_ACTIVE_NAV: false,
+      HAS_SOURCE_TABS: false,
+      PAGE_ATTR: null,
+
+      // TOC content
+      TOC: toc,
+
+      // Navigation
+      NAV_ITEMS: loadHeaderNavigation(),
+    });
   }
 
   // ===========================================================================
