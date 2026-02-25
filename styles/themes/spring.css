@@ -1,0 +1,122 @@
+/* vlist.dev/styles/themes/spring.css */
+
+/* Spring theme - Fresh spring green */
+
+[data-theme="spring"] {
+  /* Key colors generated from seed color #76D275 (fresh spring green) */
+  --color-primary: #006e2b;
+  --color-primary-rgb: 0, 110, 43;
+  --color-on-primary: #ffffff;
+  --color-on-primary-rgb: 255, 255, 255;
+  --color-primary-container: #95f99a;
+  --color-primary-container-rgb: 149, 249, 154;
+  --color-on-primary-container: #002108;
+  --color-on-primary-container-rgb: 0, 33, 8;
+
+  --color-secondary: #526350;
+  --color-secondary-rgb: 82, 99, 80;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-rgb: 255, 255, 255;
+  --color-secondary-container: #d5e8cf;
+  --color-secondary-container-rgb: 213, 232, 207;
+  --color-on-secondary-container: #101f10;
+  --color-on-secondary-container-rgb: 16, 31, 16;
+
+  --color-tertiary: #386667;
+  --color-tertiary-rgb: 56, 102, 103;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-rgb: 255, 255, 255;
+  --color-tertiary-container: #bbecee;
+  --color-tertiary-container-rgb: 187, 236, 238;
+  --color-on-tertiary-container: #002021;
+  --color-on-tertiary-container-rgb: 0, 32, 33;
+
+  /* Neutral colors */
+  --color-surface: #f8fff3;
+  --color-surface-rgb: 248, 255, 243;
+  --color-surface-dim: #d9e8d3;
+  --color-surface-dim-rgb: 217, 232, 211;
+  --color-surface-bright: #f8fff3;
+  --color-surface-bright-rgb: 248, 255, 243;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-lowest-rgb: 255, 255, 255;
+  --color-surface-container-low: #f2faed;
+  --color-surface-container-low-rgb: 242, 250, 237;
+  --color-surface-container: #ecf4e7;
+  --color-surface-container-rgb: 236, 244, 231;
+  --color-surface-container-high: #e6eee1;
+  --color-surface-container-high-rgb: 230, 238, 225;
+  --color-surface-container-highest: #e0e8db;
+  --color-surface-container-highest-rgb: 224, 232, 219;
+
+  --color-on-surface: #191d19;
+  --color-on-surface-rgb: 25, 29, 25;
+  --color-on-surface-variant: #424940;
+  --color-on-surface-variant-rgb: 66, 73, 64;
+
+  --color-outline: #727970;
+  --color-outline-rgb: 114, 121, 112;
+  --color-outline-variant: #c1c9be;
+  --color-outline-variant-rgb: 193, 201, 190;
+
+  /* Workaround: Override surface-rgb for disabled button visibility */
+  --color-surface-rgb: 25, 29, 25;
+}
+
+[data-theme="spring"][data-theme-mode="dark"] {
+  /* Key colors - Dark mode */
+  --color-primary: #79dc80;
+  --color-primary-rgb: 121, 220, 128;
+  --color-on-primary: #003914;
+  --color-on-primary-rgb: 0, 57, 20;
+  --color-primary-container: #00531f;
+  --color-primary-container-rgb: 0, 83, 31;
+  --color-on-primary-container: #95f99a;
+  --color-on-primary-container-rgb: 149, 249, 154;
+
+  --color-secondary: #b9ccb3;
+  --color-secondary-rgb: 185, 204, 179;
+  --color-on-secondary: #263424;
+  --color-on-secondary-rgb: 38, 52, 36;
+  --color-secondary-container: #3c4b3a;
+  --color-secondary-container-rgb: 60, 75, 58;
+  --color-on-secondary-container: #d5e8cf;
+  --color-on-secondary-container-rgb: 213, 232, 207;
+
+  --color-tertiary: #a0d0d2;
+  --color-tertiary-rgb: 160, 208, 210;
+  --color-on-tertiary: #003738;
+  --color-on-tertiary-rgb: 0, 55, 56;
+  --color-tertiary-container: #1f4e4f;
+  --color-tertiary-container-rgb: 31, 78, 79;
+  --color-on-tertiary-container: #bbecee;
+  --color-on-tertiary-container-rgb: 187, 236, 238;
+
+  /* Neutral colors */
+  --color-surface: #121711;
+  --color-surface-rgb: 18, 23, 17;
+  --color-surface-dim: #0d120c;
+  --color-surface-dim-rgb: 13, 18, 12;
+  --color-surface-bright: #2d3229;
+  --color-surface-bright-rgb: 45, 50, 41;
+  --color-surface-container-lowest: #0a0f09;
+  --color-surface-container-lowest-rgb: 10, 15, 9;
+  --color-surface-container-low: #121711;
+  --color-surface-container-low-rgb: 18, 23, 17;
+  --color-surface-container: #161b15;
+  --color-surface-container-rgb: 22, 27, 21;
+  --color-surface-container-high: #20251e;
+  --color-surface-container-high-rgb: 32, 37, 30;
+  --color-surface-container-highest: #2a2f27;
+  --color-surface-container-highest-rgb: 42, 47, 39;
+
+  --color-on-surface: #d9e3d4;
+  --color-on-surface-rgb: 217, 227, 212;
+  --color-on-surface-variant: #c1c9be;
+  --color-on-surface-variant-rgb: 193, 201, 190;
+
+  --color-outline: #8b9388;
+  --color-outline-rgb: 139, 147, 136;
+  --color-outline-variant: #424940;
+  --color-outline-variant-rgb: 66, 73, 64;
+}

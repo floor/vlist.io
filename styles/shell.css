@@ -502,6 +502,12 @@ body {
 
 /* ─── Responsive ─────────────────────────────────────────────────── */
 
+.header__palette-wrapper {
+    position: relative;
+    margin-right: 4px;
+}
+
+.header__palette,
 .header__theme {
     display: flex;
     align-items: center;
@@ -521,10 +527,76 @@ body {
     flex-shrink: 0;
 }
 
+.header__palette svg {
+    width: 20px;
+    height: 20px;
+}
+
+.header__palette:hover,
 .header__theme:hover {
     color: var(--text-muted);
     background: var(--sidebar-hover);
     border-color: var(--border);
+}
+
+/* Palette dropdown */
+.header__palette-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition:
+        opacity 0.2s,
+        transform 0.2s,
+        visibility 0.2s;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.header__palette-dropdown--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.header__palette-option {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    transition: background 0.15s;
+    position: relative;
+}
+
+.header__palette-option:hover {
+    background: var(--sidebar-hover);
+}
+
+.header__palette-option--active {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.header__palette-option--active::after {
+    content: "✓";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
 }
 
 .header__theme-sun,
@@ -542,20 +614,22 @@ body {
 }
 
 /* Light mode: show sun, hide moon */
+[data-theme-mode="light"] .header__theme-sun,
 [data-theme="light"] .header__theme-sun {
     display: block;
 }
+[data-theme-mode="light"] .header__theme-moon,
 [data-theme="light"] .header__theme-moon {
     display: none;
 }
 
 /* ─── Theme Transition ───────────────────────────────────────────── */
 
-html[data-theme] body,
-html[data-theme] .header,
-html[data-theme] .sidebar,
-html[data-theme] .overview__card,
-html[data-theme] .sidebar__link {
+html[data-theme-mode] body,
+html[data-theme-mode] .header,
+html[data-theme-mode] .sidebar,
+html[data-theme-mode] .overview__card,
+html[data-theme-mode] .sidebar__link {
     transition:
         background-color 0.25s ease,
         color 0.25s ease,

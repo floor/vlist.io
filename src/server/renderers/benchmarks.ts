@@ -29,7 +29,7 @@ type Variant = "javascript" | "react" | "vue" | "svelte" | "solidjs";
 // =============================================================================
 
 const BENCH_DIR = resolve("./benchmarks");
-const SHELL_PATH = resolve("./src/server/shells/benchmarks.html");
+const SHELL_PATH = resolve("./src/server/shells/base.html");
 const NAV_PATH = join(BENCH_DIR, "navigation.json");
 
 const VARIANT_LABELS: Record<Variant, string> = {
@@ -271,10 +271,50 @@ function assemblePage(
     .replace(/{{TITLE}}/g, title)
     .replace(/{{DESCRIPTION}}/g, description)
     .replace(/{{URL}}/g, url)
+    .replace(/{{SECTION}}/g, "Benchmarks")
+    .replace(
+      /{{#if SECTION_LINK}}[\s\S]*?{{\/if}}/g,
+      '<span class="header__section">Benchmarks</span>',
+    )
     .replace("{{SIDEBAR}}", sidebar)
     .replace("{{CONTENT}}", content)
-    .replace("{{PAGE}}", page)
-    .replace("{{EXTRA_BODY}}", extraBody);
+    .replace("{{EXTRA_BODY}}", extraBody)
+    .replace(
+      /{{EXTRA_STYLES}}/g,
+      '<link rel="stylesheet" href="/dist/vlist.css" />\n    <link rel="stylesheet" href="/benchmarks/dist/styles.css" />',
+    )
+    .replace(/{{OG_TYPE}}/g, "website")
+    .replace(/{{OG_SITE_NAME}}/g, "")
+    .replace(/{{TWITTER_CARD}}/g, "summary")
+    .replace(/{{#if SEO_ENHANCED}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{#if HAS_IMPORTMAP}}[\s\S]*?{{\/if}}/g, () => {
+      return `<!-- Import map for module resolution -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "vlist": "/dist/index.js",
+                    "vlist/": "/dist/",
+                    "react": "/node_modules/react/index.js",
+                    "react-dom/client": "/node_modules/react-dom/client.js",
+                    "vue": "/node_modules/vue/dist/vue.esm-bundler.js",
+                    "react-window": "/node_modules/react-window/dist/index.esm.js"
+                }
+            }
+        </script>`;
+    })
+    .replace(/{{#if HAS_TOC}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{TOC}}/g, "")
+    .replace(/{{#if HAS_SYNTAX_HIGHLIGHTING}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{#if HAS_ACTIVE_NAV}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{#if HAS_SOURCE_TABS}}[\s\S]*?{{\/if}}/g, "")
+    .replace(
+      .replace(/{{#if PAGE_ATTR}}[\s\S]*?{{\/if}}/g,
+        page ? ` id="content" data-page="${page}"` : "",
+      )
+      .replace(/{{#if OG_SITE_NAME}}[\s\S]*?{{\/if}}/g, "")
+      .replace(/{{EXTRA_HEAD}}/g, "")
+      .replace(/{{MAIN_CLASS}}/g, "")
+      .replace(/{{PAGE_ATTR}}/g, page);
 }
 
 // =============================================================================

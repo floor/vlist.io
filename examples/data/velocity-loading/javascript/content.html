@@ -1,5 +1,5 @@
 <div class="container">
-    <header></header>
+    <header>
         <h1>Velocity-Based Loading</h1>
         <p class="description">
             Pure vanilla JavaScript. Smart data loading that skips fetching when scrolling fast (&gt;15 px/ms)
@@ -59,9 +59,12 @@
             <!-- Data Source -->
             <section class="panel-section">
                 <h3 class="panel-title">Data Source</h3>
-                <div class="panel-row">
-                    <button id="btn-toggle-api" class="panel-btn panel-btn--full-width">
+                <div class="panel-btn-group">
+                    <button id="btn-simulated" class="panel-btn">
                         🧪 Simulated
+                    </button>
+                    <button id="btn-live-api" class="panel-btn">
+                        ⚡ Live API
                     </button>
                 </div>
             </section>
@@ -77,20 +80,11 @@
                 </div>
             </section>
 
-            <!-- Scroll To -->
-            <section class="panel-section">
-                <div class="panel-row">
-                    <label class="panel-label" for="slider-scroll">
-                        Scroll to Index
-                        <span id="scroll-index-value" class="panel-value">0</span>
-                    </label>
-                    <input id="slider-scroll" type="range" class="panel-slider" min="0" max="999999" step="1000" value="0">
-                </div>
-            </section>
+
 
             <!-- Navigation -->
             <section class="panel-section">
-                <h3 class="panel-title">Quick Navigation</h3>
+                <h3 class="panel-title">Navigation</h3>
                 <div class="panel-btn-group">
                     <button id="btn-start" class="panel-btn">Start</button>
                     <button id="btn-middle" class="panel-btn">Middle</button>

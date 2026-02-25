@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="{{DESCRIPTION}}" />
+        <title>{{TITLE}}</title>
+
+        <link rel="canonical" href="{{URL}}" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="{{OG_TYPE}}" />
+        <meta property="og:url" content="{{URL}}" />
+        <meta property="og:title" content="{{TITLE}}" />
+        <meta property="og:description" content="{{DESCRIPTION}}" />
+        {{#if OG_SITE_NAME}}
+        <meta property="og:site_name" content="{{OG_SITE_NAME}}" />
+        {{/if}}
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="{{TWITTER_CARD}}" />
+        <meta name="twitter:url" content="{{URL}}" />
+        <meta name="twitter:title" content="{{TITLE}}" />
+        <meta name="twitter:description" content="{{DESCRIPTION}}" />
+
+        {{#if SEO_ENHANCED}}
+        <!-- Additional SEO -->
+        <meta name="author" content="Floor IO" />
+        <meta
+            name="robots"
+            content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+        />
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "TechArticle",
+                "headline": "{{TITLE}}",
+                "description": "{{DESCRIPTION}}",
+                "url": "{{URL}}",
+                "author": {
+                    "@type": "Organization",
+                    "name": "Floor IO",
+                    "url": "https://floor.io"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "VList",
+                    "url": "https://vlist.dev"
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": "{{URL}}"
+                },
+                "inLanguage": "en-US",
+                "isPartOf": {
+                    "@type": "WebSite",
+                    "name": "VList Documentation",
+                    "url": "https://vlist.dev"
+                }
+            }
+        </script>
+        {{/if}}
+
+        <!-- Common styles -->
+        <link rel="stylesheet" href="/styles/shell.css" />
+        <link rel="stylesheet" href="/styles/themes/index.css" />
+
+        <!-- Page-specific styles -->
+        {{EXTRA_STYLES}}
+
+        {{#if HAS_IMPORTMAP}}
+        <!-- Import map for module resolution -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "vlist": "/dist/index.js",
+                    "vlist/": "/dist/",
+                    "react": "/node_modules/react/index.js",
+                    "react-dom/client": "/node_modules/react-dom/client.js",
+                    "vue": "/node_modules/vue/dist/vue.esm-bundler.js",
+                    "react-window": "/node_modules/react-window/dist/index.esm.js"
+                }
+            }
+        </script>
+        {{/if}}
+
+        <!-- Theme: apply before paint to prevent flash -->
+        <script>
+            (function () {
+                // Load theme mode (light/dark)
+                var mode = localStorage.getItem("vlist-theme-mode");
+                if (!mode)
+                    mode = window.matchMedia("(prefers-color-scheme: light)")
+                        .matches
+                        ? "light"
+                        : "dark";
+                document.documentElement.setAttribute("data-theme-mode", mode);
+
+                // Load palette (color scheme)
+                var palette = localStorage.getItem("vlist-palette");
+                if (palette) {
+                    document.documentElement.setAttribute(
+                        "data-theme",
+                        palette,
+                    );
+                }
+            })();
+        </script>
+
+        {{EXTRA_HEAD}}
+    </head>
+    <body>
+        <!-- ─── Header ───────────────────────────────────── -->
+
+        <header class="header">
+            <div class="header__inner">
+                <a href="/" class="header__logo">VList</a>
+                <span class="header__sep">/</span>
+                {{#if SECTION_LINK}}
+                <a href="{{SECTION_LINK}}" class="header__section"
+                    >{{SECTION}}</a
+                >
+                {{else}}
+                <span class="header__section">{{SECTION}}</span>
+                {{/if}}
+                <nav class="header__nav" id="header-nav">
+                    <a href="/examples/">Examples</a>
+                    <a href="/docs/">Docs</a>
+                    <a href="/tutorials/">Tutorials</a>
+                    <a href="/benchmarks/">Benchmarks</a>
+                    <a href="https://github.com/floor/vlist" target="_blank"
+                        >GitHub</a
+                    >
+                </nav>
+                <div class="header__palette-wrapper">
+                    <button
+                        class="header__palette"
+                        id="palette-toggle"
+                        aria-label="Change color palette"
+                        aria-expanded="false"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            enable-background="new 0 0 24 24"
+                            height="24px"
+                            viewBox="0 0 24 24"
+                            width="24px"
+                            fill="currentColor"
+                        >
+                            <g>
+                                <rect fill="none" height="24" width="24"></rect>
+                            </g>
+                            <g>
+                                <g>
+                                    <g>
+                                        <path
+                                            d="M12,22C6.49,22,2,17.51,2,12S6.49,2,12,2s10,4.04,10,9c0,3.31-2.69,6-6,6h-1.77c-0.28,0-0.5,0.22-0.5,0.5 c0,0.12,0.05,0.23,0.13,0.33c0.41,0.47,0.64,1.06,0.64,1.67C14.5,20.88,13.38,22,12,22z M12,4c-4.41,0-8,3.59-8,8s3.59,8,8,8 c0.28,0,0.5-0.22,0.5-0.5c0-0.16-0.08-0.28-0.14-0.35c-0.41-0.46-0.63-1.05-0.63-1.65c0-1.38,1.12-2.5,2.5-2.5H16 c2.21,0,4-1.79,4-4C20,7.14,16.41,4,12,4z"
+                                        ></path>
+                                        <circle
+                                            cx="6.5"
+                                            cy="11.5"
+                                            r="1.5"
+                                        ></circle>
+                                        <circle
+                                            cx="9.5"
+                                            cy="7.5"
+                                            r="1.5"
+                                        ></circle>
+                                        <circle
+                                            cx="14.5"
+                                            cy="7.5"
+                                            r="1.5"
+                                        ></circle>
+                                        <circle
+                                            cx="17.5"
+                                            cy="11.5"
+                                            r="1.5"
+                                        ></circle>
+                                    </g>
+                                </g>
+                            </g>
+                        </svg>
+                    </button>
+                    <div class="header__palette-dropdown" id="palette-dropdown">
+                        <button
+                            class="header__palette-option"
+                            data-palette="ocean"
+                        >
+                            Ocean
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="forest"
+                        >
+                            Forest
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="desert"
+                        >
+                            Desert
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="spring"
+                        >
+                            Spring
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="summer"
+                        >
+                            Summer
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="autumn"
+                        >
+                            Autumn
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="winter"
+                        >
+                            Winter
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="sunset"
+                        >
+                            Sunset
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="material"
+                        >
+                            Material
+                        </button>
+                        <button
+                            class="header__palette-option"
+                            data-palette="highcontrast"
+                        >
+                            High Contrast
+                        </button>
+                    </div>
+                </div>
+                <button
+                    class="header__theme"
+                    id="theme-toggle"
+                    aria-label="Toggle theme"
+                >
+                    <svg
+                        class="header__theme-sun"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg
+                        class="header__theme-moon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path
+                            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                        />
+                    </svg>
+                </button>
+                <button
+                    class="header__hamburger"
+                    id="hamburger"
+                    aria-label="Toggle menu"
+                >
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <rect y="3" width="20" height="2" rx="1" />
+                        <rect y="9" width="20" height="2" rx="1" />
+                        <rect y="15" width="20" height="2" rx="1" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- ─── Overlay ──────────────────────────────────── -->
+
+        <div class="overlay" id="overlay"></div>
+
+        <!-- ─── Layout ───────────────────────────────────── -->
+
+        <div class="layout">
+            <nav class="sidebar" id="sidebar">{{SIDEBAR}}</nav>
+
+            <main class="content{{MAIN_CLASS}}"{{#if PAGE_ATTR}} id="content" data-page="{{PAGE_ATTR}}"{{/if}}>
+                {{CONTENT}}
+            </main>
+
+            {{#if HAS_TOC}}{{TOC}}{{/if}}
+        </div>
+
+        {{EXTRA_BODY}}
+
+        {{#if HAS_SYNTAX_HIGHLIGHTING}}
+        <!-- ─── Syntax highlighting (client-side) ────────── -->
+
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/typescript.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/bash.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/scss.min.js"></script>
+        <script>
+            hljs.highlightAll();
+        </script>
+        {{/if}}
+
+        {{#if HAS_ACTIVE_NAV}}
+        <!-- ─── Active nav link ───────────────────────────── -->
+
+        <script>
+            (function () {
+                var links = document.querySelectorAll("#header-nav a");
+                var path = window.location.pathname;
+                for (var i = 0; i < links.length; i++) {
+                    var href = links[i].getAttribute("href");
+                    if (href && href !== "/" && path.startsWith(href)) {
+                        links[i].classList.add("active");
+                        break;
+                    }
+                }
+            })();
+        </script>
+        {{/if}}
+
+        <!-- ─── Mobile toggle ────────────────────────────── -->
+
+        <script>
+            (function () {
+                var h = document.getElementById("hamburger");
+                var s = document.getElementById("sidebar");
+                var o = document.getElementById("overlay");
+                if (!h) return;
+                function toggle() {
+                    s.classList.toggle("sidebar--open");
+                    o.classList.toggle("overlay--visible");
+                }
+                function close() {
+                    s.classList.remove("sidebar--open");
+                    o.classList.remove("overlay--visible");
+                }
+                h.addEventListener("click", toggle);
+                o.addEventListener("click", close);
+                // Close sidebar on navigation (link click inside sidebar)
+                s.addEventListener("click", function (e) {
+                    if (e.target.closest("a")) close();
+                });
+            })();
+        </script>
+
+        <!-- ─── Palette dropdown ─────────────────────────── -->
+
+        <script>
+            (function () {
+                var btn = document.getElementById("palette-toggle");
+                var dropdown = document.getElementById("palette-dropdown");
+                if (!btn || !dropdown) return;
+
+                var options = dropdown.querySelectorAll(
+                    ".header__palette-option",
+                );
+                var currentPalette =
+                    localStorage.getItem("vlist-palette") || "ocean";
+
+                // Set initial theme
+                document.documentElement.setAttribute(
+                    "data-theme",
+                    currentPalette,
+                );
+
+                // Mark current theme in dropdown
+                function updateActiveOption() {
+                    options.forEach(function (opt) {
+                        if (
+                            opt.getAttribute("data-palette") === currentPalette
+                        ) {
+                            opt.classList.add("header__palette-option--active");
+                        } else {
+                            opt.classList.remove(
+                                "header__palette-option--active",
+                            );
+                        }
+                    });
+                }
+                updateActiveOption();
+
+                // Toggle dropdown
+                btn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    var isOpen = dropdown.classList.toggle(
+                        "header__palette-dropdown--open",
+                    );
+                    btn.setAttribute("aria-expanded", isOpen);
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener("click", function (e) {
+                    if (
+                        !btn.contains(e.target) &&
+                        !dropdown.contains(e.target)
+                    ) {
+                        dropdown.classList.remove(
+                            "header__palette-dropdown--open",
+                        );
+                        btn.setAttribute("aria-expanded", "false");
+                    }
+                });
+
+                // Handle palette selection
+                options.forEach(function (option) {
+                    option.addEventListener("click", function (e) {
+                        e.stopPropagation();
+                        var palette = option.getAttribute("data-palette");
+                        currentPalette = palette;
+                        document.documentElement.setAttribute(
+                            "data-theme",
+                            palette,
+                        );
+                        localStorage.setItem("vlist-palette", palette);
+                        updateActiveOption();
+                        dropdown.classList.remove(
+                            "header__palette-dropdown--open",
+                        );
+                        btn.setAttribute("aria-expanded", "false");
+                    });
+                });
+            })();
+        </script>
+
+        <!-- ─── Theme toggle ─────────────────────────────── -->
+
+        <script>
+            (function () {
+                var btn = document.getElementById("theme-toggle");
+                if (!btn) return;
+                btn.addEventListener("click", function () {
+                    var current =
+                        document.documentElement.getAttribute(
+                            "data-theme-mode",
+                        );
+                    var next = current === "light" ? "dark" : "light";
+                    document.documentElement.setAttribute(
+                        "data-theme-mode",
+                        next,
+                    );
+                    localStorage.setItem("vlist-theme-mode", next);
+                });
+            })();
+        </script>
+
+        {{#if HAS_TOC}}
+        <!-- ─── TOC active link highlighting ─────────────── -->
+
+        <script>
+            (function () {
+                var toc = document.querySelector(".toc");
+                if (!toc) return;
+
+                var links = Array.from(toc.querySelectorAll(".toc__link"));
+                if (links.length === 0) return;
+
+                var headings = links
+                    .map(function (link) {
+                        var id = link.getAttribute("href").slice(1);
+                        return document.getElementById(id);
+                    })
+                    .filter(Boolean);
+
+                if (headings.length === 0) return;
+
+                function updateActive() {
+                    var scrollPos = window.scrollY + 100;
+                    var current = null;
+
+                    var isAtBottom =
+                        window.innerHeight + window.scrollY >=
+                        document.documentElement.scrollHeight - 10;
+
+                    if (isAtBottom) {
+                        current = headings[headings.length - 1];
+                    } else {
+                        for (var i = headings.length - 1; i >= 0; i--) {
+                            if (headings[i].offsetTop <= scrollPos) {
+                                current = headings[i];
+                                break;
+                            }
+                        }
+                    }
+
+                    links.forEach(function (link) {
+                        var id = link.getAttribute("href").slice(1);
+                        if (current && current.id === id) {
+                            link.classList.add("toc__link--active");
+                        } else {
+                            link.classList.remove("toc__link--active");
+                        }
+                    });
+                }
+
+                var ticking = false;
+                window.addEventListener("scroll", function () {
+                    if (!ticking) {
+                        window.requestAnimationFrame(function () {
+                            updateActive();
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                });
+
+                updateActive();
+            })();
+        </script>
+        {{/if}}
+
+        {{#if HAS_SOURCE_TABS}}
+        <!-- ─── Source tab switching ─────────────────────── -->
+
+        <script>
+            (function () {
+                var source = document.querySelector(".source");
+                if (!source) return;
+                var tabs = source.querySelectorAll(".source__tab");
+                var panels = source.querySelectorAll(".source__panel");
+                var toggle = document.getElementById("source-toggle");
+                var activeTab = null;
+                var sourceHeader = source.querySelector(".source__header");
+
+                // Block wheel events on the source header
+                sourceHeader.addEventListener(
+                    "wheel",
+                    function (e) {
+                        e.preventDefault();
+                    },
+                    { passive: false },
+                );
+
+                // Compute available height for source body
+                function updateSourceHeight() {
+                    var header = document.querySelector(
+                        ".content .container header",
+                    );
+                    if (!header) return;
+                    var headerBottom = header.getBoundingClientRect().bottom;
+                    var bodyHeight =
+                        window.innerHeight - headerBottom - 20 - 41;
+                    source.style.setProperty(
+                        "--source-body-height",
+                        Math.max(200, bodyHeight) + "px",
+                    );
+                }
+
+                window.addEventListener("resize", function () {
+                    if (activeTab) {
+                        updateSourceHeight();
+                    }
+                });
+
+                function openTab(id) {
+                    updateSourceHeight();
+                    tabs.forEach(function (t) {
+                        t.classList.remove("source__tab--active");
+                    });
+                    panels.forEach(function (p) {
+                        p.classList.remove("source__panel--active");
+                    });
+                    var tab = source.querySelector('[data-tab="' + id + '"]');
+                    if (tab) tab.classList.add("source__tab--active");
+                    var panel = source.querySelector(
+                        '[data-panel="' + id + '"]',
+                    );
+                    if (panel) panel.classList.add("source__panel--active");
+                    source.classList.add("source--open");
+                    activeTab = id;
+                }
+
+                function closeDrawer() {
+                    source.classList.remove("source--open");
+                    tabs.forEach(function (t) {
+                        t.classList.remove("source__tab--active");
+                    });
+                    panels.forEach(function (p) {
+                        p.classList.remove("source__panel--active");
+                    });
+                    activeTab = null;
+                }
+
+                tabs.forEach(function (tab) {
+                    tab.addEventListener("click", function () {
+                        var id = tab.getAttribute("data-tab");
+                        if (activeTab === id) {
+                            closeDrawer();
+                        } else {
+                            openTab(id);
+                        }
+                    });
+                });
+
+                if (toggle) {
+                    toggle.addEventListener("click", function () {
+                        if (activeTab) {
+                            closeDrawer();
+                        } else {
+                            // Open with the first tab
+                            var firstTab = source.querySelector(".source__tab");
+                            if (firstTab)
+                                openTab(firstTab.getAttribute("data-tab"));
+                        }
+                    });
+                }
+            })();
+        </script>
+        {{/if}}
+    </body>
+</html>

@@ -1,0 +1,122 @@
+/* vlist.dev/styles/themes/material.css */
+
+/* Material Design 3 theme */
+
+[data-theme="material"] {
+  /* Key colors - Light mode */
+  --color-primary: #6750a4;
+  --color-primary-rgb: 100, 66, 214;
+  --color-on-primary: #ffffff;
+  --color-on-primary-rgb: 255, 255, 255;
+  --color-primary-container: #9f86ff;
+  --color-primary-container-rgb: 159, 134, 255;
+  --color-on-primary-container: #1e0060;
+  --color-on-primary-container-rgb: 30, 0, 96;
+
+  --color-secondary: #5d5d74;
+  --color-secondary-rgb: 93, 93, 116;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-rgb: 255, 255, 255;
+  --color-secondary-container: #dcdaf5;
+  --color-secondary-container-rgb: 220, 218, 245;
+  --color-on-secondary-container: #21182b;
+  --color-on-secondary-container-rgb: 33, 24, 43;
+
+  --color-tertiary: #7d5260;
+  --color-tertiary-rgb: 125, 82, 96;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-rgb: 255, 255, 255;
+  --color-tertiary-container: #f1d3f9;
+  --color-tertiary-container-rgb: 241, 211, 249;
+  --color-on-tertiary-container: #271430;
+  --color-on-tertiary-container-rgb: 39, 20, 48;
+
+  /* Neutral colors */
+  --color-surface: #fefbff;
+  --color-surface-rgb: 254, 251, 255;
+  --color-surface-dim: #e8e0e8;
+  --color-surface-dim-rgb: 232, 224, 232;
+  --color-surface-bright: #ffffff;
+  --color-surface-bright-rgb: 255, 255, 255;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-lowest-rgb: 255, 255, 255;
+  --color-surface-container-low: #f8f1f6;
+  --color-surface-container-low-rgb: 248, 241, 246;
+  --color-surface-container: #f2ecee;
+  --color-surface-container-rgb: 242, 236, 238;
+  --color-surface-container-high: #ece7e9;
+  --color-surface-container-high-rgb: 236, 231, 233;
+  --color-surface-container-highest: #e6e1e3;
+  --color-surface-container-highest-rgb: 230, 225, 227;
+
+  --color-on-surface: #1c1b1d;
+  --color-on-surface-rgb: 28, 27, 29;
+  --color-on-surface-variant: #4d4256;
+  --color-on-surface-variant-rgb: 77, 66, 86;
+
+  --color-outline: #787579;
+  --color-outline-rgb: 120, 117, 121;
+  --color-outline-variant: #cac4d0;
+  --color-outline-variant-rgb: 202, 196, 208;
+
+  /* Workaround: Override surface-rgb for disabled button visibility */
+  --color-surface-rgb: 28, 27, 29;
+}
+
+[data-theme="material"][data-theme-mode="dark"] {
+  /* Key colors - Dark mode */
+  --color-primary: #cbbeff;
+  --color-primary-rgb: 203, 190, 255;
+  --color-on-primary: #340098;
+  --color-on-primary-rgb: 52, 0, 152;
+  --color-primary-container: #4b21bd;
+  --color-primary-container-rgb: 75, 33, 189;
+  --color-on-primary-container: #e9ddff;
+  --color-on-primary-container-rgb: 233, 221, 255;
+
+  --color-secondary: #c2c0db;
+  --color-secondary-rgb: 194, 192, 219;
+  --color-on-secondary: #332d41;
+  --color-on-secondary-rgb: 51, 45, 65;
+  --color-secondary-container: #474459;
+  --color-secondary-container-rgb: 71, 68, 89;
+  --color-on-secondary-container: #e9e0f9;
+  --color-on-secondary-container-rgb: 233, 224, 249;
+
+  --color-tertiary: #efb8c8;
+  --color-tertiary-rgb: 239, 184, 200;
+  --color-on-tertiary: #492532;
+  --color-on-tertiary-rgb: 73, 37, 50;
+  --color-tertiary-container: #633b48;
+  --color-tertiary-container-rgb: 99, 59, 72;
+  --color-on-tertiary-container: #ffd9e2;
+  --color-on-tertiary-container-rgb: 255, 217, 226;
+
+  /* Neutral colors */
+  --color-surface: #1c1b1f;
+  --color-surface-rgb: 28, 27, 31;
+  --color-surface-dim: #141218;
+  --color-surface-dim-rgb: 20, 18, 24;
+  --color-surface-bright: #3b383d;
+  --color-surface-bright-rgb: 59, 56, 61;
+  --color-surface-container-lowest: #0f0d13;
+  --color-surface-container-lowest-rgb: 15, 13, 19;
+  --color-surface-container-low: #1d1b20;
+  --color-surface-container-low-rgb: 29, 27, 32;
+  --color-surface-container: #211f26;
+  --color-surface-container-rgb: 33, 31, 38;
+  --color-surface-container-high: #2b2930;
+  --color-surface-container-high-rgb: 43, 41, 48;
+  --color-surface-container-highest: #36343b;
+  --color-surface-container-highest-rgb: 54, 52, 59;
+
+  --color-on-surface: #e6e1e5;
+  --color-on-surface-rgb: 230, 225, 229;
+  --color-on-surface-variant: #cac4d0;
+  --color-on-surface-variant-rgb: 202, 196, 208;
+
+  --color-outline: #948f99;
+  --color-outline-rgb: 148, 143, 153;
+  --color-outline-variant: #444746;
+  --color-outline-variant-rgb: 68, 71, 70;
+}

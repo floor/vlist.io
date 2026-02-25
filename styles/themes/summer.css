@@ -1,0 +1,144 @@
+/* vlist.dev/styles/themes/summer.css */
+
+/* Summer theme - Inspired by Chuck Jones' Road Runner desert palette */
+
+[data-theme="summer"] {
+  /* Key colors inspired by bright summer desert */
+  /* Primary: Bright desert sky blue */
+  --color-primary: #4196cb;
+  --color-primary-rgb: 65, 150, 203;
+  --color-on-primary: #ffffff;
+  --color-on-primary-rgb: 255, 255, 255;
+  --color-primary-container: #d1e4ff;
+  --color-primary-container-rgb: 209, 228, 255;
+  --color-on-primary-container: #001d36;
+  --color-on-primary-container-rgb: 0, 29, 54;
+
+  /* Secondary: Desert sand/yellow */
+  --color-secondary: #f3c649;
+  --color-secondary-rgb: 243, 198, 73;
+  --color-on-secondary: #3e2e00;
+  --color-on-secondary-rgb: 62, 46, 0;
+  --color-secondary-container: #f5e0a0;
+  --color-secondary-container-rgb: 245, 224, 160;
+  --color-on-secondary-container: #291f00;
+  --color-on-secondary-container-rgb: 41, 31, 0;
+
+  /* Tertiary: Mesa rock orange-brown */
+  --color-tertiary: #a75b39;
+  --color-tertiary-rgb: 167, 91, 57;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-rgb: 255, 255, 255;
+  --color-tertiary-container: #ffdbc8;
+  --color-tertiary-container-rgb: 255, 219, 200;
+  --color-on-tertiary-container: #3a1600;
+  --color-on-tertiary-container-rgb: 58, 22, 0;
+
+  /* Accent: Road Runner purple */
+  --color-accent: #6b4596;
+  --color-accent-rgb: 107, 69, 150;
+  --color-on-accent: #ffffff;
+  --color-on-accent-rgb: 255, 255, 255;
+  --color-accent-container: #ebdcff;
+  --color-accent-container-rgb: 235, 220, 255;
+  --color-on-accent-container: #25005c;
+  --color-on-accent-container-rgb: 37, 0, 92;
+
+  /* Neutral colors with desert warmth */
+  --color-surface: #fffbf8;
+  --color-surface-rgb: 255, 251, 248;
+  --color-surface-dim: #eae2d9;
+  --color-surface-dim-rgb: 234, 226, 217;
+  --color-surface-bright: #fffbf8;
+  --color-surface-bright-rgb: 255, 251, 248;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-lowest-rgb: 255, 255, 255;
+  --color-surface-container-low: #fef5ed;
+  --color-surface-container-low-rgb: 254, 245, 237;
+  --color-surface-container: #f7efe7;
+  --color-surface-container-rgb: 247, 239, 231;
+  --color-surface-container-high: #f1e9e1;
+  --color-surface-container-high-rgb: 241, 233, 225;
+  --color-surface-container-highest: #ebe3db;
+  --color-surface-container-highest-rgb: 235, 227, 219;
+
+  --color-on-surface: #1f1b16;
+  --color-on-surface-rgb: 31, 27, 22;
+  --color-on-surface-variant: #50453b;
+  --color-on-surface-variant-rgb: 80, 69, 59;
+
+  --color-outline: #827568;
+  --color-outline-rgb: 130, 117, 104;
+  --color-outline-variant: #d5c8b9;
+  --color-outline-variant-rgb: 213, 200, 185;
+
+  /* Workaround: Override surface-rgb for disabled button visibility */
+  --color-surface-rgb: 31, 27, 22;
+}
+
+[data-theme="summer"][data-theme-mode="dark"] {
+  /* Key colors - darker but still vibrant */
+  --color-primary: #9ecaff;
+  --color-primary-rgb: 158, 202, 255;
+  --color-on-primary: #003258;
+  --color-on-primary-rgb: 0, 50, 88;
+  --color-primary-container: #00497d;
+  --color-primary-container-rgb: 0, 73, 125;
+  --color-on-primary-container: #d1e4ff;
+  --color-on-primary-container-rgb: 209, 228, 255;
+
+  --color-secondary: #dbc054;
+  --color-secondary-rgb: 219, 192, 84;
+  --color-on-secondary: #3e2e00;
+  --color-on-secondary-rgb: 62, 46, 0;
+  --color-secondary-container: #584400;
+  --color-secondary-container-rgb: 88, 68, 0;
+  --color-on-secondary-container: #fff4d5;
+  --color-on-secondary-container-rgb: 255, 244, 213;
+
+  --color-tertiary: #ffb694;
+  --color-tertiary-rgb: 255, 182, 148;
+  --color-on-tertiary: #5c2900;
+  --color-on-tertiary-rgb: 92, 41, 0;
+  --color-tertiary-container: #803d15;
+  --color-tertiary-container-rgb: 128, 61, 21;
+  --color-on-tertiary-container: #ffdbc8;
+  --color-on-tertiary-container-rgb: 255, 219, 200;
+
+  --color-accent: #d0bcff;
+  --color-accent-rgb: 208, 188, 255;
+  --color-on-accent: #381e72;
+  --color-on-accent-rgb: 56, 30, 114;
+  --color-accent-container: #503396;
+  --color-accent-container-rgb: 80, 51, 150;
+  --color-on-accent-container: #ebdcff;
+  --color-on-accent-container-rgb: 235, 220, 255;
+
+  /* Neutral colors */
+  --color-surface: #1f1b16;
+  --color-surface-rgb: 31, 27, 22;
+  --color-surface-dim: #16130f;
+  --color-surface-dim-rgb: 22, 19, 15;
+  --color-surface-bright: #3b362f;
+  --color-surface-bright-rgb: 59, 54, 47;
+  --color-surface-container-lowest: #130f0b;
+  --color-surface-container-lowest-rgb: 19, 15, 11;
+  --color-surface-container-low: #1f1b16;
+  --color-surface-container-low-rgb: 31, 27, 22;
+  --color-surface-container: #231f19;
+  --color-surface-container-rgb: 35, 31, 25;
+  --color-surface-container-high: #2d2921;
+  --color-surface-container-high-rgb: 45, 41, 33;
+  --color-surface-container-highest: #38332b;
+  --color-surface-container-highest-rgb: 56, 51, 43;
+
+  --color-on-surface: #eae1d9;
+  --color-on-surface-rgb: 234, 225, 217;
+  --color-on-surface-variant: #d5c8b9;
+  --color-on-surface-variant-rgb: 213, 200, 185;
+
+  --color-outline: #9e8f80;
+  --color-outline-rgb: 158, 143, 128;
+  --color-outline-variant: #50453b;
+  --color-outline-variant-rgb: 80, 69, 59;
+}

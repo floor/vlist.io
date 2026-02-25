@@ -78,7 +78,7 @@ export function createContentRenderer(config: ContentConfig) {
   } = config;
 
   const CONTENT_DIR = resolve(contentDir);
-  const SHELL_PATH = resolve("./src/server/shells/content.html");
+  const SHELL_PATH = resolve("./src/server/shells/base.html");
   const NAV_PATH = join(CONTENT_DIR, "navigation.json");
   const OVERVIEW_PATH = overviewSectionsPath
     ? join(CONTENT_DIR, overviewSectionsPath)
@@ -418,10 +418,100 @@ export function createContentRenderer(config: ContentConfig) {
       .replace(/{{TITLE}}/g, title)
       .replace(/{{DESCRIPTION}}/g, description)
       .replace(/{{URL}}/g, url)
-      .replace("{{SECTION}}", sectionName)
+      .replace(/{{SECTION}}/g, sectionName)
+      .replace(
+        /{{#if SECTION_LINK}}[\s\S]*?{{\/if}}/g,
+        `<a href="${urlPrefix}/" class="header__section">${sectionName}</a>`,
+      )
       .replace("{{SIDEBAR}}", sidebar)
       .replace("{{CONTENT}}", content)
       .replace("{{TOC}}", toc)
+      .replace(
+        /{{EXTRA_STYLES}}/g,
+        '<link rel="stylesheet" href="/styles/content.css" />',
+      )
+      .replace(/{{OG_TYPE}}/g, "article")
+      .replace(
+        /{{#if OG_SITE_NAME}}[\s\S]*?{{\/if}}/g,
+        '<meta property="og:site_name" content="VList" />',
+      )
+      .replace(/{{TWITTER_CARD}}/g, "summary_large_image")
+      .replace(/{{#if SEO_ENHANCED}}[\s\S]*?{{\/if}}/g, () => {
+        return `<!-- Additional SEO -->
+        <meta name="author" content="Floor IO" />
+        <meta
+            name="robots"
+            content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+        />
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "TechArticle",
+                "headline": "${title}",
+                "description": "${description}",
+                "url": "${url}",
+                "author": {
+                    "@type": "Organization",
+                    "name": "Floor IO",
+                    "url": "https://floor.io"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "VList",
+                    "url": "https://vlist.dev"
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": "${url}"
+                },
+                "inLanguage": "en-US",
+                "isPartOf": {
+                    "@type": "WebSite",
+                    "name": "VList Documentation",
+                    "url": "https://vlist.dev"
+                }
+            }
+        </script>`;
+      })
+      .replace(/{{#if HAS_IMPORTMAP}}[\s\S]*?{{\/if}}/g, "")
+      .replace(/{{#if HAS_TOC}}[\s\S]*?{{\/if}}/g, toc ? "true" : "")
+      .replace(/{{#if HAS_SYNTAX_HIGHLIGHTING}}[\s\S]*?{{\/if}}/g, () => {
+        return `<!-- ─── Syntax highlighting (client-side) ────────── -->
+
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/typescript.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/bash.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/scss.min.js"></script>
+        <script>
+            hljs.highlightAll();
+        </script>`;
+      })
+      .replace(/{{#if HAS_ACTIVE_NAV}}[\s\S]*?{{\/if}}/g, () => {
+        return `<!-- ─── Active nav link ───────────────────────────── -->
+
+        <script>
+            (function () {
+                var links = document.querySelectorAll("#header-nav a");
+                var path = window.location.pathname;
+                for (var i = 0; i < links.length; i++) {
+                    var href = links[i].getAttribute("href");
+                    if (href && href !== "/" && path.startsWith(href)) {
+                        links[i].classList.add("active");
+                        break;
+                    }
+                }
+            })();
+        </script>`;
+      })
+      .replace(/{{#if HAS_SOURCE_TABS}}[\s\S]*?{{\/if}}/g, "")
+      .replace(/{{#if PAGE_ATTR}}[\s\S]*?{{\/if}}/g, "")
+      .replace(/{{EXTRA_HEAD}}/g, "")
+      .replace(/{{EXTRA_BODY}}/g, "")
+      .replace(/{{MAIN_CLASS}}/g, "")
+      .replace(/{{PAGE_ATTR}}/g, "")
       .replace("{{PREVNEXT}}", prevNext);
   }
 

@@ -165,11 +165,10 @@ velocityValueEl = document.getElementById("velocity-value");
 velocityFillEl = document.getElementById("velocity-fill");
 velocityStatusEl = document.getElementById("velocity-status");
 
-const btnToggleApi = document.getElementById("btn-toggle-api");
+const btnSimulated = document.getElementById("btn-simulated");
+const btnLiveApi = document.getElementById("btn-live-api");
 const sliderDelay = document.getElementById("slider-delay");
 const delayValueEl = document.getElementById("delay-value");
-const sliderScroll = document.getElementById("slider-scroll");
-const scrollIndexValueEl = document.getElementById("scroll-index-value");
 const btnStart = document.getElementById("btn-start");
 const btnMiddle = document.getElementById("btn-middle");
 const btnEnd = document.getElementById("btn-end");
@@ -227,10 +226,34 @@ if (isRestoringSnapshot) {
   }, 2000);
 }
 
+// Update button states
+function updateDataSourceButtons() {
+  const useRealApi = getUseRealApi();
+  if (useRealApi) {
+    btnSimulated.classList.remove("panel-btn--active");
+    btnLiveApi.classList.add("panel-btn--active");
+  } else {
+    btnSimulated.classList.add("panel-btn--active");
+    btnLiveApi.classList.remove("panel-btn--active");
+  }
+}
+
 // Controls
-btnToggleApi.addEventListener("click", async () => {
-  setUseRealApi(!getUseRealApi());
-  btnToggleApi.textContent = formatApiSource(getUseRealApi());
+btnSimulated.addEventListener("click", async () => {
+  if (!getUseRealApi()) return; // Already simulated
+  setUseRealApi(false);
+  updateDataSourceButtons();
+  loadedCount = 0;
+  prevState.loadedCount = -1;
+  updateControls();
+  updateStatsBar();
+  await list.reload();
+});
+
+btnLiveApi.addEventListener("click", async () => {
+  if (getUseRealApi()) return; // Already live
+  setUseRealApi(true);
+  updateDataSourceButtons();
   loadedCount = 0;
   prevState.loadedCount = -1;
   updateControls();
@@ -244,29 +267,26 @@ sliderDelay.addEventListener("input", () => {
   delayValueEl.textContent = `${delay}ms`;
 });
 
-sliderScroll.addEventListener("input", () => {
-  const value = parseInt(sliderScroll.value, 10);
-  scrollIndexValueEl.textContent = value.toLocaleString();
-  list.scrollToIndex(value, "center");
-});
-
 btnStart.addEventListener("click", () => {
-  list.scrollToIndex(0, "start");
-  sliderScroll.value = "0";
-  scrollIndexValueEl.textContent = "0";
+  list.scrollToIndex(0, {
+    align: "start",
+    behavior: "smooth",
+  });
 });
 
 btnMiddle.addEventListener("click", () => {
   const middle = Math.floor(TOTAL_ITEMS / 2);
-  list.scrollToIndex(middle, "center");
-  sliderScroll.value = String(middle);
-  scrollIndexValueEl.textContent = middle.toLocaleString();
+  list.scrollToIndex(middle, {
+    align: "center",
+    behavior: "smooth",
+  });
 });
 
 btnEnd.addEventListener("click", () => {
-  list.scrollToIndex(TOTAL_ITEMS - 1, "end");
-  sliderScroll.value = String(TOTAL_ITEMS - 1);
-  scrollIndexValueEl.textContent = (TOTAL_ITEMS - 1).toLocaleString();
+  list.scrollToIndex(TOTAL_ITEMS - 1, {
+    align: "end",
+    behavior: "smooth",
+  });
 });
 
 btnReload.addEventListener("click", async () => {
@@ -287,6 +307,6 @@ btnResetStats.addEventListener("click", () => {
 });
 
 // Initial update
-btnToggleApi.textContent = formatApiSource(getUseRealApi());
+updateDataSourceButtons();
 updateControls();
 updateStatsBar();

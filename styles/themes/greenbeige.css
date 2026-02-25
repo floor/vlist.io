@@ -1,0 +1,128 @@
+/* vlist.dev/styles/themes/greenbeige.css */
+
+/* Green Beige theme - Olive green and beige combination */
+
+[data-theme="greenbeige"] {
+  /* Key colors based on green and beige combination */
+  /* Primary: Olive green */
+  --color-primary: #5d6e57;
+  --color-primary-rgb: 93, 110, 87;
+  --color-on-primary: #ffffff;
+  --color-on-primary-rgb: 255, 255, 255;
+  --color-primary-container: #d8e5d0;
+  --color-primary-container-rgb: 216, 229, 208;
+  --color-on-primary-container: #1d2818;
+  --color-on-primary-container-rgb: 29, 40, 24;
+
+  /* Secondary: Beige */
+  --color-secondary: #d9ccbb;
+  --color-secondary-rgb: 217, 204, 187;
+  --color-on-secondary: #3a342b;
+  --color-on-secondary-rgb: 58, 52, 43;
+  --color-secondary-container: #f5ede4;
+  --color-secondary-container-rgb: 245, 237, 228;
+  --color-on-secondary-container: #3d3628;
+  --color-on-secondary-container-rgb: 61, 54, 40;
+
+  /* Tertiary: Muted green */
+  --color-tertiary: #778670;
+  --color-tertiary-rgb: 119, 134, 112;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-rgb: 255, 255, 255;
+  --color-tertiary-container: #dbebd1;
+  --color-tertiary-container-rgb: 219, 235, 209;
+  --color-on-tertiary-container: #283420;
+  --color-on-tertiary-container-rgb: 40, 52, 32;
+
+  /* Neutral colors with natural earthy undertones */
+  --color-surface: #fafbf7;
+  --color-surface-rgb: 250, 251, 247;
+  --color-surface-dim: #e8eae4;
+  --color-surface-dim-rgb: 232, 234, 228;
+  --color-surface-bright: #fafbf7;
+  --color-surface-bright-rgb: 250, 251, 247;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-lowest-rgb: 255, 255, 255;
+  --color-surface-container-low: #f4f5f1;
+  --color-surface-container-low-rgb: 244, 245, 241;
+  --color-surface-container: #edefeb;
+  --color-surface-container-rgb: 237, 239, 235;
+  --color-surface-container-high: #e7e9e5;
+  --color-surface-container-high-rgb: 231, 233, 229;
+  --color-surface-container-highest: #e1e3df;
+  --color-surface-container-highest-rgb: 225, 227, 223;
+
+  --color-on-surface: #1a1c18;
+  --color-on-surface-rgb: 26, 28, 24;
+  --color-on-surface-variant: #434840;
+  --color-on-surface-variant-rgb: 67, 72, 64;
+
+  --color-outline: #737873;
+  --color-outline-rgb: 115, 120, 109;
+  --color-outline-variant: #c3c8bc;
+  --color-outline-variant-rgb: 195, 200, 188;
+
+  /* Workaround: Override surface-rgb for disabled button visibility */
+  --color-surface-rgb: 26, 28, 24;
+}
+
+[data-theme="greenbeige"][data-theme-mode="dark"] {
+  /* Key colors for dark mode */
+  /* Lighter olive green */
+  --color-primary: #bcc9b5;
+  --color-primary-rgb: 188, 201, 181;
+  --color-on-primary: #2d3d27;
+  --color-on-primary-rgb: 45, 61, 39;
+  --color-primary-container: #44553c;
+  --color-primary-container-rgb: 68, 85, 60;
+  --color-on-primary-container: #d8e5d0;
+  --color-on-primary-container-rgb: 216, 229, 208;
+
+  /* Lighter beige */
+  --color-secondary: #eae0d1;
+  --color-secondary-rgb: 234, 224, 209;
+  --color-on-secondary: #45392d;
+  --color-on-secondary-rgb: 69, 57, 45;
+  --color-secondary-container: #5d5043;
+  --color-secondary-container-rgb: 93, 80, 67;
+  --color-on-secondary-container: #f5ede4;
+  --color-on-secondary-container-rgb: 245, 237, 228;
+
+  /* Lighter muted green */
+  --color-tertiary: #becfb5;
+  --color-tertiary-rgb: 190, 207, 181;
+  --color-on-tertiary: #313f29;
+  --color-on-tertiary-rgb: 49, 63, 41;
+  --color-tertiary-container: #485a3f;
+  --color-tertiary-container-rgb: 72, 90, 63;
+  --color-on-tertiary-container: #dbebd1;
+  --color-on-tertiary-container-rgb: 219, 235, 209;
+
+  /* Neutral colors for dark mode */
+  --color-surface: #1a1c18;
+  --color-surface-rgb: 26, 28, 24;
+  --color-surface-dim: #121410;
+  --color-surface-dim-rgb: 18, 20, 16;
+  --color-surface-bright: #353832;
+  --color-surface-bright-rgb: 53, 56, 50;
+  --color-surface-container-lowest: #0f110d;
+  --color-surface-container-lowest-rgb: 15, 17, 13;
+  --color-surface-container-low: #1a1c18;
+  --color-surface-container-low-rgb: 26, 28, 24;
+  --color-surface-container: #1e201c;
+  --color-surface-container-rgb: 30, 32, 28;
+  --color-surface-container-high: #292b26;
+  --color-surface-container-high-rgb: 41, 43, 38;
+  --color-surface-container-highest: #333530;
+  --color-surface-container-highest-rgb: 51, 53, 48;
+
+  --color-on-surface: #e2e3de;
+  --color-on-surface-rgb: 226, 227, 222;
+  --color-on-surface-variant: #c3c8bc;
+  --color-on-surface-variant-rgb: 195, 200, 188;
+
+  --color-outline: #8d9287;
+  --color-outline-rgb: 141, 146, 135;
+  --color-outline-variant: #434840;
+  --color-outline-variant-rgb: 67, 72, 64;
+}

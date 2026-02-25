@@ -1,0 +1,78 @@
+/* vlist.dev/styles/themes/base-theme.css */
+
+/* Base theme definition with common properties and structure */
+
+/* Common status colors for light themes */
+:root {
+  /* Error colors */
+  --color-error: #b3261e;
+  --color-error-rgb: 179, 38, 30;
+  --color-on-error: #ffffff;
+  --color-on-error-rgb: 255, 255, 255;
+  --color-error-container: #f9dedc;
+  --color-error-container-rgb: 249, 222, 220;
+  --color-on-error-container: #410e0b;
+  --color-on-error-container-rgb: 65, 14, 11;
+
+  /* Success colors */
+  --color-success: #007b5a;
+  --color-success-rgb: 0, 123, 90;
+  --color-on-success: #ffffff;
+  --color-on-success-rgb: 255, 255, 255;
+
+  /* Warning colors */
+  --color-warning: #dd6d06;
+  --color-warning-rgb: 221, 109, 6;
+  --color-on-warning: #ffffff;
+  --color-on-warning-rgb: 255, 255, 255;
+
+  /* Info colors */
+  --color-info: #0061a4;
+  --color-info-rgb: 0, 97, 164;
+  --color-on-info: #ffffff;
+  --color-on-info-rgb: 255, 255, 255;
+
+  /* Common theme properties */
+  --typescale-label-large-font-family-name: "Roboto";
+  --typescale-label-large-font-weight: 500;
+  --typescale-label-large-size: 0.875rem;
+  --typescale-label-large-line-height: 1.25rem;
+  --typescale-label-large-letter-spacing: 0.00625rem;
+
+  --shape-corner-extra-small: 4px;
+  --shape-corner-small: 8px;
+  --shape-corner-medium: 12px;
+  --shape-corner-large: 16px;
+  --shape-corner-extra-large: 28px;
+}
+
+/* Status colors for dark themes */
+[data-theme-mode="dark"] {
+  /* Error colors */
+  --color-error: #f2b8b5;
+  --color-error-rgb: 242, 184, 181;
+  --color-on-error: #601410;
+  --color-on-error-rgb: 96, 20, 16;
+  --color-error-container: #8c1d18;
+  --color-error-container-rgb: 140, 29, 24;
+  --color-on-error-container: #f9dedc;
+  --color-on-error-container-rgb: 249, 222, 220;
+
+  /* Success colors */
+  --color-success: #85cfa9;
+  --color-success-rgb: 133, 207, 169;
+  --color-on-success: #00392d;
+  --color-on-success-rgb: 0, 57, 45;
+
+  /* Warning colors */
+  --color-warning: #ffb95c;
+  --color-warning-rgb: 255, 185, 92;
+  --color-on-warning: #3f2200;
+  --color-on-warning-rgb: 63, 34, 0;
+
+  /* Info colors */
+  --color-info: #99cbff;
+  --color-info-rgb: 153, 203, 255;
+  --color-on-info: #003060;
+  --color-on-info-rgb: 0, 48, 96;
+}

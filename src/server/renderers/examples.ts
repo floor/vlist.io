@@ -35,7 +35,7 @@ interface SourceFile {
 // =============================================================================
 
 const EXAMPLES_DIR = resolve("./examples");
-const SHELL_PATH = resolve("./src/server/shells/examples.html");
+const SHELL_PATH = resolve("./src/server/shells/base.html");
 const NAV_PATH = join(EXAMPLES_DIR, "navigation.json");
 
 const VARIANT_LABELS: Record<Variant, string> = {
@@ -454,11 +454,134 @@ function assemblePage(
     .replace(/{{TITLE}}/g, title)
     .replace(/{{DESCRIPTION}}/g, description)
     .replace(/{{URL}}/g, url)
+    .replace(/{{SECTION}}/g, "Examples")
+    .replace(
+      /{{#if SECTION_LINK}}[\s\S]*?{{\/if}}/g,
+      '<a href="/examples/" class="header__section">Examples</a>',
+    )
     .replace("{{SIDEBAR}}", sidebar)
     .replace("{{CONTENT}}", content)
     .replace("{{EXTRA_HEAD}}", extraHead)
     .replace("{{EXTRA_BODY}}", extraBody)
-    .replace("{{MAIN_CLASS}}", mainClass);
+    .replace("{{MAIN_CLASS}}", mainClass)
+    .replace(
+      /{{EXTRA_STYLES}}/g,
+      '<link rel="stylesheet" href="/dist/examples/styles.css" />',
+    )
+    .replace(/{{OG_TYPE}}/g, "website")
+    .replace(/{{TWITTER_CARD}}/g, "summary")
+    .replace(/{{#if SEO_ENHANCED}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{#if HAS_IMPORTMAP}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{#if HAS_TOC}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{TOC}}/g, "")
+    .replace(/{{#if HAS_SYNTAX_HIGHLIGHTING}}[\s\S]*?{{\/if}}/g, () => {
+      return `<!-- ─── Syntax highlighting (client-side) ────────── -->
+
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
+        <script>
+            hljs.highlightAll();
+        </script>`;
+    })
+    .replace(/{{#if HAS_ACTIVE_NAV}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{#if HAS_SOURCE_TABS}}[\s\S]*?{{\/if}}/g, () => {
+      return `<!-- ─── Source tab switching ─────────────────────── -->
+
+        <script>
+            (function () {
+                var source = document.querySelector(".source");
+                if (!source) return;
+                var tabs = source.querySelectorAll(".source__tab");
+                var panels = source.querySelectorAll(".source__panel");
+                var toggle = document.getElementById("source-toggle");
+                var activeTab = null;
+                var sourceHeader = source.querySelector(".source__header");
+
+                sourceHeader.addEventListener(
+                    "wheel",
+                    function (e) {
+                        e.preventDefault();
+                    },
+                    { passive: false },
+                );
+
+                function updateSourceHeight() {
+                    var header = document.querySelector(
+                        ".content .container header",
+                    );
+                    if (!header) return;
+                    var headerBottom = header.getBoundingClientRect().bottom;
+                    var bodyHeight =
+                        window.innerHeight - headerBottom - 20 - 41;
+                    source.style.setProperty(
+                        "--source-body-height",
+                        Math.max(200, bodyHeight) + "px",
+                    );
+                }
+
+                window.addEventListener("resize", function () {
+                    if (activeTab) {
+                        updateSourceHeight();
+                    }
+                });
+
+                function openTab(id) {
+                    updateSourceHeight();
+                    tabs.forEach(function (t) {
+                        t.classList.remove("source__tab--active");
+                    });
+                    panels.forEach(function (p) {
+                        p.classList.remove("source__panel--active");
+                    });
+                    var tab = source.querySelector('[data-tab="' + id + '"]');
+                    if (tab) tab.classList.add("source__tab--active");
+                    var panel = source.querySelector(
+                        '[data-panel="' + id + '"]',
+                    );
+                    if (panel) panel.classList.add("source__panel--active");
+                    source.classList.add("source--open");
+                    activeTab = id;
+                }
+
+                function closeDrawer() {
+                    source.classList.remove("source--open");
+                    tabs.forEach(function (t) {
+                        t.classList.remove("source__tab--active");
+                    });
+                    panels.forEach(function (p) {
+                        p.classList.remove("source__panel--active");
+                    });
+                    activeTab = null;
+                }
+
+                tabs.forEach(function (tab) {
+                    tab.addEventListener("click", function () {
+                        var id = tab.getAttribute("data-tab");
+                        if (activeTab === id) {
+                            closeDrawer();
+                        } else {
+                            openTab(id);
+                        }
+                    });
+                });
+
+                if (toggle) {
+                    toggle.addEventListener("click", function () {
+                        if (activeTab) {
+                            closeDrawer();
+                        } else {
+                            var firstTab = source.querySelector(".source__tab");
+                            if (firstTab)
+                                openTab(firstTab.getAttribute("data-tab"));
+                        }
+                    });
+                }
+            })();
+        </script>`;
+    })
+    .replace(/{{#if PAGE_ATTR}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{#if OG_SITE_NAME}}[\s\S]*?{{\/if}}/g, "")
+    .replace(/{{PAGE_ATTR}}/g, "");
 }
 
 // =============================================================================

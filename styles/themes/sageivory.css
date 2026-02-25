@@ -1,0 +1,128 @@
+/* vlist.dev/styles/themes/sageivory.css */
+
+/* Sage Ivory theme - Sage green and ivory combination */
+
+[data-theme="sageivory"] {
+  /* Key colors based on sage green and ivory combination */
+  /* Primary: Sage green */
+  --color-primary: #7d8c73;
+  --color-primary-rgb: 125, 140, 115;
+  --color-on-primary: #ffffff;
+  --color-on-primary-rgb: 255, 255, 255;
+  --color-primary-container: #dfe8d6;
+  --color-primary-container-rgb: 223, 232, 214;
+  --color-on-primary-container: #2c3526;
+  --color-on-primary-container-rgb: 44, 53, 38;
+
+  /* Secondary: Ivory */
+  --color-secondary: #f0ecd5;
+  --color-secondary-rgb: 240, 236, 213;
+  --color-on-secondary: #4c4935;
+  --color-on-secondary-rgb: 76, 73, 53;
+  --color-secondary-container: #f8f7eb;
+  --color-secondary-container-rgb: 248, 247, 235;
+  --color-on-secondary-container: #504d3b;
+  --color-on-secondary-container-rgb: 80, 77, 59;
+
+  /* Tertiary: Light sage */
+  --color-tertiary: #a4ae98;
+  --color-tertiary-rgb: 164, 174, 152;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-rgb: 255, 255, 255;
+  --color-tertiary-container: #e7eee0;
+  --color-tertiary-container-rgb: 231, 238, 224;
+  --color-on-tertiary-container: #3c4633;
+  --color-on-tertiary-container-rgb: 60, 70, 51;
+
+  /* Neutral colors with warm undertones */
+  --color-surface: #fbfcf8;
+  --color-surface-rgb: 251, 252, 248;
+  --color-surface-dim: #edefea;
+  --color-surface-dim-rgb: 237, 239, 234;
+  --color-surface-bright: #fbfcf8;
+  --color-surface-bright-rgb: 251, 252, 248;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-lowest-rgb: 255, 255, 255;
+  --color-surface-container-low: #f5f6f2;
+  --color-surface-container-low-rgb: 245, 246, 242;
+  --color-surface-container: #eff0ec;
+  --color-surface-container-rgb: 239, 240, 236;
+  --color-surface-container-high: #e9eae6;
+  --color-surface-container-high-rgb: 233, 234, 230;
+  --color-surface-container-highest: #e3e4e0;
+  --color-surface-container-highest-rgb: 227, 228, 224;
+
+  --color-on-surface: #1a1c17;
+  --color-on-surface-rgb: 26, 28, 23;
+  --color-on-surface-variant: #454741;
+  --color-on-surface-variant-rgb: 69, 71, 65;
+
+  --color-outline: #75776e;
+  --color-outline-rgb: 117, 119, 110;
+  --color-outline-variant: #c5c8bc;
+  --color-outline-variant-rgb: 197, 200, 188;
+
+  /* Workaround: Override surface-rgb for disabled button visibility */
+  --color-surface-rgb: 26, 28, 23;
+}
+
+[data-theme="sageivory"][data-theme-mode="dark"] {
+  /* Key colors for dark mode */
+  /* Lighter sage */
+  --color-primary: #c3ccba;
+  --color-primary-rgb: 195, 204, 186;
+  --color-on-primary: #3c4933;
+  --color-on-primary-rgb: 60, 73, 51;
+  --color-primary-container: #576148;
+  --color-primary-container-rgb: 87, 97, 72;
+  --color-on-primary-container: #dfe8d6;
+  --color-on-primary-container-rgb: 223, 232, 214;
+
+  /* Lighter ivory */
+  --color-secondary: #eeebdc;
+  --color-secondary-rgb: 238, 235, 220;
+  --color-on-secondary: #4c4935;
+  --color-on-secondary-rgb: 76, 73, 53;
+  --color-secondary-container: #65624c;
+  --color-secondary-container-rgb: 101, 98, 76;
+  --color-on-secondary-container: #f8f7eb;
+  --color-on-secondary-container-rgb: 248, 247, 235;
+
+  /* Lighter light sage */
+  --color-tertiary: #cbd4c0;
+  --color-tertiary-rgb: 203, 212, 192;
+  --color-on-tertiary: #3e4934;
+  --color-on-tertiary-rgb: 62, 73, 52;
+  --color-tertiary-container: #57624a;
+  --color-tertiary-container-rgb: 87, 98, 74;
+  --color-on-tertiary-container: #e7eee0;
+  --color-on-tertiary-container-rgb: 231, 238, 224;
+
+  /* Neutral colors for dark mode */
+  --color-surface: #1a1c17;
+  --color-surface-rgb: 26, 28, 23;
+  --color-surface-dim: #12140f;
+  --color-surface-dim-rgb: 18, 20, 15;
+  --color-surface-bright: #363831;
+  --color-surface-bright-rgb: 54, 56, 49;
+  --color-surface-container-lowest: #0f110c;
+  --color-surface-container-lowest-rgb: 15, 17, 12;
+  --color-surface-container-low: #1a1c17;
+  --color-surface-container-low-rgb: 26, 28, 23;
+  --color-surface-container: #1e201b;
+  --color-surface-container-rgb: 30, 32, 27;
+  --color-surface-container-high: #292b25;
+  --color-surface-container-high-rgb: 41, 43, 37;
+  --color-surface-container-highest: #34362f;
+  --color-surface-container-highest-rgb: 52, 54, 47;
+
+  --color-on-surface: #e2e3dd;
+  --color-on-surface-rgb: 226, 227, 221;
+  --color-on-surface-variant: #c5c7be;
+  --color-on-surface-variant-rgb: 197, 199, 190;
+
+  --color-outline: #8f9187;
+  --color-outline-rgb: 143, 145, 135;
+  --color-outline-variant: #454741;
+  --color-outline-variant-rgb: 69, 71, 65;
+}
