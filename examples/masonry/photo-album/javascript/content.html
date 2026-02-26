@@ -1,0 +1,109 @@
+<div class="container container">
+    <header></header>
+        <h1>Builder · Masonry</h1>
+        <p class="description">
+            Composable entry point – <code>vlist/builder</code> with
+            <code>withMasonry</code> + <code>withScrollbar</code> plugins.
+            Pinterest-style photo gallery with variable heights (200-400px).
+            Items flow into the shortest column — only visible items are rendered.
+        </p>
+    </header>
+
+    <div class="stats" id="stats">Loading…</div>
+
+    <div class="masonry-info" id="masonry-info"></div>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <div id="masonry-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Masonry Controls -->
+            <section class="panel-section">
+                <h3 class="panel-title">Masonry</h3>
+
+                <div class="panel-row">
+                    <label class="panel-label">Orientation</label>
+                    <div class="panel-btn-group" id="orientation-buttons">
+                        <button
+                            class="ctrl-btn ctrl-btn--active"
+                            data-orientation="vertical"
+                        >
+                            Vertical
+                        </button>
+                        <button class="ctrl-btn" data-orientation="horizontal">
+                            Horizontal
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label" id="columns-label"
+                        >Columns</label
+                    >
+                    <div class="panel-btn-group" id="columns-buttons">
+                        <button class="ctrl-btn" data-cols="2">2</button>
+                        <button class="ctrl-btn" data-cols="3">3</button>
+                        <button class="ctrl-btn ctrl-btn--active" data-cols="4">
+                            4
+                        </button>
+                        <button class="ctrl-btn" data-cols="5">5</button>
+                        <button class="ctrl-btn" data-cols="6">6</button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Gap</label>
+                    <div class="panel-btn-group" id="gap-buttons">
+                        <button class="ctrl-btn" data-gap="0">0</button>
+                        <button class="ctrl-btn" data-gap="4">4</button>
+                        <button class="ctrl-btn ctrl-btn--active" data-gap="8">
+                            8
+                        </button>
+                        <button class="ctrl-btn" data-gap="12">12</button>
+                        <button class="ctrl-btn" data-gap="16">16</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Navigation</h3>
+                <div class="panel-row">
+                    <label class="panel-label">Quick jump</label>
+                    <div class="panel-btn-group">
+                        <button id="btn-first" class="panel-btn">First</button>
+                        <button id="btn-middle" class="panel-btn">
+                            Middle
+                        </button>
+                        <button id="btn-last" class="panel-btn">Last</button>
+                    </div>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Range</span>
+                    <span class="panel-value" id="visible-range">–</span>
+                </div>
+            </section>
+
+            <!-- Photo Detail -->
+            <section class="panel-section">
+                <h3 class="panel-title">Last clicked</h3>
+                <div class="panel-detail" id="photo-detail">
+                    <span class="panel-detail__empty"
+                        >Click a photo to see details</span
+                    >
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer>
+        <p>
+            The builder's <code>withMasonry</code> plugin creates a Pinterest-style
+            layout where items flow into the shortest column. The virtualizer
+            renders only visible items based on scroll position. Column widths
+            auto-adjust on resize. 📌
+        </p>
+    </footer>
+</div>

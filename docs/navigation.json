@@ -47,6 +47,11 @@
         "desc": "2D grid layout (withGrid)"
       },
       {
+        "slug": "features/masonry",
+        "name": "Masonry",
+        "desc": "Pinterest-style layout (withMasonry)"
+      },
+      {
         "slug": "features/sections",
         "name": "Sections",
         "desc": "Grouped lists with headers (withSections)"

@@ -30,6 +30,16 @@
     ]
   },
   {
+    "label": "Masonry Feature",
+    "items": [
+      {
+        "slug": "masonry/photo-album",
+        "name": "Photo Album",
+        "desc": "Pinterest-style layout with variable heights — shortest-lane placement"
+      }
+    ]
+  },
+  {
     "label": "Data Feature",
     "items": [
       {

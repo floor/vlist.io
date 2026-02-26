@@ -38,6 +38,11 @@
         "desc": "2D grid layout with virtualized rows"
       },
       {
+        "slug": "features/masonry",
+        "name": "Masonry",
+        "desc": "Pinterest-style layout with shortest-lane placement"
+      },
+      {
         "slug": "features/sections",
         "name": "Sections",
         "desc": "Grouped lists with sticky or inline headers"
