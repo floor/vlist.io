@@ -36,6 +36,25 @@ Decomposition of the largest file in the project (1900 lines) into focused modul
 
 Design and pre-implementation analysis of the alternative extraction approach. Hot-path variables stay as bare `let` locals (optimal minification); extracted factories receive getter/setter closures instead of a shared mutable object. Theoretical analysis raises concerns about memory and bundle overhead — to be validated empirically.
 
+### [feature-optimization-playbook.md](./feature-optimization-playbook.md)
+**Feature Optimization Playbook — February 2026**
+
+Reusable techniques for reducing bundle weight and per-frame allocations across all vlist features. Documented from the masonry feature optimization, designed to be applied to grid, sections, scale, and all other features.
+
+**Key Techniques:**
+- Flatten nested interfaces (−1 object per item)
+- Remove dead methods from returned objects
+- DRY data manager interception
+- Early exit on unchanged scroll position
+- Pool hot-path arrays and reuse Sets
+- Change tracking to skip template re-evaluation
+- Release grace period to prevent boundary thrashing
+- Binary search for visibility (O(k × log(n/k)) vs O(n))
+
+**Measured Impact:** masonry feature 7,465 → 6,502 bytes minified (−12.9%), 3,188 → 2,963 bytes gzipped (−7.1%)
+
+**Status:** ✅ Applied to masonry — ready to apply to other features
+
 ### [module-organization-plan.md](./module-organization-plan.md)
 **Original Refactoring Plan**
 
@@ -135,8 +154,21 @@ const list = vlist(config)
 
 ## 🚀 Future Refactoring
 
-Potential future refactoring efforts may be documented here as they are planned and completed.
+### Feature Optimization Pass
+
+Apply the [Feature Optimization Playbook](./feature-optimization-playbook.md) to all features:
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| **masonry** | ✅ Done | Origin of the playbook |
+| **grid** | 🔲 Planned | Flatten row/cell positions, binary search on rows, change tracking |
+| **sections** | 🔲 Planned | Binary search on group boundaries, dead method audit |
+| **scale** | 🔲 Planned | Early exit, cached derived values |
+| **selection** | 🔲 Planned | Audit renderer method usage |
+| **core renderer** | 🔲 Planned | Change tracking, release grace period |
+
+Other potential future refactoring efforts may be documented here as they are planned and completed.
 
 ---
 
-**Last Updated:** February 19, 2026
+**Last Updated:** February 2026
