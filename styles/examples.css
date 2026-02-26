@@ -199,7 +199,7 @@ footer a:hover {
    CSS Custom Properties (Design Tokens)
    ============================================================================= */
 
-[data-theme="light"] {
+[data-theme-mode="light"] {
     /* Colors - Light Mode */
     --vlist-bg: #ffffff;
     --vlist-bg-hover: #f9fafb;
@@ -234,7 +234,7 @@ footer a:hover {
 }
 
 /* Dark Mode Class Override */
-[data-theme="dark"] {
+[data-theme-mode="dark"] {
     --vlist-bg: #111827;
     --vlist-bg-hover: #1f2937;
     --vlist-bg-selected: rgba(59, 130, 246, 0.2);

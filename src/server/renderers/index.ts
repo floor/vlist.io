@@ -3,6 +3,8 @@
 
 export { SITE } from "./config";
 
+export { renderHomepage, clearCache as clearHomepageCache } from "./homepage";
+
 export {
   loadShell,
   loadNavigation,

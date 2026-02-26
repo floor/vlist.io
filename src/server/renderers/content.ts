@@ -412,7 +412,7 @@ export function createContentRenderer(config: ContentConfig) {
       SECTION_LINK: `${urlPrefix}/`,
       SECTION_KEY: urlPrefix === "/docs" ? "docs" : "tutorials",
       SIDEBAR: buildSidebar(slug),
-      CONTENT: content + buildPrevNext(slug),
+      CONTENT: content,
 
       // Styles & scripts
       EXTRA_STYLES: '<link rel="stylesheet" href="/styles/content.css" />',

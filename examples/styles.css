@@ -17,7 +17,7 @@
    but the website uses [data-theme] on <html>. Bridge the two systems.
    ============================================================================ */
 
-html[data-theme="light"] {
+html[data-theme-mode="light"] {
     --vlist-bg: #ffffff;
     --vlist-bg-hover: #f9fafb;
     --vlist-bg-selected: #eff6ff;
@@ -33,7 +33,7 @@ html[data-theme="light"] {
     --vlist-group-header-bg: #f3f4f6;
 }
 
-html[data-theme="dark"] {
+html[data-theme-mode="dark"] {
     --vlist-bg: #111827;
     --vlist-bg-hover: #1f2937;
     --vlist-bg-selected: rgba(59, 130, 246, 0.2);
@@ -546,7 +546,7 @@ html[data-theme] .source__panel pre {
    Dark theme: panel select arrow
    ============================================================================ */
 
-[data-theme="dark"] .panel-select {
+[data-theme-mode="dark"] .panel-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%239ca3af'%3E%3Cpath d='M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z'/%3E%3C/svg%3E");
 }
 
@@ -774,82 +774,82 @@ html[data-theme] .source__panel pre {
    Syntax Highlighting — Light theme
    ============================================================================ */
 
-[data-theme="light"] .hljs-keyword,
-[data-theme="light"] .hljs-selector-tag,
-[data-theme="light"] .hljs-built_in,
-[data-theme="light"] .hljs-type {
+[data-theme-mode="light"] .hljs-keyword,
+[data-theme-mode="light"] .hljs-selector-tag,
+[data-theme-mode="light"] .hljs-built_in,
+[data-theme-mode="light"] .hljs-type {
     color: #7c3aed;
 }
 
-[data-theme="light"] .hljs-tag {
+[data-theme-mode="light"] .hljs-tag {
     color: #6366f1;
 }
 
-[data-theme="light"] .hljs-tag .hljs-name {
+[data-theme-mode="light"] .hljs-tag .hljs-name {
     color: #dc2626;
 }
 
-[data-theme="light"] .hljs-string,
-[data-theme="light"] .hljs-attr {
+[data-theme-mode="light"] .hljs-string,
+[data-theme-mode="light"] .hljs-attr {
     color: #16a34a;
 }
 
-[data-theme="light"] .hljs-number,
-[data-theme="light"] .hljs-literal {
+[data-theme-mode="light"] .hljs-number,
+[data-theme-mode="light"] .hljs-literal {
     color: #ea580c;
 }
 
-[data-theme="light"] .hljs-comment {
+[data-theme-mode="light"] .hljs-comment {
     color: #94a3b8;
 }
 
-[data-theme="light"] .hljs-function .hljs-title,
-[data-theme="light"] .hljs-title.function_ {
+[data-theme-mode="light"] .hljs-function .hljs-title,
+[data-theme-mode="light"] .hljs-title.function_ {
     color: #2563eb;
 }
 
-[data-theme="light"] .hljs-variable,
-[data-theme="light"] .hljs-template-variable {
+[data-theme-mode="light"] .hljs-variable,
+[data-theme-mode="light"] .hljs-template-variable {
     color: #1e293b;
 }
 
-[data-theme="light"] .hljs-params {
+[data-theme-mode="light"] .hljs-params {
     color: #475569;
 }
 
-[data-theme="light"] .hljs-property {
+[data-theme-mode="light"] .hljs-property {
     color: #0d9488;
 }
 
-[data-theme="light"] .hljs-punctuation {
+[data-theme-mode="light"] .hljs-punctuation {
     color: #6366f1;
 }
 
-[data-theme="light"] .hljs-meta {
+[data-theme-mode="light"] .hljs-meta {
     color: #d97706;
 }
 
-[data-theme="light"] .hljs-selector-class {
+[data-theme-mode="light"] .hljs-selector-class {
     color: #d97706;
 }
 
-[data-theme="light"] .hljs-selector-id {
+[data-theme-mode="light"] .hljs-selector-id {
     color: #2563eb;
 }
 
-[data-theme="light"] .hljs-attribute {
+[data-theme-mode="light"] .hljs-attribute {
     color: #7c3aed;
 }
 
-[data-theme="light"] .hljs-regexp {
+[data-theme-mode="light"] .hljs-regexp {
     color: #6366f1;
 }
 
-[data-theme="light"] .hljs-addition {
+[data-theme-mode="light"] .hljs-addition {
     color: #16a34a;
 }
 
-[data-theme="light"] .hljs-deletion {
+[data-theme-mode="light"] .hljs-deletion {
     color: #dc2626;
 }
 

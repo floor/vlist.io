@@ -58,7 +58,7 @@
 
 /* ─── Light Theme ────────────────────────────────────────────────── */
 
-[data-theme="light"] {
+[data-theme-mode="light"] {
     --text: #1a1a2e;
     --text-muted: #4a4a60;
     --text-dim: #8080a0;
@@ -615,7 +615,7 @@ body {
 
 /* Light mode: show sun, hide moon */
 [data-theme-mode="light"] .header__theme-sun,
-[data-theme="light"] .header__theme-sun {
+[data-theme-mode="light"] .header__theme-sun {
     display: block;
 }
 [data-theme-mode="light"] .header__theme-moon,
@@ -844,12 +844,12 @@ html[data-theme-mode] .sidebar__link {
     /* Empty space when no prev/next */
 }
 
-[data-theme="light"] .doc-nav__link {
+[data-theme-mode="light"] .doc-nav__link {
     background: #f8f8fa;
     border-color: #e0e0e8;
 }
 
-[data-theme="light"] .doc-nav__link:hover {
+[data-theme-mode="light"] .doc-nav__link:hover {
     background: #f0f0f5;
     border-color: #d0d0d8;
 }

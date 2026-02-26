@@ -102,7 +102,7 @@
                         .matches
                         ? "light"
                         : "dark";
-                document.documentElement.setAttribute("data-theme", t);
+                document.documentElement.setAttribute("data-theme-mode", t);
             })();
         </script>
 
@@ -120,7 +120,7 @@
                 --radius-sm: 8px;
             }
 
-            [data-theme="light"] {
+            [data-theme-mode-mode="light"] {
                 --text-muted: #555568;
                 --text-dim: #8888a0;
                 --bg-card-hover: #e8e8f0;
@@ -509,34 +509,34 @@
 
             /* ─── Light theme: code ──────────────────────────── */
 
-            [data-theme="light"] .code {
+            [data-theme-mode="light"] .code {
                 background: var(--bg-card);
             }
-            [data-theme="light"] .code pre {
+            [data-theme-mode="light"] .code pre {
                 color: var(--text-muted);
             }
-            [data-theme="light"] .code .kw {
+            [data-theme-mode="light"] .code .kw {
                 color: #7c3aed;
             }
-            [data-theme="light"] .code .fn {
+            [data-theme-mode="light"] .code .fn {
                 color: #2563eb;
             }
-            [data-theme="light"] .code .str {
+            [data-theme-mode="light"] .code .str {
                 color: #16a34a;
             }
-            [data-theme="light"] .code .cm {
+            [data-theme-mode="light"] .code .cm {
                 color: #94a3b8;
             }
-            [data-theme="light"] .code .num {
+            [data-theme-mode="light"] .code .num {
                 color: #ea580c;
             }
-            [data-theme="light"] .code .prop {
+            [data-theme-mode="light"] .code .prop {
                 color: #dc2626;
             }
-            [data-theme="light"] .code .par {
+            [data-theme-mode="light"] .code .par {
                 color: #6366f1;
             }
-            [data-theme="light"] .code .op {
+            [data-theme-mode="light"] .code .op {
                 color: #6366f1;
             }
 
@@ -1238,9 +1238,9 @@ list.<span class="fn">setItems</span>(
                 if (!btn) return;
                 btn.addEventListener("click", function () {
                     var current =
-                        document.documentElement.getAttribute("data-theme");
+                        document.documentElement.getAttribute("data-theme-mode");
                     var next = current === "light" ? "dark" : "light";
-                    document.documentElement.setAttribute("data-theme", next);
+                    document.documentElement.setAttribute("data-theme-mode", next);
                     localStorage.setItem("vlist-theme", next);
                 });
             })();

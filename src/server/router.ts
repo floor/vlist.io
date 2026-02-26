@@ -8,6 +8,7 @@ import {
   renderExamplesPage,
   renderBenchmarkPage,
 } from "./renderers";
+import { renderHomepage } from "./renderers/homepage";
 import { resolveStatic } from "./static";
 import { compressResponse } from "./compression";
 import { renderSitemap, renderRobots } from "./sitemap";
@@ -19,6 +20,13 @@ import { renderSitemap, renderRobots } from "./sitemap";
 function routeSystem(pathname: string): Response | null {
   if (pathname === "/sitemap.xml") return renderSitemap();
   if (pathname === "/robots.txt") return renderRobots();
+  return null;
+}
+
+function resolveHomepage(pathname: string): Response | null {
+  if (pathname === "/" || pathname === "") {
+    return renderHomepage();
+  }
   return null;
 }
 
@@ -71,6 +79,7 @@ export async function handleRequest(req: Request): Promise<Response> {
 
   const response =
     routeSystem(pathname) ??
+    resolveHomepage(pathname) ??
     (await routeApi(req)) ??
     resolveExamples(pathname, req.url) ??
     resolveDocs(pathname) ??

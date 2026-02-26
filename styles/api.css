@@ -13,7 +13,7 @@
     --radius-xs: 5px;
 }
 
-[data-theme="light"] {
+[data-theme-mode="light"] {
     --bg-code: #f0f0f5;
     --bg-code-inline: #eaeaf0;
     --code-bar-bg: rgba(0, 0, 0, 0.02);
@@ -29,8 +29,7 @@
 code,
 pre,
 .mono {
-    font-family: "SF Mono", Monaco, Menlo, "Cascadia Code",
-        Consolas, monospace;
+    font-family: "SF Mono", Monaco, Menlo, "Cascadia Code", Consolas, monospace;
 }
 
 /* ─── Layout ─────────────────────────────────────── */
@@ -341,28 +340,67 @@ pre,
 
 /* ─── Syntax colors (dark) ───────────────────────── */
 
-.kw { color: #c792ea; }
-.str { color: #c3e88d; }
-.num { color: #f78c6c; }
-.prop { color: #80cbc4; }
-.pun { color: #89ddff; }
-.cm { color: #546e7a; font-style: italic; }
-.bool { color: #ff5370; }
-.type { color: #ffcb6b; }
+.kw {
+    color: #c792ea;
+}
+.str {
+    color: #c3e88d;
+}
+.num {
+    color: #f78c6c;
+}
+.prop {
+    color: #80cbc4;
+}
+.pun {
+    color: #89ddff;
+}
+.cm {
+    color: #546e7a;
+    font-style: italic;
+}
+.bool {
+    color: #ff5370;
+}
+.type {
+    color: #ffcb6b;
+}
 
 /* ─── Syntax colors (light) ──────────────────────── */
 
-[data-theme="light"] .code pre { color: #374151; }
-[data-theme="light"] .kw { color: #7c3aed; }
-[data-theme="light"] .str { color: #16a34a; }
-[data-theme="light"] .num { color: #ea580c; }
-[data-theme="light"] .prop { color: #0d9488; }
-[data-theme="light"] .pun { color: #6366f1; }
-[data-theme="light"] .cm { color: #94a3b8; }
-[data-theme="light"] .bool { color: #dc2626; }
-[data-theme="light"] .type { color: #d97706; }
-[data-theme="light"] .try-it__result pre { color: #374151; }
-[data-theme="light"] .notes__list code { color: #374151; }
+[data-theme="light"] .code pre {
+    color: #374151;
+}
+[data-theme="light"] .kw {
+    color: #7c3aed;
+}
+[data-theme="light"] .str {
+    color: #16a34a;
+}
+[data-theme="light"] .num {
+    color: #ea580c;
+}
+[data-theme="light"] .prop {
+    color: #0d9488;
+}
+[data-theme="light"] .pun {
+    color: #6366f1;
+}
+[data-theme="light"] .cm {
+    color: #94a3b8;
+}
+[data-theme="light"] .bool {
+    color: #dc2626;
+}
+[data-theme="light"] .type {
+    color: #d97706;
+}
+[data-theme="light"] .try-it__result pre {
+    color: #374151;
+}
+[data-theme="light"] .notes__list code {
+    color: #374151;
+}
 
 /* ─── Try It panel ───────────────────────────────── */
 

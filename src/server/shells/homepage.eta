@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="<%= it.description %>" />
+        <title><%= it.title %></title>
+
+        <link rel="canonical" href="<%= it.canonicalUrl %>" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="<%= it.canonicalUrl %>" />
+        <meta property="og:title" content="<%= it.title %>" />
+        <meta property="og:description" content="<%= it.description %>" />
+        <meta property="og:site_name" content="VList" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="<%= it.canonicalUrl %>" />
+        <meta name="twitter:title" content="<%= it.title %>" />
+        <meta name="twitter:description" content="<%= it.description %>" />
+
+        <!-- Additional SEO -->
+        <meta name="author" content="Floor IO" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <meta name="keywords" content="virtual list, virtual scroll, infinite scroll, react virtual list, performance, web components, javascript library, zero dependencies" />
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "VList",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Web",
+            "url": "<%= it.canonicalUrl %>",
+            "description": "<%= it.description %>",
+            "author": {
+                "@type": "Organization",
+                "name": "Floor IO",
+                "url": "https://floor.io"
+            },
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            },
+            "softwareVersion": "<%= it.version %>",
+            "license": "https://opensource.org/licenses/MIT",
+            "programmingLanguage": {
+                "@type": "ComputerLanguage",
+                "name": "TypeScript"
+            }
+        }
+        </script>
+
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "VList",
+            "url": "<%= it.canonicalUrl %>",
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": "<%= it.canonicalUrl %>/docs/?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+            }
+        }
+        </script>
+
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [{
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "<%= it.canonicalUrl %>"
+            }]
+        }
+        </script>
+
+        <link rel="stylesheet" href="/styles/shell.css" />
+        <link rel="stylesheet" href="/styles/homepage.css" />
+
+        <!-- Theme: apply before paint to prevent flash -->
+        <script>
+            (function () {
+                var t = localStorage.getItem("vlist-theme-mode");
+                if (!t)
+                    t = window.matchMedia("(prefers-color-scheme: light)")
+                        .matches
+                        ? "light"
+                        : "dark";
+                document.documentElement.setAttribute("data-theme-mode", t);
+            })();
+        </script>
+    </head>
+    <body>
+        <header class="header">
+            <div class="header__inner">
+                <a href="/" class="header__logo">VList</a>
+                <nav class="header__nav">
+                    <% it.navItems.forEach(function(item) { %>
+                    <a href="<%= item.href %>"<% if (item.external) { %> target="_blank"<% } %>><%= item.label %></a>
+                    <% }); %>
+                </nav>
+                <button class="header__theme" id="theme-toggle" aria-label="Toggle theme">
+                    <svg class="header__theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg class="header__theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+                <button class="header__hamburger" id="hamburger" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <rect y="3" width="20" height="2" rx="1" />
+                        <rect y="9" width="20" height="2" rx="1" />
+                        <rect y="15" width="20" height="2" rx="1" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <nav class="dropdown" id="dropdown">
+            <% it.navItems.forEach(function(item) { %>
+            <a href="<%= item.href %>"<% if (item.external) { %> target="_blank"<% } %>><%= item.label %></a>
+            <% }); %>
+        </nav>
+
+        <div class="container">
+            <!-- ========================================================
+                 Hero
+                 ======================================================== -->
+
+            <section class="hero">
+                <h1 class="hero__name">VList</h1>
+                <p class="hero__tagline">
+                    Ultra-efficient virtual list with constant memory.
+                    Dimension-agnostic architecture. Tree-shakeable features. 120+ FPS sustained.
+                </p>
+
+                <div class="hero__badges">
+                    <span class="badge badge--accent">v<%= it.version %></span>
+                    <span class="badge">7.7 KB base • 12.3 KB typical</span>
+                    <span class="badge">Zero Dependencies</span>
+                    <span class="badge badge--accent">0.1-0.3 MB @ 1M items</span>
+                    <span class="badge">120+ FPS sustained</span>
+                </div>
+
+                <div class="hero__actions">
+                    <a href="/examples/" class="btn btn--primary">
+                        Try Examples →
+                    </a>
+                    <a href="/benchmarks/" class="btn btn--primary" style="background: #4a5cd8">
+                        Run Benchmarks →
+                    </a>
+                    <a href="https://github.com/floor/vlist" class="btn btn--ghost" target="_blank">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Install
+                 ======================================================== -->
+
+            <div class="install">
+                <div class="install__cmd">
+                    <span>npm install @floor/vlist</span>
+                </div>
+            </div>
+
+            <!-- ========================================================
+                 Performance Highlights
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Performance That Matters</h2>
+                <p style="max-width: 720px; margin: 0 auto 32px; font-size: 16px; line-height: 1.6; color: var(--text-muted); text-align: center;">
+                    Verified benchmarks show VList's exceptional efficiency. All tests run live in your browser.
+                </p>
+                <div class="features" style="max-width: 900px; margin: 0 auto;">
+                    <div class="feature">
+                        <div class="feature__name">Constant Memory</div>
+                        <div class="feature__desc">
+                            Just 0.24 MB at 10K items, scales to 0.1-0.3 MB even at 1M+ items
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature__name">Fast Renders</div>
+                        <div class="feature__desc">
+                            Initial render in ~8.5ms, optimized for instant user feedback
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature__name">Smooth Scrolling</div>
+                        <div class="feature__desc">
+                            Perfect 120 FPS sustained performance, buttery smooth at any scale
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 32px;">
+                    <a href="/benchmarks/performance-comparison" class="btn btn--ghost">
+                        View Full Comparison →
+                    </a>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Features
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Features</h2>
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature__icon">⚡</span>
+                        <div class="feature__name">Blazing Fast</div>
+                        <div class="feature__desc">
+                            DOM recycling, RAF batching, O(log n) lookups — 120+ FPS sustained
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">💾</span>
+                        <div class="feature__name">Constant Memory</div>
+                        <div class="feature__desc">
+                            Just 0.24 MB at 10K items, scales to 0.1-0.3 MB even at 1M+ items — true O(1) memory complexity
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">↔️</span>
+                        <div class="feature__name">Dimension Agnostic</div>
+                        <div class="feature__desc">
+                            Vertical &amp; horizontal orientations with semantic API — grid, sections, all features work both ways
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📏</span>
+                        <div class="feature__name">Variable Sizes</div>
+                        <div class="feature__desc">
+                            Per-item size function with DOM measurement support
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">♾️</span>
+                        <div class="feature__name">Infinite Scroll</div>
+                        <div class="feature__desc">
+                            Async adapter with placeholders, velocity-aware loading
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🔀</span>
+                        <div class="feature__name">Reverse Mode</div>
+                        <div class="feature__desc">
+                            Chat UIs — start at bottom, prepend history, auto-scroll
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">☑️</span>
+                        <div class="feature__name">Selection</div>
+                        <div class="feature__desc">
+                            Single &amp; multi-select with full keyboard navigation
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🔲</span>
+                        <div class="feature__name">Grid Layout</div>
+                        <div class="feature__desc">
+                            Virtualized 2D grid in vertical or horizontal orientation
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">📌</span>
+                        <div class="feature__name">Sticky Headers</div>
+                        <div class="feature__desc">
+                            Grouped lists with sticky headers in any orientation
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon">🗜️</span>
+                        <div class="feature__name">Compression</div>
+                        <div class="feature__desc">
+                            Handle millions of items by compressing scroll space
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Explore
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Explore</h2>
+
+                <div class="nav-grid">
+                    <a href="/examples/" class="nav-card">
+                        <div class="nav-card__title">Examples</div>
+                        <div class="nav-card__desc">
+                            13 interactive examples — from basic lists to million-item stress tests
+                        </div>
+                        <span class="nav-card__link">Browse examples →</span>
+                    </a>
+                    <a href="/docs/" class="nav-card">
+                        <div class="nav-card__title">Documentation</div>
+                        <div class="nav-card__desc">
+                            API reference, configuration, events, methods, styling, and more
+                        </div>
+                        <span class="nav-card__link">Read docs →</span>
+                    </a>
+                    <a href="/benchmarks/" class="nav-card">
+                        <div class="nav-card__title">Benchmarks</div>
+                        <div class="nav-card__desc">
+                            Live performance tests — scroll FPS, render time, memory stability, bundle size
+                        </div>
+                        <span class="nav-card__link">Run benchmarks →</span>
+                    </a>
+                    <a href="/tutorials/" class="nav-card">
+                        <div class="nav-card__title">Tutorials</div>
+                        <div class="nav-card__desc">
+                            Step-by-step guides to learn vlist from beginner to advanced
+                        </div>
+                        <span class="nav-card__link">See →</span>
+                    </a>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Quick Start
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Quick Start</h2>
+                <div class="code">
+                    <pre><span class="kw">import</span> { <span class="fn">vlist</span> } <span class="kw">from</span> <span class="str">"@floor/vlist"</span>
+
+<span class="kw">const</span> list = <span class="fn">vlist</span>({
+  <span class="prop">container</span><span class="par">:</span> <span class="str">"#list"</span>,
+  <span class="prop">item</span><span class="par">:</span> {
+    <span class="prop">height</span><span class="par">:</span> <span class="num">48</span>,
+    <span class="prop">template</span><span class="par">:</span> (item) <span class="op">=></span> <span class="str">`&lt;div&gt;${item.name}&lt;/div&gt;`</span>
+  }
+}).<span class="fn">build</span>()
+
+list.<span class="fn">setItems</span>(
+  Array.<span class="fn">from</span>({ <span class="prop">length</span><span class="par">:</span> <span class="num">10_000</span> }, (_, i) <span class="op">=></span> ({
+    <span class="prop">id</span><span class="par">:</span> i,
+    <span class="prop">name</span><span class="par">:</span> <span class="str">`Item ${i}`</span>
+  }))
+)</pre>
+                </div>
+            </section>
+
+            <!-- ========================================================
+                 Examples Examples
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Examples (13)</h2>
+                <div class="example-grid">
+                    <a href="/examples/basic" class="example-item">
+                        <span class="example-item__name">Basic</span>
+                        <span class="example-item__desc">Simple list with 10K items — vanilla JavaScript, zero dependencies</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/controls" class="example-item">
+                        <span class="example-item__name">Controls</span>
+                        <span class="example-item__desc">Multi-selection, keyboard navigation, scroll events</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/grid/photo-album" class="example-item">
+                        <span class="example-item__name">Photo Album</span>
+                        <span class="example-item__desc">Responsive image grid — available in JavaScript, React, Vue, Svelte</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/grid/file-browser" class="example-item">
+                        <span class="example-item__name">File Browser</span>
+                        <span class="example-item__desc">Finder-like browser with grid/list views</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/data/large-list" class="example-item">
+                        <span class="example-item__name">Large List</span>
+                        <span class="example-item__desc">100K–5M items with compression</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/data/velocity-loading" class="example-item">
+                        <span class="example-item__name">Velocity Loading</span>
+                        <span class="example-item__desc">Intelligent async loading — pauses during fast scrolling</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/horizontal/basic" class="example-item">
+                        <span class="example-item__name">Horizontal</span>
+                        <span class="example-item__desc">Sideways scrolling carousel — 10K items with smooth navigation</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/groups/sticky-headers" class="example-item">
+                        <span class="example-item__name">Sticky Headers</span>
+                        <span class="example-item__desc">A–Z contact list with sticky section headers</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/scroll-restore" class="example-item">
+                        <span class="example-item__name">Scroll Restore</span>
+                        <span class="example-item__desc">Save &amp; restore scroll position across navigations</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/window-scroll" class="example-item">
+                        <span class="example-item__name">Window Scroll</span>
+                        <span class="example-item__desc">Full-page scrolling — uses document body instead of container</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/variable-heights" class="example-item">
+                        <span class="example-item__name">Variable Heights</span>
+                        <span class="example-item__desc">Dynamic sizing — automatically measures each item's height</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/reverse-chat" class="example-item">
+                        <span class="example-item__name">Reverse Chat</span>
+                        <span class="example-item__desc">Chat UI — reverse mode, prepend history, auto-scroll</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                    <a href="/examples/wizard-nav" class="example-item">
+                        <span class="example-item__name">Wizard Nav</span>
+                        <span class="example-item__desc">Step-by-step navigation — scroll wheel disabled, button controls only</span>
+                        <span class="example-item__arrow">→</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================================================
+             Footer
+             ============================================================ -->
+
+        <footer>
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+                    <a href="https://www.npmjs.com/package/vlist" target="_blank">npm</a>
+                    <% it.navItems.forEach(function(item) { %>
+                    <% if (!item.external) { %>
+                    <a href="<%= item.href %>"><%= item.label %></a>
+                    <% } %>
+                    <% }); %>
+                </div>
+                <p>
+                    Built by <a href="https://floor.io" target="_blank">Floor IO</a>
+                </p>
+            </div>
+        </footer>
+
+        <script>
+            (function () {
+                var h = document.getElementById("hamburger");
+                var d = document.getElementById("dropdown");
+                if (!h) return;
+                h.addEventListener("click", function () {
+                    d.classList.toggle("dropdown--open");
+                });
+                d.addEventListener("click", function (e) {
+                    if (e.target.closest("a"))
+                        d.classList.remove("dropdown--open");
+                });
+            })();
+        </script>
+
+        <!-- ─── Theme toggle ─────────────────────────────────── -->
+
+        <script>
+            (function () {
+                var btn = document.getElementById("theme-toggle");
+                if (!btn) return;
+                btn.addEventListener("click", function () {
+                    var current = document.documentElement.getAttribute("data-theme-mode");
+                    var next = current === "light" ? "dark" : "light";
+                    document.documentElement.setAttribute("data-theme-mode", next);
+                    localStorage.setItem("vlist-theme-mode", next);
+                });
+            })();
+        </script>
+    </body>
+</html>
