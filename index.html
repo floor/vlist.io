@@ -9,6 +9,7 @@
         />
         <title>VList — Virtual List for the Web</title>
 
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="canonical" href="https://vlist.dev/" />
 
         <!-- Open Graph / Facebook -->
@@ -96,7 +97,7 @@
         <!-- Theme: apply before paint to prevent flash -->
         <script>
             (function () {
-                var t = localStorage.getItem("vlist-theme");
+                var t = localStorage.getItem("vlist-theme-mode");
                 if (!t)
                     t = window.matchMedia("(prefers-color-scheme: light)")
                         .matches
@@ -120,7 +121,7 @@
                 --radius-sm: 8px;
             }
 
-            [data-theme-mode-mode="light"] {
+            [data-theme-mode="light"] {
                 --text-muted: #555568;
                 --text-dim: #8888a0;
                 --bg-card-hover: #e8e8f0;
@@ -1241,7 +1242,7 @@ list.<span class="fn">setItems</span>(
                         document.documentElement.getAttribute("data-theme-mode");
                     var next = current === "light" ? "dark" : "light";
                     document.documentElement.setAttribute("data-theme-mode", next);
-                    localStorage.setItem("vlist-theme", next);
+                    localStorage.setItem("vlist-theme-mode", next);
                 });
             })();
         </script>
