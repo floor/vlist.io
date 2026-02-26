@@ -522,7 +522,7 @@ if (fragment) {
 - Masonry renderer ✅
 - Grid renderer ✅ (lazy `fragment` creation with null check)
 - Core renderer ✅ (lazy `fragment` creation — zero allocation on scroll-only frames)
-- Builder core inlined renderer (still uses eager allocation — see Known Limitations)
+- Builder core inlined renderer ⚠️ **Reverted** — patterns 9–11 were applied in commit `37b6903` but caused a critical positioning bug and were rolled back. See [Incident: Builder Core Patterns 9–11 Rollback](#incident-builder-core-patterns-9-11-rollback). Still uses eager allocation.
 
 ---
 
@@ -623,7 +623,7 @@ simulateScroll(list, 2003); // 4 renders → RELEASE_GRACE(2) fully expired
 - Masonry renderer ✅
 - Grid renderer ✅ (grace loop runs inside `render()` on every call — see Grid-Specific Note below)
 - Core renderer ✅ (`TrackedItem` with `lastSeenFrame`, `RELEASE_GRACE = 2`)
-- Builder core inlined renderer (still uses immediate release — see Known Limitations)
+- Builder core inlined renderer ⚠️ **Reverted** — was applied in commit `37b6903` but caused a critical positioning bug. See [Incident: Builder Core Patterns 9–11 Rollback](#incident-builder-core-patterns-9-11-rollback). Still uses immediate release.
 
 #### Grid-Specific Note: `tick()` Removed
 
@@ -702,7 +702,7 @@ if (existing) {
 - Masonry renderer ✅
 - Grid renderer ✅ (`TrackedItem` with `lastItemId`, `lastSelected`, `lastFocused`, `lastTransform`)
 - Core renderer ✅ (`TrackedItem` with `lastItemId`, `lastSelected`, `lastFocused`, `lastOffset`)
-- Builder core inlined renderer (still uses unconditional DOM writes — see Known Limitations)
+- Builder core inlined renderer ⚠️ **Reverted** — was applied in commit `37b6903` but caused a critical positioning bug. See [Incident: Builder Core Patterns 9–11 Rollback](#incident-builder-core-patterns-9-11-rollback). Still uses unconditional DOM writes.
 
 #### Core Renderer Note: Offset Tracking vs Transform String
 
@@ -873,13 +873,19 @@ grep -n "new Set\|new Map\|new Array\|\[\]" src/features/<feature>/renderer.ts
 
 ## Known Limitations & Future Work
 
-### Builder core inlined renderer ✅ (Fixed)
+### Builder core inlined renderer ⚠️ (Reverted)
 
-The builder core (`builder/core.ts`) inlined renderer has been updated with
-all three optimizations (patterns 9–11), matching `rendering/renderer.ts`.
+Patterns 9–11 were applied to the builder core (`builder/core.ts`) in commit
+`37b6903` but introduced a critical positioning bug affecting placeholders and
+items during scrolling. The changes were fully reverted — `core.ts` and
+`materialize.ts` were restored to the pre-optimization state (`d087586`).
 
-See **Applied Changes Log — February 2026 — Builder Core Inlined Renderer**
-for details.
+The selection getter integration (`resolveSelectionGetters`) from the follow-up
+commit `267aefb` was re-applied manually since it is independent of patterns 9–11.
+
+See **[Incident: Builder Core Patterns 9–11 Rollback](#incident-builder-core-patterns-9-11-rollback)**
+for the full postmortem, and **Applied Changes Log — Builder Core Inlined Renderer**
+for the original and reverted changes.
 
 ### `tick()` divergence between grid and masonry ✅ (Fixed)
 
@@ -942,6 +948,155 @@ every scroll frame. The renderer's change tracking now fully covers selection,
 meaning scroll-only frames (no selection change) do zero selection-related DOM
 work. Selection changes do minimal targeted work via the existing
 `TrackedItem.lastSelected`/`lastFocused` diffing.
+
+---
+
+## Incident: Builder Core Patterns 9–11 Rollback
+
+**Date:** February 2026
+**Commit (introduced):** `37b6903c4c628737ce4a24eb14ac2335e12ea5bb`
+**Commit (last working):** `d08758676490ec2533ffd7a0643a0d7e7628a81f`
+**Severity:** Critical — items visually mispositioned during normal scrolling
+**Symptom:** Placeholders and items positioned incorrectly when scrolling
+**Resolution:** Full revert of patterns 9–11 from `builder/core.ts` and `builder/materialize.ts`
+
+### What happened
+
+Patterns 9 (lazy DocumentFragment), 10 (release grace period), and 11 (change
+tracking with `TrackedItem`) were applied to the builder core inlined renderer
+in a single commit. The resulting code passed all 2,268 unit tests but produced
+a visual positioning bug easily reproducible by scrolling.
+
+### Root causes identified
+
+Two interacting bugs were introduced:
+
+#### Bug 1: `renderItem` bypassed `$.pef` (position element function)
+
+The old `renderItem` called `$.pef(element, index)` to position newly created
+items. The optimization inlined the positioning directly:
+
+```typescript
+// NEW (broken) — inlined positioning bypasses $.pef
+const offset = Math.round($.hc.getOffset(index));
+element.style.transform = `translateY(${offset}px)`;
+```
+
+This is incorrect because `$.pef` can be **overridden by features** — specifically
+`withScale` (compression). When compression is active, `$.pef` calculates a
+compressed position that accounts for scroll state, anchor points, and compression
+ratio. The inlined code uses raw size-cache offsets, which are completely wrong
+in compressed mode.
+
+```typescript
+// OLD (correct) — delegates to whatever $.pef is currently set to
+$.pef(element, index);
+```
+
+#### Bug 2: Offset-based skip used uncompressed values for change detection
+
+For existing items, the optimization skipped repositioning when the offset
+hadn't changed:
+
+```typescript
+// NEW (broken) — compares uncompressed offset, but $.pef may compute
+// a completely different compressed position
+const offset = Math.round($.hc.getOffset(i));
+if (existing.lastOffset !== offset) {
+  $.pef(existing.element, i);
+  existing.lastOffset = offset;
+}
+```
+
+In compressed mode, `$.hc.getOffset(i)` returns the **uncompressed** offset,
+which doesn't change for a given index. But `$.pef` in compressed mode computes
+a position based on scroll position, which changes every frame during scrolling.
+Since the uncompressed offset for a given index is constant, the check always
+passed and `$.pef` was never called — items stayed frozen at their initial
+compressed positions.
+
+The old code repositioned unconditionally:
+
+```typescript
+// OLD (correct) — always repositions, works in both normal and compressed mode
+$.pef(existing, i);
+```
+
+#### Why the grace period was also problematic
+
+The grace period (`RELEASE_GRACE`) changed the item lifecycle in ways that
+interacted subtly with the existing render loop:
+
+- Items outside the render range were no longer immediately removed and recycled
+- The `rendered` map retained stale entries during the grace window
+- The grace loop ran before the early-exit guard, changing the execution order
+- `coreForceRender` needed to advance `frameCounter` past the grace window to
+  flush stale items on `setItems`/`reload` — adding complexity and coupling
+
+While the grace period alone may not have been the sole cause of the visual bug,
+the combination with the offset-based skip and inlined positioning made the
+bug harder to isolate and reason about.
+
+### Why tests didn't catch it
+
+- Unit tests use JSDOM which doesn't have a real layout engine — CSS transforms
+  are set as strings but never computed into actual positions
+- Integration tests verify DOM attributes and event behavior, not visual position
+- The positioning bug only manifests visually when `$.pef` has been overridden
+  (e.g., by `withScale` for compression), which requires real scroll interaction
+- The offset comparison (`lastOffset !== offset`) is always correct in
+  non-compressed mode, so tests without compression pass
+
+### Resolution
+
+1. **Full revert:** `core.ts` and `materialize.ts` restored from the last working
+   commit (`d087586`)
+2. **`materialize.ts` adapted:** Updated to work with `Map<number, HTMLElement>`
+   instead of `Map<number, TrackedItem>` — fixed `updateItemClasses`, `getElement`,
+   `invalidateRendered`, and `updateItem` in the data proxy
+3. **Selection getters re-applied:** The lazy `resolveSelectionGetters` pattern
+   from commit `267aefb` was re-applied to `core.ts` since it is independent of
+   patterns 9–11 and required for selection to work
+4. **Internal method filter re-applied:** `_`-prefixed methods filtered from the
+   public API (also from `267aefb`)
+5. **Tests updated:** `materialize.test.ts` updated to remove `TrackedItem`
+   references and `tracked()` helper
+
+### Lessons learned
+
+1. **Never inline `$.pef`** — it's a replaceable function that features override.
+   Always delegate to it, never duplicate its logic.
+2. **Offset-based skip doesn't work in compressed mode** — compressed positions
+   depend on scroll state, not just the size-cache offset. Any optimization that
+   caches "last position" must account for compression.
+3. **Bundling multiple optimizations in one commit** makes rollback harder.
+   Patterns 9, 10, and 11 should have been applied in separate commits so the
+   faulty pattern could be identified and reverted independently.
+4. **Visual positioning bugs need visual tests** — JSDOM unit tests cannot catch
+   transform-based positioning errors. Consider adding Playwright or similar
+   visual regression tests for scroll positioning.
+5. **The grace period adds significant complexity** to the render loop lifecycle.
+   Before re-attempting, ensure it's designed to work with `$.pef` overrides
+   and compressed mode repositioning.
+
+### Re-applying these optimizations (future)
+
+If patterns 9–11 are re-attempted for the builder core inlined renderer:
+
+- **Pattern 9 (lazy DocumentFragment):** Safe to re-apply independently. Low risk.
+- **Pattern 10 (grace period):** Must be designed to work with `$.pef` overrides.
+  Grace-period items that re-enter the range must be repositioned via `$.pef`,
+  not skipped based on cached offsets.
+- **Pattern 11 (change tracking):** The `TrackedItem` approach works in the
+  standalone `rendering/renderer.ts` because that renderer controls its own
+  positioning. In the builder core, `$.pef` is a replaceable function — any
+  offset-based skip must call `$.pef` to get the real position, not compare
+  against `$.hc.getOffset()` which is the uncompressed value.
+- **Apply in separate commits** so each pattern can be tested and reverted
+  independently.
+- **Test with `withScale` + `withAsync`** — this combination (large dataset with
+  compression + async loading with placeholders) is the scenario that triggers
+  the bug.
 
 ---
 
@@ -1036,7 +1191,12 @@ work. Selection changes do minimal targeted work via the existing
 - Added `ScrollController` interface
 - Size: 327 → 674 min (+347), 256 → 429 gz (+173) — loaded once, shared by all consumers
 
-### February 2026 — Builder Core Inlined Renderer
+### February 2026 — Builder Core Inlined Renderer ⚠️ REVERTED
+
+> **Status:** Applied in commit `37b6903`, reverted due to critical positioning bug.
+> See **[Incident: Builder Core Patterns 9–11 Rollback](#incident-builder-core-patterns-9-11-rollback)** for full postmortem.
+
+**What was applied (commit `37b6903`):**
 
 **Builder core (`builder/core.ts`):**
 - Pattern 10: Release grace period with `TrackedItem.lastSeenFrame` and `RELEASE_GRACE = 2`
@@ -1048,7 +1208,8 @@ work. Selection changes do minimal targeted work via the existing
 - Grace period release loop runs **before** the early-exit guard (unchanged range) so stale items expire even on stationary scroll frames
 - `coreForceRender` advances `frameCounter += RELEASE_GRACE + 1` so `setItems([])` / `reload` / `invalidateRendered` flush stale items immediately
 - Compressed mode repositioning loop stays unconditional (compression changes offsets unpredictably, offset tracking doesn't help)
-- Offset tracking uses `Math.round($.hc.getOffset(i))` for comparison; `$.pef` only called when offset changed
+- ⚠️ `renderItem` inlined positioning directly (bypassing `$.pef`) — **root cause of bug**
+- ⚠️ Offset tracking uses `Math.round($.hc.getOffset(i))` for comparison — **incorrect in compressed mode**
 
 **Materialize context (`builder/materialize.ts`):**
 - `MDeps.rendered` type changed from `Map<number, HTMLElement>` to `Map<number, TrackedItem>`
@@ -1058,18 +1219,20 @@ work. Selection changes do minimal targeted work via the existing
 - `updateItem` (data proxy) syncs `tracked.lastItemId` after re-applying template so subsequent scroll frames benefit from change tracking
 - `TrackedItem` exported from `core.ts`, imported as `import type` in `materialize.ts` (type-only — no runtime circular dependency)
 
-**Mode B measurement:**
-- `newlyRenderedForMeasurement` now lazy-allocated (null until first unmeasured item)
-- `itemResizeObserver.observe()` receives `tracked.element` — ResizeObserver observes the DOM element, not the wrapper
-- `measuredElementToIndex` WeakMap still keyed by `HTMLElement` — no change needed
+**What was reverted:**
+- `core.ts` restored to commit `d087586` (pre-optimization)
+- `materialize.ts` restored to commit `d087586`, then adapted for current API
+  (`updateItemClasses`, `getElement`, `invalidateRendered`, `updateItem` updated
+  to work with `Map<number, HTMLElement>` instead of `Map<number, TrackedItem>`)
+- `materialize.test.ts` updated to remove `TrackedItem` references
 
-**Key design decisions:**
-- Grace period release runs before early-exit (unlike renderer.ts which has no early-exit) — ensures frame counter advances expire stale items even when render range is unchanged
-- `coreForceRender` flushes grace immediately — forced re-renders signal "the world changed" (setItems, reload), keeping ghost DOM nodes would leave orphans visible
-- No offset tracking in compressed mode — compression changes all offsets unpredictably per scroll position, so the unconditional reposition loop is correct
+**What was preserved from follow-up commit `267aefb`:**
+- Lazy `resolveSelectionGetters()` in `core.ts` — reads `_getSelectedIds` /
+  `_getFocusedIndex` from `methods` Map instead of stale `$.ss` / `$.fi`
+- `_`-prefixed method filter in public API merge loop
 
 ---
 
 **Last Updated:** February 2026
-**Applied To:** masonry feature ✅, grid feature ✅, core renderer ✅, sections feature (sticky + DRY) ✅, builder core inlined renderer ✅, selection feature state sync ✅, grid tick() removal ✅
-**Next:** All known optimizations applied. Profile for new bottlenecks.
+**Applied To:** masonry feature ✅, grid feature ✅, core renderer ✅, sections feature (sticky + DRY) ✅, builder core inlined renderer ⚠️ reverted, selection feature state sync ✅, grid tick() removal ✅
+**Next:** Re-apply patterns 9–11 to builder core with proper `$.pef` delegation (see incident postmortem for guidance). Add visual regression tests for scroll positioning.
