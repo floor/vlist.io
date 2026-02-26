@@ -1,847 +1,563 @@
 # Grid Layout
 
-> 2D photo galleries, card grids, and virtualized grid layouts with dynamic aspect ratios
-
-Grid layout transforms a flat list of items into a virtualized 2D grid with configurable columns and gaps. It's perfect for photo galleries, product catalogs, card layouts, and any interface that displays items in a grid.
+Transform your virtual list into a responsive 2D grid with the `withGrid` feature.
 
 ## Overview
 
+The `withGrid` feature converts a linear virtual list into a 2D grid layout with configurable columns and gaps. The virtualizer operates on **rows** (not individual items), rendering only what's visible in the viewport.
+
 ### What It Does
 
-Grid layout virtualizes in the **main scroll axis**, not individual items. With 1,000 items in a 4-column grid:
-- **250 virtual rows** (1000 ÷ 4) in vertical mode, or **250 virtual columns** in horizontal mode
-- Only **~15 rows/columns** rendered at once
-- **~60 DOM nodes** instead of 1,000
-- **94% memory savings**
+- **2D Grid Layout** — Arranges items in a responsive grid with configurable columns
+- **Row-Based Virtualization** — Only visible rows are rendered, not all items
+- **Auto-Responsive** — Column width adjusts automatically on container resize
+- **Gap Support** — Configurable spacing between items (horizontal and vertical)
+- **Memory Efficient** — Same virtualization benefits as list mode
 
 ### Key Features
 
-- ✅ **Virtualized in main axis** — Only visible rows (vertical) or columns (horizontal) are rendered
-- ✅ **Both orientations** — Works with vertical and horizontal scrolling
-- ✅ **Dynamic columns** — Change columns on the fly without recreation
-- ✅ **Aspect ratio maintenance** — Size auto-adjusts when columns change
-- ✅ **Gap control** — Configurable spacing between items
-- ✅ **Responsive** — Recalculates on container resize
-- ✅ **Efficient updates** — No instance recreation needed
-- ✅ **Zero dependencies** — Pure TypeScript/JavaScript
-
-
+- ✅ **Builder-Based** — Composable via `vlist().use(withGrid())` API
+- ✅ **Responsive Columns** — Width recalculated on container resize
+- ✅ **Row Virtualization** — Only visible rows exist in the DOM
+- ✅ **Fixed or Dynamic Heights** — Support for both fixed and computed item heights
+- ✅ **Both Orientations** — Vertical (default) and horizontal grid layouts
+- ✅ **Group Support** — Works with `withGroups` for categorized grids
+- ✅ **Selection Support** — Works with `withSelection` for selectable grids
+- ✅ **Scrollbar Support** — Works with `withScrollbar` for custom scrollbars
 
 ## Quick Start
 
-```typescript
-import { vlist, withGrid, withScrollbar } from 'vlist';
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
 
 const gallery = vlist({
   container: '#gallery',
-  items: photos,
   item: {
     height: 200,
     template: (item) => `
       <div class="card">
         <img src="${item.url}" alt="${item.title}" />
-        <span class="title">${item.title}</span>
+        <h3>${item.title}</h3>
       </div>
     `,
   },
+  items: photos,
 })
-  .use(withGrid({ columns: 4, gap: 16 }))
-  .use(withScrollbar({ autoHide: true }))
-  .build();
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
 ```
-
-**Bundle:** 11.7 KB gzipped
 
 ### HTML Structure
 
 ```html
-<div id="gallery"></div>
+<div id="gallery" style="height: 600px;"></div>
 ```
 
 ### Result
 
-```html
-<div id="gallery" class="vlist vlist--grid" role="listbox">
-  <div class="vlist-viewport">
-    <div class="vlist-content" style="height: 50000px">
-      <div class="vlist-items">
-        <!-- Only visible items rendered -->
-        <div class="vlist-item" data-row="0" data-col="0" style="...">
-          <img src="photo1.jpg" />
-        </div>
-        <div class="vlist-item" data-row="0" data-col="1" style="...">
-          <img src="photo2.jpg" />
-        </div>
-        <!-- ... more visible items ... -->
-      </div>
-    </div>
-  </div>
-</div>
-```
-
-## Dynamic Aspect Ratio
-
-One of the most powerful features is **dynamic height calculation based on column width**. When you change the number of columns, the column width changes, and the height should adjust proportionally to maintain aspect ratios.
-
-### Grid Context
-
-The `item.height` function can receive an optional second parameter with grid context:
-
-```typescript
-interface GridHeightContext {
-  containerWidth: number;  // Cross-axis container dimension (px)
-                           // Vertical mode: viewport width
-                           // Horizontal mode: viewport height
-  columns: number;         // Number of cross-axis divisions
-  gap: number;             // Gap between items (px)
-  columnWidth: number;     // Calculated cross-axis cell size (px)
-}
-
-type HeightFunction = (
-  index: number,
-  context?: GridHeightContext
-) => number;
-```
-
-### Example: 4:3 Aspect Ratio
-
-```typescript
-const gallery = vlist({
-  container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  item: {
-    // Height = 75% of column width (4:3 ratio)
-    height: (index, context) => {
-      if (context) {
-        return context.columnWidth * 0.75;
-      }
-      return 200; // fallback for non-grid
-    },
-    template: (item) => `
-      <img 
-        src="${item.url}" 
-        alt="${item.title}"
-        style="width: 100%; height: 100%; object-fit: cover"
-      />
-    `,
-  },
-  items: photos,
-});
-
-// When columns change, height automatically recalculates!
-gallery.updateGrid({ columns: 2 });
-// Column width doubles, height doubles too → aspect ratio maintained
-```
-
-### Common Aspect Ratios
-
-```typescript
-// Square (1:1)
-height: (index, context) => context ? context.columnWidth : 200
-
-// 4:3 (standard photo)
-height: (index, context) => context ? context.columnWidth * 0.75 : 200
-
-// 16:9 (widescreen)
-height: (index, context) => context ? context.columnWidth * 0.5625 : 200
-
-// 3:2 (35mm film)
-height: (index, context) => context ? context.columnWidth * 0.667 : 200
-
-// Golden ratio (1.618:1)
-height: (index, context) => context ? context.columnWidth * 0.618 : 200
-```
-
-### Variable Heights Based on Content
-
-You can also calculate height based on both grid context AND item data:
-
-```typescript
-height: (index, context) => {
-  if (!context) return 200;
-  
-  const item = items[index];
-  
-  // Portrait photos get more height
-  if (item.orientation === 'portrait') {
-    return context.columnWidth * 1.5;
-  }
-  
-  // Landscape photos
-  if (item.orientation === 'landscape') {
-    return context.columnWidth * 0.6;
-  }
-  
-  // Square
-  return context.columnWidth;
-}
-```
-
-### How It Works
-
-1. **On initialization**: Height function called with grid context
-2. **On column change** (`updateGrid()`): Grid state updated, height cache rebuilt
-3. **On resize**: Cross-axis dimension updated, height cache rebuilt (dynamic heights only)
-4. **Height function always uses current state** — No stale closures!
-
-The grid state is **mutable** and always reflects the current configuration:
-
-```typescript
-// Internal implementation (simplified)
-// containerWidth = cross-axis container dimension:
-//   vertical mode  → dom.viewport.clientWidth
-//   horizontal mode → dom.viewport.clientHeight
-const gridState = {
-  containerWidth: getCrossAxisSize(),
-  columns: 4,
-  gap: 8,
-};
-
-const wrappedHeight = (index) => {
-  const columnWidth = 
-    (gridState.containerWidth - (gridState.columns - 1) * gridState.gap) 
-    / gridState.columns;
-  
-  const context = { ...gridState, columnWidth };
-  return userHeightFn(index, context);
-};
-
-// When updateGrid is called:
-gridState.columns = 2;  // Updates the referenced object
-sizeCache.rebuild();  // Recalculates all sizes
-```
+The grid feature will:
+1. Calculate column width: `(containerWidth - (columns - 1) * gap) / columns`
+2. Transform the flat items array into rows
+3. Render only visible rows in the viewport
+4. Position items using CSS transforms (translateX for columns, translateY for rows)
+5. Add data attributes: `data-row` and `data-col` to each item
+6. Add `.vlist--grid` class to the container
 
 ## Configuration
 
-### Grid Config
+### Grid Feature Config
 
-```typescript
-interface GridConfig {
+```ts
+interface GridFeatureConfig {
   /** Number of columns (required, >= 1) */
-  columns: number;
-  
+  columns: number
+
   /** Gap between items in pixels (default: 0) */
-  gap?: number;
-}
-```
-
-```typescript
-import { vlist, withGrid, withScrollbar } from 'vlist';
-
-const gallery = vlist({
-  container: '#gallery',
-  items: photos,
-  item: {
-    height: 200,
-    template: (item) => `
-      <div class="card">
-        <img src="${item.url}" />
-        <span>${item.title}</span>
-      </div>
-    `,
-  },
-})
-  .use(withGrid({ columns: 4, gap: 16 }))
-  .use(withScrollbar({ autoHide: true }))
-  .build();
-```
-
-**Bundle:** 11.7 KB gzipped
-
-### Item Configuration
-
-```typescript
-interface ItemConfig {
-  /** 
-   * Row height in pixels
-   * - number: Fixed height for all rows
-   * - function: Dynamic height with optional grid context
-   */
-  height: number | ((index: number, context?: GridHeightContext) => number);
-  
-  /** Template function to render each item */
-  template: (item: T, index: number, state: ItemState) => string | HTMLElement;
-}
-```
-
-## API Reference
-
-### Methods
-
-#### `updateGrid(config)`
-
-Update grid configuration dynamically without recreating the instance.
-
-**Available with:** `vlist().use(withGrid()).build()`
-
-**Signature:**
-```typescript
-updateGrid(config: Partial<GridConfig>): void
-```
-
-**Parameters:**
-```typescript
-interface GridConfig {
-  columns?: number;  // Update number of columns
-  gap?: number;      // Update gap between items
+  gap?: number
 }
 ```
 
 **Example:**
-```typescript
+
+```js
 const gallery = vlist({
   container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
   item: {
-    height: (index, context) => context ? context.columnWidth * 0.75 : 200,
-    template: renderPhoto,
+    height: 200,
+    template: renderItem,
   },
   items: photos,
-});
-
-// Update columns only
-gallery.updateGrid({ columns: 2 });
-
-// Update gap only
-gallery.updateGrid({ gap: 16 });
-
-// Update both
-gallery.updateGrid({ columns: 3, gap: 12 });
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
 ```
 
-**What happens:**
-1. ✅ Grid layout updated internally
-2. ✅ Row count recalculated (items ÷ new columns)
-3. ✅ Height function called with new context (if dynamic)
-4. ✅ Height cache rebuilt with new heights
-5. ✅ Visible items re-rendered with new positions
-6. ✅ Scroll position preserved
-7. ✅ Selection preserved
-8. ✅ No flicker or recreation overhead
+### Item Height Options
 
-**Performance:**
-- First call: ~5-10ms (recalculation)
-- Cached: ~1-2ms
-- **No instance recreation needed!**
+Grid supports both **fixed** and **dynamic** item heights:
 
-### All Standard Methods
+#### Fixed Height
 
-Grid instances have all standard vlist methods:
-
-```typescript
-// Data methods
-gallery.setItems(newPhotos);
-gallery.appendItems(morePhotos);
-gallery.updateItem('photo-123', { title: 'Updated' });
-
-// Scroll methods
-gallery.scrollToIndex(50, 'center');
-gallery.scrollToItem('photo-123');
-
-// Events
-gallery.on('item:click', ({ item, index }) => {
-  console.log('Clicked photo:', item.title);
-});
-
-// Lifecycle
-gallery.destroy();
+```js
+item: {
+  height: 200, // Fixed 200px height
+  template: renderItem,
+}
 ```
 
-### Grid-Specific Properties
+#### Dynamic Height (Function)
 
-When using grid layout, items have additional data attributes:
+For aspect ratios or content-based heights:
+
+```js
+item: {
+  height: ({ containerWidth, columns, gap }) => {
+    // Calculate column width
+    const colWidth = (containerWidth - (columns - 1) * gap) / columns
+    
+    // Return height for 4:3 aspect ratio
+    return Math.round(colWidth * 0.75)
+  },
+  template: renderItem,
+}
+```
+
+The height function receives a context object with:
+- `containerWidth` — Current container width in pixels
+- `columns` — Number of columns
+- `gap` — Gap between items
+- `row` — Row index (0-based)
+- `column` — Column index (0-based)
+- `totalRows` — Total number of rows
+- `totalColumns` — Current number of columns
+
+## Dynamic Aspect Ratios
+
+Use a height function to maintain aspect ratios across different column configurations:
+
+### Example: 4:3 Landscape Aspect Ratio
+
+```js
+const gallery = vlist({
+  container: '#gallery',
+  item: {
+    height: ({ containerWidth, columns, gap }) => {
+      const colWidth = (containerWidth - (columns - 1) * gap) / columns
+      return Math.round(colWidth * 0.75) // 4:3 aspect ratio
+    },
+    template: (item) => `
+      <div class="card">
+        <img src="${item.url}" alt="${item.title}" loading="lazy" />
+        <div class="card__overlay">
+          <h3>${item.title}</h3>
+        </div>
+      </div>
+    `,
+  },
+  items: photos,
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
+```
+
+### Common Aspect Ratios
+
+```js
+// Square (1:1)
+height: ({ containerWidth, columns, gap }) => {
+  const colWidth = (containerWidth - (columns - 1) * gap) / columns
+  return Math.round(colWidth)
+}
+
+// 16:9 Widescreen
+height: ({ containerWidth, columns, gap }) => {
+  const colWidth = (containerWidth - (columns - 1) * gap) / columns
+  return Math.round(colWidth * (9 / 16))
+}
+
+// 4:3 Landscape
+height: ({ containerWidth, columns, gap }) => {
+  const colWidth = (containerWidth - (columns - 1) * gap) / columns
+  return Math.round(colWidth * 0.75)
+}
+
+// 3:4 Portrait
+height: ({ containerWidth, columns, gap }) => {
+  const colWidth = (containerWidth - (columns - 1) * gap) / columns
+  return Math.round(colWidth * (4 / 3))
+}
+```
+
+## Orientation Support
+
+Grid layouts work in both vertical and horizontal orientations:
+
+### Vertical Grid (Default)
+
+```js
+const gallery = vlist({
+  container: '#gallery',
+  orientation: 'vertical', // Default
+  item: {
+    height: 200,
+    template: renderItem,
+  },
+  items: photos,
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
+```
+
+Scrolls **vertically**, columns arranged **horizontally**.
+
+### Horizontal Grid
+
+```js
+const gallery = vlist({
+  container: '#gallery',
+  orientation: 'horizontal',
+  item: {
+    height: 200, // This becomes the cross-axis size (vertical extent)
+    width: 300,  // Required for horizontal orientation
+    template: renderItem,
+  },
+  items: photos,
+})
+.use(withGrid({ columns: 3, gap: 8 }))
+.build()
+```
+
+Scrolls **horizontally**, columns arranged **vertically**.
+
+**Note:** In horizontal mode, you must specify both `height` and `width` in the item config.
+
+## API Reference
+
+### withGrid(config)
+
+Creates a grid feature for the builder.
+
+**Parameters:**
+- `config.columns` (number, required) — Number of columns (>= 1)
+- `config.gap` (number, optional) — Gap between items in pixels (default: 0)
+
+**Returns:** `VListFeature` — A feature that can be passed to `.use()`
+
+**Example:**
+
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
+
+const list = vlist({
+  container: '#app',
+  item: { height: 200, template: renderItem },
+  items: data,
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
+```
+
+### Built List API
+
+The grid feature doesn't add new methods to the built list — all standard vlist methods work as expected:
+
+```js
+const list = vlist(config)
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .build()
+
+// Standard methods work with row indices
+list.scrollToIndex(10, 'center') // Scrolls to row containing item 10
+list.getViewportState()          // Returns viewport state
+list.destroy()                   // Cleanup
+```
+
+### Data Attributes
+
+Grid items receive additional data attributes:
 
 ```html
-<div class="vlist-item" 
-     data-index="7"
-     data-id="photo-8"
-     data-row="1"
-     data-col="3">
-  <!-- Item content -->
+<div class="vlist-item" data-row="2" data-col="1">
+  <!-- Your content -->
 </div>
 ```
+
+- `data-row` — Row index (0-based)
+- `data-col` — Column index (0-based)
+
+Use these for CSS styling or JavaScript logic.
 
 ## Performance
 
 ### Memory Savings
 
-**Example: 1,000 photos in 4-column grid**
-
-```
-Without virtualization:
-  1,000 DOM nodes × ~2 KB each = ~2 MB
-
-With grid virtualization:
-  250 rows total
-  ~15 rows visible
-  60 DOM nodes × ~2 KB each = ~120 KB
-  
-Savings: 94%
-```
+With a 4-column grid of 1000 items:
+- **Without virtualization:** 1000 DOM nodes
+- **With grid virtualization:** ~40 DOM nodes (10 visible rows × 4 columns)
+- **Savings:** ~96% fewer DOM nodes
 
 ### Rendering Performance
 
-| Items | Columns | Rows | Rendered | Savings | FPS |
-|-------|---------|------|----------|---------|-----|
-| 100 | 4 | 25 | ~12 nodes | 88% | 60 |
-| 1,000 | 4 | 250 | ~60 nodes | 94% | 60 |
-| 10,000 | 4 | 2,500 | ~60 nodes | 99.4% | 60 |
-| 100,000 | 6 | 16,667 | ~72 nodes | 99.93% | 60 |
-
-Scroll remains smooth at 60 FPS regardless of total item count!
+Grid layouts render rows, not individual items:
+- **List mode:** Updates individual item positions
+- **Grid mode:** Updates row positions, items positioned within rows
+- **Result:** Fewer style recalculations on scroll
 
 ### Update Performance
 
-Updating grid configuration is **~100x faster** than recreation:
-
-```
-Destroy + Recreate:  ~50-100ms
-updateGrid():        ~1-2ms (cached)
-                     ~5-10ms (first call)
-```
-
-### Compression Support
-
-Grid layout works with compression for massive datasets:
-
-```typescript
-const gallery = vlist({
-  container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 6, gap: 4 },
-  item: {
-    height: 200,
-    template: renderPhoto,
-  },
-  items: millionPhotos,  // 1,000,000 items
-});
-
-// 166,667 rows × 200px = 33M pixels
-// Exceeds browser limit (16.7M)
-// → Compression automatically applied
-```
+Changing columns or gap recreates the grid layout but reuses existing DOM nodes where possible.
 
 ## Examples
 
 ### Photo Gallery with Responsive Columns
 
-```typescript
-import { vlist } from 'vlist';
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
 
 const gallery = vlist({
   container: '#gallery',
-  layout: 'grid',
-  grid: {
-    columns: 4,
-    gap: 8,
-  },
   item: {
-    height: (index, context) => {
-      if (context) {
-        return context.columnWidth * 0.75; // 4:3 aspect ratio
-      }
-      return 200;
+    height: ({ containerWidth, columns, gap }) => {
+      const colWidth = (containerWidth - (columns - 1) * gap) / columns
+      return Math.round(colWidth * 0.75) // 4:3 aspect ratio
     },
     template: (item) => `
-      <div class="photo-card">
+      <div class="card">
         <img 
-          src="${item.thumbnail}" 
+          src="https://picsum.photos/id/${item.id}/300/225" 
           alt="${item.title}"
           loading="lazy"
-          style="width: 100%; height: 100%; object-fit: cover"
         />
-        <div class="photo-overlay">
-          <h3>${item.title}</h3>
-          <p>${item.category}</p>
+        <div class="card__overlay">
+          <span class="card__title">${item.title}</span>
+          <span class="card__category">${item.category}</span>
         </div>
       </div>
     `,
   },
   items: photos,
-});
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
 
-// Responsive columns based on window width
-const updateColumns = () => {
-  const width = window.innerWidth;
-  if (width < 640) {
-    gallery.updateGrid({ columns: 2 });
-  } else if (width < 1024) {
-    gallery.updateGrid({ columns: 3 });
-  } else if (width < 1440) {
-    gallery.updateGrid({ columns: 4 });
-  } else {
-    gallery.updateGrid({ columns: 6 });
-  }
-};
-
-window.addEventListener('resize', updateColumns);
-updateColumns();
-```
-
-### Product Catalog
-
-```typescript
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  rating: number;
+// Update columns on resize
+function updateColumns() {
+  const width = window.innerWidth
+  let columns = 4
+  
+  if (width < 640) columns = 2
+  else if (width < 1024) columns = 3
+  else if (width < 1536) columns = 4
+  else columns = 5
+  
+  // Recreate with new columns
+  gallery.destroy()
+  // Create new instance with updated columns
 }
 
-const catalog = vlist<Product>({
-  container: '#products',
-  layout: 'grid',
-  grid: { columns: 3, gap: 16 },
+window.addEventListener('resize', updateColumns)
+```
+
+### Product Catalog with Selection
+
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
+import { withSelection } from 'vlist/selection'
+
+const catalog = vlist({
+  container: '#catalog',
   item: {
-    height: (index, context) => {
-      // Taller cards for better product display
-      return context ? context.columnWidth * 1.2 : 240;
+    height: ({ containerWidth, columns, gap }) => {
+      const colWidth = (containerWidth - (columns - 1) * gap) / columns
+      return Math.round(colWidth * 1.3) // Taller for product info
     },
-    template: (product) => `
-      <article class="product-card">
-        <img src="${product.image}" alt="${product.name}" />
-        <h3>${product.name}</h3>
-        <div class="product-meta">
-          <span class="price">$${product.price}</span>
-          <span class="rating">${'★'.repeat(product.rating)}</span>
-        </div>
-        <button>Add to Cart</button>
-      </article>
+    template: (item) => `
+      <div class="product">
+        <img src="${item.image}" alt="${item.name}" />
+        <h3>${item.name}</h3>
+        <p class="price">$${item.price}</p>
+      </div>
     `,
   },
   items: products,
-  selection: { mode: 'single' },
-});
+})
+.use(withGrid({ columns: 3, gap: 16 }))
+.use(withSelection({ mode: 'multiple' }))
+.build()
 
-// Handle product clicks
-catalog.on('item:click', ({ item }) => {
-  console.log('Selected product:', item.name);
-  showProductDetails(item);
-});
+// Listen for selection changes
+catalog.on('selection:change', ({ selectedIndices }) => {
+  console.log('Selected products:', selectedIndices)
+})
 ```
 
 ### Pinterest-Style Masonry Effect
 
-While true masonry (variable heights) requires different handling, you can create a masonry-like effect with alternating row heights:
-
-```typescript
+```js
 const masonry = vlist({
   container: '#masonry',
-  layout: 'grid',
-  grid: { columns: 4, gap: 12 },
   item: {
-    height: (index, context) => {
-      if (!context) return 200;
+    height: ({ row, column }) => {
+      // Vary height based on position
+      const seed = row * 10 + column
+      const isSquare = seed % 3 === 0
+      const isTall = seed % 5 === 0
       
-      // Alternate between tall and short based on position
-      const row = Math.floor(index / context.columns);
-      const col = index % context.columns;
-      
-      // Checkerboard pattern
-      const isTall = (row + col) % 2 === 0;
-      return context.columnWidth * (isTall ? 1.2 : 0.8);
+      const baseHeight = 200
+      if (isTall) return baseHeight * 1.8
+      if (isSquare) return baseHeight * 0.8
+      return baseHeight
     },
-    template: renderPin,
+    template: (item) => `
+      <div class="masonry-card">
+        <img src="${item.url}" alt="${item.title}" />
+      </div>
+    `,
   },
-  items: pins,
-});
+  items: images,
+})
+.use(withGrid({ columns: 4, gap: 12 }))
+.build()
 ```
 
 ### Icon Grid with Fixed Square Items
 
-```typescript
+```js
 const icons = vlist({
-  container: '#icon-grid',
-  layout: 'grid',
-  grid: { columns: 8, gap: 4 },
+  container: '#icons',
   item: {
-    height: (index, context) => {
-      // Perfect squares
-      return context ? context.columnWidth : 64;
+    height: ({ containerWidth, columns, gap }) => {
+      // Square items
+      const colWidth = (containerWidth - (columns - 1) * gap) / columns
+      return Math.round(colWidth)
     },
     template: (item) => `
-      <div class="icon-cell">
-        <i class="${item.icon}"></i>
+      <div class="icon">
+        <svg viewBox="0 0 24 24">
+          <path d="${item.iconPath}" />
+        </svg>
         <span>${item.name}</span>
       </div>
     `,
   },
-  items: iconList,
-});
-```
-
-### Gallery with Selectable Items
-
-```typescript
-const gallery = vlist({
-  container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  item: {
-    height: (index, context) => context ? context.columnWidth * 0.75 : 200,
-    template: (item, index, state) => {
-      const selected = state.selected ? 'selected' : '';
-      return `
-        <div class="photo ${selected}">
-          <img src="${item.url}" alt="${item.title}" />
-          ${state.selected ? '<div class="checkmark">✓</div>' : ''}
-        </div>
-      `;
-    },
-  },
-  items: photos,
-  selection: { mode: 'multiple' },
-});
-
-// Select multiple photos
-gallery.on('item:click', ({ item, index }) => {
-  gallery.toggleSelect(item.id);
-});
-
-// Get selected for batch operations
-const selectedPhotos = gallery.getSelectedItems();
-console.log('Selected:', selectedPhotos.length, 'photos');
+  items: icons,
+})
+.use(withGrid({ columns: 8, gap: 4 }))
+.build()
 ```
 
 ### Infinite Scroll Grid
 
-```typescript
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
+import { withAdapter } from 'vlist/adapter'
+
 const gallery = vlist({
   container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
   item: {
-    height: (index, context) => context ? context.columnWidth * 0.75 : 200,
-    template: renderPhoto,
+    height: 200,
+    template: renderItem,
   },
-  adapter: {
-    read: async ({ offset, limit }) => {
-      const response = await fetch(
-        `/api/photos?offset=${offset}&limit=${limit}`
-      );
-      const data = await response.json();
-      return {
-        items: data.photos,
-        total: data.total,
-        hasMore: offset + limit < data.total,
-      };
-    },
-  },
-});
-
-// Loading events
-gallery.on('load:start', () => {
-  showLoadingSpinner();
-});
-
-gallery.on('load:end', ({ items }) => {
-  hideLoadingSpinner();
-  console.log('Loaded', items.length, 'more photos');
-});
-```
-
-## Configuration Reference
-
-### GridConfig
-
-```typescript
-interface GridConfig {
-  /**
-   * Number of columns in the grid.
-   * Must be a positive integer ≥ 1.
-   * 
-   * Item width is automatically calculated:
-   * (containerWidth - (columns - 1) × gap) / columns
-   */
-  columns: number;
-  
-  /**
-   * Gap between items in pixels (default: 0).
-   * Applied both horizontally and vertically.
-   * 
-   * Gaps are subtracted from available width when calculating column width.
-   */
-  gap?: number;
-}
-```
-
-### Item Height Options
-
-```typescript
-// Option 1: Fixed height (simplest)
-item: {
-  height: 200,
-  template: renderItem,
-}
-
-// Option 2: Variable height by index
-item: {
-  height: (index) => {
-    return items[index].featured ? 400 : 200;
-  },
-  template: renderItem,
-}
-
-// Option 3: Dynamic height with grid context (recommended for grids)
-item: {
-  height: (index, context) => {
-    if (context) {
-      return context.columnWidth * 0.75; // 4:3 aspect ratio
-    }
-    return 200; // fallback
-  },
-  template: renderItem,
-}
-
-// Option 4: Combined - context + item data
-item: {
-  height: (index, context) => {
-    if (!context) return 200;
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.use(withAdapter({
+  read: async ({ start, end }) => {
+    const response = await fetch(
+      `/api/photos?start=${start}&end=${end}`
+    )
+    const data = await response.json()
     
-    const aspectRatio = items[index].aspectRatio || 0.75;
-    return context.columnWidth * aspectRatio;
+    return {
+      items: data.photos,
+      total: data.total,
+      hasMore: data.hasMore,
+    }
   },
-  template: renderItem,
-}
+}))
+.build()
 ```
 
-## Best Practices
+## Combining with Other Features
 
-### 1. Always Use Dynamic Height for Aspect Ratios
+Grid works seamlessly with other vlist features:
 
-**❌ Don't:** Use fixed height with responsive columns
-```typescript
-// Bad: height stays 200px even when columns change
-item: {
-  height: 200,  // Fixed - aspect ratio breaks!
-  template: renderPhoto,
-}
+### Grid + Selection
+
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
+import { withSelection } from 'vlist/selection'
+
+const list = vlist(config)
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withSelection({ mode: 'multiple' }))
+  .build()
 ```
 
-**✅ Do:** Use grid context for dynamic aspect ratio
-```typescript
-// Good: height adjusts when columns change
-item: {
-  height: (index, context) => {
-    return context ? context.columnWidth * 0.75 : 200;
-  },
-  template: renderPhoto,
-}
+### Grid + Groups
+
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
+import { withGroups } from 'vlist/groups'
+
+const list = vlist(config)
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withGroups({
+    getGroupForIndex: (index) => items[index].category,
+    headerHeight: 40,
+    headerTemplate: (group) => `<h2>${group}</h2>`,
+    sticky: true,
+  }))
+  .build()
 ```
 
-### 2. Use `updateGrid()` Instead of Recreation
+### Grid + Scrollbar
 
-**❌ Don't:** Destroy and recreate
-```typescript
-// Bad: expensive, loses state
-gallery.destroy();
-gallery = vlist({ /* new config */ });
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
+import { withScrollbar } from 'vlist/scroll'
+
+const list = vlist(config)
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withScrollbar({ autoHide: true }))
+  .build()
 ```
 
-**✅ Do:** Update in place
-```typescript
-// Good: fast, preserves state
-gallery.updateGrid({ columns: 3 });
-```
+### Grid + Adapter (Async Data)
 
-### 3. Set Appropriate Gaps for Visual Hierarchy
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
+import { withAdapter } from 'vlist/adapter'
 
-```typescript
-// Tight grid (minimal gaps)
-grid: { columns: 6, gap: 4 }
-
-// Standard grid (comfortable spacing)
-grid: { columns: 4, gap: 8 }
-
-// Loose grid (generous whitespace)
-grid: { columns: 3, gap: 16 }
-
-// No gaps (edge-to-edge tiles)
-grid: { columns: 5, gap: 0 }
-```
-
-### 4. Consider Container Padding
-
-The grid calculates based on container width. Account for padding:
-
-```css
-#gallery {
-  padding: 16px;  /* Grid calculates based on inner width */
-}
-```
-
-Or adjust in your height function:
-
-```typescript
-height: (index, context) => {
-  if (context) {
-    // Account for container padding (32px total)
-    const effectiveWidth = context.containerWidth - 32;
-    const colWidth = (effectiveWidth - (context.columns - 1) * context.gap) / context.columns;
-    return colWidth * 0.75;
-  }
-  return 200;
-}
-```
-
-### 5. Use `loading="lazy"` for Images
-
-```typescript
-template: (item) => `
-  <img 
-    src="${item.url}" 
-    loading="lazy"        <!-- Browser handles lazy loading -->
-    decoding="async"      <!-- Non-blocking decode -->
-    alt="${item.title}"
-  />
-`
-```
-
-### 6. Optimize Template Complexity
-
-```typescript
-// ✅ Good: Simple, fast template
-template: (item) => `
-  <img src="${item.url}" alt="${item.title}" />
-`
-
-// ❌ Bad: Complex DOM creation on every render
-template: (item) => {
-  const div = document.createElement('div');
-  const img = document.createElement('img');
-  const overlay = document.createElement('div');
-  const title = document.createElement('h3');
-  // ... lots of DOM manipulation
-  return div;
-}
-
-// ✅ Better: String template with CSS for styling
-template: (item) => `
-  <div class="card">
-    <img src="${item.url}" />
-    <div class="overlay">
-      <h3>${item.title}</h3>
-    </div>
-  </div>
-`
+const list = vlist(config)
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .use(withAdapter({ read: fetchData }))
+  .build()
 ```
 
 ## Styling
 
 ### Default CSS Classes
 
+Grid adds a modifier class to the container:
+
 ```css
 .vlist--grid {
-  /* Applied to root element in grid mode */
+  /* Applied when grid feature is active */
 }
 
 .vlist-item {
   /* Each grid item */
   position: absolute;
-  /* Positioned with translate(x, y) */
+  box-sizing: border-box;
 }
 
 .vlist-item[data-row="0"] {
@@ -856,25 +572,22 @@ template: (item) => `
 ### Example Styles
 
 ```css
-/* Photo gallery */
 .vlist--grid .vlist-item {
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
 
 .vlist--grid .vlist-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  transform: scale(1.05);
+  z-index: 10;
 }
 
 .vlist--grid .vlist-item--selected {
-  outline: 3px solid #2196f3;
-  outline-offset: 2px;
+  outline: 3px solid #3b82f6;
+  outline-offset: -3px;
 }
 
-/* Image within card */
 .vlist--grid .vlist-item img {
   width: 100%;
   height: 100%;
@@ -882,517 +595,212 @@ template: (item) => `
   display: block;
 }
 
-/* Responsive gaps (optional - use updateGrid instead for true responsiveness) */
+/* Responsive grid styles */
 @media (max-width: 768px) {
   .vlist--grid .vlist-item {
-    /* Smaller shadows on mobile */
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    border-radius: 4px;
   }
 }
 ```
 
 ### Custom Class Prefix
 
-```typescript
+```js
 const gallery = vlist({
   container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  classPrefix: 'gallery',  // Changes .vlist to .gallery
+  classPrefix: 'my-grid', // Custom prefix
   item: {
     height: 200,
     template: renderItem,
   },
-  items,
-});
-
-// Results in:
-// .gallery
-// .gallery--grid
-// .gallery-item
-```
-
-## Restrictions
-
-Grid layout has certain constraints:
-
-### Cannot Combine With
-
-❌ **Reverse Mode** — Reverse grid not supported
-```typescript
-// Invalid combination
-vlist({
-  layout: 'grid',
-  reverse: true,  // ❌ Error!
-});
-```
-
-### Can Combine With
-
-✅ **Horizontal Orientation** — Grid works in both vertical and horizontal orientations (NEW!)
-✅ **Groups** — Grouped grids with full-width section headers
-✅ **Selection** — Single or multiple selection
-✅ **Compression** — For grids with millions of items
-✅ **Scrollbar** — Custom scrollbar styling
-✅ **Snapshots** — Scroll position save/restore
-✅ **Adapter** — Infinite scroll grid
-✅ **Window Scrolling** — Full-page grid layouts
-
-### Horizontal Grid Layouts
-
-✅ Grid layouts work with horizontal orientation.
-
-In horizontal mode, the grid axes are swapped relative to vertical mode:
-
-| Concept | Vertical mode | Horizontal mode |
-|---------|--------------|-----------------|
-| Scroll direction | ↓ Down | → Right |
-| Cross-axis | Horizontal (width) | Vertical (height) |
-| `columns` parameter | Number of columns | Number of **rows** |
-| Cross-axis cell size | Derived from container **width** | Derived from container **height** |
-| Main-axis item size | `item.height` | `item.width` |
-| CSS `style.width` | Cross-axis cell size | Main-axis item size |
-| CSS `style.height` | Main-axis item size | Cross-axis cell size |
-
-The `columns` parameter in `withGrid()` always controls the number of **cross-axis divisions**. In vertical mode these are columns; in horizontal mode they are visually **rows** that stack vertically.
-
-**Cross-axis sizing from container height:**
-In horizontal mode, the grid derives cell sizes from the container **height** (the cross-axis dimension), not the width. This means rows automatically fill the visible container height. When you select 3 rows, each row occupies roughly one-third of the container height.
-
-```typescript
-const gallery = vlist({
-  container: '#gallery',
-  orientation: 'horizontal',
-  item: {
-    // item.width = main-axis size (horizontal scroll direction)
-    // item.height = cross-axis row height (derived from container height)
-    width: 264,    // main-axis: horizontal extent per item
-    height: 192,   // cross-axis: visual row height
-    template: (item) => `<img src="${item.url}" />`,
-  },
   items: photos,
 })
-  .use(withGrid({ columns: 3, gap: 8 }))  // 3 rows stacked vertically
-  .build();
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
 ```
 
-**4:3 aspect ratio in horizontal mode:**
+Now use `.my-grid--grid` and `.my-grid-item` in your CSS.
 
-Because CSS dimensions are swapped by the renderer, the aspect ratio formula differs from vertical mode:
+## Best Practices
 
-```typescript
-// Container height is the cross-axis in horizontal mode
-const innerHeight = container.clientHeight - 2;
-const rowHeight = (innerHeight - (rows - 1) * gap) / rows;
+### 1. Use Dynamic Height for Aspect Ratios
 
-// For 4:3 landscape: visual_width / visual_height = 4/3
-//   visual_width  = item.width - gap  (CSS width = main axis)
-//   visual_height = rowHeight         (CSS height = cross axis)
-//   → item.width = rowHeight * (4/3) + gap
-const width = Math.round(rowHeight * (4 / 3) + gap);
-const height = Math.round(rowHeight);
+**✅ Good** — Maintains aspect ratio across column changes:
+
+```js
+height: ({ containerWidth, columns, gap }) => {
+  const colWidth = (containerWidth - (columns - 1) * gap) / columns
+  return Math.round(colWidth * 0.75) // 4:3
+}
 ```
 
-Compare with vertical mode where `colWidth` comes from the container **width**:
-```typescript
-const innerWidth = container.clientWidth - 2;
-const colWidth = (innerWidth - (columns - 1) * gap) / columns;
-const height = Math.round(colWidth * 0.75);  // 4:3
+**❌ Bad** — Breaks aspect ratio when columns change:
+
+```js
+height: 200 // Fixed height
 ```
 
-**Visual representation:**
-```
-Vertical Grid (orientation: 'vertical'):
-┌────┬────┬────┬────┐
-│ 1  │ 2  │ 3  │ 4  │ ← Row 0        Cross-axis divisions = columns
-├────┼────┼────┼────┤                  Cell size from container WIDTH
-│ 5  │ 6  │ 7  │ 8  │ ← Row 1
-└────┴────┴────┴────┘
-   ↓ Scroll down
+### 2. Consider Container Padding
 
-Horizontal Grid (orientation: 'horizontal'):
-┌────┬────┬────┐
-│ 1  │ 4  │ 7  │ ← Row 0             Cross-axis divisions = rows
-├────┼────┼────┤                      Cell size from container HEIGHT
-│ 2  │ 5  │ 8  │ ← Row 1
-├────┼────┼────┤
-│ 3  │ 6  │ 9  │ ← Row 2
-└────┴────┴────┘
-  → Scroll right
+Container padding affects column width calculations:
+
+```css
+#gallery {
+  padding: 16px;
+  box-sizing: border-box; /* Important! */
+}
 ```
 
-**Use cases:**
-- Horizontal photo galleries with multiple rows
-- Timeline views with vertical lanes
-- Horizontal carousels with stacked content
+The grid automatically accounts for this if you use `box-sizing: border-box`.
 
-### Grid with Groups
+### 3. Use `loading="lazy"` for Images
 
-✅ **Grid layouts support grouped sections with headers!**
+Improve performance with lazy loading:
 
-Headers automatically:
-- Span full width across all columns
-- Force new rows (items after header start fresh row)
-- Work with sticky headers for iOS Contacts-style UI
-
-```typescript
-const fileByType = vlist({
-  container: '#browser',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  item: {
-    height: (index, ctx) => ctx.columnWidth * 0.8, // Dynamic aspect ratio
-    template: (item) => `<div class="file-card">...</div>`,
-  },
-  items: sortedFiles,
-  groups: {
-    getGroupForIndex: (i) => sortedFiles[i].type, // "Folder", "Image", "Document"
-    headerHeight: 40,
-    headerTemplate: (type) => `<div class="group-header">${type}</div>`,
-    sticky: true, // iOS-style sticky headers
-  },
-});
+```js
+template: (item) => `
+  <img src="${item.url}" loading="lazy" decoding="async" />
+`
 ```
 
-**How it works:**
-- Headers inserted into grid flow at group boundaries
-- Each header starts a new row (even if previous row not full)
-- Items after header resume normal 4-column grid layout
-- Sticky headers float at top during scroll
-- Performance: O(1) for regular grids, O(n) for grouped grids (acceptable for typical use)
+### 4. Set Appropriate Gaps
 
-**Example layout:**
-```
-┌─────────────────────────────────────┐
-│ FOLDERS                      7 items│ ← Full-width header
-├─────────┬─────────┬─────────┬───────┤
-│ api     │ docs    │ src     │ test  │ ← 4-column grid
-├─────────┴─────────┴─────────┴───────┤
-│ IMAGES                       3 items│ ← New row, full-width header
-├─────────┬─────────┬─────────┬───────┤
-│ logo.png│ bg.jpg  │ icon.svg│       │ ← 4-column grid continues
-└─────────┴─────────┴─────────┴───────┘
+Choose gaps based on your design:
+
+```js
+// Compact grid
+.use(withGrid({ columns: 6, gap: 4 }))
+
+// Standard spacing
+.use(withGrid({ columns: 4, gap: 8 }))
+
+// Spacious layout
+.use(withGrid({ columns: 3, gap: 16 }))
 ```
 
-## Migration Guide
+### 5. Optimize Template Complexity
 
-### From Fixed Height to Dynamic Aspect Ratio
+Keep item templates simple for better performance:
 
-**Before (v0.4.x):**
-```typescript
-const gallery = vlist({
-  container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  item: {
-    height: 200,  // Fixed, breaks aspect ratio on column change
-    template: renderPhoto,
-  },
-  items: photos,
-});
+```js
+// ✅ Good — Simple, semantic markup
+template: (item) => `
+  <div class="card">
+    <img src="${item.url}" alt="${item.title}" />
+    <h3>${item.title}</h3>
+  </div>
+`
 
-// Changing columns required recreation
-gallery.destroy();
-gallery = vlist({ /* ... columns: 2 ... */ });
+// ❌ Bad — Overly complex, many nested elements
+template: (item) => `
+  <div class="card">
+    <div class="card__wrapper">
+      <div class="card__inner">
+        <div class="card__image-container">
+          <div class="card__image-wrapper">
+            <img src="${item.url}" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+`
 ```
-
-**After (v0.5.x):**
-```typescript
-const gallery = vlist({
-  container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  item: {
-    // Dynamic height maintains aspect ratio
-    height: (index, context) => {
-      return context ? context.columnWidth * 0.75 : 200;
-    },
-    template: renderPhoto,
-  },
-  items: photos,
-});
-
-// Update without recreation
-gallery.updateGrid({ columns: 2 });  // Height auto-adjusts!
-```
-
-### From Monolithic to Builder-Based Default
-
-**No changes needed!** The default `vlist()` now uses the builder internally:
-
-```typescript
-// This code is unchanged but now 53% smaller
-import { vlist } from 'vlist';
-
-const gallery = vlist({
-  container: '#gallery',
-  layout: 'grid',
-  grid: { columns: 4, gap: 8 },
-  item: { height: 200, template: renderPhoto },
-  items: photos,
-});
-```
-
-**Bundle size:**
-- v0.4.x: 57 KB gzip
-- v0.5.x: 27 KB gzip (53% smaller!)
 
 ## Troubleshooting
 
 ### Grid not rendering
 
 **Check:**
-1. Container element exists: `document.querySelector('#gallery')`
-2. Items array has data: `items.length > 0`
-3. Grid config is valid: `columns >= 1`
-4. Height is properly configured
-
-### Aspect ratio breaks when columns change
-
-**Problem:** Using fixed height instead of dynamic function
-
-**Solution:**
-```typescript
-// Change from:
-height: 200
-
-// To:
-height: (index, context) => context ? context.columnWidth * 0.75 : 200
-```
+- Container has explicit height: `<div id="gallery" style="height: 600px;">`
+- Items array is not empty
+- `columns` is a positive integer >= 1
 
 ### Items overlap or have wrong spacing
 
 **Check:**
-1. Gap value is correct
-2. Container has no conflicting CSS (padding, border-box, etc.)
-3. Template doesn't set conflicting width/height styles
+- Container uses `box-sizing: border-box` if it has padding
+- Gap value is correct (not too large)
+- Template elements don't have margins that interfere with layout
 
-### updateGrid() doesn't work
+### Aspect ratio breaks when columns change
 
-**Check:**
-1. Using default entry point or builder with `withGrid` feature
-2. Grid context available: `layout: 'grid'` was specified
+**Solution:** Use a dynamic height function instead of fixed height:
+
+```js
+height: ({ containerWidth, columns, gap }) => {
+  const colWidth = (containerWidth - (columns - 1) * gap) / columns
+  return Math.round(colWidth * desiredAspectRatio)
+}
+```
 
 ### Images not loading
 
 **Check:**
-1. Using `loading="lazy"` for lazy loading
-2. Image URLs are correct
-3. Images have proper CORS headers (if cross-origin)
+- Image URLs are correct
+- CORS is configured if loading from different domain
+- Use `loading="lazy"` for better performance
 
 ### Performance issues with large grids
 
 **Solutions:**
-1. Use compression for 100K+ items (auto-applied)
-2. Optimize template complexity
-3. Use `loading="lazy"` for images
-4. Consider pagination/filtering for truly massive datasets
+- Reduce overscan value: `overscan: 1`
+- Simplify item templates
+- Use `loading="lazy"` on images
+- Consider pagination or infinite scroll with adapter
 
-## Grid+Groups Technical Details
+## Migration from Old API
 
-When grid and sections features are combined, special coordination is required to handle:
-- Full-width headers that span all columns
-- Headers forcing new rows in the grid flow
-- Correct height calculations (row-based vs item-based)
+### From Monolithic API
 
-### How Grid+Groups Works
+**Old (monolithic):**
 
-**1. Layout Transformation**
+```js
+import { createVList } from 'vlist'
 
-The sections feature transforms the flat item list by inserting header pseudo-items:
-
-```
-Items: [file1, file2, file3, ...]
-         ↓ (sections feature)
-Layout: [header, file1, header, file2, file3, header, ...]
-```
-
-**2. Groups-Aware Grid Layout**
-
-The grid layout algorithm becomes groups-aware:
-
-```typescript
-// Regular grid (O(1)):
-getRow(index) = Math.floor(index / columns)
-getCol(index) = index % columns
-
-// Grouped grid (O(n) - acceptable for typical use):
-getRow(index) = loop through items, headers force new rows
-getCol(index) = headers at col 0, items flow normally
+const list = createVList({
+  container: '#app',
+  layout: 'grid',
+  grid: { columns: 4, gap: 8 },
+  item: { height: 200, template: renderItem },
+  items: data,
+})
 ```
 
-**3. Height Cache Strategy**
+**New (builder):**
 
-- Grid feature initially sets row-based heights
-- Sections feature rebuilds with item-based heights (headers + items)
-- Grid feature overrides `getTotalSize()` to return sum of column 0 items only
+```js
+import { vlist } from 'vlist/builder'
+import { withGrid } from 'vlist/grid'
 
-This prevents double-counting items in the same row.
-
-**4. Rendering**
-
-Headers are detected by `data-id` starting with `__group_header`:
-- **Width**: Full container width (not column width)
-- **Height**: Uses `headerHeight` from groups config (typically 40px)
-- **X position**: Always 0 (left edge)
-- **Y position**: Cumulative sum of previous rows' heights
-
-Regular items:
-- **Width**: Column width
-- **Height**: Grid-calculated height (aspect ratio aware)
-- **X position**: Column offset based on column index
-- **Y position**: Same as headers - cumulative row heights
-
-### Performance Characteristics
-
-**Regular grids (no groups):**
-- All calculations: O(1)
-- No performance impact from groups support
-
-**Grouped grids:**
-- `getRow(index)`: O(n) where n = index
-- `getCol(index)`: O(n) where n = index
-- `getItemRange(rowStart, rowEnd)`: O(total items)
-- Acceptable for typical file browsers (< 1000 items)
-
-**Optimization notes:**
-- Fast path used when no groups detected (`isHeaderFn` undefined)
-- Groups-aware calculations only run when headers present
-- Height cache uses efficient prefix sums
-- Rendering uses element pooling
-
-### Example Use Cases
-
-Perfect for:
-- **File browsers** grouped by file type
-- **Photo galleries** grouped by date/album
-- **Product catalogs** grouped by category
-- **App launchers** grouped by folder
-
-Not recommended for:
-- Lists with 10,000+ items and many groups (performance)
-- Highly dynamic groupings that change frequently
-
-## Grid Context Technical Details
-
-### How Context is Injected
-
-When you provide a height function, the grid feature wraps it:
-
-```typescript
-// Your function:
-const userHeight = (index, context) => context.columnWidth * 0.75;
-
-// Grid feature wraps it:
-const wrappedHeight = (index) => {
-  // containerWidth = cross-axis container dimension:
-  //   vertical mode  → viewport width
-  //   horizontal mode → viewport height
-  const innerWidth = containerWidth - 2;  // Account for borders
-  const totalGaps = (columns - 1) * gap;
-  const columnWidth = (innerWidth - totalGaps) / columns;
-  
-  const context = {
-    containerWidth,  // cross-axis dimension (not always the CSS width!)
-    columns,
-    gap,
-    columnWidth,     // cross-axis cell size
-  };
-  
-  // Call your function
-  const height = userHeight(index, context);
-  return height + gap;  // Add gap for row spacing
-};
-
-// Height cache uses wrapped function
+const list = vlist({
+  container: '#app',
+  item: { height: 200, template: renderItem },
+  items: data,
+})
+.use(withGrid({ columns: 4, gap: 8 }))
+.build()
 ```
 
-### Context Update Flow
+### Key Differences
 
-**When `updateGrid()` is called:**
-
-```
-1. Validate new columns/gap
-   ↓
-2. Update internal grid config
-   ↓
-3. Update grid layout (mutable columns/gap vars)
-   ↓
-4. Update grid state object (referenced in closure)
-   └→ containerWidth = cross-axis dimension
-       (viewport width in vertical, viewport height in horizontal)
-   ↓
-5. Recalculate total rows (items ÷ new columns)
-   ↓
-6. Rebuild height cache
-   └→ Calls height function with NEW context
-   └→ All row heights recalculated
-   ↓
-7. Update total virtual height
-   ↓
-8. Clear visible items
-   ↓
-9. Re-render with new layout
-   ↓
-✓ Grid updated with maintained aspect ratio!
-```
-
-**When the container is resized (ResizeObserver):**
-
-```
-1. Resize handler receives (width, height)
-   ↓
-2. Resolve cross-axis dimension
-   └→ Vertical: width   Horizontal: height
-   ↓
-3. Update grid state object
-   └→ gridState.containerWidth = cross-axis dimension
-   ↓
-4. Update grid renderer column widths
-   ↓
-5. If dynamic height function:
-   │  Rebuild size cache (re-calls height fn with new context)
-   │  Update content size
-   │  Clear and re-render
-   ↓
-   If fixed height:
-   │  Renderer re-sizes and repositions visible items
-   ↓
-✓ Grid adapts to new container size!
-```
-
-> **Note:** With fixed heights, only column widths change on resize — row heights stay the same and the size cache is not rebuilt. With dynamic height functions, the full rebuild ensures aspect ratios are maintained.
-
-### Performance Characteristics
-
-**Grid creation:**
-- Time: ~5-10ms (1,000 items)
-- Memory: ~60 DOM nodes rendered
-
-**Grid update (`updateGrid`):**
-- Time: ~1-2ms (cached) or ~5-10ms (first call)
-- Memory: Same ~60 DOM nodes (recycled from pool)
-- No instance recreation overhead
-
-**Scrolling:**
-- FPS: Solid 60 FPS
-- Memory: Constant (element pool reuse)
+1. **Import path changed:** `vlist/builder` + `vlist/grid`
+2. **No `layout` prop:** Use `.use(withGrid())` instead
+3. **No `grid` object:** Pass config directly to `withGrid()`
+4. **Composable:** Chain multiple `.use()` calls for features
+5. **Tree-shakeable:** Only bundle what you use
 
 ## Related Documentation
 
-- [Builder Pattern](/tutorials/builder-pattern) - Manual builder API
-- [Selection](./selection.md) - Multi-select for grids
-- [Compression](./scale.md) - Handle millions of items
-- [Performance](/tutorials/optimization) - Optimization techniques
-- [API Reference](/docs/api/reference) - All methods
+- [Builder API](/docs/builder.md) — Core builder documentation
+- [Selection Feature](/docs/features/selection.md) — Select grid items
+- [Groups Feature](/docs/features/groups.md) — Categorized grids
+- [Scrollbar Feature](/docs/features/scrollbar.md) — Custom scrollbars
+- [Adapter Feature](/docs/features/adapter.md) — Async data loading
 
-## Examples
+## Live Examples
 
-Live interactive examples:
-- [Photo Album](/examples/grid/photo-album) - Responsive photo gallery with aspect ratios
-- [File Browser](/examples/grid/file-browser) - Grid-based file manager interface
-
----
-
-**Last Updated:** February 2026
-**Version:** 0.5.0+
+- [Photo Album](/examples/grid/photo-album) — Responsive photo gallery
+- [Product Catalog](/examples/grid/products) — E-commerce grid
+- [Icon Grid](/examples/grid/icons) — Fixed square items
+- [Masonry Layout](/examples/grid/masonry) — Pinterest-style layout
