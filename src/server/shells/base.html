@@ -65,7 +65,6 @@
 
         <!-- Common styles -->
         <link rel="stylesheet" href="/styles/shell.css" />
-        <link rel="stylesheet" href="/styles/themes/index.css" />
 
         <!-- Page-specific styles -->
         <%~ it.EXTRA_STYLES %>
@@ -97,15 +96,6 @@
                         ? "light"
                         : "dark";
                 document.documentElement.setAttribute("data-theme-mode", mode);
-
-                // Load palette (color scheme)
-                var palette = localStorage.getItem("vlist-palette");
-                if (palette) {
-                    document.documentElement.setAttribute(
-                        "data-theme",
-                        palette,
-                    );
-                }
             })();
         </script>
 
@@ -133,118 +123,7 @@
                     >
                     <% }); %>
                 </nav>
-                <div class="header__palette-wrapper">
-                    <button
-                        class="header__palette"
-                        id="palette-toggle"
-                        aria-label="Change color palette"
-                        aria-expanded="false"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            enable-background="new 0 0 24 24"
-                            height="24px"
-                            viewBox="0 0 24 24"
-                            width="24px"
-                            fill="currentColor"
-                        >
-                            <g>
-                                <rect fill="none" height="24" width="24"></rect>
-                            </g>
-                            <g>
-                                <g>
-                                    <g>
-                                        <path
-                                            d="M12,22C6.49,22,2,17.51,2,12S6.49,2,12,2s10,4.04,10,9c0,3.31-2.69,6-6,6h-1.77c-0.28,0-0.5,0.22-0.5,0.5 c0,0.12,0.05,0.23,0.13,0.33c0.41,0.47,0.64,1.06,0.64,1.67C14.5,20.88,13.38,22,12,22z M12,4c-4.41,0-8,3.59-8,8s3.59,8,8,8 c0.28,0,0.5-0.22,0.5-0.5c0-0.16-0.08-0.28-0.14-0.35c-0.41-0.46-0.63-1.05-0.63-1.65c0-1.38,1.12-2.5,2.5-2.5H16 c2.21,0,4-1.79,4-4C20,7.14,16.41,4,12,4z"
-                                        ></path>
-                                        <circle
-                                            cx="6.5"
-                                            cy="11.5"
-                                            r="1.5"
-                                        ></circle>
-                                        <circle
-                                            cx="9.5"
-                                            cy="7.5"
-                                            r="1.5"
-                                        ></circle>
-                                        <circle
-                                            cx="14.5"
-                                            cy="7.5"
-                                            r="1.5"
-                                        ></circle>
-                                        <circle
-                                            cx="17.5"
-                                            cy="11.5"
-                                            r="1.5"
-                                        ></circle>
-                                    </g>
-                                </g>
-                            </g>
-                        </svg>
-                    </button>
-                    <div class="header__palette-dropdown" id="palette-dropdown">
-                        <button
-                            class="header__palette-option"
-                            data-palette="ocean"
-                        >
-                            Ocean
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="forest"
-                        >
-                            Forest
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="desert"
-                        >
-                            Desert
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="spring"
-                        >
-                            Spring
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="summer"
-                        >
-                            Summer
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="autumn"
-                        >
-                            Autumn
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="winter"
-                        >
-                            Winter
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="sunset"
-                        >
-                            Sunset
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="material"
-                        >
-                            Material
-                        </button>
-                        <button
-                            class="header__palette-option"
-                            data-palette="highcontrast"
-                        >
-                            High Contrast
-                        </button>
-                    </div>
-                </div>
+
                 <button
                     class="header__theme"
                     id="theme-toggle"
@@ -376,84 +255,7 @@
             })();
         </script>
 
-        <!-- ─── Palette dropdown ─────────────────────────── -->
 
-        <script>
-            (function () {
-                var btn = document.getElementById("palette-toggle");
-                var dropdown = document.getElementById("palette-dropdown");
-                if (!btn || !dropdown) return;
-
-                var options = dropdown.querySelectorAll(
-                    ".header__palette-option",
-                );
-                var currentPalette =
-                    localStorage.getItem("vlist-palette") || "ocean";
-
-                // Set initial theme
-                document.documentElement.setAttribute(
-                    "data-theme",
-                    currentPalette,
-                );
-
-                // Mark current theme in dropdown
-                function updateActiveOption() {
-                    options.forEach(function (opt) {
-                        if (
-                            opt.getAttribute("data-palette") === currentPalette
-                        ) {
-                            opt.classList.add("header__palette-option--active");
-                        } else {
-                            opt.classList.remove(
-                                "header__palette-option--active",
-                            );
-                        }
-                    });
-                }
-                updateActiveOption();
-
-                // Toggle dropdown
-                btn.addEventListener("click", function (e) {
-                    e.stopPropagation();
-                    var isOpen = dropdown.classList.toggle(
-                        "header__palette-dropdown--open",
-                    );
-                    btn.setAttribute("aria-expanded", isOpen);
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener("click", function (e) {
-                    if (
-                        !btn.contains(e.target) &&
-                        !dropdown.contains(e.target)
-                    ) {
-                        dropdown.classList.remove(
-                            "header__palette-dropdown--open",
-                        );
-                        btn.setAttribute("aria-expanded", "false");
-                    }
-                });
-
-                // Handle palette selection
-                options.forEach(function (option) {
-                    option.addEventListener("click", function (e) {
-                        e.stopPropagation();
-                        var palette = option.getAttribute("data-palette");
-                        currentPalette = palette;
-                        document.documentElement.setAttribute(
-                            "data-theme",
-                            palette,
-                        );
-                        localStorage.setItem("vlist-palette", palette);
-                        updateActiveOption();
-                        dropdown.classList.remove(
-                            "header__palette-dropdown--open",
-                        );
-                        btn.setAttribute("aria-expanded", "false");
-                    });
-                });
-            })();
-        </script>
 
         <!-- ─── Theme toggle ─────────────────────────────── -->
 
