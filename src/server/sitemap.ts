@@ -46,7 +46,7 @@ function buildLastmodMap(): Map<string, string> {
   const map = new Map<string, string>();
 
   // Landing
-  map.set("/", gitLastmod("index.html") ?? FALLBACK_DATE);
+  map.set("/", gitLastmod("src/server/shells/homepage.eta") ?? FALLBACK_DATE);
 
   // Docs overview → both navigation and overview cards, plus shared shell
   map.set(

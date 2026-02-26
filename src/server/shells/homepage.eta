@@ -6,6 +6,7 @@
         <meta name="description" content="<%= it.description %>" />
         <title><%= it.title %></title>
 
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="canonical" href="<%= it.canonicalUrl %>" />
 
         <!-- Open Graph / Facebook -->
