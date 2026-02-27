@@ -461,7 +461,7 @@ global.cancelAnimationFrame = (id: number): void => {
 JSDOM doesn't fire scroll events when `scrollTop` is set. Tests use a helper:
 
 ```/dev/null/scroll-helper.ts#L1-6
-const simulateScroll = (list: BuiltVList<TestItem>, scrollTop: number): void => {
+const simulateScroll = (list: VList<TestItem>, scrollTop: number): void => {
   const viewport = list.element.querySelector(".vlist-viewport") as HTMLElement;
   if (!viewport) return;
   viewport.scrollTop = scrollTop;
@@ -537,7 +537,7 @@ it("should virtualize and render multiple rows on scroll", () => {
 **Helpers:**
 
 ```/dev/null/scroll-test-helpers.ts#L1-7
-const getRenderedIndices = (list: BuiltVList<TestItem>): number[] => {
+const getRenderedIndices = (list: VList<TestItem>): number[] => {
   const elements = list.element.querySelectorAll("[data-index]");
   return Array.from(elements).map((el) =>
     parseInt((el as HTMLElement).dataset.index!, 10),
@@ -616,7 +616,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from
 import { JSDOM } from "jsdom";
 import { vlist } from "../../src/builder/core";
 import { withMyFeature } from "../../src/features/myfeature/feature";
-import type { BuiltVList } from "../../src/builder/types";
+import type { VList } from "../../src/builder/types";
 import type { VListItem } from "../../src/types";
 
 // =============================================================================
@@ -648,7 +648,7 @@ interface TestItem extends VListItem { id: number; name: string; }
 
 describe("withMyFeature", () => {
   let container: HTMLElement;
-  let list: BuiltVList<TestItem> | null = null;
+  let list: VList<TestItem> | null = null;
 
   beforeEach(() => { container = createContainer(); });
   afterEach(() => {

@@ -1,883 +1,931 @@
-# Types Module
+# Types
 
-> Core TypeScript type definitions for vlist.
+> TypeScript type definitions for vlist — items, configuration, state, events, and the public API.
 
-## Overview
+---
 
-The types module provides all the TypeScript interfaces and types used throughout vlist. It serves as the **contract** between all modules, defining:
+## Item Types
 
-- **Item Types**: Base item interface and constraints
-- **Configuration Types**: VListConfig and related options
-- **State Types**: ViewportState, SelectionState, etc.
-- **Event Types**: Event payloads and handlers
-- **Adapter Types**: Async data loading interface
-- **Public API Types**: VList interface
+### VListItem
 
-## Module Structure
-
-```
-src/
-└── types.ts  # All type definitions
-```
-
-## Key Concepts
-
-### Generic Item Type
-
-vlist uses generics to support custom item types:
-
-```typescript
-// Base constraint
-interface VListItem {
-  id: string | number;
-  [key: string]: unknown;
-}
-
-// User-defined type
-interface User extends VListItem {
-  id: string;
-  name: string;
-  email: string;
-}
-
-// vlist infers types throughout
-const list = vlist<User>({
-  container: '#app',
-  item: {
-    height: 48,
-    template: (item) => {
-      // item is typed as User
-      return `<div>${item.name}</div>`;
-    },
-  },
-  items: users,
-});
-```
-
-### Type Flow
-
-```
-VListConfig<T>  →  vlist<T>  →  VList<T>
-                        ↓
-              VListContext<T>  →  Handlers<T>, Methods<T>
-                        ↓
-              VListEvents<T>  →  Event callbacks
-```
-
-## Type Reference
-
-### Item Types
-
-#### `VListItem`
-
-Base interface all items must implement.
+Base interface all items must implement. The only constraint is a unique `id` — add any other fields your template needs.
 
 ```typescript
 interface VListItem {
-  /** Unique identifier for the item */
-  id: string | number;
-  
-  /** Allow additional properties */
-  [key: string]: unknown;
+  id: string | number
+  [key: string]: unknown
 }
 ```
 
-**Requirements**:
-- Must have an `id` property
+**Requirements:**
 - `id` must be unique within the list
 - Can have any additional properties
 
-### Configuration Types
+```typescript
+interface User extends VListItem {
+  id: string
+  name: string
+  email: string
+}
+```
 
-#### `ItemConfig`
+---
 
-Item-specific configuration for height and rendering.
+## Configuration Types
+
+### BuilderConfig
+
+Top-level configuration object passed to `vlist()`.
+
+```typescript
+interface BuilderConfig<T extends VListItem = VListItem> {
+  container:    HTMLElement | string
+  item:         ItemConfig<T>
+  items?:       T[]
+  overscan?:    number
+  classPrefix?: string
+  ariaLabel?:   string
+  orientation?: 'vertical' | 'horizontal'
+  reverse?:     boolean
+  scroll?:      ScrollConfig
+}
+```
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `container` | `HTMLElement \| string` | — | **Required.** Container element or CSS selector. |
+| `item` | `ItemConfig<T>` | — | **Required.** Item sizing and template. |
+| `items` | `T[]` | `[]` | Static items array. Omit when using `withAsync`. |
+| `overscan` | `number` | `3` | Extra items rendered outside the viewport in each direction. |
+| `classPrefix` | `string` | `'vlist'` | CSS class prefix for all internal elements. |
+| `ariaLabel` | `string` | — | Sets `aria-label` on the root listbox element. |
+| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. |
+| `reverse` | `boolean` | `false` | Bottom-anchored mode — list starts scrolled to the bottom. |
+| `scroll` | `ScrollConfig` | — | Fine-grained scroll behavior options. |
+
+### ItemConfig
+
+Controls how items are sized and rendered. Supports two sizing strategies — known sizes (Mode A) and auto-measurement (Mode B).
 
 ```typescript
 interface ItemConfig<T extends VListItem = VListItem> {
-  /**
-   * Item height in pixels (required for vertical scrolling).
-   *
-   * - `number` — Fixed height for all items (fast path, zero overhead)
-   * - `(index: number) => number` — Variable height per item (prefix-sum based lookups)
-   */
-  height?: number | ((index: number) => number);
-
-  /**
-   * Item width in pixels (required for horizontal scrolling).
-   *
-   * - `number` — Fixed width for all items (fast path, zero overhead)
-   * - `(index: number) => number` — Variable width per item (prefix-sum based lookups)
-   */
-  width?: number | ((index: number) => number);
-
-  /** Template function to render each item */
-  template: ItemTemplate<T>;
+  height?:          number | ((index: number, context?: GridSizeContext) => number)
+  width?:           number | ((index: number) => number)
+  estimatedHeight?: number
+  estimatedWidth?:  number
+  template:         ItemTemplate<T>
 }
 ```
 
-**Which property to use:**
-- `height` — Required when `orientation` is `'vertical'` (the default). Ignored in horizontal mode.
-- `width` — Required when `orientation` is `'horizontal'`. Ignored in vertical mode.
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `height` | `number \| (index, ctx?) => number` | — | Item size in pixels along the main axis. Required for vertical lists. In grid mode, the function receives a `GridSizeContext` as a second argument. |
+| `width` | `number \| (index) => number` | — | Item size for horizontal lists (`orientation: 'horizontal'`). Ignored in vertical mode. |
+| `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Items are rendered at this size, measured via `ResizeObserver`, and the real size is cached. Ignored if `height` is also set. |
+| `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Ignored if `width` is also set. |
+| `template` | `ItemTemplate<T>` | — | **Required.** Render function for each visible item. |
 
-**Fixed size** (number): All items have the same size. This is the fastest path — internally uses simple multiplication for O(1) offset calculations with zero overhead.
-
-**Variable size** (function): Each item can have a different size. The function receives the item index and returns the size in pixels. Internally, vlist builds a prefix-sum array for O(1) offset lookups and O(log n) binary search for scroll-position-to-index mapping.
+**Mode A — Known sizes.** Use when you can derive size from data alone. Zero measurement overhead.
 
 ```typescript
-// Fixed height — all items 48px (vertical mode)
-item: { height: 48, template: myTemplate }
+// Fixed — all items 48px
+item: { height: 48, template: renderRow }
 
-// Variable height — headers are taller
+// Variable — derive size from data
 item: {
-  height: (index: number) => items[index].type === 'header' ? 64 : 48,
-  template: myTemplate,
-}
-
-// Variable height — based on content
-item: {
-  height: (index: number) => items[index].expanded ? 120 : 48,
-  template: myTemplate,
-}
-
-// Fixed width — all items 200px (horizontal mode)
-item: { width: 200, template: myTemplate }
-
-// Variable width — milestones are wider
-item: {
-  width: (index: number) => items[index].type === 'milestone' ? 300 : 180,
-  template: myTemplate,
+  height: (index) => data[index].type === 'header' ? 64 : 48,
+  template: renderRow,
 }
 ```
 
-> **Note:** The height function must be deterministic — given the same index, it must always return the same value. If heights change (e.g., an item expands), call `setItems()` to trigger a rebuild of the internal height cache.
-
-#### `VListConfig`
-
-Main configuration for vlist.
+**Mode B — Auto-measurement.** Use when size depends on rendered content (variable-length text, images with unknown aspect ratios). You provide an estimate; vlist measures actual DOM size, caches the result, and adjusts scroll position.
 
 ```typescript
-interface VListConfig<T extends VListItem = VListItem> {
-  /** Container element or selector */
-  container: HTMLElement | string;
-  
-  /** Item configuration (height and template) */
-  item: ItemConfig<T>;
-  
-  /** Static items array (optional if using adapter) */
-  items?: T[];
-  
-  /** Async data adapter for infinite scroll */
-  adapter?: VListAdapter<T>;
-  
-  /**
-   * Scroll orientation (default: 'vertical').
-   * - 'vertical' — Standard top-to-bottom scrolling. Requires item.height.
-   * - 'horizontal' — Left-to-right scrolling (carousels, timelines). Requires item.width.
-   *   Cannot be combined with grid, groups, or window scrolling.
-   */
-  orientation?: 'vertical' | 'horizontal';
-
-  /** Number of extra items to render outside viewport (default: 3) */
-  overscan?: number;
-  
-  /** Selection configuration */
-  selection?: SelectionConfig;
-  
-  /**
-   * External scroll element for document/window scrolling.
-   * When set, the list scrolls with this element instead of its own container.
-   * Pass `window` for document scrolling (most common use case).
-   *
-   * In window mode:
-   * - The list participates in the normal page flow (no inner scrollbar)
-   * - The browser's native scrollbar controls scrolling
-   * - Scaling still works (content height is capped, scroll math is remapped)
-   * - Custom scrollbar is disabled (the browser scrollbar is used)
-   */
-  scrollElement?: Window;
-  
-  /** Custom scrollbar configuration (for compressed mode) */
-  scrollbar?: ScrollbarConfig;
-  
-  /** Loading behavior configuration */
-  loading?: LoadingConfig;
-  
-  /** Idle timeout in milliseconds (default: 150) */
-  idleTimeout?: number;
-  
-  /** Custom CSS class prefix (default: 'vlist') */
-  classPrefix?: string;
+item: {
+  estimatedHeight: 120,
+  template: (post) => `<article>${post.text}</article>`,
 }
 ```
 
-#### `ItemTemplate`
+**Precedence:** If both `height` and `estimatedHeight` are set, `height` wins (Mode A).
 
-Function to render an item.
+### GridSizeContext
+
+Context provided to the size function in grid mode. Passed as the second argument to `ItemConfig.height` when using `withGrid`.
+
+```typescript
+interface GridSizeContext {
+  containerWidth: number
+  columns:        number
+  gap:            number
+  columnWidth:    number
+}
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `containerWidth` | `number` | Current container width in pixels. |
+| `columns` | `number` | Number of grid columns. |
+| `gap` | `number` | Gap between items in pixels. |
+| `columnWidth` | `number` | Calculated column width in pixels. |
+
+```typescript
+// Maintain 4:3 aspect ratio in grid
+item: {
+  height: (index, ctx) => {
+    if (ctx) return ctx.columnWidth * 0.75
+    return 200 // fallback for non-grid
+  },
+  template: renderCard,
+}
+```
+
+### ItemTemplate
+
+Render function called for each visible item. Returns an HTML string or a DOM element.
 
 ```typescript
 type ItemTemplate<T = VListItem> = (
-  item: T,
+  item:  T,
   index: number,
-  state: ItemState
-) => string | HTMLElement;
+  state: ItemState,
+) => string | HTMLElement
+```
 
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `item` | `T` | The data item for this row. |
+| `index` | `number` | The item's position in the full list. |
+| `state` | `ItemState` | Rendering state flags. |
+
+### ItemState
+
+State passed to templates. This object is reused between render calls — read values immediately, do not store the reference.
+
+```typescript
 interface ItemState {
-  selected: boolean;
-  focused: boolean;
+  selected: boolean
+  focused:  boolean
 }
 ```
 
-**Usage**:
-```typescript
-// String template
-item: {
-  height: 48,
-  template: (item, index, { selected, focused }) => `
-    <div class="item ${selected ? 'selected' : ''}">
-      <span>${index + 1}.</span>
-      <span>${item.name}</span>
-    </div>
-  `,
-}
+### ScrollConfig
 
-// HTMLElement template
-item: {
-  height: 48,
-  template: (item, index, state) => {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.textContent = item.name;
-    return div;
-  },
-}
-```
-
-**⚠️ Important**: The `state` object is **reused** for performance. Templates should read from it immediately and not store the reference. See [optimization.md](/tutorials/optimization) for details.
-
-#### `SelectionConfig`
-
-Selection behavior configuration.
+Scroll behavior options, passed as the `scroll` property of `BuilderConfig`.
 
 ```typescript
-interface SelectionConfig {
-  /** Selection mode (default: 'none') */
-  mode?: SelectionMode;
-  
-  /** Initially selected item IDs */
-  initial?: Array<string | number>;
+interface ScrollConfig {
+  wheel?:       boolean
+  wrap?:        boolean
+  idleTimeout?: number
+  element?:     Window
+  scrollbar?:   'native' | 'none' | ScrollbarOptions
 }
-
-type SelectionMode = 'none' | 'single' | 'multiple';
 ```
 
-#### `ScrollToOptions`
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `wheel` | `boolean` | `true` | Whether mouse-wheel scrolling is enabled. |
+| `wrap` | `boolean` | `false` | Circular scrolling — indices past the last item wrap to the beginning. |
+| `idleTimeout` | `number` | `150` | Milliseconds after the last scroll event before idle. Used by async loading and velocity tracking. |
+| `element` | `Window` | — | Use the browser window as the scroll container. |
+| `scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | custom | Scrollbar mode. Omit for the default custom scrollbar. |
 
-Options for `scrollToIndex` and `scrollToItem` smooth scrolling.
+### ScrollbarOptions
+
+Fine-tuning for the custom scrollbar. Pass as `scroll.scrollbar` or to `withScrollbar()`.
+
+```typescript
+interface ScrollbarOptions {
+  autoHide?:             boolean
+  autoHideDelay?:        number
+  minThumbSize?:         number
+  showOnHover?:          boolean
+  hoverZoneWidth?:       number
+  showOnViewportEnter?:  boolean
+}
+```
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `autoHide` | `boolean` | `true` | Hide the thumb after the list goes idle. |
+| `autoHideDelay` | `number` | `1000` | Milliseconds of idle time before the thumb fades out. |
+| `minThumbSize` | `number` | `30` | Minimum thumb size in pixels. |
+| `showOnHover` | `boolean` | `true` | Reveal the scrollbar when the cursor moves near the scrollbar edge. |
+| `hoverZoneWidth` | `number` | `16` | Width of the invisible hover detection zone in pixels. |
+| `showOnViewportEnter` | `boolean` | `true` | Show scrollbar when the cursor enters the list viewport. |
+
+### ScrollToOptions
+
+Options for `scrollToIndex`.
 
 ```typescript
 interface ScrollToOptions {
-  /** Alignment within the viewport (default: 'start') */
-  align?: 'start' | 'center' | 'end';
-  
-  /** Scroll behavior (default: 'auto' = instant) */
-  behavior?: 'auto' | 'smooth';
-  
-  /** Animation duration in ms (default: 300, only used with behavior: 'smooth') */
-  duration?: number;
+  align?:    'start' | 'center' | 'end'
+  behavior?: 'auto' | 'smooth'
+  duration?: number
 }
 ```
 
-**Usage**:
-```typescript
-// Instant scroll (default)
-list.scrollToIndex(100, 'center');
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `align` | `'start' \| 'center' \| 'end'` | `'start'` | Where to position the item in the viewport. |
+| `behavior` | `'auto' \| 'smooth'` | `'auto'` | Instant or animated scroll. |
+| `duration` | `number` | `300` | Animation duration in ms (smooth only). |
 
-// Smooth scroll with options object
-list.scrollToIndex(100, { align: 'center', behavior: 'smooth' });
+### ScrollSnapshot
 
-// Custom duration
-list.scrollToIndex(100, { behavior: 'smooth', duration: 500 });
-
-// Cancel in-progress animation
-list.cancelScroll();
-```
-
-#### `ScrollSnapshot`
-
-Scroll position snapshot for save/restore. Returned by `getScrollSnapshot()` and accepted by `restoreScroll()`.
+Scroll position snapshot for save/restore. Used by `withSnapshots`.
 
 ```typescript
 interface ScrollSnapshot {
-  /** First visible item index */
-  index: number;
-  
-  /** Pixel offset within the first visible item (how far it's scrolled off) */
-  offsetInItem: number;
-  
-  /** Selected item IDs (optional, only included when items are selected) */
-  selectedIds?: Array<string | number>;
+  index:        number
+  offsetInItem: number
+  total?:       number
+  selectedIds?: Array<string | number>
 }
 ```
 
-**Usage**:
-```typescript
-// Save scroll position
-const snapshot = list.getScrollSnapshot();
-// { index: 523, offsetInItem: 12, selectedIds: [3, 7, 42] }
-sessionStorage.setItem('list-scroll', JSON.stringify(snapshot));
+| Property | Type | Description |
+|----------|------|-------------|
+| `index` | `number` | First visible item index. |
+| `offsetInItem` | `number` | Pixel offset within the first visible item. |
+| `total` | `number` | Total item count at snapshot time (used by restore to set sizeCache). |
+| `selectedIds` | `Array<string \| number>` | Selected item IDs (optional convenience). |
 
-// Restore scroll position
-const saved = JSON.parse(sessionStorage.getItem('list-scroll'));
-list.restoreScroll(saved);
-```
+---
 
-**Details**:
-- Plain JSON object — serializable with `JSON.stringify()` for `sessionStorage`
-- `index` is always the user-facing item index (not a layout or row index)
-- `offsetInItem` is the number of pixels scrolled past the top of the first visible item
-- `selectedIds` is only present when at least one item is selected
-- Works with normal and compressed (1M+ items) modes
-- Round-trips perfectly: `restoreScroll(getScrollSnapshot())` is a no-op
+## Selection Types
 
-#### `ScrollbarConfig`
+### SelectionConfig
 
-Custom scrollbar configuration.
+Selection configuration, passed to `withSelection()`.
 
 ```typescript
-interface ScrollbarConfig {
-  /** Enable scrollbar (default: auto - enabled when compressed) */
-  enabled?: boolean;
-  
-  /** Auto-hide scrollbar after idle (default: true) */
-  autoHide?: boolean;
-  
-  /** Auto-hide delay in milliseconds (default: 1000) */
-  autoHideDelay?: number;
-  
-  /** Minimum thumb size in pixels (default: 30) */
-  minThumbSize?: number;
+interface SelectionConfig {
+  mode?:    SelectionMode
+  initial?: Array<string | number>
 }
 ```
 
-#### `LoadingConfig`
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `mode` | `SelectionMode` | `'none'` | Selection mode. |
+| `initial` | `Array<string \| number>` | `[]` | Initially selected item IDs. |
 
-Loading behavior configuration for velocity-based loading and preloading.
-
-```typescript
-interface LoadingConfig {
-  /**
-   * Velocity threshold above which data loading is skipped (px/ms)
-   * When scrolling faster than this, loading is deferred until scroll stops.
-   * Default: 25 px/ms
-   */
-  cancelThreshold?: number;
-
-  /**
-   * Velocity threshold for preloading (px/ms)
-   * When scrolling faster than this but slower than cancelThreshold,
-   * extra items are preloaded in the scroll direction.
-   * Default: 2 px/ms
-   */
-  preloadThreshold?: number;
-
-  /**
-   * Number of extra items to preload ahead of scroll direction
-   * Only applies when velocity is between preloadThreshold and cancelThreshold.
-   * Default: 50 items
-   */
-  preloadAhead?: number;
-}
-```
-
-**Usage Example**:
-```typescript
-const list = vlist({
-  container: '#list',
-  item: {
-    height: 50,
-    template: myTemplate,
-  },
-  adapter: myAdapter,
-  loading: {
-    cancelThreshold: 30,    // Skip loading above 30 px/ms
-    preloadThreshold: 5,    // Start preloading above 5 px/ms
-    preloadAhead: 100,      // Preload 100 items ahead
-  },
-});
-```
-
-#### `idleTimeout`
-
-Time in milliseconds after the last scroll event before the list is considered "idle". When idle is detected, vlist loads any pending data ranges skipped during fast scrolling, re-enables CSS transitions (removes `.vlist--scrolling` class), and resets the velocity tracker.
+### SelectionMode
 
 ```typescript
-/**
- * Idle timeout in milliseconds.
- * Default: 150
- */
-idleTimeout?: number;
+type SelectionMode = 'none' | 'single' | 'multiple'
 ```
 
-**Usage Example**:
-```typescript
-const list = vlist({
-  container: '#list',
-  item: { height: 50, template: myTemplate },
-  adapter: myAdapter,
-  idleTimeout: 200, // ms (default: 150)
-});
-```
+### SelectionState
 
-**Tuning tips:**
-- **Mobile/touch devices:** Increase to 200–300ms (scroll events have larger gaps)
-- **Desktop with smooth scroll:** Default 150ms works well
-- **Aggressive loading:** Decrease to 100ms (loads data sooner after scroll stops)
-
-### State Types
-
-#### `ViewportState`
-
-Current viewport state for virtual scrolling.
-
-```typescript
-interface ViewportState {
-  /** Current scroll position */
-  scrollPosition: number;
-  
-  /** Container size */
-  containerSize: number;
-  
-  /** Total content size (may be capped for scaling) */
-  totalSize: number;
-  
-  /** Actual total size without scaling (totalItems × itemSize) */
-  actualSize: number;
-  
-  /** Whether scaling is active */
-  isCompressed: boolean;
-  
-  /** Scaling ratio (1 = no scaling, <1 = scaled) */
-  compressionRatio: number;
-  
-  /** Visible item range */
-  visibleRange: Range;
-  
-  /** Render range (includes overscan) */
-  renderRange: Range;
-}
-```
-
-#### `SelectionState`
-
-Current selection state.
+Internal selection state.
 
 ```typescript
 interface SelectionState {
-  /** Currently selected item IDs */
-  selected: Set<string | number>;
-  
-  /** Currently focused item index (-1 if none) */
-  focusedIndex: number;
+  selected:     Set<string | number>
+  focusedIndex: number
 }
 ```
 
-#### `Range`
+---
 
-Index range for items.
+## Adapter Types
 
-```typescript
-interface Range {
-  start: number;
-  end: number;
-}
-```
+### VListAdapter
 
-### Adapter Types
-
-#### `VListAdapter`
-
-Interface for async data loading.
+Adapter for async data loading, passed to `withAsync()`.
 
 ```typescript
 interface VListAdapter<T extends VListItem = VListItem> {
-  /** Fetch items for a range */
-  read: (params: AdapterParams) => Promise<AdapterResponse<T>>;
+  read: (params: AdapterParams) => Promise<AdapterResponse<T>>
 }
 ```
 
-#### `AdapterParams`
+### AdapterParams
 
-Parameters passed to adapter.read.
+Parameters passed to `adapter.read`.
 
 ```typescript
 interface AdapterParams {
-  /** Starting offset */
-  offset: number;
-  
-  /** Number of items to fetch */
-  limit: number;
-  
-  /** Optional cursor for cursor-based pagination */
-  cursor: string | undefined;
+  offset: number
+  limit:  number
+  cursor: string | undefined
 }
 ```
 
-#### `AdapterResponse`
+| Property | Type | Description |
+|----------|------|-------------|
+| `offset` | `number` | Starting offset. |
+| `limit` | `number` | Number of items to fetch. |
+| `cursor` | `string \| undefined` | Cursor for cursor-based pagination. |
 
-Response from adapter.read.
+### AdapterResponse
+
+Response from `adapter.read`.
 
 ```typescript
 interface AdapterResponse<T extends VListItem = VListItem> {
-  /** Fetched items */
-  items: T[];
-  
-  /** Total count (if known) */
-  total?: number;
-  
-  /** Next cursor (for cursor-based pagination) */
-  cursor?: string;
-  
-  /** Whether more items exist */
-  hasMore?: boolean;
+  items:    T[]
+  total?:   number
+  cursor?:  string
+  hasMore?: boolean
 }
 ```
 
-**Implementation Example**:
-```typescript
-const adapter: VListAdapter<User> = {
-  read: async ({ offset, limit, cursor }) => {
-    const url = cursor
-      ? `/api/users?cursor=${cursor}&limit=${limit}`
-      : `/api/users?offset=${offset}&limit=${limit}`;
-    
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    return {
-      items: data.users,
-      total: data.totalCount,
-      cursor: data.nextCursor,
-      hasMore: data.hasMore
-    };
-  }
-};
-```
+| Property | Type | Description |
+|----------|------|-------------|
+| `items` | `T[]` | Fetched items. |
+| `total` | `number` | Total count (if known). |
+| `cursor` | `string` | Next cursor for pagination. |
+| `hasMore` | `boolean` | Whether more items exist. |
 
-### Event Types
+---
 
-#### `VListEvents`
+## State Types
 
-Event types and their payloads.
+### ViewportState
+
+The internal state of the virtual viewport. Updated on every scroll and resize.
 
 ```typescript
-interface VListEvents<T extends VListItem = VListItem> extends EventMap {
-  /** Item clicked */
-  'item:click': { item: T; index: number; event: MouseEvent };
-  
-  /** Selection changed */
-  'selection:change': { selected: Array<string | number>; items: T[] };
-  
-  /** Scroll position changed */
-  'scroll': { scrollPosition: number; direction: 'up' | 'down' };
-  
-  /** Visible range changed */
-  'range:change': { range: Range };
-  
-  /** Data loading started */
-  'load:start': { offset: number; limit: number };
-  
-  /** Data loading completed */
-  'load:end': { items: T[]; total?: number };
-  
-  /** Error occurred */
-  'error': { error: Error; context: string };
-  
-  /** Container resized */
-  'resize': { height: number; width: number };
+interface ViewportState {
+  scrollPosition:   number
+  containerSize:    number
+  totalSize:        number
+  actualSize:       number
+  isCompressed:     boolean
+  compressionRatio: number
+  visibleRange:     Range
+  renderRange:      Range
 }
-
-type EventMap = Record<string, unknown>;
 ```
 
-#### `EventHandler`
+| Property | Type | Description |
+|----------|------|-------------|
+| `scrollPosition` | `number` | Current scroll offset along the main axis. |
+| `containerSize` | `number` | Container size along the main axis. |
+| `totalSize` | `number` | Total content size (may be capped for compression). |
+| `actualSize` | `number` | True total size without compression. |
+| `isCompressed` | `boolean` | Whether compression is active. |
+| `compressionRatio` | `number` | Ratio of virtual to actual size (1 = no compression). |
+| `visibleRange` | `Range` | Currently visible item range. |
+| `renderRange` | `Range` | Rendered range (includes overscan). |
 
-Event handler function type.
+### Range
+
+A contiguous range of item indices.
 
 ```typescript
-type EventHandler<T> = (payload: T) => void;
+interface Range {
+  start: number
+  end:   number
+}
 ```
 
-#### `Unsubscribe`
+---
 
-Unsubscribe function returned by event subscription.
+## Event Types
+
+### VListEvents
+
+All events and their payloads. See [Events](./events.md) for detailed documentation.
 
 ```typescript
-type Unsubscribe = () => void;
+interface VListEvents<T extends VListItem = VListItem> {
+  'item:click':        { item: T; index: number; event: MouseEvent }
+  'item:dblclick':     { item: T; index: number; event: MouseEvent }
+  'selection:change':  { selected: Array<string | number>; items: T[] }
+  'scroll':            { scrollPosition: number; direction: 'up' | 'down' }
+  'velocity:change':   { velocity: number; reliable: boolean }
+  'range:change':      { range: Range }
+  'load:start':        { offset: number; limit: number }
+  'load:end':          { items: T[]; total?: number; offset?: number }
+  'error':             { error: Error; context: string }
+  'resize':            { height: number; width: number }
+}
 ```
 
-### Public API Types
+### EventHandler
 
-#### `VList`
+```typescript
+type EventHandler<T> = (payload: T) => void
+```
 
-Public API returned by vlist.
+### Unsubscribe
+
+Returned by `on()`. Call it to remove the subscription.
+
+```typescript
+type Unsubscribe = () => void
+```
+
+---
+
+## Feature Types
+
+### GroupsConfig
+
+Configuration for `withGroups()`.
+
+```typescript
+interface GroupsConfig {
+  getGroupForIndex: (index: number) => string
+  headerHeight:     number | ((group: string, groupIndex: number) => number)
+  headerTemplate:   (group: string, groupIndex: number) => string | HTMLElement
+  sticky?:          boolean
+}
+```
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `getGroupForIndex` | `(index) => string` | — | **Required.** Returns the group key for a data index. Items must be pre-sorted by group. |
+| `headerHeight` | `number \| (group, groupIndex) => number` | — | **Required.** Size of group header elements in pixels. |
+| `headerTemplate` | `(group, groupIndex) => string \| HTMLElement` | — | **Required.** Render function for group headers. |
+| `sticky` | `boolean` | `true` | Enable sticky headers that follow the viewport. |
+
+### GridConfig
+
+Configuration for `withGrid()`.
+
+```typescript
+interface GridConfig {
+  columns: number
+  gap?:    number
+}
+```
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `columns` | `number` | — | **Required.** Number of grid columns. |
+| `gap` | `number` | `0` | Gap between items in pixels (applied both horizontally and vertically). |
+
+### MasonryConfig
+
+Configuration for `withMasonry()`.
+
+```typescript
+interface MasonryConfig {
+  columns: number
+  gap?:    number
+}
+```
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `columns` | `number` | — | **Required.** Number of cross-axis divisions. Items flow into the shortest column. |
+| `gap` | `number` | `0` | Gap between items in pixels. |
+
+---
+
+## Builder & Feature Types
+
+### VListBuilder
+
+The chainable builder returned by `vlist()`.
+
+```typescript
+interface VListBuilder<T extends VListItem = VListItem> {
+  use(feature: VListFeature<T>): VListBuilder<T>
+  build(): VList<T>
+}
+```
+
+| Method | Description |
+|--------|-------------|
+| `.use(feature)` | Register a feature. Chainable. |
+| `.build()` | Materialize the list — creates DOM, initializes features, returns the instance API. |
+
+### VListFeature
+
+The interface for builder features. Each feature wires handlers and methods into the `BuilderContext` during setup.
+
+```typescript
+interface VListFeature<T extends VListItem = VListItem> {
+  readonly name:       string
+  readonly priority?:  number
+  setup(ctx: BuilderContext<T>): void
+  destroy?():          void
+  readonly methods?:   readonly string[]
+  readonly conflicts?: readonly string[]
+}
+```
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `name` | `string` | — | Unique feature name (used for deduplication and error messages). |
+| `priority` | `number` | `50` | Execution order — lower runs first. |
+| `setup` | `(ctx) => void` | — | Receives `BuilderContext`, wires handlers and methods. |
+| `destroy` | `() => void` | — | Optional cleanup function called on list destroy. |
+| `methods` | `string[]` | — | Methods this feature adds to the public API. |
+| `conflicts` | `string[]` | — | Features this feature cannot be combined with. |
+
+### BuilderContext
+
+The internal interface that features receive during `setup()`. Provides access to core components, mutable state, and registration points for handlers, methods, and cleanup callbacks.
+
+```typescript
+interface BuilderContext<T extends VListItem = VListItem> {
+  // Core components (always present)
+  readonly dom:        DOMStructure
+  readonly sizeCache:  SizeCache
+  readonly emitter:    Emitter<VListEvents<T>>
+  readonly config:     ResolvedBuilderConfig
+  readonly rawConfig:  BuilderConfig<T>
+
+  // Mutable components (replaceable by features)
+  renderer:         Renderer<T>
+  dataManager:      SimpleDataManager<T>
+  scrollController: ScrollController
+
+  // State
+  state: BuilderState
+
+  // Handler registration slots
+  afterScroll:          Array<(scrollPosition: number, direction: string) => void>
+  clickHandlers:        Array<(event: MouseEvent) => void>
+  keydownHandlers:      Array<(event: KeyboardEvent) => void>
+  resizeHandlers:       Array<(width: number, height: number) => void>
+  contentSizeHandlers:  Array<() => void>
+  destroyHandlers:      Array<() => void>
+
+  // Public method registration
+  methods: Map<string, Function>
+
+  // Component replacement
+  replaceTemplate(template: ItemTemplate<T>): void
+  replaceRenderer(renderer: Renderer<T>): void
+  replaceDataManager(dataManager: SimpleDataManager<T>): void
+  replaceScrollController(scrollController: ScrollController): void
+
+  // Helpers
+  getItemsForRange(range: Range): T[]
+  getAllLoadedItems(): T[]
+  getVirtualTotal(): number
+  getCachedCompression(): CompressionState
+  getCompressionContext(): CompressionContext
+  renderIfNeeded(): void
+  forceRender(): void
+  invalidateRendered(): void
+  getRenderFns(): { renderIfNeeded: () => void; forceRender: () => void }
+  getContainerWidth(): number
+  setVirtualTotalFn(fn: () => number): void
+  rebuildSizeCache(total?: number): void
+  setSizeConfig(config: number | ((index: number) => number)): void
+  updateContentSize(totalSize: number): void
+  updateCompressionMode(): void
+  setVisibleRangeFn(fn: VisibleRangeFn): void
+  setScrollToPosFn(fn: ScrollToIndexFn): void
+  setPositionElementFn(fn: (element: HTMLElement, index: number) => void): void
+  setRenderFns(renderIfNeeded: () => void, forceRender: () => void): void
+  setScrollFns(getTop: () => number, setTop: (pos: number) => void): void
+  setScrollTarget(target: HTMLElement | Window): void
+  getScrollTarget(): HTMLElement | Window
+  setContainerDimensions(getter: { width: () => number; height: () => number }): void
+  disableViewportResize(): void
+  disableWheelHandler(): void
+}
+```
+
+For feature authoring details, see [Exports](./exports.md).
+
+### BuilderState
+
+Mutable state stored inside `BuilderContext`.
+
+```typescript
+interface BuilderState {
+  viewportState:      ViewportState
+  lastRenderRange:    Range
+  isInitialized:      boolean
+  isDestroyed:        boolean
+  cachedCompression:  CachedCompression | null
+}
+```
+
+### ResolvedBuilderConfig
+
+Immutable configuration stored inside `BuilderContext` after defaults are applied.
+
+```typescript
+interface ResolvedBuilderConfig {
+  readonly overscan:       number
+  readonly classPrefix:    string
+  readonly reverse:        boolean
+  readonly wrap:           boolean
+  readonly horizontal:     boolean
+  readonly ariaIdPrefix:   string
+}
+```
+
+---
+
+## Public API Types
+
+### VList
+
+The instance returned by `.build()`. Always-available methods are required properties. Feature methods are optional — they exist only when the corresponding feature is registered via `.use()`.
 
 ```typescript
 interface VList<T extends VListItem = VListItem> {
-  /** The root DOM element */
-  readonly element: HTMLElement;
-  
-  /** Current items */
-  readonly items: readonly T[];
-  
-  /** Total item count */
-  readonly total: number;
-  
-  // Data methods
-  setItems: (items: T[]) => void;
-  appendItems: (items: T[]) => void;
-  prependItems: (items: T[]) => void;
-  updateItem: (id: string | number, updates: Partial<T>) => void;
-  removeItem: (id: string | number) => void;
-  reload: () => Promise<void>;
-  
-  // Scroll methods
-  scrollToIndex: (
-    index: number,
-    alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions,
-  ) => void;
-  scrollToItem: (
-    id: string | number,
-    alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions,
-  ) => void;
-  cancelScroll: () => void;
-  getScrollPosition: () => number;
-  
-  // Snapshot methods (scroll save/restore)
-  getScrollSnapshot: () => ScrollSnapshot;
-  restoreScroll: (snapshot: ScrollSnapshot) => void;
-  
-  // Selection methods
-  select: (...ids: Array<string | number>) => void;
-  deselect: (...ids: Array<string | number>) => void;
-  toggleSelect: (id: string | number) => void;
-  selectAll: () => void;
-  clearSelection: () => void;
-  getSelected: () => Array<string | number>;
-  getSelectedItems: () => T[];
-  
-  // Events
-  on: <K extends keyof VListEvents<T>>(
-    event: K,
-    handler: EventHandler<VListEvents<T>[K]>
-  ) => Unsubscribe;
-  
-  off: <K extends keyof VListEvents<T>>(
-    event: K,
-    handler: EventHandler<VListEvents<T>[K]>
-  ) => void;
-  
+  // Properties
+  readonly element: HTMLElement
+  readonly items:   readonly T[]
+  readonly total:   number
+
+  // Data methods (always available)
+  setItems:     (items: T[]) => void
+  appendItems:  (items: T[]) => void
+  prependItems: (items: T[]) => void
+  updateItem:   (id: string | number, updates: Partial<T>) => void
+  removeItem:   (id: string | number) => void
+  reload:       () => Promise<void>
+
+  // Scroll methods (always available)
+  scrollToIndex:    (index: number, alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions) => void
+  cancelScroll:     () => void
+  getScrollPosition: () => number
+
+  // Events (always available)
+  on:  <K extends keyof VListEvents<T>>(event: K, handler: EventHandler<VListEvents<T>[K]>) => Unsubscribe
+  off: <K extends keyof VListEvents<T>>(event: K, handler: EventHandler<VListEvents<T>[K]>) => void
+
   // Lifecycle
-  destroy: () => void;
+  destroy: () => void
+
+  // Feature methods (present only when feature is registered)
+  select?:            (...ids: Array<string | number>) => void
+  deselect?:          (...ids: Array<string | number>) => void
+  toggleSelect?:      (id: string | number) => void
+  selectAll?:         () => void
+  clearSelection?:    () => void
+  getSelected?:       () => Array<string | number>
+  getSelectedItems?:  () => T[]
+  getScrollSnapshot?: () => ScrollSnapshot
+  restoreScroll?:     (snapshot: ScrollSnapshot) => void
+
+  // Extensible — features add arbitrary methods
+  [key: string]: unknown
 }
 ```
 
-### Internal Types
+**Always available:**
+- Data: `setItems`, `appendItems`, `prependItems`, `updateItem`, `removeItem`, `reload`
+- Scroll: `scrollToIndex`, `cancelScroll`, `getScrollPosition`
+- Events: `on`, `off`
+- Lifecycle: `destroy`
 
-#### `InternalState`
+**Added by features:**
+- `select`, `deselect`, `toggleSelect`, `selectAll`, `clearSelection`, `getSelected`, `getSelectedItems` — added by `withSelection`
+- `getScrollSnapshot`, `restoreScroll` — added by `withSnapshots`
 
-Internal state (not exposed publicly).
+> **Note:** There is no `scrollToItem(id)` method. If you need to scroll to an item by ID, maintain your own `id → index` map and call `scrollToIndex`.
+
+---
+
+## Rendering Types
+
+### SizeCache
+
+Efficient size management for fixed and variable item sizes. Axis-neutral — the same interface handles both vertical heights and horizontal widths.
 
 ```typescript
-interface InternalState<T extends VListItem = VListItem> {
-  items: T[];
-  total: number;
-  viewport: ViewportState;
-  selection: SelectionState;
-  isLoading: boolean;
-  cursor?: string;
-  hasMore: boolean;
+interface SizeCache {
+  getOffset(index: number): number
+  getSize(index: number): number
+  indexAtOffset(offset: number): number
+  getTotalSize(): number
+  getTotal(): number
+  rebuild(totalItems: number): void
+  isVariable(): boolean
 }
 ```
 
-#### `RenderedItem`
+| Method | Description |
+|--------|-------------|
+| `getOffset(index)` | Position of item along the main axis — O(1). |
+| `getSize(index)` | Size of a specific item. |
+| `indexAtOffset(offset)` | Item at a scroll offset — O(1) fixed, O(log n) variable. |
+| `getTotalSize()` | Total content size. |
+| `getTotal()` | Current item count. |
+| `rebuild(total)` | Rebuild cache after data changes. |
+| `isVariable()` | Whether sizes are variable (false = fixed fast path). |
 
-Tracks rendered DOM elements.
+### DOMStructure
+
+The DOM hierarchy created by vlist.
 
 ```typescript
-interface RenderedItem {
-  index: number;
-  element: HTMLElement;
+interface DOMStructure {
+  root:     HTMLElement
+  viewport: HTMLElement
+  content:  HTMLElement
+  items:    HTMLElement
 }
 ```
+
+### CompressionContext
+
+Context for positioning items in compressed mode.
+
+```typescript
+interface CompressionContext {
+  scrollPosition: number
+  totalItems:     number
+  containerSize:  number
+  rangeStart:     number
+}
+```
+
+### CompressionState
+
+Result of compression calculation.
+
+```typescript
+interface CompressionState {
+  isCompressed: boolean
+  actualSize:   number
+  virtualSize:  number
+  ratio:        number
+}
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `isCompressed` | `boolean` | Whether compression is active. |
+| `actualSize` | `number` | True total size (uncompressed). |
+| `virtualSize` | `number` | Capped size used for the scroll container (≤ `MAX_VIRTUAL_SIZE`). |
+| `ratio` | `number` | `virtualSize / actualSize` (1 = no compression, <1 = compressed). |
+
+### Renderer
+
+DOM rendering instance.
+
+```typescript
+interface Renderer<T extends VListItem = VListItem> {
+  render:            (items: T[], range: Range, selectedIds: Set<string | number>, focusedIndex: number, compressionCtx?: CompressionContext) => void
+  updatePositions:   (compressionCtx: CompressionContext) => void
+  updateItem:        (index: number, item: T, isSelected: boolean, isFocused: boolean) => void
+  updateItemClasses: (index: number, isSelected: boolean, isFocused: boolean) => void
+  getElement:        (index: number) => HTMLElement | undefined
+  clear:             () => void
+  destroy:           () => void
+}
+```
+
+### ElementPool
+
+Element pool for recycling DOM elements.
+
+```typescript
+interface ElementPool {
+  acquire: () => HTMLElement
+  release: (element: HTMLElement) => void
+  clear:   () => void
+  stats:   () => { poolSize: number; created: number; reused: number }
+}
+```
+
+---
+
+## Emitter Types
+
+### Emitter
+
+Type-safe event emitter created by `createEmitter()`.
+
+```typescript
+interface Emitter<T extends EventMap> {
+  on:            <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => Unsubscribe
+  off:           <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => void
+  emit:          <K extends keyof T>(event: K, payload: T[K]) => void
+  once:          <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => Unsubscribe
+  clear:         <K extends keyof T>(event?: K) => void
+  listenerCount: <K extends keyof T>(event: K) => number
+}
+```
+
+### EventMap
+
+Base type for event maps.
+
+```typescript
+type EventMap = Record<string, unknown>
+```
+
+---
+
+## Deprecated Types
+
+### ScrollbarConfig
+
+Legacy scrollbar configuration. Use `scroll.scrollbar` in `BuilderConfig` instead.
+
+```typescript
+/** @deprecated Use ScrollConfig.scrollbar instead */
+interface ScrollbarConfig {
+  enabled?:       boolean
+  autoHide?:      boolean
+  autoHideDelay?: number
+  minThumbSize?:  number
+}
+```
+
+### GridHeightContext
+
+Renamed to `GridSizeContext`. The old name is kept as a type alias for backwards compatibility.
+
+```typescript
+/** @deprecated Use GridSizeContext instead */
+type GridHeightContext = GridSizeContext
+```
+
+---
 
 ## Usage Examples
 
 ### Custom Item Type
 
 ```typescript
-import { vlist, VListItem, VList } from 'vlist';
+import { vlist } from '@floor/vlist'
 
-// Define custom item type
 interface Product extends VListItem {
-  id: number;
-  name: string;
-  price: number;
-  inStock: boolean;
+  id: number
+  name: string
+  price: number
+  category: string
 }
 
-// Create typed list
-const productList: VList<Product> = vlist<Product>({
+const list = vlist<Product>({
   container: '#products',
   item: {
-    height: 60,
-    template: (product, index, { selected }) => `
-      <div class="product ${selected ? 'selected' : ''}">
-        <strong>${product.name}</strong>
-        <span class="price">$${product.price.toFixed(2)}</span>
-        <span class="stock">${product.inStock ? 'In Stock' : 'Out of Stock'}</span>
+    height: 56,
+    template: (product, index, state) => `
+      <div class="product ${state.selected ? 'selected' : ''}">
+        <span>${product.name}</span>
+        <span>$${product.price.toFixed(2)}</span>
       </div>
     `,
   },
   items: products,
-});
-
-// Methods are typed
-const selectedProducts: Product[] = productList.getSelectedItems();
-productList.updateItem(1, { price: 29.99 });  // Type-checked
+}).build()
 ```
 
 ### Typed Event Handlers
 
 ```typescript
-import { VListEvents, EventHandler } from 'vlist';
-
 interface User extends VListItem {
-  id: string;
-  name: string;
-  email: string;
+  id: string
+  name: string
+  email: string
 }
 
-// Typed event handler
-const handleClick: EventHandler<VListEvents<User>['item:click']> = ({ item, index, event }) => {
-  console.log(`Clicked ${item.name} at index ${index}`);
+list.on('item:click', ({ item, index, event }) => {
   // item is typed as User
-  // event is typed as MouseEvent
-};
+  console.log(item.name, item.email)
+})
 
-list.on('item:click', handleClick);
+list.on('selection:change', ({ selected, items }) => {
+  // items is typed as User[]
+  console.log(`${selected.length} users selected`)
+})
 ```
 
 ### Adapter Type Safety
 
 ```typescript
-import { VListAdapter, AdapterParams, AdapterResponse } from 'vlist';
-
 interface Article extends VListItem {
-  id: number;
-  title: string;
-  author: string;
-  publishedAt: Date;
+  id: number
+  title: string
+  body: string
+  publishedAt: string
 }
 
-// Fully typed adapter
-const articleAdapter: VListAdapter<Article> = {
-  read: async (params: AdapterParams): Promise<AdapterResponse<Article>> => {
-    const response = await fetch(`/api/articles?offset=${params.offset}&limit=${params.limit}`);
-    const data = await response.json();
-    
+const adapter: VListAdapter<Article> = {
+  read: async ({ offset, limit }) => {
+    const response = await fetch(`/api/articles?offset=${offset}&limit=${limit}`)
+    const data = await response.json()
     return {
-      items: data.articles.map((a: any) => ({
-        ...a,
-        publishedAt: new Date(a.publishedAt)
-      })),
+      items: data.articles,
       total: data.total,
-      hasMore: data.hasMore
-    };
-  }
-};
-```
-
-## Type Guards
-
-### Checking Item Types
-
-```typescript
-// Check if item is a placeholder
-function isPlaceholder(item: VListItem): boolean {
-  return '_isPlaceholder' in item && item._isPlaceholder === true;
-}
-
-// In template
-item: {
-  height: 48,
-  template: (item, index, state) => {
-    if (isPlaceholder(item)) {
-      return `<div class="loading">${item.name}</div>`;
+      hasMore: data.hasMore,
     }
-    return `<div class="item">${item.name}</div>`;
   },
 }
 ```
 
-### Type Narrowing
+---
 
-```typescript
-// Narrow based on selection mode
-function handleSelection<T extends VListItem>(
-  list: VList<T>,
-  config: SelectionConfig
-): void {
-  if (config.mode === 'multiple') {
-    list.selectAll();  // Safe - only called in multiple mode
-  }
-}
-```
+## Related
 
-## Best Practices
-
-### Do
-
-```typescript
-// ✅ Define specific item types
-interface User extends VListItem {
-  id: string;
-  name: string;
-  email: string;
-}
-
-// ✅ Use generics with vlist
-const list = vlist<User>({ ... });
-
-// ✅ Type event handlers
-list.on('item:click', ({ item }) => {
-  // item is User, not VListItem
-});
-```
-
-### Don't
-
-```typescript
-// ❌ Use 'any' for item type
-const list = vlist<any>({ ... });
-
-// ❌ Ignore type errors
-// @ts-ignore
-list.updateItem('id', { unknownProperty: 'value' });
-
-// ❌ Cast unnecessarily
-const item = list.items[0] as any;
-```
-
-## Related Modules
-
-- [vlist.md](/) - Main documentation with configuration examples
-- [context.md](../internals/context.md) - Internal context types
-- [render.md](../internals/rendering.md) - Scale state, DOMStructure types
-- [async.md](../features/async.md) - DataState, SparseStorage types
-- [selection.md](../features/selection.md) - Selection state management
-- [events.md](./events.md) - Event system types
+- [API Reference](./reference.md) — Config, properties, and methods
+- [Events](./events.md) — All events and payloads
+- [Constants](./constants.md) — Default values and thresholds
+- [Exports](./exports.md) — Low-level utilities and feature authoring
+- [Features](../features/overview.md) — All features with examples and compatibility
 
 ---
 
-*The types module provides full TypeScript support for type-safe vlist usage.*
+*All types are exported from `@floor/vlist` — import what you need.*

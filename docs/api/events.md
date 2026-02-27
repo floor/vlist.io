@@ -1,438 +1,281 @@
-# Events Module
+# Events
 
-> Lightweight, type-safe event emitter system for vlist.
+> Type-safe event system for vlist — subscribe to scroll, interaction, data, and lifecycle events.
 
-## Overview
+---
 
-The events module provides a simple but powerful event system that enables:
+## Subscribing
 
-- **Type-safe events**: Full TypeScript support for event names and payloads
-- **Subscription management**: Easy subscribe/unsubscribe patterns
-- **Error isolation**: Handlers are wrapped to prevent cascade failures
-- **Memory safety**: Simple cleanup with `clear()` method
-
-## Module Structure
-
-```
-src/events/
-├── index.ts    # Module exports
-└── emitter.ts  # Event emitter implementation
-```
-
-## Key Concepts
-
-### Event-Driven Architecture
-
-vlist uses events to communicate state changes without tight coupling:
-
-```
-User Action → Handler → State Change → Event Emitted → Subscribers Notified
-```
-
-### Type Safety
-
-Events are fully typed using TypeScript's mapped types:
+Use `on` to subscribe and the returned function to unsubscribe:
 
 ```typescript
-interface VListEvents<T extends VListItem> {
-  'item:click': { item: T; index: number; event: MouseEvent };
-  'selection:change': { selected: Array<string | number>; items: T[] };
-  'scroll': { scrollPosition: number; direction: 'up' | 'down' };
-  // ...
-}
+const unsub = list.on('item:click', ({ item, index, event }) => {
+  console.log('clicked', item)
+})
 
-// Handlers receive correctly typed payloads
-emitter.on('item:click', ({ item, index, event }) => {
-  // TypeScript knows all types here
-});
+// Later
+unsub()
 ```
 
-## API Reference
-
-### `createEmitter`
-
-Creates a type-safe event emitter.
+Or use `off` with the handler reference:
 
 ```typescript
-function createEmitter<T extends EventMap>(): Emitter<T>;
-
-type EventMap = Record<string, unknown>;
+const handler = ({ item }) => console.log(item)
+list.on('item:click', handler)
+list.off('item:click', handler)
 ```
 
-### Emitter Interface
+For one-time events, use the emitter's `once` method (available on the internal emitter, not the public API):
 
 ```typescript
-interface Emitter<T extends EventMap> {
-  /** Subscribe to an event */
-  on: <K extends keyof T>(
-    event: K,
-    handler: EventHandler<T[K]>
-  ) => Unsubscribe;
-
-  /** Unsubscribe from an event */
-  off: <K extends keyof T>(
-    event: K,
-    handler: EventHandler<T[K]>
-  ) => void;
-
-  /** Emit an event to all subscribers */
-  emit: <K extends keyof T>(
-    event: K,
-    payload: T[K]
-  ) => void;
-
-  /** Subscribe once (auto-unsubscribe after first call) */
-  once: <K extends keyof T>(
-    event: K,
-    handler: EventHandler<T[K]>
-  ) => Unsubscribe;
-
-  /** Remove all listeners */
-  clear: <K extends keyof T>(event?: K) => void;
-
-  /** Get listener count for an event */
-  listenerCount: <K extends keyof T>(event: K) => number;
-}
+emitter.once('load:end', ({ items }) => {
+  console.log('First load complete:', items.length)
+})
 ```
 
-### Types
+---
 
-```typescript
-/** Event handler function */
-type EventHandler<T> = (payload: T) => void;
+## Interaction Events
 
-/** Unsubscribe function returned by on() */
-type Unsubscribe = () => void;
-```
-
-## VList Events
-
-vlist emits the following events:
-
-### `item:click`
+### item:click
 
 Fired when an item is clicked.
 
 ```typescript
-interface ItemClickPayload<T> {
-  item: T;           // The clicked item
-  index: number;     // Item index
-  event: MouseEvent; // Original mouse event
-}
-
 list.on('item:click', ({ item, index, event }) => {
-  console.log(`Clicked item ${index}:`, item);
-});
+  console.log(`Clicked item ${index}:`, item)
+})
 ```
 
-### `selection:change`
+| Field | Type | Description |
+|-------|------|-------------|
+| `item` | `T` | The clicked item. |
+| `index` | `number` | Item index in the list. |
+| `event` | `MouseEvent` | The original DOM mouse event. |
 
-Fired when selection changes.
+### item:dblclick
+
+Fired when an item is double-clicked.
 
 ```typescript
-interface SelectionChangePayload<T> {
-  selected: Array<string | number>; // Selected IDs
-  items: T[];                       // Selected items
-}
+list.on('item:dblclick', ({ item, index, event }) => {
+  openEditor(item)
+})
+```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `item` | `T` | The double-clicked item. |
+| `index` | `number` | Item index in the list. |
+| `event` | `MouseEvent` | The original DOM mouse event. |
+
+### selection:change
+
+Fired when the selection changes. Only emitted when `withSelection` is active.
+
+```typescript
 list.on('selection:change', ({ selected, items }) => {
-  console.log(`${selected.length} items selected`);
-});
+  console.log(`${selected.length} items selected`)
+})
 ```
 
-### `scroll`
+| Field | Type | Description |
+|-------|------|-------------|
+| `selected` | `Array<string \| number>` | IDs of currently selected items. |
+| `items` | `T[]` | The selected item objects. |
 
-Fired on scroll position change.
+---
+
+## Scroll Events
+
+### scroll
+
+Fired on every scroll position change.
 
 ```typescript
-interface ScrollPayload {
-  scrollPosition: number;
-  direction: 'up' | 'down';
-}
-
 list.on('scroll', ({ scrollPosition, direction }) => {
-  console.log(`Scrolled ${direction} to ${scrollPosition}px`);
-});
+  console.log(`Scrolled ${direction} to ${scrollPosition}px`)
+})
 ```
 
-### `range:change`
+| Field | Type | Description |
+|-------|------|-------------|
+| `scrollPosition` | `number` | Current scroll offset along the main axis in pixels. |
+| `direction` | `'up' \| 'down'` | Scroll direction. |
 
-Fired when visible range changes.
+### velocity:change
+
+Fired when the scroll velocity is updated. Emitted on every scroll frame after the builder's velocity tracker processes the new position.
 
 ```typescript
-interface RangeChangePayload {
-  range: Range;
-}
+list.on('velocity:change', ({ velocity, reliable }) => {
+  if (reliable && velocity > 5) {
+    console.log('Fast scrolling — hiding heavy UI')
+  }
+})
+```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `velocity` | `number` | Absolute scroll velocity in px/ms. |
+| `reliable` | `boolean` | `true` when enough samples have accumulated (`sampleCount >= MIN_RELIABLE_SAMPLES`). `false` during the first few frames after idle or a stale gap reset. |
+
+The `reliable` flag prevents false positives — after the velocity tracker resets (stale gap > 100ms or idle), the first frames produce near-zero velocity from small deltas. Wait for `reliable: true` before making loading or UI decisions based on velocity.
+
+### range:change
+
+Fired when the visible item range changes.
+
+```typescript
 list.on('range:change', ({ range }) => {
-  console.log(`Visible range: ${range.start} - ${range.end}`);
-});
+  console.log(`Visible: ${range.start}–${range.end}`)
+})
 ```
 
-### `load:start`
+| Field | Type | Description |
+|-------|------|-------------|
+| `range` | `Range` | The new visible range (`{ start, end }`). |
 
-Fired when data loading starts (adapter mode).
+---
+
+## Data Events
+
+### load:start
+
+Fired when an async data load begins. Only emitted when `withAsync` is active.
 
 ```typescript
-interface LoadStartPayload {
-  offset: number;
-  limit: number;
-}
-
 list.on('load:start', ({ offset, limit }) => {
-  console.log(`Loading ${limit} items from offset ${offset}`);
-});
+  console.log(`Loading ${limit} items from offset ${offset}`)
+})
 ```
 
-### `load:end`
+| Field | Type | Description |
+|-------|------|-------------|
+| `offset` | `number` | Starting offset of the request. |
+| `limit` | `number` | Number of items requested. |
 
-Fired when data loading completes.
+### load:end
+
+Fired when an async data load completes.
 
 ```typescript
-interface LoadEndPayload<T> {
-  items: T[];
-  total?: number;
-}
-
-list.on('load:end', ({ items, total }) => {
-  console.log(`Loaded ${items.length} items, total: ${total}`);
-});
+list.on('load:end', ({ items, total, offset }) => {
+  console.log(`Loaded ${items.length} items, total: ${total}`)
+})
 ```
 
-### `error`
+| Field | Type | Description |
+|-------|------|-------------|
+| `items` | `T[]` | The loaded items. |
+| `total` | `number` | Total item count (if reported by the adapter). |
+| `offset` | `number` | Starting offset of the completed request. |
 
-Fired when an error occurs.
+### error
+
+Fired when an error occurs during data loading or event handling.
 
 ```typescript
-interface ErrorPayload {
-  error: Error;
-  context: string;
-}
-
 list.on('error', ({ error, context }) => {
-  console.error(`Error in ${context}:`, error.message);
-});
+  console.error(`Error in ${context}:`, error.message)
+})
 ```
 
-## Usage Examples
+| Field | Type | Description |
+|-------|------|-------------|
+| `error` | `Error` | The error object. |
+| `context` | `string` | Where the error occurred (e.g. `'loadMore'`, `'adapter.read'`). |
 
-### Basic Subscription
+---
+
+## Lifecycle Events
+
+### resize
+
+Fired when the list container is resized (detected via `ResizeObserver`).
 
 ```typescript
-import { createEmitter } from './events';
-
-// Create emitter with typed events
-const emitter = createEmitter<{
-  'message': { text: string };
-  'count': { value: number };
-}>();
-
-// Subscribe
-const unsubscribe = emitter.on('message', ({ text }) => {
-  console.log(text);
-});
-
-// Emit
-emitter.emit('message', { text: 'Hello!' }); // logs: "Hello!"
-
-// Unsubscribe
-unsubscribe();
+list.on('resize', ({ height, width }) => {
+  console.log(`Container resized to ${width}×${height}`)
+})
 ```
 
-### One-Time Subscription
+| Field | Type | Description |
+|-------|------|-------------|
+| `height` | `number` | New container height in pixels. |
+| `width` | `number` | New container width in pixels. |
+
+This event fires regardless of scroll orientation. Both dimensions are always provided.
+
+---
+
+## Complete Event Map
 
 ```typescript
-// Subscribe once - auto-unsubscribes after first call
-emitter.once('message', ({ text }) => {
-  console.log('First message only:', text);
-});
-
-emitter.emit('message', { text: 'First' });  // logs
-emitter.emit('message', { text: 'Second' }); // nothing happens
+interface VListEvents<T extends VListItem = VListItem> {
+  'item:click':        { item: T; index: number; event: MouseEvent }
+  'item:dblclick':     { item: T; index: number; event: MouseEvent }
+  'selection:change':  { selected: Array<string | number>; items: T[] }
+  'scroll':            { scrollPosition: number; direction: 'up' | 'down' }
+  'velocity:change':   { velocity: number; reliable: boolean }
+  'range:change':      { range: Range }
+  'load:start':        { offset: number; limit: number }
+  'load:end':          { items: T[]; total?: number; offset?: number }
+  'error':             { error: Error; context: string }
+  'resize':            { height: number; width: number }
+}
 ```
 
-### Manual Unsubscribe
+---
 
-```typescript
-const handler = ({ text }) => console.log(text);
-
-emitter.on('message', handler);
-emitter.off('message', handler);
-```
-
-### Clear All Listeners
-
-```typescript
-// Clear specific event
-emitter.clear('message');
-
-// Clear all events
-emitter.clear();
-```
-
-### Check Listener Count
-
-```typescript
-emitter.on('message', () => {});
-emitter.on('message', () => {});
-
-console.log(emitter.listenerCount('message')); // 2
-```
-
-### VList Event Usage
-
-```typescript
-import { vlist } from 'vlist';
-
-const list = vlist({
-  container: '#app',
-  item: {
-    height: 48,
-    template: (item) => `<div>${item.name}</div>`,
-  },
-  items: myItems,
-  selection: { mode: 'multiple' }
-});
-
-// Track scroll position
-list.on('scroll', ({ scrollPosition }) => {
-  saveScrollPosition(scrollPosition);
-});
-
-// Handle selection changes
-list.on('selection:change', ({ items }) => {
-  updateSelectedCount(items.length);
-});
-
-// Handle clicks
-list.on('item:click', ({ item, event }) => {
-  if (event.ctrlKey) {
-    openInNewTab(item);
-  }
-});
-
-// Handle errors
-list.on('error', ({ error, context }) => {
-  showErrorNotification(`${context}: ${error.message}`);
-});
-```
-
-### Loading States
-
-```typescript
-let isLoading = false;
-
-list.on('load:start', () => {
-  isLoading = true;
-  showLoadingSpinner();
-});
-
-list.on('load:end', () => {
-  isLoading = false;
-  hideLoadingSpinner();
-});
-
-list.on('error', ({ context }) => {
-  if (context === 'loadMore') {
-    showRetryButton();
-  }
-});
-```
-
-## Implementation Details
+## Emitter Implementation
 
 ### Error Isolation
 
 Event handlers are wrapped in try-catch to prevent one handler from breaking others:
 
 ```typescript
-const emit = (event, payload) => {
-  listeners[event]?.forEach((handler) => {
-    try {
-      handler(payload);
-    } catch (error) {
-      console.error(`[vlist] Error in event handler for "${event}":`, error);
-    }
-  });
-};
+listeners[event]?.forEach((handler) => {
+  try {
+    handler(payload);
+  } catch (error) {
+    console.error(`[vlist] Error in event handler for "${event}":`, error);
+  }
+});
 ```
 
 ### Memory Management
 
-Listeners are stored in Sets for O(1) add/remove operations:
+Listeners are stored in `Set`s for O(1) add/remove. The `on()` method returns an unsubscribe function, enabling clean cleanup:
 
 ```typescript
-type Listeners<T extends EventMap> = {
-  [K in keyof T]?: Set<EventHandler<T[K]>>;
-};
-```
+const subscriptions: Unsubscribe[] = []
 
-### Unsubscribe Pattern
-
-The `on()` method returns an unsubscribe function, enabling clean cleanup:
-
-```typescript
-const subscriptions: Unsubscribe[] = [];
-
-// Subscribe
-subscriptions.push(list.on('scroll', handleScroll));
-subscriptions.push(list.on('selection:change', handleSelection));
+subscriptions.push(list.on('scroll', handleScroll))
+subscriptions.push(list.on('selection:change', handleSelection))
 
 // Cleanup
-subscriptions.forEach(unsub => unsub());
+subscriptions.forEach(unsub => unsub())
 ```
 
-## Best Practices
+### createEmitter
 
-### Always Unsubscribe
-
-Prevent memory leaks by unsubscribing when done:
+The low-level emitter factory, exported for feature authors:
 
 ```typescript
-// In a component or module
-const unsubscribers: Unsubscribe[] = [];
-
-function init() {
-  unsubscribers.push(list.on('scroll', handleScroll));
-}
-
-function cleanup() {
-  unsubscribers.forEach(unsub => unsub());
-  unsubscribers.length = 0;
-}
+function createEmitter<T extends EventMap>(): Emitter<T>
 ```
 
-### Use `once` for One-Time Events
+Returns an object with `on`, `off`, `emit`, `once`, `clear`, and `listenerCount` methods. See [Types](./types.md#emitter) for the full interface.
 
-```typescript
-// Good: auto-cleanup
-list.once('load:end', showWelcomeMessage);
+---
 
-// Instead of
-const unsub = list.on('load:end', (payload) => {
-  showWelcomeMessage(payload);
-  unsub();
-});
-```
+## Related
 
-### Handle Errors
-
-Always add an error handler:
-
-```typescript
-list.on('error', ({ error, context }) => {
-  // Log to monitoring service
-  logError(error, { context, component: 'vlist' });
-  
-  // Show user feedback
-  showErrorToast(`Failed to ${context}`);
-});
-```
-
-## Related Modules
-
-- [types.md](./types.md) - Event type definitions
-- [Context](../internals/context.md) - BuilderContext holds emitter and wires event handlers
+- [Types](./types.md#event-types) — `VListEvents`, `EventHandler`, `Unsubscribe`
+- [API Reference](./reference.md#on) — `on` and `off` method signatures
+- [Constants](./constants.md#scroll--velocity-tracking) — `VELOCITY_SAMPLE_COUNT`, `MIN_RELIABLE_SAMPLES`, `STALE_GAP_MS`
+- [Exports](./exports.md) — `createEmitter` for feature authoring
 
 ---
 

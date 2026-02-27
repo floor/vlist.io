@@ -87,30 +87,145 @@ This is a global change — all docs pages now support two-level TOC navigation.
 
 All changes pass TypeScript compilation and 2,268 tests (0 failures).
 
+### api/types.md — Full rewrite
+
+**Before:** 884 lines documenting stale pre-builder `VListConfig` with top-level `adapter`, `selection`, `scrollElement`. `VList` interface listed `scrollToItem` (removed) and showed all feature methods as always-available. Missing `estimatedHeight`/`estimatedWidth`, `GridSizeContext`. No `BuilderContext` documentation.
+
+**After:** ~930 lines with flat H2/H3 structure matching reference.md. Every type verified against `src/types.ts` and `src/builder/types.ts`.
+
+| Change | Detail |
+|--------|--------|
+| Structure | Flat H2 sections: Item Types, Configuration Types, Selection Types, Adapter Types, State Types, Event Types, Feature Types, Builder & Feature Types, Public API Types, Rendering Types, Emitter Types, Deprecated Types |
+| `VListConfig` | Replaced with `BuilderConfig` — no more top-level `adapter`, `selection`, `scrollElement` |
+| `ItemConfig` | Added `estimatedHeight`, `estimatedWidth`, `GridSizeContext` context parameter on `height` |
+| `GridSizeContext` | New section with `containerWidth`, `columns`, `gap`, `columnWidth` |
+| `ScrollConfig` | Documented as nested `scroll` property with `wheel`, `wrap`, `idleTimeout`, `element`, `scrollbar` |
+| `ScrollbarOptions` | Added `showOnHover`, `hoverZoneWidth`, `showOnViewportEnter` |
+| `VList` | Feature methods (`select`, `getScrollSnapshot`, etc.) marked optional with `?`. `scrollToItem` removed with note. |
+| `BuilderContext` | Full interface documented — core components, mutable components, state, handler slots, method registration, helpers, advanced hooks |
+| `VListFeature` | New section documenting feature interface (`name`, `priority`, `setup`, `destroy`, `methods`, `conflicts`) |
+| `VListBuilder` | New section with `.use()` and `.build()` |
+| Feature types | `GroupsConfig`, `GridConfig`, `MasonryConfig` documented |
+| Rendering types | `SizeCache`, `DOMStructure`, `CompressionContext`, `CompressionState`, `Renderer`, `ElementPool` |
+| Emitter types | `Emitter`, `EventMap` |
+| Deprecated types | `ScrollbarConfig`, `GridHeightContext` marked deprecated |
+| Events | `VListEvents` includes `item:dblclick`, `velocity:change`, `resize` |
+| `InternalState` | Removed — not a public type |
+
+### api/constants.md — Full rewrite
+
+**Before:** Wrong values for multiple constants, stale constant names, used `MAX_VIRTUAL_HEIGHT` instead of `MAX_VIRTUAL_SIZE`.
+
+**After:** All values verified against `src/constants.ts` and `src/builder/velocity.ts`.
+
+| Change | Detail |
+|--------|--------|
+| `VELOCITY_SAMPLE_COUNT` | Fixed 8 → 5 (builder tracker). Documented two independent velocity trackers. |
+| `MIN_RELIABLE_SAMPLES` | Fixed 3 → 2 (builder tracker) |
+| `DEFAULT_MASK_CHARACTER` | Fixed '█' → 'x' |
+| `DEFAULT_CANCEL_THRESHOLD` | Renamed to `CANCEL_LOAD_VELOCITY_THRESHOLD`, fixed value 25 → 5 |
+| `DEFAULT_PRELOAD_THRESHOLD` | Renamed to `PRELOAD_VELOCITY_THRESHOLD` |
+| `DEFAULT_PRELOAD_AHEAD` | Renamed to `PRELOAD_ITEMS_AHEAD` |
+| `MAX_VIRTUAL_HEIGHT` | Replaced with `MAX_VIRTUAL_SIZE`, old name documented as deprecated alias |
+| Velocity section | Added table explaining two independent velocity trackers (builder vs scrollbar controller) with different constants |
+| Structure | Flat H2/H3, removed verbose "Purpose" paragraphs, tightened descriptions |
+
+### api/events.md — Rewrite with missing events
+
+**Before:** Missing `item:dblclick`, `velocity:change`, `resize`. Heavy on emitter internals, light on actual event documentation.
+
+**After:** Focused on events as a user reference. Each event has payload table.
+
+| Change | Detail |
+|--------|--------|
+| `item:dblclick` | Added with full payload table |
+| `velocity:change` | Added with `velocity` (px/ms) and `reliable` flag, explanation of stale gap behavior |
+| `resize` | Added with `height` and `width` fields |
+| `load:end` | Added missing `offset` field |
+| Structure | Grouped into Interaction, Scroll, Data, Lifecycle sections. Flat H2/H3. |
+| Emitter internals | Moved to compact "Emitter Implementation" section at bottom |
+| Complete Event Map | Added full `VListEvents` interface as quick reference |
+
+### internals/context.md — Full rewrite
+
+**Before:** Documented `createContext()` function and `VListContext` interface that don't exist. Referenced `vlist.ts`, `handlers.ts`, `methods.ts`, `animation.ts` — all refactored away.
+
+**After:** Documents `BuilderContext` from `src/builder/types.ts`. Accurate creation flow, handler registration, method registration, helper tables.
+
+| Change | Detail |
+|--------|--------|
+| `createContext` / `VListContext` | Replaced entirely with `BuilderContext` |
+| `VListContextConfig` | Replaced with `ResolvedBuilderConfig` (correct fields: `overscan`, `classPrefix`, `reverse`, `wrap`, `horizontal`, `ariaIdPrefix`) |
+| `VListContextState` | Replaced with `BuilderState` |
+| Creation flow | Accurate 13-step sequence from `vlist(config)` through `.build()` |
+| Module structure | Points to `src/builder/` directory (core.ts, types.ts, data.ts, dom.ts, pool.ts, velocity.ts) |
+| Handler registration | Documented all slots: `afterScroll`, `clickHandlers`, `keydownHandlers`, `resizeHandlers`, `contentSizeHandlers`, `destroyHandlers` |
+| Method registration | Documented `methods` Map pattern |
+| Helpers | Tables for Data Access, Rendering, Compression, Size & Layout, Scroll |
+| Advanced hooks | All `set*Fn` methods documented with purpose |
+| Feature example | Minimal `withVisibleCount` feature showing the pattern |
+| Runtime flows | Updated scroll, click, destroy flow diagrams |
+
+### internals/rendering.md — Fix stale references
+
+**Before:** Used `heights.ts`, `createHeightCache`, `scrollTop`, `containerHeight`, `totalHeight`, `actualHeight`, `MAX_VIRTUAL_HEIGHT`. `createRenderer` signature accepted `itemHeight: number`. `CompressionContext` used `scrollTop`/`containerHeight`. `CompressionState` used `actualHeight`/`virtualHeight`.
+
+**After:** All references verified against `src/rendering/sizes.ts`, `src/rendering/viewport.ts`, `src/rendering/renderer.ts`, `src/rendering/scale.ts`.
+
+| Change | Detail |
+|--------|--------|
+| `heights.ts` | Already correct (`sizes.ts`) in module structure — no change needed |
+| `createRenderer` signature | `itemHeight: number` → `sizeCache: SizeCache`. Added `ariaIdPrefix`, `horizontal`, `crossAxisSize`, `compressionFns` parameters. |
+| `Renderer` interface | Added `updateItemClasses` method |
+| `CompressionContext` | `scrollTop` → `scrollPosition`, `containerHeight` → `containerSize` |
+| `ViewportState` | `scrollTop` → `scrollPosition`, `containerHeight` → `containerSize`, `totalHeight` → `totalSize`, `actualHeight` → `actualSize` |
+| `createViewportState` | Accepts `sizeCache` + `compression` + optional `visibleRangeFn` instead of `itemHeight` |
+| `updateViewportState` | Same parameter changes |
+| `updateViewportSize` | Same parameter changes |
+| `updateViewportItems` | Same parameter changes |
+| `calculateVisibleRange` | Replaced with `simpleVisibleRange` (a `VisibleRangeFn`) |
+| `calculateRenderRange` | Added `out` parameter for zero-allocation |
+| `calculateScrollToIndex` | Accepts `sizeCache` + `compression` + optional `scrollToIndexFn` |
+| `getCompressionState` | Accepts `sizeCache` instead of `itemHeight` |
+| `CompressionState` | `actualHeight` → `actualSize`, `virtualHeight` → `virtualSize` |
+| `MAX_VIRTUAL_HEIGHT` | → `MAX_VIRTUAL_SIZE` with deprecated alias noted |
+| Range utilities | Added `rangeToIndices`, `calculateTotalSize`, `calculateActualSize`, `calculateItemOffset` |
+| Compressed functions | Updated all to use `sizeCache` instead of `itemHeight`, `scrollPosition` instead of `scrollTop` |
+| DOM paths | `src/render/dom.ts` → `src/builder/dom.ts`, `src/render/pool.ts` → `src/builder/pool.ts` |
+| Content height | Added `updateContentWidth` alongside `updateContentHeight` |
+| Usage examples | Updated to use `createSizeCache` + `compression` parameter |
+| Key Concepts | Promoted to H2 sections for flat TOC |
+
+### TOC: strip backticks from headings (project-wide)
+
+**Problem:** `marked` passes heading text as raw markdown to the custom heading renderer. Backticks in headings like `` ### `item:click` `` survive as literal `` ` `` characters in the TOC — they are never converted to `<code>` tags and therefore never stripped by `extractToc`'s HTML tag removal. The result is noisy TOC entries showing `` `item:click` `` instead of `item:click`.
+
+**Fix:** Removed backticks from all H2/H3/H4 headings across every non-archive docs page. Matches the convention already used in `reference.md`.
+
+| File | Headings fixed |
+|------|---------------|
+| `api/events.md` | 12 (all event names + `createEmitter`) |
+| `api/constants.md` | 22 (all constant names) |
+| `internals/rendering.md` | 15 (all function/type names) |
+| `internals/context.md` | 14 (all component/slot names) |
+| `features/scrollbar.md` | 8 (`scroll.*` options + internal functions) |
+| `features/selection.md` | 19 (all selection/focus/query functions) |
+| `features/async.md` | 8 (config options + internal functions) |
+| `features/placeholders.md` | 3 (`maskCharacter`, `maxSampleSize`, `createPlaceholderManager`) |
+| `features/snapshots.md` | 2 (`withSnapshots(config?)`, `getScrollSnapshot()`) |
+
+`archive/` files left untouched — historical snapshots, not served to users.
+
 ---
 
 ## What Remains
-
-### High priority
-
-| File | What | Why |
-|------|------|-----|
-| **api/types.md** | Full rewrite | Documents stale pre-builder `VListConfig` with `adapter`, `selection`, `scrollElement` as top-level props. `VList` interface lists `scrollToItem` and shows all feature methods as always-available. Missing `estimatedHeight`/`estimatedWidth` on `ItemConfig`. |
-| **api/constants.md** | Fix values | `VELOCITY_SAMPLE_COUNT` says 8 (actual: 5), `MIN_RELIABLE_SAMPLES` says 3 (actual: 2), `DEFAULT_MASK_CHARACTER` says '█' (actual: 'x'), references non-existent constant names (`DEFAULT_CANCEL_THRESHOLD` etc.) |
-| **api/events.md** | Add missing events | Missing `item:dblclick`, `velocity:change`, `resize` detailed documentation |
-
-### Medium priority
-
-| File | What | Why |
-|------|------|-----|
-| **internals/context.md** | Major rewrite | Describes a `createContext()` function and `VListContext` interface that don't exist. References `vlist.ts`, `handlers.ts`, `methods.ts`, `animation.ts` — all refactored into `builder/core.ts`. |
-| **internals/rendering.md** | Fix references | References `heights.ts` (actual: `sizes.ts`), `createHeightCache` (actual: `createSizeCache`), `calculateTotalHeight` (actual: `calculateTotalSize`). `ViewportState` uses `scrollTop`/`containerHeight` (actual: `scrollPosition`/`containerSize`). `createRenderer` signature is stale. |
-| **internals/structure.md** | Update version | Says "v0.8+", last updated "January 2026" |
 
 ### Low priority
 
 | File | What | Why |
 |------|------|-----|
+| **internals/structure.md** | Update version | Says "v0.8+", last updated "January 2026" |
+
 | **resources/roadmap.md** | Update status | Still says version "0.9.5" and "ready for 1.0" — library is at 1.1.0 |
 | **resources/known-issues.md** | Stale code examples | Uses pre-builder API syntax (`layout: 'grid'`, `groups` at top level). All items ✅ — historical document, low user impact |
 | **resources/testing.md** | Update counts | Test counts likely outdated for v1.0+ |
@@ -139,3 +254,4 @@ All changes pass TypeScript compilation and 2,268 tests (0 failures).
 4. **Axis-neutral vocabulary** — "size" instead of "height" everywhere in descriptions: item sizes, thumb sizes, element sizes, content sizes. Property names stay `height`/`width` (that's the API), but all prose uses "size" to reinforce the dimension-agnostic `SizeCache`. Watch for sneaky ones like "thumb height" in scrollbar options or "element height" in scale docs.
 5. **Behavior over use case** — Describe what `reverse` *does*, not what it's *for*. List use cases as examples, don't prescribe one.
 6. **Focused pages** — Reference covers config + properties + methods. Events, types, constants, exports each get their own page.
+7. **No backticks in headings** — `marked` passes heading text as raw markdown, so backticks survive as literal characters in the TOC. Use plain text for all H2/H3/H4 headings; code formatting belongs in the body text, not the heading.

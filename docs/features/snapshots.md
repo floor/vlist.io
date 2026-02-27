@@ -46,7 +46,7 @@ const list2 = vlist({ /* same config */ })
 
 ## API
 
-### `withSnapshots(config?)`
+### withSnapshots(config?)
 
 Creates the snapshots feature. Accepts an optional configuration object.
 
@@ -79,7 +79,7 @@ const list = vlist({ ... })
 // If snapshot existed, scroll + selection are restored automatically
 ```
 
-### `getScrollSnapshot()`
+### getScrollSnapshot()
 
 Captures the current scroll position, total item count, and selection state.
 

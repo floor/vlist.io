@@ -58,7 +58,7 @@ interface SelectionState {
 
 ### State Creation
 
-#### `createSelectionState`
+#### createSelectionState
 
 Creates initial selection state.
 
@@ -74,7 +74,7 @@ const state = createSelectionState(['id1', 'id2']);     // With initial selectio
 
 ### Selection Operations
 
-#### `selectItems`
+#### selectItems
 
 Select items by ID.
 
@@ -94,7 +94,7 @@ const newState = selectItems(state, ['id2', 'id3'], 'multiple');
 // newState.selected = Set(['id1', 'id2', 'id3'])
 ```
 
-#### `deselectItems`
+#### deselectItems
 
 Deselect items by ID.
 
@@ -108,7 +108,7 @@ function deselectItems(
 const newState = deselectItems(state, ['id1']);
 ```
 
-#### `toggleSelection`
+#### toggleSelection
 
 Toggle item selection.
 
@@ -124,7 +124,7 @@ function toggleSelection(
 const newState = toggleSelection(state, 'id1', 'multiple');
 ```
 
-#### `selectAll`
+#### selectAll
 
 Select all items (multiple mode only).
 
@@ -139,7 +139,7 @@ function selectAll<T extends VListItem>(
 const newState = selectAll(state, allItems, 'multiple');
 ```
 
-#### `clearSelection`
+#### clearSelection
 
 Clear all selection.
 
@@ -152,7 +152,7 @@ const newState = clearSelection(state);
 
 ### Focus Management
 
-#### `setFocusedIndex`
+#### setFocusedIndex
 
 Set focused index directly.
 
@@ -165,7 +165,7 @@ function setFocusedIndex(
 const newState = setFocusedIndex(state, 5);
 ```
 
-#### `moveFocusUp`
+#### moveFocusUp
 
 Move focus up one item.
 
@@ -182,7 +182,7 @@ function moveFocusUp(
 
 > **⚡ Performance note:** This function mutates `state.focusedIndex` **in-place** and returns the same object to avoid object allocations on keyboard navigation hot paths. See [optimization.md]/tutorials/optimization) for details.
 
-#### `moveFocusDown`
+#### moveFocusDown
 
 Move focus down one item.
 
@@ -199,7 +199,7 @@ function moveFocusDown(
 
 > **⚡ Performance note:** Mutates `state.focusedIndex` in-place (same as `moveFocusUp`).
 
-#### `moveFocusToFirst`
+#### moveFocusToFirst
 
 Move focus to first item.
 
@@ -212,7 +212,7 @@ function moveFocusToFirst(
 
 > **⚡ Performance note:** Mutates `state.focusedIndex` in-place (same as `moveFocusUp`).
 
-#### `moveFocusToLast`
+#### moveFocusToLast
 
 Move focus to last item.
 
@@ -225,7 +225,7 @@ function moveFocusToLast(
 
 > **⚡ Performance note:** Mutates `state.focusedIndex` in-place (same as `moveFocusUp`).
 
-#### `moveFocusByPage`
+#### moveFocusByPage
 
 Move focus by page (for Page Up/Down).
 
@@ -242,7 +242,7 @@ function moveFocusByPage(
 
 ### Queries
 
-#### `isSelected`
+#### isSelected
 
 Check if an item is selected.
 
@@ -257,7 +257,7 @@ if (isSelected(state, 'item-5')) {
 }
 ```
 
-#### `getSelectedIds`
+#### getSelectedIds
 
 Get selected IDs as array.
 
@@ -268,7 +268,7 @@ const ids = getSelectedIds(state);
 // ['id1', 'id2', 'id3']
 ```
 
-#### `getSelectedItems`
+#### getSelectedItems
 
 Get selected items from item array.
 
@@ -281,7 +281,7 @@ function getSelectedItems<T extends VListItem>(
 const selectedItems = getSelectedItems(state, allItems);
 ```
 
-#### `getSelectionCount`
+#### getSelectionCount
 
 Get number of selected items.
 
@@ -289,7 +289,7 @@ Get number of selected items.
 function getSelectionCount(state: SelectionState): number;
 ```
 
-#### `isSelectionEmpty`
+#### isSelectionEmpty
 
 Check if selection is empty.
 
@@ -299,7 +299,7 @@ function isSelectionEmpty(state: SelectionState): boolean;
 
 ### Keyboard Selection Helpers
 
-#### `selectFocused`
+#### selectFocused
 
 Toggle selection on focused item (Space/Enter key).
 
@@ -311,7 +311,7 @@ function selectFocused<T extends VListItem>(
 ): SelectionState;
 ```
 
-#### `selectRange`
+#### selectRange
 
 Handle shift+click range selection.
 

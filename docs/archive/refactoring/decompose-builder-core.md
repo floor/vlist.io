@@ -55,7 +55,7 @@ Full analysis:
 
 ## Goal
 
-Reduce `core.ts` from ~1900 to ~800–900 lines without changing any public API (`vlist()`, `materialize()` signature, `BuiltVList<T>`).
+Reduce `core.ts` from ~1900 to ~800–900 lines without changing any public API (`vlist()`, `materialize()` signature, `VList<T>`).
 
 ## Constraints
 
@@ -331,6 +331,6 @@ bun run benchmark:compare   # vs competitors
 
 - No class conversions — kept functional composition style
 - `vlist()` and `materialize()` function signatures unchanged
-- `BuiltVList<T>` public API unchanged
+- `VList<T>` public API unchanged
 - No new external dependencies
 - No changes to `src/rendering/` or `src/events/` (only reused existing modules)

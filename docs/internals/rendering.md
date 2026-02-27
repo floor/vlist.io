@@ -35,9 +35,9 @@ src/builder/
 
 > **Shared modules:** `sizes.ts` has zero dependencies on compression or other heavy vlist internals. DOM structure (`builder/dom.ts`) and element pooling (`builder/pool.ts`) are shared by both the full `vlist` builder and the lightweight `vlist/core` entry point, eliminating code duplication while preserving tree-shaking.
 
-## Key Concepts
+---
 
-### Size Cache (`sizes.ts`, `measured.ts`)
+## Size Cache (`sizes.ts`, `measured.ts`)
 
 The `SizeCache` abstraction enables fixed, variable, and measured item sizes throughout the rendering pipeline. All virtual scrolling and compression functions accept a `SizeCache` instead of a raw `itemSize: number`.
 
@@ -56,7 +56,7 @@ import { createSizeCache, type SizeCache } from 'vlist';
 const fixed = createSizeCache(48, totalItems);
 fixed.getOffset(10);      // 480  (10 × 48)
 fixed.indexAtOffset(480);  // 10   (480 / 48)
-fixed.getTotalSize();    // totalItems × 48
+fixed.getTotalSize();      // totalItems × 48
 
 // Variable — prefix-sum based
 const variable = createSizeCache(
@@ -65,16 +65,16 @@ const variable = createSizeCache(
 );
 variable.getOffset(2);      // 120  (40 + 80)
 variable.indexAtOffset(100); // 1   (binary search)
-variable.getTotalSize();   // sum of all sizes
+variable.getTotalSize();     // sum of all sizes
 ```
 
 **SizeCache interface:**
 
 ```typescript
 interface SizeCache {
-  getOffset(index: number): number;      // Position of item
+  getOffset(index: number): number;      // Position of item — O(1)
   getSize(index: number): number;        // Size of specific item
-  indexAtOffset(offset: number): number;  // Item at scroll position
+  indexAtOffset(offset: number): number;  // Item at scroll position — O(1) fixed, O(log n) variable
   getTotalSize(): number;                // Total content size
   getTotal(): number;                    // Current item count
   rebuild(totalItems: number): void;     // Rebuild after data changes
@@ -90,15 +90,16 @@ The **Measured** implementation (`measured.ts`) wraps a Variable cache with a `M
 - `countItemsFittingFromBottom(cache, containerSize, totalItems)` — How many items fit from list end
 - `getOffsetForVirtualIndex(cache, virtualIndex, totalItems)` — Pixel offset for fractional index (compressed mode)
 
+---
 
-### DOM Structure
+## DOM Structure
 
 vlist creates a specific DOM hierarchy for virtual scrolling:
 
 ```html
 <div class="vlist" role="listbox" tabindex="0">
   <div class="vlist-viewport" style="overflow: auto; height: 100%;">
-    <div class="vlist-content" style="position: relative; height: {totalHeight}px;">
+    <div class="vlist-content" style="position: relative; height: {totalSize}px;">
       <div class="vlist-items" style="position: relative;">
         <!-- Rendered items appear here -->
         <div class="vlist-item" data-index="0" style="transform: translateY(0px);">...</div>
@@ -109,7 +110,9 @@ vlist creates a specific DOM hierarchy for virtual scrolling:
 </div>
 ```
 
-### Element Pooling
+---
+
+## Element Pooling
 
 The renderer uses an element pool to recycle DOM elements, reducing garbage collection and improving performance:
 
@@ -124,28 +127,13 @@ interface ElementPool {
 
 When acquiring elements, the pool also sets the static `role="option"` attribute once per element lifetime, avoiding repeated `setAttribute` calls during rendering.
 
+---
+
+## Rendering Optimizations
+
 ### DocumentFragment Batching
 
-When rendering new items, the renderer collects them in a `DocumentFragment` and appends them in a single DOM operation. This reduces layout thrashing during fast scrolling:
-
-```typescript
-// Collect new elements
-const fragment = document.createDocumentFragment();
-const newElements: Array<{ index: number; element: HTMLElement }> = [];
-
-for (let i = range.start; i <= range.end; i++) {
-  // ... render logic ...
-  if (!existing) {
-    fragment.appendChild(element);
-    newElements.push({ index: i, element });
-  }
-}
-
-// Single DOM operation
-if (newElements.length > 0) {
-  itemsContainer.appendChild(fragment);
-}
-```
+When rendering new items, the renderer collects them in a `DocumentFragment` and appends them in a single DOM operation. This reduces layout thrashing during fast scrolling.
 
 ### Optimized Attribute Setting
 
@@ -156,9 +144,6 @@ The renderer uses `dataset` and direct property assignment instead of `setAttrib
 element.dataset.index = String(index);
 element.dataset.id = String(item.id);
 element.ariaSelected = String(isSelected);
-
-// Slower: setAttribute (avoided)
-// element.setAttribute("data-index", String(index));
 ```
 
 ### CSS Containment
@@ -173,10 +158,6 @@ These are applied via the `.vlist-items` and `.vlist-item` CSS classes respectiv
 ### CSS-Only Static Positioning
 
 Item static styles (`position: absolute; top: 0; left: 0; right: 0`) are defined purely in the `.vlist-item` CSS class rather than set via JavaScript `style.cssText`. Only the dynamic `height` property is set via JS. This eliminates per-element CSS string parsing during rendering.
-
-### Re-exported Range Functions
-
-`calculateVisibleRange` and `calculateRenderRange` in `virtual.ts` are direct re-exports from `compression.ts` (`calculateCompressedVisibleRange as calculateVisibleRange`), eliminating ~40 lines of pass-through wrapper code and JSDoc duplication.
 
 ### Reusable ItemState
 
@@ -194,7 +175,9 @@ const getItemState = (isSelected: boolean, isFocused: boolean): ItemState => {
 
 **⚠️ Important**: Templates should read from the state object immediately and not store the reference, as it will be mutated on the next render call.
 
-### Virtual Scrolling
+---
+
+## Virtual Scrolling
 
 Only items within the visible range (plus overscan buffer) are rendered:
 
@@ -205,17 +188,17 @@ Overscan: 3
 Rendered: items 147-168 (22 items)
 ```
 
-### Compression
+When a list exceeds browser size limits (~16.7M pixels), compression automatically activates. See [Scale](../features/scale.md) for details.
 
-When a list exceeds browser height limits (~16.7M pixels), compression automatically activates. See [scale.md](./features/scale.md) for details.
+---
 
 ## API Reference
 
 ### DOM Structure (`dom.ts`)
 
-> These utilities live in `src/render/dom.ts` — a standalone module with zero dependencies on compression or other vlist internals. Shared by both the full renderer and `vlist/core`.
+> These utilities live in `src/builder/dom.ts` — a standalone module with zero dependencies on compression or other vlist internals. Shared by both the full renderer and `vlist/core`.
 
-#### `createDOMStructure`
+#### createDOMStructure
 
 Creates the vlist DOM hierarchy.
 
@@ -228,24 +211,20 @@ function createDOMStructure(
 interface DOMStructure {
   root: HTMLElement;      // Root vlist element
   viewport: HTMLElement;  // Scrollable container
-  content: HTMLElement;   // Height-setting element
+  content: HTMLElement;   // Size-setting element
   items: HTMLElement;     // Items container
 }
 ```
 
-#### `resolveContainer`
+#### resolveContainer
 
 Resolves a container from selector or element.
 
 ```typescript
 function resolveContainer(container: HTMLElement | string): HTMLElement;
-
-// Usage
-const element = resolveContainer('#my-list');
-const element = resolveContainer(document.getElementById('my-list'));
 ```
 
-#### `getContainerDimensions`
+#### getContainerDimensions
 
 Gets viewport dimensions.
 
@@ -256,26 +235,28 @@ function getContainerDimensions(viewport: HTMLElement): {
 };
 ```
 
-#### `updateContentHeight`
+#### updateContentHeight / updateContentWidth
 
-Updates the content height for virtual scrolling.
+Updates the content size for virtual scrolling along the main axis.
 
 ```typescript
-function updateContentHeight(content: HTMLElement, totalHeight: number): void;
+function updateContentHeight(content: HTMLElement, totalSize: number): void;
+function updateContentWidth(content: HTMLElement, totalSize: number): void;
 ```
+
+---
 
 ### Element Pool (`pool.ts`)
 
-> Lives in `src/render/pool.ts` — a standalone module shared by both the full renderer and `vlist/core`.
+> Lives in `src/builder/pool.ts` — a standalone module shared by both the full renderer and `vlist/core`.
 
-#### `createElementPool`
+#### createElementPool
 
-Creates an element pool for recycling DOM elements. Reduces garbage collection and improves scroll performance.
+Creates an element pool for recycling DOM elements.
 
 ```typescript
 function createElementPool(
   tagName?: string,  // default: "div"
-  maxSize?: number   // default: 100
 ): ElementPool;
 
 interface ElementPool {
@@ -286,9 +267,11 @@ interface ElementPool {
 }
 ```
 
+---
+
 ### Renderer (`renderer.ts`)
 
-#### `createRenderer`
+#### createRenderer
 
 Creates a renderer instance for managing DOM elements.
 
@@ -296,9 +279,16 @@ Creates a renderer instance for managing DOM elements.
 function createRenderer<T extends VListItem>(
   itemsContainer: HTMLElement,
   template: ItemTemplate<T>,
-  itemHeight: number,
+  sizeCache: SizeCache,
   classPrefix: string,
-  totalItemsGetter?: () => number
+  totalItemsGetter?: () => number,
+  ariaIdPrefix?: string,
+  horizontal?: boolean,
+  crossAxisSize?: number,
+  compressionFns?: {
+    getState: CompressionStateFn;
+    getPosition: CompressedPositionFn;
+  }
 ): Renderer<T>;
 
 interface Renderer<T extends VListItem> {
@@ -309,135 +299,146 @@ interface Renderer<T extends VListItem> {
     focusedIndex: number,
     compressionCtx?: CompressionContext
   ) => void;
-  
   updatePositions: (compressionCtx: CompressionContext) => void;
   updateItem: (index: number, item: T, isSelected: boolean, isFocused: boolean) => void;
+  updateItemClasses: (index: number, isSelected: boolean, isFocused: boolean) => void;
   getElement: (index: number) => HTMLElement | undefined;
   clear: () => void;
   destroy: () => void;
 }
 ```
 
-#### `CompressionContext`
+The renderer accepts a `SizeCache` instead of a plain `itemHeight: number`, enabling variable and measured sizes. The optional `compressionFns` parameter injects compressed positioning and compression state functions — when not provided, the renderer assumes no compression.
+
+#### CompressionContext
 
 Context for positioning items in compressed mode.
 
 ```typescript
 interface CompressionContext {
-  scrollTop: number;
+  scrollPosition: number;
   totalItems: number;
-  containerHeight: number;
+  containerSize: number;
   rangeStart: number;
 }
 ```
 
-### Virtual Scrolling
+---
 
-#### `createViewportState`
+### Virtual Scrolling (`viewport.ts`)
+
+#### createViewportState
 
 Creates initial viewport state.
 
 ```typescript
 function createViewportState(
-  containerHeight: number,
-  itemHeight: number,
+  containerSize: number,
+  sizeCache: SizeCache,
   totalItems: number,
-  overscan: number
+  overscan: number,
+  compression: CompressionState,
+  visibleRangeFn?: VisibleRangeFn
 ): ViewportState;
 
 interface ViewportState {
-  scrollTop: number;
-  containerHeight: number;
-  totalHeight: number;        // Virtual height (may be capped)
-  actualHeight: number;       // True height without compression
-  isCompressed: boolean;
-  compressionRatio: number;
-  visibleRange: Range;
-  renderRange: Range;
+  scrollPosition: number;       // Current scroll offset along main axis
+  containerSize: number;        // Container size along main axis
+  totalSize: number;            // Virtual size (may be capped at MAX_VIRTUAL_SIZE)
+  actualSize: number;           // True size without compression
+  isCompressed: boolean;        // Whether compression is active
+  compressionRatio: number;     // 1 = no compression, <1 = compressed
+  visibleRange: Range;          // Visible item range
+  renderRange: Range;           // Rendered range (includes overscan)
 }
 ```
 
-#### `updateViewportState`
+#### updateViewportState
 
-Updates viewport state after scroll.
+Updates viewport state after scroll. Mutates state in place for performance on the scroll hot path.
 
 ```typescript
 function updateViewportState(
   state: ViewportState,
-  scrollTop: number,
-  itemHeight: number,
+  scrollPosition: number,
+  sizeCache: SizeCache,
   totalItems: number,
-  overscan: number
+  overscan: number,
+  compression: CompressionState,
+  visibleRangeFn?: VisibleRangeFn
 ): ViewportState;
 ```
 
-#### `updateViewportSize`
+#### updateViewportSize
 
 Updates viewport state when container resizes.
 
 ```typescript
 function updateViewportSize(
   state: ViewportState,
-  containerHeight: number,
-  itemHeight: number,
+  containerSize: number,
+  sizeCache: SizeCache,
   totalItems: number,
-  overscan: number
+  overscan: number,
+  compression: CompressionState,
+  visibleRangeFn?: VisibleRangeFn
 ): ViewportState;
 ```
 
-#### `updateViewportItems`
+#### updateViewportItems
 
 Updates viewport state when total items changes.
 
 ```typescript
 function updateViewportItems(
   state: ViewportState,
-  itemHeight: number,
+  sizeCache: SizeCache,
   totalItems: number,
-  overscan: number
+  overscan: number,
+  compression: CompressionState,
+  visibleRangeFn?: VisibleRangeFn
 ): ViewportState;
 ```
 
-### Range Calculations
+#### simpleVisibleRange
 
-#### `calculateVisibleRange`
-
-Calculates the visible item range based on scroll position.
+Calculate visible range using size cache lookups. Fast path for lists that don't need compression. Mutates `out` to avoid allocation on the scroll hot path.
 
 ```typescript
-function calculateVisibleRange(
-  scrollTop: number,
-  containerHeight: number,
-  itemHeight: number,
-  totalItems: number
-): Range;
+const simpleVisibleRange: VisibleRangeFn;
+// (scrollPosition, containerSize, sizeCache, totalItems, compression, out) => Range
 ```
 
-#### `calculateRenderRange`
+#### calculateRenderRange
 
-Calculates the render range (visible + overscan).
+Calculate render range (adds overscan around visible range). Compression-agnostic. Mutates `out`.
 
 ```typescript
 function calculateRenderRange(
   visibleRange: Range,
   overscan: number,
-  totalItems: number
+  totalItems: number,
+  out: Range
 ): Range;
 ```
 
-#### `calculateScrollToIndex`
+#### calculateScrollToIndex
 
-Calculates scroll position to bring an index into view.
+Calculate scroll position to bring an index into view.
 
 ```typescript
 function calculateScrollToIndex(
   index: number,
-  itemHeight: number,
-  containerHeight: number,
+  sizeCache: SizeCache,
+  containerSize: number,
   totalItems: number,
-  align?: 'start' | 'center' | 'end'
+  align: 'start' | 'center' | 'end',
+  compression: CompressionState,
+  scrollToIndexFn?: ScrollToIndexFn
 ): number;
 ```
+
+---
 
 ### Range Utilities
 
@@ -451,7 +452,10 @@ function isInRange(index: number, range: Range): boolean;
 // Get count of items in range
 function getRangeCount(range: Range): number;
 
-// Calculate which indices need to be added/removed
+// Create an array of indices from a range
+function rangeToIndices(range: Range): number[];
+
+// Calculate which indices need to be added/removed when range changes
 function diffRanges(oldRange: Range, newRange: Range): {
   add: number[];
   remove: number[];
@@ -459,52 +463,67 @@ function diffRanges(oldRange: Range, newRange: Range): {
 
 // Clamp scroll position to valid range
 function clampScrollPosition(
-  scrollTop: number,
-  totalHeight: number,
-  containerHeight: number
+  scrollPosition: number,
+  totalSize: number,
+  containerSize: number
 ): number;
 
 // Determine scroll direction
 function getScrollDirection(
-  currentScrollTop: number,
-  previousScrollTop: number
+  currentPosition: number,
+  previousPosition: number
 ): 'up' | 'down';
+
+// Calculate total content size (uses compression's virtualSize when compressed)
+function calculateTotalSize(
+  totalItems: number,
+  sizeCache: SizeCache,
+  compression?: CompressionState | null
+): number;
+
+// Calculate actual total size (without compression cap)
+function calculateActualSize(
+  totalItems: number,
+  sizeCache: SizeCache
+): number;
+
+// Calculate the offset (translateY/X) for an item (non-compressed)
+function calculateItemOffset(
+  index: number,
+  sizeCache: SizeCache
+): number;
 ```
 
-### Compression
+---
 
-#### `getCompressionState`
+### Compression (`scale.ts`)
+
+#### getCompressionState
 
 Calculate compression state for a list.
 
 ```typescript
 function getCompressionState(
   totalItems: number,
-  itemHeight: number
+  sizeCache: SizeCache
 ): CompressionState;
 
 interface CompressionState {
   isCompressed: boolean;
-  actualHeight: number;   // totalItems × itemHeight
-  virtualHeight: number;  // Capped at MAX_VIRTUAL_HEIGHT
-  ratio: number;          // virtualHeight / actualHeight
+  actualSize: number;     // True total size (uncompressed)
+  virtualSize: number;    // Capped at MAX_VIRTUAL_SIZE
+  ratio: number;          // virtualSize / actualSize
 }
 ```
 
-#### Compression Utilities
+#### Compression Constants
 
 ```typescript
-// Maximum virtual height (16M pixels)
-const MAX_VIRTUAL_HEIGHT = 16_000_000;
+// Maximum virtual size along the main axis (16M pixels)
+const MAX_VIRTUAL_SIZE = 16_000_000;
 
-// Check if compression is needed
-function needsCompression(totalItems: number, itemHeight: number): boolean;
-
-// Get max items without compression
-function getMaxItemsWithoutCompression(itemHeight: number): number;
-
-// Human-readable compression info
-function getCompressionInfo(totalItems: number, itemHeight: number): string;
+// Deprecated alias — use MAX_VIRTUAL_SIZE
+const MAX_VIRTUAL_HEIGHT = MAX_VIRTUAL_SIZE;
 ```
 
 #### Compressed Range Calculations
@@ -512,48 +531,37 @@ function getCompressionInfo(totalItems: number, itemHeight: number): string;
 ```typescript
 // Calculate visible range with compression
 function calculateCompressedVisibleRange(
-  scrollTop: number,
-  containerHeight: number,
-  itemHeight: number,
+  scrollPosition: number,
+  containerSize: number,
+  sizeCache: SizeCache,
   totalItems: number,
-  compression: CompressionState
-): Range;
-
-// Calculate render range with compression
-function calculateCompressedRenderRange(
-  visibleRange: Range,
-  overscan: number,
-  totalItems: number
+  compression: CompressionState,
+  out: Range
 ): Range;
 
 // Calculate item position with compression
 function calculateCompressedItemPosition(
   index: number,
-  scrollTop: number,
-  itemHeight: number,
+  scrollPosition: number,
+  sizeCache: SizeCache,
   totalItems: number,
-  containerHeight: number,
-  compression: CompressionState
+  containerSize: number,
+  compression: CompressionState,
+  rangeStart?: number
 ): number;
 
 // Calculate scroll position for an index with compression
 function calculateCompressedScrollToIndex(
   index: number,
-  itemHeight: number,
-  containerHeight: number,
+  sizeCache: SizeCache,
+  containerSize: number,
   totalItems: number,
   compression: CompressionState,
   align?: 'start' | 'center' | 'end'
 ): number;
-
-// Get approximate item index at scroll position
-function calculateIndexFromScrollPosition(
-  scrollTop: number,
-  itemHeight: number,
-  totalItems: number,
-  compression: CompressionState
-): number;
 ```
+
+---
 
 ## Usage Examples
 
@@ -561,15 +569,19 @@ function calculateIndexFromScrollPosition(
 
 ```typescript
 import { createRenderer, createDOMStructure } from './render';
+import { createSizeCache } from './rendering/sizes';
 
 // Create DOM structure
 const dom = createDOMStructure(container, 'vlist');
+
+// Create size cache
+const sizeCache = createSizeCache(48, totalItems);
 
 // Create renderer
 const renderer = createRenderer(
   dom.items,
   (item, index, state) => `<div>${item.name}</div>`,
-  48,
+  sizeCache,
   'vlist'
 );
 
@@ -585,23 +597,30 @@ renderer.render(
 ### Viewport State Management
 
 ```typescript
-import { createViewportState, updateViewportState } from './render';
+import { createViewportState, updateViewportState } from './rendering/viewport';
+import { createSizeCache } from './rendering/sizes';
+import { getSimpleCompressionState } from './rendering/viewport';
+
+const sizeCache = createSizeCache(48, 1000);
+const compression = getSimpleCompressionState(1000, sizeCache);
 
 // Create initial state
 let viewport = createViewportState(
-  containerHeight,  // 600
-  itemHeight,       // 48
-  totalItems,       // 1000
-  overscan          // 3
+  600,         // containerSize
+  sizeCache,
+  1000,        // totalItems
+  3,           // overscan
+  compression
 );
 
 // Update on scroll
 viewport = updateViewportState(
   viewport,
-  scrollTop,    // 240
-  itemHeight,   // 48
-  totalItems,   // 1000
-  overscan      // 3
+  240,         // scrollPosition
+  sizeCache,
+  1000,        // totalItems
+  3,           // overscan
+  compression
 );
 
 console.log(viewport.visibleRange); // { start: 5, end: 17 }
@@ -611,15 +630,19 @@ console.log(viewport.renderRange);  // { start: 2, end: 20 }
 ### Compression Detection
 
 ```typescript
-import { getCompressionState, getCompressionInfo } from './render';
+import { getCompressionState } from './rendering/scale';
+import { createSizeCache } from './rendering/sizes';
 
-const compression = getCompressionState(1_000_000, 48);
+const sizeCache = createSizeCache(48, 1_000_000);
+const compression = getCompressionState(1_000_000, sizeCache);
 
 console.log(compression.isCompressed);  // true
 console.log(compression.ratio);         // 0.333...
-console.log(getCompressionInfo(1_000_000, 48));
-// "Compressed to 33.3% (1000000 items × 48px = 48.0M px → 16.0M px virtual)"
+console.log(compression.actualSize);    // 48,000,000
+console.log(compression.virtualSize);   // 16,000,000
 ```
+
+---
 
 ## Performance Considerations
 
@@ -627,7 +650,6 @@ console.log(getCompressionInfo(1_000_000, 48));
 
 - Elements are reused instead of created/destroyed
 - Reduces DOM operations and garbage collection
-- Pool size is capped to prevent memory issues
 - `role="option"` is set once per element lifetime in the pool, not per render
 - Pool release uses `textContent = ""` instead of `innerHTML = ""` (avoids HTML parser invocation)
 
@@ -637,34 +659,36 @@ For performance on the scroll hot path, viewport state is **mutated in place** r
 
 ```typescript
 // updateViewportState mutates state directly
-state.scrollTop = scrollTop;
-state.visibleRange = visibleRange;
-state.renderRange = renderRange;
+state.scrollPosition = scrollPosition;
+state.visibleRange.start = start;
+state.visibleRange.end = end;
 ```
 
 ### In-Place Range Mutation
 
-`calculateCompressedVisibleRange` and `calculateCompressedRenderRange` accept an optional `out` parameter to mutate existing range objects, avoiding allocation of new `Range` objects on every scroll frame:
+`simpleVisibleRange` and `calculateRenderRange` accept an `out` parameter to mutate existing range objects, avoiding allocation of new `Range` objects on every scroll frame:
 
 ```typescript
 // Zero-allocation: mutate existing range
-calculateCompressedVisibleRange(scrollTop, containerHeight, itemHeight, totalItems, compression, existingRange);
+simpleVisibleRange(scrollPosition, containerSize, sizeCache, totalItems, compression, existingRange);
 ```
 
 ### CSS Optimization
 
 - **CSS containment**: `contain: layout style` on items container, `contain: content` + `will-change: transform` on items for optimized compositing
-- Static positioning (`position: absolute; top: 0; left: 0; right: 0`) defined in `.vlist-item` CSS class — only dynamic `height` set via JS
+- Static positioning (`position: absolute; top: 0; left: 0; right: 0`) defined in `.vlist-item` CSS class — only dynamic size set via JS
 - Only `transform` is updated on scroll (GPU-accelerated)
 - Class toggles use `classList.toggle()` for efficiency
 - **Scroll transition suppression**: `.vlist--scrolling` class is toggled during active scroll to disable CSS transitions, re-enabled on idle
 
-## Related Modules
+---
+
+## Related
 
 - [Measurement](./measurement.md) — Auto-size measurement (Mode B): MeasuredSizeCache, ResizeObserver wiring, scroll correction
 - [Scale](../features/scale.md) — Detailed compression documentation
 - [Scrollbar](../features/scrollbar.md) — Scroll controller
-- [Context](./context.md) — Context that holds renderer reference and wires event handlers
+- [Context](./context.md) — BuilderContext that holds renderer reference and wires event handlers
 - [Orientation](./orientation.md) — How the axis-neutral SizeCache enables both vertical and horizontal scrolling
 - [Structure](./structure.md) — Complete source code map
 

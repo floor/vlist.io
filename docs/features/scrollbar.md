@@ -44,7 +44,7 @@ vlist({
 });
 ```
 
-### `scroll.wheel`
+### scroll.wheel
 
 **Type:** `boolean`
 **Default:** `true`
@@ -76,7 +76,7 @@ vlist({
 });
 ```
 
-### `scroll.wrap`
+### scroll.wrap
 
 **Type:** `boolean`
 **Default:** `false`
@@ -120,7 +120,7 @@ btnPrev.addEventListener('click', () => {
 
 > **Note:** `wrap` only affects `scrollToIndex`. It does not create an infinite/repeating list — the items array stays finite. The wrapping is purely navigational.
 
-### `scroll.scrollbar`
+### scroll.scrollbar
 
 **Type:** `'native' | 'none' | ScrollbarOptions`
 **Default:** custom scrollbar (when omitted)
@@ -204,7 +204,7 @@ vlist({
 });
 ```
 
-### `scroll.element`
+### scroll.element
 
 **Type:** `Window`
 **Default:** `undefined`
@@ -228,7 +228,7 @@ vlist({
 
 See [Window Scrolling](#window-scrolling) for detailed behavior.
 
-### `scroll.idleTimeout`
+### scroll.idleTimeout
 
 **Type:** `number`
 **Default:** `150`
@@ -444,7 +444,7 @@ The circular buffer pre-allocates 8 sample slots and overwrites the oldest sampl
 
 ### Scroll Controller
 
-#### `createScrollController`
+#### createScrollController
 
 Creates a scroll controller for a viewport element. This is the internal scroll engine — `VListConfig.scroll` is the public-facing configuration that feeds into this.
 
@@ -568,7 +568,7 @@ interface ScrollEventData {
 
 ### Custom Scrollbar
 
-#### `createScrollbar`
+#### createScrollbar
 
 Creates a custom scrollbar for a viewport. Works in both compressed and native scroll modes, and supports both vertical and horizontal orientation.
 
@@ -632,7 +632,7 @@ interface Scrollbar {
 
 ### Utility Functions
 
-#### `rafThrottle`
+#### rafThrottle
 
 Throttle a function using requestAnimationFrame.
 

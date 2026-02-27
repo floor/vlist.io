@@ -1,349 +1,211 @@
-# Context Module
+# Builder Context
 
-> Internal state container that wires all vlist domains together.
+> The internal interface that features receive during setup — provides access to core components, mutable state, and registration points.
+
+---
 
 ## Overview
 
-The context module provides a central coordination point for all vlist internal components. It acts as a **facade** that:
+The `BuilderContext` is the central coordination point for all vlist internals. It is created during `vlist(config).build()` and passed to each feature's `setup()` function. Features use it to:
 
-- Holds references to all domain managers (data, scroll, renderer, etc.)
-- Manages mutable state (viewport, selection, render range)
-- Provides helper methods for common operations
-- Enables dependency injection for handlers and methods
+- Access core components (DOM, sizeCache, emitter, config)
+- Register event handlers (click, keydown, resize, scroll)
+- Register public methods (exposed on the returned `VList` instance)
+- Replace mutable components (renderer, dataManager, scrollController)
+- Read and write mutable state (viewport, compression, lifecycle flags)
 
 ## Module Structure
 
 ```
-src/
-└── context.ts  # Context creation and management
+src/builder/
+├── core.ts     # Builder implementation — creates BuilderContext, runs features, materializes the list
+├── types.ts    # BuilderContext interface, BuilderConfig, VList, VListFeature
+├── data.ts     # SimpleDataManager (default data store)
+├── dom.ts      # DOM structure creation
+├── pool.ts     # Element pool for DOM recycling
+└── velocity.ts # Velocity tracker for scroll momentum
 ```
 
-## Key Concepts
+---
 
-### Composition Root
-
-The context is created in `vlist.ts` after all components are instantiated, serving as the single point where everything comes together:
+## Creation Flow
 
 ```
-vlist()
+vlist(config)
     ↓
-resolveConfig() — validate, apply defaults, compute derived flags
-    (src/config.ts)
+.use(feature)           — registers features (no side effects yet)
     ↓
-Create individual components:
-  - DataManager
-  - ScrollController
-  - Renderer (uses shared dom.ts, pool.ts, heights.ts)
-  - Emitter
-  - Scrollbar (optional)
+.build()                — materializes everything:
     ↓
-Create Context (wires everything together)
-    ↓
-Create Handlers (receive context)
-    ↓
-Create Methods (receive context, uses shared animation.ts)
-    ↓
-Return Public API
+  1. Resolve config     — apply defaults, compute derived flags
+  2. Create DOM         — root, viewport, content, items elements
+  3. Create SizeCache   — fixed or variable, from item.height/width
+  4. Create Emitter     — type-safe event bus
+  5. Create Renderer    — DOM rendering with pool and compression support
+  6. Create DataManager — simple in-memory item store
+  7. Create ScrollController — scroll position management
+  8. Assemble BuilderContext — wire everything together
+  9. Sort features by priority (lower runs first)
+ 10. Run feature.setup(ctx) for each feature
+ 11. Attach DOM event listeners from handler slots
+ 12. Initial render
+ 13. Return VList public API
 ```
 
-### Immutable Config vs Mutable State
+---
 
-The context separates immutable configuration from mutable runtime state:
+## BuilderContext Interface
 
 ```typescript
-// Immutable - set once at creation
-readonly config: VListContextConfig;
+interface BuilderContext<T extends VListItem = VListItem> {
+  // ── Core components (always present) ──────────────────────────
+  readonly dom:       DOMStructure
+  readonly sizeCache: SizeCache
+  readonly emitter:   Emitter<VListEvents<T>>
+  readonly config:    ResolvedBuilderConfig
+  readonly rawConfig: BuilderConfig<T>
 
-// Mutable - changes during runtime
-state: VListContextState;
-```
+  // ── Mutable components (replaceable by features) ──────────────
+  renderer:         Renderer<T>
+  dataManager:      SimpleDataManager<T>
+  scrollController: ScrollController
 
-### Helper Methods
+  // ── State ─────────────────────────────────────────────────────
+  state: BuilderState
 
-Context provides commonly-needed operations to avoid duplicating logic:
+  // ── Handler registration slots ────────────────────────────────
+  afterScroll:         Array<(scrollPosition: number, direction: string) => void>
+  clickHandlers:       Array<(event: MouseEvent) => void>
+  keydownHandlers:     Array<(event: KeyboardEvent) => void>
+  resizeHandlers:      Array<(width: number, height: number) => void>
+  contentSizeHandlers: Array<() => void>
+  destroyHandlers:     Array<() => void>
 
-```typescript
-getItemsForRange(range)      // Get items from data manager
-getAllLoadedItems()          // Get all loaded items
-getCompressionContext()      // Get compression positioning context
-getCachedCompression()       // Get cached compression state
-```
+  // ── Public method registration ────────────────────────────────
+  methods: Map<string, Function>
 
-## API Reference
+  // ── Component replacement ─────────────────────────────────────
+  replaceTemplate(template: ItemTemplate<T>): void
+  replaceRenderer(renderer: Renderer<T>): void
+  replaceDataManager(dataManager: SimpleDataManager<T>): void
+  replaceScrollController(scrollController: ScrollController): void
 
-### `createContext`
+  // ── Helpers ───────────────────────────────────────────────────
+  getItemsForRange(range: Range): T[]
+  getAllLoadedItems(): T[]
+  getVirtualTotal(): number
+  getCachedCompression(): CompressionState
+  getCompressionContext(): CompressionContext
+  renderIfNeeded(): void
+  forceRender(): void
+  invalidateRendered(): void
+  getRenderFns(): { renderIfNeeded: () => void; forceRender: () => void }
+  getContainerWidth(): number
 
-Creates a VListContext from individual components.
-
-```typescript
-function createContext<T extends VListItem>(
-  config: VListContextConfig,
-  dom: DOMStructure,
-  dataManager: DataManager<T>,
-  scrollController: ScrollController,
-  renderer: Renderer<T>,
-  emitter: Emitter<VListEvents<T>>,
-  scrollbar: Scrollbar | null,
-  initialState: VListContextState
-): VListContext<T>;
-```
-
-### VListContextConfig
-
-Immutable configuration extracted from VListConfig.
-
-```typescript
-interface VListContextConfig {
-  readonly itemHeight: number;
-  readonly overscan: number;
-  readonly classPrefix: string;
-  readonly selectionMode: SelectionMode;
-  readonly hasAdapter: boolean;
+  // ── Advanced hooks (used by grid, groups, compression) ────────
+  setVirtualTotalFn(fn: () => number): void
+  rebuildSizeCache(total?: number): void
+  setSizeConfig(config: number | ((index: number) => number)): void
+  updateContentSize(totalSize: number): void
+  updateCompressionMode(): void
+  setVisibleRangeFn(fn: VisibleRangeFn): void
+  setScrollToPosFn(fn: ScrollToIndexFn): void
+  setPositionElementFn(fn: (element: HTMLElement, index: number) => void): void
+  setRenderFns(renderIfNeeded: () => void, forceRender: () => void): void
+  setScrollFns(getTop: () => number, setTop: (pos: number) => void): void
+  setScrollTarget(target: HTMLElement | Window): void
+  getScrollTarget(): HTMLElement | Window
+  setContainerDimensions(getter: { width: () => number; height: () => number }): void
+  disableViewportResize(): void
+  disableWheelHandler(): void
 }
 ```
 
-### VListContextState
+---
 
-Mutable state managed by the context.
+## Core Components
+
+### dom
+
+The DOM structure created during `.build()`. Read-only — features should not replace these elements, but may append children or modify attributes.
 
 ```typescript
-interface VListContextState {
-  /** Current viewport state (scroll position, ranges) */
-  viewportState: ViewportState;
-  
-  /** Current selection state */
-  selectionState: SelectionState;
-  
-  /** Last rendered range (for change detection) */
-  lastRenderRange: Range;
-  
-  /** Whether vlist has been initialized */
-  isInitialized: boolean;
-  
-  /** Whether vlist has been destroyed */
-  isDestroyed: boolean;
-  
-  /** Cached compression state (invalidated when totalItems changes) */
-  cachedCompression: CachedCompression | null;
-}
-
-interface CachedCompression {
-  state: CompressionState;
-  totalItems: number;
+interface DOMStructure {
+  root:     HTMLElement   // Root vlist element (role="listbox")
+  viewport: HTMLElement   // Scrollable container
+  content:  HTMLElement   // Size-setting element (height/width matches total content)
+  items:    HTMLElement   // Container for rendered item elements
 }
 ```
 
-### VListContext Interface
+### sizeCache
+
+Axis-neutral size cache for offset/index lookups. Shared by all rendering and scrolling code. Features that change sizes (groups, grid) call `ctx.setSizeConfig()` and `ctx.rebuildSizeCache()` to update it.
+
+### emitter
+
+Type-safe event emitter. Features emit events and subscribe to internal signals through this. See [Events](../api/events.md).
+
+### config
+
+Resolved configuration after defaults are applied:
 
 ```typescript
-interface VListContext<T extends VListItem> {
-  // Immutable configuration
-  readonly config: VListContextConfig;
-  
-  // DOM structure
-  readonly dom: DOMStructure;
-  
-  // Stateful managers
-  readonly dataManager: DataManager<T>;
-  readonly scrollController: ScrollController;
-  readonly renderer: Renderer<T>;
-  readonly emitter: Emitter<VListEvents<T>>;
-  readonly scrollbar: Scrollbar | null;
-  
-  // Mutable state
-  state: VListContextState;
-  
-  // Helper methods
-  getItemsForRange: (range: Range) => T[];
-  getAllLoadedItems: () => T[];
-  getCompressionContext: () => CompressionContext;
-  getCachedCompression: () => CompressionState;
+interface ResolvedBuilderConfig {
+  readonly overscan:     number
+  readonly classPrefix:  string
+  readonly reverse:      boolean
+  readonly wrap:         boolean
+  readonly horizontal:   boolean
+  readonly ariaIdPrefix: string
 }
 ```
 
-## Usage Examples
+### rawConfig
 
-### Accessing Context in Handlers
+The original user-provided `BuilderConfig`, for features that need access to raw values (e.g., the original `item.height` function before groups/grid modify it).
 
-```typescript
-// In handlers.ts
-export const createScrollHandler = <T extends VListItem>(
-  ctx: VListContext<T>,
-  renderIfNeeded: RenderFunction
-) => {
-  return (scrollPosition: number, direction: 'up' | 'down'): void => {
-    if (ctx.state.isDestroyed) return;
-    
-    // Access data manager
-    const total = ctx.dataManager.getTotal();
-    
-    // Update viewport state
-    ctx.state.viewportState = updateViewportState(
-      ctx.state.viewportState,
-      scrollPosition,
-      ctx.config.itemSize,
-      total,
-      ctx.config.overscan
-    );
-    
-    // Update scrollbar
-    if (ctx.scrollbar) {
-      ctx.scrollbar.updatePosition(scrollPosition);
-      ctx.scrollbar.show();
-    }
-    
-    // Trigger render
-    renderIfNeeded();
-    
-    // Emit event
-    ctx.emitter.emit('scroll', { scrollPosition, direction });
-  };
-};
-```
+---
 
-### Accessing Context in Methods
+## Mutable Components
+
+These can be replaced by features during `setup()`.
+
+### renderer
+
+The DOM renderer. Grid feature replaces this to handle multi-column layout. Use `ctx.replaceRenderer()` for safe replacement.
+
+### dataManager
+
+The data store. `withAsync` replaces this with a sparse data manager that handles adapter-based loading. Use `ctx.replaceDataManager()`.
+
+### scrollController
+
+Manages scroll position get/set. `withScale` replaces scroll functions to handle compressed scroll space. Use `ctx.replaceScrollController()`.
+
+---
+
+## State
 
 ```typescript
-// In methods.ts
-export const createScrollMethods = <T extends VListItem>(
-  ctx: VListContext<T>
-): ScrollMethods => {
-  let animationFrameId: number | null = null;
-
-  const cancelScroll = (): void => {
-    if (animationFrameId !== null) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-  };
-
-  const animateScroll = (from: number, to: number, duration: number): void => {
-    cancelScroll();
-    if (Math.abs(to - from) < 1) { ctx.scrollController.scrollTo(to); return; }
-    const start = performance.now();
-    const tick = (now: number): void => {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      ctx.scrollController.scrollTo(from + (to - from) * eased);
-      if (t < 1) animationFrameId = requestAnimationFrame(tick);
-      else animationFrameId = null;
-    };
-    animationFrameId = requestAnimationFrame(tick);
-  };
-
-  const scrollToIndex = (index, alignOrOptions?) => {
-    const { align, behavior, duration } = resolveScrollArgs(alignOrOptions);
-    const dataState = ctx.dataManager.getState();
-    const position = calculateScrollToIndex(
-      index,
-      ctx.config.itemSize,
-      ctx.state.viewportState.containerSize,
-      dataState.total,
-      align,
-      ctx.getCachedCompression()
-    );
-    
-    if (behavior === 'smooth') {
-      animateScroll(ctx.scrollController.getScrollPosition(), position, duration);
-    } else {
-      cancelScroll();
-      ctx.scrollController.scrollTo(position);
-    }
-  };
-
-  return {
-    scrollToIndex,
-    
-    scrollToItem: (id, alignOrOptions?) => {
-      const index = ctx.dataManager.getIndexById(id);
-      if (index >= 0) {
-        scrollToIndex(index, alignOrOptions);
-      }
-    },
-
-    cancelScroll,
-    
-    getScrollPosition: () => {
-      return ctx.scrollController.getScrollPosition();
-    }
-  };
-};
-```
-
-### Using Helper Methods
-
-```typescript
-// Get items for rendering
-const items = ctx.getItemsForRange(ctx.state.viewportState.renderRange);
-
-// Get all items for selection operations
-const allItems = ctx.getAllLoadedItems();
-
-// Get compression context for positioning
-const compressionCtx = ctx.state.viewportState.isCompressed
-  ? ctx.getCompressionContext()
-  : undefined;
-
-// Get cached compression state (avoids recalculation)
-const compression = ctx.getCachedCompression();
-```
-
-### Rendering with Context
-
-```typescript
-function render(ctx: VListContext<T>): void {
-  if (ctx.state.isDestroyed) return;
-  
-  const { renderRange, isCompressed } = ctx.state.viewportState;
-  
-  // Get items using helper
-  const items = ctx.getItemsForRange(renderRange);
-  
-  // Get compression context if needed
-  const compressionCtx = isCompressed
-    ? ctx.getCompressionContext()
-    : undefined;
-  
-  // Render via renderer
-  ctx.renderer.render(
-    items,
-    renderRange,
-    ctx.state.selectionState.selected,
-    ctx.state.selectionState.focusedIndex,
-    compressionCtx
-  );
-  
-  // Update last render range
-  ctx.state.lastRenderRange = { ...renderRange };
-  
-  // Emit event
-  ctx.emitter.emit('range:change', { range: renderRange });
+interface BuilderState {
+  viewportState:     ViewportState
+  lastRenderRange:   Range
+  isInitialized:     boolean
+  isDestroyed:       boolean
+  cachedCompression: CachedCompression | null
 }
 ```
 
-## Implementation Details
-
-### Reusable Compression Context
-
-To avoid object allocation on every scroll frame, the compression context is reused:
+All operations should check `isDestroyed` before proceeding:
 
 ```typescript
-// Single object reused across calls
-const reusableCompressionCtx: CompressionContext = {
-  scrollPosition: 0,
-  totalItems: 0,
-  containerSize: 0,
-  rangeStart: 0
-};
-
-const getCompressionContext = (): CompressionContext => {
-  // Update values in place
-  reusableCompressionCtx.scrollPosition = state.viewportState.scrollPosition;
-  reusableCompressionCtx.totalItems = dataManager.getTotal();
-  reusableCompressionCtx.containerSize = state.viewportState.containerSize;
-  reusableCompressionCtx.rangeStart = state.viewportState.renderRange.start;
-  return reusableCompressionCtx;
-};
+setup(ctx) {
+  ctx.clickHandlers.push((event) => {
+    if (ctx.state.isDestroyed) return
+    // ... handle click
+  })
+}
 ```
 
 ### Compression Caching
@@ -351,117 +213,210 @@ const getCompressionContext = (): CompressionContext => {
 Compression state is cached and only recalculated when `totalItems` changes:
 
 ```typescript
-const getCachedCompression = (): CompressionState => {
-  const totalItems = dataManager.getTotal();
-  
-  // Return cached if still valid
-  if (state.cachedCompression?.totalItems === totalItems) {
-    return state.cachedCompression.state;
-  }
-  
-  // Recalculate and cache
-  const compression = getCompressionState(totalItems, config.itemHeight);
-  state.cachedCompression = { state: compression, totalItems };
-  return compression;
-};
+interface CachedCompression {
+  state:      CompressionState
+  totalItems: number
+}
 ```
 
-### Destroyed State Check
+Use `ctx.getCachedCompression()` to get the cached state. It automatically invalidates when the item count changes.
 
-All operations should check `isDestroyed` before proceeding:
+---
+
+## Handler Registration
+
+Features register handlers by pushing into the appropriate array during `setup()`. The builder attaches these as DOM event listeners after all features have been set up.
+
+### afterScroll
+
+Runs after each scroll-triggered render. Not on the hot path — runs after DOM updates are complete.
 
 ```typescript
-if (ctx.state.isDestroyed) return;
+ctx.afterScroll.push((scrollPosition, direction) => {
+  // Update scrollbar position, check if more data needed, etc.
+})
 ```
 
-This prevents operations after `destroy()` is called.
+### clickHandlers
 
-## Context Flow
+DOM click events on the items container.
 
-### Creation Flow
-
-```
-1. vlist.ts creates all components
-2. createContext() wires them together
-3. Context passed to handler factories
-4. Context passed to method factories
-5. Handlers and methods have access to everything
-```
-
-### Runtime Flow
-
-```
-Event occurs (scroll, click, etc.)
-    ↓
-Handler receives event
-    ↓
-Handler accesses ctx.dataManager, ctx.state, etc.
-    ↓
-Handler updates ctx.state
-    ↓
-Handler triggers render or emits events via ctx
-    ↓
-Renderer uses ctx to get items and state
+```typescript
+ctx.clickHandlers.push((event) => {
+  const target = event.target as HTMLElement
+  const itemEl = target.closest('[data-index]')
+  if (itemEl) {
+    const index = Number(itemEl.dataset.index)
+    // ... handle item click
+  }
+})
 ```
 
-### Destruction Flow
+### keydownHandlers
+
+Keyboard events on the root element.
+
+### resizeHandlers
+
+Called when the container is resized (via `ResizeObserver`).
+
+### contentSizeHandlers
+
+Called when total content size changes (e.g., items added/removed).
+
+### destroyHandlers
+
+Called during `destroy()` for cleanup (remove event listeners, clear timers, etc.).
+
+---
+
+## Public Method Registration
+
+Features register public methods on the `methods` Map. These are exposed on the returned `VList` instance.
+
+```typescript
+setup(ctx) {
+  ctx.methods.set('getSelected', () => {
+    return Array.from(selectedIds)
+  })
+
+  ctx.methods.set('select', (...ids) => {
+    ids.forEach(id => selectedIds.add(id))
+    ctx.forceRender()
+  })
+}
+```
+
+---
+
+## Helpers
+
+### Data Access
+
+| Method | Description |
+|--------|-------------|
+| `getItemsForRange(range)` | Get items for the given index range. |
+| `getAllLoadedItems()` | Get all currently loaded items. |
+| `getVirtualTotal()` | Get the virtual total (may differ from data total for grid/groups). |
+
+### Rendering
+
+| Method | Description |
+|--------|-------------|
+| `renderIfNeeded()` | Trigger a render if the range has changed. |
+| `forceRender()` | Force a full re-render regardless of range changes. |
+| `invalidateRendered()` | Clear all rendered elements and force re-render from scratch. |
+| `getRenderFns()` | Get current render functions (for wrapping by features). |
+| `setRenderFns(renderIfNeeded, forceRender)` | Replace the render functions. Used by grid/groups. |
+
+### Compression
+
+| Method | Description |
+|--------|-------------|
+| `getCachedCompression()` | Get compression state (cached, invalidates on total change). |
+| `getCompressionContext()` | Get positioning context for compressed item placement. |
+| `updateCompressionMode()` | Recalculate compression after total items change. |
+
+### Size & Layout
+
+| Method | Description |
+|--------|-------------|
+| `setSizeConfig(config)` | Set a new size function/value. Call before `rebuildSizeCache`. |
+| `rebuildSizeCache(total?)` | Rebuild the prefix-sum array after size changes. |
+| `updateContentSize(totalSize)` | Update the content element's size on the main axis. |
+| `getContainerWidth()` | Get container width (from ResizeObserver, reliable in tests). |
+| `setVirtualTotalFn(fn)` | Override what "total" means (e.g., row count for grid). |
+
+### Scroll
+
+| Method | Description |
+|--------|-------------|
+| `setScrollFns(getTop, setTop)` | Replace scroll position get/set (used by compression). |
+| `setScrollTarget(target)` | Set the scroll event target (viewport or window). |
+| `getScrollTarget()` | Get the current scroll target. |
+| `setVisibleRangeFn(fn)` | Replace visible range calculation (used by compression). |
+| `setScrollToPosFn(fn)` | Replace scroll-to-index calculator (used by compression). |
+| `setPositionElementFn(fn)` | Replace item positioning (used by compression). |
+| `setContainerDimensions(getter)` | Override container dimension getters (used by window mode). |
+| `disableViewportResize()` | Stop observing viewport with ResizeObserver (used by window mode). |
+| `disableWheelHandler()` | Disable the viewport wheel handler (used by window mode). |
+
+---
+
+## Runtime Flow
 
 ```
-destroy() called on VList instance
+Scroll event
     ↓
-ctx.state.isDestroyed = true
+ScrollController updates position
     ↓
-All handlers check isDestroyed and return early
+Velocity tracker samples position
     ↓
-Components destroyed (scrollController, renderer, etc.)
+Viewport state updated (visible range, render range)
+    ↓
+renderIfNeeded() — diff ranges, update DOM
+    ↓
+afterScroll callbacks run
+    ↓
+Emitter fires 'scroll', 'velocity:change', 'range:change'
+```
+
+```
+Click event
+    ↓
+All clickHandlers run in registration order
+    ↓
+Feature handler identifies clicked item
+    ↓
+Emitter fires 'item:click'
+```
+
+```
+destroy() called
+    ↓
+state.isDestroyed = true
+    ↓
+All destroyHandlers run (features clean up)
     ↓
 Emitter cleared
     ↓
 DOM removed
 ```
 
-## Best Practices
+---
 
-### Do
+## Writing a Feature
 
-```typescript
-// ✅ Check destroyed state
-if (ctx.state.isDestroyed) return;
-
-// ✅ Use helper methods
-const items = ctx.getItemsForRange(range);
-
-// ✅ Use direct getters on hot paths
-const total = ctx.dataManager.getTotal();  // No object allocation
-
-// ✅ Update state immutably when appropriate
-ctx.state.selectionState = selectItems(ctx.state.selectionState, ids, mode);
-```
-
-### Don't
+A minimal feature that adds a `getVisibleCount()` method:
 
 ```typescript
-// ❌ Access internal state without checking destroyed
-ctx.state.viewportState.scrollPosition = 0;  // Check isDestroyed first!
+import type { VListFeature, BuilderContext } from '@floor/vlist'
 
-// ❌ Create objects on hot paths
-const state = ctx.dataManager.getState();  // Allocates object
-// Use ctx.dataManager.getTotal() instead
+const withVisibleCount = (): VListFeature => ({
+  name: 'visibleCount',
+  priority: 50,
+  methods: ['getVisibleCount'],
 
-// ❌ Hold references to mutable state
-const savedState = ctx.state;  // State will change!
+  setup(ctx: BuilderContext) {
+    ctx.methods.set('getVisibleCount', () => {
+      const { visibleRange } = ctx.state.viewportState
+      return visibleRange.end - visibleRange.start + 1
+    })
+  },
+})
 ```
 
-## Related Modules
-
-- [vlist.md](/) - Main documentation, shows context creation
-- [Rendering](./rendering.md) - Rendering module that uses context
-- [API Reference](/docs/api/reference) - Public methods that use context
-- [render.md](./rendering.md) - DOMStructure, Renderer interfaces
-- [async.md](../features/async.md) - DataManager interface
-- [scrollbar.md](../features/scrollbar.md) - ScrollController interface
-- [events.md](../api/events.md) - Emitter interface
+For complete feature authoring guidance, see [Exports](../api/exports.md).
 
 ---
 
-*The context module is the glue that holds all vlist components together.*
+## Related
+
+- [Types](../api/types.md#buildercontext) — Full `BuilderContext` type definition
+- [Exports](../api/exports.md) — Feature authoring guide and low-level utilities
+- [Rendering](./rendering.md) — DOM rendering, SizeCache, viewport calculations
+- [Events](../api/events.md) — Event types emitted through the emitter
+
+---
+
+*The BuilderContext is the glue that holds all vlist components together — features compose behavior by registering handlers and methods on it.*

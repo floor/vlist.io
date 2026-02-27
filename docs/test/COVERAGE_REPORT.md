@@ -218,8 +218,8 @@ The test suite is well-organized but could benefit from documentation.
 ### Type Coverage
 
 **Core Types Exported:**
-- `VList`, `VListConfig`, `VListItem`, `VListEvents`
-- `VListBuilder`, `BuiltVList`, `BuilderConfig`, `VListFeature`
+- `VList`, `VListItem`, `VListEvents`
+- `VListBuilder`, `BuilderConfig`, `VListFeature`
 - `ItemTemplate`, `ItemState`, `Range`, `ViewportState`
 - `SelectionMode`, `SelectionConfig`, `SelectionState`
 - `ScrollConfig`, `ScrollbarConfig`, `ScrollToOptions`

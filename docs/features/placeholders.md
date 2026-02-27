@@ -267,7 +267,7 @@ interface PlaceholderConfig {
 }
 ```
 
-### `maskCharacter`
+### maskCharacter
 
 The character repeated to fill placeholder fields. Default is `x` — chosen because its width closely matches average text character width. Since CSS makes the text transparent, the character is never visible; it only determines skeleton block width.
 
@@ -282,7 +282,7 @@ createPlaceholderManager({ maskCharacter: 'M' });
 createPlaceholderManager({ maskCharacter: 'i' });
 ```
 
-### `maxSampleSize`
+### maxSampleSize
 
 Maximum number of items from the first batch to capture profiles from. Default is `20`. Higher values give more profile variety at the cost of a tiny bit more memory.
 
@@ -293,7 +293,7 @@ createPlaceholderManager({ maxSampleSize: 50 });
 
 ## API Reference
 
-### `createPlaceholderManager`
+### createPlaceholderManager
 
 Creates a placeholder manager instance. Typically you don't call this directly — `withAsync()` manages it internally.
 

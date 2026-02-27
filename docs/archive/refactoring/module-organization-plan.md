@@ -254,7 +254,7 @@ export type {
 // Builder types
 export type {
   VListBuilder,
-  BuiltVList,
+  VList,
   BuilderConfig,
   VListFeature,
 } from './builder'

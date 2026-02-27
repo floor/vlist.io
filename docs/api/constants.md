@@ -2,40 +2,21 @@
 
 > Default values, thresholds, and magic numbers for vlist configuration.
 
-## Overview
+---
 
-The constants module centralizes all default values, thresholds, and configuration constants used throughout vlist. This ensures:
+## Virtual Scrolling
 
-- **Consistency**: Same defaults across all components
-- **Maintainability**: Single place to adjust values
-- **Documentation**: Clear explanation of each constant's purpose
+### DEFAULT_OVERSCAN
 
-## Module Structure
-
-```
-src/
-└── constants.ts  # All constants in one file
-```
-
-## Constants Reference
-
-### Virtual Scrolling
-
-#### `DEFAULT_OVERSCAN`
-
-Number of extra items to render outside the viewport.
+Number of extra items to render outside the viewport in each direction.
 
 ```typescript
 const DEFAULT_OVERSCAN = 3;
 ```
 
-**Purpose**: Reduces visual flickering during fast scrolling by pre-rendering items just outside the visible area.
+Higher values reduce blank flashes during fast scrolling at the cost of more DOM nodes.
 
-**Trade-off**:
-- Higher value → Smoother scrolling, more DOM elements
-- Lower value → Fewer DOM elements, potential flickering
-
-#### `DEFAULT_CLASS_PREFIX`
+### DEFAULT_CLASS_PREFIX
 
 Default CSS class prefix for all vlist elements.
 
@@ -43,37 +24,31 @@ Default CSS class prefix for all vlist elements.
 const DEFAULT_CLASS_PREFIX = 'vlist';
 ```
 
-**Usage**: All generated CSS classes use this prefix:
-- `vlist` → root element
-- `vlist-viewport` → scrollable container
-- `vlist-item` → individual items
-- `vlist-item--selected` → selected state
+All generated CSS classes use this prefix: `vlist`, `vlist-viewport`, `vlist-item`, `vlist-item--selected`, etc.
 
-### Data Loading
+---
 
-#### `LOAD_MORE_THRESHOLD`
+## Data Loading
 
-Distance from bottom (in pixels) to trigger infinite scroll loading.
+### LOAD_MORE_THRESHOLD
+
+Distance from the end (in pixels) to trigger infinite scroll loading.
 
 ```typescript
 const LOAD_MORE_THRESHOLD = 200;
 ```
 
-**Purpose**: Starts loading more data before user reaches the end, creating seamless infinite scroll experience.
+Starts loading more data before the user reaches the end, creating a seamless infinite scroll experience.
 
-#### `INITIAL_LOAD_SIZE`
+### INITIAL_LOAD_SIZE
 
-Default number of items to load per request.
+Default number of items to load per initial request.
 
 ```typescript
 const INITIAL_LOAD_SIZE = 50;
 ```
 
-**Purpose**: Balances between:
-- Loading enough items to fill viewport
-- Not overloading initial request
-
-#### `DEFAULT_PAGE_SIZE`
+### DEFAULT_PAGE_SIZE
 
 Default page size for data manager operations.
 
@@ -81,52 +56,79 @@ Default page size for data manager operations.
 const DEFAULT_PAGE_SIZE = 50;
 ```
 
-**Purpose**: Standard batch size for data fetching operations.
+---
 
-### Compression (Large Lists)
+## Velocity-Based Loading
 
-#### `MAX_VIRTUAL_HEIGHT`
+These constants control the velocity-based loading strategy used by `withAsync`. All three are configurable via the `loading` option on `withAsync`.
 
-Maximum virtual height in pixels.
+### CANCEL_LOAD_VELOCITY_THRESHOLD
+
+Velocity threshold above which data loading is skipped entirely (px/ms).
 
 ```typescript
-const MAX_VIRTUAL_HEIGHT = 16_000_000;  // 16M pixels
+const CANCEL_LOAD_VELOCITY_THRESHOLD = 5;
 ```
 
-**Purpose**: Browsers have a maximum element height limit (~16.7M pixels). This constant provides a safe margin below that limit.
+During very fast scrolling, loading is deferred until scroll stops (idle). This avoids wasted network requests for ranges the user scrolls past.
 
-**When exceeded**: vlist switches to compressed mode with manual wheel-based scrolling.
+### PRELOAD_VELOCITY_THRESHOLD
 
-**Calculation**:
+Velocity threshold above which preloading kicks in (px/ms).
+
 ```typescript
-// Max items without compression
-const maxItems = Math.floor(MAX_VIRTUAL_HEIGHT / itemHeight);
-
-// Examples:
-// 48px items → 333,333 items
-// 40px items → 400,000 items
-// 32px items → 500,000 items
+const PRELOAD_VELOCITY_THRESHOLD = 2;
 ```
 
-### Scrollbar
+At medium scroll speeds (between this and `CANCEL_LOAD_VELOCITY_THRESHOLD`), extra items are preloaded ahead of the scroll direction to reduce visible placeholder flicker.
 
-#### `DEFAULT_SCROLLBAR_AUTO_HIDE`
+### PRELOAD_ITEMS_AHEAD
 
-Whether scrollbar auto-hides after idle.
+Number of items to preload ahead of the scroll direction.
+
+```typescript
+const PRELOAD_ITEMS_AHEAD = 50;
+```
+
+Only applies when velocity is between `PRELOAD_VELOCITY_THRESHOLD` and `CANCEL_LOAD_VELOCITY_THRESHOLD`. Higher values help slow APIs; lower values suit heavy templates.
+
+---
+
+## Compression (Large Lists)
+
+### MAX_VIRTUAL_SIZE
+
+Maximum virtual size in pixels along the main axis.
+
+```typescript
+const MAX_VIRTUAL_SIZE = 16_000_000;  // 16M pixels
+```
+
+Browsers have a maximum element size limit (~16.7M pixels). When total content size exceeds this, vlist switches to compressed mode with remapped scroll math. See [Scale](../features/scale.md) for details.
+
+> **Deprecated alias:** `MAX_VIRTUAL_HEIGHT` is kept for backwards compatibility but should not be used in new code.
+
+---
+
+## Scrollbar
+
+### DEFAULT_SCROLLBAR_AUTO_HIDE
+
+Whether the scrollbar auto-hides after idle.
 
 ```typescript
 const DEFAULT_SCROLLBAR_AUTO_HIDE = true;
 ```
 
-#### `DEFAULT_SCROLLBAR_AUTO_HIDE_DELAY`
+### DEFAULT_SCROLLBAR_AUTO_HIDE_DELAY
 
-Delay in milliseconds before scrollbar hides.
+Delay in milliseconds before the scrollbar hides.
 
 ```typescript
 const DEFAULT_SCROLLBAR_AUTO_HIDE_DELAY = 1000;
 ```
 
-#### `DEFAULT_SCROLLBAR_MIN_THUMB_SIZE`
+### DEFAULT_SCROLLBAR_MIN_THUMB_SIZE
 
 Minimum scrollbar thumb size in pixels.
 
@@ -134,21 +136,23 @@ Minimum scrollbar thumb size in pixels.
 const DEFAULT_SCROLLBAR_MIN_THUMB_SIZE = 30;
 ```
 
-**Purpose**: Ensures thumb is always large enough to click/drag, even for very large lists.
+Ensures the thumb is always large enough to click and drag, even for very large lists.
 
-### Placeholder
+---
 
-#### `DEFAULT_MASK_CHARACTER`
+## Placeholder
+
+### DEFAULT_MASK_CHARACTER
 
 Character used for masking text in placeholders.
 
 ```typescript
-const DEFAULT_MASK_CHARACTER = '█';
+const DEFAULT_MASK_CHARACTER = 'x';
 ```
 
-**Usage**: Placeholder text like `████████████` to indicate loading state.
+Placeholder text like `xxxxxxxxxxxx` indicates loading state.
 
-#### `DEFAULT_MAX_SAMPLE_SIZE`
+### DEFAULT_MAX_SAMPLE_SIZE
 
 Maximum items to sample for placeholder structure analysis.
 
@@ -156,9 +160,7 @@ Maximum items to sample for placeholder structure analysis.
 const DEFAULT_MAX_SAMPLE_SIZE = 20;
 ```
 
-**Purpose**: Limits analysis time while getting representative data structure.
-
-#### `PLACEHOLDER_FLAG`
+### PLACEHOLDER_FLAG
 
 Internal flag to identify placeholder items.
 
@@ -166,14 +168,7 @@ Internal flag to identify placeholder items.
 const PLACEHOLDER_FLAG = '_isPlaceholder';
 ```
 
-**Usage**:
-```typescript
-if (item._isPlaceholder) {
-  // Show loading state
-}
-```
-
-#### `PLACEHOLDER_ID_PREFIX`
+### PLACEHOLDER_ID_PREFIX
 
 Prefix for placeholder item IDs.
 
@@ -181,11 +176,13 @@ Prefix for placeholder item IDs.
 const PLACEHOLDER_ID_PREFIX = '__placeholder_';
 ```
 
-**Purpose**: Ensures placeholder IDs don't collide with real item IDs.
+Ensures placeholder IDs don't collide with real item IDs.
 
-### Sparse Storage
+---
 
-#### `DEFAULT_CHUNK_SIZE`
+## Sparse Storage
+
+### DEFAULT_CHUNK_SIZE
 
 Default number of items per storage chunk.
 
@@ -193,11 +190,7 @@ Default number of items per storage chunk.
 const DEFAULT_CHUNK_SIZE = 100;
 ```
 
-**Purpose**: Balances between:
-- Memory granularity (smaller chunks = finer control)
-- Overhead (fewer chunks = less management overhead)
-
-#### `DEFAULT_MAX_CACHED_ITEMS`
+### DEFAULT_MAX_CACHED_ITEMS
 
 Default maximum items to keep in memory.
 
@@ -205,41 +198,48 @@ Default maximum items to keep in memory.
 const DEFAULT_MAX_CACHED_ITEMS = 10_000;
 ```
 
-**Purpose**: Prevents memory exhaustion for very large lists.
+### DEFAULT_EVICTION_BUFFER
 
-#### `DEFAULT_EVICTION_BUFFER`
-
-Extra items to keep around visible range during eviction.
+Extra items to keep around the visible range during eviction.
 
 ```typescript
 const DEFAULT_EVICTION_BUFFER = 500;
 ```
 
-**Purpose**: Keeps recently viewed items in memory for quick scroll-back.
+---
 
-### Scroll & Velocity Tracking
+## Scroll & Velocity Tracking
 
-#### `VELOCITY_SAMPLE_COUNT`
+vlist has **two independent velocity trackers** with different constants:
 
-Number of samples in the velocity tracker's circular buffer.
+| Tracker | Location | Samples | Min Reliable | Purpose |
+|---------|----------|---------|--------------|---------|
+| **Builder** | `builder/velocity.ts` | 5 | 2 | Emits `velocity:change` events, drives async loading decisions |
+| **ScrollController** | `features/scrollbar/controller.ts` | 8 | 3 | Controls scrollbar thumb behavior and scroll idle detection |
+
+The builder tracker is tuned for responsiveness (fewer samples, faster reliable signal). The scrollbar tracker is tuned for stability (more samples, smoother velocity readings).
+
+### Builder Velocity Constants
+
+#### VELOCITY_SAMPLE_COUNT
+
+Number of samples in the builder velocity tracker's circular buffer.
 
 ```typescript
-const VELOCITY_SAMPLE_COUNT = 8;
+const VELOCITY_SAMPLE_COUNT = 5;
 ```
 
-**Purpose**: Provides a ~133ms averaging window at 60fps for smooth, stable velocity readings. The circular buffer is pre-allocated to avoid garbage collection during scrolling.
+#### MIN_RELIABLE_SAMPLES
 
-#### `MIN_RELIABLE_SAMPLES`
-
-Minimum samples needed before velocity readings are considered reliable.
+Minimum samples needed before the builder velocity tracker readings are considered reliable.
 
 ```typescript
-const MIN_RELIABLE_SAMPLES = 3;
+const MIN_RELIABLE_SAMPLES = 2;
 ```
 
-**Purpose**: After idle resets the velocity tracker, the first few frames compute near-zero velocity (small position delta ÷ large stale time gap). `ScrollController.isTracking()` returns `false` until this threshold is met, preventing spurious API requests at the start of scrollbar drags.
+The `velocity:change` event includes a `reliable` flag that is `true` when `sampleCount >= MIN_RELIABLE_SAMPLES`.
 
-#### `STALE_GAP_MS`
+#### STALE_GAP_MS
 
 Maximum time gap (ms) between samples before the buffer is considered stale.
 
@@ -247,9 +247,9 @@ Maximum time gap (ms) between samples before the buffer is considered stale.
 const STALE_GAP_MS = 100;
 ```
 
-**Purpose**: After a pause longer than 100ms, previous samples no longer represent the current scroll gesture. The velocity tracker resets its buffer and starts measuring fresh, rather than computing misleading velocity from outdated baselines. Set below the idle timeout (150ms) so stale detection triggers before idle.
+After a pause longer than 100ms, previous samples no longer represent the current scroll gesture. The velocity tracker resets its buffer and starts measuring fresh. Set below the idle timeout (150ms) so stale detection triggers before idle.
 
-#### `SCROLL_IDLE_TIMEOUT`
+### SCROLL_IDLE_TIMEOUT
 
 Default timeout for scroll idle detection in milliseconds.
 
@@ -257,15 +257,11 @@ Default timeout for scroll idle detection in milliseconds.
 const SCROLL_IDLE_TIMEOUT = 150;
 ```
 
-**Purpose**: Determines when scrolling has "stopped" for:
-- Scrollbar auto-hide
-- Idle callbacks
-- Post-scroll cleanup
-- Re-enabling CSS transitions (removing `.vlist--scrolling` class)
+Determines when scrolling has "stopped" for scrollbar auto-hide, idle callbacks, post-scroll cleanup, and re-enabling CSS transitions (removing `.vlist--scrolling` class).
 
-> **Note:** This value is now configurable via the `idleTimeout` option on `VListConfig`. The constant serves as the default. See [optimization.md](/tutorials/optimization#configuration-options) for tuning tips (e.g., increase to 200-300ms on mobile/touch devices).
+This value is configurable via the `scroll.idleTimeout` option on `BuilderConfig`. See [Optimization](/tutorials/optimization#configuration-options) for tuning tips.
 
-#### `DEFAULT_WHEEL_SENSITIVITY`
+### DEFAULT_WHEEL_SENSITIVITY
 
 Default wheel sensitivity multiplier.
 
@@ -273,165 +269,57 @@ Default wheel sensitivity multiplier.
 const DEFAULT_WHEEL_SENSITIVITY = 1;
 ```
 
-**Purpose**: Allows adjusting scroll speed in compressed mode.
+Allows adjusting scroll speed in compressed mode.
 
-### Loading Behavior
+---
 
-#### `DEFAULT_CANCEL_THRESHOLD`
-
-Velocity threshold above which data loading is skipped entirely (px/ms).
-
-```typescript
-const DEFAULT_CANCEL_THRESHOLD = 25;
-```
-
-**Purpose**: During very fast scrolling, loading is deferred until scroll stops (idle). This avoids wasted network requests for ranges the user scrolls past.
-
-#### `DEFAULT_PRELOAD_THRESHOLD`
-
-Velocity threshold above which preloading kicks in (px/ms).
-
-```typescript
-const DEFAULT_PRELOAD_THRESHOLD = 2;
-```
-
-**Purpose**: At medium scroll speeds, extra items are preloaded ahead of the scroll direction to reduce visible placeholder flicker.
-
-#### `DEFAULT_PRELOAD_AHEAD`
-
-Number of items to preload ahead of the scroll direction.
-
-```typescript
-const DEFAULT_PRELOAD_AHEAD = 50;
-```
-
-**Purpose**: Controls how many extra items are fetched ahead during medium-velocity scrolling. Higher values help slow APIs; lower values suit heavy templates.
-
-> **Note:** All three loading constants are configurable via the `loading` option on `VListConfig`. See [optimization.md](/tutorials/optimization#configuration-options) for the velocity-based loading strategy table.
-
-## Usage Examples
-
-### Importing Constants
-
-```typescript
-import {
-  DEFAULT_OVERSCAN,
-  LOAD_MORE_THRESHOLD,
-  MAX_VIRTUAL_HEIGHT
-} from './constants';
-
-// Use in component
-const visibleRange = calculateVisibleRange(
-  scrollPosition,
-  containerSize,
-  itemSize,
-  totalItems
-);
-
-const renderRange = {
-  start: Math.max(0, visibleRange.start - DEFAULT_OVERSCAN),
-  end: Math.min(totalItems - 1, visibleRange.end + DEFAULT_OVERSCAN)
-};
-```
-
-### Overriding Defaults
+## Overriding Defaults
 
 Most constants have corresponding config options:
 
 ```typescript
 const list = vlist({
   container: '#app',
-  item: {
-    height: 48,
-    template: (item) => `<div>${item.name}</div>`,
-  },
+  item: { height: 48, template: renderRow },
   items: myItems,
-  
-  // Override defaults
-  overscan: 5,                    // DEFAULT_OVERSCAN
-  classPrefix: 'my-list',        // DEFAULT_CLASS_PREFIX
-  scrollbar: {
-    autoHide: false,             // DEFAULT_SCROLLBAR_AUTO_HIDE
-    autoHideDelay: 2000,         // DEFAULT_SCROLLBAR_AUTO_HIDE_DELAY
-    minThumbSize: 50             // DEFAULT_SCROLLBAR_MIN_THUMB_SIZE
-  }
-});
-```
-
-### Data Manager Configuration
-
-```typescript
-const dataManager = createDataManager({
-  adapter: myAdapter,
-  pageSize: 100,  // Override DEFAULT_PAGE_SIZE
-  storage: {
-    chunkSize: 50,           // Override DEFAULT_CHUNK_SIZE
-    maxCachedItems: 5000,    // Override DEFAULT_MAX_CACHED_ITEMS
-    evictionBuffer: 200      // Override DEFAULT_EVICTION_BUFFER
+  overscan: 5,                       // DEFAULT_OVERSCAN
+  classPrefix: 'my-list',            // DEFAULT_CLASS_PREFIX
+  scroll: {
+    idleTimeout: 200,                // SCROLL_IDLE_TIMEOUT
+    scrollbar: {
+      autoHide: false,               // DEFAULT_SCROLLBAR_AUTO_HIDE
+      autoHideDelay: 2000,           // DEFAULT_SCROLLBAR_AUTO_HIDE_DELAY
+      minThumbSize: 50,              // DEFAULT_SCROLLBAR_MIN_THUMB_SIZE
+    },
   },
-  placeholder: {
-    maskCharacter: '▒',      // Override DEFAULT_MASK_CHARACTER
-    maxSampleSize: 10        // Override DEFAULT_MAX_SAMPLE_SIZE
-  }
-});
+}).build()
 ```
 
-## Constant Categories Summary
+---
+
+## Summary
 
 | Category | Constants | Purpose |
 |----------|-----------|---------|
 | **Virtual Scrolling** | `DEFAULT_OVERSCAN`, `DEFAULT_CLASS_PREFIX` | Core rendering behavior |
 | **Data Loading** | `LOAD_MORE_THRESHOLD`, `INITIAL_LOAD_SIZE`, `DEFAULT_PAGE_SIZE` | Async data fetching |
-| **Compression** | `MAX_VIRTUAL_HEIGHT` | Large list handling |
-| **Scrollbar** | `DEFAULT_SCROLLBAR_*` | Custom scrollbar behavior |
-| **Placeholder** | `DEFAULT_MASK_CHARACTER`, `PLACEHOLDER_*` | Loading state display |
+| **Velocity Loading** | `CANCEL_LOAD_VELOCITY_THRESHOLD`, `PRELOAD_VELOCITY_THRESHOLD`, `PRELOAD_ITEMS_AHEAD` | Velocity-based load strategy |
+| **Compression** | `MAX_VIRTUAL_SIZE` | Large list handling |
+| **Scrollbar** | `DEFAULT_SCROLLBAR_AUTO_HIDE`, `DEFAULT_SCROLLBAR_AUTO_HIDE_DELAY`, `DEFAULT_SCROLLBAR_MIN_THUMB_SIZE` | Custom scrollbar |
+| **Placeholder** | `DEFAULT_MASK_CHARACTER`, `DEFAULT_MAX_SAMPLE_SIZE`, `PLACEHOLDER_FLAG`, `PLACEHOLDER_ID_PREFIX` | Loading state display |
 | **Sparse Storage** | `DEFAULT_CHUNK_SIZE`, `DEFAULT_MAX_CACHED_ITEMS`, `DEFAULT_EVICTION_BUFFER` | Memory management |
 | **Scroll** | `SCROLL_IDLE_TIMEOUT`, `DEFAULT_WHEEL_SENSITIVITY` | Scroll behavior |
-| **Loading** | `DEFAULT_CANCEL_THRESHOLD`, `DEFAULT_PRELOAD_THRESHOLD`, `DEFAULT_PRELOAD_AHEAD` | Velocity-based loading |
+| **Builder Velocity** | `VELOCITY_SAMPLE_COUNT`, `MIN_RELIABLE_SAMPLES`, `STALE_GAP_MS` | Scroll momentum tracking |
 
-## Performance Tuning
+---
 
-### For Smooth Scrolling
+## Related
 
-```typescript
-// Increase overscan for smoother scrolling
-const TUNED_OVERSCAN = 5;  // vs default 3
-
-// Decrease idle timeout for faster response (configurable via idleTimeout option)
-const TUNED_IDLE_TIMEOUT = 100;  // vs default 150
-
-// Increase preload ahead for slow APIs
-const TUNED_PRELOAD_AHEAD = 100;  // vs default 50
-```
-
-### For Memory Efficiency
-
-```typescript
-// Reduce max cached items
-const TUNED_MAX_CACHED = 5000;  // vs default 10,000
-
-// Smaller eviction buffer
-const TUNED_EVICTION_BUFFER = 200;  // vs default 500
-```
-
-### For Large Datasets
-
-```typescript
-// Larger chunks for less overhead
-const TUNED_CHUNK_SIZE = 200;  // vs default 100
-
-// Larger page size for fewer requests
-const TUNED_PAGE_SIZE = 100;  // vs default 50
-```
-
-## Related Documentation
-
-- [Rendering](../internals/rendering.md) — Uses `DEFAULT_OVERSCAN`, `MAX_VIRTUAL_HEIGHT`
-- [Scrollbar](../features/scrollbar.md) — Uses `SCROLL_IDLE_TIMEOUT`, scrollbar constants
-- [Async](../features/async.md) — Uses storage and placeholder constants
-- [Context](../internals/context.md) — BuilderContext that wires scroll, click, and keyboard handlers
-- [Optimization](/tutorials/optimization) — Full list of implemented optimizations and configuration options
-- [API Reference](./reference.md) — Complete API config, methods, events, types
+- [API Reference](./reference.md) — Config options that override these defaults
+- [Events](./events.md) — `velocity:change` event powered by velocity tracker
+- [Scale](../features/scale.md) — `MAX_VIRTUAL_SIZE` and compression
+- [Async](../features/async.md) — Velocity-based loading strategy
+- [Optimization](/tutorials/optimization) — Tuning `idleTimeout` and other options
 
 ---
 

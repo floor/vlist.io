@@ -57,27 +57,27 @@ const list = vlist({
 
 ### Configuration Options
 
-#### `adapter` (required)
+#### adapter (required)
 Async data source with a `read` function:
 - **Input**: `{ offset: number, limit: number, signal?: AbortSignal }`
 - **Output**: `Promise<{ items: T[], total: number, hasMore?: boolean, cursor?: string }>`
 
-#### `autoLoad` (optional)
+#### autoLoad (optional)
 Whether to automatically load initial data. Default: `true`
 - Set to `false` if you need to initialize state before loading
 - Call `list.reload()` when ready to load data
 
-#### `total` (optional)
+#### total (optional)
 Initial total count when `autoLoad: false`. Prevents vlist from thinking the list is empty.
 
-#### `storage` (optional)
+#### storage (optional)
 Configure sparse storage behavior:
 - `chunkSize`: Number of items per chunk (default: 100)
   - **Important**: Should match your API pagination size for optimal performance
   - Example: If your API returns 25 items per page, use `chunkSize: 25`
 - `maxCachedItems`: Maximum items in memory before eviction (default: 10000)
 
-#### `loading` (optional)
+#### loading (optional)
 Velocity-based loading optimization:
 - `cancelThreshold`: Velocity (px/ms) above which loading is skipped (default: 5)
 - `preloadThreshold`: Velocity (px/ms) for preloading ahead (default: 2)
@@ -166,7 +166,7 @@ Renderer re-renders with real data
 
 ### Data Manager
 
-#### `createDataManager`
+#### createDataManager
 
 Creates a data manager instance.
 
@@ -282,7 +282,7 @@ interface DataState<T extends VListItem> {
 
 ### Sparse Storage
 
-#### `createSparseStorage`
+#### createSparseStorage
 
 Creates sparse storage for efficient large list handling.
 
@@ -364,7 +364,7 @@ interface SparseStorageStats {
 
 ### Placeholder Manager
 
-#### `createPlaceholderManager`
+#### createPlaceholderManager
 
 Creates a placeholder manager for loading states.
 
