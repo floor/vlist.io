@@ -315,22 +315,63 @@ Enhance the existing file-browser into a polished OS file manager:
 - **Sort controls**: Name, size, date, type
 - Keep existing `withGrid()` + `withSections()` + `withScrollbar()`
 
-### Phase 3 — Archive & Clean Up
+### Phase 3 — Reorganize Directories
 
-- Archive `controls/`, `variable-heights/`, `horizontal/variable-width/`, `masonry/photo-album/` to `examples/archive/`
-- Remove archived entries from navigation.json (already done in Phase 1)
+Flatten the directory structure to match the navigation. Directories named by what they build, not by feature.
+
+**Before → After:**
+
+| Before (path) | After (path) | Notes |
+|----------------|-------------|-------|
+| `basic/` | `basic-list/` | — |
+| `grid/photo-album/` | `photo-album/` | Merged with masonry |
+| `reverse-chat/` | `messaging/` | — |
+| `groups/sticky-headers/` | `contact-list/` | — |
+| `wizard-nav/` | `wizard/` | — |
+| `auto-size/` | `feed/` | Rewritten with X API |
+| `grid/file-browser/` | `file-browser/` | — |
+| `horizontal/basic/` | `carousel/` | Merged with variable-width |
+| `window-scroll/` | `window-scroll/` | No change |
+| `data/velocity-loading/` | `velocity-loading/` | — |
+| `data/large-list/` | `large-dataset/` | — |
+| `scroll-restore/` | `scroll-restore/` | No change |
+
+**Also:**
+- Move `controls/`, `variable-heights/`, `horizontal/variable-width/`, `masonry/photo-album/`, `grid/` (empty after moves), `data/` (empty after moves), `groups/` (empty after moves) to `examples/archive/`
+- Update `navigation.json` slugs to match new flat paths
+- Update all docs/tutorials/feature pages that link to old `/examples/grid/photo-album` etc.
+- Verify build system auto-discovers new paths (`bun run build:examples`)
+
+**URL changes:**
+
+| Old URL | New URL |
+|---------|---------|
+| `/examples/grid/photo-album` | `/examples/photo-album` |
+| `/examples/grid/file-browser` | `/examples/file-browser` |
+| `/examples/groups/sticky-headers` | `/examples/contact-list` |
+| `/examples/data/velocity-loading` | `/examples/velocity-loading` |
+| `/examples/data/large-list` | `/examples/large-dataset` |
+| `/examples/horizontal/basic` | `/examples/carousel` |
+| `/examples/reverse-chat` | `/examples/messaging` |
+| `/examples/auto-size` | `/examples/feed` |
+| `/examples/wizard-nav` | `/examples/wizard` |
+| `/examples/basic` | `/examples/basic-list` |
+
+### Phase 4 — Archive & Clean Up
+
+- Verify `examples/archive/` contains all retired directories
 - Verify all 12 examples build cleanly (`bun run build:examples`)
 - Verify all content.html files have consistent structure
 - Check all examples use builder API (no monolithic config)
 
-### Phase 4 — Polish & Consistency
+### Phase 5 — Polish & Consistency
 
 - Consistent control panel layout across all Essentials (same aside pattern, same button/toggle styles)
 - Consistent stats bar across all examples (items, DOM nodes, visible range)
 - Review descriptions in navigation.json for accuracy after all enhancements
 - Verify feature chips match actual features used after modifications
 
-### Phase 5 — Cross-Links (shared with tutorials)
+### Phase 6 — Cross-Links (shared with tutorials)
 
 - Tutorials link to their corresponding live examples ("See it live" at top)
 - Example pages link back to their tutorial ("Learn step by step" where a tutorial exists)
