@@ -686,7 +686,7 @@ function isRangeVisible(
 The default experience: custom scrollbar, wheel enabled, everything automatic.
 
 ```typescript
-import { vlist } from 'vlist';
+import { vlist } from '@floor/vlist';
 
 const list = vlist({
   container: '#app',
@@ -875,8 +875,7 @@ const list = vlist({
 Using the low-level scroll controller and scrollbar directly:
 
 ```typescript
-import { createScrollController, createScrollbar } from 'vlist';
-import { getCompressionState } from 'vlist';
+import { createScrollController, createScrollbar, getCompressionState } from '@floor/vlist';
 
 function createScrollSystem(viewport, totalItems, itemHeight) {
   const compression = getCompressionState(totalItems, itemHeight);
@@ -1397,7 +1396,7 @@ This pattern already existed in other parts of the codebase (reverse mode, appen
 
 - [Snapshots](./snapshots.md) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
 - [scale.md](./scale.md) — Compression state for large lists
-- [render.md](../internals/rendering.md) — Viewport state management
+- [Rendering](../internals/rendering.md) — Viewport state management
 - [Context](../internals/context.md) — BuilderContext holds scroll controller and wires event handlers
 - [optimization.md](/tutorials/optimization) — Full list of scroll-related optimizations
 - [styles.md](/tutorials/styling) — `.vlist--scrolling` class and CSS containment

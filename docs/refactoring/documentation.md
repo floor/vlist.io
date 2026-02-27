@@ -1,6 +1,6 @@
-# Documentation Refactoring — v1.0 Audit
+# Documentation Refactoring — v1.1.0 Audit
 
-> Systematic audit and rewrite of vlist documentation against source code after reaching v1.0.0.
+> Systematic audit and rewrite of vlist documentation against source code, started after v1.0.0 and continued through v1.1.0.
 
 ---
 
@@ -8,9 +8,19 @@
 
 After the v1.0.0 release, the docs had drifted significantly from the source. The API reference documented methods that didn't exist (`scrollToItem`, `update`), described features incorrectly (`withPage` was described as wizard navigation instead of window scrolling), used wrong constant values, and had a monolithic 1,159-line reference page where most content was unreachable from the TOC.
 
+The refactoring was executed in three phases:
+
+| Phase | Scope | Status |
+|-------|-------|--------|
+| **Phase 1** | API Reference section — full rewrite of 5 files | ✅ Complete |
+| **Phase 2** | Cross-cutting fixes — stale references, broken links, version alignment | ✅ Complete |
+| **Phase 3** | Feature docs — import paths, API patterns, deprecated names, broken links | ✅ Complete |
+
 ---
 
-## What Was Done
+## Phase 1 — API Reference
+
+Full rewrite of the `api/` section plus internals, source code, and server-side TOC.
 
 ### api/reference.md — Full rewrite
 
@@ -218,31 +228,178 @@ All changes pass TypeScript compilation and 2,268 tests (0 failures).
 
 ---
 
+## Phase 2 — Cross-Cutting Fixes
+
+Systematic pass across all user-facing docs to fix stale references, broken links, and version drift accumulated during the v0.8 → v1.1.0 transition.
+
+### getting-started.md
+
+| Fix | Detail |
+|-----|--------|
+| `scrollToItem` removed | Stale method call in Scroll Methods example |
+| `VListConfig` → `BuilderConfig` | Type name in Core Config Options section |
+| `reverse` description | Broadened from "chat and messaging UIs" to behavior-focused |
+| Broken relative links | `./chat-interface`, `./optimization`, `./styling` → absolute `/tutorials/` paths |
+
+### README.md (docs index)
+
+| Fix | Detail |
+|-----|--------|
+| Broken markdown links | `[Methods]/docs/api/reference)` → `[Methods](./api/reference.md)` in two places (missing `(` in link syntax) |
+
+### internals/structure.md
+
+| Fix | Detail |
+|-----|--------|
+| `heights.ts` → `sizes.ts` | Rendering System tree and description |
+| `createHeightCache` → `createSizeCache` | Key exports list and Internal Imports example |
+| `calculateTotalHeight` → `calculateTotalSize` | Key exports list |
+| `VListConfig` → `BuilderConfig` | types.ts description |
+| Version footer | "v0.8+" / "January 2026" → "v1.1.0" / "February 2026" |
+
+### internals/orientation.md
+
+| Fix | Detail |
+|-----|--------|
+| `VListConfig.orientation` | → `BuilderConfig.orientation` with correct file reference to `builder/types.ts` |
+
+### resources/testing.md
+
+| Fix | Detail |
+|-----|--------|
+| Test stats | 2,107 → **2,268 tests**, 5,673 → **36,595 assertions**, 42 → **45 files**, ~20s → **~18s** |
+
+### overview.json (homepage cards)
+
+| Fix | Detail |
+|-----|--------|
+| Missing card | Added `api/exports` to API Reference section |
+| Testing card | Updated description from "1,181 tests" to "2,268 tests passing, 36,595 assertions" |
+
+### features/scrollbar.md
+
+| Fix | Detail |
+|-----|--------|
+| `VListConfig` → `BuilderConfig` | Two references in Scroll Configuration and createScrollController description |
+
+### features/sections.md
+
+| Fix | Detail |
+|-----|--------|
+| "Chat UI" labeling | "Chat UI with Date Headers" → "Reverse Mode with Date Headers"; "chat UIs" → "bottom-anchored UIs (chat, logs, activity feeds)" in 3 places |
+
+### features/masonry.md, features/scale.md
+
+| Fix | Detail |
+|-----|--------|
+| Version footers | "0.5.0+" → "v1.0.0+"; "v0.8.0" → "v1.0.0" |
+
+---
+
+## Phase 3 — Feature Docs
+
+Systematic pass across all 8 `features/*.md` files to fix import paths, API patterns, deprecated names, and broken links.
+
+### Import path: `'vlist'` → `'@floor/vlist'`
+
+The npm package name is `@floor/vlist`. All code examples must use the scoped name.
+
+| File | Occurrences fixed |
+|------|-------------------|
+| `features/page.md` | 6 |
+| `features/snapshots.md` | 7 |
+| `features/sections.md` | 3 (also combined split `import { vlist } from` / `import { withX } from` into single imports) |
+| `features/scrollbar.md` | 2 |
+| `features/placeholders.md` | 1 |
+| `features/async.md` | 1 (also removed non-existent `'vlist/async'` sub-path import) |
+| `features/selection.md` | 4 (changed `'./selection'` internal paths to `'@floor/vlist'`) |
+
+**Not changed:** `grid.md` migration section — `import { createVList } from 'vlist'` is intentionally showing the old API in a "Before" example.
+
+### Non-existent sub-path imports removed
+
+| File | Removed | Replaced with |
+|------|---------|---------------|
+| `features/async.md` | `import { withAsync } from 'vlist/async'` | `import { vlist, withAsync } from '@floor/vlist'` |
+| `features/snapshots.md` | `import { withSnapshots } from 'vlist/snapshots'` | Single import from `'@floor/vlist'` |
+
+### features/selection.md — Old monolithic API
+
+**Before:** "With VList" example used pre-builder config with `selection: { mode: 'multiple', initial: [...] }` at the top level, no `.use()` / `.build()`.
+
+**After:** Builder pattern with `.use(withSelection({ mode: 'multiple', initial: ['user-1'] })).build()`.
+
+Also fixed: broken link `[optimization.md]/tutorials/optimization)` → `[Optimization](/tutorials/optimization)`.
+
+### features/async.md — Complete Integration example
+
+**Before:** Used old monolithic API with `adapter: { ... }` at top level. Had duplicate `const isLoading` line from previous partial edit.
+
+**After:** Builder pattern with `.use(withAsync({ adapter: { ... } })).build()`. Single clean `isLoading` check.
+
+### features/page.md
+
+| Fix | Detail |
+|-----|--------|
+| `cancelThreshold: 15` → `5` | Combining with Async Loading example (matches source `CANCEL_LOAD_VELOCITY_THRESHOLD = 5`) |
+| `./README.md` → `./overview.md` | See Also link (no `README.md` exists in `features/`) |
+
+### features/snapshots.md
+
+| Fix | Detail |
+|-----|--------|
+| Bundle cost footer | "Opt-in feature (tree-shakeable)" → "Included in base (0 KB additional)" — matches `overview.md` which says 0 KB |
+| `./README.md` → `./overview.md` | See Also link |
+
+### features/sections.md
+
+| Fix | Detail |
+|-----|--------|
+| `./README.md` → `./overview.md` | Further Reading link |
+
+### features/scale.md
+
+| Fix | Detail |
+|-----|--------|
+| `MAX_VIRTUAL_HEIGHT` → `MAX_VIRTUAL_SIZE` | Exported Utilities import example and Constants section |
+
+### features/scrollbar.md
+
+| Fix | Detail |
+|-----|--------|
+| `render.md` → `Rendering` | Related Modules link text (path was already correct) |
+
+---
+
 ## What Remains
 
 ### Low priority
 
 | File | What | Why |
 |------|------|-----|
-| **internals/structure.md** | Update version | Says "v0.8+", last updated "January 2026" |
+| **resources/roadmap.md** | Update framing | Says "ready for 1.0" — library is at 1.1.0. 14/14 items shipped. Could be reframed as a "post-1.0" document or archived. |
+| **resources/known-issues.md** | Stale code examples | Uses pre-builder API syntax (`layout: 'grid'`, `groups` at top level, `scrollToItem`). All items ✅ completed — essentially a historical document. Low user impact. |
+| **features/scrollbar.md** | Length and structure | At 1,409 lines, this is the longest feature doc. Mixes user-facing configuration with deep implementation details (native mode internals, wheel interception, velocity circular buffer). Could be split into a user guide and an internals page. |
+| **features/selection.md** | Internal API weight | Heavy on low-level pure functions (`createSelectionState`, `selectItems`, etc.) that most users never call directly. The "With VList" example (now fixed) is the actual user API. Could restructure to lead with builder usage and move pure functions to an "Internals" section. |
+| **features/async.md** | Same as selection | Heavy on `createDataManager`, `createSparseStorage`, `createPlaceholderManager` internals. Most users only need the `withAsync()` config. |
 
-| **resources/roadmap.md** | Update status | Still says version "0.9.5" and "ready for 1.0" — library is at 1.1.0 |
-| **resources/known-issues.md** | Stale code examples | Uses pre-builder API syntax (`layout: 'grid'`, `groups` at top level). All items ✅ — historical document, low user impact |
-| **resources/testing.md** | Update counts | Test counts likely outdated for v1.0+ |
-| **features/*.md (various)** | "Chat UI" labeling | Multiple files use "Chat UI" as the sole use case for reverse mode. Should broaden to behavior-focused descriptions. Only fixed in `reference.md` so far. |
+### Not needed (verified accurate)
 
-### Not needed
-
-| File | Why |
-|------|-----|
-| **internals/measurement.md** | Accurate — describes Mode B architecture correctly |
-| **internals/orientation.md** | Accurate — describes axis-neutral SizeCache correctly |
-| **features/grid.md** | Accurate — already documents GridHeightContext inline |
-| **features/masonry.md** | Accurate — matches source |
-| **features/page.md** | Accurate (after our fix) |
-| **features/snapshots.md** | Accurate — documents `SnapshotConfig.restore` correctly |
-| **resources/bundle-size.md** | Accurate — sizes and tree-shaking info still valid |
-| **resources/benchmarks.md** | Accurate — benchmark methodology unchanged |
+| File | Status |
+|------|--------|
+| **features/overview.md** | ✅ Accurate — all 8 features with correct examples and bundle costs |
+| **features/grid.md** | ✅ Accurate — documents `GridSizeContext` (still uses `GridHeightContext` alias inline which is fine) |
+| **features/masonry.md** | ✅ Accurate — matches source |
+| **features/page.md** | ✅ Accurate (after Phase 3 fixes) |
+| **features/snapshots.md** | ✅ Accurate (after Phase 3 fixes) — `SnapshotConfig.restore` correctly documented |
+| **features/placeholders.md** | ✅ Accurate — per-item length profiles, CSS class detection, template guidelines |
+| **features/scale.md** | ✅ Accurate (after Phase 3 fixes) — compression architecture, scroll controller modes |
+| **internals/measurement.md** | ✅ Accurate — describes Mode B architecture correctly |
+| **internals/orientation.md** | ✅ Accurate (after Phase 2 fix) — axis-neutral SizeCache |
+| **internals/structure.md** | ✅ Accurate (after Phase 2 fixes) — correct file names, exports, version |
+| **resources/bundle-size.md** | ✅ Accurate — sizes and tree-shaking info still valid |
+| **resources/benchmarks.md** | ✅ Accurate — benchmark methodology unchanged |
+| **resources/testing.md** | ✅ Accurate (after Phase 2 fix) — 2,268 tests / 36,595 assertions |
 
 ---
 
@@ -255,3 +412,5 @@ All changes pass TypeScript compilation and 2,268 tests (0 failures).
 5. **Behavior over use case** — Describe what `reverse` *does*, not what it's *for*. List use cases as examples, don't prescribe one.
 6. **Focused pages** — Reference covers config + properties + methods. Events, types, constants, exports each get their own page.
 7. **No backticks in headings** — `marked` passes heading text as raw markdown, so backticks survive as literal characters in the TOC. Use plain text for all H2/H3/H4 headings; code formatting belongs in the body text, not the heading.
+8. **Correct package name** — All import examples use `'@floor/vlist'` (the npm scoped name), not `'vlist'`. Sub-path imports only for `'@floor/vlist/styles'` and `'@floor/vlist/styles/extras'` — no `'vlist/async'`, `'vlist/snapshots'`, etc.
+9. **Builder API everywhere** — All user-facing examples use `vlist({...}).use(withX()).build()`. No monolithic config with top-level `adapter`, `selection`, `layout`. Old API shown only in clearly labeled migration sections.

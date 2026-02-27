@@ -180,7 +180,7 @@ function moveFocusUp(
 // With wrap=false: 0 -> 0
 ```
 
-> **⚡ Performance note:** This function mutates `state.focusedIndex` **in-place** and returns the same object to avoid object allocations on keyboard navigation hot paths. See [optimization.md]/tutorials/optimization) for details.
+> **⚡ Performance note:** This function mutates `state.focusedIndex` **in-place** and returns the same object to avoid object allocations on keyboard navigation hot paths. See [Optimization](/tutorials/optimization) for details.
 
 #### moveFocusDown
 
@@ -338,7 +338,7 @@ import {
   selectItems,
   deselectItems,
   toggleSelection
-} from './selection';
+} from '@floor/vlist';
 
 // Create initial state
 let state = createSelectionState();
@@ -375,7 +375,7 @@ import {
   moveFocusDown,
   moveFocusUp,
   selectFocused
-} from './selection';
+} from '@floor/vlist';
 
 let state = createSelectionState();
 const totalItems = 100;
@@ -402,7 +402,7 @@ state = selectFocused(state, items, 'multiple');
 ### Range Selection
 
 ```typescript
-import { createSelectionState, selectRange } from './selection';
+import { createSelectionState, selectRange } from '@floor/vlist';
 
 let state = createSelectionState();
 
@@ -414,7 +414,7 @@ state = selectRange(state, items, 5, 10, 'multiple');
 ### With VList
 
 ```typescript
-import { vlist } from '@floor/vlist';
+import { vlist, withSelection } from '@floor/vlist';
 
 const list = vlist({
   container: '#app',
@@ -427,11 +427,9 @@ const list = vlist({
     `,
   },
   items: users,
-  selection: {
-    mode: 'multiple',
-    initial: ['user-1']  // Pre-selected
-  },
-});
+})
+  .use(withSelection({ mode: 'multiple', initial: ['user-1'] }))
+  .build();
 
 // Listen for selection changes
 list.on('selection:change', ({ selected, items }) => {
@@ -460,7 +458,7 @@ import {
   moveFocusToFirst,
   moveFocusToLast,
   toggleSelection
-} from './selection';
+} from '@floor/vlist';
 
 function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VListItem[]) {
   const totalItems = items.length;

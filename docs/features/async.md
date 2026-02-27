@@ -26,8 +26,7 @@ src/features/async/
 The `withAsync` feature is the main API for adding async data loading to vlist:
 
 ```typescript
-import { vlist } from 'vlist'
-import { withAsync } from 'vlist/async'
+import { vlist, withAsync } from '@floor/vlist'
 
 const list = vlist({
   container: '#app',
@@ -620,14 +619,14 @@ const { total, cached, isLoading } = dataManager.getState();
 ### Complete Integration
 
 ```typescript
-import { vlist } from 'vlist';
+import { vlist, withAsync } from '@floor/vlist';
 
 const list = vlist({
   container: '#app',
   item: {
     height: 48,
-    template: (item, index, state) => {
-      const isLoading = item._isPlaceholder;
+    template: (item, index) => {
+      const isLoading = !item || String(item.id).startsWith('__placeholder_');
       return `
         <div class="item ${isLoading ? 'loading' : ''}">
           ${isLoading ? 'Loading...' : item.name}
@@ -635,6 +634,8 @@ const list = vlist({
       `;
     },
   },
+})
+.use(withAsync({
   adapter: {
     read: async ({ offset, limit, cursor }) => {
       const url = cursor 
@@ -650,9 +651,10 @@ const list = vlist({
         cursor: data.nextCursor,
         hasMore: data.hasMore
       };
-    }
+    },
   },
-});
+}))
+.build();
 
 // Events
 list.on('load:start', ({ offset, limit }) => {

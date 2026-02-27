@@ -185,7 +185,7 @@ For advanced use cases, you can import scaling utilities directly:
 
 ```typescript
 import {
-  MAX_VIRTUAL_HEIGHT,
+  MAX_VIRTUAL_SIZE,
   needsScaling,
   getMaxItemsWithoutScaling,
   getScaleInfo,
@@ -210,10 +210,10 @@ const state = getScaleState(totalItems, itemSize);
 ## Constants
 
 ```typescript
-// Maximum virtual height (browser safe limit)
-const MAX_VIRTUAL_HEIGHT = 16_000_000; // 16M pixels
+// Maximum virtual size (browser safe limit)
+const MAX_VIRTUAL_SIZE = 16_000_000; // 16M pixels
 
-// Max items by height (without scaling)
+// Max items by size (without scaling)
 // 48px → 333,333 items
 // 40px → 400,000 items
 // 32px → 500,000 items

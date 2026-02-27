@@ -112,7 +112,7 @@ const itemTemplate = (item, index) => {
 Placeholders work automatically with `withAsync()` — no configuration needed:
 
 ```javascript
-import { vlist, withAsync } from 'vlist';
+import { vlist, withAsync } from '@floor/vlist';
 
 const list = vlist({
   container: '#app',

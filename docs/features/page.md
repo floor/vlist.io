@@ -8,7 +8,7 @@ The `withPage()` feature enables **page-level scrolling** where the list partici
 
 **Import:**
 ```typescript
-import { vlist, withPage } from 'vlist';
+import { vlist, withPage } from '@floor/vlist';
 ```
 
 **Bundle cost:** +0.9 KB gzipped
@@ -16,7 +16,7 @@ import { vlist, withPage } from 'vlist';
 ## Quick Start
 
 ```typescript
-import { vlist, withPage } from 'vlist';
+import { vlist, withPage } from '@floor/vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -56,7 +56,7 @@ The feature automatically:
 ### Blog Posts / Articles
 
 ```typescript
-import { vlist, withPage } from 'vlist';
+import { vlist, withPage } from '@floor/vlist';
 
 const blog = vlist({
   container: '#articles',
@@ -80,7 +80,7 @@ const blog = vlist({
 ### Infinite Scroll Feed
 
 ```typescript
-import { vlist, withPage, withAsync } from 'vlist';
+import { vlist, withPage, withAsync } from '@floor/vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -109,7 +109,7 @@ Combines page scrolling with lazy loading for infinite scroll.
 ### Product Listings
 
 ```typescript
-import { vlist, withPage } from 'vlist';
+import { vlist, withPage } from '@floor/vlist';
 
 const products = vlist({
   container: '#products',
@@ -133,7 +133,7 @@ const products = vlist({
 ### Search Results
 
 ```typescript
-import { vlist, withPage } from 'vlist';
+import { vlist, withPage } from '@floor/vlist';
 
 const results = vlist({
   container: '#results',
@@ -324,7 +324,7 @@ See these interactive examples at [vlist.dev/examples](/examples/):
 ### Combining with Async Loading
 
 ```typescript
-import { vlist, withPage, withAsync } from 'vlist';
+import { vlist, withPage, withAsync } from '@floor/vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -342,7 +342,7 @@ const feed = vlist({
       },
     },
     loading: {
-      cancelThreshold: 15,  // Skip loads when scrolling fast
+      cancelThreshold: 5,  // Skip loads when scrolling fast
     },
   }))
   .build();
@@ -390,7 +390,7 @@ For better SEO with infinite scroll:
 
 ## See Also
 
-- **[Features Overview](./README.md)** - All available features
+- **[Features Overview](./overview.md)** - All available features
 - **[Async Feature](./async.md)** - Combine for infinite scroll
 - **[Scrollbar Feature](./scrollbar.md)** - Alternative: custom scrollbar
 - **[Builder Pattern](/tutorials/builder-pattern)** - How to compose features

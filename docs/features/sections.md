@@ -53,8 +53,7 @@ The feature:
 ### With Builder (Recommended)
 
 ```typescript
-import { vlist } from 'vlist'
-import { withSections } from 'vlist'
+import { vlist, withSections } from '@floor/vlist'
 
 const contacts = vlist({
   container: '#contacts',
@@ -264,9 +263,7 @@ The sticky header has the class `{classPrefix}-sticky-header`:
 Groups work seamlessly with grid layout. Headers automatically span the full width:
 
 ```typescript
-import { vlist } from 'vlist'
-import { withGrid } from 'vlist'
-import { withSections } from 'vlist'
+import { vlist, withGrid, withSections } from '@floor/vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -362,8 +359,7 @@ contacts.scrollToIndex(2, 'start')
 The sections feature **works seamlessly with reverse mode** - both sticky and inline headers are supported:
 
 ```typescript
-import { vlist } from 'vlist'
-import { withSections } from 'vlist'
+import { vlist, withSections } from '@floor/vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -890,5 +886,5 @@ headerTemplate: (key) => {
 
 - [Grid Feature](./grid.md) — Combine groups with grid layout
 - [Selection Feature](./selection.md) — Add selection to grouped lists
-- [Feature System](./README.md) — How features work
+- [Feature System](./overview.md) — How features work
 - [API Reference](/docs/api/reference) — Full API documentation

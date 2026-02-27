@@ -8,17 +8,15 @@ The `withSnapshots()` feature enables **scroll position save/restore** for seaml
 
 **Import:**
 ```typescript
-import { vlist, withSnapshots } from 'vlist';
-// or
-import { withSnapshots } from 'vlist/snapshots';
+import { vlist, withSnapshots } from '@floor/vlist';
 ```
 
-**Bundle cost:** Opt-in feature (tree-shakeable)
+**Bundle cost:** Included in base (0 KB additional)
 
 ## Quick Start
 
 ```typescript
-import { vlist, withSnapshots } from 'vlist';
+import { vlist, withSnapshots } from '@floor/vlist';
 
 const list = vlist({
   container: '#list',
@@ -130,7 +128,7 @@ list.restoreScroll({ index: 523, offsetInItem: 12, total: 5000 });
 The cleanest pattern: pass the snapshot to `withSnapshots({ restore })` when recreating the list.
 
 ```typescript
-import { vlist, withSnapshots } from 'vlist';
+import { vlist, withSnapshots } from '@floor/vlist';
 
 const STORAGE_KEY = 'list-scroll';
 let list;
@@ -169,7 +167,7 @@ function goBack() {
 ### SPA Navigation (Back/Forward via History API)
 
 ```typescript
-import { vlist, withSnapshots } from 'vlist';
+import { vlist, withSnapshots } from '@floor/vlist';
 
 const list = vlist({
   container: '#list',
@@ -204,7 +202,7 @@ window.addEventListener('popstate', (e) => {
 ### Session Storage (Debounced Auto-Save)
 
 ```typescript
-import { vlist, withSnapshots } from 'vlist';
+import { vlist, withSnapshots } from '@floor/vlist';
 
 const saved = sessionStorage.getItem('product-list-scroll');
 const snapshot = saved ? JSON.parse(saved) : undefined;
@@ -254,7 +252,7 @@ function switchTab(tabName) {
 ### Local Storage (Persist Across Sessions)
 
 ```typescript
-import { vlist, withSnapshots } from 'vlist';
+import { vlist, withSnapshots } from '@floor/vlist';
 
 const saved = localStorage.getItem('reading-position');
 const snapshot = saved ? JSON.parse(saved) : undefined;
@@ -325,7 +323,7 @@ This is more reliable than calling `restoreScroll()` manually after `build()`, b
 When `withSelection()` is installed, snapshots **automatically include selection**:
 
 ```typescript
-import { vlist, withSelection, withSnapshots } from 'vlist';
+import { vlist, withSelection, withSnapshots } from '@floor/vlist';
 
 const list = vlist({ ... })
   .use(withSelection({ mode: 'multiple' }))
@@ -356,7 +354,7 @@ No need to save or restore selection separately — it's all in the snapshot.
 When using `withAsync()`, pass the snapshot's `total` to avoid a loading flash:
 
 ```typescript
-import { vlist, withAsync, withSnapshots } from 'vlist';
+import { vlist, withAsync, withSnapshots } from '@floor/vlist';
 
 const saved = sessionStorage.getItem('scroll');
 const snapshot = saved ? JSON.parse(saved) : undefined;
@@ -533,13 +531,13 @@ const snapshot = {
 
 ## See Also
 
-- **[Features Overview](./README.md)** — All available features
+- **[Features Overview](./overview.md)** — All available features
 - **[Builder Pattern](/tutorials/builder-pattern)** — How to compose features
 - **[API Methods](/docs/api/reference)** — Complete method reference
 - **[Examples](/examples/scroll-restore/)** — Interactive example
 
 ---
 
-**Bundle cost:** Opt-in feature (tree-shakeable)
+**Bundle cost:** Included in base (0 KB additional)
 **Priority:** 50 (runs last — needs all other features initialized)
 **Methods added:** `getScrollSnapshot()`, `restoreScroll()`
