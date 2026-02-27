@@ -244,21 +244,93 @@ Each tutorial should point to one or more live examples. The mapping:
 - Moved photo-album, messaging, contact-list, wizard, feed, file-browser, carousel, window-scroll into Essentials
 - Archived controls, variable-heights conceptually (nav removed, directories remain for now)
 
-### Phase 2 — Modify Existing Examples
+### Phase 2 — Enhance Essentials
 
-- **Photo Album**: merge `grid/photo-album` + `masonry/photo-album` — add Grid ↔ Masonry layout toggle
-- **Carousel**: merge `horizontal/basic` + `horizontal/variable-width` — add Fixed ↔ Variable width toggle
-- **Feed**: rewrite `auto-size` — X API data, `estimatedHeight` + `withAsync()`, real social feed UI
-- Archive `controls/`, `variable-heights/`, `horizontal/variable-width/`, `masonry/photo-album/` directories
+Upgrade every Essentials example into a polished, interactive showcase. Each gets a control panel aside, realistic data, and toggles that let the reader explore vlist features by switching options live.
 
-### Phase 3 — Polish & Consistency
+#### 1. Basic List — Control panel
 
-- Verify all examples build cleanly (`bun run build:examples`)
+Add an aside panel with controls to explore the core API interactively:
+- **Item count** slider (100 → 100K) — shows virtualization benefit as count grows
+- **Item height** toggle (fixed ↔ variable) — demonstrates both sizing strategies
+- **Overscan** slider (0–10) — visualize the render buffer
+- **Scroll to** input + go button — `scrollToIndex()` with align selector (start/center/end)
+- **Data operations** — append, prepend, remove buttons
+- Live stats: total items, DOM nodes, visible range, scroll position
+
+#### 2. Photo Album — Layout toggle grid / masonry
+
+Merge `grid/photo-album` + `masonry/photo-album` into one example with controls:
+- **Layout switch**: Grid ↔ Masonry — destroys and recreates with `withGrid()` or `withMasonry()`
+- Keep existing grid controls (columns, gap, orientation)
+- Masonry mode: variable heights from photo aspect ratios, shortest-lane placement
+- Shared data (Picsum photos), shared card template
+- Archive `masonry/photo-album/` directory after merge
+
+#### 3. Messaging — Header controls
+
+Enhance the existing reverse-chat with section header controls:
+- **Headers toggle**: On ↔ Off — rebuild with or without `withSections()`
+- **Sticky toggle**: Sticky (Telegram style) ↔ Inline (iMessage style) — `sticky: true/false`
+- **Header style** selector: Date labels, sender name, or custom grouping function
+- Keep existing features: auto-scroll, incoming messages, send input, date grouping, DOM measurement
+
+#### 4. Wizard — Orientation switch
+
+Enhance wizard-nav with orientation and behavior controls:
+- **Orientation switch**: Vertical ↔ Horizontal — rebuild with `orientation` option
+- **Wheel toggle**: Enabled ↔ Disabled — `scroll: { wheel: true/false }`
+- **Wrap toggle**: On ↔ Off — `scroll: { wrap: true }` for circular navigation
+- **Selection mode**: None ↔ Single — toggle `withSelection()`
+- Step-by-step recipe/onboarding UI with prev/next buttons
+
+#### 5. Carousel — MD3 carousel
+
+Rewrite `horizontal/basic` as an MD3-inspired carousel with multiple behaviors:
+- **Mode switch**: Hero (single large + peek) ↔ Multi-browse (multiple visible) ↔ Uncontained (free scroll)
+- **Item width toggle**: Fixed ↔ Variable — demonstrates both sizing strategies
+- **Snap behavior**: Snap to item boundaries
+- **Navigation**: Arrow buttons, swipe, keyboard
+- Realistic card content (articles, products, media)
+- Merge `horizontal/variable-width/` logic, archive that directory
+
+#### 6. Feed — Social feed mocking X / Facebook
+
+Rewrite `auto-size` as a realistic social media feed:
+- **Platform switch**: X (Twitter) style ↔ Facebook style — different card layouts, same data
+- `estimatedHeight` for variable post sizes (text-only, image, quote, thread)
+- `withAsync()` with simulated API — infinite scroll loading
+- `withPage()` option toggle — embedded scroll vs window scroll
+- Realistic post data: avatars, usernames, timestamps, like/retweet counts, images
+- Placeholder skeletons while loading
+- Archive `variable-heights/` directory (replaced by this)
+
+#### 7. File Browser — OS file manager
+
+Enhance the existing file-browser into a polished OS file manager:
+- **OS switch**: macOS Finder ↔ Windows Explorer — different chrome, same vlist
+- **View toggle**: Grid (icons) ↔ List (details) — existing, polish further
+- **Click to preview**: Click a file to see content in a detail pane (text files, images, code with syntax highlighting)
+- **Breadcrumb navigation**: Existing, verify working
+- **Sort controls**: Name, size, date, type
+- Keep existing `withGrid()` + `withSections()` + `withScrollbar()`
+
+### Phase 3 — Archive & Clean Up
+
+- Archive `controls/`, `variable-heights/`, `horizontal/variable-width/`, `masonry/photo-album/` to `examples/archive/`
+- Remove archived entries from navigation.json (already done in Phase 1)
+- Verify all 12 examples build cleanly (`bun run build:examples`)
 - Verify all content.html files have consistent structure
-- Review descriptions in navigation.json for accuracy and consistency
 - Check all examples use builder API (no monolithic config)
 
-### Phase 4 — Cross-Links (shared with tutorials)
+### Phase 4 — Polish & Consistency
+
+- Consistent control panel layout across all Essentials (same aside pattern, same button/toggle styles)
+- Consistent stats bar across all examples (items, DOM nodes, visible range)
+- Review descriptions in navigation.json for accuracy after all enhancements
+- Verify feature chips match actual features used after modifications
+
+### Phase 5 — Cross-Links (shared with tutorials)
 
 - Tutorials link to their corresponding live examples ("See it live" at top)
 - Example pages link back to their tutorial ("Learn step by step" where a tutorial exists)
