@@ -763,10 +763,7 @@ vlist({
 
 ## Live Examples
 
-- [Pinterest Gallery](/examples/masonry/pinterest) — Classic Pinterest-style layout
-- [Product Catalog](/examples/masonry/products) — E-commerce with variable cards
-- [Content Feed](/examples/masonry/feed) — Mixed media social feed
-- [Photo Album](/examples/masonry/photos) — Photography portfolio
+- [Photo Album](/examples/masonry/photo-album) — Pinterest-style layout with variable heights
 
 ---
 

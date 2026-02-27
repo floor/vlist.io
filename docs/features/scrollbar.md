@@ -819,6 +819,12 @@ vlist({
 - [Optimization](/tutorials/optimization) — Full list of scroll-related optimizations
 - [Styling](/tutorials/styling) — `.vlist--scrolling` class and CSS containment
 
+## Live Examples
+
+- [Photo Album](/examples/grid/photo-album) — Grid gallery with withScrollbar + autoHide (4 frameworks)
+- [Controls](/examples/controls) — Full API exploration with custom scrollbar (4 frameworks)
+- [Large List](/examples/data/large-list) — 100K–5M items with compressed scrollbar (4 frameworks)
+
 ---
 
 *The scroll module provides seamless scrolling for lists of any size — custom scrollbar by default, native as an option, or no scrollbar at all.*

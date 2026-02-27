@@ -110,10 +110,10 @@ Four framework adapters ship as separate packages, each a thin wrapper:
 
 | Adapter | Package | Exports |
 |---------|---------|---------|
-| React | `@floor/vlist-react` | `useVList` hook, `useVListEvent` |
-| Vue 3 | `@floor/vlist-vue` | `useVList` composable, `useVListEvent` |
-| Svelte | `@floor/vlist-svelte` | `vlist` action, `onVListEvent` |
-| SolidJS | `@floor/vlist-solidjs` | `createVList` primitive, `createVListEvent` |
+| React | `vlist-react` | `useVList` hook, `useVListEvent` |
+| Vue 3 | `vlist-vue` | `useVList` composable, `useVListEvent` |
+| Svelte | `vlist-svelte` | `vlist` action, `onVListEvent` |
+| SolidJS | `vlist-solidjs` | `createVList` primitive, `createVListEvent` |
 
 **Design principle:** Mount-based (not virtual-items-based like TanStack Virtual). The framework manages the container element lifecycle, while vlist does all DOM rendering internally — preserving vlist's full performance model with zero virtual DOM overhead.
 
@@ -122,6 +122,8 @@ Each adapter:
 - Syncs items reactively when the framework's data changes
 - Provides ergonomic event subscription with automatic cleanup
 - Externalizes both the framework and vlist — the adapter bundle contains only wrapper code
+
+See [Framework Adapters](../frameworks.md) for install, usage, event subscription, and config reference per framework.
 
 ---
 

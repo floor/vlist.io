@@ -403,6 +403,10 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 - [Sections Feature](./sections.md) - Grouped lists with scaling support
 - [Page Feature](./page.md) - Window scrolling with mathematical scaling
 
+## Live Examples
+
+- [Large List](/examples/data/large-list) — 100K–5M items with withScale (4 frameworks)
+
 ---
 
 **Bundle cost:** +2.2 KB gzipped  

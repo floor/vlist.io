@@ -1,5 +1,20 @@
 [
   {
+    "label": "Getting Started",
+    "cards": [
+      {
+        "slug": "getting-started",
+        "name": "Getting Started",
+        "desc": "Install, configure, and build your first virtual list"
+      },
+      {
+        "slug": "frameworks",
+        "name": "Framework Adapters",
+        "desc": "React, Vue, Svelte, and SolidJS integration"
+      }
+    ]
+  },
+  {
     "label": "API Reference",
     "cards": [
       {
@@ -90,6 +105,41 @@
     ]
   },
   {
+    "label": "Under the Hood",
+    "cards": [
+      {
+        "slug": "internals/structure",
+        "name": "Structure",
+        "desc": "Complete source code map"
+      },
+      {
+        "slug": "internals/context",
+        "name": "Context",
+        "desc": "BuilderContext and feature system"
+      },
+      {
+        "slug": "internals/rendering",
+        "name": "Rendering",
+        "desc": "DOM rendering and virtualization"
+      },
+      {
+        "slug": "internals/scrollbar",
+        "name": "Scroll",
+        "desc": "Scroll controller, custom scrollbar, and velocity tracking"
+      },
+      {
+        "slug": "internals/orientation",
+        "name": "Orientation",
+        "desc": "How vertical and horizontal share one code path"
+      },
+      {
+        "slug": "internals/measurement",
+        "name": "Measurement",
+        "desc": "Item auto-size measurement"
+      }
+    ]
+  },
+  {
     "label": "Resources",
     "cards": [
       {
@@ -116,41 +166,6 @@
         "slug": "resources/examples",
         "name": "Examples",
         "desc": "Interactive example documentation"
-      }
-    ]
-  },
-  {
-    "label": "Internals",
-    "cards": [
-      {
-        "slug": "internals/structure",
-        "name": "Structure",
-        "desc": "Complete source code map"
-      },
-      {
-        "slug": "internals/rendering",
-        "name": "Rendering",
-        "desc": "DOM rendering and virtualization"
-      },
-      {
-        "slug": "internals/measurement",
-        "name": "Measurement",
-        "desc": "Item auto-size measurement"
-      },
-      {
-        "slug": "internals/scrollbar",
-        "name": "Scrollbar",
-        "desc": "Scroll controller, custom scrollbar, and velocity tracking"
-      },
-      {
-        "slug": "internals/context",
-        "name": "Context",
-        "desc": "BuilderContext and feature system"
-      },
-      {
-        "slug": "internals/orientation",
-        "name": "Orientation",
-        "desc": "How vertical and horizontal share one code path"
       }
     ]
   }

@@ -189,7 +189,7 @@ const messages = [
 ### reverse Option
 
 ```typescript
-interface VListConfig {
+interface BuilderConfig {
   /**
    * Reverse mode for chat-style UIs.
    * When enabled:

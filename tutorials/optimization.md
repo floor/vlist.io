@@ -37,7 +37,7 @@ The following optimizations are already implemented in vlist:
 - **CSS-Only Static Positioning** - Items use `.vlist-item` CSS for `position:absolute;top:0;left:0;right:0`; only dynamic `height` set via JS
 - **Split Core/Extras CSS** - Core styles (6.7 KB) separated from optional variants, loading/empty states, and animations (3.4 KB extras)
 - **Re-exported Range Functions** - `calculateVisibleRange` and `calculateRenderRange` are direct re-exports from compression, eliminating pass-through wrappers
-- **Configurable Idle Timeout** - `idleTimeout` option on `VListConfig` (default: 150ms) for tuning scroll idle detection per device
+- **Configurable Idle Timeout** - `idleTimeout` option on `BuilderConfig` (default: 150ms) for tuning scroll idle detection per device
 
 ---
 
@@ -191,7 +191,7 @@ Arrow key navigation now uses `renderer.updateItemClasses()` on just the 2 affec
 
 #### ~~M2. Make idle timeout configurable~~ ✅ Implemented
 
-Added `idleTimeout` option to both `VListConfig` and `ScrollControllerConfig`. Defaults to 150ms. Consumers can tune for mobile/slower devices.
+Added `idleTimeout` option to both `BuilderConfig` and `ScrollControllerConfig`. Defaults to 150ms. Consumers can tune for mobile/slower devices.
 
 ---
 

@@ -888,3 +888,7 @@ headerTemplate: (key) => {
 - [Selection Feature](./selection.md) — Add selection to grouped lists
 - [Feature System](./overview.md) — How features work
 - [API Reference](/docs/api/reference) — Full API documentation
+
+## Live Examples
+
+- [Sticky Headers](/examples/groups/sticky-headers) — A–Z contact list with sticky section headers

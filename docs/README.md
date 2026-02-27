@@ -8,6 +8,7 @@
 
 - **[Tutorials](/tutorials)** - Step-by-step learning guides
 - **[Quick Start](/tutorials/quick-start)** - Get started in 5 minutes
+- **[Framework Adapters](./frameworks.md)** - React, Vue, Svelte, and SolidJS integration
 - **[API Reference](./api/reference.md)** - Complete API documentation
 
 ## 📚 Documentation Structure
@@ -20,6 +21,12 @@ All learning-oriented content has moved to [/tutorials](/tutorials):
 - Accessibility, Mobile, Optimization, Styling
 
 This documentation now focuses on **reference material** only.
+
+### Framework Adapters
+
+| Adapter | Package | Description |
+|--------|---------|-------------|
+| **[Framework Adapters](./frameworks.md)** | – | React, Vue, Svelte, and SolidJS integration |
 
 ### Features
 
@@ -57,18 +64,18 @@ This documentation now focuses on **reference material** only.
 | **[Architecture](./resources/roadmap.md)** | Architecture and competitive position |
 | **[Examples](./resources/examples.md)** | Interactive example documentation |
 
-### Internals
+### Under the Hood
 
 For contributors and advanced users:
 
-| Internal | Description |
+| Topic | Description |
 |----------|-------------|
 | **[Structure](./internals/structure.md)** | Complete source code map |
-| **[Rendering](./internals/rendering.md)** | DOM rendering, virtualisation, element pooling |
-| **[Measurement](./internals/measurement.md)** | Auto-size measurement (Mode B) |
-| **[Scrollbar](./internals/scrollbar.md)** | Scroll controller, custom scrollbar, velocity tracking |
 | **[Context](./internals/context.md)** | BuilderContext and feature system internals |
+| **[Rendering](./internals/rendering.md)** | DOM rendering, virtualisation, element pooling |
+| **[Scroll](./internals/scrollbar.md)** | Scroll controller, custom scrollbar, velocity tracking |
 | **[Orientation](./internals/orientation.md)** | How vertical and horizontal share one code path |
+| **[Measurement](./internals/measurement.md)** | Auto-size measurement (Mode B) |
 
 ### Refactoring
 
@@ -83,6 +90,9 @@ Version history and migration guides:
 
 **Get started quickly**
 → [Tutorials](/tutorials)
+
+**Use React, Vue, Svelte, or SolidJS**
+→ [Framework Adapters](./frameworks.md)
 
 **API Reference**
 → [Complete API](./api/reference.md)
@@ -123,7 +133,7 @@ This repository contains **reference documentation** only:
 
 - **API Reference** - Methods, types, events
 - **Features** - Feature-specific reference docs
-- **Internals** - Implementation details for contributors
+- **Under the Hood** - Implementation details for contributors
 - **Resources** - Benchmarks, bundle size, testing
 
 For **learning content**, see [/tutorials](/tutorials):

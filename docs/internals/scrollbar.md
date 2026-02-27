@@ -1,6 +1,6 @@
-# Scrollbar Internals
+# Scroll Internals
 
-> Low-level scroll controller, custom scrollbar component, and implementation details.
+> Low-level scroll controller, custom scrollbar component, and velocity tracking implementation.
 
 This page documents the internal APIs and implementation details of the scroll system. For user-facing configuration, see [Scrollbar](../features/scrollbar.md).
 

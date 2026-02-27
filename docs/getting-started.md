@@ -319,6 +319,7 @@ Always call `destroy()` when unmounting (SPA route changes, component teardown).
 
 | I want to… | Go to |
 |---|---|
+| Use React, Vue, Svelte, or SolidJS | [Framework Adapters](/docs/frameworks) |
 | Add a grid layout | [Grid Feature](/docs/features/grid) |
 | Group items with headers | [Sections Feature](/docs/features/sections) |
 | Load data from an API | [Async Feature](/docs/features/async) |

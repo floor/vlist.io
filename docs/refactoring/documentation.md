@@ -628,6 +628,226 @@ Moved internal development artifacts out of the served docs tree:
 
 ---
 
+## Phase 6 — Framework Adapter Documentation
+
+The biggest remaining gap: four adapter packages mentioned in the Architecture page but with no usage docs. Framework users are the majority audience.
+
+### Adapter Source Audit
+
+Read all four adapter source files (`vlist-react/src/index.ts`, `vlist-vue/src/index.ts`, `vlist-svelte/src/index.ts`, `vlist-solidjs/src/index.ts`), their `package.json` files, and READMEs.
+
+**Key findings:**
+
+| | React | Vue | Svelte | SolidJS |
+|---|---|---|---|---|
+| **Package** | `vlist-react` (0.1.1) | `vlist-vue` (0.1.1) | `vlist-svelte` (0.1.1) | `vlist-solidjs` (0.1.0) |
+| **Main export** | `useVList()` hook | `useVList()` composable | `vlist` action | `createVList()` primitive |
+| **Event helper** | `useVListEvent()` | `useVListEvent()` | `onVListEvent()` | `createVListEvent()` |
+| **Config input** | Plain object | Plain object or `Ref` | `{ config, onInstance }` | `Accessor<Config>` |
+
+All four share identical internal wiring: read config fields, conditionally chain `.use(withPage())`, `.use(withAsync())`, `.use(withGrid())`, `.use(withSections())`, `.use(withSelection())`, `.use(withScale())`, `.use(withScrollbar())`, `.use(withSnapshots())`. The user never calls `.use()` or `.build()` — the adapter does it. Adapters use a monolithic config shape, not the builder API directly.
+
+**Package name correction:** Adapters are `vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-solidjs` (unscoped), NOT `@floor/vlist-react` etc. The Architecture page had the wrong scoped names — fixed.
+
+**Type observation:** All adapters import `VListConfig` from `@floor/vlist`, but at the time of this audit, this type did not exist in core — only `BuilderConfig` was exported. The adapters referenced fields like `adapter`, `loading`, `layout`, `grid`, `groups`, `selection`, `scrollbar` that aren't part of `BuilderConfig`. **Fixed in Phase 7** — `VListConfig` now exists in core as an extension of `BuilderConfig` with all adapter convenience fields.
+
+### Structure Decision: Single Page
+
+Chose a single `frameworks.md` page over four separate pages:
+
+- **90% shared content** — config shape, feature wiring, event subscription, cleanup are identical across all four
+- **Principle #2 (no duplication)** — four pages would repeat the config/feature/event explanation four times
+- **Principle #10 (user journey first)** — framework user needs their framework's code block plus the shared config reference, not a full separate page
+- **Principle #1 (flat TOC)** — H2 per framework, H2 for shared sections; every entry reachable from sidebar
+
+### frameworks.md — New file (597 lines)
+
+| Section | Content |
+|---------|---------|
+| How Adapters Work | What the adapter does (5-step lifecycle), no `.use()`/`.build()` needed |
+| React | Install, `useVList` with return table, `useVListEvent`, instance methods |
+| Vue | Install, `useVList` with return table, reactive `Ref` config, `useVListEvent`, instance methods |
+| Svelte | Install, `vlist` action with options table, `onVListEvent` (manual cleanup), instance methods |
+| SolidJS | Install, `createVList` with Accessor convention, `createVListEvent`, instance methods |
+| Config Reference | Core fields table, feature fields trigger table, feature config examples |
+| TypeScript | Generic typing across frameworks, config type exports table |
+| API Summary | Comparison table of all four adapters |
+| Design Principles | Mount-based vs virtual-items, config-driven wiring, externalised deps |
+
+Every code example verified against the actual adapter source. Import paths use the correct unscoped package names (`vlist-react`, not `@floor/vlist-react`). Core imports use `@floor/vlist` per Principle #8.
+
+### navigation.json — Added entry
+
+Added `frameworks` to the top-level items group (alongside `getting-started`):
+
+```json
+{ "slug": "frameworks", "name": "Framework Adapters", "desc": "React, Vue, Svelte, and SolidJS integration" }
+```
+
+### overview.json — Added card
+
+Added a new "Getting Started" card group at the top with both `getting-started` and `frameworks` cards.
+
+### getting-started.md — Added cross-reference
+
+Added "Use React, Vue, Svelte, or SolidJS → Framework Adapters" as the first row in the Next Steps table.
+
+### README.md (docs index) — Added links
+
+- Added link in Quick Start section
+- Added "Framework Adapters" subsection with link table
+- Added "Use React, Vue, Svelte, or SolidJS" entry in "Find What You Need" section
+
+### resources/roadmap.md — Fixed package names, added link
+
+| Change | Detail |
+|--------|--------|
+| Package names | `@floor/vlist-react` → `vlist-react`, same for vue/svelte/solidjs |
+| Cross-reference | Added "See Framework Adapters for install, usage, event subscription, and config reference per framework" |
+
+### Not changed (verified accurate)
+
+| File | Status |
+|------|--------|
+| **features/overview.md** | ✅ No adapter references to update |
+| **api/events.md** | ✅ Event names and payloads match what adapters use |
+| **api/types.md** | ✅ `VListEvents`, `EventHandler`, `Unsubscribe` types match adapter imports |
+
+---
+
+### Phase 6b — Navigation Reorganization
+
+Post-P6 cleanup: section ordering, label rename, item reordering.
+
+#### Internals → Under the Hood
+
+Renamed the "Internals" nav section to **"Under the Hood"** — friendlier, signals "for the curious" without feeling gated. Updated in:
+
+| File | Change |
+|------|--------|
+| `navigation.json` | `"label": "Internals"` → `"label": "Under the Hood"` |
+| `overview.json` | Same label rename |
+| `README.md` | `### Internals` → `### Under the Hood`, table header `Internal` → `Topic`, bullet list updated |
+
+In-page uses of "internals" (H2 headings inside feature pages like `## Internals`, link text like "Scrollbar Internals") left unchanged — they describe the concept, not the nav section.
+
+#### Scrollbar → Scroll
+
+The Under the Hood "Scrollbar" entry covers the scroll controller, custom scrollbar, *and* velocity tracking — "Scrollbar" undersold it. Renamed to **"Scroll"** in:
+
+| File | Change |
+|------|--------|
+| `navigation.json` | `"name": "Scrollbar"` → `"name": "Scroll"` |
+| `overview.json` | Same |
+| `README.md` | Table link text `Scrollbar` → `Scroll` |
+| `internals/scrollbar.md` | Title `# Scrollbar Internals` → `# Scroll Internals`, updated tagline |
+
+File stays `internals/scrollbar.md` — no reason to break links for a rename.
+
+#### Resources moved to last
+
+Swapped Resources and Under the Hood in both `navigation.json` and `overview.json`. Resources (benchmarks, bundle size, testing, architecture) is reference/meta material — belongs at the bottom of the nav, not before the deep-dive section.
+
+**Sidebar order:** Getting Started → API Reference → Features → Under the Hood → Resources
+
+#### Under the Hood items reordered
+
+Reordered from arbitrary to top-down architecture flow:
+
+| # | Before | After | Rationale |
+|---|--------|-------|-----------|
+| 1 | Structure | **Structure** | What exists — the file map |
+| 2 | Rendering | **Context** | How it's wired — BuilderContext |
+| 3 | Measurement | **Rendering** | How items reach the DOM |
+| 4 | Scrollbar | **Scroll** | How scroll is managed |
+| 5 | Context | **Orientation** | How both axes share one path |
+| 6 | Orientation | **Measurement** | The auto-size special case (Mode B) |
+
+Updated in `navigation.json`, `overview.json`, and `README.md` table.
+
+---
+
+## Phase 7 — Open Items Cleanup
+
+Four open items from the NEXT_THREAD doc, all resolved in one pass.
+
+### VListConfig type — code fix in core
+
+All four adapter packages import `VListConfig` from `@floor/vlist`, but core only exported `BuilderConfig`. The adapters use convenience fields (`adapter`, `loading`, `layout`, `grid`, `groups`, `selection`, `scrollbar`) that aren't part of `BuilderConfig` — they're the monolithic config shape that adapters translate into `.use(withX())` calls.
+
+**Fix:** Added `VListConfig<T>` interface in `vlist/src/builder/types.ts` that extends `BuilderConfig<T>` (via `Omit<BuilderConfig<T>, 'scroll'>`) with:
+
+| Field | Type | Triggers |
+|-------|------|----------|
+| `scroll` | Core scroll fields + `scrollbar` sub-field | `withScrollbar()` (via `scroll.scrollbar`) |
+| `layout` | `'list' \| 'grid'` | — |
+| `grid` | `GridConfig` | `withGrid()` (when `layout = 'grid'`) |
+| `adapter` | `VListAdapter<T>` | `withAsync()` |
+| `loading` | `{ cancelThreshold, preloadThreshold, preloadAhead }` | Passed to `withAsync()` |
+| `groups` | `GroupsConfig` | `withSections()` |
+| `selection` | `SelectionConfig` | `withSelection()` |
+| `scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` (top-level shorthand) |
+
+The `scroll` property uses `Omit` + intersection to add the `scrollbar` sub-field that `BuilderConfig.scroll` doesn't have (since the builder uses `withScrollbar()` directly).
+
+Exported from `vlist/src/builder/index.ts` and `vlist/src/index.ts`. Rebuilt with `--types`. All four adapters now compile clean (`tsc --noEmit` passes). Core tests: 2268 pass, 0 fail.
+
+### Adapter README sync
+
+All four adapter READMEs (`vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-solidjs`) rewritten to a consistent format:
+
+| Section | Content |
+|---------|---------|
+| Title + intro | One-line description linking to `@floor/vlist` |
+| Install | `npm install @floor/vlist <adapter>` |
+| Quick Start | Minimal working example with `@floor/vlist/styles` import |
+| API | Bullet list of exports + one-line description each |
+| Config note | Links to API reference, explains feature fields are auto-wired |
+| Documentation | Links to `frameworks.md#<framework>` anchor |
+
+**Specific fixes:**
+- SolidJS: install order was `vlist-solidjs @floor/vlist` → `@floor/vlist vlist-solidjs`
+- SolidJS: added missing `import '@floor/vlist/styles'` and container height
+- All: added `@floor/vlist/styles` import where missing
+- All: link text points to `vlist.dev/docs/frameworks#<framework>` instead of generic `vlist.dev`
+
+### Tutorials audit
+
+All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-pattern`, `optimization`, `styling`, `accessibility`, `mobile`.
+
+**Stale type name fixed in two files:**
+
+| File | Line | Before | After |
+|------|------|--------|-------|
+| `tutorials/chat-interface.md` | 192 | `interface VListConfig` | `interface BuilderConfig` |
+| `tutorials/optimization.md` | 40 | `VListConfig` | `BuilderConfig` |
+| `tutorials/optimization.md` | 194 | `VListConfig` | `BuilderConfig` |
+
+### Examples cross-links
+
+**Fixed broken links:**
+
+| File | Before | After |
+|------|--------|-------|
+| `features/grid.md` | 4 links, 3 non-existent (`grid/products`, `grid/icons`, `grid/masonry`) | 2 links to actual examples (`grid/photo-album`, `grid/file-browser`) |
+| `features/masonry.md` | 4 links, all non-existent (`masonry/pinterest`, `masonry/products`, `masonry/feed`, `masonry/photos`) | 1 link to actual example (`masonry/photo-album`) |
+
+**Added Live Examples sections (new):**
+
+| File | Example Link | Description |
+|------|-------------|-------------|
+| `features/async.md` | `/examples/data/velocity-loading` | Smart loading that skips during fast scrolling |
+| `features/scale.md` | `/examples/data/large-list` | 100K–5M items with withScale (4 frameworks) |
+| `features/sections.md` | `/examples/groups/sticky-headers` | A–Z contact list with sticky section headers |
+| `features/selection.md` | `/examples/controls` | Full API exploration with selection (4 frameworks) |
+| `features/scrollbar.md` | `/examples/grid/photo-album`, `/examples/controls`, `/examples/data/large-list` | Three examples showcasing scrollbar in different contexts |
+
+**Already correct (no change needed):**
+- `features/page.md` — links to `/examples/window-scroll/` ✅
+- `features/snapshots.md` — links to `/examples/scroll-restore/` ✅
+
+---
+
 ## Principles Applied
 
 1. **Flat TOC** — H2 for major sections, H3 for items within. Every entry reachable from the "On this page" sidebar.

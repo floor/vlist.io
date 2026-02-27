@@ -63,6 +63,37 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 | `reverse` | `boolean` | `false` | Bottom-anchored mode — list starts scrolled to the bottom. |
 | `scroll` | `ScrollConfig` | — | Fine-grained scroll behavior options. |
 
+### VListConfig
+
+Extended configuration used by framework adapters (React, Vue, Svelte, SolidJS). Inherits all `BuilderConfig` fields and adds convenience fields that adapters translate into `.use(withX())` calls automatically.
+
+```typescript
+interface VListConfig<T extends VListItem = VListItem>
+  extends Omit<BuilderConfig<T>, 'scroll'> {
+  scroll?:    BuilderConfig['scroll'] & { scrollbar?: 'native' | 'none' | ScrollbarOptions }
+  layout?:    'list' | 'grid'
+  grid?:      GridConfig
+  adapter?:   VListAdapter<T>
+  loading?:   { cancelThreshold?: number; preloadThreshold?: number; preloadAhead?: number }
+  groups?:    GroupsConfig
+  selection?: SelectionConfig
+  scrollbar?: 'native' | 'none' | ScrollbarOptions
+}
+```
+
+| Property | Type | Triggers | Description |
+|----------|------|----------|-------------|
+| `layout` | `'list' \| 'grid'` | — | Layout mode. Set to `'grid'` with `grid` to enable grid layout. |
+| `grid` | `GridConfig` | `withGrid()` | Grid columns and gap. Only used when `layout` is `'grid'`. |
+| `adapter` | `VListAdapter<T>` | `withAsync()` | Async data source. Omit `items` when using an adapter. |
+| `loading` | `object` | — | Loading behavior passed to `withAsync()`. |
+| `groups` | `GroupsConfig` | `withSections()` | Section grouping with headers. |
+| `selection` | `SelectionConfig` | `withSelection()` | Item selection mode and initial state. |
+| `scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` | Top-level scrollbar shorthand. |
+| `scroll.scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` | Same as top-level `scrollbar`, nested under `scroll`. |
+
+Each adapter defines its own config type as `Omit<VListConfig<T>, 'container'>` — the full config without `container`, since the adapter handles container binding. See [Framework Adapters](../frameworks.md) for per-framework details.
+
 ### ItemConfig
 
 Controls how items are sized and rendered. Supports two sizing strategies — known sizes (Mode A) and auto-measurement (Mode B).

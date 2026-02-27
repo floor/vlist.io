@@ -623,6 +623,10 @@ function calculateMissingRanges(
 - [Rendering](../internals/rendering.md) — Renderer displays items/placeholders
 - [Context](../internals/context.md) — BuilderContext wires scroll handler that triggers data loading
 
+## Live Examples
+
+- [Velocity Loading](/examples/data/velocity-loading) — Smart loading that skips during fast scrolling
+
 ---
 
 *The async module enables vlist to efficiently handle datasets of any size via `withAsync()`.*

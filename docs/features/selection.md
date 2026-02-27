@@ -448,6 +448,10 @@ function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VLis
 - [Context](../internals/context.md) — BuilderContext wires click and keyboard handlers
 - [Reference](../api/reference.md) — Public selection API methods
 
+## Live Examples
+
+- [Controls](/examples/controls) — Full API exploration with selection, navigation, and scroll events (4 frameworks)
+
 ---
 
 *The selection module provides single, multi, and keyboard-navigated item selection via `withSelection()`.*
