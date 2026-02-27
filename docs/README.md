@@ -25,10 +25,12 @@ This documentation now focuses on **reference material** only.
 
 | Feature | Bundle Cost | Description |
 |--------|-------------|-------------|
-| **[Features Overview](./features/overview.md)** | – | All features with minimal examples |
+| **[Features Overview](./features/overview.md)** | – | All features with examples, costs, and compatibility |
 | **[Grid](./features/grid.md)** | +4.0 KB | 2D grid layout with virtualised rows |
+| **[Masonry](./features/masonry.md)** | +2.9 KB | Pinterest-style shortest-lane layout |
 | **[Sections](./features/sections.md)** | +4.6 KB | Grouped lists with sticky/inline headers |
 | **[Async](./features/async.md)** | +5.3 KB | Async data loading with lazy loading |
+| **[Placeholders](./features/placeholders.md)** | Included | Skeleton loading states (with Async) |
 | **[Selection](./features/selection.md)** | +2.3 KB | Single/multiple selection with keyboard nav |
 | **[Scale](./features/scale.md)** | +2.2 KB | Handle 1M+ items with scaling |
 | **[Scrollbar](./features/scrollbar.md)** | +1.0 KB | Custom scrollbar UI with auto-hide |
@@ -39,8 +41,11 @@ This documentation now focuses on **reference material** only.
 
 | Reference | Description |
 |-----------|-------------|
-| **[Reference](./api/reference.md)** | Complete API — config types, methods, events, feature interfaces |
-| **[Methods](./api/reference.md)** | All public methods — data, scroll, selection, lifecycle |
+| **[Reference](./api/reference.md)** | Complete API — config, properties, methods |
+| **[Types](./api/types.md)** | TypeScript type definitions |
+| **[Events](./api/events.md)** | Event system and payloads |
+| **[Constants](./api/constants.md)** | Default values and thresholds |
+| **[Exports](./api/exports.md)** | Low-level utilities and feature authoring |
 
 ### Resources
 
@@ -60,6 +65,8 @@ For contributors and advanced users:
 |----------|-------------|
 | **[Structure](./internals/structure.md)** | Complete source code map |
 | **[Rendering](./internals/rendering.md)** | DOM rendering, virtualisation, element pooling |
+| **[Measurement](./internals/measurement.md)** | Auto-size measurement (Mode B) |
+| **[Scrollbar](./internals/scrollbar.md)** | Scroll controller, custom scrollbar, velocity tracking |
 | **[Context](./internals/context.md)** | BuilderContext and feature system internals |
 | **[Orientation](./internals/orientation.md)** | How vertical and horizontal share one code path |
 

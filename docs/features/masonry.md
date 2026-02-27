@@ -37,8 +37,7 @@ The `withMasonry` feature converts a linear virtual list into a masonry/Pinteres
 ## Quick Start
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withMasonry } from 'vlist/masonry'
+import { vlist, withMasonry } from '@floor/vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -228,8 +227,7 @@ const timeline = vlist({
 ### Pinterest-Style Photo Gallery
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withMasonry } from 'vlist/masonry'
+import { vlist, withMasonry } from '@floor/vlist'
 
 const photos = [
   { id: 1, url: 'photo1.jpg', height: 250, title: 'Sunset' },
@@ -327,9 +325,7 @@ const catalog = vlist({
 ### Masonry with Selection
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withMasonry } from 'vlist/masonry'
-import { withSelection } from 'vlist/selection'
+import { vlist, withMasonry, withSelection } from '@floor/vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -401,8 +397,7 @@ Creates a masonry feature for the builder.
 **Example:**
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withMasonry } from 'vlist/masonry'
+import { vlist, withMasonry } from '@floor/vlist'
 
 const list = vlist({
   container: '#app',
@@ -675,13 +670,13 @@ vlist({
 .use(withMasonry({ columns: 4 }))
 ```
 
-❌ **Groups/Sections** — Masonry doesn't currently support grouped layouts
+❌ **Sections** — Masonry doesn't currently support grouped layouts
 
 ```js
 // Not supported (yet)
 vlist(config)
   .use(withMasonry({ columns: 4 }))
-  .use(withGroups({ ... })) // Won't work correctly
+  .use(withSections({ ... })) // Won't work correctly
 ```
 
 ### Item Size Requirements
@@ -761,10 +756,10 @@ vlist({
 
 ## Related Documentation
 
-- [Grid Feature](/docs/features/grid.md) — 2D grid with aligned rows
-- [Selection Feature](/docs/features/selection.md) — Select masonry items
-- [Scrollbar Feature](/docs/features/scrollbar.md) — Custom scrollbars
-- [Builder API](/docs/builder.md) — Core builder documentation
+- [Grid Feature](./grid.md) — 2D grid with aligned rows
+- [Selection Feature](./selection.md) — Select masonry items
+- [Scrollbar Feature](./scrollbar.md) — Custom scrollbars
+- [API Reference](../api/reference.md) — Complete API — config, methods, events
 
 ## Live Examples
 
@@ -776,4 +771,4 @@ vlist({
 ---
 
 **Last Updated:** February 2026  
-**Version:** v1.0.0+
+**Version:** v1.1.0

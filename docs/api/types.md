@@ -426,9 +426,9 @@ type Unsubscribe = () => void
 
 ## Feature Types
 
-### GroupsConfig
+### SectionsConfig (GroupsConfig)
 
-Configuration for `withGroups()`.
+Configuration for `withSections()`. The interface is named `GroupsConfig` in source.
 
 ```typescript
 interface GroupsConfig {

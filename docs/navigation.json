@@ -69,7 +69,7 @@
       {
         "slug": "features/placeholders",
         "name": "Placeholders",
-        "desc": "Realistic skeleton loading states"
+        "desc": "Skeleton loading states (withAsync)"
       },
       {
         "slug": "features/selection",

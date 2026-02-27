@@ -212,6 +212,39 @@ if (saved) list.restoreScroll(saved);
 
 ---
 
+## Feature Compatibility
+
+Most features compose freely. This matrix shows the known constraints:
+
+| | Grid | Masonry | Sections | Async | Selection | Scale | Scrollbar | Page | Snapshots |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Grid** | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
+| **Masonry** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Sections** | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Async** | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Selection** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ |
+| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ |
+| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ |
+| **Page** | ⚠️ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ |
+| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+
+| Symbol | Meaning |
+|--------|---------|
+| ✅ | Fully compatible |
+| ⚠️ | Works but may need careful styling |
+| ❌ | Cannot combine — builder throws or layout breaks |
+
+**Key constraints:**
+
+- **Grid ↔ Masonry** — Mutually exclusive layout modes
+- **Masonry ↔ Sections** — Masonry doesn't support grouped layouts
+- **Masonry + reverse** — Not supported
+- **Page ↔ Scrollbar** — Page uses the native browser scrollbar; builder throws if both are active
+- **Page ↔ Scale** — Page scroll is vertical-only with native overflow; scale requires a controlled scroll container
+- **Page + horizontal** — Page scroll is vertical only
+
+---
+
 ## See Also
 
 - **[Builder Pattern](/tutorials/builder-pattern)** — How `.use()` / `.build()` works and feature compatibility

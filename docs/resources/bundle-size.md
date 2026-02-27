@@ -7,7 +7,7 @@
 VList uses a **builder pattern with explicit features**. You import only the features you need, and bundlers eliminate everything else.
 
 ```typescript
-import { vlist, withGrid, withSelection } from 'vlist';
+import { vlist, withGrid, withSelection } from '@floor/vlist';
 
 const gallery = vlist({ ... })
   .use(withGrid({ columns: 4 }))
@@ -73,7 +73,7 @@ const list = new VirtualList({
 ### VList (Builder Pattern)
 
 ```typescript
-import { vlist } from 'vlist';
+import { vlist } from '@floor/vlist';
 
 const list = vlist({
   container: '#app',
@@ -89,7 +89,7 @@ const list = vlist({
 ### With Features
 
 ```typescript
-import { vlist, withGrid, withSelection } from 'vlist';
+import { vlist, withGrid, withSelection } from '@floor/vlist';
 
 const list = vlist({ ... })
   .use(withGrid({ columns: 4 }))
@@ -122,7 +122,7 @@ export { withSnapshots } from './features/snapshots';
 
 **When you write:**
 ```typescript
-import { vlist, withGrid } from 'vlist';
+import { vlist, withGrid } from '@floor/vlist';
 ```
 
 **Bundler includes:**
@@ -133,7 +133,7 @@ import { vlist, withGrid } from 'vlist';
 ### What Gets Eliminated
 
 ```typescript
-import { vlist, withGrid } from 'vlist';
+import { vlist, withGrid } from '@floor/vlist';
 
 // These are exported but NOT imported, so bundler eliminates them:
 // - withSections and all its code
@@ -156,7 +156,7 @@ const list = vlist({ ... })
 ### Minimal Configuration
 
 ```typescript
-import { vlist } from 'vlist';
+import { vlist } from '@floor/vlist';
 
 vlist({ ... }).build();
 ```
@@ -169,7 +169,7 @@ vlist({ ... }).build();
 ### Medium Configuration
 
 ```typescript
-import { vlist, withSelection, withScrollbar } from 'vlist';
+import { vlist, withSelection, withScrollbar } from '@floor/vlist';
 
 vlist({ ... })
   .use(withSelection({ mode: 'single' }))
@@ -194,7 +194,7 @@ import {
   withAsync,
   withScale,
   withScrollbar 
-} from 'vlist';
+} from '@floor/vlist';
 
 vlist({ ... })
   .use(withGrid({ columns: 4 }))
@@ -219,12 +219,12 @@ Still smaller than traditional virtual lists!
 
 ❌ **Don't:**
 ```typescript
-import * as VList from 'vlist';  // Imports everything
+import * as VList from '@floor/vlist';  // Imports everything
 ```
 
 ✅ **Do:**
 ```typescript
-import { vlist, withGrid } from 'vlist';  // Only what you use
+import { vlist, withGrid } from '@floor/vlist';  // Only what you use
 ```
 
 ### 2. Lazy Load Heavy Features
@@ -251,7 +251,7 @@ button.addEventListener('click', async () => {
 ### 3. Conditional Feature Loading
 
 ```typescript
-import { vlist, withSections } from 'vlist';
+import { vlist, withSections } from '@floor/vlist';
 
 let builder = vlist({ ... });
 
@@ -308,7 +308,7 @@ Look for `vlist` modules - you should only see the ones you imported.
 
 **If you imported:**
 ```typescript
-import { vlist, withGrid, withSelection } from 'vlist';
+import { vlist, withGrid, withSelection } from '@floor/vlist';
 ```
 
 **Bundle analyzer should show:**
@@ -361,7 +361,7 @@ The key is you **only pay for what you use**. Traditional virtual lists bundle e
 ### ❌ Don't
 
 - Don't import features you don't use
-- Don't use wildcard imports (`import * from 'vlist'`)
+- Don't use wildcard imports (`import * from '@floor/vlist'`)
 - Don't worry about 1-2 KB differences (focus on features)
 - Don't sacrifice functionality to save bytes (8-12 KB is already tiny)
 

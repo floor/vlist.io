@@ -221,12 +221,12 @@ The server automatically injects:
 
 ## Example Scripts
 
-### Core (Lightweight) Example
+### Basic Example
 
-Using `vlist/core` for minimal bundle size (4.2KB gzipped):
+Minimal list with no features (7.7 KB gzipped):
 
 ```javascript
-import { vlist } from "vlist/core";
+import { vlist } from "@floor/vlist";
 
 const items = Array.from({ length: 100000 }, (_, i) => ({
   id: i + 1,
@@ -240,17 +240,15 @@ const list = vlist({
     template: (item) => `<div>${item.name}</div>`,
   },
   items,
-});
+}).build();
 ```
 
-### Builder Pattern with Features
+### With Features
 
-Using `vlist/builder` for composable features:
+Composable features via `.use()` — only bundled features are included:
 
 ```javascript
-import { vlist } from "vlist/builder";
-import { withGrid } from "vlist/grid";
-import { withScrollbar } from "vlist (withScrollbar)";
+import { vlist, withGrid, withScrollbar } from "@floor/vlist";
 
 const gallery = vlist({
   container: "#grid-container",
@@ -272,7 +270,7 @@ Using React hooks with vlist:
 ```tsx
 import { useRef, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { vlist } from "vlist/core";
+import { vlist } from "@floor/vlist";
 
 function App() {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -182,7 +182,7 @@ Instead of a shared mutable object, the extracted factories receive getter/sette
 ```
 src/builder/
 ├── core.ts              # vlist() + materialize() — down from 1900 to ~1050 lines
-├── materialize.ts    # BuilderContext, data proxy, scroll proxy factories
+├── materialize.ts       # BuilderContext, data proxy, scroll proxy factories
 ├── velocity.ts          # VelocityTracker
 ├── dom.ts               # DOMStructure, resolveContainer, createDOMStructure
 ├── pool.ts              # createElementPool

@@ -21,15 +21,14 @@ The `withGrid` feature converts a linear virtual list into a 2D grid layout with
 - ✅ **Row Virtualization** — Only visible rows exist in the DOM
 - ✅ **Fixed or Dynamic Heights** — Support for both fixed and computed item heights
 - ✅ **Both Orientations** — Vertical (default) and horizontal grid layouts
-- ✅ **Group Support** — Works with `withGroups` for categorized grids
+- ✅ **Sections Support** — Works with `withSections` for categorized grids
 - ✅ **Selection Support** — Works with `withSelection` for selectable grids
 - ✅ **Scrollbar Support** — Works with `withScrollbar` for custom scrollbars
 
 ## Quick Start
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
+import { vlist, withGrid } from '@floor/vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -247,8 +246,7 @@ Creates a grid feature for the builder.
 **Example:**
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
+import { vlist, withGrid } from '@floor/vlist'
 
 const list = vlist({
   container: '#app',
@@ -314,8 +312,7 @@ Changing columns or gap recreates the grid layout but reuses existing DOM nodes 
 ### Photo Gallery with Responsive Columns
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
+import { vlist, withGrid } from '@floor/vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -364,9 +361,7 @@ window.addEventListener('resize', updateColumns)
 ### Product Catalog with Selection
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withSelection } from 'vlist/selection'
+import { vlist, withGrid, withSelection } from '@floor/vlist'
 
 const catalog = vlist({
   container: '#catalog',
@@ -453,9 +448,7 @@ const icons = vlist({
 ### Infinite Scroll Grid
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withAdapter } from 'vlist/adapter'
+import { vlist, withGrid, withAsync } from '@floor/vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -465,18 +458,20 @@ const gallery = vlist({
   },
 })
 .use(withGrid({ columns: 4, gap: 8 }))
-.use(withAdapter({
-  read: async ({ start, end }) => {
-    const response = await fetch(
-      `/api/photos?start=${start}&end=${end}`
-    )
-    const data = await response.json()
-    
-    return {
-      items: data.photos,
-      total: data.total,
-      hasMore: data.hasMore,
-    }
+.use(withAsync({
+  adapter: {
+    read: async ({ offset, limit }) => {
+      const response = await fetch(
+        `/api/photos?offset=${offset}&limit=${limit}`
+      )
+      const data = await response.json()
+      
+      return {
+        items: data.photos,
+        total: data.total,
+        hasMore: data.hasMore,
+      }
+    },
   },
 }))
 .build()
@@ -489,9 +484,7 @@ Grid works seamlessly with other vlist features:
 ### Grid + Selection
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withSelection } from 'vlist/selection'
+import { vlist, withGrid, withSelection } from '@floor/vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4, gap: 8 }))
@@ -502,13 +495,11 @@ const list = vlist(config)
 ### Grid + Groups
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withGroups } from 'vlist/groups'
+import { vlist, withGrid, withSections } from '@floor/vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4, gap: 8 }))
-  .use(withGroups({
+  .use(withSections({
     getGroupForIndex: (index) => items[index].category,
     headerHeight: 40,
     headerTemplate: (group) => `<h2>${group}</h2>`,
@@ -520,9 +511,7 @@ const list = vlist(config)
 ### Grid + Scrollbar
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withScrollbar } from 'vlist/scroll'
+import { vlist, withGrid, withScrollbar } from '@floor/vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4, gap: 8 }))
@@ -533,13 +522,11 @@ const list = vlist(config)
 ### Grid + Adapter (Async Data)
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
-import { withAdapter } from 'vlist/adapter'
+import { vlist, withGrid, withAsync } from '@floor/vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4, gap: 8 }))
-  .use(withAdapter({ read: fetchData }))
+  .use(withAsync({ adapter: { read: fetchData } }))
   .build()
 ```
 
@@ -770,8 +757,7 @@ const list = createVList({
 **New (builder):**
 
 ```js
-import { vlist } from 'vlist/builder'
-import { withGrid } from 'vlist/grid'
+import { vlist, withGrid } from '@floor/vlist'
 
 const list = vlist({
   container: '#app',
@@ -784,7 +770,7 @@ const list = vlist({
 
 ### Key Differences
 
-1. **Import path changed:** `vlist/builder` + `vlist/grid`
+1. **Import path changed:** Everything from `'@floor/vlist'`
 2. **No `layout` prop:** Use `.use(withGrid())` instead
 3. **No `grid` object:** Pass config directly to `withGrid()`
 4. **Composable:** Chain multiple `.use()` calls for features
@@ -792,11 +778,11 @@ const list = vlist({
 
 ## Related Documentation
 
-- [Builder API](/docs/builder.md) — Core builder documentation
-- [Selection Feature](/docs/features/selection.md) — Select grid items
-- [Groups Feature](/docs/features/groups.md) — Categorized grids
-- [Scrollbar Feature](/docs/features/scrollbar.md) — Custom scrollbars
-- [Adapter Feature](/docs/features/adapter.md) — Async data loading
+- [API Reference](../api/reference.md) — Complete API — config, methods, events
+- [Selection Feature](./selection.md) — Select grid items
+- [Sections Feature](./sections.md) — Categorized grids with sticky headers
+- [Scrollbar Feature](./scrollbar.md) — Custom scrollbars
+- [Async Feature](./async.md) — Lazy data loading
 
 ## Live Examples
 

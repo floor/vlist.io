@@ -8,7 +8,7 @@
 
 After the v1.0.0 release, the docs had drifted significantly from the source. The API reference documented methods that didn't exist (`scrollToItem`, `update`), described features incorrectly (`withPage` was described as wizard navigation instead of window scrolling), used wrong constant values, and had a monolithic 1,159-line reference page where most content was unreachable from the TOC.
 
-The refactoring was executed in four phases:
+The refactoring was executed in five phases:
 
 | Phase | Scope | Status |
 |-------|-------|--------|
@@ -16,6 +16,7 @@ The refactoring was executed in four phases:
 | **Phase 2** | Cross-cutting fixes — stale references, broken links, version alignment | ✅ Complete |
 | **Phase 3** | Feature docs — import paths, API patterns, deprecated names, broken links | ✅ Complete |
 | **Phase 4** | Structural refactoring — split heavy docs, restructure for user journey, archive stale pages | ✅ Complete |
+| **Phase 5** | Missed files, archive housekeeping, compatibility matrix, README alignment | ✅ Complete |
 
 ---
 
@@ -523,6 +524,107 @@ Navigation and overview updated:
 | **resources/bundle-size.md** | ✅ Accurate — sizes and tree-shaking info still valid |
 | **resources/benchmarks.md** | ✅ Accurate — benchmark methodology unchanged |
 | **resources/testing.md** | ✅ Accurate (after Phase 2 fix) — 2,268 tests / 36,595 assertions |
+
+---
+
+## Phase 5 — Missed Files, Archive, Compatibility
+
+Phases 1–4 left `grid.md` and `masonry.md` marked "✅ Accurate" without catching their import paths, plus stale internal directories served alongside user-facing docs.
+
+### features/grid.md — Import paths, stale feature names, stale links
+
+**Before:** 10 code blocks used `'vlist/builder'` + `'vlist/grid'` sub-path imports. "Combining with Other Features" section used `withAdapter` (from `'vlist/adapter'`), `withGroups` (from `'vlist/groups'`), `withScrollbar` (from `'vlist/scroll'`) — none of which exist. Related Documentation linked to non-existent files (`/docs/builder.md`, `/docs/features/groups.md`, `/docs/features/adapter.md`).
+
+| Change | Detail |
+|--------|--------|
+| All imports | `'vlist/builder'` + `'vlist/grid'` etc. → single `'@floor/vlist'` import (10 code blocks) |
+| `withAdapter` | → `withAsync` with correct `{ adapter: { read } }` config shape |
+| `withGroups` | → `withSections` |
+| `withScrollbar` import | `'vlist/scroll'` → `'@floor/vlist'` |
+| Infinite Scroll example | Fixed adapter params: `{ start, end }` → `{ offset, limit }` (matches `withAsync` API) |
+| Key Features bullet | "Group Support — Works with `withGroups`" → "Sections Support — Works with `withSections`" |
+| Key Differences (migration) | "Import path changed: `vlist/builder` + `vlist/grid`" → "Everything from `'@floor/vlist'`" |
+| Related Documentation | Fixed all 5 links to use relative paths to existing files |
+
+### features/masonry.md — Import paths, stale feature name, stale links
+
+**Before:** 4 code blocks used `'vlist/builder'` + `'vlist/masonry'` + `'vlist/selection'` sub-path imports. Limitations section referenced `withGroups`. Related Documentation linked to non-existent `/docs/builder.md`. Footer said v1.0.0+.
+
+| Change | Detail |
+|--------|--------|
+| All imports | `'vlist/builder'` + `'vlist/masonry'` etc. → single `'@floor/vlist'` import (4 code blocks) |
+| Limitations section | `withGroups({ ... })` → `withSections({ ... })` |
+| Limitations heading | "Groups/Sections" → "Sections" |
+| Related Documentation | Fixed all 4 links to use relative paths to existing files |
+| Footer version | v1.0.0+ → v1.1.0 |
+
+### resources/examples.md — Import paths, stale descriptions
+
+**Before:** Example Scripts section used `'vlist/core'`, `'vlist/builder'` + `'vlist/grid'` + `'vlist (withScrollbar)'`. Core example missing `.build()` call.
+
+| Change | Detail |
+|--------|--------|
+| Core example | `'vlist/core'` → `'@floor/vlist'`, added `.build()`, heading "Core (Lightweight)" → "Basic Example" |
+| Builder example | `'vlist/builder'` + `'vlist/grid'` + `'vlist (withScrollbar)'` → single `'@floor/vlist'`, heading "Builder Pattern with Features" → "With Features" |
+| React example | `'vlist/core'` → `'@floor/vlist'` |
+
+### resources/bundle-size.md — Import paths
+
+**Before:** 13 code blocks used bare `from 'vlist'` instead of `from '@floor/vlist'`.
+
+**After:** All 13 replaced with `'@floor/vlist'`. Prose references (`import * from 'vlist'` in Don't list) also updated.
+
+### internals/rendering.md — Import path
+
+Single `from 'vlist'` → `from '@floor/vlist'` in the SizeCache example.
+
+### api/types.md — Stale feature name
+
+Heading `GroupsConfig` with description "Configuration for `withGroups()`" → heading `SectionsConfig (GroupsConfig)` with description "Configuration for `withSections()`. The interface is named `GroupsConfig` in source."
+
+### navigation.json — Missing entry
+
+`features/placeholders` was in `overview.json` but absent from the sidebar. Added between `features/async` and `features/selection` with desc "Skeleton loading states (withAsync)".
+
+### README.md (docs index) — Link table alignment
+
+| Change | Detail |
+|--------|--------|
+| API Reference table | Removed duplicate "Methods" row (pointed to same file as "Reference"). Added Types, Events, Constants, Exports — now mirrors `navigation.json` exactly. |
+| Features table | Added Masonry (+2.9 KB) and Placeholders (Included) rows. Updated Overview description. |
+| Internals table | Added Measurement and Scrollbar rows — were in `navigation.json` but missing from README. |
+
+### features/overview.md — Feature compatibility matrix
+
+Added new "Feature Compatibility" section before "See Also" with:
+- 9×9 matrix (Grid, Masonry, Sections, Async, Selection, Scale, Scrollbar, Page, Snapshots)
+- Legend (✅ fully compatible, ⚠️ works with care, ❌ cannot combine)
+- Key constraints summary (Grid↔Masonry, Masonry↔Sections, Page↔Scrollbar, Page↔Scale, etc.)
+
+### Archive — Housekeeping
+
+Moved internal development artifacts out of the served docs tree:
+
+| Source | Destination | Files |
+|--------|-------------|-------|
+| `issues/` | `archive/issues/` | 6 resolved implementation prompts and bug investigations |
+| `analysis/` | `archive/analysis/` | 7 md + 4 svg + 1 json (dependency analysis, SEO, code review) |
+| `test/` | `archive/test/` | 4 test completion/coverage summaries |
+| `refactoring/` (14 of 17 files) | `archive/refactoring/` | Bundle size comparison, memory optimization, decomposition plans, session notes, checklists, summaries |
+
+**Kept in `refactoring/`:** `documentation.md` (this audit log), `v0.9.0-migration-guide.md`, `height-to-size-refactoring.md` (both linked from README.md).
+
+**Kept in place:** `benchmarks/comparison-audit.md` — benchmarks stay available.
+
+### Not changed (verified correct)
+
+| File | Status |
+|------|--------|
+| **refactoring/v0.9.0-migration-guide.md** | `from 'vlist'` in Before/After examples is historically accurate (pre-scoped-name era) |
+| **refactoring/height-to-size-refactoring.md** | Same — migration doc for v0.8.2→v0.9.0 era |
+| **CHANGELOG.md** | No import examples — version history only |
+| **getting-started.md** | Already uses `'@floor/vlist'` throughout (fixed in Phase 3) |
+| **All archive/** files | Historical — not served, not fixed |
 
 ---
 

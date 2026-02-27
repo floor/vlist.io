@@ -153,9 +153,9 @@ With compression ratio 16M/72M = 0.222222:
 **Approach:** Calculate `virtualScrollOffset = (scrollPosition / virtualSize) * actualSize`
 
 **Why it failed:** Mathematically equivalent to the original formula:
-- Old: `getOffsetForVirtualIndex(virtualScrollIndex)` 
-- New: `scrollRatio * actualHeight`
-- Both equal: `scrollTop * (actualHeight / virtualHeight)`
+- Old: `getOffsetForVirtualIndex(virtualScrollIndex)`
+- New: `scrollRatio * actualSize`
+- Both equal: `scrollPosition * (actualSize / virtualSize)`
 
 Result: Produces identical values, doesn't fix the 72px jump pattern.
 
@@ -163,7 +163,7 @@ Result: Produces identical values, doesn't fix the 72px jump pattern.
 **Approach:** Calculate first visible item's position, then position others with fixed offsets:
 ```typescript
 if (firstItemPosition === null) {
-  firstItemPosition = calculateCompressedItemPosition(firstIndex, scrollTop, ...)
+  firstItemPosition = calculateCompressedItemPosition(firstIndex, scrollPosition, ...)
 }
 offset = firstItemPosition + (itemOffset(index) - itemOffset(firstIndex))
 ```
@@ -182,15 +182,15 @@ These are required for any solution to work properly but don't fix the core math
 
 The positioning math itself is correct — the problem is that Firefox's wheel delta (-16px) maps to exactly one item height (72px) in actual space via the compression ratio (4.5×). This means:
 - The math **cannot** be fixed by changing the positioning formula (all linear formulas produce the same result)
-- The fix must change the **input** (scrollTop values) so that per-frame deltas don't align with item height
+- The fix must change the **input** (scrollPosition values) so that per-frame deltas don't align with item size
 
 ### The Fix
 
 Replace the immediate wheel handler with **lerp-based smooth scroll interpolation** in `vlist/src/features/scale/feature.ts`.
 
-Instead of immediately setting `virtualScrollTop += deltaY`, we:
-1. Accumulate deltaY into a `targetScrollTop`
-2. On each animation frame, move `virtualScrollTop` toward `targetScrollTop` by a fraction (65%)
+Instead of immediately setting `virtualScrollPosition += deltaY`, we:
+1. Accumulate deltaY into a `targetScrollPosition`
+2. On each animation frame, move `virtualScrollPosition` toward `targetScrollPosition` by a fraction (65%)
 3. This produces intermediate scroll positions that break the exact 72px alignment
 
 ```typescript
@@ -201,7 +201,7 @@ const SNAP_THRESHOLD = 0.5; // Snap when < 0.5px remaining
 // Wheel handler — accumulates into target, starts animation
 const wheelHandler = (e: WheelEvent): void => {
   e.preventDefault();
-  targetScrollTop = clamp(targetScrollTop + e.deltaY, 0, maxScroll);
+  targetScrollPosition = clamp(targetScrollPosition + e.deltaY, 0, maxScroll);
   if (smoothScrollId === null) {
     smoothScrollId = requestAnimationFrame(smoothScrollTick);
   }
@@ -209,15 +209,15 @@ const wheelHandler = (e: WheelEvent): void => {
 
 // Animation tick — converges toward target over multiple frames
 const smoothScrollTick = (): void => {
-  const diff = targetScrollTop - virtualScrollTop;
+  const diff = targetScrollPosition - virtualScrollPosition;
   if (Math.abs(diff) < SNAP_THRESHOLD) {
-    virtualScrollTop = targetScrollTop;
+    virtualScrollPosition = targetScrollPosition;
     smoothScrollId = null;
   } else {
-    virtualScrollTop += diff * LERP_FACTOR;
+    virtualScrollPosition += diff * LERP_FACTOR;
     smoothScrollId = requestAnimationFrame(smoothScrollTick);
   }
-  ctx.scrollController.scrollTo(virtualScrollTop);
+  ctx.scrollController.scrollTo(virtualScrollPosition);
 };
 ```
 
@@ -225,7 +225,7 @@ const smoothScrollTick = (): void => {
 
 For a Firefox scroll-up tick (deltaY = -16px) with lerp = 0.65:
 
-| Frame | Δ virtualScrollTop | Δ actualOffset | Multiple of 72? |
+| Frame | Δ virtualScrollPosition | Δ actualOffset | Multiple of 72? |
 |-------|-------------------|----------------|-----------------|
 | 1 | -10.4px | -46.8px | ❌ No |
 | 2 | -3.64px | -16.4px | ❌ No |
