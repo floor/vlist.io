@@ -23,6 +23,7 @@ export interface ExampleItem {
   slug: string;
   name: string;
   desc: string;
+  features?: string[];
 }
 
 export interface ExampleGroup {
@@ -327,6 +328,12 @@ function buildOverviewContent(): string {
         sections.push(
           `        <div class="overview__card-desc">${item.desc}</div>`,
         );
+        if (item.features && item.features.length > 0) {
+          const chips = item.features
+            .map((f) => `<span class="overview__chip">${f}</span>`)
+            .join("");
+          sections.push(`        <div class="overview__chips">${chips}</div>`);
+        }
         sections.push(`      </a>`);
       }
     }
@@ -511,6 +518,12 @@ export function renderExamplesPage(
     ? buildVariantSwitcher(slug, variant, queryString)
     : "";
 
+  // Build feature chips bar
+  const featureChips =
+    example.features && example.features.length > 0
+      ? `<div class="example-chips">${example.features.map((f) => `<span class="example-chip">${f}</span>`).join("")}</div>`
+      : "";
+
   // Build source tabs for the selected variant
   const sourceTabs = hasVariants
     ? buildSourceTabs(slug, variant)
@@ -519,7 +532,7 @@ export function renderExamplesPage(
   const html = assemblePage(
     slug,
     example,
-    variantSwitcher + content + sourceTabs,
+    variantSwitcher + featureChips + content + sourceTabs,
     hasVariants ? variant : undefined,
     queryString,
   );

@@ -1,121 +1,83 @@
 [
   {
-    "label": "Getting Started",
+    "label": "Essentials",
     "items": [
       {
         "slug": "basic",
-        "name": "Basic",
-        "desc": "Minimal vanilla JS — one function call, zero boilerplate"
+        "name": "Basic List",
+        "desc": "Minimal vanilla JS — one function call, zero boilerplate",
+        "features": ["core"]
       },
-      {
-        "slug": "controls",
-        "name": "Controls",
-        "desc": "Selection, navigation, scroll events — full API exploration"
-      }
-    ]
-  },
-  {
-    "label": "Grid Feature",
-    "items": [
       {
         "slug": "grid/photo-album",
         "name": "Photo Album",
-        "desc": "Grid gallery with withGrid + withScrollbar — 4 frameworks"
+        "desc": "Responsive image gallery — toggle between grid and masonry layouts",
+        "features": ["grid", "masonry", "scrollbar"]
+      },
+      {
+        "slug": "reverse-chat",
+        "name": "Messaging",
+        "desc": "Chat UI — reverse mode, date headers, auto-scroll, incoming messages",
+        "features": ["reverse", "sections"]
+      },
+      {
+        "slug": "groups/sticky-headers",
+        "name": "Contact List",
+        "desc": "A–Z grouped contacts with sticky section headers and selection",
+        "features": ["sections", "selection"]
+      },
+      {
+        "slug": "wizard-nav",
+        "name": "Wizard",
+        "desc": "Button-only step navigation — wheel scrolling disabled",
+        "features": ["scroll.wheel", "selection"]
+      },
+      {
+        "slug": "auto-size",
+        "name": "Feed",
+        "desc": "Social feed with real posts — variable heights measured automatically",
+        "features": ["estimatedHeight", "async"]
       },
       {
         "slug": "grid/file-browser",
         "name": "File Browser",
-        "desc": "Finder-like file browser with grid/list views — real filesystem API"
-      }
-    ]
-  },
-  {
-    "label": "Masonry Feature",
-    "items": [
-      {
-        "slug": "masonry/photo-album",
-        "name": "Photo Album",
-        "desc": "Pinterest-style layout with variable heights — shortest-lane placement"
-      }
-    ]
-  },
-  {
-    "label": "Data Feature",
-    "items": [
-      {
-        "slug": "data/large-list",
-        "name": "Large List (Scale)",
-        "desc": "100K–5M items with withScale — 4 frameworks"
+        "desc": "Finder-like file browser with grid/list toggle and breadcrumb navigation",
+        "features": ["grid", "sections", "scrollbar"]
       },
-      {
-        "slug": "data/velocity-loading",
-        "name": "Velocity Loading",
-        "desc": "Smart loading — skips when scrolling fast"
-      }
-    ]
-  },
-  {
-    "label": "Horizontal",
-    "items": [
       {
         "slug": "horizontal/basic",
-        "name": "Basic Horizontal",
-        "desc": "Horizontal carousel with 10K cards — 4 frameworks"
-      },
-      {
-        "slug": "horizontal/variable-width",
-        "name": "Variable Width",
-        "desc": "Dynamic item widths — width function with prefix-sum cache"
-      }
-    ]
-  },
-  {
-    "label": "Groups Feature",
-    "items": [
-      {
-        "slug": "groups/sticky-headers",
-        "name": "Sticky Headers",
-        "desc": "A–Z contact list with sticky section headers"
-      }
-    ]
-  },
-  {
-    "label": "Other Features",
-    "items": [
-      {
-        "slug": "scroll-restore",
-        "name": "Snapshots (Scroll Restore)",
-        "desc": "Save & restore scroll position across navigations"
+        "name": "Carousel",
+        "desc": "Horizontal scrolling with fixed or variable item widths — toggle to compare",
+        "features": ["horizontal"]
       },
       {
         "slug": "window-scroll",
-        "name": "Window (Page Scroll)",
-        "desc": "Document-level scrolling — no inner scrollbar"
+        "name": "Window Scroll",
+        "desc": "Document-level scrolling with async data loading — no inner scrollbar",
+        "features": ["page", "async"]
       }
     ]
   },
   {
-    "label": "Advanced Examples",
+    "label": "Data",
     "items": [
       {
-        "slug": "auto-size",
-        "name": "Auto-Size Measurement",
-        "desc": "Social feed with estimatedHeight — measures after render (Mode B)"
+        "slug": "data/velocity-loading",
+        "name": "Velocity Loading",
+        "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
+        "features": ["async", "scale", "scrollbar", "snapshots", "selection"]
       },
       {
-        "slug": "variable-heights",
-        "name": "Variable Heights",
-        "desc": "Chat feed with DOM-measured item heights"
+        "slug": "data/large-list",
+        "name": "Large Dataset",
+        "desc": "100K–5M items with scroll compression",
+        "features": ["scale", "scrollbar"]
       },
       {
-        "slug": "reverse-chat",
-        "name": "Reverse Chat",
-        "desc": "Chat UI — reverse mode, prepend history, auto-scroll"
-      },
-      {
-        "slug": "wizard-nav",
-        "name": "Wizard Navigation",
-        "desc": "Button-only navigation, wheel disabled"
+        "slug": "scroll-restore",
+        "name": "Scroll Restore",
+        "desc": "Save and restore scroll position across navigations",
+        "features": ["snapshots", "selection"]
       }
     ]
   }

@@ -50,6 +50,33 @@ html[data-theme-mode="dark"] {
 }
 
 /* ============================================================================
+   Feature Chips (on individual example pages)
+   ============================================================================ */
+
+.example-chips {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    z-index: 5;
+}
+
+.example-chip {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--bg-card, rgba(127, 127, 127, 0.08));
+    border: 1px solid var(--border, rgba(127, 127, 127, 0.15));
+    color: var(--text-muted, #6b7280);
+    white-space: nowrap;
+}
+
+/* ============================================================================
    Sandbox Design Tokens
    ============================================================================ */
 
