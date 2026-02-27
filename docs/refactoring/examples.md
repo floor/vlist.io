@@ -148,42 +148,26 @@ Four adapters exist (React, Vue, Svelte, SolidJS). Multi-framework examples incl
 
 Many examples use multiple features. Categorizing by feature forces a false hierarchy — the file browser uses grid + sections + scrollbar, where does it go? The answer: it goes under "File Browser," and the chips tell you the rest.
 
-### Flat example list with feature chips
+### Two groups — Essentials is the showcase
 
-Groups are loose thematic clusters, not feature buckets. An example lives in whichever group best matches the *thing being built*.
+Almost everything belongs in Essentials. These are the real things developers build with a virtual list. Data is the deep dive for scale, async internals, and persistence.
 
 ```
 Essentials
-  basic                  [core]                            — exists
-  controls               [selection] [events]              — exists (4 frameworks)
-
-Layouts
-  photo-album (grid)     [grid] [scrollbar]                — exists (4 frameworks)
-  photo-album (masonry)  [masonry] [scrollbar]             — exists
-  file-browser           [grid] [sections] [scrollbar]     — exists
-  horizontal-list        [horizontal]                      — exists (4 frameworks)
-  variable-width         [horizontal]                      — exists, add to nav
+  basic-list             [core]                                          — exists
+  photo-album            [grid] [masonry] [scrollbar]                    — exists (merge grid + masonry with toggle)
+  messaging              [reverse] [sections]                            — exists (rename from reverse-chat)
+  contact-list           [sections] [selection]                          — exists (rename from sticky-headers)
+  wizard                 [scroll.wheel] [selection]                      — exists (rename from wizard-nav)
+  feed                   [estimatedHeight] [async]                       — exists (rewrite auto-size with X API data)
+  file-browser           [grid] [sections] [scrollbar]                   — exists
+  carousel               [horizontal]                                    — exists (merge horizontal/basic + variable-width with toggle)
+  window-scroll          [page] [async]                                  — exists
 
 Data
-  infinite-feed          [async] [page]                    ← NEW (simple fetch + placeholders)
   velocity-loading       [async] [scale] [scrollbar] [snapshots] [selection] — exists
-  large-dataset          [scale] [scrollbar]               — exists (4 frameworks)
-
-Lists
-  contact-list           [sections] [selection]            — exists (rename from sticky-headers)
-  multi-select           [selection]                       ← NEW (dedicated selection showcase)
-  scroll-restore         [snapshots] [selection]           — exists
-
-Messaging
-  chat                   [reverse] [sections]              — exists
-  variable-heights       [reverse]                         — exists
-
-Page & Window
-  window-scroll          [page] [async]                    — exists
-  auto-size              [estimatedHeight]                  — exists
-
-Other
-  wizard-nav             [scroll.wheel] [selection]        — exists
+  large-dataset          [scale] [scrollbar]                             — exists (4 frameworks)
+  scroll-restore         [snapshots] [selection]                         — exists
 ```
 
 ### Feature chip vocabulary
@@ -212,23 +196,19 @@ Chips use the builder function name or config option — what the developer actu
 
 | Change | Type | Rationale |
 |--------|------|-----------|
-| Flatten navigation — no feature-based categories | Nav | Examples use many features; categorize by use case, show features as chips |
-| Rename "Groups Feature" → dissolve into "Lists" | Nav | `sticky-headers` is a contact list; group by what it builds |
-| Rename "Data Feature" → dissolve into "Data" | Nav | Split scale from async — different use cases |
-| Dissolve "Other Features" | Nav | `window-scroll` → "Page & Window", `scroll-restore` → "Lists" |
-| Dissolve "Advanced Examples" | Nav | `reverse-chat` → "Messaging", `auto-size` → "Page & Window", `variable-heights` → "Messaging", `wizard-nav` → "Other" |
-| Add masonry to index.html | Fix | Already in navigation.json, missing from landing page |
-| Add `horizontal/variable-width` to nav | Fix | Exists on disk, missing from navigation.json |
-| Add `selection/multi-select` | New | Selection has no dedicated example |
-| Add `data/infinite-feed` | New | Async has no simple example (velocity-loading is too complex for a starting point) |
-| Add feature chips to navigation.json entries | New | Each entry gets a `features` array for rendering chips |
-| Sync index.html from navigation.json | Fix | Prevent future drift |
+| Collapse 8 groups → 2 (Essentials + Data) | Nav | Almost everything is an essential use case; no need for Layouts, Lists, Messaging, Page & Window |
+| Add feature chips to every entry | Nav | Each entry gets a `features` array rendered as chips |
+| Merge `grid/photo-album` + `masonry/photo-album` | Modify | One "Photo Album" with grid/masonry toggle — layout mode is a switch, not a different app |
+| Merge `horizontal/basic` + `horizontal/variable-width` | Modify | One "Carousel" with fixed/variable width toggle |
+| Rewrite `auto-size` → "Feed" | Modify | Social feed with X API data instead of synthetic auto-size demo |
+| Archive `controls` | Archive | API exploration replaced by individual Essentials examples that demo APIs in context |
+| Archive `variable-heights` | Archive | Replaced by Feed example |
+| Move everything into Essentials | Nav | `reverse-chat` → Messaging, `groups/sticky-headers` → Contact List, `wizard-nav` → Wizard, `grid/file-browser` → File Browser, `window-scroll` → Window Scroll, `auto-size` → Feed |
 
 ### What doesn't change
 
 - **Build system** — works perfectly, no changes needed
 - **Shared styles** — solid, theme bridging works
-- **Existing example code** — quality is high, no rewrites needed
 - **Icons directory** — used by examples, stays as-is
 - **Multi-framework strategy** — keep current approach (JS always, framework variants for key examples)
 - **Directory structure on disk** — examples stay where they are; only navigation metadata changes
@@ -242,39 +222,39 @@ Each tutorial should point to one or more live examples. The mapping:
 | Tutorial (from tutorials.md) | Primary Example | Secondary Examples | Status |
 |------------------------------|----------------|-------------------|--------|
 | Your First List | `/examples/basic` | — | ✅ Exists |
-| Photo Gallery | `/examples/grid/photo-album` | `grid/file-browser`, `masonry/photo-album` | ✅ Exists |
-| Contact List | `/examples/groups/sticky-headers` | `controls` (selection) | ✅ Exists |
-| Chat Interface | `/examples/reverse-chat` | `variable-heights` | ✅ Exists |
-| Infinite Feed | new `/examples/data/infinite-feed` | `data/velocity-loading`, `window-scroll` | 🟡 Simple one needed |
+| Photo Gallery | `/examples/grid/photo-album` | `grid/file-browser` | ✅ Exists (adding masonry toggle) |
+| Contact List | `/examples/groups/sticky-headers` | — | ✅ Exists |
+| Chat Interface | `/examples/reverse-chat` | — | ✅ Exists |
+| Infinite Feed | `/examples/auto-size` (→ Feed) | `data/velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
 | Large Dataset | `/examples/data/large-list` | `data/velocity-loading` | ✅ Exists |
 | Styling | No dedicated example | — | ❌ (tutorial is self-contained) |
-| Accessibility | No dedicated example | `controls` (keyboard nav) | ❌ (tutorial is self-contained) |
+| Accessibility | No dedicated example | — | ❌ (tutorial is self-contained) |
 
-**Key insight:** The tutorial plan mostly maps to existing examples. The main gap is a simple async example for the "Infinite Feed" tutorial. Everything else exists.
+**Key insight:** Every tutorial maps to an existing example. The main modification needed is rewriting `auto-size` into "Feed" with real X API data.
 
 ---
 
 ## Phase Plan
 
-### Phase 1 — Navigation & Chips
+### Phase 1 — Navigation & Chips ✅
 
 - Restructure `navigation.json` with use-case groups and `features` arrays on each entry
-- Sync `index.html` to match — render feature chips next to each example card
-- Add masonry to index.html (missing)
-- Add `horizontal/variable-width` to navigation.json (missing)
-- No code changes to existing examples
+- Render feature chips on overview page (server-generated) and individual example pages (top-right)
+- Iterative refinement: collapsed from 7 groups → 4 → 3 → 2 (Essentials + Data)
+- Moved photo-album, messaging, contact-list, wizard, feed, file-browser, carousel, window-scroll into Essentials
+- Archived controls, variable-heights conceptually (nav removed, directories remain for now)
 
-### Phase 2 — New Examples
+### Phase 2 — Modify Existing Examples
 
-- Create `data/infinite-feed` — minimal async fetch with placeholders (the "hello world" of async loading) `[async] [page]`
-- Create `selection/multi-select` — dedicated selection example (single, multi, range, programmatic API) `[selection]`
-- Wire both into navigation.json and index.html with feature chips
+- **Photo Album**: merge `grid/photo-album` + `masonry/photo-album` — add Grid ↔ Masonry layout toggle
+- **Carousel**: merge `horizontal/basic` + `horizontal/variable-width` — add Fixed ↔ Variable width toggle
+- **Feed**: rewrite `auto-size` — X API data, `estimatedHeight` + `withAsync()`, real social feed UI
+- Archive `controls/`, `variable-heights/`, `horizontal/variable-width/`, `masonry/photo-album/` directories
 
 ### Phase 3 — Polish & Consistency
 
 - Verify all examples build cleanly (`bun run build:examples`)
 - Verify all content.html files have consistent structure
-- Add SolidJS variants to key multi-framework examples (if adapter is stable enough)
 - Review descriptions in navigation.json for accuracy and consistency
 - Check all examples use builder API (no monolithic config)
 
@@ -303,32 +283,34 @@ Extending the 17 principles from docs + tutorials:
 
 ### Phase 1 — Navigation & Chips
 
+Iterative process — started with an intermediate 7-group structure, then refined through discussion into the final 2-group layout.
+
 #### navigation.json — Full restructure
 
 Rewrote `examples/navigation.json` from feature-based categories to use-case groups with feature chips.
 
-**Before:** 8 groups organized by feature (`Grid Feature`, `Masonry Feature`, `Data Feature`, `Groups Feature`, `Other Features`, `Advanced Examples`).
+**Before:** 8 groups organized by feature (`Getting Started`, `Grid Feature`, `Masonry Feature`, `Data Feature`, `Horizontal`, `Groups Feature`, `Other Features`, `Advanced Examples`). 16 entries.
 
-**After:** 7 groups organized by what you're building (`Essentials`, `Layouts`, `Data`, `Lists`, `Messaging`, `Page & Window`, plus unchanged `Other`).
+**After:** 2 groups organized by what you're building (`Essentials`, `Data`). 12 entries.
 
-| Before (group) | Example | After (group) |
-|----------------|---------|---------------|
-| Getting Started | basic | Essentials |
-| Getting Started | controls | Essentials |
-| Grid Feature | grid/photo-album | Layouts |
-| Grid Feature | grid/file-browser | Layouts |
-| Masonry Feature | masonry/photo-album | Layouts |
-| Data Feature | data/large-list | Data |
-| Data Feature | data/velocity-loading | Data |
-| Horizontal | horizontal/basic | Layouts |
-| Horizontal | horizontal/variable-width | Layouts |
-| Groups Feature | groups/sticky-headers | Lists |
-| Other Features | scroll-restore | Lists |
-| Other Features | window-scroll | Page & Window |
-| Advanced Examples | auto-size | Page & Window |
-| Advanced Examples | variable-heights | Messaging |
-| Advanced Examples | reverse-chat | Messaging |
-| Advanced Examples | wizard-nav | Lists |
+| Before (group) | Example | After | Notes |
+|----------------|---------|-------|-------|
+| Getting Started | basic | Essentials → "Basic List" | — |
+| Getting Started | controls | **Archived** | API exploration replaced by individual examples |
+| Grid Feature | grid/photo-album | Essentials → "Photo Album" | Will merge masonry with toggle |
+| Grid Feature | grid/file-browser | Essentials → "File Browser" | — |
+| Masonry Feature | masonry/photo-album | **Merged into Photo Album** | Grid ↔ Masonry toggle |
+| Data Feature | data/large-list | Data → "Large Dataset" | — |
+| Data Feature | data/velocity-loading | Data → "Velocity Loading" | — |
+| Horizontal | horizontal/basic | Essentials → "Carousel" | Will merge variable-width with toggle |
+| Horizontal | horizontal/variable-width | **Merged into Carousel** | Fixed ↔ Variable toggle |
+| Groups Feature | groups/sticky-headers | Essentials → "Contact List" | — |
+| Other Features | scroll-restore | Data → "Scroll Restore" | — |
+| Other Features | window-scroll | Essentials → "Window Scroll" | — |
+| Advanced Examples | auto-size | Essentials → "Feed" | Will rewrite with X API data |
+| Advanced Examples | variable-heights | **Archived** | Replaced by Feed |
+| Advanced Examples | reverse-chat | Essentials → "Messaging" | — |
+| Advanced Examples | wizard-nav | Essentials → "Wizard" | — |
 
 Every entry now has a `features` array:
 
@@ -341,24 +323,22 @@ Every entry now has a `features` array:
 }
 ```
 
-**Fixes included:**
-- `masonry/photo-album` — was in navigation.json but **missing from index.html**. Now in "Layouts" group, rendered by server from navigation.json.
-- `horizontal/variable-width` — existed on disk but **missing from navigation.json**. Now included in "Layouts" group.
+**Key decisions (iterative refinement):**
 
-**Name improvements:**
-- `basic` → "Basic List" (was "Basic")
-- `grid/photo-album` → "Photo Album (Grid)" (disambiguate from masonry)
-- `masonry/photo-album` → "Photo Album (Masonry)" (disambiguate from grid)
-- `horizontal/basic` → "Horizontal Carousel" (was "Basic Horizontal")
-- `groups/sticky-headers` → "Contact List" (was "Sticky Headers" — describes what it builds, not the feature)
-- `data/large-list` → "Large Dataset" (was "Large List (Scale)")
-- `scroll-restore` → "Scroll Restore" (was "Snapshots (Scroll Restore)")
-- `reverse-chat` → "Chat" (was "Reverse Chat")
-- `window-scroll` → "Window Scroll" (was "Window (Page Scroll)")
+1. **No feature-based categories.** Categorize by what you build, show features as chips.
+2. **"Messaging" not "Chat & Reverse."** More descriptive, not locked to chat.
+3. **Controls → archive.** Individual Essentials examples demonstrate APIs in context.
+4. **Merge grid + masonry photo albums.** Layout mode is a toggle, not a different app.
+5. **Merge horizontal basic + variable-width.** Fixed/variable width is a toggle.
+6. **Auto-size → Feed.** Real X API data instead of synthetic demo.
+7. **File Browser + Carousel + Window Scroll → Essentials.** Almost everything is an essential use case.
+8. **Collapsed to 2 groups.** Essentials (9) + Data (3). No Layouts, Lists, Messaging, or Page & Window groups needed.
 
-#### examples.ts — Feature chips in overview renderer
+#### examples.ts — Feature chips on both overview and example pages
 
-Added `features?: string[]` to `ExampleItem` interface. Updated `buildOverviewContent()` to render feature chips below each card description:
+Added `features?: string[]` to `ExampleItem` interface.
+
+**Overview page:** Updated `buildOverviewContent()` to render chips below each card description:
 
 ```html
 <div class="overview__chips">
@@ -367,12 +347,24 @@ Added `features?: string[]` to `ExampleItem` interface. Updated `buildOverviewCo
 </div>
 ```
 
-Backward-compatible — entries without `features` render no chips.
+**Individual example pages:** Updated `renderExamplesPage()` to inject a chip bar between the variant switcher and the example content:
 
-#### shell.css — Chip styles
+```html
+<div class="example-chips">
+  <span class="example-chip">grid</span>
+  <span class="example-chip">sections</span>
+  <span class="example-chip">scrollbar</span>
+</div>
+```
 
-Added `.overview__chips` (flex container with gap) and `.overview__chip` (small rounded labels, subtle background, muted text). Uses existing `--bg-subtle` and `--text-dim` tokens for theme compatibility.
+Positioned absolute top-right, same level as the variant switcher (top-left).
+
+#### CSS — Chip styles
+
+**shell.css:** Added `.overview__chips` and `.overview__chip` for the overview page. Subtle background via `--bg-subtle` token, muted text via `--text-dim`.
+
+**examples/styles.css:** Added `.example-chips` (absolute, top-right, z-index 5) and `.example-chip` (12px, rounded, border + background) for individual example pages.
 
 #### index.html — Not updated
 
-The static `index.html` is a fallback — the server generates the examples overview from `navigation.json` via `buildOverviewContent()`. The static file is now stale relative to navigation.json but is not served in production. Updating it is deferred — ideally it should be generated, not hand-maintained (principle 23).
+The static `index.html` is a fallback — the server generates the examples overview from `navigation.json` via `buildOverviewContent()`. The static file is now stale but is not served in production.
