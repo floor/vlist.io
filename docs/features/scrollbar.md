@@ -118,7 +118,7 @@ btnPrev.addEventListener('click', () => {
 });
 ```
 
-> **Note:** `wrap` only affects `scrollToIndex` and `scrollToItem`. It does not create an infinite/repeating list — the items array stays finite. The wrapping is purely navigational.
+> **Note:** `wrap` only affects `scrollToIndex`. It does not create an infinite/repeating list — the items array stays finite. The wrapping is purely navigational.
 
 ### `scroll.scrollbar`
 
@@ -1395,7 +1395,7 @@ This pattern already existed in other parts of the codebase (reverse mode, appen
 
 ## Related Modules
 
-- [methods.md](/docs/api/reference#snapshot-methods) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
+- [Snapshots](./snapshots.md) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
 - [scale.md](./scale.md) — Compression state for large lists
 - [render.md](../internals/rendering.md) — Viewport state management
 - [Context](../internals/context.md) — BuilderContext holds scroll controller and wires event handlers

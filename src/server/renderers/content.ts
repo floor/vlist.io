@@ -148,15 +148,16 @@ export function createContentRenderer(config: ContentConfig) {
   function extractToc(html: string): TocItem[] {
     const toc: TocItem[] = [];
     const headingRegex =
-      /<h2[^>]*id="([^"]+)"[^>]*>(.*?)<a class="anchor"[^>]*>.*?<\/a><\/h2>/g;
+      /<h([23])[^>]*id="([^"]+)"[^>]*>(.*?)<a class="anchor"[^>]*>.*?<\/a><\/h\1>/g;
 
     let match;
     while ((match = headingRegex.exec(html)) !== null) {
-      const slug = match[1];
-      const htmlText = match[2];
+      const depth = Number(match[1]) as 2 | 3;
+      const slug = match[2];
+      const htmlText = match[3];
       // Strip HTML tags from heading text
       const text = htmlText.replace(/<[^>]*>/g, "").trim();
-      toc.push({ text, slug, depth: 2 });
+      toc.push({ text, slug, depth });
     }
 
     return toc;
@@ -170,12 +171,55 @@ export function createContentRenderer(config: ContentConfig) {
     lines.push(`  <div class="toc__title">On this page</div>`);
     lines.push(`  <ul class="toc__list">`);
 
-    for (const item of tocItems) {
-      lines.push(`    <li class="toc__item">`);
-      lines.push(
-        `      <a href="#${item.slug}" class="toc__link">${item.text}</a>`,
-      );
-      lines.push(`    </li>`);
+    for (let i = 0; i < tocItems.length; i++) {
+      const item = tocItems[i];
+
+      if (item.depth === 3) {
+        // H3 items outside of a parent H2 — render flat (shouldn't happen, but safe)
+        lines.push(`    <li class="toc__item toc__item--sub">`);
+        lines.push(
+          `      <a href="#${item.slug}" class="toc__link toc__link--sub">${item.text}</a>`,
+        );
+        lines.push(`    </li>`);
+      } else {
+        // H2 item — check if followed by H3 children
+        const hasChildren =
+          i + 1 < tocItems.length && tocItems[i + 1].depth === 3;
+
+        if (hasChildren) {
+          // Open <li>, render link, open nested <ul>
+          lines.push(`    <li class="toc__item toc__item--parent">`);
+          lines.push(
+            `      <a href="#${item.slug}" class="toc__link">${item.text}</a>`,
+          );
+          lines.push(`      <ul class="toc__sublist">`);
+
+          // Consume all following H3 children
+          let j = i + 1;
+          while (j < tocItems.length && tocItems[j].depth === 3) {
+            const sub = tocItems[j];
+            lines.push(`        <li class="toc__item toc__item--sub">`);
+            lines.push(
+              `          <a href="#${sub.slug}" class="toc__link toc__link--sub">${sub.text}</a>`,
+            );
+            lines.push(`        </li>`);
+            j++;
+          }
+
+          lines.push(`      </ul>`);
+          lines.push(`    </li>`);
+
+          // Skip the children we just consumed
+          i = j - 1;
+        } else {
+          // H2 with no children — simple item
+          lines.push(`    <li class="toc__item">`);
+          lines.push(
+            `      <a href="#${item.slug}" class="toc__link">${item.text}</a>`,
+          );
+          lines.push(`    </li>`);
+        }
+      }
     }
 
     lines.push(`  </ul>`);

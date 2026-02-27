@@ -261,7 +261,6 @@ const list = vlist({ ... })
 
 // All standard methods work
 list.scrollToIndex(50);
-list.scrollToItem('article-5');
 list.getScrollPosition();
 list.setItems(newArticles);
 ```

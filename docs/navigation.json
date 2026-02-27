@@ -14,7 +14,7 @@
       {
         "slug": "api/reference",
         "name": "Reference",
-        "desc": "Complete API — config, methods, events, types"
+        "desc": "Config, properties, and methods"
       },
       {
         "slug": "api/types",
@@ -30,6 +30,11 @@
         "slug": "api/constants",
         "name": "Constants",
         "desc": "Default values and thresholds"
+      },
+      {
+        "slug": "api/exports",
+        "name": "Exports",
+        "desc": "Low-level utilities and feature authoring"
       }
     ]
   },

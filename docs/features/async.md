@@ -47,7 +47,7 @@ const list = vlist({
     maxCachedItems: 10000 // Max items in memory (default: 10000)
   },
   loading: {
-    cancelThreshold: 15,  // Cancel load above this velocity (default: 15)
+    cancelThreshold: 5,   // Cancel load above this velocity (default: 5)
     preloadThreshold: 2,  // Preload above this velocity (default: 2)
     preloadAhead: 50      // Items to preload (default: 50)
   }
@@ -79,7 +79,7 @@ Configure sparse storage behavior:
 
 #### `loading` (optional)
 Velocity-based loading optimization:
-- `cancelThreshold`: Velocity (px/ms) above which loading is skipped (default: 15)
+- `cancelThreshold`: Velocity (px/ms) above which loading is skipped (default: 5)
 - `preloadThreshold`: Velocity (px/ms) for preloading ahead (default: 2)
 - `preloadAhead`: Number of items to preload in scroll direction (default: 50)
 

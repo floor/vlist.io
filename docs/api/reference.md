@@ -1,9 +1,10 @@
 # VList API Reference
 
-> Complete reference for VList v0.8 — the tiny, blazing-fast virtual list.
+> Complete reference for the core VList API — factory, configuration, properties, and methods.
+>
+> For feature-specific documentation (`withGrid`, `withAsync`, `withSelection`, etc.), see the [Features](../features/overview.md) section.
 
 ---
-
 
 ## Installation
 
@@ -16,20 +17,27 @@ import { vlist } from '@floor/vlist'
 import '@floor/vlist/styles'
 ```
 
+Optional extras (variants, loading states, animations):
+
+```ts
+import '@floor/vlist/styles/extras'
+```
+
 ---
 
 ## Quick Start
 
 ```ts
 import { vlist } from '@floor/vlist'
+import '@floor/vlist/styles'
 
 const list = vlist({
   container: '#my-list',
   items: Array.from({ length: 10000 }, (_, i) => ({ id: i, name: `Item ${i}` })),
   item: {
     height: 48,
-    template: (item) => `<div>${item.name}</div>`
-  }
+    template: (item) => `<div>${item.name}</div>`,
+  },
 }).build()
 
 list.scrollToIndex(5000)
@@ -38,22 +46,20 @@ list.on('item:click', ({ item }) => console.log(item))
 
 ---
 
-## Factory Function
+## vlist(config)
 
-### `vlist(config)`
-
-Creates a `VListBuilder` — a chainable object that lets you compose feature features before finalizing the list.
+Creates a `VListBuilder` — a chainable object for composing features before materializing the list.
 
 ```ts
 function vlist<T extends VListItem>(config: BuilderConfig<T>): VListBuilder<T>
 ```
 
-**Returns** a `VListBuilder` with `.use()` and `.build()`.
+**Returns** a `VListBuilder` with two methods:
 
 | Method | Description |
 |--------|-------------|
-| `.use(feature)` | Register a feature feature. Chainable. |
-| `.build()` | Materialize the list — creates DOM, initializes all features, returns the instance API. |
+| `.use(feature)` | Register a feature. Chainable. |
+| `.build()` | Materialize the list — creates DOM, initializes features, returns the instance API. |
 
 **Example with features:**
 
@@ -75,9 +81,22 @@ const list = vlist({
 
 ## Configuration
 
-### `BuilderConfig`
+All configuration types passed to `vlist()` and its features.
 
-The main configuration object passed to `vlist()`.
+### VListItem
+
+All items must have a unique `id`. This is the only constraint — add any other fields your template needs.
+
+```ts
+interface VListItem {
+  id: string | number
+  [key: string]: unknown
+}
+```
+
+### BuilderConfig
+
+The top-level configuration object passed to `vlist()`.
 
 ```ts
 interface BuilderConfig<T extends VListItem = VListItem> {
@@ -95,72 +114,95 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `container` | `HTMLElement \| string` | — | **Required.** The container element or a CSS selector string. |
-| `item` | `ItemConfig` | — | **Required.** Item sizing and template configuration. |
+| `container` | `HTMLElement \| string` | — | **Required.** The container element or a CSS selector. |
+| `item` | `ItemConfig` | — | **Required.** Item sizing and template. |
 | `items` | `T[]` | `[]` | Static items array. Omit when using `withAsync`. |
-| `overscan` | `number` | `3` | Number of extra items rendered outside the viewport in each direction. Higher values reduce blank flashes during fast scrolling at the cost of more DOM nodes. |
-| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. Use `'horizontal'` for carousels or timelines. Cannot be combined with `groups`, `grid`, or `reverse`. |
-| `reverse` | `boolean` | `false` | Reverse mode for chat UIs. List starts scrolled to the bottom; `appendItems()` auto-scrolls if already at bottom; `prependItems()` preserves scroll position. Cannot be combined with `groups` or `grid`. |
-| `classPrefix` | `string` | `'vlist'` | CSS class prefix applied to all internal elements. Override when integrating multiple lists or avoiding conflicts. |
+| `overscan` | `number` | `3` | Extra items rendered outside the viewport in each direction. Higher values reduce blank flashes during fast scrolling at the cost of more DOM nodes. |
+| `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. Use `'horizontal'` for carousels or timelines. |
+| `reverse` | `boolean` | `false` | Reverse mode — list starts scrolled to the bottom. `appendItems` auto-scrolls if already at bottom; `prependItems` preserves scroll position. Useful for any bottom-anchored content: chat, logs, activity feeds, timelines. |
+| `classPrefix` | `string` | `'vlist'` | CSS class prefix for all internal elements. |
 | `ariaLabel` | `string` | — | Sets `aria-label` on the root listbox element. |
 | `scroll` | `ScrollConfig` | — | Fine-grained scroll behavior options. |
 
 ---
 
-### `ItemConfig`
+### ItemConfig
 
-Controls how items are sized and rendered.
+Controls how items are sized and rendered. Supports two sizing strategies, each with an axis-neutral `SizeCache` underneath — the same code path handles vertical heights and horizontal widths.
 
 ```ts
 interface ItemConfig<T extends VListItem = VListItem> {
-  height?:   number | ((index: number, context?: GridHeightContext) => number)
-  width?:    number | ((index: number) => number)
-  template:  ItemTemplate<T>
+  height?:          number | ((index: number, context?: GridHeightContext) => number)
+  width?:           number | ((index: number) => number)
+  estimatedHeight?: number
+  estimatedWidth?:  number
+  template:         ItemTemplate<T>
 }
 ```
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `height` | `number \| (index, context?) => number` | — | Item height in pixels. Required for vertical lists. A plain number enables the fast path (zero per-item overhead). A function enables variable heights using a prefix-sum cache for O(log n) lookups. In grid mode, receives `GridHeightContext` as a second argument. |
-| `width` | `number \| (index) => number` | — | Item width in pixels. Required for horizontal lists (`orientation: 'horizontal'`). Ignored in vertical mode. |
-| `template` | `ItemTemplate<T>` | — | **Required.** Render function called for each visible item. May return an HTML string or a live `HTMLElement`. |
+| `height` | `number \| (index, ctx?) => number` | — | Item size in pixels along the main axis. Required for vertical lists. A plain number enables the fast path (zero per-item overhead). A function enables variable sizes with a prefix-sum array for O(1) offset lookup and O(log n) index search. In grid mode, receives a context object as a second argument — see [Grid](../features/grid.md). |
+| `width` | `number \| (index) => number` | — | Item size in pixels along the main axis for horizontal lists (`orientation: 'horizontal'`). Same semantics as `height`. Ignored in vertical mode. |
+| `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Items are rendered at this size, then measured via `ResizeObserver`, and the real size is cached. Use for content whose size can't be predicted from data. Ignored if `height` is also set. |
+| `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Ignored if `width` is also set. |
+| `template` | `ItemTemplate<T>` | — | **Required.** Render function for each visible item. |
 
-**Fixed height (fastest):**
+#### Sizing modes
+
+vlist supports two sizing strategies. Pick the one that matches your data:
+
+**Mode A — Known sizes.** Use when you can derive the item size from data alone, without rendering. This is the fast path — zero measurement overhead.
+
+| Variant | When to use | Example use cases |
+|---------|-------------|-------------------|
+| Fixed (`number`) | All items have the same size | Contact lists, data tables, settings panels |
+| Variable (`function`) | Size varies but is computable from data | Expanded/collapsed rows, mixed row types (header vs item) |
 
 ```ts
+// Fixed — all items 48px
 item: {
   height: 48,
-  template: (item) => `<div class="row">${item.name}</div>`
+  template: (item) => `<div>${item.name}</div>`,
+}
+
+// Variable — derive size from data
+item: {
+  height: (index) => data[index].type === 'header' ? 64 : 48,
+  template: (item) => `<div>${item.name}</div>`,
 }
 ```
 
-**Variable height:**
+**Mode B — Auto-measurement.** Use when the size depends on rendered content that you can't predict from data — variable-length user text, images with unknown aspect ratios, mixed-media feeds. You provide an *estimate*; vlist renders items at that size, measures the actual DOM size via `ResizeObserver`, caches the result, and adjusts scroll position to prevent visual jumps.
 
 ```ts
+// Social feed — posts vary from one-liner to multi-paragraph with images
 item: {
-  height: (index) => data[index].expanded ? 120 : 48,
-  template: (item, index, state) => `<div class="${state.selected ? 'selected' : ''}">${item.name}</div>`
+  estimatedHeight: 120,
+  template: (post) => `
+    <article class="post">
+      <div class="post__body">${post.text}</div>
+      ${post.image ? `<img src="${post.image}" />` : ''}
+    </article>
+  `,
 }
 ```
 
-**Grid aspect-ratio height:**
+Once an item is measured, it behaves identically to Mode A — subsequent renders use the cached size with no further measurement. See [Measurement](../internals/measurement.md) for the full architecture.
 
-```ts
-item: {
-  height: (index, ctx) => ctx ? ctx.columnWidth * 0.75 : 200, // 4:3
-  template: (item) => `<img src="${item.src}" />`
-}
-```
+**Precedence:** If both `height` and `estimatedHeight` are set, `height` wins (Mode A). The estimate is silently ignored. This means upgrading from Mode B to Mode A is a single config change.
+
+**Scaling:** All three variants (fixed, variable, measured) work with `withScale` for 1M+ items. The compression ratio is computed from the actual total size reported by the `SizeCache`, not from a uniform item size assumption — so variable and measured sizes compress correctly.
 
 ---
 
-### `ItemTemplate`
+### ItemTemplate
 
 ```ts
 type ItemTemplate<T = VListItem> = (
-  item:   T,
-  index:  number,
-  state:  ItemState,
+  item:  T,
+  index: number,
+  state: ItemState,
 ) => string | HTMLElement
 ```
 
@@ -172,14 +214,16 @@ type ItemTemplate<T = VListItem> = (
 
 ```ts
 interface ItemState {
-  selected: boolean  // true when this item is in the selection set
-  focused:  boolean  // true when this item has keyboard focus
+  selected: boolean   // true when this item is in the selection set
+  focused:  boolean   // true when this item has keyboard focus
 }
 ```
 
 ---
 
-### `ScrollConfig`
+### ScrollConfig
+
+Scroll behavior options, passed as the `scroll` property of `BuilderConfig`.
 
 ```ts
 interface ScrollConfig {
@@ -201,18 +245,18 @@ interface ScrollConfig {
 
 ---
 
-### `ScrollbarOptions`
+### ScrollbarOptions
 
-Fine-tuning options for the custom scrollbar. Pass as `scroll.scrollbar`.
+Fine-tuning for the custom scrollbar. Pass as `scroll.scrollbar` or to `withScrollbar()`.
 
 ```ts
 interface ScrollbarOptions {
-  autoHide?:           boolean
-  autoHideDelay?:      number
-  minThumbSize?:       number
-  showOnHover?:        boolean
-  hoverZoneWidth?:     number
-  showOnViewportEnter?: boolean
+  autoHide?:             boolean
+  autoHideDelay?:        number
+  minThumbSize?:         number
+  showOnHover?:          boolean
+  hoverZoneWidth?:       number
+  showOnViewportEnter?:  boolean
 }
 ```
 
@@ -220,123 +264,48 @@ interface ScrollbarOptions {
 |----------|------|---------|-------------|
 | `autoHide` | `boolean` | `true` | Hide the scrollbar thumb after the list goes idle. |
 | `autoHideDelay` | `number` | `1000` | Milliseconds of idle time before the thumb fades out. |
-| `minThumbSize` | `number` | `30` | Minimum thumb height in pixels. Prevents the thumb from becoming too small to grab. |
+| `minThumbSize` | `number` | `30` | Minimum thumb size in pixels. Prevents the thumb from becoming too small to grab. |
 | `showOnHover` | `boolean` | `true` | Reveal the scrollbar when the cursor moves near the scrollbar edge. |
 | `hoverZoneWidth` | `number` | `16` | Width in pixels of the invisible hover detection zone along the scrollbar edge. |
 | `showOnViewportEnter` | `boolean` | `true` | Show the scrollbar whenever the cursor enters the list viewport. |
 
 ---
 
-### `GridConfig`
+## Properties
 
-Required when using `withGrid()` or `layout: 'grid'`.
+The object returned by `.build()` exposes these read-only properties.
 
-```ts
-interface GridConfig {
-  columns: number
-  gap?:    number
-}
-```
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `columns` | `number` | — | **Required.** Number of columns. Item width is calculated automatically as `(containerWidth - gaps) / columns`. Must be a positive integer. |
-| `gap` | `number` | `0` | Gap between items in pixels, applied both horizontally and vertically. |
-
----
-
-### `GridHeightContext`
-
-Passed as the second argument to `item.height` when in grid mode.
+### element
 
 ```ts
-interface GridHeightContext {
-  containerWidth: number  // current container width in px
-  columns:        number  // number of columns
-  gap:            number  // gap between items in px
-  columnWidth:    number  // calculated column width in px
-}
+readonly element: HTMLElement
 ```
 
----
+The root DOM element created by vlist. Already inserted into the container you specified — no need to append it yourself.
 
-### `GroupsConfig`
-
-Passed to `withSections()` to enable sticky grouped headers.
+### items
 
 ```ts
-interface GroupsConfig {
-  getGroupForIndex:  (index: number) => string
-  headerHeight:      number | ((group: string, groupIndex: number) => number)
-  headerTemplate:    (group: string, groupIndex: number) => string | HTMLElement
-  sticky?:           boolean
-}
+readonly items: readonly T[]
 ```
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `getGroupForIndex` | `(index) => string` | — | **Required.** Returns the group key for a given data index. Called in order — a new header is inserted whenever the return value changes. Items **must be pre-sorted** by group. |
-| `headerHeight` | `number \| (group, groupIndex) => number` | — | **Required.** Height of group headers in pixels. Use a function for variable-height headers. |
-| `headerTemplate` | `(group, groupIndex) => string \| HTMLElement` | — | **Required.** Renders a group header element. Receives the group key and its 0-based index. |
-| `sticky` | `boolean` | `true` | When `true`, the active section header sticks to the top of the viewport and is pushed away by the next header. |
+The current items array. This is a read-only snapshot — mutating it has no effect. Use `setItems`, `appendItems`, `prependItems`, `updateItem`, or `removeItem` to change data.
 
----
-
-### `SelectionConfig`
-
-Passed to `withSelection()`.
+### total
 
 ```ts
-interface SelectionConfig {
-  mode?:    SelectionMode  // 'none' | 'single' | 'multiple'
-  initial?: Array<string | number>
-}
+readonly total: number
 ```
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `mode` | `'none' \| 'single' \| 'multiple'` | `'none'` | Selection mode. `'single'` allows at most one selected item. `'multiple'` enables Shift+Click range selection and Ctrl/Cmd+Click toggling. |
-| `initial` | `Array<string \| number>` | `[]` | Item IDs to select on initialization. |
+Total item count. For static lists this equals `items.length`. With `withAsync`, this reflects the total reported by the adapter (which may be larger than the number of items currently loaded).
 
 ---
 
-### `LoadingConfig`
+## Methods
 
-Passed to `withAsync()` to tune velocity-aware data loading.
+All methods are available on the object returned by `.build()`.
 
-```ts
-interface LoadingConfig {
-  cancelThreshold?:  number
-  preloadThreshold?: number
-  preloadAhead?:     number
-}
-```
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `cancelThreshold` | `number` | `25` | Scroll velocity (px/ms) above which data loading is skipped entirely and deferred until the list goes idle. Prevents wasted API calls when the user is scrolling fast. |
-| `preloadThreshold` | `number` | `2` | Scroll velocity (px/ms) above which extra items are prefetched in the scroll direction (between this value and `cancelThreshold`). |
-| `preloadAhead` | `number` | `50` | Number of extra items to prefetch when velocity is in the preload range. |
-
----
-
-## Instance API
-
-The object returned by `.build()`.
-
-### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `element` | `HTMLElement` | The root DOM element created by VList. Append it to the page yourself if not using a selector. |
-| `items` | `readonly T[]` | The current items array (read-only snapshot). |
-| `total` | `number` | Total number of items currently loaded. |
-
----
-
-### Data Methods
-
-#### `setItems(items)`
+### setItems
 
 Replace the entire dataset. Triggers a full re-render.
 
@@ -350,7 +319,7 @@ list.setItems(newData)
 
 ---
 
-#### `appendItems(items)`
+### appendItems
 
 Add items to the end of the list. In reverse mode, auto-scrolls to the bottom if the user was already there.
 
@@ -364,9 +333,9 @@ list.appendItems([{ id: 101, name: 'New item' }])
 
 ---
 
-#### `prependItems(items)`
+### prependItems
 
-Add items to the beginning of the list. In reverse mode, preserves the current scroll position so older content loads silently above.
+Add items to the beginning of the list. Preserves the current scroll position so older content loads silently above.
 
 ```ts
 prependItems(items: T[]): void
@@ -374,7 +343,7 @@ prependItems(items: T[]): void
 
 ---
 
-#### `updateItem(id, updates)`
+### updateItem
 
 Patch a single item by ID. Only the provided fields are merged; the item's position in the list is unchanged.
 
@@ -383,12 +352,12 @@ updateItem(id: string | number, updates: Partial<T>): void
 ```
 
 ```ts
-list.updateItem(42, { name: 'Renamed item', unread: false })
+list.updateItem(42, { name: 'Renamed', unread: false })
 ```
 
 ---
 
-#### `removeItem(id)`
+### removeItem
 
 Remove a single item by ID.
 
@@ -398,7 +367,7 @@ removeItem(id: string | number): void
 
 ---
 
-#### `reload()`
+### reload
 
 Clear all loaded data and re-fetch from the beginning. When used with `withAsync`, triggers a fresh adapter call. Returns a promise that resolves when the initial page is loaded.
 
@@ -408,36 +377,7 @@ reload(): Promise<void>
 
 ---
 
-#### `update(config)`
-
-Dynamically update configuration without recreating the instance. Useful for changing column count, item height, or overscan at runtime.
-
-```ts
-update(config: Partial<VListUpdateConfig>): void
-```
-
-```ts
-interface VListUpdateConfig {
-  grid?:          { columns?: number; gap?: number }
-  itemHeight?:    number | ((index: number) => number)
-  selectionMode?: SelectionMode
-  overscan?:      number
-}
-```
-
-```ts
-// Switch to 3 columns on mobile
-list.update({ grid: { columns: 3 } })
-
-// Increase overscan when animations are involved
-list.update({ overscan: 8 })
-```
-
----
-
-### Scroll Methods
-
-#### `scrollToIndex(index, options?)`
+### scrollToIndex
 
 Scroll so that the item at `index` is visible.
 
@@ -448,11 +388,13 @@ scrollToIndex(
 ): void
 ```
 
+Accepts either a simple alignment string or a full options object:
+
 ```ts
 interface ScrollToOptions {
-  align?:    'start' | 'center' | 'end'  // default: 'start'
-  behavior?: 'auto' | 'smooth'           // default: 'auto' (instant)
-  duration?: number                       // default: 300 (ms, smooth only)
+  align?:    'start' | 'center' | 'end'   // default: 'start'
+  behavior?: 'auto' | 'smooth'            // default: 'auto' (instant)
+  duration?: number                        // default: 300 (ms, smooth only)
 }
 ```
 
@@ -462,26 +404,13 @@ list.scrollToIndex(500, 'center')
 list.scrollToIndex(500, { align: 'center', behavior: 'smooth', duration: 400 })
 ```
 
-When `scroll.wrap` is `true`, negative indices or indices past the last item wrap around.
+When `scroll.wrap` is `true`, indices past the last item wrap to the beginning and negative indices wrap from the end.
+
+> **Note:** There is no `scrollToItem(id)` method. If you need to scroll to an item by ID, maintain your own `id → index` map and call `scrollToIndex`.
 
 ---
 
-#### `scrollToItem(id, options?)`
-
-Scroll to the item with the given ID. Equivalent to finding the index and calling `scrollToIndex`.
-
-```ts
-scrollToItem(
-  id: string | number,
-  alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions
-): void
-```
-
-> **Note:** `scrollToItem` is available on the full `VList` interface. On the builder's `BuiltVList`, use `scrollToIndex` with a manually looked-up index.
-
----
-
-#### `cancelScroll()`
+### cancelScroll
 
 Immediately stop any in-progress smooth scroll animation.
 
@@ -491,9 +420,9 @@ cancelScroll(): void
 
 ---
 
-#### `getScrollPosition()`
+### getScrollPosition
 
-Returns the current scroll offset in pixels.
+Returns the current scroll offset in pixels along the main axis.
 
 ```ts
 getScrollPosition(): number
@@ -501,170 +430,48 @@ getScrollPosition(): number
 
 ---
 
-### Scroll Snapshot Methods
+### on
 
-> Requires `withSnapshots()` feature.
-
-#### `getScrollSnapshot()`
-
-Capture the current scroll state — useful for saving position before navigating away and restoring it on return.
+Subscribe to an event. Returns an unsubscribe function.
 
 ```ts
-getScrollSnapshot(): ScrollSnapshot
+on<K extends keyof VListEvents<T>>(
+  event: K,
+  handler: (payload: VListEvents<T>[K]) => void
+): Unsubscribe
 ```
 
 ```ts
-interface ScrollSnapshot {
-  index:        number                    // first visible item index
-  offsetInItem: number                    // pixel offset within that item
-  selectedIds?: Array<string | number>    // selected IDs (convenience)
-}
-```
-
-#### `restoreScroll(snapshot)`
-
-Restore scroll position (and optionally selection) from a previously captured snapshot.
-
-```ts
-restoreScroll(snapshot: ScrollSnapshot): void
-```
-
-```ts
-// Save before navigate
-const snap = list.getScrollSnapshot()
-sessionStorage.setItem('snap', JSON.stringify(snap))
-
-// Restore on return
-const snap = JSON.parse(sessionStorage.getItem('snap'))
-list.restoreScroll(snap)
-```
-
----
-
-### Selection Methods
-
-> Requires `withSelection()` feature.
-
-#### `select(...ids)`
-
-Select one or more items by ID.
-
-```ts
-select(...ids: Array<string | number>): void
-```
-
-```ts
-list.select(1, 2, 3)
-```
-
----
-
-#### `deselect(...ids)`
-
-Deselect one or more items by ID.
-
-```ts
-deselect(...ids: Array<string | number>): void
-```
-
----
-
-#### `toggleSelect(id)`
-
-Toggle the selection state of a single item.
-
-```ts
-toggleSelect(id: string | number): void
-```
-
----
-
-#### `selectAll()`
-
-Select all currently loaded items.
-
-```ts
-selectAll(): void
-```
-
----
-
-#### `clearSelection()`
-
-Deselect all items.
-
-```ts
-clearSelection(): void
-```
-
----
-
-#### `getSelected()`
-
-Returns an array of selected item IDs.
-
-```ts
-getSelected(): Array<string | number>
-```
-
----
-
-#### `getSelectedItems()`
-
-Returns an array of the full selected item objects.
-
-```ts
-getSelectedItems(): T[]
-```
-
----
-
-### Events
-
-Subscribe with `.on()` and unsubscribe with the returned function or `.off()`.
-
-```ts
-on<K extends keyof VListEvents>(event: K, handler: (payload: VListEvents[K]) => void): Unsubscribe
-off<K extends keyof VListEvents>(event: K, handler: Function): void
-```
-
-```ts
-// Subscribe
-const unsub = list.on('item:click', ({ item, index, event }) => {
+const unsub = list.on('item:click', ({ item, index }) => {
   console.log('clicked', item)
 })
 
-// Unsubscribe via returned function
+// Later
 unsub()
+```
 
-// Or via .off()
+See [Events](./events.md) for all event types and payloads.
+
+### off
+
+Unsubscribe a previously registered handler by reference.
+
+```ts
+off<K extends keyof VListEvents<T>>(
+  event: K,
+  handler: Function
+): void
+```
+
+```ts
 const handler = ({ item }) => console.log(item)
 list.on('item:click', handler)
 list.off('item:click', handler)
 ```
 
-#### Event Reference
+### destroy
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `item:click` | `{ item: T, index: number, event: MouseEvent }` | An item was clicked. |
-| `item:dblclick` | `{ item: T, index: number, event: MouseEvent }` | An item was double-clicked. |
-| `selection:change` | `{ selected: Array<string \| number>, items: T[] }` | The selection set changed. Requires `withSelection`. |
-| `scroll` | `{ scrollPosition: number, direction: 'up' \| 'down' }` | Fired on every scroll tick. |
-| `velocity:change` | `{ velocity: number, reliable: boolean }` | Scroll velocity updated. `reliable` is `false` for the first measurement. |
-| `range:change` | `{ range: Range }` | The visible item range changed (a new row became visible or left the viewport). |
-| `load:start` | `{ offset: number, limit: number }` | Async data fetch started. Requires `withAsync`. |
-| `load:end` | `{ items: T[], total?: number }` | Async data fetch completed. Requires `withAsync`. |
-| `error` | `{ error: Error, context: string }` | An error occurred (e.g. adapter rejection). |
-| `resize` | `{ height: number, width: number }` | The container was resized. |
-
----
-
-### Lifecycle
-
-#### `destroy()`
-
-Tear down the list — removes DOM event listeners, disconnects observers, cancels pending requests, and nulls all internal references. Always call this when removing the list from the page.
+Tear down the list — removes DOM elements and event listeners, disconnects observers, cancels pending requests, and clears all internal references. Always call this when removing the list from the page.
 
 ```ts
 destroy(): void
@@ -680,479 +487,14 @@ useEffect(() => {
 
 ---
 
-## Feature System
+## See Also
 
-Features are registered with `.use()` before `.build()`. Each feature has a unique name and an optional priority (lower = runs first, default 50). Features extend the instance with new methods and wire into the scroll/render pipeline.
-
-```ts
-vlist(config).use(featureA).use(featureB).build()
-```
-
----
-
-### `withSelection(config?)`
-
-Enables item selection with keyboard navigation.
-
-```ts
-import { withSelection } from '@floor/vlist'
-
-const list = vlist({ ... })
-  .use(withSelection({ mode: 'multiple' }))
-  .build()
-
-list.select(1, 2, 3)
-list.on('selection:change', ({ selected }) => console.log(selected))
-```
-
-**Config:** `SelectionConfig` — see [SelectionConfig](#selectionconfig).
-
-**Added methods:** `select`, `deselect`, `toggleSelect`, `selectAll`, `clearSelection`, `getSelected`, `getSelectedItems`.
-
-**Keyboard shortcuts (when `mode` is `'multiple'`):**
-
-| Key | Action |
-|-----|--------|
-| `↑` / `↓` | Move focus |
-| `Space` | Toggle focused item |
-| `Shift+↑` / `Shift+↓` | Extend selection |
-| `Ctrl/Cmd+A` | Select all |
-| `Escape` | Clear selection |
+- **[Events](./events.md)** — All event types, payloads, and subscription patterns
+- **[Types](./types.md)** — Full TypeScript type reference
+- **[Constants](./constants.md)** — Default values and thresholds
+- **[Exports](./exports.md)** — Low-level utilities and feature authoring
+- **[Features](../features/overview.md)** — All features with examples, bundle costs, and compatibility
 
 ---
 
-### `withAsync(adapter, config?)`
-
-Enables infinite scroll with async data loading. Items are fetched on demand as the user scrolls.
-
-```ts
-import { withAsync } from '@floor/vlist'
-
-const list = vlist({
-  container: '#list',
-  item: { height: 56, template: renderRow },
-})
-  .use(withAsync({
-    read: async ({ offset, limit }) => {
-      const res = await fetch(`/api/items?offset=${offset}&limit=${limit}`)
-      const data = await res.json()
-      return { items: data.items, total: data.total }
-    }
-  }))
-  .build()
-```
-
-**Adapter interface:**
-
-```ts
-interface VListAdapter<T extends VListItem> {
-  read: (params: AdapterParams) => Promise<AdapterResponse<T>>
-}
-
-interface AdapterParams {
-  offset: number
-  limit:  number
-  cursor: string | undefined
-}
-
-interface AdapterResponse<T> {
-  items:   T[]
-  total?:  number    // known total (enables virtual scrollbar sizing)
-  cursor?: string    // next cursor for cursor-based pagination
-  hasMore?: boolean  // whether more pages exist
-}
-```
-
-**Config:** `LoadingConfig` — see [LoadingConfig](#loadingconfig).
-
-**Loading behavior:**
-
-- Items not yet loaded are shown as placeholder elements while fetching.
-- When scrolling faster than `cancelThreshold` (default 25 px/ms), fetches are skipped until the user slows down or stops.
-- When velocity is between `preloadThreshold` and `cancelThreshold`, extra items are prefetched ahead of the scroll direction.
-
----
-
-### `withScrollbar(options?)`
-
-Attaches the custom scrollbar. Without this feature, VList has no visible scrollbar unless you use `scroll.scrollbar: 'native'`.
-
-```ts
-import { withScrollbar } from '@floor/vlist'
-
-const list = vlist({ ... })
-  .use(withScrollbar({
-    autoHide: true,
-    autoHideDelay: 800,
-    showOnHover: true,
-  }))
-  .build()
-```
-
-**Config:** `ScrollbarOptions` — see [ScrollbarOptions](#scrollbaroptions).
-
-> **Tip:** The custom scrollbar automatically switches to a virtual mode when `withScale` is active (compressed mode for 1M+ items), so the thumb represents the logical position rather than the DOM scroll offset.
-
----
-
-### `withSections(config)`
-
-Groups items under sticky headers — iOS Contacts–style.
-
-```ts
-import { withSections } from '@floor/vlist'
-
-const list = vlist({
-  container: '#contacts',
-  items: sortedContacts,
-  item: { height: 56, template: renderContact },
-})
-  .use(withSections({
-    getGroupForIndex: (i) => sortedContacts[i].name[0].toUpperCase(),
-    headerHeight: 32,
-    headerTemplate: (group) => `<div class="section-header">${group}</div>`,
-    sticky: true,
-  }))
-  .build()
-```
-
-**Config:** `GroupsConfig` — see [GroupsConfig](#groupsconfig).
-
-> **Important:** Items must be pre-sorted by group. `getGroupForIndex` is called in ascending index order and a new header is emitted whenever the return value changes.
-
-> Cannot be combined with `reverse` or `grid` layout.
-
----
-
-### `withGrid(config?)`
-
-Switches the list to a virtualized 2D grid layout. Virtualization operates on rows — each row holds `columns` items side by side.
-
-```ts
-import { withGrid } from '@floor/vlist'
-
-const list = vlist({
-  container: '#gallery',
-  items: photos,
-  item: {
-    height: (_, ctx) => ctx ? ctx.columnWidth * 0.75 : 200,
-    template: (photo) => `<img src="${photo.thumb}" alt="${photo.title}" />`,
-  },
-})
-  .use(withGrid({ columns: 4, gap: 8 }))
-  .build()
-
-// Change columns at runtime
-list.update({ grid: { columns: 2 } })
-```
-
-**Config:** `GridConfig` — see [GridConfig](#gridconfig).
-
-- Item width is computed automatically: `(containerWidth - gaps) / columns`.
-- The `item.height` function receives `GridHeightContext` as the second argument.
-- Responds to container resize via `ResizeObserver` — column widths are recalculated automatically.
-
-> Cannot be combined with `groups` or `reverse`.
-
----
-
-### `withScale()`
-
-Enables scaling mode for lists with 1M+ items. Without this feature, VList caps at the browser's maximum `scrollHeight` (~33M px on most browsers), which limits lists to roughly 700K fixed-height items.
-
-With `withScale`, the scroll space is scaled so virtually any item count is representable. The scrollbar and all scroll methods work correctly in scaled mode.
-
-```ts
-import { withScale } from '@floor/vlist'
-
-const list = vlist({
-  container: '#huge-list',
-  items: millionItems,
-  item: { height: 32, template: renderRow },
-})
-  .use(withScale())
-  .use(withScrollbar())  // scrollbar is scale-aware
-  .build()
-```
-
-**No configuration required.** Scaling activates automatically when the total height exceeds the browser limit and is transparent to all other features.
-
----
-
-### `withPage(config?)`
-
-Button/programmatic-only navigation — disables wheel scrolling and exposes page navigation methods. Useful for wizard UIs, slide shows, or any scenario where scrolling is controlled entirely by your own UI.
-
-```ts
-import { withPage } from '@floor/vlist'
-
-const wizard = vlist({
-  container: '#steps',
-  items: steps,
-  item: { height: 400, template: renderStep },
-  scroll: { wheel: false },
-})
-  .use(withPage())
-  .build()
-
-wizard.nextPage()
-wizard.prevPage()
-wizard.goToPage(3)
-```
-
-**Added methods:** `nextPage`, `prevPage`, `goToPage(index)`.
-
----
-
-### `withSnapshots()`
-
-Adds scroll snapshot methods for saving and restoring scroll position.
-
-```ts
-import { withSnapshots } from '@floor/vlist'
-
-const list = vlist({ ... })
-  .use(withSnapshots())
-  .build()
-
-// Save
-const snapshot = list.getScrollSnapshot()
-
-// Restore
-list.restoreScroll(snapshot)
-```
-
-**Added methods:** `getScrollSnapshot`, `restoreScroll`.
-
-See [Scroll Snapshot Methods](#scroll-snapshot-methods) for full documentation.
-
----
-
-## Types Reference
-
-### `VListItem`
-
-All items must conform to this base interface — they must have a unique `id`.
-
-```ts
-interface VListItem {
-  id: string | number
-  [key: string]: unknown
-}
-```
-
-### `Range`
-
-A half-open index range `[start, end)`.
-
-```ts
-interface Range {
-  start: number
-  end:   number
-}
-```
-
-### `ViewportState`
-
-```ts
-interface ViewportState {
-  scrollPosition:   number   // current scroll offset in px
-  containerSize:    number   // visible viewport size in px
-  totalSize:        number   // DOM scroll size (may be capped by scaling)
-  actualSize:       number   // true logical size (items × size)
-  isCompressed:     boolean  // whether scaling is active
-  compressionRatio: number   // 1 = none, <1 = scaled
-  visibleRange:     Range    // indices of items currently in view
-  renderRange:      Range    // indices actually rendered (includes overscan)
-}
-```
-
-### `ScrollSnapshot`
-
-```ts
-interface ScrollSnapshot {
-  index:        number                    // first visible item index
-  offsetInItem: number                    // px into that item that the viewport starts
-  selectedIds?: Array<string | number>
-}
-```
-
-### `SelectionMode`
-
-```ts
-type SelectionMode = 'none' | 'single' | 'multiple'
-```
-
-### `Unsubscribe`
-
-```ts
-type Unsubscribe = () => void
-```
-
-### `EventHandler`
-
-```ts
-type EventHandler<T> = (payload: T) => void
-```
-
----
-
-## Low-Level Exports
-
-These are exported for advanced use cases — building custom features, writing adapters, or integrating with framework wrappers.
-
-### Rendering Utilities
-
-```ts
-import {
-  createSizeCache,
-  simpleVisibleRange,
-  calculateRenderRange,
-  calculateTotalSize,
-  calculateItemOffset,
-  calculateScrollToIndex,
-  clampScrollPosition,
-  rangesEqual,
-  diffRanges,
-  MAX_VIRTUAL_SIZE,
-} from '@floor/vlist'
-```
-
-| Export | Description |
-|--------|-------------|
-| `createSizeCache(config, total)` | Creates a size cache for prefix-sum–based O(log n) size lookups. |
-| `simpleVisibleRange(scrollPos, size, sc, total, out)` | Computes the visible item range for a given scroll position. |
-| `calculateRenderRange(visible, overscan, total)` | Expands a visible range by overscan items in each direction. |
-| `calculateTotalSize(sc, total)` | Computes the total content size. |
-| `calculateItemOffset(sc, index)` | Returns the pixel offset of the item at `index`. |
-| `calculateScrollToIndex(index, sc, viewportSize, total, align)` | Computes the scroll position to bring an item into view. |
-| `clampScrollPosition(pos, total, viewportSize, sc)` | Clamps a scroll position within valid bounds. |
-| `rangesEqual(a, b)` | Returns `true` if two ranges are identical. |
-| `diffRanges(prev, next)` | Returns items that entered and left the viewport between two ranges. |
-| `MAX_VIRTUAL_SIZE` | Browser scroll size limit constant (~33,554,400 px). |
-
-### Scale Utilities
-
-```ts
-import {
-  getScaleState,
-  getScale,
-  needsScaling,
-  getMaxItemsWithoutScaling,
-  getScaleInfo,
-  calculateScaledVisibleRange,
-  calculateScaledRenderRange,
-  calculateScaledItemPosition,
-  calculateScaledScrollToIndex,
-  calculateIndexFromScrollPosition,
-} from '@floor/vlist'
-```
-
-### Selection Utilities
-
-```ts
-import {
-  createSelectionState,
-  selectItems,
-  deselectItems,
-  toggleSelection,
-  selectAll,
-  clearSelection,
-  isSelected,
-  getSelectedIds,
-  getSelectedItems,
-} from '@floor/vlist'
-```
-
-### Sections / Groups Utilities
-
-```ts
-import {
-  createSectionLayout,
-  buildLayoutItems,
-  createSectionedSizeFn,
-  createStickyHeader,
-  isSectionHeader,
-} from '@floor/vlist'
-```
-
-### Async Utilities
-
-```ts
-import {
-  createAsyncManager,
-  createSparseStorage,
-  createPlaceholderManager,
-  isPlaceholderItem,
-  filterPlaceholders,
-  mergeRanges,
-  calculateMissingRanges,
-} from '@floor/vlist'
-```
-
-### Event Emitter
-
-```ts
-import { createEmitter } from '@floor/vlist'
-
-const emitter = createEmitter<VListEvents>()
-emitter.on('item:click', handler)
-emitter.emit('item:click', { item, index, event })
-emitter.off('item:click', handler)
-```
-
-### Scrollbar / Scroll Controller
-
-```ts
-import {
-  createScrollController,
-  createScrollbar,
-  rafThrottle,
-} from '@floor/vlist'
-```
-
----
-
-## Feature Authoring
-
-Create your own features by implementing `VListFeature`:
-
-```ts
-import type { VListFeature, BuilderContext } from '@floor/vlist'
-
-function withMyFeature(): VListFeature {
-  return {
-    name: 'my-feature',
-    priority: 60,
-
-    setup(ctx: BuilderContext) {
-      // Register a click handler
-      ctx.clickHandlers.push((event) => {
-        const el = event.target.closest('[data-index]')
-        if (!el) return
-        const index = Number(el.dataset.index)
-        console.log('clicked index', index)
-      })
-
-      // Register a scroll-phase callback
-      ctx.afterScroll.push((scrollPosition, direction) => {
-        console.log('scrolled to', scrollPosition)
-      })
-
-      // Expose a public method
-      ctx.methods.set('myMethod', (arg: string) => {
-        console.log('myMethod called with', arg)
-      })
-
-      // Register cleanup
-      ctx.destroyHandlers.push(() => {
-        // teardown
-      })
-    },
-  }
-}
-```
-
----
-
-*VList is built and maintained by [Floor IO](https://floor.io). Source available at [github.com/floor/vlist](https://github.com/floor/vlist).*
+*VList is built and maintained by [Floor IO](https://floor.io). Source at [github.com/floor/vlist](https://github.com/floor/vlist).*

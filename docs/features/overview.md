@@ -33,8 +33,6 @@ const gallery = vlist({
   .use(withGrid({ columns: 4, gap: 16 }))
   .build();
 
-// Update columns dynamically
-gallery.update({ grid: { columns: 6 } });
 ```
 
 → [Full docs](./grid.md)
@@ -87,7 +85,7 @@ const feed = vlist({
         return res.json(); // { items, total, hasMore }
       },
     },
-    loading: { cancelThreshold: 15, preloadThreshold: 2, preloadAhead: 50 },
+    loading: { cancelThreshold: 5, preloadThreshold: 2, preloadAhead: 50 },
   }))
   .build();
 ```
@@ -120,9 +118,6 @@ list.selectAll();
 list.clearSelection();
 list.getSelected();        // → [2, 5]
 list.getSelectedItems();   // → [{ id: 2, ... }, { id: 5, ... }]
-
-// Change mode at runtime
-list.update({ selectionMode: 'single' });
 ```
 
 → [Full docs](./selection.md)

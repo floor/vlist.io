@@ -360,6 +360,27 @@ body {
     border-left-color: var(--accent);
 }
 
+.toc__sublist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.toc__link--sub {
+    font-size: 12px;
+    padding-left: 20px;
+    margin-left: -10px;
+    color: var(--text-dim);
+}
+
+.toc__link--sub:hover {
+    color: var(--text-muted);
+}
+
+.toc__link--sub.toc__link--active {
+    color: var(--accent-text);
+}
+
 /* ─── Overlay (mobile sidebar backdrop) ──────────────────────────── */
 
 .overlay {
