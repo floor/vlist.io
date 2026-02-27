@@ -8,13 +8,14 @@
 
 After the v1.0.0 release, the docs had drifted significantly from the source. The API reference documented methods that didn't exist (`scrollToItem`, `update`), described features incorrectly (`withPage` was described as wizard navigation instead of window scrolling), used wrong constant values, and had a monolithic 1,159-line reference page where most content was unreachable from the TOC.
 
-The refactoring was executed in three phases:
+The refactoring was executed in four phases:
 
 | Phase | Scope | Status |
 |-------|-------|--------|
 | **Phase 1** | API Reference section — full rewrite of 5 files | ✅ Complete |
 | **Phase 2** | Cross-cutting fixes — stale references, broken links, version alignment | ✅ Complete |
 | **Phase 3** | Feature docs — import paths, API patterns, deprecated names, broken links | ✅ Complete |
+| **Phase 4** | Structural refactoring — split heavy docs, restructure for user journey, archive stale pages | ✅ Complete |
 
 ---
 
@@ -371,17 +372,139 @@ Also fixed: broken link `[optimization.md]/tutorials/optimization)` → `[Optimi
 
 ---
 
-## What Remains
+## Phase 4 — Structural Refactoring
 
-### Low priority
+Restructured the three heaviest feature docs and cleaned up stale resource pages.
 
-| File | What | Why |
-|------|------|-----|
-| **resources/roadmap.md** | Update framing | Says "ready for 1.0" — library is at 1.1.0. 14/14 items shipped. Could be reframed as a "post-1.0" document or archived. |
-| **resources/known-issues.md** | Stale code examples | Uses pre-builder API syntax (`layout: 'grid'`, `groups` at top level, `scrollToItem`). All items ✅ completed — essentially a historical document. Low user impact. |
-| **features/scrollbar.md** | Length and structure | At 1,409 lines, this is the longest feature doc. Mixes user-facing configuration with deep implementation details (native mode internals, wheel interception, velocity circular buffer). Could be split into a user guide and an internals page. |
-| **features/selection.md** | Internal API weight | Heavy on low-level pure functions (`createSelectionState`, `selectItems`, etc.) that most users never call directly. The "With VList" example (now fixed) is the actual user API. Could restructure to lead with builder usage and move pure functions to an "Internals" section. |
-| **features/async.md** | Same as selection | Heavy on `createDataManager`, `createSparseStorage`, `createPlaceholderManager` internals. Most users only need the `withAsync()` config. |
+### features/scrollbar.md — Split into user guide + internals
+
+**Before:** 1,409 lines mixing user-facing configuration with deep implementation details (native mode, wheel interception, velocity circular buffer, scroll position conversion, track click/thumb drag code, smooth scroll rendering fix).
+
+**After:** Two focused pages:
+
+| Page | Lines | Content |
+|------|-------|---------|
+| `features/scrollbar.md` | ~820 | Scroll configuration, key concepts, usage examples, scrollbar styling, migration |
+| `internals/scrollbar.md` | ~584 | `createScrollController`, `createScrollbar`, utility functions, scroll mode implementations, velocity sampling, scrollbar interactions, technical notes |
+
+| Change | Detail |
+|--------|--------|
+| API Reference section | Moved to `internals/scrollbar.md` — `createScrollController`, `ScrollController`, `ScrollEventData`, `createScrollbar`, `Scrollbar`, `rafThrottle`, scroll position utilities |
+| Implementation Details section | Moved — native mode, window mode, compressed mode, wheel interception, scroll position conversion, native scrollbar hiding, idle detection |
+| Performance Considerations section | Moved — passive listeners, RAF throttling, velocity sampling circular buffer |
+| Scrollbar Interactions section | Moved — track click, thumb drag |
+| Technical Notes section | Moved — smooth scroll rendering fix (v0.4.0) |
+| Complete Manual Integration example | Moved to internals page |
+| Velocity Tracking concept | Kept in user guide (behavioral description), linked to internals for circular buffer implementation |
+| Related Modules | Added link to new internals page; cleaned up link text (removed `.md` extensions, absolute paths) |
+| `methods.md` link | Fixed stale `methods.md#snapshot-methods` → `./snapshots.md` |
+| Full ScrollConfig Interface heading | Removed backticks (missed in Phase 1 sweep) |
+
+Navigation and overview updated:
+- `navigation.json` — added `internals/scrollbar` entry
+- `overview.json` — added `internals/scrollbar` and `internals/measurement` cards
+
+### features/selection.md — Restructured to lead with builder API
+
+**Before:** Led with pure functions (`createSelectionState`, `selectItems`, `deselectItems`, etc.), had "With VList" example buried at the bottom of Usage Examples. ~370 lines dominated by low-level API that most users never call.
+
+**After:** ~450 lines structured for the typical user journey:
+
+| Section | Content |
+|---------|---------|
+| **withSelection Configuration** | Builder pattern example, config options table |
+| **Instance Methods** | `list.select()`, `list.deselect()`, `list.toggleSelect()`, `list.selectAll()`, `list.clearSelection()`, `list.getSelected()`, `list.getSelectedItems()` |
+| **Events** | `selection:change` with payload table |
+| **Template State** | `selected` and `focused` in template third argument |
+| **Keyboard Navigation** | Key → action table |
+| **Usage Examples** | Single selection, multi-select with initial, programmatic selection, range selection |
+| **Internals** | `SelectionState`, pure functions (compact signatures), focus management, queries, keyboard helpers, implementation notes, complete keyboard handler example |
+
+| Change | Detail |
+|--------|--------|
+| Opening tagline | "Pure functions for managing selection state" → "Single, multi, and keyboard-navigated item selection" |
+| Overview bullets | Replaced "Pure Functions" with "Programmatic Control" |
+| `withSelection` example | Now the first code block on the page (was buried under 200+ lines of pure functions) |
+| Instance methods | New section documenting `list.select()` etc. — the actual API most users need |
+| Events section | New dedicated section for `selection:change` |
+| Template State section | New section documenting `selected`/`focused` in template third arg |
+| Pure functions | Moved to Internals section with compact signatures (removed redundant JSDoc-style descriptions) |
+| `moveFocusUp`/`moveFocusDown` | Combined into single subsection |
+| `moveFocusToFirst`/`moveFocusToLast` | Combined into single subsection |
+| Performance notes | Consolidated into single "Implementation Notes" paragraph instead of repeated per-function callouts |
+| Queries | Collapsed to compact signature list (5 functions in one block) |
+| Related Modules | Deduplicated (had two `context.md` links), fixed path `methods.md` → `reference.md` |
+| Closing tagline | Updated to match new focus |
+
+### features/async.md — Restructured to lead with builder API
+
+**Before:** Led with `withAsync` config (good), but Complete Integration example was buried at line 619 after 450 lines of `createDataManager`, `createSparseStorage`, `createPlaceholderManager` internals. Usage examples mixed low-level `createDataManager` calls with builder patterns.
+
+**After:** ~630 lines structured for the typical user journey:
+
+| Section | Content |
+|---------|---------|
+| **withAsync Configuration** | Builder pattern, config options |
+| **Complete Integration** | Moved up from line 619 to immediately after config — the first full example users see |
+| **Usage Examples** | Deferred loading, custom chunk size, placeholder detection in templates |
+| **Key Concepts** | Sparse storage, placeholder generation, data flow, chunk-based loading, deduplication |
+| **Memory Management** | Eviction, configuration guidelines, stats monitoring |
+| **Performance Optimizations** | Batched LRU timestamps, direct getters vs getState() |
+| **Internals** | `createDataManager`, `createSparseStorage`, `createPlaceholderManager`, utility functions |
+
+| Change | Detail |
+|--------|--------|
+| Complete Integration | Moved from line 619 to line 83 — first full example on the page |
+| Placeholder detection | New compact example in Usage Examples (extracted from old Placeholder System example) |
+| Chunk-Based Loading | Moved up from bottom of file into Key Concepts |
+| Deduplication | Moved up from bottom of file into Key Concepts |
+| Low-level usage examples | Removed standalone `createDataManager`, `createSparseStorage`, `createPlaceholderManager` examples (Basic Data Manager, With Async Adapter, Sparse Storage, Placeholder System, Batched LRU Timestamps, Direct State Getters). These showed internal APIs with wrong import paths (`'./data'`). |
+| Internals section | New labeled section containing all three `create*` APIs and utility functions |
+| DataManager getters comment | Trimmed redundant inline comment (behavior already documented in Performance Optimizations) |
+| Related Modules | Deduplicated (had two `context.md` links), added `Placeholders` link |
+| Closing tagline | Updated to reference `withAsync()` |
+
+### resources/roadmap.md — Reframed as architecture page
+
+**Before:** "Roadmap Completion Analysis" — 317 lines saying "ready for 1.0" with version "0.9.5", stale test counts (1,635 tests — now 2,268), duplicated bundle sizes, full example/tutorial/benchmark inventories already covered elsewhere.
+
+**After:** "Architecture & Competitive Position" — ~180 lines focused on:
+
+| Section | Content |
+|---------|---------|
+| Builder Pattern Architecture | Feature isolation, source structure, zero-allocation hot path, prefix-sum size cache |
+| Competitive Position | Feature comparison table, bundle size comparison, unique differentiators |
+| Framework Adapters | Adapter table, design principle |
+| Item Sizing Modes | Mode A vs Mode B summary with link to measurement internals |
+| Development History | Phase summary table, scope note |
+
+| Change | Detail |
+|--------|--------|
+| Title | "Roadmap Completion Analysis" → "Architecture & Competitive Position" |
+| Tagline | Removed "measured against the original roadmap" framing |
+| Version | "0.9.5" / "Ready for 1.0" → "1.1.0" |
+| Executive Summary | Removed (all items shipped — no longer newsworthy) |
+| Scoreboard | Removed (14/14 shipped, no information value) |
+| By The Numbers | Removed (duplicated in testing.md, bundle-size.md) |
+| Test coverage table | Removed (duplicated in testing.md) |
+| Largest source files table | Removed (low user value) |
+| Live Documentation Site | Removed (examples/tutorials/benchmarks listed on their own pages) |
+| Auto-Size Measurement deep dive | Replaced with 4-line summary + link to measurement.md |
+| "What Exceeded the Original Roadmap" | Condensed to single paragraph in Development History |
+| Health Indicators | Removed (all green — no action items) |
+| Conclusion | Removed (was "the objective has been reached" victory lap) |
+| Feature comparison | Added masonry layout row (missing from original) |
+| Package names | `vlist-react` → `@floor/vlist-react` etc. (scoped names) |
+| Known Issues link | Removed from Related Documentation (file archived) |
+| Dependency Analysis link | Removed (not user-facing) |
+| Navigation | `navigation.json`: "Roadmap" → "Architecture", updated desc |
+| Overview | `overview.json`: same rename, updated desc |
+
+### resources/known-issues.md — Archived
+
+**Before:** 693 lines of pre-builder API code examples (`layout: 'grid'`, `groups` at top level, `scrollToItem`, `import from 'vlist'`). All 14 items marked ✅. Essentially a historical document with no current user value.
+
+**After:** Moved to `archive/known-issues.md`. Removed from `overview.json` (was showing "Current limitations and workarounds" — misleading since all items are resolved). Not in `navigation.json` (was already absent from sidebar).
 
 ### Not needed (verified accurate)
 
@@ -414,3 +537,5 @@ Also fixed: broken link `[optimization.md]/tutorials/optimization)` → `[Optimi
 7. **No backticks in headings** — `marked` passes heading text as raw markdown, so backticks survive as literal characters in the TOC. Use plain text for all H2/H3/H4 headings; code formatting belongs in the body text, not the heading.
 8. **Correct package name** — All import examples use `'@floor/vlist'` (the npm scoped name), not `'vlist'`. Sub-path imports only for `'@floor/vlist/styles'` and `'@floor/vlist/styles/extras'` — no `'vlist/async'`, `'vlist/snapshots'`, etc.
 9. **Builder API everywhere** — All user-facing examples use `vlist({...}).use(withX()).build()`. No monolithic config with top-level `adapter`, `selection`, `layout`. Old API shown only in clearly labeled migration sections.
+10. **User journey first** — Feature docs lead with `withX()` builder config, instance methods, and events. Low-level pure functions and `create*` factories go in an Internals section at the bottom, clearly labeled as advanced/feature-authoring APIs.
+11. **No stale resource pages** — Historical documents (completed roadmaps, resolved known issues) are archived, not served. Resource pages reflect the current state of the library.

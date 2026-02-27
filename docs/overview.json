@@ -108,14 +108,9 @@
         "desc": "2,268 tests passing, 36,595 assertions"
       },
       {
-        "slug": "resources/known-issues",
-        "name": "Known Issues",
-        "desc": "Current limitations and workarounds"
-      },
-      {
         "slug": "resources/roadmap",
-        "name": "Roadmap",
-        "desc": "Completion analysis and competitive position"
+        "name": "Architecture",
+        "desc": "Architecture, competitive position, and unique features"
       },
       {
         "slug": "resources/examples",
@@ -136,6 +131,16 @@
         "slug": "internals/rendering",
         "name": "Rendering",
         "desc": "DOM rendering and virtualization"
+      },
+      {
+        "slug": "internals/measurement",
+        "name": "Measurement",
+        "desc": "Item auto-size measurement"
+      },
+      {
+        "slug": "internals/scrollbar",
+        "name": "Scrollbar",
+        "desc": "Scroll controller, custom scrollbar, and velocity tracking"
       },
       {
         "slug": "internals/context",

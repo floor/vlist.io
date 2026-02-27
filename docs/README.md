@@ -49,8 +49,7 @@ This documentation now focuses on **reference material** only.
 | **[Benchmarks](./resources/benchmarks.md)** | Performance metrics and live benchmark suites |
 | **[Bundle Size](./resources/bundle-size.md)** | Bundle size analysis and optimisation |
 | **[Testing](./resources/testing.md)** | Test suite, coverage, and patterns |
-| **[Known Issues](./resources/known-issues.md)** | Current limitations and workarounds |
-| **[Roadmap](./resources/roadmap.md)** | Completion analysis and competitive position |
+| **[Architecture](./resources/roadmap.md)** | Architecture and competitive position |
 | **[Examples](./resources/examples.md)** | Interactive example documentation |
 
 ### Internals

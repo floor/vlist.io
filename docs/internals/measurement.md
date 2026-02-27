@@ -321,7 +321,6 @@ Measurements only happen for **newly rendered items** (typically 10–20 per scr
 - [Orientation](./orientation.md) — Axis-neutral SizeCache architecture (Fixed, Variable, and Measured implementations)
 - [Rendering](./rendering.md) — DOM rendering, element pooling, viewport calculations
 - [Auto-Size Measurement Prompt](../issues/auto-size-measurement.md) — Original implementation prompt with investigation history
-- [Known Issues](../resources/known-issues.md) — Item #11 (completed)
 
 ---
 

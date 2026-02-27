@@ -118,8 +118,8 @@
       },
       {
         "slug": "resources/roadmap",
-        "name": "Roadmap",
-        "desc": "Completion analysis and competitive position"
+        "name": "Architecture",
+        "desc": "Architecture and competitive position"
       }
     ]
   },
@@ -140,6 +140,11 @@
         "slug": "internals/measurement",
         "name": "Measurement",
         "desc": "Item Auto-Size Measurement"
+      },
+      {
+        "slug": "internals/scrollbar",
+        "name": "Scrollbar",
+        "desc": "Scroll controller, custom scrollbar, and velocity tracking"
       },
       {
         "slug": "internals/context",

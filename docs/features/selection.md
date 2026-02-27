@@ -1,15 +1,15 @@
 # Selection Module
 
-> Pure functions for managing selection state in vlist.
+> Single, multi, and keyboard-navigated item selection.
 
 ## Overview
 
-The selection module provides immutable state management for item selection. It handles:
+The selection module provides item selection with keyboard navigation for vlist:
 
 - **Single/Multiple Selection**: Configurable selection modes
-- **Keyboard Navigation**: Focus management with arrow keys
+- **Keyboard Navigation**: Focus management with arrow keys, Home/End, Page Up/Down
 - **Range Selection**: Shift+click for selecting ranges
-- **Pure Functions**: All operations return new state (immutable)
+- **Programmatic Control**: Select, deselect, toggle, and query via the list instance
 
 ## Module Structure
 
@@ -20,19 +20,35 @@ src/features/selection/
 └── state.ts   # Selection state management
 ```
 
-## Key Concepts
+## withSelection Configuration
 
-### Immutable State (with Focus Mutation Exception)
-
-Selection operations (select, deselect, toggle, clear) return a **new state object** rather than mutating:
+The `withSelection` feature is the main API for adding selection to vlist:
 
 ```typescript
-// Selection state is never mutated
-const newState = selectItems(state, ['id1', 'id2'], 'multiple');
-// state !== newState (new object created)
+import { vlist, withSelection } from '@floor/vlist';
+
+const list = vlist({
+  container: '#app',
+  item: {
+    height: 48,
+    template: (item, index, { selected, focused }) => `
+      <div class="item ${selected ? 'selected' : ''} ${focused ? 'focused' : ''}">
+        ${item.name}
+      </div>
+    `,
+  },
+  items: users,
+})
+  .use(withSelection({ mode: 'multiple', initial: ['user-1'] }))
+  .build();
 ```
 
-> **⚡ Performance exception:** Focus movement functions (`moveFocusUp`, `moveFocusDown`, `moveFocusToFirst`, `moveFocusToLast`, `moveFocusByPage`) mutate `state.focusedIndex` **in-place** and return the same object. This avoids object allocations during keyboard navigation, which is a hot path (arrow keys can fire rapidly). Selection-changing operations (Space/Enter) still create new state objects.
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `mode` | `'none' \| 'single' \| 'multiple'` | `'single'` | Selection mode |
+| `initial` | `Array<string \| number>` | `[]` | Initially selected item IDs |
 
 ### Selection Modes
 
@@ -42,10 +58,160 @@ const newState = selectItems(state, ['id1', 'id2'], 'multiple');
 | `single` | Only one item can be selected at a time |
 | `multiple` | Multiple items can be selected |
 
+## Instance Methods
+
+When `withSelection` is active, the list instance exposes these methods:
+
+```typescript
+// Select items
+list.select('user-2', 'user-3');
+
+// Deselect items
+list.deselect('user-1');
+
+// Toggle an item
+list.toggleSelect('user-4');
+
+// Select all (multiple mode only)
+list.selectAll();
+
+// Clear selection
+list.clearSelection();
+
+// Get selected IDs
+const ids = list.getSelected();
+// ['user-2', 'user-3', 'user-4']
+
+// Get selected item objects
+const selectedUsers = list.getSelectedItems();
+```
+
+## Events
+
+```typescript
+list.on('selection:change', ({ selected, items }) => {
+  console.log(`Selected: ${selected.join(', ')}`);
+  updateUI(items);
+});
+```
+
+The `selection:change` event fires on every selection change with:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `selected` | `Array<string \| number>` | Currently selected IDs |
+| `items` | `T[]` | Currently selected item objects |
+
+## Template State
+
+The template function receives selection state via its third argument:
+
+```typescript
+template: (item, index, { selected, focused }) => `
+  <div class="item ${selected ? 'selected' : ''} ${focused ? 'focused' : ''}">
+    ${item.name}
+  </div>
+`
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `selected` | `boolean` | Whether this item is currently selected |
+| `focused` | `boolean` | Whether this item has keyboard focus |
+
+## Keyboard Navigation
+
+Built-in keyboard handling when `withSelection` is active:
+
+| Key | Action |
+|-----|--------|
+| `↑` Arrow Up | Move focus up (wraps to bottom) |
+| `↓` Arrow Down | Move focus down (wraps to top) |
+| `Home` | Move focus to first item |
+| `End` | Move focus to last item |
+| `Page Up` | Move focus up by page size |
+| `Page Down` | Move focus down by page size |
+| `Space` / `Enter` | Toggle selection on focused item |
+
 ### Focus vs Selection
 
 - **Focus**: Visual indicator of keyboard navigation position (single index)
 - **Selection**: Set of selected item IDs (can be multiple)
+
+Focus and selection are independent — you can navigate with arrow keys without changing the selection, then press Space to toggle the focused item.
+
+## Usage Examples
+
+### Single Selection
+
+```typescript
+import { vlist, withSelection } from '@floor/vlist';
+
+const list = vlist({
+  container: '#app',
+  item: {
+    height: 48,
+    template: (item, index, { selected }) => `
+      <div class="item ${selected ? 'selected' : ''}">${item.name}</div>
+    `,
+  },
+  items: users,
+})
+  .use(withSelection({ mode: 'single' }))
+  .build();
+
+list.on('selection:change', ({ selected }) => {
+  // In single mode, at most one item is selected
+  console.log('Selected:', selected[0] ?? 'none');
+});
+```
+
+### Multi-Select with Initial Selection
+
+```typescript
+import { vlist, withSelection } from '@floor/vlist';
+
+const list = vlist({
+  container: '#app',
+  item: {
+    height: 48,
+    template: (item, index, { selected, focused }) => `
+      <div class="item ${selected ? 'selected' : ''} ${focused ? 'focused' : ''}">
+        <input type="checkbox" ${selected ? 'checked' : ''} tabindex="-1" />
+        ${item.name}
+      </div>
+    `,
+  },
+  items: users,
+})
+  .use(withSelection({ mode: 'multiple', initial: ['user-1', 'user-3'] }))
+  .build();
+```
+
+### Programmatic Selection
+
+```typescript
+// Select specific items
+list.select('user-5', 'user-8');
+
+// Get current selection
+const ids = list.getSelected();
+const items = list.getSelectedItems();
+
+// Clear and reselect
+list.clearSelection();
+list.select('user-10');
+```
+
+### Range Selection
+
+Shift+click selects all items between the last selected item and the clicked item (multiple mode only). This is handled automatically by `withSelection`.
+
+## Internals
+
+The following pure functions power the selection system. Most users never call these directly — they are used internally by `withSelection` and exposed for advanced use cases like custom feature authoring.
+
+### SelectionState
 
 ```typescript
 interface SelectionState {
@@ -53,8 +219,6 @@ interface SelectionState {
   focusedIndex: number;            // Keyboard focus position (-1 if none)
 }
 ```
-
-## API Reference
 
 ### State Creation
 
@@ -74,9 +238,9 @@ const state = createSelectionState(['id1', 'id2']);     // With initial selectio
 
 ### Selection Operations
 
-#### selectItems
+All selection operations return a **new state object** (immutable):
 
-Select items by ID.
+#### selectItems
 
 ```typescript
 function selectItems(
@@ -96,21 +260,14 @@ const newState = selectItems(state, ['id2', 'id3'], 'multiple');
 
 #### deselectItems
 
-Deselect items by ID.
-
 ```typescript
 function deselectItems(
   state: SelectionState,
   ids: Array<string | number>
 ): SelectionState;
-
-// Usage
-const newState = deselectItems(state, ['id1']);
 ```
 
 #### toggleSelection
-
-Toggle item selection.
 
 ```typescript
 function toggleSelection(
@@ -118,15 +275,9 @@ function toggleSelection(
   id: string | number,
   mode: SelectionMode
 ): SelectionState;
-
-// If selected -> deselect
-// If not selected -> select
-const newState = toggleSelection(state, 'id1', 'multiple');
 ```
 
 #### selectAll
-
-Select all items (multiple mode only).
 
 ```typescript
 function selectAll<T extends VListItem>(
@@ -134,40 +285,29 @@ function selectAll<T extends VListItem>(
   items: T[],
   mode: SelectionMode
 ): SelectionState;
-
 // Only works in 'multiple' mode
-const newState = selectAll(state, allItems, 'multiple');
 ```
 
 #### clearSelection
 
-Clear all selection.
-
 ```typescript
 function clearSelection(state: SelectionState): SelectionState;
-
-const newState = clearSelection(state);
-// newState.selected = Set()
 ```
 
 ### Focus Management
 
-#### setFocusedIndex
+> **⚡ Performance note:** Focus movement functions (`moveFocusUp`, `moveFocusDown`, `moveFocusToFirst`, `moveFocusToLast`, `moveFocusByPage`) mutate `state.focusedIndex` **in-place** and return the same object. This avoids object allocations during keyboard navigation, which is a hot path (arrow keys can fire rapidly). Selection-changing operations (Space/Enter) still create new state objects.
 
-Set focused index directly.
+#### setFocusedIndex
 
 ```typescript
 function setFocusedIndex(
   state: SelectionState,
   index: number
 ): SelectionState;
-
-const newState = setFocusedIndex(state, 5);
 ```
 
-#### moveFocusUp
-
-Move focus up one item.
+#### moveFocusUp / moveFocusDown
 
 ```typescript
 function moveFocusUp(
@@ -176,58 +316,31 @@ function moveFocusUp(
   wrap?: boolean  // default: true
 ): SelectionState;
 
-// With wrap=true (default): 0 -> totalItems-1
-// With wrap=false: 0 -> 0
-```
-
-> **⚡ Performance note:** This function mutates `state.focusedIndex` **in-place** and returns the same object to avoid object allocations on keyboard navigation hot paths. See [Optimization](/tutorials/optimization) for details.
-
-#### moveFocusDown
-
-Move focus down one item.
-
-```typescript
 function moveFocusDown(
   state: SelectionState,
   totalItems: number,
   wrap?: boolean  // default: true
 ): SelectionState;
 
-// With wrap=true (default): totalItems-1 -> 0
-// With wrap=false: totalItems-1 -> totalItems-1
+// With wrap=true (default): boundaries wrap around
+// With wrap=false: boundaries clamp
 ```
 
-> **⚡ Performance note:** Mutates `state.focusedIndex` in-place (same as `moveFocusUp`).
-
-#### moveFocusToFirst
-
-Move focus to first item.
+#### moveFocusToFirst / moveFocusToLast
 
 ```typescript
 function moveFocusToFirst(
   state: SelectionState,
   totalItems: number
 ): SelectionState;
-```
 
-> **⚡ Performance note:** Mutates `state.focusedIndex` in-place (same as `moveFocusUp`).
-
-#### moveFocusToLast
-
-Move focus to last item.
-
-```typescript
 function moveFocusToLast(
   state: SelectionState,
   totalItems: number
 ): SelectionState;
 ```
 
-> **⚡ Performance note:** Mutates `state.focusedIndex` in-place (same as `moveFocusUp`).
-
 #### moveFocusByPage
-
-Move focus by page (for Page Up/Down).
 
 ```typescript
 function moveFocusByPage(
@@ -236,65 +349,6 @@ function moveFocusByPage(
   pageSize: number,
   direction: 'up' | 'down'
 ): SelectionState;
-```
-
-> **⚡ Performance note:** Mutates `state.focusedIndex` in-place (same as `moveFocusUp`).
-
-### Queries
-
-#### isSelected
-
-Check if an item is selected.
-
-```typescript
-function isSelected(
-  state: SelectionState,
-  id: string | number
-): boolean;
-
-if (isSelected(state, 'item-5')) {
-  // Item is selected
-}
-```
-
-#### getSelectedIds
-
-Get selected IDs as array.
-
-```typescript
-function getSelectedIds(state: SelectionState): Array<string | number>;
-
-const ids = getSelectedIds(state);
-// ['id1', 'id2', 'id3']
-```
-
-#### getSelectedItems
-
-Get selected items from item array.
-
-```typescript
-function getSelectedItems<T extends VListItem>(
-  state: SelectionState,
-  items: T[]
-): T[];
-
-const selectedItems = getSelectedItems(state, allItems);
-```
-
-#### getSelectionCount
-
-Get number of selected items.
-
-```typescript
-function getSelectionCount(state: SelectionState): number;
-```
-
-#### isSelectionEmpty
-
-Check if selection is empty.
-
-```typescript
-function isSelectionEmpty(state: SelectionState): boolean;
 ```
 
 ### Keyboard Selection Helpers
@@ -323,133 +377,31 @@ function selectRange<T extends VListItem>(
   toIndex: number,
   mode: SelectionMode
 ): SelectionState;
-
 // Only works in 'multiple' mode
 // Selects all items between fromIndex and toIndex (inclusive)
 ```
 
-## Usage Examples
-
-### Basic Selection
+### Queries
 
 ```typescript
-import {
-  createSelectionState,
-  selectItems,
-  deselectItems,
-  toggleSelection
-} from '@floor/vlist';
-
-// Create initial state
-let state = createSelectionState();
-
-// Select items
-state = selectItems(state, ['user-1', 'user-2'], 'multiple');
-
-// Toggle item
-state = toggleSelection(state, 'user-3', 'multiple');
-
-// Check selection
-console.log(getSelectedIds(state)); // ['user-1', 'user-2', 'user-3']
+function isSelected(state: SelectionState, id: string | number): boolean;
+function getSelectedIds(state: SelectionState): Array<string | number>;
+function getSelectedItems<T extends VListItem>(state: SelectionState, items: T[]): T[];
+function getSelectionCount(state: SelectionState): number;
+function isSelectionEmpty(state: SelectionState): boolean;
 ```
 
-### Single Selection Mode
+### Implementation Notes
 
-```typescript
-let state = createSelectionState();
+**Set-based storage** — Selection uses `Set` for O(1) lookup, add, and delete.
 
-// In single mode, new selection replaces previous
-state = selectItems(state, ['item-1'], 'single');
-// selected: ['item-1']
+**Mode handling** — In `single` mode, `selectItems` clears before adding. In `none` mode, all selection operations are no-ops.
 
-state = selectItems(state, ['item-2'], 'single');
-// selected: ['item-2']  (item-1 was deselected)
-```
-
-### Keyboard Navigation
-
-```typescript
-import {
-  createSelectionState,
-  setFocusedIndex,
-  moveFocusDown,
-  moveFocusUp,
-  selectFocused
-} from '@floor/vlist';
-
-let state = createSelectionState();
-const totalItems = 100;
-
-// Set initial focus
-state = setFocusedIndex(state, 0);
-
-// Arrow down
-state = moveFocusDown(state, totalItems);
-// focusedIndex: 1
-
-// Arrow up
-state = moveFocusUp(state, totalItems);
-// focusedIndex: 0
-
-// Arrow up with wrap
-state = moveFocusUp(state, totalItems, true);
-// focusedIndex: 99 (wrapped to end)
-
-// Select focused item (Space/Enter)
-state = selectFocused(state, items, 'multiple');
-```
-
-### Range Selection
-
-```typescript
-import { createSelectionState, selectRange } from '@floor/vlist';
-
-let state = createSelectionState();
-
-// Shift+click from item 5 to item 10
-state = selectRange(state, items, 5, 10, 'multiple');
-// Selects items at indices 5, 6, 7, 8, 9, 10
-```
-
-### With VList
-
-```typescript
-import { vlist, withSelection } from '@floor/vlist';
-
-const list = vlist({
-  container: '#app',
-  item: {
-    height: 48,
-    template: (item, index, { selected, focused }) => `
-      <div class="item ${selected ? 'selected' : ''} ${focused ? 'focused' : ''}">
-        ${item.name}
-      </div>
-    `,
-  },
-  items: users,
-})
-  .use(withSelection({ mode: 'multiple', initial: ['user-1'] }))
-  .build();
-
-// Listen for selection changes
-list.on('selection:change', ({ selected, items }) => {
-  console.log(`Selected: ${selected.join(', ')}`);
-  updateUI(items);
-});
-
-// Programmatic selection
-list.select('user-2', 'user-3');
-list.deselect('user-1');
-list.toggleSelect('user-4');
-list.selectAll();
-list.clearSelection();
-
-// Get selection
-const ids = list.getSelected();
-const selectedUsers = list.getSelectedItems();
-```
+**Immutability exception** — Focus movement mutates `focusedIndex` in-place because the keyboard handler is the only caller on the hot path, and `focusedIndex` is a simple number with no deep state. Selection operations remain fully immutable.
 
 ### Complete Keyboard Handler Example
+
+For custom feature authoring, here is how the pure functions compose into a keyboard handler:
 
 ```typescript
 import {
@@ -462,20 +414,20 @@ import {
 
 function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VListItem[]) {
   const totalItems = items.length;
-  
+
   switch (event.key) {
     case 'ArrowUp':
       return moveFocusUp(state, totalItems);
-      
+
     case 'ArrowDown':
       return moveFocusDown(state, totalItems);
-      
+
     case 'Home':
       return moveFocusToFirst(state, totalItems);
-      
+
     case 'End':
       return moveFocusToLast(state, totalItems);
-      
+
     case ' ':
     case 'Enter':
       if (state.focusedIndex >= 0) {
@@ -483,92 +435,19 @@ function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VLis
         return toggleSelection(state, item.id, 'multiple');
       }
       return state;
-      
+
     default:
       return state;
   }
 }
 ```
 
-## Implementation Details
-
-### Why Pure Functions?
-
-Pure functions make state management predictable and testable:
-
-```typescript
-// Easy to test
-const input = createSelectionState(['a']);
-const output = selectItems(input, ['b'], 'multiple');
-
-expect(output.selected.has('a')).toBe(true);
-expect(output.selected.has('b')).toBe(true);
-expect(input.selected.has('b')).toBe(false); // Original unchanged
-```
-
-> **Note:** Focus movement functions are the exception — they mutate `focusedIndex` in-place for performance. This is safe because focus index is a simple number (no deep state) and the keyboard handler is the only caller on the hot path. Selection operations remain fully immutable.
-
-### Set-Based Storage
-
-Selection uses `Set` for O(1) lookup:
-
-```typescript
-interface SelectionState {
-  selected: Set<string | number>;
-  // ...
-}
-
-// O(1) operations
-selected.has(id);     // Check
-selected.add(id);     // Add
-selected.delete(id);  // Remove
-```
-
-### Mode Handling
-
-Selection functions respect the mode parameter:
-
-```typescript
-function selectItems(state, ids, mode) {
-  if (mode === 'none') return state;  // No-op
-  
-  const newSelected = new Set(state.selected);
-  
-  if (mode === 'single') {
-    newSelected.clear();        // Replace
-    if (ids.length > 0) {
-      newSelected.add(ids[0]);
-    }
-  } else {
-    // Multiple: add all
-    for (const id of ids) {
-      newSelected.add(id);
-    }
-  }
-  
-  return { ...state, selected: newSelected };
-}
-```
-
-## Keyboard Navigation Reference
-
-| Key | Action |
-|-----|--------|
-| `↑` Arrow Up | Move focus up (wraps to bottom) |
-| `↓` Arrow Down | Move focus down (wraps to top) |
-| `Home` | Move focus to first item |
-| `End` | Move focus to last item |
-| `Space` / `Enter` | Toggle selection on focused item |
-| `Page Up` | Move focus up by page size |
-| `Page Down` | Move focus down by page size |
-
 ## Related Modules
 
-- [types.md](../api/types.md) - SelectionMode, SelectionState types
-- [Context](../internals/context.md) - BuilderContext wires click and keyboard handlers
-- [methods.md](/docs/api/reference) - Public selection API methods
-- [context.md](../internals/context.md) - Context holds selection state
+- [Types](../api/types.md) — SelectionMode, SelectionState types
+- [Context](../internals/context.md) — BuilderContext wires click and keyboard handlers
+- [Reference](../api/reference.md) — Public selection API methods
 
 ---
 
-*The selection module provides a clean, functional approach to managing selection state.*
+*The selection module provides single, multi, and keyboard-navigated item selection via `withSelection()`.*

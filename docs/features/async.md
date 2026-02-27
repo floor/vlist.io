@@ -4,11 +4,12 @@
 
 ## Overview
 
-The data module handles all data-related operations in vlist, designed for efficient handling of large datasets (1M+ items):
+The async module handles all data-related operations in vlist, designed for efficient handling of large datasets (1M+ items):
 
-- **Data Manager**: Central coordinator for data operations
-- **Sparse Storage**: Memory-efficient storage using chunked approach
-- **Placeholder System**: Smart loading state indicators
+- **Adapter Pattern**: Fetch data from any API with a single `read` function
+- **Sparse Storage**: Memory-efficient chunked storage with LRU eviction
+- **Placeholder System**: Smart loading state indicators while data loads
+- **Velocity-Based Loading**: Skip loads during fast scrolling, preload in scroll direction
 
 ## Module Structure
 
@@ -82,7 +83,66 @@ Velocity-based loading optimization:
 - `preloadThreshold`: Velocity (px/ms) for preloading ahead (default: 2)
 - `preloadAhead`: Number of items to preload in scroll direction (default: 50)
 
-### Example: Deferred Loading
+## Complete Integration
+
+```typescript
+import { vlist, withAsync } from '@floor/vlist';
+
+const list = vlist({
+  container: '#app',
+  item: {
+    height: 48,
+    template: (item, index) => {
+      const isLoading = !item || String(item.id).startsWith('__placeholder_');
+      return `
+        <div class="item ${isLoading ? 'loading' : ''}">
+          ${isLoading ? 'Loading...' : item.name}
+        </div>
+      `;
+    },
+  },
+})
+.use(withAsync({
+  adapter: {
+    read: async ({ offset, limit, cursor }) => {
+      const url = cursor 
+        ? `/api/items?cursor=${cursor}&limit=${limit}`
+        : `/api/items?offset=${offset}&limit=${limit}`;
+        
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      return {
+        items: data.items,
+        total: data.total,
+        cursor: data.nextCursor,
+        hasMore: data.hasMore
+      };
+    },
+  },
+}))
+.build();
+
+// Events
+list.on('load:start', ({ offset, limit }) => {
+  showLoadingIndicator();
+});
+
+list.on('load:end', ({ items, total }) => {
+  hideLoadingIndicator();
+  updateTotalCount(total);
+});
+
+list.on('error', ({ error, context }) => {
+  if (context === 'loadMore') {
+    showRetryButton();
+  }
+});
+```
+
+## Usage Examples
+
+### Deferred Loading
 
 ```typescript
 const list = vlist({ /* ... */ })
@@ -97,7 +157,7 @@ const list = vlist({ /* ... */ })
 list.reload()  // Now load data
 ```
 
-### Example: Custom Chunk Size
+### Custom Chunk Size
 
 ```typescript
 const list = vlist({ /* ... */ })
@@ -108,6 +168,22 @@ const list = vlist({ /* ... */ })
   }
 }))
 .build()
+```
+
+### Placeholder Detection in Templates
+
+```typescript
+import { isPlaceholderItem } from '@floor/vlist';
+
+item: {
+  height: 48,
+  template: (item, index, state) => {
+    if (isPlaceholderItem(item)) {
+      return `<div class="item loading">${item.name}</div>`;
+    }
+    return `<div class="item">${item.name}</div>`;
+  },
+}
 ```
 
 ## Key Concepts
@@ -161,7 +237,102 @@ Emit 'load:end' event
 Renderer re-renders with real data
 ```
 
-## API Reference
+### Chunk-Based Loading
+
+Items are loaded in chunk-aligned boundaries for efficiency:
+
+```typescript
+// Request: load items 50-150
+// Chunk size: 100
+
+// Aligned to chunks:
+// Chunk 0: items 0-99 (includes 50-99)
+// Chunk 1: items 100-199 (includes 100-150)
+
+// Actually loaded: items 0-199
+```
+
+This reduces redundant loads when scrolling back and forth.
+
+### Deduplication
+
+The data manager prevents duplicate loading:
+
+```typescript
+// Scroll handler calls ensureRange rapidly
+await dataManager.ensureRange(100, 200);  // Starts loading
+await dataManager.ensureRange(100, 200);  // Returns existing promise
+await dataManager.ensureRange(100, 200);  // Returns existing promise
+
+// Only ONE API call is made
+```
+
+## Memory Management
+
+### Eviction Strategy
+
+When memory limits are reached, chunks far from the visible area are evicted:
+
+```
+Visible: items 5000-5050
+Buffer: 200 items
+Keep zone: 4800-5250
+
+Evict chunks outside keep zone using LRU
+```
+
+### Configuration Guidelines
+
+| List Size | Chunk Size | Max Cached | Buffer |
+|-----------|------------|------------|--------|
+| < 10K | 100 | 5,000 | 200 |
+| 10K - 100K | 100 | 10,000 | 500 |
+| 100K - 1M | 100 | 10,000 | 500 |
+| > 1M | 100 | 10,000 | 500 |
+
+### Stats Monitoring
+
+```typescript
+const stats = dataManager.getStorage().getStats();
+
+console.log({
+  totalItems: stats.totalItems,          // 1,000,000
+  cachedItems: stats.cachedItems,        // 5,000
+  cachedChunks: stats.cachedChunks,      // 50
+  memoryEfficiency: stats.memoryEfficiency  // 0.995 (99.5%)
+});
+```
+
+## Performance Optimizations
+
+### Batched LRU Timestamps
+
+Sparse storage uses LRU (Least Recently Used) eviction to manage memory. Each chunk tracks when it was last accessed. Rather than calling `Date.now()` on every `storage.get()` call during rendering, vlist batches timestamp updates via `touchChunksForRange(start, end)`:
+
+- **Before**: ~20-50 `Date.now()` calls per frame (one per visible item)
+- **After**: 1 `Date.now()` call per frame (batched for the entire render range)
+
+This is called automatically by the renderer before accessing items for a range.
+
+### Direct Getters vs getState()
+
+The data manager exposes both `getState()` (returns a full `DataState` object) and individual getters (`getTotal()`, `getCached()`, `getIsLoading()`, `getHasMore()`). The direct getters are used on hot paths to avoid object allocation:
+
+```typescript
+// ✅ Hot path — zero allocation
+const total = dataManager.getTotal();
+const cached = dataManager.getCached();
+const isLoading = dataManager.getIsLoading();
+
+// ❌ Avoid on hot paths — allocates DataState object
+const { total, cached, isLoading } = dataManager.getState();
+```
+
+`getState()` is still useful for diagnostics, logging, or infrequent reads where the allocation cost is negligible.
+
+## Internals
+
+The following low-level APIs power the async system. Most users never call these directly — they are used internally by `withAsync` and exposed for advanced use cases like custom feature authoring.
 
 ### Data Manager
 
@@ -212,8 +383,6 @@ interface DataManager<T extends VListItem> {
   getState: () => DataState<T>;
   
   // Direct getters (hot-path optimized, zero object allocation)
-  // These bypass getState() to avoid creating a DataState object on every call.
-  // Used by scroll handlers and renderers that run at ~60fps.
   getTotal: () => number;
   getCached: () => number;
   getIsLoading: () => boolean;
@@ -447,326 +616,13 @@ function calculateMissingRanges(
 ): Range[];
 ```
 
-## Usage Examples
-
-### Basic Data Manager
-
-```typescript
-import { createDataManager } from './data';
-
-const dataManager = createDataManager({
-  initialItems: myItems,
-  onStateChange: (state) => {
-    console.log(`Cached: ${state.cached} / ${state.total}`);
-  }
-});
-
-// Access items
-const item = dataManager.getItem(0);
-const items = dataManager.getItemsInRange(0, 20);
-
-// Modify items
-dataManager.setItems(newItems);
-dataManager.updateItem('user-1', { name: 'New Name' });
-dataManager.removeItem('user-1');
-```
-
-### With Async Adapter
-
-```typescript
-import { createDataManager } from './data';
-
-const dataManager = createDataManager({
-  adapter: {
-    read: async ({ offset, limit }) => {
-      const response = await fetch(`/api/items?offset=${offset}&limit=${limit}`);
-      const data = await response.json();
-      return {
-        items: data.items,
-        total: data.total,
-        hasMore: offset + limit < data.total
-      };
-    }
-  },
-  pageSize: 50,
-  onItemsLoaded: (items, offset, total) => {
-    console.log(`Loaded ${items.length} items at offset ${offset}`);
-  }
-});
-
-// Load initial data
-await dataManager.loadInitial();
-
-// Ensure a range is loaded (for scrolling)
-await dataManager.ensureRange(100, 150);
-
-// Load more (infinite scroll)
-await dataManager.loadMore();
-
-// Reload all data
-await dataManager.reload();
-```
-
-### Sparse Storage
-
-```typescript
-import { createSparseStorage } from './data';
-
-const storage = createSparseStorage({
-  chunkSize: 100,
-  maxCachedItems: 5000,
-  evictionBuffer: 200,
-  onEvict: (count, chunks) => {
-    console.log(`Evicted ${count} items from chunks: ${chunks.join(', ')}`);
-  }
-});
-
-// Set total (for virtual scrolling height calculation)
-storage.setTotal(1_000_000);
-
-// Store items
-storage.set(0, { id: 'item-0', name: 'First' });
-storage.setRange(100, items);
-
-// Retrieve items
-const item = storage.get(0);
-const range = storage.getRange(100, 150);
-const isLoaded = storage.has(0);
-
-// Check what's loaded
-const loadedRanges = storage.getLoadedRanges();
-const unloaded = storage.findUnloadedRanges(0, 1000);
-
-// Memory management
-const evicted = storage.evictDistant(500, 600);  // Keep around visible area
-
-// Statistics
-const stats = storage.getStats();
-console.log(`Memory efficiency: ${(stats.memoryEfficiency * 100).toFixed(1)}%`);
-```
-
-### Placeholder System
-
-```typescript
-import { createPlaceholderManager, isPlaceholderItem } from './data';
-
-const placeholders = createPlaceholderManager({
-  maskCharacter: '█',
-  randomVariance: true
-});
-
-// Analyze structure from real data
-placeholders.analyzeStructure(realItems);
-
-// Generate placeholders
-const placeholder = placeholders.generate(0);
-const placeholderRange = placeholders.generateRange(0, 20);
-
-// Check if item is placeholder
-if (isPlaceholderItem(item)) {
-  element.classList.add('loading');
-}
-
-// In template
-item: {
-  height: 48,
-  template: (item, index, state) => {
-    if (isPlaceholderItem(item)) {
-      return `<div class="item loading">${item.name}</div>`;
-    }
-    return `<div class="item">${item.name}</div>`;
-  },
-}
-```
-
-### Batched LRU Timestamps
-
-When rendering a range of items, use `touchChunksForRange()` to update LRU timestamps with a single `Date.now()` call instead of per-item timestamps in `storage.get()`:
-
-```typescript
-import { createSparseStorage } from './data';
-
-const storage = createSparseStorage({ chunkSize: 100 });
-
-// During render cycle — single Date.now() call for the entire range
-storage.touchChunksForRange(renderRange.start, renderRange.end);
-
-// Then access items normally (no per-item Date.now())
-for (let i = renderRange.start; i <= renderRange.end; i++) {
-  const item = storage.get(i);
-  // ...
-}
-```
-
-This optimization reduces `Date.now()` calls from ~20-50 per frame (one per visible item) to exactly 1 per frame.
-
-### Direct State Getters
-
-For hot paths (scroll handlers, renderers), use direct getters instead of `getState()` to avoid allocating a `DataState` object on every call:
-
-```typescript
-// ✅ Hot path — zero allocation
-const total = dataManager.getTotal();
-const cached = dataManager.getCached();
-const isLoading = dataManager.getIsLoading();
-
-// ❌ Avoid on hot paths — allocates DataState object
-const { total, cached, isLoading } = dataManager.getState();
-```
-
-`getState()` is still useful for diagnostics, logging, or infrequent reads where the allocation cost is negligible.
-
-### Complete Integration
-
-```typescript
-import { vlist, withAsync } from '@floor/vlist';
-
-const list = vlist({
-  container: '#app',
-  item: {
-    height: 48,
-    template: (item, index) => {
-      const isLoading = !item || String(item.id).startsWith('__placeholder_');
-      return `
-        <div class="item ${isLoading ? 'loading' : ''}">
-          ${isLoading ? 'Loading...' : item.name}
-        </div>
-      `;
-    },
-  },
-})
-.use(withAsync({
-  adapter: {
-    read: async ({ offset, limit, cursor }) => {
-      const url = cursor 
-        ? `/api/items?cursor=${cursor}&limit=${limit}`
-        : `/api/items?offset=${offset}&limit=${limit}`;
-        
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      return {
-        items: data.items,
-        total: data.total,
-        cursor: data.nextCursor,
-        hasMore: data.hasMore
-      };
-    },
-  },
-}))
-.build();
-
-// Events
-list.on('load:start', ({ offset, limit }) => {
-  showLoadingIndicator();
-});
-
-list.on('load:end', ({ items, total }) => {
-  hideLoadingIndicator();
-  updateTotalCount(total);
-});
-
-list.on('error', ({ error, context }) => {
-  if (context === 'loadMore') {
-    showRetryButton();
-  }
-});
-```
-
-## Memory Management
-
-### Eviction Strategy
-
-When memory limits are reached, chunks far from the visible area are evicted:
-
-```
-Visible: items 5000-5050
-Buffer: 200 items
-Keep zone: 4800-5250
-
-Evict chunks outside keep zone using LRU
-```
-
-### Configuration Guidelines
-
-| List Size | Chunk Size | Max Cached | Buffer |
-|-----------|------------|------------|--------|
-| < 10K | 100 | 5,000 | 200 |
-| 10K - 100K | 100 | 10,000 | 500 |
-| 100K - 1M | 100 | 10,000 | 500 |
-| > 1M | 100 | 10,000 | 500 |
-
-### Stats Monitoring
-
-```typescript
-const stats = dataManager.getStorage().getStats();
-
-console.log({
-  totalItems: stats.totalItems,          // 1,000,000
-  cachedItems: stats.cachedItems,        // 5,000
-  cachedChunks: stats.cachedChunks,      // 50
-  memoryEfficiency: stats.memoryEfficiency  // 0.995 (99.5%)
-});
-```
-
-## Performance Optimizations
-
-### Batched LRU Timestamps
-
-Sparse storage uses LRU (Least Recently Used) eviction to manage memory. Each chunk tracks when it was last accessed. Rather than calling `Date.now()` on every `storage.get()` call during rendering, vlist batches timestamp updates via `touchChunksForRange(start, end)`:
-
-- **Before**: ~20-50 `Date.now()` calls per frame (one per visible item)
-- **After**: 1 `Date.now()` call per frame (batched for the entire render range)
-
-This is called automatically by the renderer before accessing items for a range.
-
-### Direct Getters vs getState()
-
-The data manager exposes both `getState()` (returns a full `DataState` object) and individual getters (`getTotal()`, `getCached()`, `getIsLoading()`, `getHasMore()`). The direct getters are used on hot paths to avoid object allocation:
-
-```
-Scroll event → handler calls getTotal() → returns number (no allocation)
-vs
-Scroll event → handler calls getState() → creates { total, cached, isLoading, ... } object (GC pressure)
-```
-
-## Chunk-Based Loading
-
-Items are loaded in chunk-aligned boundaries for efficiency:
-
-```typescript
-// Request: load items 50-150
-// Chunk size: 100
-
-// Aligned to chunks:
-// Chunk 0: items 0-99 (includes 50-99)
-// Chunk 1: items 100-199 (includes 100-150)
-
-// Actually loaded: items 0-199
-```
-
-This reduces redundant loads when scrolling back and forth.
-
-## Deduplication
-
-The data manager prevents duplicate loading:
-
-```typescript
-// Scroll handler calls ensureRange rapidly
-await dataManager.ensureRange(100, 200);  // Starts loading
-await dataManager.ensureRange(100, 200);  // Returns existing promise
-await dataManager.ensureRange(100, 200);  // Returns existing promise
-
-// Only ONE API call is made
-```
-
 ## Related Modules
 
-- [types.md](../api/types.md) - VListAdapter, VListItem interfaces
-- [Rendering](../internals/rendering.md) - Renderer displays items/placeholders
-- [Context](../internals/context.md) - BuilderContext wires scroll handler that triggers data loading
-- [context.md](../internals/context.md) - Context holds data manager reference
+- [Types](../api/types.md) — VListAdapter, VListItem interfaces
+- [Placeholders](./placeholders.md) — Placeholder configuration and styling
+- [Rendering](../internals/rendering.md) — Renderer displays items/placeholders
+- [Context](../internals/context.md) — BuilderContext wires scroll handler that triggers data loading
 
 ---
 
-*The data module enables vlist to efficiently handle datasets of any size.*
+*The async module enables vlist to efficiently handle datasets of any size via `withAsync()`.*
