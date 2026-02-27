@@ -775,5 +775,5 @@ vlist({
 
 ---
 
-**Last Updated:** January 2025  
-**Version:** 0.5.0+
+**Last Updated:** February 2026  
+**Version:** v1.0.0+

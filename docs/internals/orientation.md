@@ -357,7 +357,8 @@ The middle four steps (`SizeCache` → `Viewport` → `Range` → core render ma
 | `src/rendering/viewport.ts` | `ViewportState`, `CompressionState`, range calculations |
 | `src/builder/core.ts` | Builder with `isHorizontal` resolution and DOM translation |
 | `src/builder/dom.ts` | DOM structure creation with axis-aware layout |
-| `src/types.ts` | `ViewportState`, `VListConfig.orientation`, `ItemConfig` |
+| `src/types.ts` | `ViewportState`, `ItemConfig`, scroll and event types |
+| `src/builder/types.ts` | `BuilderConfig.orientation`, `BuilderContext`, `VListFeature` |
 
 ## Related Documentation
 

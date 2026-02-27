@@ -357,7 +357,7 @@ contacts.scrollToIndex(2, 'start')
 
 ## Combining with Reverse Mode
 
-### Chat UI with Date Headers
+### Reverse Mode with Date Headers
 
 The sections feature **works seamlessly with reverse mode** - both sticky and inline headers are supported:
 
@@ -367,7 +367,7 @@ import { withSections } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
-  reverse: true, // Chat UI mode
+  reverse: true, // Bottom-anchored mode
   item: {
     height: (index) => messages[index].type === 'image' ? 200 : 60,
     template: (msg) => `
@@ -774,7 +774,7 @@ const carousel = vlist({
 - **Pre-sort items by group** — Required for correct header placement
 - **Use simple group keys** — Fast string comparison
 - **Use data indices** — All API methods use data indices, not layout indices
-- **Set `sticky: false` for chat UIs** — iMessage-style inline headers
+- **Set `sticky: false` for bottom-anchored UIs** — iMessage-style inline headers (chat, logs, activity feeds)
 - **Cache group keys** — If computation is expensive
 
 ### Don't ❌
@@ -884,7 +884,7 @@ headerTemplate: (key) => {
 | **Dynamic updates** | ✅ Automatic group rebuild |
 | **Keyboard navigation** | ✅ Works seamlessly |
 
-**Bottom line:** Groups transform flat lists into organized sections with minimal overhead. Use sticky headers for iOS Contacts style, or inline headers for chat UIs.
+**Bottom line:** Groups transform flat lists into organized sections with minimal overhead. Use sticky headers for iOS Contacts style, or inline headers for bottom-anchored UIs (chat, logs, activity feeds).
 
 ## Further Reading
 

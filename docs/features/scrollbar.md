@@ -28,7 +28,7 @@ src/features/scrollbar/
 
 ## Scroll Configuration
 
-All scroll-related settings live under a single `scroll` config object on `VListConfig`:
+All scroll-related settings live under a single `scroll` config object on `BuilderConfig`:
 
 ```typescript
 vlist({
@@ -446,7 +446,7 @@ The circular buffer pre-allocates 8 sample slots and overwrites the oldest sampl
 
 #### createScrollController
 
-Creates a scroll controller for a viewport element. This is the internal scroll engine — `VListConfig.scroll` is the public-facing configuration that feeds into this.
+Creates a scroll controller for a viewport element. This is the internal scroll engine — `BuilderConfig.scroll` is the public-facing configuration that feeds into this.
 
 ```typescript
 function createScrollController(

@@ -407,4 +407,4 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 
 **Bundle cost:** +2.2 KB gzipped  
 **Status:** Stable  
-**Since:** v0.8.0
+**Since:** v1.0.0

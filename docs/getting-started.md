@@ -94,7 +94,7 @@ item: {
 ## Core Config Options
 
 ```typescript
-interface VListConfig<T> {
+interface BuilderConfig<T> {
   container: HTMLElement | string;  // Required: selector or element
   item: {
     height: number | ((index: number) => number);  // Required for vertical
@@ -104,7 +104,7 @@ interface VListConfig<T> {
   items?: T[];                          // Static items (omit when using withAsync)
   overscan?: number;                    // Extra items rendered outside viewport (default: 3)
   orientation?: 'vertical' | 'horizontal'; // Default: 'vertical'
-  reverse?: boolean;                    // Start at bottom (chat UI). Default: false
+  reverse?: boolean;                    // Bottom-anchored content (default: false)
   classPrefix?: string;                 // CSS class prefix (default: 'vlist')
   ariaLabel?: string;                   // Accessible label for the list element
 }
@@ -196,7 +196,7 @@ const timeline = vlist({
 
 ## Reverse Mode
 
-`reverse: true` anchors the scroll position to the **bottom** of the list — the standard behaviour for chat and messaging UIs.
+`reverse: true` anchors the scroll position to the **bottom** of the list. `appendItems` auto-scrolls if the user is already at the bottom; `prependItems` preserves the current scroll position. Useful for any bottom-anchored content: chat, logs, activity feeds, timelines.
 
 ```typescript
 import { vlist } from '@floor/vlist';
@@ -222,7 +222,7 @@ chat.appendItems([newMessage]);
 chat.prependItems(olderMessages);
 ```
 
-See [Chat Interface Tutorial](./chat-interface) for the full scrolling contract and edge cases.
+See [Chat Interface Tutorial](/tutorials/chat-interface) for the full scrolling contract and edge cases.
 
 ---
 
@@ -247,7 +247,6 @@ list.scrollToIndex(100, 'center')         // 'start' | 'center' | 'end'
 
 // Animated
 list.scrollToIndex(100, { align: 'center', behavior: 'smooth', duration: 300 })
-list.scrollToItem('user-42', { align: 'start', behavior: 'smooth' })
 
 // Read position
 list.getScrollPosition()                  // pixels from top (or left)
@@ -327,7 +326,7 @@ Always call `destroy()` when unmounting (SPA route changes, component teardown).
 | Handle 1M+ items | [Scale Feature](/docs/features/scale) |
 | Use a custom scrollbar | [Scrollbar Feature](/docs/features/scrollbar) |
 | Scroll the whole page | [Page Feature](/docs/features/page) |
-| Build a chat UI | [Chat Interface](./chat-interface) |
-| Tune for performance | [Optimization](./optimization) |
-| Customise styles | [Styling](./styling) |
+| Build a chat UI | [Chat Interface](/tutorials/chat-interface) |
+| Tune for performance | [Optimization](/tutorials/optimization) |
+| Customise styles | [Styling](/tutorials/styling) |
 | Complete API | [API Reference](/docs/api/reference) |

@@ -211,7 +211,7 @@ Virtual scrolling calculations and rendering logic.
 ```
 src/rendering/
 ├── index.ts           # Rendering exports
-├── heights.ts         # Height cache (prefix-sum array)
+├── sizes.ts           # Size cache (prefix-sum array, dimension-agnostic)
 ├── measured.ts        # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts        # DOM renderer
 ├── scale.ts           # Scaling calculations for 1M+ items
@@ -219,11 +219,11 @@ src/rendering/
 ```
 
 **Key exports:**
-- `createHeightCache()` - Height cache factory
+- `createSizeCache()` - Size cache factory (dimension-agnostic for vertical/horizontal)
 - `createMeasuredSizeCache()` - Measured size cache factory (Mode B)
 - `createRenderer()` - Renderer factory
 - `createDOMStructure()` - DOM structure factory
-- Viewport utilities: `calculateRenderRange()`, `calculateTotalHeight()`, etc.
+- Viewport utilities: `calculateRenderRange()`, `calculateTotalSize()`, etc.
 - Scale utilities: `getCompressionState()`, `calculateCompressed*()`, etc.
 
 ## Styles
@@ -257,7 +257,7 @@ Main package entry point. Exports everything from all domains:
 
 Core TypeScript types:
 - `VList` - Main list instance interface
-- `VListConfig` - Configuration object
+- `BuilderConfig` - Configuration object
 - `VListItem` - Item interface
 - `VListEvents` - Event map
 - `ItemTemplate` - Template function type
@@ -322,7 +322,7 @@ import '@floor/vlist/styles';
 import { createBuilderContext } from '../builder/context';
 
 // From rendering
-import { createHeightCache } from '../rendering/heights';
+import { createSizeCache } from '../rendering/sizes';
 
 // From features
 import { createDataManager } from '../features/async/manager';
@@ -419,6 +419,6 @@ test/
 
 ---
 
-**Last Updated:** January 2026  
-**Version:** v0.8+  
+**Last Updated:** February 2026  
+**Version:** v1.1.0  
 **Accuracy:** Verified against actual source code
