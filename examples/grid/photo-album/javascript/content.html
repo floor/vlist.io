@@ -1,17 +1,12 @@
-<div class="container container">
+<div class="container">
     <header>
-        <h1>Photo album</h1>
+        <h1>Photo Album</h1>
         <p class="description">
-            Composable entry point – <code>vlist/builder</code> with
-            <code>withGrid</code> + <code>withScrollbar</code> plugins.
             Virtualized 2D photo gallery with real images from Lorem Picsum.
-            Configurable columns and gap — only visible rows are rendered.
+            Toggle between grid and masonry layouts, adjust columns and gap —
+            only visible rows are rendered.
         </p>
     </header>
-
-    <div class="stats" id="stats">Loading…</div>
-
-    <div class="grid-info" id="grid-info"></div>
 
     <div class="split-layout">
         <div class="split-main split-main--full">
@@ -19,20 +14,41 @@
         </div>
 
         <aside class="split-panel">
-            <!-- Grid Controls -->
+            <!-- Layout -->
             <section class="panel-section">
-                <h3 class="panel-title">Grid</h3>
+                <h3 class="panel-title">Layout</h3>
+
+                <div class="panel-row">
+                    <label class="panel-label">Mode</label>
+                    <div class="panel-segmented" id="layout-mode">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-mode="grid"
+                        >
+                            Grid
+                        </button>
+                        <button
+                            class="panel-segmented__btn"
+                            data-mode="masonry"
+                        >
+                            Masonry
+                        </button>
+                    </div>
+                </div>
 
                 <div class="panel-row">
                     <label class="panel-label">Orientation</label>
-                    <div class="panel-btn-group" id="orientation-buttons">
+                    <div class="panel-segmented" id="orientation-buttons">
                         <button
-                            class="ctrl-btn ctrl-btn--active"
+                            class="panel-segmented__btn panel-segmented__btn--active"
                             data-orientation="vertical"
                         >
                             Vertical
                         </button>
-                        <button class="ctrl-btn" data-orientation="horizontal">
+                        <button
+                            class="panel-segmented__btn"
+                            data-orientation="horizontal"
+                        >
                             Horizontal
                         </button>
                     </div>
@@ -71,18 +87,29 @@
             <section class="panel-section">
                 <h3 class="panel-title">Navigation</h3>
                 <div class="panel-row">
-                    <label class="panel-label">Quick jump</label>
                     <div class="panel-btn-group">
-                        <button id="btn-first" class="panel-btn">First</button>
-                        <button id="btn-middle" class="panel-btn">
-                            Middle
+                        <button
+                            id="btn-first"
+                            class="panel-btn panel-btn--icon"
+                            title="First"
+                        >
+                            <i class="icon icon--up"></i>
                         </button>
-                        <button id="btn-last" class="panel-btn">Last</button>
+                        <button
+                            id="btn-middle"
+                            class="panel-btn panel-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-last"
+                            class="panel-btn panel-btn--icon"
+                            title="Last"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
                     </div>
-                </div>
-                <div class="panel-row">
-                    <span class="panel-label">Range</span>
-                    <span class="panel-value" id="visible-range">–</span>
                 </div>
             </section>
 
@@ -98,12 +125,29 @@
         </aside>
     </div>
 
-    <footer>
-        <p>
-            The builder's <code>withGrid</code> plugin replaces the list
-            renderer with a grid renderer. The virtualizer works in row-space —
-            it only materializes DOM for visible rows. Column width auto-adjusts
-            on resize. 📸
-        </p>
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-mode">grid</strong>
+            </span>
+            <span class="example-footer__stat">
+                <strong id="ft-orientation">vertical</strong>
+            </span>
+        </div>
     </footer>
 </div>

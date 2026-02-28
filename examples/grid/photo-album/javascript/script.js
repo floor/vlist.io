@@ -1,18 +1,19 @@
-// Builder Grid — Composable entry point
-// Uses vlist/builder with withGrid + withScrollbar plugins
-// Demonstrates a virtualized 2D photo gallery using the builder API
+// Photo Album — Virtualized 2D photo gallery
+// Demonstrates withGrid + withMasonry + withScrollbar plugins
+// Layout mode toggle: Grid ↔ Masonry
 
-import { vlist, withGrid, withScrollbar } from "vlist";
+import { vlist, withGrid, withMasonry, withScrollbar } from "vlist";
+import { createStats } from "../../../stats.js";
+import "./controls.js";
 
 // =============================================================================
-// Data Generation
+// Constants
 // =============================================================================
 
-// Picsum has photos with IDs 0–1084 (some gaps). We use 600 items.
 const PHOTO_COUNT = 1084;
-const ITEM_COUNT = 600;
+export const ITEM_COUNT = 600;
 
-const categories = [
+const CATEGORIES = [
   "Nature",
   "Urban",
   "Portrait",
@@ -25,20 +26,50 @@ const categories = [
   "Space",
 ];
 
+// =============================================================================
+// Data
+// =============================================================================
+
 const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
   const picId = i % PHOTO_COUNT;
-  const category = categories[i % categories.length];
+  const category = CATEGORIES[i % CATEGORIES.length];
+  // Variable heights for masonry mode (200–400px)
+  const heightVariation = [200, 250, 300, 350, 400];
   return {
     id: i + 1,
     title: `Photo ${i + 1}`,
     category,
-    likes: Math.floor(Math.random() * 500),
+    likes: Math.floor(Math.abs(Math.sin(i * 2.1)) * 500),
     picId,
+    masonryHeight: heightVariation[i % heightVariation.length],
   };
 });
 
 // =============================================================================
-// Item template
+// State — exported so controls.js can read/write
+// =============================================================================
+
+export let currentMode = "grid"; // "grid" | "masonry"
+export let currentOrientation = "vertical";
+export let currentColumns = 4;
+export let currentGap = 8;
+export let list = null;
+
+export function setCurrentMode(v) {
+  currentMode = v;
+}
+export function setCurrentOrientation(v) {
+  currentOrientation = v;
+}
+export function setCurrentColumns(v) {
+  currentColumns = v;
+}
+export function setCurrentGap(v) {
+  currentGap = v;
+}
+
+// =============================================================================
+// Template
 // =============================================================================
 
 const itemTemplate = (item) => `
@@ -59,36 +90,87 @@ const itemTemplate = (item) => `
 `;
 
 // =============================================================================
-// State
+// Stats — shared footer (progress, velocity, visible/total)
 // =============================================================================
 
-let currentOrientation = "vertical";
-let currentColumns = 4;
-let currentGap = 8;
-let list = null;
+// For grid, the "item height" for progress calculation is the row height.
+// We approximate by computing it from the container and columns.
+function getEffectiveItemHeight() {
+  const container = document.getElementById("grid-container");
+  if (!container || !list) return 200;
+  if (currentMode === "masonry") return 280; // rough average for masonry
+  const innerWidth = container.clientWidth - 2;
+  const colWidth =
+    (innerWidth - (currentColumns - 1) * currentGap) / currentColumns;
+  return Math.round(colWidth * 0.75); // 4:3 aspect
+}
+
+// For grid, total is rows not items
+function getEffectiveTotal() {
+  if (currentMode === "masonry") return ITEM_COUNT;
+  return Math.ceil(ITEM_COUNT / currentColumns);
+}
+
+export const stats = createStats({
+  getList: () => list,
+  getTotal: () => ITEM_COUNT,
+  getItemHeight: () => getEffectiveItemHeight(),
+  container: "#grid-container",
+});
 
 // =============================================================================
-// Create / Recreate grid
+// Create / Recreate
 // =============================================================================
 
-function createGrid(orientation, columns, gap) {
-  // Destroy previous
+let firstVisibleIndex = 0;
+
+export function createView() {
   if (list) {
     list.destroy();
     list = null;
   }
 
-  // Clear container
   const container = document.getElementById("grid-container");
   container.innerHTML = "";
 
-  // Calculate item dimensions to maintain 4:3 landscape aspect ratio.
-  // colWidth = cross-axis cell size:
-  //   vertical mode  → derived from container width  (cross-axis = horizontal)
-  //   horizontal mode → derived from container height (cross-axis = vertical)
+  const orientation = currentOrientation;
+  const columns = currentColumns;
+  const gap = currentGap;
+
+  if (currentMode === "grid") {
+    createGridView(container, orientation, columns, gap);
+  } else {
+    createMasonryView(container, orientation, columns, gap);
+  }
+
+  // Wire events
+  list.on("scroll", stats.scheduleUpdate);
+  list.on("range:change", ({ range }) => {
+    // Grid emits range in row space — convert to item index
+    firstVisibleIndex =
+      currentMode === "grid" ? range.start * currentColumns : range.start;
+    stats.scheduleUpdate();
+  });
+  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+
+  list.on("item:click", ({ item }) => {
+    showDetail(item);
+  });
+
+  // Restore scroll position to first visible item
+  if (firstVisibleIndex > 0) {
+    list.scrollToIndex(firstVisibleIndex, "start");
+  }
+
+  stats.update();
+  updateContext();
+}
+
+function createGridView(container, orientation, columns, gap) {
+  // Calculate item dimensions for 4:3 aspect ratio
   let colWidth;
   if (orientation === "horizontal") {
-    const innerHeight = container.clientHeight - 2; // account for border
+    const innerHeight = container.clientHeight - 2;
     colWidth = (innerHeight - (columns - 1) * gap) / columns;
   } else {
     const innerWidth = container.clientWidth - 2;
@@ -97,15 +179,9 @@ function createGrid(orientation, columns, gap) {
 
   let height, width;
   if (orientation === "horizontal") {
-    // CSS width = horizontal extent = item.width - gap (main axis)
-    // CSS height = vertical extent  = colWidth         (cross axis)
-    // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
-    //   → item.width = colWidth * (4/3) + gap
     width = Math.round(colWidth * (4 / 3) + gap);
-    height = Math.round(colWidth); // cross-axis (vertical extent)
+    height = Math.round(colWidth);
   } else {
-    // CSS width = colWidth, CSS height = item.height - gap
-    // For 4:3: item.height ≈ colWidth * 0.75
     width = Math.round(colWidth);
     height = Math.round(colWidth * 0.75);
   }
@@ -124,82 +200,33 @@ function createGrid(orientation, columns, gap) {
     .use(withGrid({ columns, gap }))
     .use(withScrollbar({ autoHide: true }))
     .build();
+}
 
-  // Bind events
-  list.on("scroll", () => scheduleStatsUpdate());
-  list.on("range:change", ({ range }) => {
-    rangeEl.textContent = `rows ${range.start} – ${range.end}`;
-    scheduleStatsUpdate();
-  });
-
-  list.on("item:click", ({ item }) => {
-    showDetail(item);
-  });
-
-  updateStats();
-  updateGridInfo(orientation, columns, gap, width, height);
+function createMasonryView(container, orientation, columns, gap) {
+  list = vlist({
+    container: "#grid-container",
+    ariaLabel: "Photo gallery",
+    orientation,
+    item: {
+      height: (index) => items[index].masonryHeight,
+      width:
+        orientation === "horizontal"
+          ? (index) => items[index].masonryHeight * 1.2
+          : undefined,
+      template: itemTemplate,
+    },
+    items,
+  })
+    .use(withMasonry({ columns, gap }))
+    .use(withScrollbar({ autoHide: true }))
+    .build();
 }
 
 // =============================================================================
-// DOM references
+// Photo detail (panel)
 // =============================================================================
 
-const statsEl = document.getElementById("stats");
-const rangeEl = document.getElementById("visible-range");
-const gridInfoEl = document.getElementById("grid-info");
 const detailEl = document.getElementById("photo-detail");
-const orientationButtons = document.getElementById("orientation-buttons");
-const columnsButtons = document.getElementById("columns-buttons");
-const columnsLabel = document.getElementById("columns-label");
-const gapButtons = document.getElementById("gap-buttons");
-
-// =============================================================================
-// Stats
-// =============================================================================
-
-let statsRaf = null;
-
-function scheduleStatsUpdate() {
-  if (statsRaf) return;
-  statsRaf = requestAnimationFrame(() => {
-    statsRaf = null;
-    updateStats();
-  });
-}
-
-function updateStats() {
-  const isH = currentOrientation === "horizontal";
-  const domNodes = document.querySelectorAll(".vlist-item").length;
-  const totalGroups = Math.ceil(ITEM_COUNT / currentColumns);
-  const saved = ((1 - domNodes / ITEM_COUNT) * 100).toFixed(1);
-  const groupLabel = isH ? "Columns" : "Rows";
-
-  statsEl.innerHTML =
-    `<strong>Photos:</strong> ${ITEM_COUNT}` +
-    ` · <strong>${groupLabel}:</strong> ${totalGroups}` +
-    ` · <strong>DOM:</strong> ${domNodes}` +
-    ` · <strong>Virtualized:</strong> ${saved}%`;
-}
-
-function updateGridInfo(orientation, columns, gap, width, height) {
-  const isH = orientation === "horizontal";
-  const crossLabel = isH ? "Rows" : "Columns";
-
-  // Show visual dimensions (what you actually see on screen)
-  const displayW = isH ? width - gap : width;
-  const displayH = isH ? height : Math.max(0, height - gap);
-
-  gridInfoEl.innerHTML =
-    `<strong>Orientation:</strong> ${orientation}` +
-    ` · <strong>${crossLabel}:</strong> ${columns}` +
-    ` · <strong>Gap:</strong> ${gap}px` +
-    ` · <strong>Item:</strong> ${displayW}×${displayH}px` +
-    ` · <strong>Aspect:</strong> 4:3`;
-}
-
-// =============================================================================
-// Photo detail
-// =============================================================================
 
 function showDetail(item) {
   detailEl.innerHTML = `
@@ -216,86 +243,19 @@ function showDetail(item) {
 }
 
 // =============================================================================
-// Orientation controls
+// Footer — right side (contextual)
 // =============================================================================
 
-orientationButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-orientation]");
-  if (!btn) return;
+const ftMode = document.getElementById("ft-mode");
+const ftOrientation = document.getElementById("ft-orientation");
 
-  const orientation = btn.dataset.orientation;
-  if (orientation === currentOrientation) return;
-  currentOrientation = orientation;
-
-  orientationButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle(
-      "ctrl-btn--active",
-      b.dataset.orientation === orientation,
-    );
-  });
-
-  // Update label to reflect cross-axis meaning
-  columnsLabel.textContent = orientation === "horizontal" ? "Rows" : "Columns";
-
-  createGrid(currentOrientation, currentColumns, currentGap);
-});
-
-// =============================================================================
-// Column controls
-// =============================================================================
-
-columnsButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-cols]");
-  if (!btn) return;
-
-  const cols = parseInt(btn.dataset.cols, 10);
-  if (cols === currentColumns) return;
-  currentColumns = cols;
-
-  columnsButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.cols) === cols);
-  });
-
-  createGrid(currentOrientation, currentColumns, currentGap);
-});
-
-// =============================================================================
-// Gap controls
-// =============================================================================
-
-gapButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-gap]");
-  if (!btn) return;
-
-  const gap = parseInt(btn.dataset.gap, 10);
-  if (gap === currentGap) return;
-  currentGap = gap;
-
-  gapButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.gap) === gap);
-  });
-
-  createGrid(currentOrientation, currentColumns, currentGap);
-});
-
-// =============================================================================
-// Navigation controls
-// =============================================================================
-
-document.getElementById("btn-first").addEventListener("click", () => {
-  list.scrollToIndex(0, "start");
-});
-
-document.getElementById("btn-middle").addEventListener("click", () => {
-  list.scrollToIndex(Math.floor(ITEM_COUNT / 2), "center");
-});
-
-document.getElementById("btn-last").addEventListener("click", () => {
-  list.scrollToIndex(ITEM_COUNT - 1, "end");
-});
+export function updateContext() {
+  ftMode.textContent = currentMode;
+  ftOrientation.textContent = currentOrientation;
+}
 
 // =============================================================================
 // Initialise
 // =============================================================================
 
-createGrid(currentOrientation, currentColumns, currentGap);
+createView();
