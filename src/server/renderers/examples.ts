@@ -31,7 +31,7 @@ export interface ExampleGroup {
   items: ExampleItem[];
 }
 
-type Variant = "javascript" | "react" | "vue" | "svelte";
+type Variant = "vanilla" | "react" | "vue" | "svelte";
 
 interface SourceFile {
   label: string;
@@ -49,7 +49,7 @@ const SHELL_PATH = resolve("./src/server/shells/base.html");
 const NAV_PATH = join(EXAMPLES_DIR, "navigation.json");
 
 const VARIANT_LABELS: Record<Variant, string> = {
-  javascript: "JavaScript",
+  vanilla: "Vanilla",
   react: "React",
   vue: "Vue",
   svelte: "Svelte",
@@ -99,21 +99,23 @@ function parseVariant(url: string): Variant {
   const params = new URL(url, "http://localhost").searchParams;
   const variant = params.get("variant");
   if (
-    variant === "javascript" ||
+    variant === "vanilla" ||
     variant === "react" ||
     variant === "vue" ||
     variant === "svelte"
   ) {
     return variant;
   }
-  return "javascript"; // default
+  // Support legacy "javascript" query param
+  if (variant === "javascript") return "vanilla";
+  return "vanilla"; // default
 }
 
 function detectVariants(slug: string): Variant[] {
   const variants: Variant[] = [];
   const exampleDir = join(EXAMPLES_DIR, slug);
 
-  for (const variant of ["javascript", "react", "vue", "svelte"] as Variant[]) {
+  for (const variant of ["vanilla", "react", "vue", "svelte"] as Variant[]) {
     const variantDir = join(exampleDir, variant);
     if (existsSync(variantDir)) {
       // Check if it has at least a script file
@@ -275,7 +277,7 @@ function buildVariantSwitcher(
 function buildSidebar(activeSlug: string | null, variant?: Variant): string {
   // Build query string to preserve variant across navigation
   const queryString =
-    variant && variant !== "javascript" ? `?variant=${variant}` : "";
+    variant && variant !== "vanilla" ? `?variant=${variant}` : "";
 
   const groups = loadNavigation<ExampleGroup[]>(NAV_PATH);
   return buildSidebarWithOverview(
@@ -481,7 +483,7 @@ export function renderExamplesPage(
   }
 
   // Parse variant from URL query string
-  const variant = url ? parseVariant(url) : "javascript";
+  const variant = url ? parseVariant(url) : "vanilla";
   const queryString = url ? new URL(url, "http://localhost").search : "";
 
   // Example page — check it exists in our config

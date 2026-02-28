@@ -60,10 +60,10 @@ import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
 
 /** Benchmarks that have variant-based structure */
 const VARIANT_BENCHMARKS = {
-  render: ["javascript", "react", "solidjs", "vue", "svelte"],
-  scroll: ["javascript", "react", "solidjs", "vue", "svelte"],
-  memory: ["javascript", "react", "solidjs", "vue", "svelte"],
-  scrollto: ["javascript", "react", "solidjs", "vue", "svelte"],
+  render: ["vanilla", "react", "solidjs", "vue", "svelte"],
+  scroll: ["vanilla", "react", "solidjs", "vue", "svelte"],
+  memory: ["vanilla", "react", "solidjs", "vue", "svelte"],
+  scrollto: ["vanilla", "react", "solidjs", "vue", "svelte"],
 };
 
 /**
@@ -72,7 +72,9 @@ const VARIANT_BENCHMARKS = {
 function parseVariant(url) {
   const params = new URLSearchParams(url || window.location.search);
   const variant = params.get("variant");
-  return variant || "javascript"; // default
+  // Support legacy "javascript" query param
+  if (variant === "javascript") return "vanilla";
+  return variant || "vanilla"; // default
 }
 
 /**
@@ -90,7 +92,7 @@ function buildVariantSwitcher(benchmark, activeVariant) {
   if (variants.length === 0) return "";
 
   const VARIANT_LABELS = {
-    javascript: "JavaScript",
+    vanilla: "Vanilla",
     react: "React",
     solidjs: "SolidJS",
     vue: "Vue",
@@ -98,7 +100,7 @@ function buildVariantSwitcher(benchmark, activeVariant) {
   };
 
   // Always show all 5 variants, mark missing ones as disabled
-  const allVariants = ["javascript", "react", "solidjs", "vue", "svelte"];
+  const allVariants = ["vanilla", "react", "solidjs", "vue", "svelte"];
 
   let html = '<div class="variant-switcher">';
   for (const variant of allVariants) {

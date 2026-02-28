@@ -29,7 +29,7 @@ export interface BenchGroup {
   items: BenchItem[];
 }
 
-type Variant = "javascript" | "react" | "vue" | "svelte" | "solidjs";
+type Variant = "vanilla" | "react" | "vue" | "svelte" | "solidjs";
 
 // =============================================================================
 // Paths & Constants
@@ -40,7 +40,7 @@ const SHELL_PATH = resolve("./src/server/shells/base.html");
 const NAV_PATH = join(BENCH_DIR, "navigation.json");
 
 const VARIANT_LABELS: Record<Variant, string> = {
-  javascript: "JavaScript",
+  vanilla: "Vanilla",
   react: "React",
   vue: "Vue",
   svelte: "Svelte",
@@ -49,10 +49,10 @@ const VARIANT_LABELS: Record<Variant, string> = {
 
 /** Benchmarks that have variant-based structure */
 const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
-  render: ["javascript", "react", "vue", "svelte", "solidjs"],
-  scroll: ["javascript", "react", "vue", "svelte", "solidjs"],
-  memory: ["javascript", "react", "vue", "svelte", "solidjs"],
-  scrollto: ["javascript", "react", "vue", "svelte", "solidjs"],
+  render: ["vanilla", "react", "vue", "svelte", "solidjs"],
+  scroll: ["vanilla", "react", "vue", "svelte", "solidjs"],
+  memory: ["vanilla", "react", "vue", "svelte", "solidjs"],
+  scrollto: ["vanilla", "react", "vue", "svelte", "solidjs"],
 };
 
 // =============================================================================
@@ -87,7 +87,7 @@ function parseVariant(url: string): Variant {
   const params = new URLSearchParams(url);
   const variant = params.get("variant");
   if (
-    variant === "javascript" ||
+    variant === "vanilla" ||
     variant === "react" ||
     variant === "vue" ||
     variant === "svelte" ||
@@ -95,7 +95,9 @@ function parseVariant(url: string): Variant {
   ) {
     return variant;
   }
-  return "javascript"; // default
+  // Support legacy "javascript" query param
+  if (variant === "javascript") return "vanilla";
+  return "vanilla"; // default
 }
 
 function detectVariants(slug: string): Variant[] {
@@ -117,7 +119,7 @@ function buildVariantSwitcher(
 
   // Always show all 4 variants, mark missing ones as disabled
   const allVariants: Variant[] = [
-    "javascript",
+    "vanilla",
     "react",
     "vue",
     "svelte",
@@ -159,7 +161,7 @@ function buildVariantSwitcher(
 function buildSidebar(activeSlug: string | null, variant?: Variant): string {
   // Build query string to preserve variant across navigation
   const queryString =
-    variant && variant !== "javascript" ? `?variant=${variant}` : "";
+    variant && variant !== "vanilla" ? `?variant=${variant}` : "";
 
   const groups = loadNavigation<BenchGroup[]>(NAV_PATH);
   return buildSidebarWithOverview(
@@ -300,7 +302,7 @@ export function renderBenchmarkPage(
   }
 
   // Parse variant from URL query string
-  const variant = url ? parseVariant(new URL(url).search) : "javascript";
+  const variant = url ? parseVariant(new URL(url).search) : "vanilla";
   const queryString = url ? new URL(url).search : "";
 
   // Check the slug exists in our config

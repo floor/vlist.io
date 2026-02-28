@@ -212,20 +212,20 @@ async function buildExample(name: string): Promise<BuildResult> {
   }
 
   try {
-    // Shared styles support: examples with variants (javascript/react/vue/svelte)
+    // Shared styles support: examples with variants (vanilla/react/vue/svelte)
     // can have a shared styles.css at the example root that all variants use.
     // Example structure:
     //   photo-album/styles.css         → shared (built to dist/examples/photo-album/)
-    //   photo-album/javascript/*.js    → variant (built to dist/examples/photo-album/javascript/)
+    //   photo-album/vanilla/*.js       → variant (built to dist/examples/photo-album/vanilla/)
     //   photo-album/react/*.jsx        → variant (built to dist/examples/photo-album/react/)
     // Each variant can optionally have its own styles.css for overrides.
-    const isVariant = ["javascript", "react", "vue", "svelte"].some((v) =>
+    const isVariant = ["vanilla", "react", "vue", "svelte"].some((v) =>
       name.endsWith(`/${v}`),
     );
     if (isVariant) {
       const parentDir = join(exampleDir, "..");
       const sharedCssPath = join(parentDir, "styles.css");
-      // Get parent example name (e.g., "photo-album" from "photo-album/javascript")
+      // Get parent example name (e.g., "photo-album" from "photo-album/vanilla")
       const parentName = name.split("/").slice(0, -1).join("/");
       const parentOutdir = join("dist", EXAMPLES_DIR, parentName);
 
