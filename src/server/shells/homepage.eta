@@ -384,7 +384,7 @@ list.<span class="fn">setItems</span>(
                         <span class="example-item__desc">Multi-selection, keyboard navigation, scroll events</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/grid/photo-album" class="example-item">
+                    <a href="/examples/photo-album" class="example-item">
                         <span class="example-item__name">Photo Album</span>
                         <span class="example-item__desc">Responsive image grid — available in JavaScript, React, Vue, Svelte</span>
                         <span class="example-item__arrow">→</span>

@@ -9,7 +9,7 @@
         "features": ["core"]
       },
       {
-        "slug": "grid/photo-album",
+        "slug": "photo-album",
         "name": "Photo Album",
         "desc": "Responsive image gallery — toggle between grid and masonry layouts",
         "features": ["grid", "masonry", "scrollbar"]

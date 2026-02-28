@@ -22,7 +22,7 @@ The examples are the strongest of the three today. Code quality is high, the bui
 |------|-----------|------------|---------|------------|
 | `basic` | Core | JS only | 🟢 | ~50 |
 | `controls` | Selection, events | JS, React, Vue, Svelte | 🟢 | ~250 |
-| `grid/photo-album` | Grid, scrollbar | JS, React, Vue, Svelte | 🟢 | ~300 |
+| `photo-album` | Grid, scrollbar | JS, React, Vue, Svelte | 🟢 | ~300 |
 | `grid/file-browser` | Grid, sections, scrollbar | JS only | 🟢 | ~600 |
 | `masonry/photo-album` | Masonry, scrollbar | JS only | 🟡 | ~270 |
 | `data/large-list` | Scale, scrollbar | JS, React, Vue, Svelte | 🟢 | ~250 |
@@ -62,7 +62,7 @@ All example scripts use `import { vlist } from "vlist"` (bare specifier). This i
 2. **Build system is excellent.** Auto-discovery, parallel builds, framework dedupe, size reporting — nothing to change here.
 3. **Feature coverage for core use cases exists.** Grid, async, scale, reverse, sections, snapshots, page scroll, horizontal — all represented.
 4. **Several examples are genuinely impressive.** `reverse-chat` is a full chat app with auto-messages, DOM measurement, date headers, event logging. `velocity-loading` has real-time velocity visualization, API delay slider, snapshot persistence. `file-browser` has grid/list toggle, breadcrumb navigation, real filesystem API.
-5. **Multi-framework examples exist where they matter.** `controls`, `grid/photo-album`, `data/large-list`, `horizontal/basic` all have JS + React + Vue + Svelte variants.
+5. **Multi-framework examples exist where they matter.** `controls`, `photo-album`, `data/large-list`, `horizontal/basic` all have JS + React + Vue + Svelte variants.
 
 ### What's wrong
 
@@ -113,9 +113,9 @@ Examples use three different directory patterns:
 examples/basic/script.js
 examples/reverse-chat/script.js
 
-# Pattern B: feature/name/framework (multi-framework)
-examples/grid/photo-album/javascript/script.js
-examples/grid/photo-album/react/script.tsx
+# Pattern B: name/framework (multi-framework)
+examples/photo-album/javascript/script.js
+examples/photo-album/react/script.tsx
 
 # Pattern C: flat with shared.js (multi-framework with shared data)
 examples/controls/javascript/script.js
@@ -198,7 +198,7 @@ Chips use the builder function name or config option — what the developer actu
 |--------|------|-----------|
 | Collapse 8 groups → 2 (Essentials + Data) | Nav | Almost everything is an essential use case; no need for Layouts, Lists, Messaging, Page & Window |
 | Add feature chips to every entry | Nav | Each entry gets a `features` array rendered as chips |
-| Merge `grid/photo-album` + `masonry/photo-album` | Modify | One "Photo Album" with grid/masonry toggle — layout mode is a switch, not a different app |
+| Merge `photo-album` + `masonry/photo-album` | Modify | One "Photo Album" with grid/masonry toggle — layout mode is a switch, not a different app |
 | Merge `horizontal/basic` + `horizontal/variable-width` | Modify | One "Carousel" with fixed/variable width toggle |
 | Rewrite `auto-size` → "Feed" | Modify | Social feed with X API data instead of synthetic auto-size demo |
 | Archive `controls` | Archive | API exploration replaced by individual Essentials examples that demo APIs in context |
@@ -222,7 +222,7 @@ Each tutorial should point to one or more live examples. The mapping:
 | Tutorial (from tutorials.md) | Primary Example | Secondary Examples | Status |
 |------------------------------|----------------|-------------------|--------|
 | Your First List | `/examples/basic` | — | ✅ Exists |
-| Photo Gallery | `/examples/grid/photo-album` | `grid/file-browser` | ✅ Exists (adding masonry toggle) |
+| Photo Gallery | `/examples/photo-album` | `grid/file-browser` | ✅ Exists (adding masonry toggle) |
 | Contact List | `/examples/groups/sticky-headers` | — | ✅ Exists |
 | Chat Interface | `/examples/reverse-chat` | — | ✅ Exists |
 | Infinite Feed | `/examples/auto-size` (→ Feed) | `data/velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
@@ -260,7 +260,7 @@ Add a split layout with aside panel to explore the core API interactively:
 
 #### 2. Photo Album — Layout toggle grid / masonry
 
-Merge `grid/photo-album` + `masonry/photo-album` into one example with controls:
+Merge `photo-album` + `masonry/photo-album` into one example with controls:
 - **Layout switch**: Grid ↔ Masonry — destroys and recreates with `withGrid()` or `withMasonry()`
 - Keep existing grid controls (columns, gap, orientation)
 - Masonry mode: variable heights from photo aspect ratios, shortest-lane placement
@@ -324,7 +324,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | Before (path) | After (path) | Notes |
 |----------------|-------------|-------|
 | `basic/` | `basic-list/` | — |
-| `grid/photo-album/` | `photo-album/` | Merged with masonry |
+| `photo-album/` | `photo-album/` | Already flat ✅ |
 | `reverse-chat/` | `messaging/` | — |
 | `groups/sticky-headers/` | `contact-list/` | — |
 | `wizard-nav/` | `wizard/` | — |
@@ -339,14 +339,14 @@ Flatten the directory structure to match the navigation. Directories named by wh
 **Also:**
 - Move `controls/`, `variable-heights/`, `horizontal/variable-width/`, `masonry/photo-album/`, `grid/` (empty after moves), `data/` (empty after moves), `groups/` (empty after moves) to `examples/archive/`
 - Update `navigation.json` slugs to match new flat paths
-- Update all docs/tutorials/feature pages that link to old `/examples/grid/photo-album` etc.
+- Update all docs/tutorials/feature pages that link to old paths (`grid/photo-album` ✅ done, etc.)
 - Verify build system auto-discovers new paths (`bun run build:examples`)
 
 **URL changes:**
 
 | Old URL | New URL |
 |---------|---------|
-| `/examples/grid/photo-album` | `/examples/photo-album` |
+| `/examples/grid/photo-album` | `/examples/photo-album` ✅ |
 | `/examples/grid/file-browser` | `/examples/file-browser` |
 | `/examples/groups/sticky-headers` | `/examples/contact-list` |
 | `/examples/data/velocity-loading` | `/examples/velocity-loading` |
@@ -498,7 +498,7 @@ Rewrote `examples/navigation.json` from feature-based categories to use-case gro
 |----------------|---------|-------|-------|
 | Getting Started | basic | Essentials → "Basic List" | — |
 | Getting Started | controls | **Archived** | API exploration replaced by individual examples |
-| Grid Feature | grid/photo-album | Essentials → "Photo Album" | Will merge masonry with toggle |
+| Grid Feature | photo-album | Essentials → "Photo Album" | Will merge masonry with toggle |
 | Grid Feature | grid/file-browser | Essentials → "File Browser" | — |
 | Masonry Feature | masonry/photo-album | **Merged into Photo Album** | Grid ↔ Masonry toggle |
 | Data Feature | data/large-list | Data → "Large Dataset" | — |

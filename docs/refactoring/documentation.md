@@ -829,7 +829,7 @@ All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-patter
 
 | File | Before | After |
 |------|--------|-------|
-| `features/grid.md` | 4 links, 3 non-existent (`grid/products`, `grid/icons`, `grid/masonry`) | 2 links to actual examples (`grid/photo-album`, `grid/file-browser`) |
+| `features/grid.md` | 4 links, 3 non-existent (`grid/products`, `grid/icons`, `grid/masonry`) | 2 links to actual examples (`photo-album`, `grid/file-browser`) |
 | `features/masonry.md` | 4 links, all non-existent (`masonry/pinterest`, `masonry/products`, `masonry/feed`, `masonry/photos`) | 1 link to actual example (`masonry/photo-album`) |
 
 **Added Live Examples sections (new):**
@@ -840,7 +840,7 @@ All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-patter
 | `features/scale.md` | `/examples/data/large-list` | 100K–5M items with withScale (4 frameworks) |
 | `features/sections.md` | `/examples/groups/sticky-headers` | A–Z contact list with sticky section headers |
 | `features/selection.md` | `/examples/controls` | Full API exploration with selection (4 frameworks) |
-| `features/scrollbar.md` | `/examples/grid/photo-album`, `/examples/controls`, `/examples/data/large-list` | Three examples showcasing scrollbar in different contexts |
+| `features/scrollbar.md` | `/examples/photo-album`, `/examples/controls`, `/examples/data/large-list` | Three examples showcasing scrollbar in different contexts |
 
 **Already correct (no change needed):**
 - `features/page.md` — links to `/examples/window-scroll/` ✅

@@ -8,7 +8,7 @@
       },
       {
         "slug": "frameworks",
-        "name": "Framework Adapters",
+        "name": "Adapters",
         "desc": "React, Vue, Svelte, and SolidJS integration"
       }
     ]

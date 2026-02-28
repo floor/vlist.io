@@ -140,7 +140,7 @@ bun run build:examples
 # 📦 Found 33 examples: basic, core/basic/javascript, core/basic/react, ...
 # ✅ core/basic/javascript  77ms   11.4 KB → 4.2 KB gzip  css 2.7 KB
 # ✅ core/basic/react     100ms   403.2 KB → 122.3 KB gzip  css 2.7 KB
-# ✅ grid/photo-album/javascript  87ms   32.3 KB → 11.0 KB gzip  css 2.0 KB
+# ✅ photo-album/javascript  87ms   32.3 KB → 11.0 KB gzip  css 2.0 KB
 # ...
 # ✨ Built 33/33 examples in 276ms
 ```

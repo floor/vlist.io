@@ -59,7 +59,7 @@ Rewrote `examples/basic/` into the **model interactive example** that establishe
 ```
 Essentials (9)
   basic              → "Basic List"         [core]
-  grid/photo-album   → "Photo Album"        [grid] [masonry] [scrollbar]
+  photo-album        → "Photo Album"        [grid] [masonry] [scrollbar]
   reverse-chat       → "Messaging"          [reverse] [sections]
   groups/sticky-headers → "Contact List"    [sections] [selection]
   wizard-nav         → "Wizard"             [scroll.wheel] [selection]
@@ -82,7 +82,7 @@ Read `examples.md` Phase 2 for full specs. Each example follows the Basic List m
 
 ### 2. Photo Album — Layout toggle
 
-Merge `grid/photo-album` + `masonry/photo-album`. Add Grid ↔ Masonry layout switch. Keep existing grid controls (columns, gap, orientation). Masonry mode uses variable heights from photo aspect ratios. Archive `masonry/photo-album/` after merge. Footer right side: `grid 4×4 · gap 8px · vertical`.
+Merge `photo-album` + `masonry/photo-album`. Add Grid ↔ Masonry layout switch. Keep existing grid controls (columns, gap, orientation). Masonry mode uses variable heights from photo aspect ratios. Archive `masonry/photo-album/` after merge. Footer right side: `grid 4×4 · gap 8px · vertical`.
 
 ### 3. Messaging — Header controls
 
@@ -106,7 +106,7 @@ Enhance `grid/file-browser`. OS switch: macOS Finder ↔ Windows Explorer. Click
 
 ## After Phase 2
 
-- **Phase 3** — Reorganize directories: flatten from `grid/photo-album` → `photo-album/`, `groups/sticky-headers` → `contact-list/`, etc. All flat, named by use case. Update slugs, URLs, cross-links. Full mapping table in `examples.md`.
+- **Phase 3** — Reorganize directories: flatten `groups/sticky-headers` → `contact-list/`, etc. All flat, named by use case. Update slugs, URLs, cross-links. Full mapping table in `examples.md`. (`grid/photo-album` → `photo-album/` ✅ done)
 - **Phase 4** — Archive retired directories to `examples/archive/`
 - **Phase 5** — Polish: consistent control panel layout (already mostly done via design system), stats bar accuracy, feature chips accuracy
 - **Phase 6** — Cross-links between tutorials ↔ examples ↔ docs

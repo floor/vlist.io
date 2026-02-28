@@ -3,7 +3,7 @@
 // Layout mode toggle: Grid ↔ Masonry
 
 import { vlist, withGrid, withMasonry, withScrollbar } from "vlist";
-import { createStats } from "../../../stats.js";
+import { createStats } from "../../stats.js";
 import "./controls.js";
 
 // =============================================================================

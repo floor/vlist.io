@@ -786,5 +786,5 @@ const list = vlist({
 
 ## Live Examples
 
-- [Photo Album](/examples/grid/photo-album) — Responsive photo gallery with withGrid + withScrollbar (4 frameworks)
+- [Photo Album](/examples/photo-album) — Responsive photo gallery with withGrid + withScrollbar (4 frameworks)
 - [File Browser](/examples/grid/file-browser) — Finder-like file browser with grid/list views
