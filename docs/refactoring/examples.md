@@ -248,15 +248,15 @@ Each tutorial should point to one or more live examples. The mapping:
 
 Upgrade every Essentials example into a polished, interactive showcase. Each gets a control panel aside, realistic data, and toggles that let the reader explore vlist features by switching options live.
 
-#### 1. Basic List — Control panel
+#### 1. Basic List — Control panel ✅
 
-Add an aside panel with controls to explore the core API interactively:
+Add a split layout with aside panel to explore the core API interactively:
 - **Item count** slider (100 → 100K) — shows virtualization benefit as count grows
-- **Item height** toggle (fixed ↔ variable) — demonstrates both sizing strategies
 - **Overscan** slider (0–10) — visualize the render buffer
 - **Scroll to** input + go button — `scrollToIndex()` with align selector (start/center/end)
-- **Data operations** — append, prepend, remove buttons
-- Live stats: total items, DOM nodes, visible range, scroll position
+- **Quick jump** icon buttons (first/middle/last) using CSS mask-image icons
+- **Data operations** — prepend, append, +100, remove, clear, reset — with icon buttons
+- **Example footer bar** — universal stats bar below split-layout (see design system below)
 
 #### 2. Photo Album — Layout toggle grid / masonry
 
@@ -367,7 +367,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 ### Phase 5 — Polish & Consistency
 
 - Consistent control panel layout across all Essentials (same aside pattern, same button/toggle styles)
-- Consistent stats bar across all examples (items, DOM nodes, visible range)
+- Example footer bar already consistent (established in Phase 2, Basic List)
 - Review descriptions in navigation.json for accuracy after all enhancements
 - Verify feature chips match actual features used after modifications
 
@@ -389,6 +389,94 @@ Extending the 17 principles from docs + tutorials:
 21. **Copy-paste to learn.** A developer should be able to read the source, copy the pattern into their own project (changing `"vlist"` to `"@floor/vlist"`), and have it work.
 22. **Progressive complexity within groups.** If a group has multiple examples, order from simple to complex. The first example is the "hello world" for that theme.
 23. **Navigation.json is the source of truth.** `index.html` must be generated from or kept in sync with `navigation.json`. No manual HTML-only entries. Feature chips render from the `features` array in each entry.
+
+---
+
+## Design System (established in Phase 2)
+
+### Example Footer Bar
+
+Universal stats bar below every `.split-layout`. Same structure on every example.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  0%    0.00 / 0.00 px/ms    12 / 10,000 items  │  height 56px · overscan 3  │
+│  ← left: universal (same everywhere) ────────── │  ← right: contextual ────→ │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Left side (universal, every example):**
+- **Progress %** — scroll position as 0–100% (top → bottom)
+- **Velocity** — `current / average` px/ms. Current from vlist's `velocity:change` event. Average is a running mean filtered to 0.1–50 px/ms (same logic as desk/velocity.js)
+- **DOM / Total** — items currently in DOM vs total item count
+
+**Right side (contextual, varies per example):**
+- Basic List → `height 56px · overscan 3`
+- Photo Album → `grid 4×4 · gap 8px · vertical`
+- Messaging → `reverse · sticky headers`
+- Carousel → `horizontal · hero mode`
+- etc.
+
+**CSS:** `.example-footer` in shared `examples/styles.css`. Monospace font (`monospace, "Courier New", Courier`), `0.8em`, `tabular-nums`. Responsive — wraps on mobile.
+
+### Icon System
+
+CSS mask-image icons via `<i class="icon icon--name"></i>`. SVG files in `/examples/icons/`, referenced by URL. No inline SVG in JS bundles.
+
+**Registered icons:** `up`, `down`, `center`, `add`, `remove`, `trash`, `shuffle`, `back`, `forward`, `search`, `sort`, `filter`, `send`, `settings`.
+
+**CSS:** `.icon` base + `.icon--{name}` modifiers in shared `examples/styles.css`. Uses `background-color: currentColor` + `mask-image` — inherits color from parent, works with light/dark themes.
+
+### Panel Slider
+
+Styled range input via `.panel-slider` class in shared `examples/styles.css`. Custom thumb (accent color, rounded) and track (border color). Works in both WebKit and Firefox.
+
+### Shared Data Library
+
+Small, separate modules in `src/data/` — each example imports only what it needs (tree-shaken by esbuild). The API (`src/api/`) imports the same modules at runtime.
+
+```
+src/data/
+├── people.js      # names, colors, hash/pick, makeUser, makeContact, makeUsers, makeContacts
+├── messages.js    # chat corpus (short/medium/long), getChatUser, pickMessage, makeMessage, makeMessages
+└── posts.js       # social feed texts, images, tags, makePost, makePosts
+```
+
+**Design principles:**
+- **Small modules** — `people.js` ~3 KB, `messages.js` ~3 KB, `posts.js` ~3 KB. An example importing only `people.js` pays nothing for messages or posts.
+- **Deterministic** — `hash(index, seed)` + `pick(array, index, seed)` → same index always produces the same data. No `Math.random()`.
+- **Layered generators** — `makeUser(i)` returns a lightweight shape (id, name, email, initials, color). `makeContact(i)` returns a richer shape (+ phone, company, department, role, city, country). Examples pick the shape they need.
+- **Shared with API** — `src/api/users.ts` imports from `../data/people.js` instead of owning seed data. Single source of truth.
+- **Batch helpers** — `makeUsers(count, startIndex)`, `makeContacts(count, startIndex)`, `makePosts(count, startIndex)` for generating arrays.
+
+**Import paths:**
+- From examples: `import { makeUser } from '../../src/data/people.js'`
+- From API: `import { FIRST_NAMES, hash, pick } from '../data/people.js'`
+
+**Generators summary:**
+
+| Function | Module | Returns |
+|-|-|-|
+| `makeUser(i)` | people.js | `{ id, name, email, initials, color }` |
+| `makeContact(i)` | people.js | `{ id, firstName, lastName, email, phone, company, department, role, initials, color, city, country }` |
+| `makeUsers(count, start?)` | people.js | Array of users |
+| `makeContacts(count, start?)` | people.js | Array of contacts |
+| `getChatUser(i)` | messages.js | `{ name, initials, color }` |
+| `pickMessage(i)` | messages.js | String (short/medium/long distribution) |
+| `makeMessage(i, opts?)` | messages.js | `{ id, text, user, initials, color, isSelf, time, dateSection }` |
+| `makeMessages(count, opts?)` | messages.js | Array of messages |
+| `makePost(i)` | posts.js | `{ id, user, initials, color, text, hasImage, image, tags, time, likes, comments }` |
+| `makePosts(count, start?)` | posts.js | Array of posts |
+
+### Shared vs Per-Example Styles
+
+| In shared `examples/styles.css` | In per-example `styles.css` |
+|-|-|
+| `.example-footer` (footer bar) | `#list-container` height |
+| `.icon` system | Item template styles (`.item`, `.card`, etc.) |
+| `.panel-slider` | `.split-main { padding: 0 }` if needed |
+| `.panel-*` components | Example-specific overrides |
+| `.split-layout`, `.split-panel` | Responsive height adjustments |
 
 ---
 
@@ -481,3 +569,59 @@ Positioned absolute top-right, same level as the variant switcher (top-left).
 #### index.html — Not updated
 
 The static `index.html` is a fallback — the server generates the examples overview from `navigation.json` via `buildOverviewContent()`. The static file is now stale but is not served in production.
+
+### Phase 2 — Enhance Essentials
+
+#### 1. Basic List — Control panel ✅
+
+Rewrote `examples/basic/` from a minimal demo into the model interactive example. This establishes the pattern for all 7 Essentials.
+
+**Layout — 3 zones:**
+1. `<header>` — title + one-line description
+2. `.split-layout` — list (`.split-main`) + control panel (`.split-panel`, 3 sections)
+3. `.example-footer` — universal stats bar
+
+**Panel sections:**
+- **Items** — count slider (100–100K via `.panel-slider`), overscan slider (0–10)
+- **Scroll To** — index input + align select + Go button, quick jump icon buttons (first/middle/last)
+- **Data** — prepend, append, +100, remove, clear, reset — all with icon buttons
+
+**What was removed vs original spec:**
+- ~~Item height toggle (fixed ↔ variable)~~ — removed, basic list uses fixed height only. Variable heights demonstrated in Feed example.
+- ~~Live stats panel section~~ — replaced by the example footer bar. No duplication.
+- ~~Top stats bar~~ — removed entirely. Footer is the only stats display.
+- ~~Page footer prose paragraph~~ — removed. The description in `<header>` is enough.
+
+**Footer bar (new design system component):**
+- Left: progress % (scroll position 0–100%), velocity current/average px/ms, DOM/total items
+- Right: `height 56px` · `overscan 3` (updates when overscan slider changes)
+- Velocity uses vlist's native `velocity:change` event, average computed as running mean (0.1–50 px/ms filter, matching desk/velocity.js logic)
+
+**Icon system (new design system component):**
+- Buttons use `<i class="icon icon--add"></i>` instead of emoji or inline SVG
+- CSS mask-image references SVG files from `/examples/icons/`
+- 15 icons registered in shared stylesheet for reuse across all examples
+
+**Shared styles added to `examples/styles.css`:**
+- `.example-footer` — footer bar layout, monospace `0.8em`, responsive
+- `.icon` + `.icon--{name}` — mask-image icon system (15 icons)
+- `.panel-slider` — styled range input (WebKit + Firefox)
+
+**Per-example `basic/styles.css` kept minimal:**
+- `#list-container` height
+- `.item` template styles (avatar, text, index)
+- `.split-main { padding: 0 }`
+- Responsive height override
+
+**navigation.json updated:**
+- Description changed to: "Interactive control panel — item count, sizing strategies, overscan, scroll-to, data operations"
+
+**Files changed:**
+- `examples/basic/content.html` — full rewrite
+- `examples/basic/script.js` — full rewrite, imports `makeUser`/`makeUsers` from `src/data/people.js`
+- `examples/basic/styles.css` — trimmed, slider styles moved to shared
+- `examples/styles.css` — added footer bar, icon system, panel slider
+- `examples/navigation.json` — updated basic description
+- `src/data/people.js` — **new** shared data module (names, colors, hash, generators)
+- `src/data/messages.js` — **new** shared data module (chat corpus, message generators)
+- `src/data/posts.js` — **new** shared data module (social feed texts, post generators)

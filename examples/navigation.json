@@ -5,7 +5,7 @@
       {
         "slug": "basic",
         "name": "Basic List",
-        "desc": "Minimal vanilla JS — one function call, zero boilerplate",
+        "desc": "Interactive control panel — item count, sizing strategies, overscan, scroll-to, data operations",
         "features": ["core"]
       },
       {

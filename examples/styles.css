@@ -881,6 +881,207 @@ html[data-theme] .source__panel pre {
 }
 
 /* ============================================================================
+   Example Footer — universal stats bar below split-layout
+   ============================================================================ */
+
+.example-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 16px;
+    margin-top: 8px;
+    border-radius: var(--examples-radius);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    font-family: monospace, "Courier New", Courier;
+    font-size: 0.8em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow-x: auto;
+}
+
+.example-footer__left,
+.example-footer__right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.example-footer__left {
+    flex-shrink: 0;
+}
+
+.example-footer__right {
+    color: var(--text-dim);
+}
+
+.example-footer__stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+}
+
+.example-footer__stat strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.example-footer__unit {
+    color: var(--text-dim);
+    margin-left: 1px;
+}
+
+/* ============================================================================
+   Panel Slider — styled range input for control panels
+   ============================================================================ */
+
+.panel-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border, #e5e7eb);
+    outline: none;
+    cursor: pointer;
+}
+
+.panel-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent, #3b82f6);
+    border: 2px solid var(--bg, #fff);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.panel-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.panel-slider::-webkit-slider-thumb:active {
+    transform: scale(1.05);
+}
+
+.panel-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent, #3b82f6);
+    border: 2px solid var(--bg, #fff);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.panel-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+}
+
+.panel-slider::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border, #e5e7eb);
+}
+
+/* ============================================================================
+   Icons — mask-image on <i class="icon icon--name">
+   Uses currentColor via background-color + CSS mask.
+   SVG files live in /examples/icons/ — no inline SVG in the bundle.
+   ============================================================================ */
+
+.icon {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    vertical-align: -2px;
+    flex-shrink: 0;
+}
+
+.icon--up {
+    -webkit-mask-image: url("/examples/icons/up.svg");
+    mask-image: url("/examples/icons/up.svg");
+}
+
+.icon--down {
+    -webkit-mask-image: url("/examples/icons/down.svg");
+    mask-image: url("/examples/icons/down.svg");
+}
+
+.icon--center {
+    -webkit-mask-image: url("/examples/icons/center.svg");
+    mask-image: url("/examples/icons/center.svg");
+}
+
+.icon--add {
+    -webkit-mask-image: url("/examples/icons/add.svg");
+    mask-image: url("/examples/icons/add.svg");
+}
+
+.icon--remove {
+    -webkit-mask-image: url("/examples/icons/remove.svg");
+    mask-image: url("/examples/icons/remove.svg");
+}
+
+.icon--trash {
+    -webkit-mask-image: url("/examples/icons/trash.svg");
+    mask-image: url("/examples/icons/trash.svg");
+}
+
+.icon--shuffle {
+    -webkit-mask-image: url("/examples/icons/shuffle.svg");
+    mask-image: url("/examples/icons/shuffle.svg");
+}
+
+.icon--back {
+    -webkit-mask-image: url("/examples/icons/back.svg");
+    mask-image: url("/examples/icons/back.svg");
+}
+
+.icon--forward {
+    -webkit-mask-image: url("/examples/icons/forward.svg");
+    mask-image: url("/examples/icons/forward.svg");
+}
+
+.icon--search {
+    -webkit-mask-image: url("/examples/icons/search.svg");
+    mask-image: url("/examples/icons/search.svg");
+}
+
+.icon--sort {
+    -webkit-mask-image: url("/examples/icons/sort.svg");
+    mask-image: url("/examples/icons/sort.svg");
+}
+
+.icon--filter {
+    -webkit-mask-image: url("/examples/icons/filter.svg");
+    mask-image: url("/examples/icons/filter.svg");
+}
+
+.icon--send {
+    -webkit-mask-image: url("/examples/icons/send.svg");
+    mask-image: url("/examples/icons/send.svg");
+}
+
+.icon--settings {
+    -webkit-mask-image: url("/examples/icons/settings.svg");
+    mask-image: url("/examples/icons/settings.svg");
+}
+
+/* ============================================================================
    Responsive: large screens
    ============================================================================ */
 
@@ -931,6 +1132,17 @@ html[data-theme] .source__panel pre {
         padding: 10px 16px;
     }
 
+    .example-footer {
+        font-size: 12px;
+        gap: 12px;
+        padding: 6px 12px;
+    }
+
+    .example-footer__left,
+    .example-footer__right {
+        gap: 14px;
+    }
+
     .controls {
         flex-direction: column;
     }
@@ -962,5 +1174,9 @@ html[data-theme] .source__panel pre {
 
     .split-panel {
         width: 100%;
+    }
+
+    .example-footer {
+        flex-wrap: wrap;
     }
 }
