@@ -230,6 +230,20 @@ html[data-theme-mode="dark"] {
     border-radius: var(--examples-radius);
 }
 
+/* Default list dimensions — constrained inside split-main (padded).
+   Examples using split-main--full override these with their own sizes. */
+.split-main [id$="-container"] {
+    width: 360px;
+    height: 600px;
+    margin: 0 auto;
+}
+
+.split-main--full [id$="-container"] {
+    width: auto;
+    height: auto;
+    margin: 0;
+}
+
 /* ============================================================================
    Split Layout — list + side panel
    ============================================================================ */
@@ -245,7 +259,11 @@ html[data-theme-mode="dark"] {
     min-width: 0;
     background-color: var(--bg-card);
     border-radius: var(--examples-radius);
-    padding: 32px 0;
+    padding: 32px;
+}
+
+.split-main--full {
+    padding: 0;
 }
 
 /* ============================================================================
@@ -518,7 +536,7 @@ html[data-theme-mode="dark"] {
     margin-top: 24px;
     text-align: center;
     color: var(--text-dim);
-    font-size: 14px;
+    font-size: 0.7em;
     line-height: 1.6;
 }
 
@@ -534,7 +552,6 @@ html[data-theme-mode="dark"] {
 .container footer code {
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
     font-size: 13px;
-    background: var(--bg-card);
     border: 1px solid var(--border);
     padding: 1px 6px;
     border-radius: 4px;

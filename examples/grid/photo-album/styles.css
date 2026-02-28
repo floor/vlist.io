@@ -4,10 +4,6 @@
    Panel system (.split-layout, .split-panel, .panel-*)
    is also provided by example/example.css. */
 
-.split-main {
-    padding: 0;
-}
-
 /* Grid container */
 #grid-container {
     height: 600px;
