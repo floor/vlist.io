@@ -20,22 +20,22 @@ The examples are the strongest of the three today. Code quality is high, the bui
 
 | Slug | Feature(s) | Frameworks | Quality | Lines (JS) |
 |------|-----------|------------|---------|------------|
-| `basic` | Core | JS only | 🟢 | ~50 |
-| `controls` | Selection, events | JS, React, Vue, Svelte | 🟢 | ~250 |
-| `photo-album` | Grid, scrollbar | JS, React, Vue, Svelte | 🟢 | ~300 |
-| `file-browser` | Grid, sections, scrollbar | JS only | 🟢 | ~600 |
-| ~~`masonry/photo-album`~~ | ~~Masonry, scrollbar~~ | ~~JS only~~ | — | — | Merged into `photo-album` ✅ |
-| `large-list` | Scale, scrollbar | JS, React, Vue, Svelte | 🟢 | ~250 |
-| `velocity-loading` | Async, scale, scrollbar, snapshots, selection | JS only | 🟢 | ~300 |
-| `horizontal/basic` | Horizontal orientation | JS, React, Vue, Svelte | 🟢 | ~60 |
-| `horizontal/variable-width` | Horizontal, variable width | JS only | 🟡 | ~65 |
-| `contact-list` | Sections | JS only | 🟢 | ~460 |
-| `scroll-restore` | Snapshots, selection | JS only | 🟢 | ~240 |
-| `window-scroll` | Page, async | JS only | 🟢 | ~150 |
-| `messaging-app` | Reverse, sections | JS only | 🟢 | ~400 |
-| `auto-size` | estimatedHeight (Mode B) | JS only | 🟢 | ~260 |
-| `variable-heights` | height function (Mode A) | JS only | 🟢 | ~340 |
-| `wizard-nav` | scroll.wheel: false, selection | JS only | 🟢 | ~330 |
+| `basic` | Core | Vanilla, React, Vue, Svelte | 🟢 | ~50 |
+| `controls` | Selection, events | Vanilla, React, Vue, Svelte | 🟢 | ~250 |
+| `photo-album` | Grid, scrollbar | Vanilla, React, Vue, Svelte | 🟢 | ~300 |
+| `file-browser` | Grid, sections, scrollbar | Vanilla only | 🟢 | ~600 |
+| ~~`masonry/photo-album`~~ | ~~Masonry, scrollbar~~ | ~~Vanilla only~~ | — | — | Merged into `photo-album` ✅ |
+| `large-list` | Scale, scrollbar | Vanilla, React, Vue, Svelte | 🟢 | ~250 |
+| `velocity-loading` | Async, scale, scrollbar, snapshots, selection | Vanilla only | 🟢 | ~300 |
+| `horizontal/basic` | Horizontal orientation | Vanilla, React, Vue, Svelte | 🟢 | ~60 |
+| `horizontal/variable-width` | Horizontal, variable width | Vanilla only | 🟡 | ~65 |
+| `contact-list` | Sections | Vanilla only | 🟢 | ~460 |
+| `scroll-restore` | Snapshots, selection | Vanilla only | 🟢 | ~240 |
+| `window-scroll` | Page, async | Vanilla only | 🟢 | ~150 |
+| `messaging-app` | Reverse, sections | Vanilla only | 🟢 | ~400 |
+| `auto-size` | estimatedHeight (Mode B) | Vanilla only | 🟢 | ~260 |
+| `variable-heights` | height function (Mode A) | Vanilla only | 🟢 | ~340 |
+| `wizard-nav` | scroll.wheel: false, selection | Vanilla only | 🟢 | ~330 |
 
 **Also present:**
 - `icons/` — SVG icon library used by examples (not an example itself)
@@ -62,7 +62,7 @@ All example scripts use `import { vlist } from "vlist"` (bare specifier). This i
 2. **Build system is excellent.** Auto-discovery, parallel builds, framework dedupe, size reporting — nothing to change here.
 3. **Feature coverage for core use cases exists.** Grid, async, scale, reverse, sections, snapshots, page scroll, horizontal — all represented.
 4. **Several examples are genuinely impressive.** `messaging-app` is a full chat app with auto-messages, DOM measurement, date headers, event logging. `velocity-loading` has real-time velocity visualization, API delay slider, snapshot persistence. `file-browser` has grid/list toggle, breadcrumb navigation, real filesystem API.
-5. **Multi-framework examples exist where they matter.** `controls`, `photo-album`, `large-list`, `horizontal/basic` all have JS + React + Vue + Svelte variants.
+5. **Multi-framework examples exist where they matter.** `basic`, `controls`, `photo-album`, `large-list`, `horizontal/basic` all have Vanilla + React + Vue + Svelte variants.
 
 ### What's wrong
 
@@ -110,19 +110,22 @@ Examples use three different directory patterns:
 
 ```
 # Pattern A: flat (single JS file)
-examples/basic/script.js
 examples/messaging-app/script.js
+examples/contact-list/script.js
 
-# Pattern B: name/framework (multi-framework)
-examples/photo-album/javascript/script.js
+# Pattern B: name/variant (multi-framework with shared.js)
+examples/basic/vanilla/script.js
+examples/basic/react/script.tsx
+examples/basic/shared.js
+
+examples/photo-album/vanilla/script.js
 examples/photo-album/react/script.tsx
-
-# Pattern C: flat with shared.js (multi-framework with shared data)
-examples/controls/javascript/script.js
-examples/controls/shared.js
+examples/photo-album/shared.js (none — uses inline data)
 ```
 
-This is functional but inconsistent. Pattern A examples can't easily gain framework variants later. Not a blocker, but worth standardizing if we're adding new examples.
+Variant directories are named `vanilla`, `react`, `vue`, `svelte` — not `javascript`, since all variants are JavaScript. "Vanilla" clearly communicates "no framework."
+
+Pattern A examples can be promoted to Pattern B by adding a `shared.js` and moving the script into a `vanilla/` subdirectory (as was done for `basic`).
 
 #### 4. "Other Features" is a catch-all
 
@@ -157,7 +160,7 @@ Essentials
   basic-list             [core]                                          — exists
   photo-album            [grid] [masonry] [scrollbar]                    — exists (merge grid + masonry with toggle)
   messaging-app          [reverse] [sections]                            — exists (renamed from reverse-chat ✅)
-  contact-list           [sections] [selection]                          — exists (rename from sticky-headers)
+  contact-list           [sections] [selection]                          — exists (renamed from sticky-headers ✅)
   wizard                 [scroll.wheel] [selection]                      — exists (rename from wizard-nav)
   feed                   [estimatedHeight] [async]                       — exists (rewrite auto-size with X API data)
   file-browser           [grid] [sections] [scrollbar]                   — exists
@@ -166,7 +169,7 @@ Essentials
 
 Data
   velocity-loading       [async] [scale] [scrollbar] [snapshots] [selection] — exists
-  large-dataset          [scale] [scrollbar]                             — exists (4 frameworks)
+  large-list             [scale] [scrollbar]                             — exists (4 frameworks)
   scroll-restore         [snapshots] [selection]                         — exists
 ```
 
@@ -323,7 +326,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 
 | Before (path) | After (path) | Notes |
 |----------------|-------------|-------|
-| `basic/` | `basic-list/` | — |
+| `basic/` | `basic/` | Now multi-framework (vanilla/react/vue/svelte) ✅ |
 | `photo-album/` | `photo-album/` | Already flat ✅ |
 | `messaging-app/` | `messaging-app/` | Already renamed ✅ |
 | `contact-list/` | `contact-list/` | Already flat ✅ |
@@ -336,10 +339,16 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `large-list/` | `large-list/` | Already flat ✅ |
 | `scroll-restore/` | `scroll-restore/` | No change |
 
-**Also:**
-- Move `controls/`, `variable-heights/`, `horizontal/variable-width/`, `data/` (empty after moves), `groups/` (empty after moves) to `examples/archive/` (`masonry/photo-album` ✅ deleted, `grid/` ✅ removed)
+**Completed cleanup:**
+- `grid/` ✅ removed (photo-album + file-browser flattened)
+- `data/` ✅ removed (large-list + velocity-loading flattened)
+- `groups/` ✅ removed (sticky-headers → contact-list)
+- `masonry/photo-album` ✅ deleted (merged into photo-album)
+- All `javascript/` variant dirs renamed to `vanilla/` ✅
+
+**Remaining:**
+- Move `controls/`, `variable-heights/`, `horizontal/variable-width/` to `examples/archive/`
 - Update `navigation.json` slugs to match new flat paths
-- Update all docs/tutorials/feature pages that link to old paths (`grid/photo-album` ✅ done, etc.)
 - Verify build system auto-discovers new paths (`bun run build:examples`)
 
 **URL changes:**
@@ -351,11 +360,18 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `/examples/groups/sticky-headers` | `/examples/contact-list` ✅ |
 | `/examples/data/velocity-loading` | `/examples/velocity-loading` ✅ |
 | `/examples/data/large-list` | `/examples/large-list` ✅ |
-| `/examples/horizontal/basic` | `/examples/carousel` |
 | `/examples/reverse-chat` | `/examples/messaging-app` ✅ |
+| `/examples/horizontal/basic` | `/examples/carousel` |
 | `/examples/auto-size` | `/examples/feed` |
 | `/examples/wizard-nav` | `/examples/wizard` |
-| `/examples/basic` | `/examples/basic-list` |
+
+**Variant directory rename (all examples + benchmarks):**
+
+| Old variant dir | New variant dir |
+|----------------|----------------|
+| `*/javascript/` | `*/vanilla/` ✅ |
+
+Legacy `?variant=javascript` URLs redirect to `?variant=vanilla`.
 
 ### Phase 4 — Archive & Clean Up
 
@@ -625,3 +641,48 @@ Rewrote `examples/basic/` from a minimal demo into the model interactive example
 - `src/data/people.js` — **new** shared data module (names, colors, hash, generators)
 - `src/data/messages.js` — **new** shared data module (chat corpus, message generators)
 - `src/data/posts.js` — **new** shared data module (social feed texts, post generators)
+
+#### 1b. Basic List — Multi-framework variants ✅
+
+Added React, Vue, and Svelte variants following the controls example pattern:
+
+**Structure:**
+```
+examples/basic/
+  shared.js              → data generation, templates, constants
+  styles.css             → shared item styles
+  vanilla/               → vanilla JS (moved from root, uses createStats)
+    content.html
+    script.js
+    controls.js
+  react/                 → React implementation (createRoot, useState, useRef)
+    content.html         → <div id="react-root">
+    script.tsx
+  vue/                   → Vue implementation (createApp, ref, watch, template)
+    content.html         → <div id="vue-root">
+    script.js
+  svelte/                → Svelte implementation (vlist-svelte action, DOM-based)
+    content.html         → same as vanilla (DOM manipulation)
+    script.js
+```
+
+All variants share `shared.js` (constants, `makeUser`/`makeUsers` re-exports, `itemTemplate`) and `styles.css`.
+
+### Phase 3 progress — Directory Reorganization
+
+**Completed renames/moves:**
+- `examples/grid/photo-album/` → `examples/photo-album/` ✅
+- `examples/grid/file-browser/` → `examples/file-browser/` ✅ (emptied `grid/`, deleted)
+- `examples/masonry/photo-album/` → deleted ✅ (merged into `photo-album`)
+- `examples/groups/sticky-headers/` → `examples/contact-list/` ✅ (emptied `groups/`, deleted)
+- `examples/reverse-chat/` → `examples/messaging-app/` ✅
+- `examples/data/velocity-loading/` → `examples/velocity-loading/` ✅
+- `examples/data/large-list/` → `examples/large-list/` ✅ (emptied `data/`, deleted)
+- All `*/javascript/` variant dirs → `*/vanilla/` ✅ (8 examples + 4 benchmarks)
+
+**Variant rename rationale:** All variants are JavaScript — "vanilla" clearly communicates "no framework, just the browser API." Server renderers updated with legacy `?variant=javascript` → `vanilla` redirect.
+
+**Remaining Phase 3 work:**
+- `wizard-nav/` → `wizard/`
+- `auto-size/` → `feed/`
+- `horizontal/basic/` + `horizontal/variable-width/` → `carousel/`
