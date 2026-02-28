@@ -60,7 +60,7 @@ Rewrote `examples/basic/` into the **model interactive example** that establishe
 Essentials (9)
   basic              → "Basic List"         [core]
   photo-album        → "Photo Album"        [grid] [masonry] [scrollbar]
-  reverse-chat       → "Messaging"          [reverse] [sections]
+  messaging-app      → "Messaging"          [reverse] [sections]
   contact-list         → "Contact List"    [sections] [selection]
   wizard-nav         → "Wizard"             [scroll.wheel] [selection]
   auto-size          → "Feed"               [estimatedHeight] [async]
@@ -86,7 +86,7 @@ Enhance `photo-album` with Grid ↔ Masonry layout switch. Keep existing grid co
 
 ### 3. Messaging — Header controls
 
-Enhance `reverse-chat`. Add: Headers on/off toggle, Sticky ↔ Inline toggle (`sticky: true/false`), header style selector (date/sender/custom). Keep existing features (auto-scroll, incoming messages, send input, DOM measurement). Footer right side: `reverse · sticky headers`.
+Enhance `messaging-app`. Add: Headers on/off toggle, Sticky ↔ Inline toggle (`sticky: true/false`), header style selector (date/sender/custom). Keep existing features (auto-scroll, incoming messages, send input, DOM measurement). Footer right side: `reverse · sticky headers`.
 
 ### 4. Wizard — Orientation switch
 

@@ -15,7 +15,7 @@
         "features": ["grid", "masonry", "scrollbar"]
       },
       {
-        "slug": "reverse-chat",
+        "slug": "messaging-app",
         "name": "Messaging",
         "desc": "Chat UI — reverse mode, date headers, auto-scroll, incoming messages",
         "features": ["reverse", "sections"]

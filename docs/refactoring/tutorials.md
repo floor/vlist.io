@@ -172,7 +172,7 @@ tutorials/
 | **Your First List** | A user directory (100K users) | Install, `vlist()`, `.build()`, template, `scrollToIndex`, events | `/examples/basic` |
 | **Photo Gallery** | A responsive image grid | `withGrid()`, `withScrollbar()`, responsive columns, `item:click` | `/examples/photo-album` |
 | **Contact List** | An A–Z contacts app | `withSections()`, `withSelection()`, sticky headers, keyboard nav | `/examples/contact-list` |
-| **Chat Interface** | A messaging UI | `reverse`, `withAsync()`, `withSections({ sticky: false })`, append/prepend | `/examples/reverse-chat` |
+| **Chat Interface** | A messaging UI | `reverse`, `withAsync()`, `withSections({ sticky: false })`, append/prepend | `/examples/messaging-app` |
 | **Infinite Feed** | A social media feed | `withAsync()`, `withPage()`, placeholders, velocity loading | `/examples/data/velocity-loading` |
 | **Large Dataset** | A 5M-row data table | `withScale()`, `withScrollbar()`, compression, template perf | `/examples/data/large-list` |
 | **Styling** | Dark-themed custom list | Tokens, variants, dark mode, scoped styles, `.vlist--scrolling` | — |
@@ -215,7 +215,7 @@ tutorials/
 - Tighten `chat-interface.md` — strip API reference, troubleshooting, monolithic config
 - Focus on the build-a-chat narrative
 - Verify all code uses builder API
-- Verify `/examples/reverse-chat` matches
+- Verify `/examples/messaging-app` matches
 
 ### Phase 5 — Recipes (Styling, Accessibility)
 

@@ -129,7 +129,7 @@ vlist.dev/
 │   ├── scroll-restore/     # Snapshots Feature
 │   ├── window-scroll/      # Page Feature (was: window)
 │   ├── variable-heights/   # Advanced Examples
-│   ├── reverse-chat/       # Reverse + Sections
+│   ├── messaging-app/      # Messaging (was: reverse-chat)
 │   ├── wizard-nav/         # Button-only navigation
 │   └── builder/            # Builder Pattern Examples
 │       ├── basic/
