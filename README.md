@@ -125,8 +125,7 @@ vlist.dev/
 │   │   └── velocity-loading/
 │   ├── horizontal/         # Horizontal Direction
 │   │   └── basic/          # (JavaScript, React, Vue, Svelte)
-│   ├── groups/             # Sections Feature (was: groups)
-│   │   └── sticky-headers/
+│   ├── contact-list/       # A–Z contact list (was: groups/sticky-headers)
 │   ├── scroll-restore/     # Snapshots Feature
 │   ├── window-scroll/      # Page Feature (was: window)
 │   ├── variable-heights/   # Advanced Examples

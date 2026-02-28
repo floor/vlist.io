@@ -409,8 +409,8 @@ list.<span class="fn">setItems</span>(
                         <span class="example-item__desc">Sideways scrolling carousel — 10K items with smooth navigation</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/groups/sticky-headers" class="example-item">
-                        <span class="example-item__name">Sticky Headers</span>
+                    <a href="/examples/contact-list" class="example-item">
+                        <span class="example-item__name">Contact List</span>
                         <span class="example-item__desc">A–Z contact list with sticky section headers</span>
                         <span class="example-item__arrow">→</span>
                     </a>

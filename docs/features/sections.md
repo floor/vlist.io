@@ -891,4 +891,4 @@ headerTemplate: (key) => {
 
 ## Live Examples
 
-- [Sticky Headers](/examples/groups/sticky-headers) — A–Z contact list with sticky section headers
+- [Contact List](/examples/contact-list) — A–Z contact list with sticky section headers

@@ -21,7 +21,7 @@
         "features": ["reverse", "sections"]
       },
       {
-        "slug": "groups/sticky-headers",
+        "slug": "contact-list",
         "name": "Contact List",
         "desc": "A–Z grouped contacts with sticky section headers and selection",
         "features": ["sections", "selection"]

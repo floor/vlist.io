@@ -2,8 +2,8 @@
 // Demonstrates withSections plugin with sticky/inline toggle
 
 import { vlist, withSections } from "vlist";
-import { makeContacts } from "../../../src/data/people.js";
-import { createStats } from "../../stats.js";
+import { makeContacts } from "../../src/data/people.js";
+import { createStats } from "../stats.js";
 import { initLetterGrid } from "./controls.js";
 
 // =============================================================================

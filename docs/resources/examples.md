@@ -53,8 +53,7 @@ examples/
 │   ├── large-list/       # withScale (4 frameworks)
 │   └── velocity-loading/ # Async loading
 │
-├── groups/               # Sections Feature (vlist (withSections))
-│   └── sticky-headers/   # A-Z contact list
+├── contact-list/         # A-Z contact list (vlist (withSections))
 │
 ├── horizontal/           # Horizontal scrolling
 │   └── basic/            # 4 frameworks

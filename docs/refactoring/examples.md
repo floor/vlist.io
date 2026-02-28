@@ -29,7 +29,7 @@ The examples are the strongest of the three today. Code quality is high, the bui
 | `data/velocity-loading` | Async, scale, scrollbar, snapshots, selection | JS only | 🟢 | ~300 |
 | `horizontal/basic` | Horizontal orientation | JS, React, Vue, Svelte | 🟢 | ~60 |
 | `horizontal/variable-width` | Horizontal, variable width | JS only | 🟡 | ~65 |
-| `groups/sticky-headers` | Sections | JS only | 🟢 | ~460 |
+| `contact-list` | Sections | JS only | 🟢 | ~460 |
 | `scroll-restore` | Snapshots, selection | JS only | 🟢 | ~240 |
 | `window-scroll` | Page, async | JS only | 🟢 | ~150 |
 | `reverse-chat` | Reverse, sections | JS only | 🟢 | ~400 |
@@ -203,7 +203,7 @@ Chips use the builder function name or config option — what the developer actu
 | Rewrite `auto-size` → "Feed" | Modify | Social feed with X API data instead of synthetic auto-size demo |
 | Archive `controls` | Archive | API exploration replaced by individual Essentials examples that demo APIs in context |
 | Archive `variable-heights` | Archive | Replaced by Feed example |
-| Move everything into Essentials | Nav | `reverse-chat` → Messaging, `groups/sticky-headers` → Contact List, `wizard-nav` → Wizard, `file-browser` → File Browser, `window-scroll` → Window Scroll, `auto-size` → Feed |
+| Move everything into Essentials | Nav | `reverse-chat` → Messaging, `contact-list` → Contact List, `wizard-nav` → Wizard, `file-browser` → File Browser, `window-scroll` → Window Scroll, `auto-size` → Feed |
 
 ### What doesn't change
 
@@ -223,7 +223,7 @@ Each tutorial should point to one or more live examples. The mapping:
 |------------------------------|----------------|-------------------|--------|
 | Your First List | `/examples/basic` | — | ✅ Exists |
 | Photo Gallery | `/examples/photo-album` | `file-browser` | ✅ Exists (adding masonry toggle) |
-| Contact List | `/examples/groups/sticky-headers` | — | ✅ Exists |
+| Contact List | `/examples/contact-list` | — | ✅ Exists |
 | Chat Interface | `/examples/reverse-chat` | — | ✅ Exists |
 | Infinite Feed | `/examples/auto-size` (→ Feed) | `data/velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
 | Large Dataset | `/examples/data/large-list` | `data/velocity-loading` | ✅ Exists |
@@ -326,7 +326,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `basic/` | `basic-list/` | — |
 | `photo-album/` | `photo-album/` | Already flat ✅ |
 | `reverse-chat/` | `messaging/` | — |
-| `groups/sticky-headers/` | `contact-list/` | — |
+| `contact-list/` | `contact-list/` | Already flat ✅ |
 | `wizard-nav/` | `wizard/` | — |
 | `auto-size/` | `feed/` | Rewritten with X API |
 | `file-browser/` | `file-browser/` | Already flat ✅ |
@@ -348,7 +348,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 |---------|---------|
 | `/examples/grid/photo-album` | `/examples/photo-album` ✅ |
 | `/examples/grid/file-browser` | `/examples/file-browser` ✅ |
-| `/examples/groups/sticky-headers` | `/examples/contact-list` |
+| `/examples/groups/sticky-headers` | `/examples/contact-list` ✅ |
 | `/examples/data/velocity-loading` | `/examples/velocity-loading` |
 | `/examples/data/large-list` | `/examples/large-dataset` |
 | `/examples/horizontal/basic` | `/examples/carousel` |
@@ -505,7 +505,7 @@ Rewrote `examples/navigation.json` from feature-based categories to use-case gro
 | Data Feature | data/velocity-loading | Data → "Velocity Loading" | — |
 | Horizontal | horizontal/basic | Essentials → "Carousel" | Will merge variable-width with toggle |
 | Horizontal | horizontal/variable-width | **Merged into Carousel** | Fixed ↔ Variable toggle |
-| Groups Feature | groups/sticky-headers | Essentials → "Contact List" | — |
+| Groups Feature | contact-list | Essentials → "Contact List" | Renamed + flattened ✅ |
 | Other Features | scroll-restore | Data → "Scroll Restore" | — |
 | Other Features | window-scroll | Essentials → "Window Scroll" | — |
 | Advanced Examples | auto-size | Essentials → "Feed" | Will rewrite with X API data |

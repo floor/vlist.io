@@ -61,7 +61,7 @@ Essentials (9)
   basic              → "Basic List"         [core]
   photo-album        → "Photo Album"        [grid] [masonry] [scrollbar]
   reverse-chat       → "Messaging"          [reverse] [sections]
-  groups/sticky-headers → "Contact List"    [sections] [selection]
+  contact-list         → "Contact List"    [sections] [selection]
   wizard-nav         → "Wizard"             [scroll.wheel] [selection]
   auto-size          → "Feed"               [estimatedHeight] [async]
   file-browser       → "File Browser"       [grid] [sections] [scrollbar]
@@ -106,7 +106,7 @@ Enhance `file-browser`. OS switch: macOS Finder ↔ Windows Explorer. Click-to-p
 
 ## After Phase 2
 
-- **Phase 3** — Reorganize directories: flatten `groups/sticky-headers` → `contact-list/`, etc. All flat, named by use case. Update slugs, URLs, cross-links. Full mapping table in `examples.md`. (`grid/photo-album` → `photo-album/` ✅ done)
+- **Phase 3** — Reorganize directories: flatten remaining nested examples. All flat, named by use case. Update slugs, URLs, cross-links. Full mapping table in `examples.md`. (`grid/photo-album` → `photo-album/` ✅, `grid/file-browser` → `file-browser/` ✅, `groups/sticky-headers` → `contact-list/` ✅)
 - **Phase 4** — Archive retired directories to `examples/archive/`
 - **Phase 5** — Polish: consistent control panel layout (already mostly done via design system), stats bar accuracy, feature chips accuracy
 - **Phase 6** — Cross-links between tutorials ↔ examples ↔ docs

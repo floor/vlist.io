@@ -838,7 +838,7 @@ All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-patter
 |------|-------------|-------------|
 | `features/async.md` | `/examples/data/velocity-loading` | Smart loading that skips during fast scrolling |
 | `features/scale.md` | `/examples/data/large-list` | 100K–5M items with withScale (4 frameworks) |
-| `features/sections.md` | `/examples/groups/sticky-headers` | A–Z contact list with sticky section headers |
+| `features/sections.md` | `/examples/contact-list` | A–Z contact list with sticky section headers |
 | `features/selection.md` | `/examples/controls` | Full API exploration with selection (4 frameworks) |
 | `features/scrollbar.md` | `/examples/photo-album`, `/examples/controls`, `/examples/data/large-list` | Three examples showcasing scrollbar in different contexts |
 
