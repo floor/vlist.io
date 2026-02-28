@@ -69,7 +69,7 @@ Essentials (9)
   window-scroll      → "Window Scroll"      [page] [async]
 
 Data (3)
-  data/velocity-loading → "Velocity Loading" [async] [scale] [scrollbar] [snapshots] [selection]
+  velocity-loading   → "Velocity Loading" [async] [scale] [scrollbar] [snapshots] [selection]
   data/large-list    → "Large Dataset"       [scale] [scrollbar]
   scroll-restore     → "Scroll Restore"      [snapshots] [selection]
 ```

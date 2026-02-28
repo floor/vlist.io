@@ -26,7 +26,7 @@ The examples are the strongest of the three today. Code quality is high, the bui
 | `file-browser` | Grid, sections, scrollbar | JS only | 🟢 | ~600 |
 | ~~`masonry/photo-album`~~ | ~~Masonry, scrollbar~~ | ~~JS only~~ | — | — | Merged into `photo-album` ✅ |
 | `data/large-list` | Scale, scrollbar | JS, React, Vue, Svelte | 🟢 | ~250 |
-| `data/velocity-loading` | Async, scale, scrollbar, snapshots, selection | JS only | 🟢 | ~300 |
+| `velocity-loading` | Async, scale, scrollbar, snapshots, selection | JS only | 🟢 | ~300 |
 | `horizontal/basic` | Horizontal orientation | JS, React, Vue, Svelte | 🟢 | ~60 |
 | `horizontal/variable-width` | Horizontal, variable width | JS only | 🟡 | ~65 |
 | `contact-list` | Sections | JS only | 🟢 | ~460 |
@@ -89,7 +89,7 @@ The Masonry section exists in `navigation.json` but is **missing from `index.htm
 |---------|----------|-----|
 | **Selection** | `controls` (embedded), `wizard-nav` | No dedicated selection showcase |
 | **Masonry** | `photo-album` (grid/masonry toggle) | ✅ Merged into photo-album |
-| **Async (standalone)** | `data/velocity-loading` | Velocity-loading is complex — no simple "fetch from API" example |
+| **Async (standalone)** | `velocity-loading` | Velocity-loading is complex — no simple "fetch from API" example |
 | **Page scroll** | `window-scroll` | Only one, works well |
 | **Placeholders** | *(none)* | Placeholder system is documented but never shown |
 | **Snapshots (standalone)** | `scroll-restore` | Works well |
@@ -225,8 +225,8 @@ Each tutorial should point to one or more live examples. The mapping:
 | Photo Gallery | `/examples/photo-album` | `file-browser` | ✅ Exists (adding masonry toggle) |
 | Contact List | `/examples/contact-list` | — | ✅ Exists |
 | Chat Interface | `/examples/messaging-app` | — | ✅ Exists |
-| Infinite Feed | `/examples/auto-size` (→ Feed) | `data/velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
-| Large Dataset | `/examples/data/large-list` | `data/velocity-loading` | ✅ Exists |
+| Infinite Feed | `/examples/auto-size` (→ Feed) | `velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
+| Large Dataset | `/examples/data/large-list` | `velocity-loading` | ✅ Exists |
 | Styling | No dedicated example | — | ❌ (tutorial is self-contained) |
 | Accessibility | No dedicated example | — | ❌ (tutorial is self-contained) |
 
@@ -332,7 +332,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `file-browser/` | `file-browser/` | Already flat ✅ |
 | `horizontal/basic/` | `carousel/` | Merged with variable-width |
 | `window-scroll/` | `window-scroll/` | No change |
-| `data/velocity-loading/` | `velocity-loading/` | — |
+| `velocity-loading/` | `velocity-loading/` | Already flat ✅ |
 | `data/large-list/` | `large-dataset/` | — |
 | `scroll-restore/` | `scroll-restore/` | No change |
 
@@ -349,7 +349,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `/examples/grid/photo-album` | `/examples/photo-album` ✅ |
 | `/examples/grid/file-browser` | `/examples/file-browser` ✅ |
 | `/examples/groups/sticky-headers` | `/examples/contact-list` ✅ |
-| `/examples/data/velocity-loading` | `/examples/velocity-loading` |
+| `/examples/data/velocity-loading` | `/examples/velocity-loading` ✅ |
 | `/examples/data/large-list` | `/examples/large-dataset` |
 | `/examples/horizontal/basic` | `/examples/carousel` |
 | `/examples/reverse-chat` | `/examples/messaging-app` ✅ |
@@ -502,7 +502,7 @@ Rewrote `examples/navigation.json` from feature-based categories to use-case gro
 | Grid Feature | file-browser | Essentials → "File Browser" | — |
 | Masonry Feature | masonry/photo-album | **Merged into Photo Album** ✅ | Grid ↔ Masonry toggle, directory deleted |
 | Data Feature | data/large-list | Data → "Large Dataset" | — |
-| Data Feature | data/velocity-loading | Data → "Velocity Loading" | — |
+| Data Feature | velocity-loading | Data → "Velocity Loading" | Flattened ✅ |
 | Horizontal | horizontal/basic | Essentials → "Carousel" | Will merge variable-width with toggle |
 | Horizontal | horizontal/variable-width | **Merged into Carousel** | Fixed ↔ Variable toggle |
 | Groups Feature | contact-list | Essentials → "Contact List" | Renamed + flattened ✅ |

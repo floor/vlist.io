@@ -96,7 +96,7 @@ const html = renderTemplate('base.html', {
 const html = renderTemplate('base.html', {
   TITLE: 'Velocity Loading - VList Examples',
   DESCRIPTION: 'Smart data loading example',
-  URL: 'https://vlist.dev/examples/data/velocity-loading',
+  URL: 'https://vlist.dev/examples/velocity-loading',
   SECTION: 'Examples',
   SECTION_LINK: '/examples/',
   SIDEBAR: renderSidebar(),

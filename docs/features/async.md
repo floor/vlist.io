@@ -625,7 +625,7 @@ function calculateMissingRanges(
 
 ## Live Examples
 
-- [Velocity Loading](/examples/data/velocity-loading) — Smart loading that skips during fast scrolling
+- [Velocity Loading](/examples/velocity-loading) — Smart loading that skips during fast scrolling
 
 ---
 

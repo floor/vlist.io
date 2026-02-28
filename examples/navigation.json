@@ -62,7 +62,7 @@
     "label": "Data",
     "items": [
       {
-        "slug": "data/velocity-loading",
+        "slug": "velocity-loading",
         "name": "Velocity Loading",
         "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
         "features": ["async", "scale", "scrollbar", "snapshots", "selection"]
