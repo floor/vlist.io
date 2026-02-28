@@ -23,7 +23,7 @@ The examples are the strongest of the three today. Code quality is high, the bui
 | `basic` | Core | JS only | 🟢 | ~50 |
 | `controls` | Selection, events | JS, React, Vue, Svelte | 🟢 | ~250 |
 | `photo-album` | Grid, scrollbar | JS, React, Vue, Svelte | 🟢 | ~300 |
-| `grid/file-browser` | Grid, sections, scrollbar | JS only | 🟢 | ~600 |
+| `file-browser` | Grid, sections, scrollbar | JS only | 🟢 | ~600 |
 | `masonry/photo-album` | Masonry, scrollbar | JS only | 🟡 | ~270 |
 | `data/large-list` | Scale, scrollbar | JS, React, Vue, Svelte | 🟢 | ~250 |
 | `data/velocity-loading` | Async, scale, scrollbar, snapshots, selection | JS only | 🟢 | ~300 |
@@ -203,7 +203,7 @@ Chips use the builder function name or config option — what the developer actu
 | Rewrite `auto-size` → "Feed" | Modify | Social feed with X API data instead of synthetic auto-size demo |
 | Archive `controls` | Archive | API exploration replaced by individual Essentials examples that demo APIs in context |
 | Archive `variable-heights` | Archive | Replaced by Feed example |
-| Move everything into Essentials | Nav | `reverse-chat` → Messaging, `groups/sticky-headers` → Contact List, `wizard-nav` → Wizard, `grid/file-browser` → File Browser, `window-scroll` → Window Scroll, `auto-size` → Feed |
+| Move everything into Essentials | Nav | `reverse-chat` → Messaging, `groups/sticky-headers` → Contact List, `wizard-nav` → Wizard, `file-browser` → File Browser, `window-scroll` → Window Scroll, `auto-size` → Feed |
 
 ### What doesn't change
 
@@ -222,7 +222,7 @@ Each tutorial should point to one or more live examples. The mapping:
 | Tutorial (from tutorials.md) | Primary Example | Secondary Examples | Status |
 |------------------------------|----------------|-------------------|--------|
 | Your First List | `/examples/basic` | — | ✅ Exists |
-| Photo Gallery | `/examples/photo-album` | `grid/file-browser` | ✅ Exists (adding masonry toggle) |
+| Photo Gallery | `/examples/photo-album` | `file-browser` | ✅ Exists (adding masonry toggle) |
 | Contact List | `/examples/groups/sticky-headers` | — | ✅ Exists |
 | Chat Interface | `/examples/reverse-chat` | — | ✅ Exists |
 | Infinite Feed | `/examples/auto-size` (→ Feed) | `data/velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
@@ -329,7 +329,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `groups/sticky-headers/` | `contact-list/` | — |
 | `wizard-nav/` | `wizard/` | — |
 | `auto-size/` | `feed/` | Rewritten with X API |
-| `grid/file-browser/` | `file-browser/` | — |
+| `file-browser/` | `file-browser/` | Already flat ✅ |
 | `horizontal/basic/` | `carousel/` | Merged with variable-width |
 | `window-scroll/` | `window-scroll/` | No change |
 | `data/velocity-loading/` | `velocity-loading/` | — |
@@ -347,7 +347,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | Old URL | New URL |
 |---------|---------|
 | `/examples/grid/photo-album` | `/examples/photo-album` ✅ |
-| `/examples/grid/file-browser` | `/examples/file-browser` |
+| `/examples/grid/file-browser` | `/examples/file-browser` ✅ |
 | `/examples/groups/sticky-headers` | `/examples/contact-list` |
 | `/examples/data/velocity-loading` | `/examples/velocity-loading` |
 | `/examples/data/large-list` | `/examples/large-dataset` |
@@ -499,7 +499,7 @@ Rewrote `examples/navigation.json` from feature-based categories to use-case gro
 | Getting Started | basic | Essentials → "Basic List" | — |
 | Getting Started | controls | **Archived** | API exploration replaced by individual examples |
 | Grid Feature | photo-album | Essentials → "Photo Album" | Will merge masonry with toggle |
-| Grid Feature | grid/file-browser | Essentials → "File Browser" | — |
+| Grid Feature | file-browser | Essentials → "File Browser" | — |
 | Masonry Feature | masonry/photo-album | **Merged into Photo Album** | Grid ↔ Masonry toggle |
 | Data Feature | data/large-list | Data → "Large Dataset" | — |
 | Data Feature | data/velocity-loading | Data → "Velocity Loading" | — |
@@ -517,7 +517,7 @@ Every entry now has a `features` array:
 
 ```json
 {
-  "slug": "grid/file-browser",
+  "slug": "file-browser",
   "name": "File Browser",
   "desc": "Finder-like file browser with grid/list toggle and breadcrumb navigation",
   "features": ["grid", "sections", "scrollbar"]

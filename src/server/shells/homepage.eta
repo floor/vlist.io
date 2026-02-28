@@ -389,7 +389,7 @@ list.<span class="fn">setItems</span>(
                         <span class="example-item__desc">Responsive image grid — available in JavaScript, React, Vue, Svelte</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/grid/file-browser" class="example-item">
+                    <a href="/examples/file-browser" class="example-item">
                         <span class="example-item__name">File Browser</span>
                         <span class="example-item__desc">Finder-like browser with grid/list views</span>
                         <span class="example-item__arrow">→</span>

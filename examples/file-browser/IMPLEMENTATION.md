@@ -8,7 +8,7 @@ A Finder-like file browser built with **vlist** using the `withGrid` plugin. Thi
 
 ### Frontend (vlist/builder + withGrid)
 
-**Location**: `examples/grid/file-browser/javascript/`
+**Location**: `examples/file-browser/javascript/`
 
 - **Grid View**: Uses `withGrid` plugin for 2D virtualized layout with configurable columns (3-6) and gap (4-16px)
 - **List View**: Standard vlist with fixed 40px row height and columnar layout

@@ -64,7 +64,7 @@ Essentials (9)
   groups/sticky-headers → "Contact List"    [sections] [selection]
   wizard-nav         → "Wizard"             [scroll.wheel] [selection]
   auto-size          → "Feed"               [estimatedHeight] [async]
-  grid/file-browser  → "File Browser"       [grid] [sections] [scrollbar]
+  file-browser       → "File Browser"       [grid] [sections] [scrollbar]
   horizontal/basic   → "Carousel"           [horizontal]
   window-scroll      → "Window Scroll"      [page] [async]
 
@@ -102,7 +102,7 @@ Rewrite `auto-size`. Platform switch: X style ↔ Facebook style. `estimatedHeig
 
 ### 7. File Browser — OS file manager
 
-Enhance `grid/file-browser`. OS switch: macOS Finder ↔ Windows Explorer. Click-to-preview detail pane (text, images, code with syntax highlighting). Sort controls (name, size, date, type). Keep existing grid/list toggle and breadcrumbs. Footer right side: `grid 4col · macOS · name ↑`.
+Enhance `file-browser`. OS switch: macOS Finder ↔ Windows Explorer. Click-to-preview detail pane (text, images, code with syntax highlighting). Sort controls (name, size, date, type). Keep existing grid/list toggle and breadcrumbs. Footer right side: `grid 4col · macOS · name ↑`.
 
 ## After Phase 2
 

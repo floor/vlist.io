@@ -39,7 +39,7 @@
         "features": ["estimatedHeight", "async"]
       },
       {
-        "slug": "grid/file-browser",
+        "slug": "file-browser",
         "name": "File Browser",
         "desc": "Finder-like file browser with grid/list toggle and breadcrumb navigation",
         "features": ["grid", "sections", "scrollbar"]
