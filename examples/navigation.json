@@ -45,7 +45,7 @@
         "features": ["grid", "sections", "scrollbar"]
       },
       {
-        "slug": "horizontal/basic",
+        "slug": "carousel",
         "name": "Carousel",
         "desc": "Horizontal scrolling with fixed or variable item widths — toggle to compare",
         "features": ["horizontal"]

@@ -1,0 +1,147 @@
+<div class="container">
+    <header>
+        <h1>Carousel</h1>
+        <p class="description">
+            Pure vanilla JavaScript – no frameworks, no dependencies. A
+            horizontal virtual list rendering 10,000 cards with
+            <code>orientation: 'horizontal'</code> and
+            <code>scroll.wheel: true</code>. Toggle
+            <strong>variable width</strong> to switch between fixed-size cards
+            and dynamic per-item widths. Only visible items are in the DOM.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Mode -->
+            <section class="panel-section">
+                <h3 class="panel-title">Mode</h3>
+
+                <div class="panel-row">
+                    <label class="panel-label">Size</label>
+                    <span class="panel-value" id="size-value">240px</span>
+                </div>
+                <div class="panel-row">
+                    <input
+                        type="range"
+                        id="size-slider"
+                        class="panel-slider"
+                        min="200"
+                        max="500"
+                        step="10"
+                        value="240"
+                    />
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Variable width</label>
+                    <label class="toggle">
+                        <input type="checkbox" id="toggle-variable" />
+                        <span class="toggle-track"></span>
+                    </label>
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Gap</label>
+                    <div class="panel-btn-group" id="gap-buttons">
+                        <button class="ctrl-btn" data-gap="0">0</button>
+                        <button class="ctrl-btn" data-gap="4">4</button>
+                        <button class="ctrl-btn ctrl-btn--active" data-gap="8">
+                            8
+                        </button>
+                        <button class="ctrl-btn" data-gap="12">12</button>
+                        <button class="ctrl-btn" data-gap="16">16</button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Radius</label>
+                    <div class="panel-btn-group" id="radius-buttons">
+                        <button class="ctrl-btn" data-radius="0">0</button>
+                        <button class="ctrl-btn" data-radius="4">4</button>
+                        <button class="ctrl-btn" data-radius="8">8</button>
+                        <button
+                            class="ctrl-btn ctrl-btn--active"
+                            data-radius="12"
+                        >
+                            12
+                        </button>
+                        <button class="ctrl-btn" data-radius="16">16</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scroll To -->
+            <section class="panel-section">
+                <h3 class="panel-title">Scroll To</h3>
+
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-start"
+                            class="panel-btn panel-btn--icon"
+                            title="Start"
+                        >
+                            <i class="icon icon--back"></i>
+                        </button>
+                        <button
+                            id="btn-center"
+                            class="panel-btn panel-btn--icon"
+                            title="Center"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-end"
+                            class="panel-btn panel-btn--icon"
+                            title="End"
+                        >
+                            <i class="icon icon--forward"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card Detail -->
+            <section class="panel-section">
+                <h3 class="panel-title">Last clicked</h3>
+                <div class="panel-detail" id="card-detail">
+                    <span class="panel-detail__empty"
+                        >Click a card to preview</span
+                    >
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                width <strong id="ft-width">260</strong
+                ><span class="example-footer__unit">px</span>
+            </span>
+            <span class="example-footer__stat">
+                mode <strong id="ft-mode">fixed</strong>
+            </span>
+        </div>
+    </footer>
+</div>

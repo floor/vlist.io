@@ -1,0 +1,260 @@
+/* Carousel Example — example-specific styles only
+   Common styles (.container, h1, .description, .stats, footer, .split-*, .panel-*)
+   are provided by example/example.css using shell.css design tokens. */
+
+/* Center the list vertically in the split-main */
+.split-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 560px;
+}
+
+/* List container - full width, height set by JS
+   --card-scale is set by JS (0–1) based on slider height
+   --item-gap is set by JS (px) from the gap chips */
+#list-container {
+    --card-scale: 1;
+    --item-gap: 8px;
+    --item-radius: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    overflow: hidden;
+    border-radius: var(--item-radius);
+}
+
+/* Override vlist defaults for horizontal cards */
+#list-container .vlist {
+    border: none !important;
+    border-radius: var(--item-radius) !important;
+    background: transparent;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#list-container .vlist-viewport {
+    max-width: 100%;
+    width: 100% !important;
+}
+
+#list-container .vlist-item {
+    padding: 0 calc(var(--item-gap) / 2) !important;
+    border: none !important;
+    cursor: pointer;
+    background-color: transparent;
+}
+
+/* ============================================================================
+   Card
+   ============================================================================ */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(4px + 6px * var(--card-scale));
+    width: 100%;
+    height: 100%;
+    border-radius: var(--item-radius);
+    color: #fff;
+    text-align: center;
+    padding: calc(8px + 12px * var(--card-scale))
+        calc(6px + 8px * var(--card-scale));
+    position: relative;
+    transition: box-shadow 0.15s ease-out;
+}
+
+.vlist-item:hover .card {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Featured cards — variable-width mode */
+.card--featured {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.card-emoji {
+    font-size: calc(48px + 24px * var(--card-scale));
+    line-height: 1;
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: calc(11px + 5px * var(--card-scale));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.card-subtitle {
+    font-size: calc(10px + 3px * var(--card-scale));
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.card-category {
+    font-size: calc(9px + 3px * var(--card-scale));
+    opacity: 0.85;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-width {
+    font-size: calc(8px + 3px * var(--card-scale));
+    opacity: 0.7;
+    font-family: monospace;
+}
+
+.card-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+}
+
+/* ============================================================================
+   Gap chip buttons
+   ============================================================================ */
+
+.ctrl-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 36px;
+    text-align: center;
+}
+
+.ctrl-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+.ctrl-btn--active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* ============================================================================
+   Toggle switch
+   ============================================================================ */
+
+.toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle input {
+    display: none;
+}
+
+.toggle-track {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--border);
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+
+.toggle input:checked + .toggle-track {
+    background: var(--accent, #667eea);
+}
+
+.toggle-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked + .toggle-track::after {
+    transform: translateX(16px);
+}
+
+/* ============================================================================
+   Card Detail (panel preview)
+   ============================================================================ */
+
+.detail-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 120px;
+    border-radius: 10px;
+    color: #fff;
+    text-align: center;
+    padding: 16px 12px;
+    margin-bottom: 8px;
+}
+
+.detail-card__emoji {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.detail-card__title {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.detail-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+}
+
+.detail-meta strong {
+    font-weight: 600;
+}
+
+.detail-meta span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.detail-meta__badge {
+    font-size: 11px;
+    color: var(--accent, #667eea);
+    font-weight: 600;
+}
