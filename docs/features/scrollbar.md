@@ -823,7 +823,7 @@ vlist({
 
 - [Photo Album](/examples/photo-album) — Grid gallery with withScrollbar + autoHide (4 frameworks)
 - [Controls](/examples/controls) — Full API exploration with custom scrollbar (4 frameworks)
-- [Large List](/examples/data/large-list) — 100K–5M items with compressed scrollbar (4 frameworks)
+- [Large List](/examples/large-list) — 100K–5M items with compressed scrollbar (4 frameworks)
 
 ---
 

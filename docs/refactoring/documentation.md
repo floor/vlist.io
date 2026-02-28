@@ -837,10 +837,10 @@ All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-patter
 | File | Example Link | Description |
 |------|-------------|-------------|
 | `features/async.md` | `/examples/velocity-loading` | Smart loading that skips during fast scrolling |
-| `features/scale.md` | `/examples/data/large-list` | 100K–5M items with withScale (4 frameworks) |
+| `features/scale.md` | `/examples/large-list` | 100K–5M items with withScale (4 frameworks) |
 | `features/sections.md` | `/examples/contact-list` | A–Z contact list with sticky section headers |
 | `features/selection.md` | `/examples/controls` | Full API exploration with selection (4 frameworks) |
-| `features/scrollbar.md` | `/examples/photo-album`, `/examples/controls`, `/examples/data/large-list` | Three examples showcasing scrollbar in different contexts |
+| `features/scrollbar.md` | `/examples/photo-album`, `/examples/controls`, `/examples/large-list` | Three examples showcasing scrollbar in different contexts |
 
 **Already correct (no change needed):**
 - `features/page.md` — links to `/examples/window-scroll/` ✅

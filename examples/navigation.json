@@ -68,7 +68,7 @@
         "features": ["async", "scale", "scrollbar", "snapshots", "selection"]
       },
       {
-        "slug": "data/large-list",
+        "slug": "large-list",
         "name": "Large Dataset",
         "desc": "100K–5M items with scroll compression",
         "features": ["scale", "scrollbar"]

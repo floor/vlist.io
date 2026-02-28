@@ -405,7 +405,7 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 
 ## Live Examples
 
-- [Large List](/examples/data/large-list) — 100K–5M items with withScale (4 frameworks)
+- [Large List](/examples/large-list) — 100K–5M items with withScale (4 frameworks)
 
 ---
 

@@ -25,7 +25,7 @@ The examples are the strongest of the three today. Code quality is high, the bui
 | `photo-album` | Grid, scrollbar | JS, React, Vue, Svelte | 🟢 | ~300 |
 | `file-browser` | Grid, sections, scrollbar | JS only | 🟢 | ~600 |
 | ~~`masonry/photo-album`~~ | ~~Masonry, scrollbar~~ | ~~JS only~~ | — | — | Merged into `photo-album` ✅ |
-| `data/large-list` | Scale, scrollbar | JS, React, Vue, Svelte | 🟢 | ~250 |
+| `large-list` | Scale, scrollbar | JS, React, Vue, Svelte | 🟢 | ~250 |
 | `velocity-loading` | Async, scale, scrollbar, snapshots, selection | JS only | 🟢 | ~300 |
 | `horizontal/basic` | Horizontal orientation | JS, React, Vue, Svelte | 🟢 | ~60 |
 | `horizontal/variable-width` | Horizontal, variable width | JS only | 🟡 | ~65 |
@@ -62,7 +62,7 @@ All example scripts use `import { vlist } from "vlist"` (bare specifier). This i
 2. **Build system is excellent.** Auto-discovery, parallel builds, framework dedupe, size reporting — nothing to change here.
 3. **Feature coverage for core use cases exists.** Grid, async, scale, reverse, sections, snapshots, page scroll, horizontal — all represented.
 4. **Several examples are genuinely impressive.** `messaging-app` is a full chat app with auto-messages, DOM measurement, date headers, event logging. `velocity-loading` has real-time velocity visualization, API delay slider, snapshot persistence. `file-browser` has grid/list toggle, breadcrumb navigation, real filesystem API.
-5. **Multi-framework examples exist where they matter.** `controls`, `photo-album`, `data/large-list`, `horizontal/basic` all have JS + React + Vue + Svelte variants.
+5. **Multi-framework examples exist where they matter.** `controls`, `photo-album`, `large-list`, `horizontal/basic` all have JS + React + Vue + Svelte variants.
 
 ### What's wrong
 
@@ -226,7 +226,7 @@ Each tutorial should point to one or more live examples. The mapping:
 | Contact List | `/examples/contact-list` | — | ✅ Exists |
 | Chat Interface | `/examples/messaging-app` | — | ✅ Exists |
 | Infinite Feed | `/examples/auto-size` (→ Feed) | `velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
-| Large Dataset | `/examples/data/large-list` | `velocity-loading` | ✅ Exists |
+| Large Dataset | `/examples/large-list` | `velocity-loading` | ✅ Exists |
 | Styling | No dedicated example | — | ❌ (tutorial is self-contained) |
 | Accessibility | No dedicated example | — | ❌ (tutorial is self-contained) |
 
@@ -333,7 +333,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `horizontal/basic/` | `carousel/` | Merged with variable-width |
 | `window-scroll/` | `window-scroll/` | No change |
 | `velocity-loading/` | `velocity-loading/` | Already flat ✅ |
-| `data/large-list/` | `large-dataset/` | — |
+| `large-list/` | `large-list/` | Already flat ✅ |
 | `scroll-restore/` | `scroll-restore/` | No change |
 
 **Also:**
@@ -350,7 +350,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `/examples/grid/file-browser` | `/examples/file-browser` ✅ |
 | `/examples/groups/sticky-headers` | `/examples/contact-list` ✅ |
 | `/examples/data/velocity-loading` | `/examples/velocity-loading` ✅ |
-| `/examples/data/large-list` | `/examples/large-dataset` |
+| `/examples/data/large-list` | `/examples/large-list` ✅ |
 | `/examples/horizontal/basic` | `/examples/carousel` |
 | `/examples/reverse-chat` | `/examples/messaging-app` ✅ |
 | `/examples/auto-size` | `/examples/feed` |
@@ -501,7 +501,7 @@ Rewrote `examples/navigation.json` from feature-based categories to use-case gro
 | Grid Feature | photo-album | Essentials → "Photo Album" | Will merge masonry with toggle |
 | Grid Feature | file-browser | Essentials → "File Browser" | — |
 | Masonry Feature | masonry/photo-album | **Merged into Photo Album** ✅ | Grid ↔ Masonry toggle, directory deleted |
-| Data Feature | data/large-list | Data → "Large Dataset" | — |
+| Data Feature | large-list | Data → "Large Dataset" | Flattened ✅ |
 | Data Feature | velocity-loading | Data → "Velocity Loading" | Flattened ✅ |
 | Horizontal | horizontal/basic | Essentials → "Carousel" | Will merge variable-width with toggle |
 | Horizontal | horizontal/variable-width | **Merged into Carousel** | Fixed ↔ Variable toggle |

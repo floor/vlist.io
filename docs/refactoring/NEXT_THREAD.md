@@ -70,7 +70,7 @@ Essentials (9)
 
 Data (3)
   velocity-loading   → "Velocity Loading" [async] [scale] [scrollbar] [snapshots] [selection]
-  data/large-list    → "Large Dataset"       [scale] [scrollbar]
+  large-list         → "Large Dataset"       [scale] [scrollbar]
   scroll-restore     → "Scroll Restore"      [snapshots] [selection]
 ```
 

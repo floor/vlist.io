@@ -394,7 +394,7 @@ list.<span class="fn">setItems</span>(
                         <span class="example-item__desc">Finder-like browser with grid/list views</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/data/large-list" class="example-item">
+                    <a href="/examples/large-list" class="example-item">
                         <span class="example-item__name">Large List</span>
                         <span class="example-item__desc">100K–5M items with compression</span>
                         <span class="example-item__arrow">→</span>

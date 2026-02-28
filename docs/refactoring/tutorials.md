@@ -174,7 +174,7 @@ tutorials/
 | **Contact List** | An A–Z contacts app | `withSections()`, `withSelection()`, sticky headers, keyboard nav | `/examples/contact-list` |
 | **Chat Interface** | A messaging UI | `reverse`, `withAsync()`, `withSections({ sticky: false })`, append/prepend | `/examples/messaging-app` |
 | **Infinite Feed** | A social media feed | `withAsync()`, `withPage()`, placeholders, velocity loading | `/examples/velocity-loading` |
-| **Large Dataset** | A 5M-row data table | `withScale()`, `withScrollbar()`, compression, template perf | `/examples/data/large-list` |
+| **Large Dataset** | A 5M-row data table | `withScale()`, `withScrollbar()`, compression, template perf | `/examples/large-list` |
 | **Styling** | Dark-themed custom list | Tokens, variants, dark mode, scoped styles, `.vlist--scrolling` | — |
 | **Accessibility** | WCAG-compliant list | `ariaLabel`, `withSelection()`, keyboard nav, screen reader testing | — |
 
