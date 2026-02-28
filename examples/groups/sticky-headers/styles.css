@@ -1,63 +1,14 @@
-/* Sticky Headers Example — example-specific styles only
-   Common styles (.container, h1, .description, .stats, footer)
-   are provided by example/example.css using shell.css design tokens. */
+/* Contact List — example styles */
 
-/* ==========================================================================
-   Controls
-   ========================================================================== */
-
-.controls {
-    margin-bottom: 12px;
-}
-
-.control-btn {
-    padding: 8px 16px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-card);
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.control-btn:hover {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-.control-btn:active {
-    transform: scale(0.97);
-}
-
-.control-btn--active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-/* ==========================================================================
-   List container
-   ========================================================================== */
-
-#list-container {
-    height: 560px;
-    background: var(--vlist-bg);
-    border-radius: 2px;
-}
-
-/* ==========================================================================
+/* ============================================================================
    vlist item overrides
-   ========================================================================== */
+   ============================================================================ */
 
 #list-container .vlist-item {
     padding: 0;
     border-bottom: none;
 }
 
-/* Disable hover for group header items */
 #list-container .vlist-item[data-id^="__group_header_"] {
     cursor: default;
 }
@@ -66,9 +17,9 @@
     background-color: var(--vlist-group-header-bg, #f3f4f6);
 }
 
-/* ==========================================================================
+/* ============================================================================
    Group Header (inline & sticky)
-   ========================================================================== */
+   ============================================================================ */
 
 .group-header {
     display: flex;
@@ -96,9 +47,9 @@
     background: var(--vlist-border, #e5e7eb);
 }
 
-/* ==========================================================================
+/* ============================================================================
    Contact Item (64px)
-   ========================================================================== */
+   ============================================================================ */
 
 .contact {
     display: flex;
@@ -159,30 +110,56 @@
     }
 }
 
-/* ==========================================================================
-   Group Distribution Bar Chart
-   ========================================================================== */
+/* ============================================================================
+   Letter Grid — jump-to-letter buttons in panel
+   ============================================================================ */
 
-.group-distribution {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-top: 12px;
+.letter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
 }
 
-.dist-title {
-    font-size: 13px;
-    font-weight: 600;
+.letter-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--examples-radius, 6px);
+    background: var(--bg);
     color: var(--text-muted);
-    margin-bottom: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.letter-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.letter-btn:active {
+    transform: scale(0.93);
+}
+
+/* ============================================================================
+   Group Distribution Bar Chart (in panel)
+   ============================================================================ */
+
+.group-distribution {
+    padding: 0;
 }
 
 .dist-grid {
     display: flex;
     gap: 2px;
     align-items: flex-end;
-    height: 80px;
+    height: 60px;
 }
 
 .dist-col {
@@ -190,13 +167,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
 }
 
 .dist-bar-wrap {
     width: 100%;
-    height: 60px;
+    height: 44px;
     display: flex;
     align-items: flex-end;
 }
@@ -204,22 +181,25 @@
 .dist-bar {
     width: 100%;
     min-height: 2px;
-    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(
+        180deg,
+        var(--accent, #667eea) 0%,
+        #764ba2 100%
+    );
     border-radius: 2px 2px 0 0;
     transition: height 0.3s ease;
 }
 
 .dist-letter {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
     color: var(--text-dim);
     text-transform: uppercase;
 }
 
-/* ==========================================================================
+/* ============================================================================
    Sticky header styling overrides
-   Ensures the sticky overlay matches the inline group-header look exactly.
-   ========================================================================== */
+   ============================================================================ */
 
 .vlist-sticky-header {
     display: flex;

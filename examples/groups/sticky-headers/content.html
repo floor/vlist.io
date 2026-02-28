@@ -1,44 +1,118 @@
 <div class="container">
     <header>
-        <h1>Sticky Headers</h1>
+        <h1>Contact List</h1>
         <p class="description">
-            Grouped contact list with sticky section headers. Items are
-            grouped by the first letter of the last name using
-            <code>groups.getGroupForIndex</code>. Headers stick to the
-            top of the viewport and are pushed out by the next group's
-            header — just like iOS Contacts.
+            A–Z grouped contacts with sticky section headers using
+            <code>withSections</code>. Headers stick to the top and get pushed
+            out by the next group — just like iOS Contacts.
         </p>
     </header>
 
-    <div class="stats" id="stats">Loading...</div>
+    <div class="split-layout">
+        <div class="split-main">
+            <div id="list-container"></div>
+        </div>
 
-    <div class="controls">
-        <button id="jump-top" class="control-btn">⬆ Top</button>
-        <button id="jump-middle" class="control-btn">◆ Middle</button>
-        <button id="jump-bottom" class="control-btn">⬇ Bottom</button>
-        <button id="jump-random" class="control-btn">
-            🎲 Random Group
-        </button>
-        <button
-            id="toggle-sticky"
-            class="control-btn control-btn--active"
-        >
-            📌 Sticky
-        </button>
+        <aside class="split-panel">
+            <!-- Sections -->
+            <section class="panel-section">
+                <h3 class="panel-title">Headers</h3>
+
+                <div class="panel-row">
+                    <div class="panel-segmented" id="header-mode">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-mode="sticky"
+                        >
+                            Sticky
+                        </button>
+                        <button class="panel-segmented__btn" data-mode="inline">
+                            Inline
+                        </button>
+                        <button class="panel-segmented__btn" data-mode="off">
+                            Off
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Jump to Letter -->
+            <section class="panel-section">
+                <h3 class="panel-title">Jump to Letter</h3>
+                <div class="panel-row">
+                    <div class="letter-grid" id="letter-grid"></div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Navigation</h3>
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-first"
+                            class="panel-btn panel-btn--icon"
+                            title="First"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-middle"
+                            class="panel-btn panel-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-last"
+                            class="panel-btn panel-btn--icon"
+                            title="Last"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button
+                            id="btn-random"
+                            class="panel-btn panel-btn--icon"
+                            title="Random group"
+                        >
+                            <i class="icon icon--shuffle"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Distribution -->
+            <section class="panel-section">
+                <h3 class="panel-title">Distribution</h3>
+                <div class="group-distribution" id="group-distribution"></div>
+            </section>
+        </aside>
     </div>
 
-    <div id="list-container"></div>
-
-    <div class="group-distribution" id="group-distribution"></div>
-
-    <footer>
-        <p>
-            Groups are derived automatically from a
-            <code>getGroupForIndex</code> function — no need to manually
-            insert headers into your data. The sticky header is a
-            lightweight overlay element updated on scroll. Works with
-            fixed and variable heights, compression, and all other vlist
-            features.
-        </p>
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-groups">0</strong>
+                <span class="example-footer__unit">groups</span>
+            </span>
+            <span class="example-footer__stat">
+                <strong id="ft-headers">sticky</strong>
+            </span>
+        </div>
     </footer>
 </div>
