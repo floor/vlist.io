@@ -55,6 +55,7 @@ let nextId = DEFAULT_COUNT + 1;
 let currentOverscan = 3;
 let action = null;
 let listInstance = null;
+let selectedIndex = -1;
 
 // =============================================================================
 // Create / Recreate list
@@ -81,9 +82,11 @@ function createList() {
         height: ITEM_HEIGHT,
         template: itemTemplate,
       },
+      selection: { mode: 'single' },
     },
     onInstance: (inst) => {
       listInstance = inst;
+      selectedIndex = -1;
       bindListEvents();
       updateFooter();
     },
@@ -96,6 +99,10 @@ function createList() {
 
 function bindListEvents() {
   if (!listInstance) return;
+
+  listInstance.on('selection:change', ({ selected }) => {
+    selectedIndex = selected.length > 0 ? selected[0] : -1;
+  });
 
   listInstance.on("range:change", () => {
     updateFooter();
@@ -231,7 +238,12 @@ btnAppend100.addEventListener("click", () => {
 
 btnRemove.addEventListener("click", () => {
   if (users.length === 0) return;
-  users = users.slice(0, -1);
+  const idx = selectedIndex >= 0 && selectedIndex < users.length
+    ? selectedIndex
+    : users.length - 1;
+  users = users.filter((_, i) => i !== idx);
+  listInstance?.clearSelection();
+  selectedIndex = -1;
   listInstance?.setItems(users);
   syncCountSlider();
   updateFooter();

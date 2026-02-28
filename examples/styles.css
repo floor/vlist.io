@@ -316,6 +316,14 @@ html[data-theme-mode="dark"] {
     min-height: 30px;
 }
 
+.panel-row.slider {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 30px;
+}
+
 .panel-row + .panel-row {
     margin-top: 8px;
 }

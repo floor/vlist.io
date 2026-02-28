@@ -1,15 +1,14 @@
 /* Basic List — example styles */
 
 /* ============================================================================
-   Item
+   Item  (styles live on .vlist-item — no wrapper div needed)
    ============================================================================ */
 
-.item {
+.vlist-item {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 0 16px;
-    height: 100%;
 }
 
 .item__avatar {
@@ -51,4 +50,17 @@
     min-width: 48px;
     text-align: right;
     font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   Selected state
+   ============================================================================ */
+
+.vlist-item--selected {
+    background: color-mix(in oklch, var(--primary, #6750a4) 12%, transparent);
+}
+
+.vlist-item--selected .item__name {
+    color: var(--primary, #6750a4);
+    font-weight: 600;
 }

@@ -3,7 +3,7 @@
 // scrollToIndex, and data operations (append, prepend, remove).
 
 import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { vlist } from "vlist";
+import { vlist, withSelection } from "vlist";
 import {
   DEFAULT_COUNT,
   ITEM_HEIGHT,
@@ -24,6 +24,7 @@ const App = {
     const overscan = ref(3);
     const scrollIndex = ref(0);
     const scrollAlign = ref("start");
+    const selectedIndex = ref(-1);
     const stats = ref({ dom: 0, total: DEFAULT_COUNT });
 
     // Refs
@@ -48,7 +49,13 @@ const App = {
           height: ITEM_HEIGHT,
           template: itemTemplate,
         },
-      }).build();
+      })
+        .use(withSelection({ mode: 'single' }))
+        .build();
+
+      instance.on('selection:change', ({ selected }) => {
+        selectedIndex.value = selected.length > 0 ? selected[0] : -1;
+      });
 
       instance.on("range:change", ({ range }) => {
         stats.value = {
@@ -169,7 +176,12 @@ const App = {
 
     const handleRemove = () => {
       if (users.value.length === 0) return;
-      users.value = users.value.slice(0, -1);
+      const idx = selectedIndex.value >= 0 && selectedIndex.value < users.value.length
+        ? selectedIndex.value
+        : users.value.length - 1;
+      users.value = users.value.filter((_, i) => i !== idx);
+      instance?.clearSelection();
+      selectedIndex.value = -1;
       instance?.setItems(users.value);
       stats.value = { ...stats.value, total: users.value.length };
     };
@@ -211,6 +223,7 @@ const App = {
       handleRemove,
       handleClear,
       handleReset,
+      selectedIndex,
     };
   },
 

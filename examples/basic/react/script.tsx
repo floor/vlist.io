@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { vlist } from "vlist";
+import { vlist, withSelection } from "vlist";
 import {
   DEFAULT_COUNT,
   ITEM_HEIGHT,
@@ -27,6 +27,7 @@ function App() {
     "start",
   );
   const [stats, setStats] = useState({ dom: 0, total: DEFAULT_COUNT });
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,7 +52,13 @@ function App() {
         height: ITEM_HEIGHT,
         template: itemTemplate,
       },
-    }).build();
+    })
+      .use(withSelection({ mode: 'single' }))
+      .build();
+
+    instanceRef.current.on('selection:change', ({ selected }: any) => {
+      setSelectedIndex(selected.length > 0 ? selected[0] : -1);
+    });
 
     instanceRef.current.on("range:change", ({ range }: any) => {
       setStats({
@@ -142,7 +149,12 @@ function App() {
 
   const handleRemove = () => {
     if (usersRef.current.length === 0) return;
-    const newUsers = usersRef.current.slice(0, -1);
+    const idx = selectedIndex >= 0 && selectedIndex < usersRef.current.length
+      ? selectedIndex
+      : usersRef.current.length - 1;
+    const newUsers = usersRef.current.filter((_, i) => i !== idx);
+    instanceRef.current?.clearSelection();
+    setSelectedIndex(-1);
     syncItems(newUsers);
     instanceRef.current?.setItems(newUsers);
   };
@@ -170,7 +182,13 @@ function App() {
         height: ITEM_HEIGHT,
         template: itemTemplate,
       },
-    }).build();
+    })
+      .use(withSelection({ mode: 'single' }))
+      .build();
+
+    instanceRef.current.on('selection:change', ({ selected }: any) => {
+      setSelectedIndex(selected.length > 0 ? selected[0] : -1);
+    });
 
     instanceRef.current.on("range:change", ({ range }: any) => {
       setStats({
@@ -178,6 +196,7 @@ function App() {
         total: usersRef.current.length,
       });
     });
+    setSelectedIndex(-1);
   };
 
   const memorySaved =
@@ -235,7 +254,12 @@ function App() {
                       height: ITEM_HEIGHT,
                       template: itemTemplate,
                     },
-                  }).build();
+                  })
+                    .use(withSelection({ mode: 'single' }))
+                    .build();
+                  instanceRef.current.on('selection:change', ({ selected }: any) => {
+                    setSelectedIndex(selected.length > 0 ? selected[0] : -1);
+                  });
                   instanceRef.current.on("range:change", ({ range }: any) => {
                     setStats({
                       dom: range.end - range.start + 1,
