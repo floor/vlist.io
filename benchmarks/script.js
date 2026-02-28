@@ -21,25 +21,25 @@ import vlistPackage from "@floor/vlist/package.json";
 
 // Import suites (side-effect: each calls defineSuite())
 // All benchmark suites - variants imported statically
-import "./suites/render/javascript/suite.js";
+import "./suites/render/vanilla/suite.js";
 import "./suites/render/react/suite.js";
 import "./suites/render/solidjs/suite.js";
 import "./suites/render/vue/suite.js";
 import "./suites/render/svelte/suite.js";
 
-import "./suites/scroll/javascript/suite.js";
+import "./suites/scroll/vanilla/suite.js";
 import "./suites/scroll/react/suite.js";
 import "./suites/scroll/solidjs/suite.js";
 import "./suites/scroll/vue/suite.js";
 import "./suites/scroll/svelte/suite.js";
 
-import "./suites/memory/javascript/suite.js";
+import "./suites/memory/vanilla/suite.js";
 import "./suites/memory/react/suite.js";
 import "./suites/memory/solidjs/suite.js";
 import "./suites/memory/vue/suite.js";
 import "./suites/memory/svelte/suite.js";
 
-import "./suites/scrollto/javascript/suite.js";
+import "./suites/scrollto/vanilla/suite.js";
 import "./suites/scrollto/react/suite.js";
 import "./suites/scrollto/solidjs/suite.js";
 import "./suites/scrollto/vue/suite.js";
