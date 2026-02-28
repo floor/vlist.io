@@ -1,123 +1,143 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta
-            name="description"
-            content="vlist reverse mode + groups example — chat-style messaging UI with reverse: true and inline date headers. iMessage-style chat with automatic date sections."
-        />
-        <title>vlist - Reverse Mode + Groups (Chat UI)</title>
-        <link rel="stylesheet" href="/dist/vlist.css" />
-        <link rel="stylesheet" href="/dist/examples/reverse-chat/styles.css" />
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <h1>Reverse Mode + Groups</h1>
-                <p class="description">
-                    Chat-style messaging UI using
-                    <code>reverse: true</code> with <code>groups</code> plugin
-                    (<code>sticky: false</code>). Demonstrates iMessage-style
-                    inline date headers that automatically organize messages by
-                    date. The list starts scrolled to the bottom, loads older
-                    messages at the top with preserved scroll position, and
-                    auto-scrolls when sending new messages.
-                </p>
-            </header>
+<div class="container">
+    <header>
+        <h1>Messaging</h1>
+        <p class="description">
+            Chat UI with <code>reverse: true</code> and
+            <code>withSections</code> for date headers. Auto-scroll on new
+            messages, variable heights via DOM measurement.
+        </p>
+    </header>
 
-            <div class="split-layout">
-                <div class="split-main split-main--full">
-                    <div class="chat-wrapper">
-                        <div class="chat-header">
-                            <div class="chat-header__avatar">R</div>
-                            <div class="chat-header__info">
-                                <div class="chat-header__name">
-                                    Radiooooo Lounge
-                                </div>
-                                <div
-                                    class="chat-header__status"
-                                    id="channel-status"
-                                >
-                                    Loading messages…
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="list-container"></div>
-
-                        <div id="new-messages-bar" class="new-messages-bar" style="display: none;">
-                            <button id="new-messages-btn" class="new-messages-btn">
-                                <span id="new-messages-count">1 new message</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div class="chat-input">
-                            <input
-                                type="text"
-                                id="message-input"
-                                class="chat-input__field"
-                                placeholder="Type a message…"
-                                autocomplete="off"
-                            />
-                            <button id="send-btn" class="chat-input__send">
-                                Send
-                            </button>
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <div class="chat-wrapper">
+                <div class="chat-header">
+                    <div class="chat-header__avatar">R</div>
+                    <div class="chat-header__info">
+                        <div class="chat-header__name">Radiooooo Lounge</div>
+                        <div class="chat-header__status" id="channel-status">
+                            Loading messages…
                         </div>
                     </div>
                 </div>
 
-                <aside class="split-panel">
-                    <!-- Controls -->
-                    <section class="panel-section">
-                        <h3 class="panel-title">Controls</h3>
+                <div id="list-container"></div>
 
-                        <div class="panel-row">
-                            <button id="jump-bottom" class="panel-btn">
-                                <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                >
-                                    <path
-                                        d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
-                                    />
-                                </svg>
-                                Scroll to Now
-                            </button>
-                        </div>
+                <div
+                    id="new-messages-bar"
+                    class="new-messages-bar"
+                    style="display: none"
+                >
+                    <button id="new-messages-btn" class="new-messages-btn">
+                        <span id="new-messages-count">1 new message</span>
+                        <i class="icon icon--down"></i>
+                    </button>
+                </div>
 
-
-
-
-                    </section>
-
-                    <!-- Event Log -->
-                    <section class="panel-section">
-                        <h3 class="panel-title">Event Log</h3>
-                        <div class="event-log" id="event-log"></div>
-                    </section>
-                </aside>
+                <div class="chat-input">
+                    <input
+                        type="text"
+                        id="message-input"
+                        class="chat-input__field"
+                        placeholder="Type a message…"
+                        autocomplete="off"
+                    />
+                    <button id="send-btn" class="chat-input__send">
+                        <i class="icon icon--send"></i>
+                    </button>
+                </div>
             </div>
-
-            <footer>
-                <p></p>
-                    Reverse mode with groups plugin supports both
-                    <strong>inline headers</strong> (<code>sticky: false</code>
-                    - iMessage/WhatsApp style) and
-                    <strong>sticky headers</strong> (<code>sticky: true</code> -
-                    Telegram style). This example uses inline headers. Try
-                    changing <code>sticky: false</code> to
-                    <code>sticky: true</code> in the code to see the difference!
-                    Items stay in chronological order (oldest = index 0).
-                    <code>appendItems()</code> auto-scrolls when at bottom;
-                    <code>prependItems()</code> preserves scroll position. ⚡
-                </p>
-            </footer>
         </div>
-    </body>
-</html>
+
+        <aside class="split-panel">
+            <!-- Headers -->
+            <section class="panel-section">
+                <h3 class="panel-title">Headers</h3>
+
+                <div class="panel-row">
+                    <div class="panel-segmented" id="header-mode">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-mode="sticky"
+                        >
+                            Sticky
+                        </button>
+                        <button class="panel-segmented__btn" data-mode="inline">
+                            Inline
+                        </button>
+                        <button class="panel-segmented__btn" data-mode="off">
+                            Off
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Auto Messages -->
+            <section class="panel-section">
+                <h3 class="panel-title">Auto Messages</h3>
+
+                <div class="panel-row">
+                    <label class="panel-label">Incoming</label>
+                    <div class="panel-segmented" id="auto-mode">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-auto="true"
+                        >
+                            On
+                        </button>
+                        <button class="panel-segmented__btn" data-auto="false">
+                            Off
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Navigation</h3>
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-top"
+                            class="panel-btn panel-btn--icon"
+                            title="Oldest"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-bottom"
+                            class="panel-btn panel-btn--icon"
+                            title="Latest"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat"> reverse </span>
+            <span class="example-footer__stat">
+                <strong id="ft-headers">sticky</strong>
+            </span>
+        </div>
+    </footer>
+</div>

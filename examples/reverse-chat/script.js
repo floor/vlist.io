@@ -1,43 +1,36 @@
-// script.js - vlist Reverse Mode with Groups Example
-// Chat-style messaging UI demonstrating reverse: true + inline date headers
-//
-// Features shown:
-//   - reverse: true → starts scrolled to bottom
-//   - groups with sticky: false → date headers (iMessage style)
-//   - appendItems() auto-scrolls to bottom (new messages)
-//   - prependItems() preserves scroll position (older messages)
-//   - Manual "load older" on scroll near top
-//   - Variable heights via DOM measurement
+// Messaging — Chat UI with reverse mode + date headers
+// Demonstrates reverse: true, withSections, DOM measurement,
+// auto-scroll, incoming messages, send input.
 
 import { vlist, withSections } from "vlist";
+import {
+  getChatUser,
+  pickMessage,
+  CHAT_NAMES,
+  CHAT_COLORS,
+} from "../../src/data/messages.js";
+import { createStats } from "../stats.js";
+import "./controls.js";
 
 // =============================================================================
-// Data — load messages from JSON
+// Constants
 // =============================================================================
 
-let MESSAGES = [];
-let USERS = [];
+const TOTAL_MESSAGES = 5000;
+const DATE_HEADER_HEIGHT = 28;
+const DEFAULT_MSG_HEIGHT = 56;
 
-// Load messages and users from JSON files
-const loadMessages = async () => {
-  const response = await fetch("/examples/reverse-chat/messages.json");
-  MESSAGES = await response.json();
-};
+const SELF_USER = { name: "You", color: "#667eea", initials: "YO" };
 
-const loadUsers = async () => {
-  const response = await fetch("/examples/reverse-chat/users.json");
-  USERS = await response.json();
-};
+// =============================================================================
+// Date labels — Jan 1 to today
+// =============================================================================
 
-let SELF_USER;
-
-// Generate date labels from beginning of year to now
 const generateDateLabels = () => {
   const labels = [];
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfYear = new Date(now.getFullYear(), 0, 1); // Jan 1
-
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
   const daysSinceStart = Math.floor(
     (today - startOfYear) / (1000 * 60 * 60 * 24),
   );
@@ -46,49 +39,32 @@ const generateDateLabels = () => {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
 
-    if (i === 0) {
-      labels.push("Today");
-    } else if (i === 1) {
-      labels.push("Yesterday");
-    } else {
+    if (i === 0) labels.push("Today");
+    else if (i === 1) labels.push("Yesterday");
+    else
       labels.push(
-        date.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        }),
+        date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       );
-    }
   }
-
   return labels;
 };
 
 const DATE_LABELS = generateDateLabels();
 
-const DATE_HEADER_HEIGHT = 28;
-const DEFAULT_MSG_HEIGHT = 56;
-
-// Total messages to display
-const TOTAL_MESSAGES = 5000;
-
 // =============================================================================
-// Message generation — produces a deterministic corpus
+// Data — generate deterministic messages
 // =============================================================================
 
 const generateMessage = (index) => {
-  const text = MESSAGES[index % MESSAGES.length];
-  const userIdx = index % (USERS.length - 1); // exclude "You" from history
-  const user = USERS[userIdx];
+  const user = getChatUser(index % CHAT_NAMES.length);
+  const text = pickMessage(index);
 
-  // Distribute messages across the year (from Jan 1 to today)
-  // index 0 = oldest (Jan 1), index TOTAL_MESSAGES-1 = newest (today)
   const dayIndex = Math.floor((index / TOTAL_MESSAGES) * DATE_LABELS.length);
   const dateSection = Math.min(dayIndex, DATE_LABELS.length - 1);
 
-  // Generate realistic time within the day
   const messagesPerDay = TOTAL_MESSAGES / DATE_LABELS.length;
   const indexInDay = index % messagesPerDay;
-  const hour = 8 + Math.floor((indexInDay / messagesPerDay) * 14); // 8am to 10pm
+  const hour = 8 + Math.floor((indexInDay / messagesPerDay) * 14);
   const minute = (index * 7) % 60;
 
   return {
@@ -99,29 +75,39 @@ const generateMessage = (index) => {
     initials: user.initials,
     isSelf: false,
     time: `${hour}:${String(minute).padStart(2, "0")}`,
-    height: 0, // measured below
-    dateSection: Math.min(dateSection, DATE_LABELS.length - 1), // for grouping
+    height: 0,
+    dateSection,
   };
 };
 
-/**
- * Generate a page of messages in chronological order.
- * No need to manually insert date headers - groups plugin handles it!
- */
-const generatePage = (startIndex, count) => {
-  const items = [];
-
-  for (let i = 0; i < count; i++) {
-    const globalIdx = startIndex + i;
-    if (globalIdx >= TOTAL_MESSAGES) break;
-    items.push(generateMessage(globalIdx));
-  }
-
-  return items;
-};
+export let currentItems = Array.from({ length: TOTAL_MESSAGES }, (_, i) =>
+  generateMessage(i),
+);
 
 // =============================================================================
-// Templates (return HTML strings)
+// State — exported so controls.js can read/write
+// =============================================================================
+
+export let currentHeaderMode = "sticky"; // "sticky" | "inline" | "off"
+export let autoMessages = true;
+export let list = null;
+let sentCounter = 1;
+let autoTimer = null;
+
+export function setCurrentHeaderMode(v) {
+  currentHeaderMode = v;
+}
+export function setAutoMessages(v) {
+  autoMessages = v;
+  if (v) scheduleNextMessage();
+  else if (autoTimer) {
+    clearTimeout(autoTimer);
+    autoTimer = null;
+  }
+}
+
+// =============================================================================
+// Templates
 // =============================================================================
 
 const renderMessage = (item) => {
@@ -140,14 +126,21 @@ const renderMessage = (item) => {
   `;
 };
 
+const renderDateHeader = (dateLabel) => {
+  const el = document.createElement("div");
+  el.className = "date-sep";
+  el.innerHTML = `
+    <span class="date-sep__line"></span>
+    <span class="date-sep__text">${dateLabel}</span>
+    <span class="date-sep__line"></span>
+  `;
+  return el;
+};
+
 // =============================================================================
 // DOM Measurement
 // =============================================================================
 
-/**
- * Measure heights for a batch of items.
- * Creates a temporary container, renders items, measures, then cleans up.
- */
 const contentCache = new Map();
 
 const measureHeights = (items, width) => {
@@ -166,7 +159,6 @@ const measureHeights = (items, width) => {
       item.height = contentCache.get(key);
       continue;
     }
-
     measurer.innerHTML = renderMessage(item);
     const measured = measurer.firstElementChild.offsetHeight;
     item.height = measured;
@@ -176,45 +168,24 @@ const measureHeights = (items, width) => {
   document.body.removeChild(measurer);
 };
 
-/**
- * Get the actual content width (viewport minus scrollbar).
- */
-const getMeasureWidth = (container) => {
+const getMeasureWidth = () => {
   const viewport = container.querySelector(".vlist-viewport");
   return viewport ? viewport.clientWidth : container.clientWidth;
 };
 
 // =============================================================================
-// Event logging (shows in bottom panel)
+// Stats — shared footer
 // =============================================================================
 
-const MAX_LOG = 40;
-const logEntries = [];
-
-const addLog = (event, data) => {
-  const time = new Date().toLocaleTimeString("en-US", { timeStyle: "medium" });
-  logEntries.push({ time, event, data });
-  if (logEntries.length > MAX_LOG) logEntries.shift();
-  renderLog();
-};
-
-const renderLog = () => {
-  const el = document.getElementById("event-log");
-  el.innerHTML = logEntries
-    .map(
-      ({ time, event, data }) => `
-    <div class="event-log__entry">
-      <span class="event-log__time">${time}</span>
-      <span class="event-log__event">${event}</span>
-      <span class="event-log__data">${data}</span>
-    </div>
-  `,
-    )
-    .join("");
-};
+export const stats = createStats({
+  getList: () => list,
+  getTotal: () => currentItems.length,
+  getItemHeight: () => DEFAULT_MSG_HEIGHT,
+  container: "#list-container",
+});
 
 // =============================================================================
-// Init
+// DOM references
 // =============================================================================
 
 const container = document.getElementById("list-container");
@@ -225,85 +196,59 @@ const newMessagesBar = document.getElementById("new-messages-bar");
 const newMessagesBtn = document.getElementById("new-messages-btn");
 const newMessagesCount = document.getElementById("new-messages-count");
 
-// ------------------------------------------------------------------
-// Helper: Check if user is at bottom
-// ------------------------------------------------------------------
-
-const isAtBottom = () => {
-  const total = list.total;
-
-  // In reverse mode, we're at bottom if viewing the last items
-  // Allow a small margin (within 5 items of the end)
-  const atBottom = currentRange && currentRange.end >= total - 5;
-
-  return atBottom;
-};
-
-// ------------------------------------------------------------------
+// =============================================================================
 // New messages notification
-// ------------------------------------------------------------------
+// =============================================================================
 
 let unreadCount = 0;
+let currentRange = { start: 0, end: 0 };
 
-const showNewMessagesNotification = (count) => {
+const isAtBottom = () => {
+  if (!list) return true;
+  return currentRange && currentRange.end >= list.total - 5;
+};
+
+const showNewMessages = (count) => {
   unreadCount = count;
   newMessagesCount.textContent =
     count === 1 ? "1 new message" : `${count} new messages`;
   newMessagesBar.style.display = "block";
 };
 
-const hideNewMessagesNotification = () => {
+const hideNewMessages = () => {
   unreadCount = 0;
   newMessagesBar.style.display = "none";
 };
 
 newMessagesBtn.addEventListener("click", () => {
-  const lastIndex = list.total - 1;
-  list.scrollToIndex(lastIndex, {
+  if (!list) return;
+  list.scrollToIndex(list.total - 1, {
     align: "start",
     behavior: "smooth",
     duration: 600,
   });
-  hideNewMessagesNotification();
-  addLog("scroll", "scrolled to bottom (via new messages button)");
+  hideNewMessages();
 });
 
-// ------------------------------------------------------------------
-// Initial page: last N messages
-// ------------------------------------------------------------------
+// =============================================================================
+// Create / Recreate list
+// =============================================================================
 
-let sentCounter = 1;
-let currentItems = [];
-let list;
-let currentRange = { start: 0, end: 0 }; // Track visible range from events
+let firstVisibleIndex = 0;
 
-// ------------------------------------------------------------------
-// Initialize - Load messages and create list
-// ------------------------------------------------------------------
+export function createList() {
+  if (list) {
+    list.destroy();
+    list = null;
+  }
 
-const init = async () => {
-  // Load messages and users from JSON
-  await Promise.all([loadMessages(), loadUsers()]);
+  container.innerHTML = "";
 
-  // Set self user after loading
-  SELF_USER = { name: "You", color: "#667eea", initials: "YOU" };
+  // Measure all items before creating
+  measureHeights(currentItems, 600);
 
-  // Generate all messages from the start
-  const allItems = generatePage(0, TOTAL_MESSAGES);
-
-  // Measure heights before creating the list
-  measureHeights(allItems, 600);
-
-  currentItems = [...allItems];
-
-  const updateStatus = () => {
-    statusEl.textContent = `${TOTAL_MESSAGES.toLocaleString()} messages from Jan 1 to today`;
-  };
-  updateStatus();
-
-  // Create vlist with reverse mode + groups (inline date headers)
-  list = vlist({
-    container,
+  const builder = vlist({
+    container: "#list-container",
     ariaLabel: "Chat messages",
     reverse: true,
     item: {
@@ -317,64 +262,55 @@ const init = async () => {
         return el.firstElementChild;
       },
     },
-    items: allItems,
-  })
-    .use(
+    items: currentItems,
+  });
+
+  if (currentHeaderMode !== "off") {
+    builder.use(
       withSections({
         getGroupForIndex: (index) => {
           const item = currentItems[index];
           return item ? DATE_LABELS[item.dateSection] : "Unknown";
         },
         headerHeight: DATE_HEADER_HEIGHT,
-        headerTemplate: (dateLabel) => {
-          const el = document.createElement("div");
-          el.className = "date-sep";
-          el.innerHTML = `
-        <span class="date-sep__line"></span>
-        <span class="date-sep__text">${dateLabel}</span>
-        <span class="date-sep__line"></span>
-      `;
-          return el;
-        },
-        sticky: true, // Try sticky: true for Telegram-style (header sticks at top while scrolling)
+        headerTemplate: renderDateHeader,
+        sticky: currentHeaderMode === "sticky",
       }),
-    )
-    .build();
+    );
+  }
 
-  addLog("init", `reverse: true + groups — ${allItems.length} items loaded`);
+  list = builder.build();
 
   // Wire events
-  wireEvents();
-
-  // Start auto-message generation
-  scheduleNextMessage();
-};
-
-// ------------------------------------------------------------------
-// Wire events (after list is created)
-// ------------------------------------------------------------------
-
-const wireEvents = () => {
-  list.on("render", ({ range }) => {
-    addLog("render", `items ${range.start}–${range.end}`);
-  });
-
+  list.on("scroll", stats.scheduleUpdate);
   list.on("range:change", ({ range }) => {
-    // Track current visible range
     currentRange = range;
+    firstVisibleIndex = range.start;
+    stats.scheduleUpdate();
 
-    // Hide notification when user scrolls to bottom manually
+    // Hide notification when user scrolls to bottom
     if (isAtBottom() && unreadCount > 0) {
-      hideNewMessagesNotification();
+      hideNewMessages();
     }
   });
-};
+  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
 
-// ------------------------------------------------------------------
+  // Restore scroll position
+  if (firstVisibleIndex > 0) {
+    list.scrollToIndex(firstVisibleIndex, "start");
+  }
+
+  statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
+  stats.update();
+  updateContext();
+}
+
+// =============================================================================
 // Send message
-// ------------------------------------------------------------------
+// =============================================================================
 
 const sendMessage = () => {
+  if (!list) return;
   const text = inputEl.value.trim();
   if (!text) return;
 
@@ -386,9 +322,6 @@ const sendMessage = () => {
     minute: "2-digit",
   });
 
-  // New messages go in the "Today" section
-  const todaySection = DATE_LABELS.length - 1;
-
   const msg = {
     id: `sent-${sentCounter++}`,
     text,
@@ -398,24 +331,22 @@ const sendMessage = () => {
     isSelf: true,
     time,
     height: DEFAULT_MSG_HEIGHT,
-    dateSection: todaySection,
+    dateSection: DATE_LABELS.length - 1,
   };
 
-  // Measure height
-  measureHeights([msg], getMeasureWidth(container));
-
+  measureHeights([msg], getMeasureWidth());
   currentItems = [...currentItems, msg];
   list.appendItems([msg]);
 
-  // Always scroll to bottom when user sends a message
-  const lastIndex = list.total - 1;
-  list.scrollToIndex(lastIndex, {
+  // Always scroll to bottom when sending
+  list.scrollToIndex(list.total - 1, {
     align: "start",
     behavior: "smooth",
     duration: 300,
   });
 
-  addLog("append", `sent message → scrolled to bottom`);
+  statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
+  stats.update();
 };
 
 sendBtn.addEventListener("click", sendMessage);
@@ -426,38 +357,22 @@ inputEl.addEventListener("keydown", (e) => {
   }
 });
 
-// ------------------------------------------------------------------
-// Control buttons
-// ------------------------------------------------------------------
-
-document.getElementById("jump-bottom").addEventListener("click", () => {
-  const lastIndex = list.total - 1;
-  if (lastIndex >= 0) {
-    list.scrollToIndex(lastIndex, {
-      align: "start",
-      behavior: "smooth",
-      duration: 600,
-    });
-  }
-  addLog("scroll", "scrollToIndex(last, start, smooth)");
-});
-
-// ------------------------------------------------------------------
-// Auto-generate random messages (1-2 messages every 3-8 seconds)
-// ------------------------------------------------------------------
+// =============================================================================
+// Auto-generate incoming messages
+// =============================================================================
 
 const generateRandomMessage = () => {
+  if (!list || !autoMessages) return;
+
   const now = new Date();
   const time = now.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
   });
-  const todaySection = DATE_LABELS.length - 1;
 
-  // Generate a single random message
-  const userIdx = Math.floor(Math.random() * USERS.length);
-  const user = USERS[userIdx];
-  const text = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
+  const userIdx = Math.floor(Math.random() * CHAT_NAMES.length);
+  const user = getChatUser(userIdx);
+  const text = pickMessage(Date.now());
 
   const msg = {
     id: `auto-${Date.now()}`,
@@ -468,41 +383,50 @@ const generateRandomMessage = () => {
     isSelf: false,
     time,
     height: DEFAULT_MSG_HEIGHT,
-    dateSection: todaySection,
+    dateSection: DATE_LABELS.length - 1,
   };
 
-  measureHeights([msg], getMeasureWidth(container));
+  measureHeights([msg], getMeasureWidth());
   currentItems = [...currentItems, msg];
   list.appendItems([msg]);
 
-  // Show notification if user is not at bottom, or auto-scroll if at bottom
   const atBottom = isAtBottom();
 
   if (!atBottom) {
-    showNewMessagesNotification(unreadCount + 1);
+    showNewMessages(unreadCount + 1);
   } else {
-    // Auto-scroll to show new message
-    const lastIndex = list.total - 1;
-    list.scrollToIndex(lastIndex, {
+    list.scrollToIndex(list.total - 1, {
       align: "start",
       behavior: "smooth",
       duration: 300,
     });
   }
 
-  addLog(
-    "auto",
-    `message received${atBottom ? " → scrolled to bottom" : " (notification shown)"}`,
-  );
+  statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
+  stats.update();
 
-  // Schedule next random message
   scheduleNextMessage();
 };
 
 const scheduleNextMessage = () => {
-  const delay = 1000 + Math.random() * 7000; // 3-20 seconds
-  setTimeout(generateRandomMessage, delay);
+  if (!autoMessages) return;
+  const delay = 2000 + Math.random() * 6000;
+  autoTimer = setTimeout(generateRandomMessage, delay);
 };
 
-// Start initialization
-init();
+// =============================================================================
+// Footer — right side (contextual)
+// =============================================================================
+
+const ftHeaders = document.getElementById("ft-headers");
+
+export function updateContext() {
+  ftHeaders.textContent = currentHeaderMode;
+}
+
+// =============================================================================
+// Initialise
+// =============================================================================
+
+createList();
+scheduleNextMessage();
