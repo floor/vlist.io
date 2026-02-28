@@ -830,7 +830,7 @@ All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-patter
 | File | Before | After |
 |------|--------|-------|
 | `features/grid.md` | 4 links, 3 non-existent (`grid/products`, `grid/icons`, `grid/masonry`) | 2 links to actual examples (`photo-album`, `file-browser`) |
-| `features/masonry.md` | 4 links, all non-existent (`masonry/pinterest`, `masonry/products`, `masonry/feed`, `masonry/photos`) | 1 link to actual example (`masonry/photo-album`) |
+| `features/masonry.md` | 4 links, all non-existent (`masonry/pinterest`, `masonry/products`, `masonry/feed`, `masonry/photos`) | 1 link to actual example (`photo-album`) — masonry merged into photo-album |
 
 **Added Live Examples sections (new):**
 

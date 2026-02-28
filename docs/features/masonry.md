@@ -763,7 +763,7 @@ vlist({
 
 ## Live Examples
 
-- [Photo Album](/examples/masonry/photo-album) — Pinterest-style layout with variable heights
+- [Photo Album](/examples/photo-album) — Grid & masonry layouts with variable heights
 
 ---
 

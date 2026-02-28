@@ -74,7 +74,7 @@ Data (3)
   scroll-restore     → "Scroll Restore"      [snapshots] [selection]
 ```
 
-**Archived from nav (directories still on disk):** `controls`, `variable-heights`, `horizontal/variable-width`, `masonry/photo-album`.
+**Archived from nav (directories still on disk):** `controls`, `variable-heights`, `horizontal/variable-width`. (`masonry/photo-album` deleted — merged into `photo-album`)
 
 ## What's next — Phase 2: Remaining 6 Essentials
 
@@ -82,7 +82,7 @@ Read `examples.md` Phase 2 for full specs. Each example follows the Basic List m
 
 ### 2. Photo Album — Layout toggle
 
-Merge `photo-album` + `masonry/photo-album`. Add Grid ↔ Masonry layout switch. Keep existing grid controls (columns, gap, orientation). Masonry mode uses variable heights from photo aspect ratios. Archive `masonry/photo-album/` after merge. Footer right side: `grid 4×4 · gap 8px · vertical`.
+Enhance `photo-album` with Grid ↔ Masonry layout switch. Keep existing grid controls (columns, gap, orientation). Masonry mode uses variable heights from photo aspect ratios. (`masonry/photo-album` merged and deleted ✅) Footer right side: `grid 4×4 · gap 8px · vertical`.
 
 ### 3. Messaging — Header controls
 

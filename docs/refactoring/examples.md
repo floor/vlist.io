@@ -24,7 +24,7 @@ The examples are the strongest of the three today. Code quality is high, the bui
 | `controls` | Selection, events | JS, React, Vue, Svelte | 🟢 | ~250 |
 | `photo-album` | Grid, scrollbar | JS, React, Vue, Svelte | 🟢 | ~300 |
 | `file-browser` | Grid, sections, scrollbar | JS only | 🟢 | ~600 |
-| `masonry/photo-album` | Masonry, scrollbar | JS only | 🟡 | ~270 |
+| ~~`masonry/photo-album`~~ | ~~Masonry, scrollbar~~ | ~~JS only~~ | — | — | Merged into `photo-album` ✅ |
 | `data/large-list` | Scale, scrollbar | JS, React, Vue, Svelte | 🟢 | ~250 |
 | `data/velocity-loading` | Async, scale, scrollbar, snapshots, selection | JS only | 🟢 | ~300 |
 | `horizontal/basic` | Horizontal orientation | JS, React, Vue, Svelte | 🟢 | ~60 |
@@ -88,7 +88,7 @@ The Masonry section exists in `navigation.json` but is **missing from `index.htm
 | Feature | Examples | Gap |
 |---------|----------|-----|
 | **Selection** | `controls` (embedded), `wizard-nav` | No dedicated selection showcase |
-| **Masonry** | `masonry/photo-album` (JS only) | No multi-framework, not in index.html |
+| **Masonry** | `photo-album` (grid/masonry toggle) | ✅ Merged into photo-album |
 | **Async (standalone)** | `data/velocity-loading` | Velocity-loading is complex — no simple "fetch from API" example |
 | **Page scroll** | `window-scroll` | Only one, works well |
 | **Placeholders** | *(none)* | Placeholder system is documented but never shown |
@@ -198,7 +198,7 @@ Chips use the builder function name or config option — what the developer actu
 |--------|------|-----------|
 | Collapse 8 groups → 2 (Essentials + Data) | Nav | Almost everything is an essential use case; no need for Layouts, Lists, Messaging, Page & Window |
 | Add feature chips to every entry | Nav | Each entry gets a `features` array rendered as chips |
-| Merge `photo-album` + `masonry/photo-album` | Modify | One "Photo Album" with grid/masonry toggle — layout mode is a switch, not a different app |
+| Merge `photo-album` + `masonry/photo-album` | Modify | One "Photo Album" with grid/masonry toggle ✅ done — `masonry/photo-album` deleted |
 | Merge `horizontal/basic` + `horizontal/variable-width` | Modify | One "Carousel" with fixed/variable width toggle |
 | Rewrite `auto-size` → "Feed" | Modify | Social feed with X API data instead of synthetic auto-size demo |
 | Archive `controls` | Archive | API exploration replaced by individual Essentials examples that demo APIs in context |
@@ -260,12 +260,12 @@ Add a split layout with aside panel to explore the core API interactively:
 
 #### 2. Photo Album — Layout toggle grid / masonry
 
-Merge `photo-album` + `masonry/photo-album` into one example with controls:
+✅ Merged `photo-album` + `masonry/photo-album` into one example with controls (`masonry/photo-album` deleted):
 - **Layout switch**: Grid ↔ Masonry — destroys and recreates with `withGrid()` or `withMasonry()`
 - Keep existing grid controls (columns, gap, orientation)
 - Masonry mode: variable heights from photo aspect ratios, shortest-lane placement
 - Shared data (Picsum photos), shared card template
-- Archive `masonry/photo-album/` directory after merge
+- ~~Archive `masonry/photo-album/` directory after merge~~ ✅ Deleted
 
 #### 3. Messaging — Header controls
 
@@ -337,7 +337,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `scroll-restore/` | `scroll-restore/` | No change |
 
 **Also:**
-- Move `controls/`, `variable-heights/`, `horizontal/variable-width/`, `masonry/photo-album/`, `grid/` (empty after moves), `data/` (empty after moves), `groups/` (empty after moves) to `examples/archive/`
+- Move `controls/`, `variable-heights/`, `horizontal/variable-width/`, `data/` (empty after moves), `groups/` (empty after moves) to `examples/archive/` (`masonry/photo-album` ✅ deleted, `grid/` ✅ removed)
 - Update `navigation.json` slugs to match new flat paths
 - Update all docs/tutorials/feature pages that link to old paths (`grid/photo-album` ✅ done, etc.)
 - Verify build system auto-discovers new paths (`bun run build:examples`)
@@ -500,7 +500,7 @@ Rewrote `examples/navigation.json` from feature-based categories to use-case gro
 | Getting Started | controls | **Archived** | API exploration replaced by individual examples |
 | Grid Feature | photo-album | Essentials → "Photo Album" | Will merge masonry with toggle |
 | Grid Feature | file-browser | Essentials → "File Browser" | — |
-| Masonry Feature | masonry/photo-album | **Merged into Photo Album** | Grid ↔ Masonry toggle |
+| Masonry Feature | masonry/photo-album | **Merged into Photo Album** ✅ | Grid ↔ Masonry toggle, directory deleted |
 | Data Feature | data/large-list | Data → "Large Dataset" | — |
 | Data Feature | data/velocity-loading | Data → "Velocity Loading" | — |
 | Horizontal | horizontal/basic | Essentials → "Carousel" | Will merge variable-width with toggle |
