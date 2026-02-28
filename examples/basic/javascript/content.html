@@ -1,0 +1,189 @@
+<div class="container">
+    <header>
+        <h1>Basic List</h1>
+        <p class="description">
+            Pure vanilla JavaScript — the core of <code>@floor/vlist</code>. Use
+            the control panel to explore item count, overscan, scroll-to, and
+            data operations in real time.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Items -->
+            <section class="panel-section">
+                <h3 class="panel-title">Items</h3>
+
+                <div class="panel-row">
+                    <label class="panel-label">Count</label>
+                    <span class="panel-value" id="count-value">10,000</span>
+                </div>
+                <div class="panel-row">
+                    <input
+                        type="range"
+                        id="count-slider"
+                        class="panel-slider"
+                        min="100"
+                        max="100000"
+                        step="100"
+                        value="10000"
+                    />
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Overscan</label>
+                    <span class="panel-value" id="overscan-value">3</span>
+                </div>
+                <div class="panel-row">
+                    <input
+                        type="range"
+                        id="overscan-slider"
+                        class="panel-slider"
+                        min="0"
+                        max="10"
+                        step="1"
+                        value="3"
+                    />
+                </div>
+            </section>
+
+            <!-- Scroll To -->
+            <section class="panel-section">
+                <h3 class="panel-title">Scroll To</h3>
+
+                <div class="panel-row">
+                    <div class="panel-input-group">
+                        <input
+                            type="number"
+                            id="scroll-index"
+                            class="panel-input"
+                            placeholder="Index"
+                            min="0"
+                            value="0"
+                        />
+                        <select id="scroll-align" class="panel-select">
+                            <option value="start">start</option>
+                            <option value="center">center</option>
+                            <option value="end">end</option>
+                        </select>
+                        <button id="scroll-go" class="panel-btn">Go</button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-first"
+                            class="panel-btn panel-btn--icon"
+                            title="First"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-middle"
+                            class="panel-btn panel-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-last"
+                            class="panel-btn panel-btn--icon"
+                            title="Last"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Operations -->
+            <section class="panel-section">
+                <h3 class="panel-title">Data</h3>
+
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-prepend"
+                            class="panel-btn"
+                            title="Prepend 1 item"
+                        >
+                            <i class="icon icon--add"></i> Prepend
+                        </button>
+                        <button
+                            id="btn-append"
+                            class="panel-btn"
+                            title="Append 1 item"
+                        >
+                            <i class="icon icon--add"></i> Append
+                        </button>
+                        <button
+                            id="btn-append-100"
+                            class="panel-btn"
+                            title="Append 100 items"
+                        >
+                            <i class="icon icon--add"></i> +100
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-remove"
+                            class="panel-btn"
+                            title="Remove last item"
+                        >
+                            <i class="icon icon--remove"></i> Remove
+                        </button>
+                        <button
+                            id="btn-clear"
+                            class="panel-btn"
+                            title="Clear all items"
+                        >
+                            <i class="icon icon--trash"></i> Clear
+                        </button>
+                        <button
+                            id="btn-reset"
+                            class="panel-btn"
+                            title="Reset to 10,000 items"
+                        >
+                            <i class="icon icon--shuffle"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                height <strong id="ft-height">56</strong
+                ><span class="example-footer__unit">px</span>
+            </span>
+            <span class="example-footer__stat">
+                overscan <strong id="ft-overscan">3</strong>
+            </span>
+        </div>
+    </footer>
+</div>

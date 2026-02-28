@@ -2,7 +2,7 @@
 // Wires sliders, scroll-to, and data operation buttons.
 // Imports state and functions from script.js — keeps the main script focused on vlist.
 
-import { makeUser, makeUsers } from "../../src/data/people.js";
+import { makeUser, makeUsers, DEFAULT_COUNT } from "../shared.js";
 import * as app from "./script.js";
 
 // =============================================================================
@@ -141,9 +141,9 @@ document.getElementById("btn-clear").addEventListener("click", () => {
 });
 
 document.getElementById("btn-reset").addEventListener("click", () => {
-  app.setUsers(makeUsers(app.DEFAULT_COUNT));
-  app.setNextId(app.DEFAULT_COUNT + 1);
-  countSlider.value = app.DEFAULT_COUNT;
-  countValue.textContent = app.DEFAULT_COUNT.toLocaleString();
+  app.setUsers(makeUsers(DEFAULT_COUNT));
+  app.setNextId(DEFAULT_COUNT + 1);
+  countSlider.value = DEFAULT_COUNT;
+  countValue.textContent = DEFAULT_COUNT.toLocaleString();
   app.createList();
 });

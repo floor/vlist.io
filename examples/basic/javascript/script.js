@@ -3,16 +3,14 @@
 // and data operations (append, prepend, remove).
 
 import { vlist } from "vlist";
-import { makeUser, makeUsers } from "../../src/data/people.js";
-import { createStats } from "../stats.js";
+import {
+  DEFAULT_COUNT,
+  ITEM_HEIGHT,
+  makeUsers,
+  itemTemplate,
+} from "../shared.js";
+import { createStats } from "../../stats.js";
 import "./controls.js";
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-export const DEFAULT_COUNT = 10_000;
-export const ITEM_HEIGHT = 56;
 
 // =============================================================================
 // State — exported so controls.js can read/write
@@ -43,21 +41,6 @@ export const stats = createStats({
   getItemHeight: () => ITEM_HEIGHT,
   container: "#list-container",
 });
-
-// =============================================================================
-// Template
-// =============================================================================
-
-const itemTemplate = (user, i) => `
-  <div class="item">
-    <div class="item__avatar" style="background:${user.color}">${user.initials}</div>
-    <div class="item__text">
-      <div class="item__name">${user.name}</div>
-      <div class="item__email">${user.email}</div>
-    </div>
-    <span class="item__index">#${i + 1}</span>
-  </div>
-`;
 
 // =============================================================================
 // Create / Recreate list
@@ -101,6 +84,12 @@ export function updateContext() {
   ftHeight.textContent = ITEM_HEIGHT;
   ftOverscan.textContent = currentOverscan;
 }
+
+// =============================================================================
+// Re-export constants for controls.js
+// =============================================================================
+
+export { DEFAULT_COUNT };
 
 // =============================================================================
 // Initialise
