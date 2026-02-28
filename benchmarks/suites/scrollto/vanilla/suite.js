@@ -131,8 +131,8 @@ const generateTargets = (totalItems, count) => {
 // =============================================================================
 
 defineSuite({
-  id: "scrollto-javascript",
-  name: "scrollToIndex (JavaScript)",
+  id: "scrollto-vanilla",
+  name: "scrollToIndex (Vanilla)",
   description:
     "Latency of smooth scrollToIndex() — time from call to scroll settled",
   icon: "🎯",

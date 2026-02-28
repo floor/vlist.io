@@ -69,8 +69,8 @@ const measureRender = async (container, items) => {
 // =============================================================================
 
 defineSuite({
-  id: "render-javascript",
-  name: "Initial Render (JavaScript)",
+  id: "render-vanilla",
+  name: "Initial Render (Vanilla)",
   description: "Time from vlist() to first painted frame",
   icon: "⚡",
 

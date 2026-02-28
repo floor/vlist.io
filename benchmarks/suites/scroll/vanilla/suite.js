@@ -458,8 +458,8 @@ const measureRawRAFRate = (durationMs) => {
 // =============================================================================
 
 defineSuite({
-  id: "scroll-javascript",
-  name: "Scroll FPS (JavaScript)",
+  id: "scroll-vanilla",
+  name: "Scroll FPS (Vanilla)",
   description: `Sustained programmatic scrolling for ${SCROLL_DURATION_MS / 1000}s — measures rendering throughput`,
   icon: "📜",
   hasScrollSpeed: true,

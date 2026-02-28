@@ -121,8 +121,8 @@ const scrollFor = (viewport, durationMs, onProgress) => {
 // =============================================================================
 
 defineSuite({
-  id: "memory-javascript",
-  name: "Memory (JavaScript)",
+  id: "memory-vanilla",
+  name: "Memory (Vanilla)",
   description:
     "Heap usage after render and after 10s of scrolling — reveals leaks and GC pressure",
   icon: "🧠",
