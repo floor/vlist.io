@@ -78,8 +78,9 @@
 }
 
 .card-emoji {
-    font-size: calc(48px + 24px * var(--card-scale));
+    font-size: 42px;
     line-height: 1;
+    margin-bottom: 16px;
 }
 
 .card-content {
