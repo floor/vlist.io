@@ -1,10 +1,15 @@
-// Wizard Navigation Example
-// Demonstrates scroll.wheel: false with button-only navigation
+// Wizard — Step-by-step recipe viewer
+// Demonstrates scroll.wheel: false, wrap, button-only navigation
 
-import { vlist, withSelection } from "vlist";
+import { vlist } from "vlist";
+import { createStats } from "../stats.js";
+import "./controls.js";
 
-// Recipe steps dataset — a cookbook wizard
-const recipes = [
+// =============================================================================
+// Data — recipe cards (domain-specific, kept inline)
+// =============================================================================
+
+export const recipes = [
   {
     id: 1,
     emoji: "🍝",
@@ -207,112 +212,174 @@ const recipes = [
   },
 ];
 
-// Current focused index
-let currentIndex = 0;
-const TOTAL = recipes.length;
+export const TOTAL = recipes.length;
+export const ITEM_HEIGHT = 320;
 
-// Create virtual list with wheel scrolling disabled
-const list = vlist({
-  container: "#list-container",
-  scroll: { wheel: false, scrollbar: "none", wrap: true },
-  ariaLabel: "Recipe wizard",
-  item: {
-    height: 320,
-    template: (item) => `
-      <div class="recipe-card">
-        <div class="recipe-header">
-          <span class="recipe-emoji">${item.emoji}</span>
-          <div class="recipe-meta">
-            <span class="meta-tag meta-time">⏱ ${item.time}</span>
-            <span class="meta-tag meta-difficulty">${item.difficulty}</span>
-          </div>
-        </div>
-        <h2 class="recipe-title">${item.title}</h2>
-        <p class="recipe-origin">${item.origin}</p>
-        <div class="recipe-section">
-          <h3>Ingredients</h3>
-          <p>${item.ingredients}</p>
-        </div>
-        <div class="recipe-tip">
-          <span class="tip-icon">💡</span>
-          <p>${item.tip}</p>
-        </div>
+// =============================================================================
+// State — exported so controls.js can read/write
+// =============================================================================
+
+export let currentOrientation = "vertical"; // "vertical" | "horizontal"
+export let currentWrap = true;
+export let currentIndex = 0;
+export let list = null;
+
+export function setCurrentOrientation(v) {
+  currentOrientation = v;
+}
+export function setCurrentWrap(v) {
+  currentWrap = v;
+}
+
+// =============================================================================
+// Template
+// =============================================================================
+
+const itemTemplate = (item) => `
+  <div class="recipe-card">
+    <div class="recipe-header">
+      <span class="recipe-emoji">${item.emoji}</span>
+      <div class="recipe-meta">
+        <span class="meta-tag meta-time">⏱ ${item.time}</span>
+        <span class="meta-tag meta-difficulty">${item.difficulty}</span>
       </div>
-    `,
-  },
-  items: recipes,
-})
-  .use(withSelection({ mode: "single" }))
-  .build();
+    </div>
+    <h2 class="recipe-title">${item.title}</h2>
+    <p class="recipe-origin">${item.origin}</p>
+    <div class="recipe-section">
+      <h3>Ingredients</h3>
+      <p>${item.ingredients}</p>
+    </div>
+    <div class="recipe-tip">
+      <span class="tip-icon">💡</span>
+      <p>${item.tip}</p>
+    </div>
+  </div>
+`;
 
-// DOM elements
-const btnPrev = document.getElementById("btn-prev");
-const btnNext = document.getElementById("btn-next");
-const btnFirst = document.getElementById("btn-first");
-const btnLast = document.getElementById("btn-last");
-const btnRandom = document.getElementById("btn-random");
-const statsEl = document.getElementById("stats");
-const indicatorEl = document.getElementById("step-indicator");
+// =============================================================================
+// Stats — shared footer (progress, velocity, visible/total)
+// =============================================================================
 
-// Navigate to a specific index (wrap is handled by vlist)
-function goTo(index) {
-  currentIndex = ((index % TOTAL) + TOTAL) % TOTAL;
+export const stats = createStats({
+  getList: () => list,
+  getTotal: () => TOTAL,
+  getItemHeight: () => ITEM_HEIGHT,
+  container: "#list-container",
+});
+
+// =============================================================================
+// Create / Recreate list
+// =============================================================================
+
+export function createList() {
+  if (list) {
+    list.destroy();
+    list = null;
+  }
+
+  const container = document.getElementById("list-container");
+  container.innerHTML = "";
+
+  // Toggle horizontal class on wizard wrapper
+  const wizardEl = document.querySelector(".wizard");
+  const isH = currentOrientation === "horizontal";
+  wizardEl.classList.toggle("wizard--horizontal", isH);
+
+  // In horizontal mode, item width = container width so one card fills the view
+  const containerWidth = isH ? container.clientWidth : undefined;
+
+  const builder = vlist({
+    container: "#list-container",
+    orientation: currentOrientation,
+    scroll: { wheel: false, scrollbar: "none", wrap: currentWrap },
+    ariaLabel: "Recipe wizard",
+    item: {
+      height: ITEM_HEIGHT,
+      width: isH ? containerWidth : undefined,
+      template: itemTemplate,
+    },
+    items: recipes,
+  });
+
+  list = builder.build();
+
+  list.on("scroll", stats.scheduleUpdate);
+  list.on("range:change", stats.scheduleUpdate);
+  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+
+  list.on("item:click", ({ index }) => {
+    goTo(index);
+  });
+
+  stats.update();
+  updateContext();
+
+  // Restore current index (instant — no animation after rebuild)
+  goTo(currentIndex, true);
+}
+
+// =============================================================================
+// Navigation — go to a specific recipe
+// =============================================================================
+
+export function goTo(index, instant = false) {
+  if (currentWrap) {
+    currentIndex = ((index % TOTAL) + TOTAL) % TOTAL;
+  } else {
+    currentIndex = Math.max(0, Math.min(index, TOTAL - 1));
+  }
 
   list.scrollToIndex(currentIndex, {
     align: "start",
-    behavior: "smooth",
-    duration: 350,
+    behavior: instant ? "auto" : "smooth",
+    duration: instant ? 0 : 350,
   });
 
-  list.clearSelection();
-  list.select(recipes[currentIndex].id);
-
-  updateUI();
+  updateCurrentInfo();
+  updateDots();
+  stats.update();
 }
 
-// Update buttons, stats, and step indicator
-function updateUI() {
-  // No disabling — wrap mode means prev/next always work
+// =============================================================================
+// Step indicator dots
+// =============================================================================
 
-  const recipe = recipes[currentIndex];
-  statsEl.innerHTML = `
-    <span><strong>Recipe:</strong> ${currentIndex + 1} / ${TOTAL}</span>
-    <span><strong>${recipe.emoji} ${recipe.title}</strong></span>
-    <span><strong>Difficulty:</strong> ${recipe.difficulty}</span>
-  `;
+const indicatorEl = document.getElementById("step-indicator");
 
-  // Step dots
-  const dots = recipes
-    .map((_, i) => {
-      const isActive = i === currentIndex;
-      return `<span class="dot ${isActive ? "dot-active" : ""}" data-index="${i}"></span>`;
-    })
+function updateDots() {
+  indicatorEl.innerHTML = recipes
+    .map(
+      (_, i) =>
+        `<span class="dot ${i === currentIndex ? "dot-active" : ""}" data-index="${i}"></span>`,
+    )
     .join("");
-  indicatorEl.innerHTML = dots;
 }
 
-// Button handlers
-btnPrev.addEventListener("click", () => goTo(currentIndex - 1));
-btnNext.addEventListener("click", () => goTo(currentIndex + 1));
-btnFirst.addEventListener("click", () => goTo(0));
-btnLast.addEventListener("click", () => goTo(TOTAL - 1));
-btnRandom.addEventListener("click", () => {
-  let next;
-  do {
-    next = Math.floor(Math.random() * TOTAL);
-  } while (next === currentIndex && TOTAL > 1);
-  goTo(next);
-});
-
-// Click on step dots
 indicatorEl.addEventListener("click", (e) => {
   const dot = e.target.closest(".dot");
-  if (dot) {
-    goTo(Number(dot.dataset.index));
-  }
+  if (dot) goTo(Number(dot.dataset.index));
 });
 
-// Keyboard navigation (left/right arrows anywhere on page)
+// =============================================================================
+// Current recipe info (panel)
+// =============================================================================
+
+const currentNameEl = document.getElementById("current-name");
+const currentDifficultyEl = document.getElementById("current-difficulty");
+const currentTimeEl = document.getElementById("current-time");
+
+function updateCurrentInfo() {
+  const r = recipes[currentIndex];
+  currentNameEl.textContent = `${r.emoji} ${r.title}`;
+  currentDifficultyEl.textContent = r.difficulty;
+  currentTimeEl.textContent = r.time;
+}
+
+// =============================================================================
+// Keyboard navigation
+// =============================================================================
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
     e.preventDefault();
@@ -329,10 +396,20 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Item click — navigate to that recipe
-list.on("item:click", ({ index }) => {
-  goTo(index);
-});
+// =============================================================================
+// Footer — right side (contextual)
+// =============================================================================
 
-// Initial state
-goTo(0);
+const ftOrientation = document.getElementById("ft-orientation");
+const ftWrap = document.getElementById("ft-wrap");
+
+export function updateContext() {
+  ftOrientation.textContent = currentOrientation;
+  ftWrap.textContent = currentWrap ? "on" : "off";
+}
+
+// =============================================================================
+// Initialise
+// =============================================================================
+
+createList();

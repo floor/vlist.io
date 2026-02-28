@@ -1,43 +1,143 @@
 <div class="container">
     <header>
-        <h1>Wizard Navigation</h1>
+        <h1>Wizard</h1>
         <p class="description">
-            A step-by-step record viewer with
-            <code>scroll.wheel: false</code> — the mouse wheel is completely
-            disabled. Navigation happens exclusively through buttons, ideal for
-            guided flows, kiosks, or controlled interfaces.
+            Step-by-step recipe viewer with <code>scroll.wheel: false</code>
+            — navigation via buttons and keyboard only. Uses
+            <code>withSelection</code> and circular <code>wrap</code> mode.
         </p>
     </header>
 
-    <div class="stats" id="stats">Loading...</div>
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <div class="wizard">
+                <button class="nav-btn nav-prev" id="btn-prev">
+                    <i class="icon icon--back"></i>
+                </button>
 
-    <div class="wizard">
-        <button class="nav-btn nav-prev" id="btn-prev">
-            <span class="nav-icon">‹</span>
-        </button>
+                <div class="wizard__center">
+                    <div id="list-container"></div>
+                    <div class="step-indicator" id="step-indicator"></div>
+                </div>
 
-        <div class="list-wrapper">
-            <div id="list-container"></div>
-            <div class="step-indicator" id="step-indicator"></div>
+                <button class="nav-btn nav-next" id="btn-next">
+                    <i class="icon icon--forward"></i>
+                </button>
+            </div>
         </div>
 
-        <button class="nav-btn nav-next" id="btn-next">
-            <span class="nav-icon">›</span>
-        </button>
+        <aside class="split-panel">
+            <!-- Scroll -->
+            <section class="panel-section">
+                <h3 class="panel-title">Scroll</h3>
+
+                <div class="panel-row">
+                    <label class="panel-label">Orientation</label>
+                    <div class="panel-segmented" id="orientation-mode">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-orientation="vertical"
+                        >
+                            Vertical
+                        </button>
+                        <button
+                            class="panel-segmented__btn"
+                            data-orientation="horizontal"
+                        >
+                            Horizontal
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel-row">
+                    <label class="panel-label">Wrap</label>
+                    <div class="panel-segmented" id="wrap-mode">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-wrap="true"
+                        >
+                            On
+                        </button>
+                        <button class="panel-segmented__btn" data-wrap="false">
+                            Off
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Navigation</h3>
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-first"
+                            class="panel-btn panel-btn--icon"
+                            title="First"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-last"
+                            class="panel-btn panel-btn--icon"
+                            title="Last"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button
+                            id="btn-random"
+                            class="panel-btn panel-btn--icon"
+                            title="Random"
+                        >
+                            <i class="icon icon--shuffle"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Current Recipe -->
+            <section class="panel-section">
+                <h3 class="panel-title">Current</h3>
+                <div class="panel-row">
+                    <span class="panel-label">Recipe</span>
+                    <span class="panel-value" id="current-name">–</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Difficulty</span>
+                    <span class="panel-value" id="current-difficulty">–</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Time</span>
+                    <span class="panel-value" id="current-time">–</span>
+                </div>
+            </section>
+        </aside>
     </div>
 
-    <div class="controls">
-        <button id="btn-first">⏮ First</button>
-        <button id="btn-last">⏭ Last</button>
-        <button id="btn-random">🎲 Random</button>
-    </div>
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-orientation">vertical</strong>
+            </span>
 
-    <footer>
-        <p>
-            Uses <code>scroll.wheel: false</code> to disable mouse wheel and
-            <code>scroll.scrollbar: 'none'</code> to hide the scrollbar.
-            Navigation is button-only — try scrolling with your mouse wheel,
-            nothing happens. Use the arrows or keyboard (← →) to navigate.
-        </p>
+            <span class="example-footer__stat">
+                wrap <strong id="ft-wrap">on</strong>
+            </span>
+        </div>
     </footer>
 </div>
