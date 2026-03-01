@@ -371,6 +371,11 @@ function buildExtraHead(
   // vlist styles — always needed for examples
   tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
 
+  // Table styles — only for examples that use the table feature
+  if (example?.features?.includes("table")) {
+    tags.push(`<link rel="stylesheet" href="/dist/vlist-table.css" />`);
+  }
+
   // Shared example styles (at example root, optional)
   const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));
   if (existsSync(sharedCssPath)) {
