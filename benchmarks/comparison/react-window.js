@@ -88,6 +88,7 @@ const benchmarkReactWindow = async (
         height: container.clientHeight || 600,
         itemCount: itemCount,
         itemSize: ITEM_HEIGHT,
+        overscanCount: 5,
         width: "100%",
         children: Row,
       });

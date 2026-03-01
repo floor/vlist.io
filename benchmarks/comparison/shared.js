@@ -536,6 +536,17 @@ export const benchmarkLibrary = async (config) => {
       : `Testing ${libraryName} - scrolling...`,
   );
   const viewport = findViewport(container);
+
+  // Scroll nudge: some libraries (e.g. Virtua) keep items visibility:hidden
+  // until a scroll event triggers their internal measurement/layout pass.
+  // A tiny scroll-and-back forces them to materialize visible items.
+  if (viewport) {
+    viewport.scrollTop = 1;
+    await nextFrame();
+    viewport.scrollTop = 0;
+    await nextFrame();
+  }
+
   const scrollMetrics = await measureScrollPerformance(
     viewport,
     SCROLL_DURATION_MS,
