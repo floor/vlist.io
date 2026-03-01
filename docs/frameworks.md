@@ -423,6 +423,109 @@ function ScrollableList() {
 
 ---
 
+## SSR & Meta-Frameworks
+
+vlist is a **client-side library** — it creates and manages DOM elements directly (`document.createElement`, `el.scrollTop`, `clientHeight`, etc.). This is what makes it fast: zero virtual DOM overhead, 120 FPS scrolling, ~26 DOM nodes for 100K items.
+
+This means vlist **cannot render on the server**. In meta-frameworks like Next.js, Nuxt, SvelteKit, and Astro, you need to ensure vlist only runs in the browser.
+
+### The Pattern
+
+Every meta-framework has the same two-step approach:
+
+1. **Fetch data server-side** (fast, close to the database)
+2. **Render the list client-side** (where the DOM exists)
+
+### Next.js (App Router)
+
+Mark your vlist component as a client component with `'use client'`. Pass data from a Server Component:
+
+```tsx
+// app/users/UserList.tsx — Client Component
+'use client'
+
+import { useVList } from 'vlist-react'
+import '@floor/vlist/styles'
+
+export function UserList({ users }: { users: User[] }) {
+  const { containerRef } = useVList<User>({
+    items: users,
+    item: { height: 48, template: (u) => `<div>${u.name}</div>` },
+  })
+  return <div ref={containerRef} style={{ height: '100vh' }} />
+}
+```
+
+```tsx
+// app/users/page.tsx — Server Component (fetches data)
+import { UserList } from './UserList'
+
+export default async function UsersPage() {
+  const users = await db.users.findMany()
+  return <UserList users={users} />
+}
+```
+
+### Nuxt
+
+Wrap the component in `<ClientOnly>`:
+
+```vue
+<template>
+  <ClientOnly>
+    <VirtualList :users="users" />
+  </ClientOnly>
+</template>
+```
+
+### SvelteKit
+
+Guard with the `browser` check:
+
+```svelte
+<script>
+  import { browser } from '$app/environment'
+  import { vlist as vlistAction } from 'vlist-svelte'
+</script>
+
+{#if browser}
+  <div use:vlistAction={{ config, onInstance }} style="height: 100vh;" />
+{/if}
+```
+
+### Astro
+
+Use the `client:only` directive to skip SSR entirely:
+
+```astro
+<UserList client:only="react" users={users} />
+```
+
+### Async Adapter with API Routes
+
+vlist's `withAsync` pairs naturally with framework API routes — the list fetches pages of data on scroll:
+
+```tsx
+// Next.js: app/api/users/route.ts serves the data
+// Client component uses the async adapter:
+const { containerRef } = useVList({
+  item: { height: 64, template: (item) => item ? `<div>${item.name}</div>` : `<div>Loading…</div>` },
+  adapter: {
+    read: async ({ offset, limit }) => {
+      const res = await fetch(`/api/users?offset=${offset}&limit=${limit}`)
+      const data = await res.json()
+      return { items: data.items, total: data.total, hasMore: data.hasMore }
+    },
+  },
+})
+```
+
+### SEO
+
+Virtualized content is **not present in the server-rendered HTML** — only the empty container ships to the browser. This is fine for dashboards, admin panels, and app-like interfaces. If you need search engines to index the list content, render a static HTML list server-side and hydrate into vlist on the client, or use pagination with `generateStaticParams` / `getStaticPaths`.
+
+---
+
 ## Config Reference
 
 All adapters accept `VListConfig` (exported from `@floor/vlist`) minus `container`. This extends `BuilderConfig` with convenience fields that adapters translate into `.use(withX())` calls automatically.
