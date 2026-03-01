@@ -55,12 +55,3 @@
 /* ============================================================================
    Selected state
    ============================================================================ */
-
-.vlist-item--selected {
-    background: color-mix(in oklch, var(--primary, #6750a4) 12%, transparent);
-}
-
-.vlist-item--selected .item__name {
-    color: var(--primary, #6750a4);
-    font-weight: 600;
-}

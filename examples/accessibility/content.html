@@ -1,0 +1,175 @@
+<div class="container">
+    <header>
+        <h1>Accessibility</h1>
+        <p class="description">
+            WAI-ARIA listbox — <code>role="listbox"</code> on the root,
+            <code>role="option"</code> on every item,
+            <code>aria-setsize</code> / <code>aria-posinset</code> for
+            positional context, <code>aria-activedescendant</code> for focus
+            tracking, and <code>aria-selected</code> for selection state. Tab
+            into the list and use arrow keys, Space, or Enter to interact.
+            Toggle selection off to test baseline ARIA without the feature.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Selection Mode -->
+            <section class="panel-section">
+                <h3 class="panel-title">Selection</h3>
+                <div class="panel-row">
+                    <div class="panel-btn-group panel-btn-group--fill">
+                        <button
+                            class="panel-btn"
+                            id="btn-mode-none"
+                            aria-pressed="false"
+                        >
+                            None
+                        </button>
+                        <button
+                            class="panel-btn panel-btn--active"
+                            id="btn-mode-single"
+                            aria-pressed="true"
+                        >
+                            Single
+                        </button>
+                        <button
+                            class="panel-btn"
+                            id="btn-mode-multiple"
+                            aria-pressed="false"
+                        >
+                            Multiple
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ARIA Inspector -->
+            <section class="panel-section">
+                <h3 class="panel-title">ARIA Inspector</h3>
+                <div class="panel-row">
+                    <span class="panel-label">role</span>
+                    <span class="panel-value" id="attr-role">—</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">aria-label</span>
+                    <span class="panel-value attr-truncate" id="attr-label"
+                        >—</span
+                    >
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">tabindex</span>
+                    <span class="panel-value" id="attr-tabindex">—</span>
+                </div>
+                <div class="panel-row" data-requires-selection>
+                    <span class="panel-label">activedescendant</span>
+                    <span
+                        class="panel-value attr-truncate"
+                        id="attr-activedescendant"
+                        >—</span
+                    >
+                </div>
+                <div class="panel-row" data-requires-selection>
+                    <span class="panel-label">aria-selected</span>
+                    <span class="panel-value" id="attr-selected">—</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">aria-setsize</span>
+                    <span class="panel-value" id="attr-setsize">—</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">aria-posinset</span>
+                    <span class="panel-value" id="attr-posinset">—</span>
+                </div>
+            </section>
+
+            <!-- Keyboard reference -->
+            <section class="panel-section">
+                <h3 class="panel-title">Keyboard</h3>
+                <div class="panel-row">
+                    <span class="panel-label">Tab</span>
+                    <span class="panel-value">Focus list</span>
+                </div>
+                <div class="panel-row" data-requires-selection>
+                    <span class="panel-label">↑ / ↓</span>
+                    <span class="panel-value">Move focus</span>
+                </div>
+                <div class="panel-row" data-requires-selection>
+                    <span class="panel-label">Space / Enter</span>
+                    <span class="panel-value">Toggle select</span>
+                </div>
+                <div class="panel-row" data-requires-selection>
+                    <span class="panel-label">Home / End</span>
+                    <span class="panel-value">First / Last</span>
+                </div>
+            </section>
+
+            <!-- Announcements log -->
+            <section class="panel-section" data-requires-selection>
+                <h3 class="panel-title">
+                    Announcements
+                    <span class="panel-title__hint">aria-live</span>
+                </h3>
+                <ul
+                    class="announcement-log"
+                    id="announcement-log-list"
+                    aria-label="Screen reader announcement log"
+                ></ul>
+                <p class="announcement-log__empty" id="announcement-log-empty">
+                    Select an item to see announcements
+                </p>
+            </section>
+
+            <!-- Scroll To -->
+            <section class="panel-section">
+                <h3 class="panel-title">Scroll To</h3>
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button class="panel-btn" id="btn-first">
+                            <i class="icon icon--up"></i> First
+                        </button>
+                        <button class="panel-btn" id="btn-middle">
+                            <i class="icon icon--center"></i> Middle
+                        </button>
+                        <button class="panel-btn" id="btn-last">
+                            <i class="icon icon--down"></i> Last
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat" data-requires-selection>
+                selected <strong id="ft-selection">0</strong>
+            </span>
+            <span class="example-footer__stat" data-requires-selection>
+                focused <strong id="ft-focused">—</strong>
+            </span>
+            <span class="example-footer__stat" data-requires-selection>
+                posinset <strong id="ft-posinset">—</strong>
+            </span>
+        </div>
+    </footer>
+</div>

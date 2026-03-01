@@ -29,6 +29,7 @@
     --vlist-bg-selected-hover: rgba(59, 130, 246, 0.3);
     --vlist-border: #374151;
     --vlist-border-selected: #3b82f6;
+    --vlist-item-padding-x: 16px;
     --vlist-text: #f9fafb;
     --vlist-text-muted: #9ca3af;
     --vlist-scrollbar-thumb: #4b5563;

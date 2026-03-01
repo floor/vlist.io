@@ -55,6 +55,12 @@
         "name": "Window Scroll",
         "desc": "Document-level scrolling with async data loading — no inner scrollbar",
         "features": ["page", "async"]
+      },
+      {
+        "slug": "accessibility",
+        "name": "Accessibility",
+        "desc": "WAI-ARIA listbox — role, aria-setsize, aria-posinset, and aria-activedescendant updating live in the inspector",
+        "features": ["aria"]
       }
     ]
   },

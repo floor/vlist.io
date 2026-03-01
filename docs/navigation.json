@@ -5,11 +5,6 @@
         "slug": "getting-started",
         "name": "Getting Started",
         "desc": "Complete guide to installation and configuration"
-      },
-      {
-        "slug": "frameworks",
-        "name": "Adapters",
-        "desc": "React, Vue, Svelte, and SolidJS integration"
       }
     ]
   },
@@ -40,6 +35,11 @@
         "slug": "api/exports",
         "name": "Exports",
         "desc": "Low-level utilities and feature authoring"
+      },
+      {
+        "slug": "frameworks",
+        "name": "Adapters",
+        "desc": "React, Vue, Svelte, and SolidJS integration"
       }
     ]
   },

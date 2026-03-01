@@ -6,16 +6,16 @@
     "key": "docs"
   },
   {
-    "label": "Tutorials",
-    "href": "/tutorials/",
-    "external": false,
-    "key": "tutorials"
-  },
-  {
     "label": "Examples",
     "href": "/examples/",
     "external": false,
     "key": "examples"
+  },
+  {
+    "label": "Tutorials",
+    "href": "/tutorials/",
+    "external": false,
+    "key": "tutorials"
   },
   {
     "label": "Benchmarks",
