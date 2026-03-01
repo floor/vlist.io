@@ -164,8 +164,8 @@
                     <a href="/examples/" class="btn btn--primary">
                         Try Examples →
                     </a>
-                    <a href="/benchmarks/" class="btn btn--primary" style="background: #4a5cd8">
-                        Run Benchmarks →
+                    <a href="/docs/" class="btn btn--primary" style="background: #4a5cd8">
+                        Read the docs →
                     </a>
                     <a href="https://github.com/floor/vlist" class="btn btn--ghost" target="_blank">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -216,7 +216,7 @@
                     </div>
                 </div>
                 <div style="text-align: center; margin-top: 32px;">
-                    <a href="/benchmarks/performance-comparison" class="btn btn--ghost">
+                    <a href="/benchmarks" class="btn btn--ghost">
                         View Full Comparison →
                     </a>
                 </div>
