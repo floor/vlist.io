@@ -38,7 +38,9 @@
     "vue-virtual-scroller": "^2.0.0-beta.8"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
     "@types/bun": "latest",
+    "babel-preset-solid": "^1.9.10",
     "sass": "^1.85.0",
     "typescript": "^5.8.0"
   }

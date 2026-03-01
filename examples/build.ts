@@ -9,6 +9,7 @@ import {
 } from "fs";
 import { join, resolve } from "path";
 import { brotliCompressSync, gzipSync, constants } from "zlib";
+import { transformSync } from "@babel/core";
 
 const isWatch = process.argv.includes("--watch");
 
@@ -36,6 +37,56 @@ const BUILD_OPTIONS = {
 // vlist: resolves bare "vlist" imports to "@floor/vlist" via the package.json
 // "imports" field mapping (which Bun's bundler doesn't natively support).
 
+// =============================================================================
+// SolidJS Babel plugin
+// =============================================================================
+// SolidJS requires babel-preset-solid to compile JSX into createComponent()
+// calls — it does NOT use the standard React-style jsx/jsxs runtime.
+// This plugin intercepts .jsx/.tsx files inside solidjs/ variant directories
+// and transforms them through Babel before Bun processes the output.
+
+// SolidJS needs two plugins:
+// 1. Babel transform — compiles JSX into createComponent() / template() calls
+//    (SolidJS does NOT use the standard React-style jsx/jsxs runtime)
+// 2. Browser resolver — solid-js exports have "browser" and "node" conditions;
+//    require.resolve picks "node" → server.js which throws "Client-only API
+//    called on the server side". We resolve to browser entry points explicitly.
+
+const solidJsxPlugin: import("bun").BunPlugin = {
+  name: "solid-jsx",
+  setup(build) {
+    build.onLoad({ filter: /solidjs\/.*\.[jt]sx$/ }, async (args) => {
+      const code = readFileSync(args.path, "utf-8");
+      const result = transformSync(code, {
+        filename: args.path,
+        presets: [["babel-preset-solid"]],
+        // Preserve ES modules for Bun to bundle
+        parserOpts: {
+          plugins: args.path.endsWith(".tsx") ? ["typescript", "jsx"] : ["jsx"],
+        },
+      });
+      return {
+        contents: result?.code ?? code,
+        loader: args.path.endsWith(".tsx") ? "ts" : "js",
+      };
+    });
+  },
+};
+
+const solidBrowserPlugin: import("bun").BunPlugin = {
+  name: "solid-browser",
+  setup(build) {
+    build.onResolve({ filter: /^solid-js$/ }, () => ({
+      path: resolve(join(PROJECT_ROOT, "node_modules/solid-js/dist/solid.js")),
+    }));
+    build.onResolve({ filter: /^solid-js\/web$/ }, () => ({
+      path: resolve(
+        join(PROJECT_ROOT, "node_modules/solid-js/web/dist/web.js"),
+      ),
+    }));
+  },
+};
+
 const frameworkDedupePlugin: import("bun").BunPlugin = {
   name: "dedupe-frameworks",
   setup(build) {
@@ -56,16 +107,20 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     // "vlist-react" → "vlist-react"
     // "vlist-vue" → "vlist-vue"
     // "vlist-svelte" → "vlist-svelte"
-    build.onResolve({ filter: /^vlist-(react|vue|svelte)$/ }, (args) => {
-      try {
-        const resolved = require.resolve(args.path, {
-          paths: [PROJECT_ROOT],
-        });
-        return { path: resolved };
-      } catch {
-        return undefined;
-      }
-    });
+    // "vlist-solidjs" → "vlist-solidjs"
+    build.onResolve(
+      { filter: /^vlist-(react|vue|svelte|solidjs)$/ },
+      (args) => {
+        try {
+          const resolved = require.resolve(args.path, {
+            paths: [PROJECT_ROOT],
+          });
+          return { path: resolved };
+        } catch {
+          return undefined;
+        }
+      },
+    );
 
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
@@ -239,7 +294,11 @@ async function buildExample(name: string): Promise<BuildResult> {
       }
     }
     // Always use dedupe plugin (needed for vlist imports + frameworks)
-    const plugins = [frameworkDedupePlugin];
+    // Add SolidJS Babel transform for solidjs variant directories
+    const plugins: import("bun").BunPlugin[] = [frameworkDedupePlugin];
+    if (name.includes("/solidjs") || name.startsWith("solidjs/")) {
+      plugins.push(solidJsxPlugin, solidBrowserPlugin);
+    }
 
     // Define Vue feature flags for production builds
     const define: Record<string, string> = {};

@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { vlist, withSelection } from "vlist";
+import { vlist, withSelection } from "@floor/vlist";
 import {
   DEFAULT_COUNT,
   ITEM_HEIGHT,
@@ -53,10 +53,10 @@ function App() {
         template: itemTemplate,
       },
     })
-      .use(withSelection({ mode: 'single' }))
+      .use(withSelection({ mode: "single" }))
       .build();
 
-    instanceRef.current.on('selection:change', ({ selected }: any) => {
+    instanceRef.current.on("selection:change", ({ selected }: any) => {
       setSelectedIndex(selected.length > 0 ? selected[0] : -1);
     });
 
@@ -68,7 +68,8 @@ function App() {
     });
 
     instanceRef.current.on("scroll", () => {
-      const domNodes = containerRef.current?.querySelectorAll(".vlist-item").length ?? 0;
+      const domNodes =
+        containerRef.current?.querySelectorAll(".vlist-item").length ?? 0;
       setStats((prev) => ({ ...prev, dom: domNodes }));
     });
 
@@ -80,14 +81,11 @@ function App() {
   }, [overscan]);
 
   // Sync items with instance when users change (for append/prepend/remove)
-  const syncItems = useCallback(
-    (newUsers: any[]) => {
-      setUsers(newUsers);
-      usersRef.current = newUsers;
-      setStats((prev) => ({ ...prev, total: newUsers.length }));
-    },
-    [],
-  );
+  const syncItems = useCallback((newUsers: any[]) => {
+    setUsers(newUsers);
+    usersRef.current = newUsers;
+    setStats((prev) => ({ ...prev, total: newUsers.length }));
+  }, []);
 
   // Navigation
   const handleGoToIndex = () => {
@@ -149,9 +147,10 @@ function App() {
 
   const handleRemove = () => {
     if (usersRef.current.length === 0) return;
-    const idx = selectedIndex >= 0 && selectedIndex < usersRef.current.length
-      ? selectedIndex
-      : usersRef.current.length - 1;
+    const idx =
+      selectedIndex >= 0 && selectedIndex < usersRef.current.length
+        ? selectedIndex
+        : usersRef.current.length - 1;
     const newUsers = usersRef.current.filter((_, i) => i !== idx);
     instanceRef.current?.clearSelection();
     setSelectedIndex(-1);
@@ -183,10 +182,10 @@ function App() {
         template: itemTemplate,
       },
     })
-      .use(withSelection({ mode: 'single' }))
+      .use(withSelection({ mode: "single" }))
       .build();
 
-    instanceRef.current.on('selection:change', ({ selected }: any) => {
+    instanceRef.current.on("selection:change", ({ selected }: any) => {
       setSelectedIndex(selected.length > 0 ? selected[0] : -1);
     });
 
@@ -207,9 +206,9 @@ function App() {
       <header>
         <h1>Basic List</h1>
         <p className="description">
-          React implementation — the core of <code>@floor/vlist</code>.
-          Use the control panel to explore item count, overscan, scroll-to,
-          and data operations in real time.
+          React implementation — the core of <code>@floor/vlist</code>. Use the
+          control panel to explore item count, overscan, scroll-to, and data
+          operations in real time.
         </p>
       </header>
 
@@ -255,11 +254,14 @@ function App() {
                       template: itemTemplate,
                     },
                   })
-                    .use(withSelection({ mode: 'single' }))
+                    .use(withSelection({ mode: "single" }))
                     .build();
-                  instanceRef.current.on('selection:change', ({ selected }: any) => {
-                    setSelectedIndex(selected.length > 0 ? selected[0] : -1);
-                  });
+                  instanceRef.current.on(
+                    "selection:change",
+                    ({ selected }: any) => {
+                      setSelectedIndex(selected.length > 0 ? selected[0] : -1);
+                    },
+                  );
                   instanceRef.current.on("range:change", ({ range }: any) => {
                     setStats({
                       dom: range.end - range.start + 1,
@@ -414,9 +416,7 @@ function App() {
           <span className="example-footer__stat">
             <strong>
               {stats.total > 0
-                ? Math.round(
-                    (stats.dom / stats.total) * 100,
-                  )
+                ? Math.round((stats.dom / stats.total) * 100)
                 : 0}
               %
             </strong>

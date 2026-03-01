@@ -31,7 +31,7 @@ export interface ExampleGroup {
   items: ExampleItem[];
 }
 
-type Variant = "vanilla" | "react" | "vue" | "svelte";
+type Variant = "vanilla" | "react" | "vue" | "svelte" | "solidjs";
 
 interface SourceFile {
   label: string;
@@ -53,6 +53,7 @@ const VARIANT_LABELS: Record<Variant, string> = {
   react: "React",
   vue: "Vue",
   svelte: "Svelte",
+  solidjs: "SolidJS",
 };
 
 // =============================================================================
@@ -102,7 +103,8 @@ function parseVariant(url: string): Variant {
     variant === "vanilla" ||
     variant === "react" ||
     variant === "vue" ||
-    variant === "svelte"
+    variant === "svelte" ||
+    variant === "solidjs"
   ) {
     return variant;
   }
@@ -115,7 +117,13 @@ function detectVariants(slug: string): Variant[] {
   const variants: Variant[] = [];
   const exampleDir = join(EXAMPLES_DIR, slug);
 
-  for (const variant of ["vanilla", "react", "vue", "svelte"] as Variant[]) {
+  for (const variant of [
+    "vanilla",
+    "react",
+    "vue",
+    "svelte",
+    "solidjs",
+  ] as Variant[]) {
     const variantDir = join(exampleDir, variant);
     if (existsSync(variantDir)) {
       // Check if it has at least a script file

@@ -119,10 +119,6 @@
     text-decoration: none;
 }
 
-.md a:hover {
-    text-decoration: underline;
-}
-
 .md ul,
 .md ol {
     margin-bottom: 16px;
