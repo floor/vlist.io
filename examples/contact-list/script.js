@@ -1,7 +1,8 @@
 // Contact List — A–Z grouped contacts with sticky section headers
 // Demonstrates withGroups plugin with sticky/inline toggle
+// and withSelection for click-to-select with detail panel
 
-import { vlist, withGroups } from "vlist";
+import { vlist, withGroups, withSelection } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { initLetterGrid } from "./controls.js";
@@ -10,7 +11,7 @@ import { initLetterGrid } from "./controls.js";
 // Constants
 // =============================================================================
 
-export const TOTAL_CONTACTS = 2000;
+export const TOTAL_CONTACTS = 1000;
 export const ITEM_HEIGHT = 64;
 export const HEADER_HEIGHT = 36;
 
@@ -57,7 +58,6 @@ const renderContact = (item) => `
       <div class="contact__name">${item.firstName} ${item.lastName}</div>
       <div class="contact__detail">${item.department} · ${item.email}</div>
     </div>
-    <div class="contact__phone">${item.phone}</div>
   </div>
 `;
 
@@ -115,6 +115,8 @@ export function createList() {
     );
   }
 
+  builder.use(withSelection({ mode: "single" }));
+
   list = builder.build();
 
   list.on("scroll", stats.scheduleUpdate);
@@ -124,6 +126,14 @@ export function createList() {
   });
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
 
+  list.on("selection:change", ({ selected, items }) => {
+    if (items.length > 0) {
+      showContactDetail(items[0]);
+    } else {
+      clearContactDetail();
+    }
+  });
+
   // Restore scroll position
   if (firstVisibleIndex > 0) {
     list.scrollToIndex(firstVisibleIndex, "start");
@@ -131,6 +141,36 @@ export function createList() {
 
   stats.update();
   updateContext();
+}
+
+// =============================================================================
+// Contact detail (panel) — shows selected contact
+// =============================================================================
+
+const detailEl = document.getElementById("contact-detail");
+
+function showContactDetail(contact) {
+  detailEl.innerHTML = `
+    <div class="panel-detail__header">
+      <div class="contact-detail__avatar" style="background:${contact.color}">${contact.initials}</div>
+      <div>
+        <div class="panel-detail__name">${contact.firstName} ${contact.lastName}</div>
+        <div class="contact-detail__role">${contact.role}</div>
+      </div>
+    </div>
+    <div class="panel-detail__meta">
+      <span>${contact.department} · ${contact.company}</span>
+      <span>${contact.email}</span>
+      <span>${contact.phone}</span>
+      <span>${contact.city}, ${contact.country}</span>
+    </div>
+  `;
+}
+
+function clearContactDetail() {
+  detailEl.innerHTML = `
+    <span class="panel-detail__empty">Click a contact to see details</span>
+  `;
 }
 
 // =============================================================================

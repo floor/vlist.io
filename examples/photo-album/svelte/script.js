@@ -1,225 +1,159 @@
-// Grid Photo Album — Svelte
-// Uses vlist/builder with withGrid + withScrollbar plugins
-// Demonstrates a virtualized 2D photo gallery with Svelte action
+// Photo Album — Svelte variant
+// Uses vlist-svelte action with declarative layout config
+// Layout mode toggle: Grid ↔ Masonry
 
 import { vlist, onVListEvent } from "vlist-svelte";
+import { createStats } from "../../stats.js";
+import {
+  ITEM_COUNT,
+  ASPECT_RATIO,
+  items,
+  itemTemplate,
+  currentMode,
+  currentOrientation,
+  currentColumns,
+  currentGap,
+  list,
+  setList,
+  setCreateView,
+} from "../shared.js";
+import "../controls.js";
 
 // =============================================================================
-// Data Generation
+// Stats — shared footer (progress, velocity, visible/total)
 // =============================================================================
 
-const PHOTO_COUNT = 1084;
-const ITEM_COUNT = 600;
+function getEffectiveItemHeight() {
+  const container = document.getElementById("grid-container");
+  if (!container || !list) return 200;
+  const innerWidth = container.clientWidth - 2;
+  const colWidth =
+    (innerWidth - (currentColumns - 1) * currentGap) / currentColumns;
+  if (currentMode === "masonry") return Math.round(colWidth * 1.05);
+  return Math.round(colWidth * ASPECT_RATIO);
+}
 
-const categories = [
-  "Nature",
-  "Urban",
-  "Portrait",
-  "Abstract",
-  "Travel",
-  "Food",
-  "Animals",
-  "Architecture",
-  "Art",
-  "Space",
-];
-
-const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
-  const picId = i % PHOTO_COUNT;
-  const category = categories[i % categories.length];
-  return {
-    id: i + 1,
-    title: `Photo ${i + 1}`,
-    category,
-    likes: Math.floor(Math.random() * 500),
-    picId,
-  };
+const stats = createStats({
+  getList: () => list,
+  getTotal: () => ITEM_COUNT,
+  getItemHeight: () => getEffectiveItemHeight(),
+  container: "#grid-container",
 });
 
 // =============================================================================
-// Item Template
+// Create / Recreate
 // =============================================================================
 
-const itemTemplate = (item) => `
-  <div class="card">
-    <img
-      class="card__img"
-      src="https://picsum.photos/id/${item.picId}/300/225"
-      alt="${item.title}"
-      loading="lazy"
-      decoding="async"
-    />
-    <div class="card__overlay">
-      <span class="card__title">${item.title}</span>
-      <span class="card__category">${item.category}</span>
-    </div>
-    <div class="card__likes">♥ ${item.likes}</div>
-  </div>
-`;
-
-// =============================================================================
-// DOM References
-// =============================================================================
-
-const container = document.getElementById("grid-container");
-const statsEl = document.getElementById("stats");
-const visibleRangeEl = document.getElementById("visible-range");
-const gridInfoEl = document.getElementById("grid-info");
-const detailEl = document.getElementById("photo-detail");
-const orientationButtons = document.getElementById("orientation-buttons");
-const columnsButtons = document.getElementById("columns-buttons");
-const columnsLabel = document.getElementById("columns-label");
-const gapButtons = document.getElementById("gap-buttons");
-
-// =============================================================================
-// State
-// =============================================================================
-
-let currentOrientation = "vertical";
-let currentColumns = 4;
-let currentGap = 8;
 let action = null;
-let listInstance = null;
-let statsRaf = null;
+let firstVisibleIndex = 0;
 
-// =============================================================================
-// Create Grid
-// =============================================================================
+function getItemConfig(mode, orientation) {
+  if (mode === "masonry") {
+    return {
+      height: (_index, ctx) =>
+        ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
+      width:
+        orientation === "horizontal"
+          ? (_index, ctx) =>
+              ctx
+                ? Math.round(ctx.columnWidth * items[_index].aspectRatio)
+                : 200
+          : undefined,
+      template: itemTemplate,
+    };
+  }
 
-function createGrid(orientation, columns, gap) {
+  // Grid mode
+  if (orientation === "horizontal") {
+    const container = document.getElementById("grid-container");
+    const innerHeight = container.clientHeight - 2;
+    const colWidth =
+      (innerHeight - (currentColumns - 1) * currentGap) / currentColumns;
+
+    return {
+      height: Math.round(colWidth),
+      width: (_index, ctx) =>
+        ctx ? Math.round(ctx.columnWidth * (4 / 3)) : 200,
+      template: itemTemplate,
+    };
+  }
+
+  return {
+    height: (_index, ctx) =>
+      ctx ? Math.round(ctx.columnWidth * ASPECT_RATIO) : 200,
+    template: itemTemplate,
+  };
+}
+
+function createView() {
   // Destroy previous action
   if (action && action.destroy) {
     action.destroy();
     action = null;
-    listInstance = null;
+    setList(null);
   }
 
-  // Clear container
+  const container = document.getElementById("grid-container");
   container.innerHTML = "";
 
-  // Calculate item dimensions to maintain 4:3 landscape aspect ratio.
-  // colWidth = cross-axis cell size:
-  //   vertical mode  → derived from container width  (cross-axis = horizontal)
-  //   horizontal mode → derived from container height (cross-axis = vertical)
-  let colWidth;
-  if (orientation === "horizontal") {
-    const innerHeight = container.clientHeight - 2; // account for border
-    colWidth = (innerHeight - (columns - 1) * gap) / columns;
-  } else {
-    const innerWidth = container.clientWidth - 2;
-    colWidth = (innerWidth - (columns - 1) * gap) / columns;
-  }
+  const mode = currentMode;
+  const orientation = currentOrientation;
+  const columns = currentColumns;
+  const gap = currentGap;
 
-  let height, width;
-  if (orientation === "horizontal") {
-    // CSS width = horizontal extent = item.width - gap (main axis)
-    // CSS height = vertical extent  = colWidth         (cross axis)
-    // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
-    //   → item.width = colWidth * (4/3) + gap
-    width = Math.round(colWidth * (4 / 3) + gap);
-    height = Math.round(colWidth); // cross-axis (vertical extent)
-  } else {
-    // CSS width = colWidth, CSS height = item.height - gap
-    // For 4:3: item.height ≈ colWidth * 0.75
-    width = Math.round(colWidth);
-    height = Math.round(colWidth * 0.75);
-  }
+  const layoutConfig =
+    mode === "masonry"
+      ? { layout: "masonry", masonry: { columns, gap } }
+      : { layout: "grid", grid: { columns, gap } };
 
-  // Create vlist action with builder pattern
+  // Create vlist via Svelte action with declarative config
   action = vlist(container, {
     config: {
       ariaLabel: "Photo gallery",
       orientation,
-      layout: "grid",
-      grid: {
-        columns,
-        gap,
-      },
-      item: {
-        height,
-        width: orientation === "horizontal" ? width : undefined,
-        template: itemTemplate,
-      },
+      ...layoutConfig,
+      item: getItemConfig(mode, orientation),
       items,
       scroll: {
-        scrollbar: {
-          autoHide: true,
-        },
+        scrollbar: { autoHide: true },
       },
     },
     onInstance: (inst) => {
-      listInstance = inst;
-      bindListEvents();
-      updateStats();
-      updateGridInfo(orientation, columns, gap, width, height);
+      setList(inst);
+
+      // Wire events
+      onVListEvent(inst, "scroll", () => stats.scheduleUpdate());
+      onVListEvent(inst, "range:change", ({ range }) => {
+        firstVisibleIndex =
+          mode === "grid" ? range.start * columns : range.start;
+        stats.scheduleUpdate();
+      });
+      onVListEvent(inst, "velocity:change", ({ velocity }) =>
+        stats.onVelocity(velocity),
+      );
+      onVListEvent(inst, "item:click", ({ item }) => {
+        showDetail(item);
+      });
+
+      // Restore scroll position to first visible item
+      if (firstVisibleIndex > 0) {
+        inst.scrollToIndex(firstVisibleIndex, "start");
+      }
+
+      stats.update();
+      updateContext();
     },
   });
 }
 
-// =============================================================================
-// Event Bindings
-// =============================================================================
-
-function bindListEvents() {
-  if (!listInstance) return;
-
-  onVListEvent(listInstance, "scroll", () => scheduleStatsUpdate());
-
-  onVListEvent(listInstance, "range:change", ({ range }) => {
-    visibleRangeEl.textContent = `rows ${range.start} – ${range.end}`;
-    scheduleStatsUpdate();
-  });
-
-  onVListEvent(listInstance, "item:click", ({ item }) => {
-    showDetail(item);
-  });
-}
+// Register createView so controls.js can call it
+setCreateView(createView);
 
 // =============================================================================
-// Stats
+// Photo detail (panel)
 // =============================================================================
 
-function scheduleStatsUpdate() {
-  if (statsRaf) return;
-  statsRaf = requestAnimationFrame(() => {
-    statsRaf = null;
-    updateStats();
-  });
-}
-
-function updateStats() {
-  const isH = currentOrientation === "horizontal";
-  const domNodes = document.querySelectorAll(".vlist-item").length;
-  const totalGroups = Math.ceil(ITEM_COUNT / currentColumns);
-  const saved = ((1 - domNodes / ITEM_COUNT) * 100).toFixed(1);
-  const groupLabel = isH ? "Columns" : "Rows";
-
-  statsEl.innerHTML =
-    `<strong>Photos:</strong> ${ITEM_COUNT}` +
-    ` · <strong>${groupLabel}:</strong> ${totalGroups}` +
-    ` · <strong>DOM:</strong> ${domNodes}` +
-    ` · <strong>Virtualized:</strong> ${saved}%`;
-}
-
-function updateGridInfo(orientation, columns, gap, width, height) {
-  const isH = orientation === "horizontal";
-  const crossLabel = isH ? "Rows" : "Columns";
-
-  // Show visual dimensions (what you actually see on screen)
-  const displayW = isH ? width - gap : width;
-  const displayH = isH ? height : Math.max(0, height - gap);
-
-  gridInfoEl.innerHTML =
-    `<strong>Orientation:</strong> ${orientation}` +
-    ` · <strong>${crossLabel}:</strong> ${columns}` +
-    ` · <strong>Gap:</strong> ${gap}px` +
-    ` · <strong>Item:</strong> ${displayW}×${displayH}px` +
-    ` · <strong>Aspect:</strong> 4:3`;
-}
-
-// =============================================================================
-// Photo Detail
-// =============================================================================
+const detailEl = document.getElementById("photo-detail");
 
 function showDetail(item) {
   detailEl.innerHTML = `
@@ -236,75 +170,19 @@ function showDetail(item) {
 }
 
 // =============================================================================
-// Controls
+// Footer — right side (contextual)
 // =============================================================================
 
-orientationButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-orientation]");
-  if (!btn) return;
+const ftMode = document.getElementById("ft-mode");
+const ftOrientation = document.getElementById("ft-orientation");
 
-  const orientation = btn.dataset.orientation;
-  if (orientation === currentOrientation) return;
-  currentOrientation = orientation;
-
-  orientationButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle(
-      "ctrl-btn--active",
-      b.dataset.orientation === orientation,
-    );
-  });
-
-  // Update label to reflect cross-axis meaning
-  columnsLabel.textContent = orientation === "horizontal" ? "Rows" : "Columns";
-
-  createGrid(currentOrientation, currentColumns, currentGap);
-});
-
-columnsButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-cols]");
-  if (!btn) return;
-
-  const cols = parseInt(btn.dataset.cols, 10);
-  if (cols === currentColumns) return;
-  currentColumns = cols;
-
-  columnsButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.cols) === cols);
-  });
-
-  createGrid(currentOrientation, currentColumns, currentGap);
-});
-
-gapButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-gap]");
-  if (!btn) return;
-
-  const gap = parseInt(btn.dataset.gap, 10);
-  if (gap === currentGap) return;
-  currentGap = gap;
-
-  gapButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.gap) === gap);
-  });
-
-  createGrid(currentOrientation, currentColumns, currentGap);
-});
-
-// Navigation buttons
-document.getElementById("btn-first").addEventListener("click", () => {
-  listInstance?.scrollToIndex(0, "start");
-});
-
-document.getElementById("btn-middle").addEventListener("click", () => {
-  listInstance?.scrollToIndex(Math.floor(ITEM_COUNT / 2), "center");
-});
-
-document.getElementById("btn-last").addEventListener("click", () => {
-  listInstance?.scrollToIndex(ITEM_COUNT - 1, "end");
-});
+function updateContext() {
+  ftMode.textContent = currentMode;
+  ftOrientation.textContent = currentOrientation;
+}
 
 // =============================================================================
-// Initialize
+// Initialise
 // =============================================================================
 
-createGrid(currentOrientation, currentColumns, currentGap);
+createView();

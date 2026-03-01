@@ -1,260 +1,230 @@
-// Grid Photo Album — React
-// Uses vlist/builder with withGrid + withScrollbar plugins
-// Demonstrates a virtualized 2D photo gallery with React hooks
+// Photo Album — React variant
+// Uses useVList hook from vlist-react with declarative layout config
+// Layout mode toggle: Grid ↔ Masonry
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { vlist, withGrid, withScrollbar } from "vlist";
+import { useVList, useVListEvent } from "vlist-react";
+import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
+import { createStats } from "../../stats.js";
 
 // =============================================================================
-// Data Generation
+// Stats (module-level — shared across remounts)
 // =============================================================================
 
-const PHOTO_COUNT = 1084;
-const ITEM_COUNT = 600;
+let statsInstance: ReturnType<typeof createStats> | null = null;
 
-const categories = [
-  "Nature",
-  "Urban",
-  "Portrait",
-  "Abstract",
-  "Travel",
-  "Food",
-  "Animals",
-  "Architecture",
-  "Art",
-  "Space",
-];
+// =============================================================================
+// Grid Container — keyed component that remounts on config change
+// =============================================================================
 
-const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
-  const picId = i % PHOTO_COUNT;
-  const category = categories[i % categories.length];
+function GridContainer({
+  mode,
+  orientation,
+  columns,
+  gap,
+  onItem,
+}: {
+  mode: "grid" | "masonry";
+  orientation: "vertical" | "horizontal";
+  columns: number;
+  gap: number;
+  onItem: (item: any) => void;
+}) {
+  const itemConfig = getItemConfig(mode, orientation, columns, gap);
+
+  const layoutConfig =
+    mode === "masonry"
+      ? { layout: "masonry" as const, masonry: { columns, gap } }
+      : { layout: "grid" as const, grid: { columns, gap } };
+
+  const { containerRef, instanceRef } = useVList({
+    ariaLabel: "Photo gallery",
+    orientation,
+    ...layoutConfig,
+    item: itemConfig,
+    items,
+    scroll: {
+      scrollbar: { autoHide: true },
+    },
+  });
+
+  // Wire stats
+  useEffect(() => {
+    if (!statsInstance) {
+      statsInstance = createStats({
+        getList: () => instanceRef.current,
+        getTotal: () => ITEM_COUNT,
+        getItemHeight: () => {
+          const el = document.getElementById("grid-container");
+          if (!el) return 200;
+          const innerWidth = el.clientWidth - 2;
+          const colW = (innerWidth - (columns - 1) * gap) / columns;
+          return mode === "masonry"
+            ? Math.round(colW * 1.05)
+            : Math.round(colW * ASPECT_RATIO);
+        },
+        container: "#grid-container",
+      });
+    }
+    statsInstance.update();
+  }, []);
+
+  useVListEvent(instanceRef, "scroll", () => {
+    statsInstance?.scheduleUpdate();
+  });
+
+  useVListEvent(instanceRef, "range:change", ({ range }) => {
+    statsInstance?.scheduleUpdate();
+  });
+
+  useVListEvent(instanceRef, "velocity:change", ({ velocity }) => {
+    statsInstance?.onVelocity(velocity);
+  });
+
+  useVListEvent(instanceRef, "item:click", ({ item }) => {
+    onItem(item);
+  });
+
+  return <div ref={containerRef} id="grid-container" />;
+}
+
+// =============================================================================
+// Item config helper
+// =============================================================================
+
+function getItemConfig(
+  mode: string,
+  orientation: string,
+  columns: number,
+  gap: number,
+) {
+  if (mode === "masonry") {
+    return {
+      height: (_index: number, ctx: any) =>
+        ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
+      width:
+        orientation === "horizontal"
+          ? (_index: number, ctx: any) =>
+              ctx
+                ? Math.round(ctx.columnWidth * items[_index].aspectRatio)
+                : 200
+          : undefined,
+      template: itemTemplate,
+    };
+  }
+
+  // Grid — horizontal needs fixed cross-axis height
+  if (orientation === "horizontal") {
+    return {
+      height: 200, // will be overridden by grid renderer
+      width: (_index: number, ctx: any) =>
+        ctx ? Math.round(ctx.columnWidth * (4 / 3)) : 200,
+      template: itemTemplate,
+    };
+  }
+
   return {
-    id: i + 1,
-    title: `Photo ${i + 1}`,
-    category,
-    likes: Math.floor(Math.random() * 500),
-    picId,
+    height: (_index: number, ctx: any) =>
+      ctx ? Math.round(ctx.columnWidth * ASPECT_RATIO) : 200,
+    template: itemTemplate,
   };
-});
-
-// =============================================================================
-// Item Template
-// =============================================================================
-
-const itemTemplate = (item: (typeof items)[0]) => `
-  <div class="card">
-    <img
-      class="card__img"
-      src="https://picsum.photos/id/${item.picId}/300/225"
-      alt="${item.title}"
-      loading="lazy"
-      decoding="async"
-    />
-    <div class="card__overlay">
-      <span class="card__title">${item.title}</span>
-      <span class="card__category">${item.category}</span>
-    </div>
-    <div class="card__likes">♥ ${item.likes}</div>
-  </div>
-`;
+}
 
 // =============================================================================
 // App Component
 // =============================================================================
 
 function App() {
+  const [mode, setMode] = useState<"grid" | "masonry">("grid");
   const [orientation, setOrientation] = useState<"vertical" | "horizontal">(
     "vertical",
   );
   const [columns, setColumns] = useState(4);
   const [gap, setGap] = useState(8);
-  const [stats, setStats] = useState({
-    domNodes: 0,
-    rows: 0,
-    saved: "0.0",
-  });
-  const [visibleRange, setVisibleRange] = useState("–");
-  const [selectedPhoto, setSelectedPhoto] = useState<(typeof items)[0] | null>(
-    null,
-  );
-  const [gridInfo, setGridInfo] = useState({
-    orientation: "vertical" as "vertical" | "horizontal",
-    columns: 4,
-    gap: 8,
-    width: 0,
-    height: 0,
-  });
+  const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const instanceRef = useRef<any>(null);
-  const statsRafRef = useRef<number | null>(null);
+  // Key forces full remount when layout config changes
+  const listKey = `${mode}-${orientation}-${columns}-${gap}`;
 
-  // Update stats
-  const updateStats = useCallback(() => {
-    const domNodes = document.querySelectorAll(".vlist-item").length;
-    const totalRows = Math.ceil(ITEM_COUNT / columns);
-    const saved = ((1 - domNodes / ITEM_COUNT) * 100).toFixed(1);
-    setStats({ domNodes, rows: totalRows, saved });
-  }, [columns]);
-
-  const scheduleStatsUpdate = useCallback(() => {
-    if (statsRafRef.current) return;
-    statsRafRef.current = requestAnimationFrame(() => {
-      statsRafRef.current = null;
-      updateStats();
-    });
-  }, [updateStats]);
-
-  // Create/recreate list instance
+  // Update footer context
   useEffect(() => {
-    if (!containerRef.current) return;
+    const ftMode = document.getElementById("ft-mode");
+    const ftOrientation = document.getElementById("ft-orientation");
+    if (ftMode) ftMode.textContent = mode;
+    if (ftOrientation) ftOrientation.textContent = orientation;
+  }, [mode, orientation]);
 
-    // Destroy previous instance
-    if (instanceRef.current) {
-      instanceRef.current.destroy();
-      instanceRef.current = null;
-    }
-
-    // Clear container
-    containerRef.current.innerHTML = "";
-
-    // Calculate item dimensions to maintain 4:3 landscape aspect ratio.
-    // colWidth = cross-axis cell size:
-    //   vertical mode  → derived from container width  (cross-axis = horizontal)
-    //   horizontal mode → derived from container height (cross-axis = vertical)
-    let colWidth: number;
-    if (orientation === "horizontal") {
-      const innerHeight = containerRef.current.clientHeight - 2;
-      colWidth = (innerHeight - (columns - 1) * gap) / columns;
-    } else {
-      const innerWidth = containerRef.current.clientWidth - 2;
-      colWidth = (innerWidth - (columns - 1) * gap) / columns;
-    }
-
-    let height: number, width: number;
-    if (orientation === "horizontal") {
-      // CSS width = horizontal extent = item.width - gap (main axis)
-      // CSS height = vertical extent  = colWidth         (cross axis)
-      // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
-      //   → item.width = colWidth * (4/3) + gap
-      width = Math.round(colWidth * (4 / 3) + gap);
-      height = Math.round(colWidth); // cross-axis (vertical extent)
-    } else {
-      // CSS width = colWidth, CSS height = item.height - gap
-      // For 4:3: item.height ≈ colWidth * 0.75
-      width = Math.round(colWidth);
-      height = Math.round(colWidth * 0.75);
-    }
-
-    // Update grid info
-    setGridInfo({ orientation, columns, gap, width, height });
-
-    // Create new instance
-    instanceRef.current = vlist({
-      container: containerRef.current,
-      ariaLabel: "Photo gallery",
-      orientation,
-      item: {
-        height,
-        width: orientation === "horizontal" ? width : undefined,
-        template: itemTemplate,
-      },
-      items,
-    })
-      .use(withGrid({ columns, gap }))
-      .use(withScrollbar({ autoHide: true }))
-      .build();
-
-    // Bind events
-    instanceRef.current.on("scroll", scheduleStatsUpdate);
-    instanceRef.current.on("range:change", ({ range }: any) => {
-      setVisibleRange(`rows ${range.start} – ${range.end}`);
-      scheduleStatsUpdate();
-    });
-    instanceRef.current.on("item:click", ({ item }: any) => {
-      setSelectedPhoto(item);
-    });
-
-    updateStats();
-
-    // Cleanup
-    return () => {
-      if (instanceRef.current) {
-        instanceRef.current.destroy();
-        instanceRef.current = null;
-      }
-    };
-  }, [orientation, columns, gap, updateStats, scheduleStatsUpdate]);
-
-  // Navigation helpers
-  const scrollToFirst = useCallback(() => {
-    instanceRef.current?.scrollToIndex(0, "start");
-  }, []);
-
-  const scrollToMiddle = useCallback(() => {
-    instanceRef.current?.scrollToIndex(Math.floor(ITEM_COUNT / 2), "center");
-  }, []);
-
-  const scrollToLast = useCallback(() => {
-    instanceRef.current?.scrollToIndex(ITEM_COUNT - 1, "end");
+  const scrollTo = useCallback((target: "first" | "middle" | "last") => {
+    const el = document.querySelector("#grid-container .vlist-viewport");
+    if (!el) return;
+    // Access instance via DOM — the useVList hook manages it internally
+    const idx =
+      target === "first"
+        ? 0
+        : target === "middle"
+          ? Math.floor(ITEM_COUNT / 2)
+          : ITEM_COUNT - 1;
+    // Use the instance ref from the child — we need a different approach
+    // Dispatch a custom event that the container can listen for
+    window.dispatchEvent(
+      new CustomEvent("photo-album:scroll-to", { detail: { index: idx } }),
+    );
   }, []);
 
   return (
     <div className="container">
       <header>
-        <h1>Builder · Grid</h1>
+        <h1>Photo Album</h1>
         <p className="description">
-          Composable entry point – <code>vlist/builder</code> with{" "}
-          <code>withGrid</code> + <code>withScrollbar</code> plugins.
           Virtualized 2D photo gallery with real images from Lorem Picsum.
-          Configurable columns and gap — only visible rows are rendered.
+          Toggle between grid and masonry layouts, adjust columns and gap — only
+          visible rows are rendered.
         </p>
       </header>
 
-      <div className="stats">
-        <strong>Photos:</strong> {ITEM_COUNT} ·{" "}
-        <strong>{orientation === "horizontal" ? "Columns" : "Rows"}:</strong>{" "}
-        {stats.rows} · <strong>DOM:</strong> {stats.domNodes} ·{" "}
-        <strong>Virtualized:</strong> {stats.saved}%
-      </div>
-
-      <div className="grid-info">
-        <strong>Orientation:</strong> {gridInfo.orientation} ·{" "}
-        <strong>{orientation === "horizontal" ? "Rows" : "Columns"}:</strong>{" "}
-        {gridInfo.columns} · <strong>Gap:</strong> {gridInfo.gap}px ·{" "}
-        <strong>Item:</strong>{" "}
-        {orientation === "horizontal"
-          ? gridInfo.width - gridInfo.gap
-          : gridInfo.width}
-        ×
-        {orientation === "horizontal"
-          ? gridInfo.height
-          : Math.max(0, gridInfo.height - gridInfo.gap)}
-        px · <strong>Aspect:</strong> 4:3
-      </div>
-
       <div className="split-layout">
-        <div className="split-main">
-          <div ref={containerRef} id="grid-container" />
+        <div className="split-main split-main--full">
+          <GridContainer
+            key={listKey}
+            mode={mode}
+            orientation={orientation}
+            columns={columns}
+            gap={gap}
+            onItem={setSelectedPhoto}
+          />
         </div>
 
         <aside className="split-panel">
-          {/* Grid Controls */}
+          {/* Layout */}
           <section className="panel-section">
-            <h3 className="panel-title">Grid</h3>
+            <h3 className="panel-title">Layout</h3>
+
+            <div className="panel-row">
+              <label className="panel-label">Mode</label>
+              <div className="panel-segmented">
+                {(["grid", "masonry"] as const).map((m) => (
+                  <button
+                    key={m}
+                    className={`panel-segmented__btn${m === mode ? " panel-segmented__btn--active" : ""}`}
+                    onClick={() => setMode(m)}
+                  >
+                    {m === "grid" ? "Grid" : "Masonry"}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="panel-row">
               <label className="panel-label">Orientation</label>
-              <div className="panel-btn-group">
-                {(["vertical", "horizontal"] as const).map((orient) => (
+              <div className="panel-segmented">
+                {(["vertical", "horizontal"] as const).map((o) => (
                   <button
-                    key={orient}
-                    data-orientation={orient}
-                    className={`ctrl-btn ${orient === orientation ? "ctrl-btn--active" : ""}`}
-                    onClick={() => setOrientation(orient)}
+                    key={o}
+                    className={`panel-segmented__btn${o === orientation ? " panel-segmented__btn--active" : ""}`}
+                    onClick={() => setOrientation(o)}
                   >
-                    {orient === "vertical" ? "Vertical" : "Horizontal"}
+                    {o === "vertical" ? "Vertical" : "Horizontal"}
                   </button>
                 ))}
               </div>
@@ -265,14 +235,13 @@ function App() {
                 {orientation === "horizontal" ? "Rows" : "Columns"}
               </label>
               <div className="panel-btn-group">
-                {[2, 3, 4, 5, 6].map((cols) => (
+                {[3, 4, 5, 6, 10].map((c) => (
                   <button
-                    key={cols}
-                    data-cols={cols}
-                    className={`ctrl-btn ${cols === columns ? "ctrl-btn--active" : ""}`}
-                    onClick={() => setColumns(cols)}
+                    key={c}
+                    className={`ctrl-btn${c === columns ? " ctrl-btn--active" : ""}`}
+                    onClick={() => setColumns(c)}
                   >
-                    {cols}
+                    {c}
                   </button>
                 ))}
               </div>
@@ -281,14 +250,13 @@ function App() {
             <div className="panel-row">
               <label className="panel-label">Gap</label>
               <div className="panel-btn-group">
-                {[0, 4, 8, 12, 16].map((gapValue) => (
+                {[0, 4, 8, 12, 16].map((g) => (
                   <button
-                    key={gapValue}
-                    data-gap={gapValue}
-                    className={`ctrl-btn ${gapValue === gap ? "ctrl-btn--active" : ""}`}
-                    onClick={() => setGap(gapValue)}
+                    key={g}
+                    className={`ctrl-btn${g === gap ? " ctrl-btn--active" : ""}`}
+                    onClick={() => setGap(g)}
                   >
-                    {gapValue}
+                    {g}
                   </button>
                 ))}
               </div>
@@ -299,22 +267,29 @@ function App() {
           <section className="panel-section">
             <h3 className="panel-title">Navigation</h3>
             <div className="panel-row">
-              <label className="panel-label">Quick jump</label>
               <div className="panel-btn-group">
-                <button className="panel-btn" onClick={scrollToFirst}>
-                  First
+                <button
+                  className="panel-btn panel-btn--icon"
+                  title="First"
+                  onClick={() => scrollTo("first")}
+                >
+                  <i className="icon icon--up" />
                 </button>
-                <button className="panel-btn" onClick={scrollToMiddle}>
-                  Middle
+                <button
+                  className="panel-btn panel-btn--icon"
+                  title="Middle"
+                  onClick={() => scrollTo("middle")}
+                >
+                  <i className="icon icon--center" />
                 </button>
-                <button className="panel-btn" onClick={scrollToLast}>
-                  Last
+                <button
+                  className="panel-btn panel-btn--icon"
+                  title="Last"
+                  onClick={() => scrollTo("last")}
+                >
+                  <i className="icon icon--down" />
                 </button>
               </div>
-            </div>
-            <div className="panel-row">
-              <span className="panel-label">Range</span>
-              <span className="panel-value">{visibleRange}</span>
             </div>
           </section>
 
@@ -346,13 +321,29 @@ function App() {
         </aside>
       </div>
 
-      <footer>
-        <p>
-          The builder's <code>withGrid</code> plugin replaces the list renderer
-          with a grid renderer. The virtualizer works in row-space — it only
-          materializes DOM for visible rows. Column width auto-adjusts on
-          resize. 📸
-        </p>
+      <footer className="example-footer" id="example-footer">
+        <div className="example-footer__left">
+          <span className="example-footer__stat">
+            <strong id="ft-progress">0%</strong>
+          </span>
+          <span className="example-footer__stat">
+            <span id="ft-velocity">0.00</span> /{" "}
+            <strong id="ft-velocity-avg">0.00</strong>
+            <span className="example-footer__unit">px/ms</span>
+          </span>
+          <span className="example-footer__stat">
+            <span id="ft-dom">0</span> / <strong id="ft-total">0</strong>
+            <span className="example-footer__unit">items</span>
+          </span>
+        </div>
+        <div className="example-footer__right">
+          <span className="example-footer__stat">
+            <strong id="ft-mode">grid</strong>
+          </span>
+          <span className="example-footer__stat">
+            <strong id="ft-orientation">vertical</strong>
+          </span>
+        </div>
       </footer>
     </div>
   );
@@ -362,7 +353,4 @@ function App() {
 // Mount
 // =============================================================================
 
-const root = document.getElementById("react-root");
-if (root) {
-  createRoot(root).render(<App />);
-}
+createRoot(document.getElementById("react-root")!).render(<App />);

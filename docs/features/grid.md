@@ -107,33 +107,33 @@ item: {
 
 #### Dynamic Height (Function)
 
-For aspect ratios or content-based heights:
+For aspect ratios or content-based heights, use a function with two parameters — the item **index** and a **context** object:
 
 ```js
 item: {
-  height: ({ containerWidth, columns, gap }) => {
-    // Calculate column width
-    const colWidth = (containerWidth - (columns - 1) * gap) / columns
-    
-    // Return height for 4:3 aspect ratio
-    return Math.round(colWidth * 0.75)
+  height: (index, { columnWidth }) => {
+    // columnWidth is precomputed and updates automatically on resize
+    return Math.round(columnWidth * 0.75) // 4:3 aspect ratio
   },
   template: renderItem,
 }
 ```
 
-The height function receives a context object with:
+The height function signature is `(index, context)` where context contains:
+- `columnWidth` — Current column width in pixels (precomputed, updates on resize)
 - `containerWidth` — Current container width in pixels
 - `columns` — Number of columns
-- `gap` — Gap between items
-- `row` — Row index (0-based)
-- `column` — Column index (0-based)
+- `gap` — Gap between items in pixels
+- `row` — Row index of this item (0-based)
+- `column` — Column index of this item (0-based)
 - `totalRows` — Total number of rows
 - `totalColumns` — Current number of columns
 
+> **Responsive by default:** When you use a height function with `columnWidth`, item heights automatically recalculate on container resize — no manual intervention needed.
+
 ## Dynamic Aspect Ratios
 
-Use a height function to maintain aspect ratios across different column configurations:
+Use a height function with `columnWidth` from the context to maintain aspect ratios. The height recalculates automatically when the container is resized or columns change:
 
 ### Example: 4:3 Landscape Aspect Ratio
 
@@ -141,10 +141,7 @@ Use a height function to maintain aspect ratios across different column configur
 const gallery = vlist({
   container: '#gallery',
   item: {
-    height: ({ containerWidth, columns, gap }) => {
-      const colWidth = (containerWidth - (columns - 1) * gap) / columns
-      return Math.round(colWidth * 0.75) // 4:3 aspect ratio
-    },
+    height: (_index, { columnWidth }) => Math.round(columnWidth * 0.75),
     template: (item) => `
       <div class="card">
         <img src="${item.url}" alt="${item.title}" loading="lazy" />
@@ -164,28 +161,16 @@ const gallery = vlist({
 
 ```js
 // Square (1:1)
-height: ({ containerWidth, columns, gap }) => {
-  const colWidth = (containerWidth - (columns - 1) * gap) / columns
-  return Math.round(colWidth)
-}
+height: (_index, { columnWidth }) => Math.round(columnWidth)
 
 // 16:9 Widescreen
-height: ({ containerWidth, columns, gap }) => {
-  const colWidth = (containerWidth - (columns - 1) * gap) / columns
-  return Math.round(colWidth * (9 / 16))
-}
+height: (_index, { columnWidth }) => Math.round(columnWidth * (9 / 16))
 
 // 4:3 Landscape
-height: ({ containerWidth, columns, gap }) => {
-  const colWidth = (containerWidth - (columns - 1) * gap) / columns
-  return Math.round(colWidth * 0.75)
-}
+height: (_index, { columnWidth }) => Math.round(columnWidth * 0.75)
 
 // 3:4 Portrait
-height: ({ containerWidth, columns, gap }) => {
-  const colWidth = (containerWidth - (columns - 1) * gap) / columns
-  return Math.round(colWidth * (4 / 3))
-}
+height: (_index, { columnWidth }) => Math.round(columnWidth * (4 / 3))
 ```
 
 ## Orientation Support
@@ -199,7 +184,8 @@ const gallery = vlist({
   container: '#gallery',
   orientation: 'vertical', // Default
   item: {
-    height: 200,
+    // columnWidth adapts on resize — aspect ratio preserved
+    height: (_index, { columnWidth }) => Math.round(columnWidth * 0.75),
     template: renderItem,
   },
   items: photos,
@@ -208,7 +194,7 @@ const gallery = vlist({
 .build()
 ```
 
-Scrolls **vertically**, columns arranged **horizontally**.
+Scrolls **vertically**, columns arranged **horizontally**. The context's `columnWidth` is the width of each column.
 
 ### Horizontal Grid
 
@@ -217,8 +203,9 @@ const gallery = vlist({
   container: '#gallery',
   orientation: 'horizontal',
   item: {
-    height: 200, // This becomes the cross-axis size (vertical extent)
-    width: 300,  // Required for horizontal orientation
+    height: 200, // Fixed cross-axis size (vertical extent)
+    // width function receives the same context — columnWidth is now each row's height
+    width: (_index, { columnWidth }) => Math.round(columnWidth * (4 / 3)),
     template: renderItem,
   },
   items: photos,
@@ -227,9 +214,11 @@ const gallery = vlist({
 .build()
 ```
 
-Scrolls **horizontally**, columns arranged **vertically**.
+Scrolls **horizontally**, columns arranged **vertically**. In horizontal mode, `columns` controls the number of **rows**, and `columnWidth` in the context is each row's height.
 
-**Note:** In horizontal mode, you must specify both `height` and `width` in the item config.
+**Note:** In horizontal mode, you must specify both `height` and `width` in the item config. The `width` function receives the same context object as `height`.
+
+> The context object works identically in both orientations — `columnWidth` always refers to the cross-axis cell size, adapting automatically on resize.
 
 ## API Reference
 
@@ -317,10 +306,8 @@ import { vlist, withGrid } from '@floor/vlist'
 const gallery = vlist({
   container: '#gallery',
   item: {
-    height: ({ containerWidth, columns, gap }) => {
-      const colWidth = (containerWidth - (columns - 1) * gap) / columns
-      return Math.round(colWidth * 0.75) // 4:3 aspect ratio
-    },
+    // Aspect ratio maintained automatically on resize
+    height: (_index, { columnWidth }) => Math.round(columnWidth * 0.75),
     template: (item) => `
       <div class="card">
         <img 
@@ -340,7 +327,7 @@ const gallery = vlist({
 .use(withGrid({ columns: 4, gap: 8 }))
 .build()
 
-// Update columns on resize
+// Update column count based on viewport width
 function updateColumns() {
   const width = window.innerWidth
   let columns = 4
@@ -350,9 +337,7 @@ function updateColumns() {
   else if (width < 1536) columns = 4
   else columns = 5
   
-  // Recreate with new columns
-  gallery.destroy()
-  // Create new instance with updated columns
+  gallery.updateGrid({ columns })
 }
 
 window.addEventListener('resize', updateColumns)
@@ -366,9 +351,8 @@ import { vlist, withGrid, withSelection } from '@floor/vlist'
 const catalog = vlist({
   container: '#catalog',
   item: {
-    height: ({ containerWidth, columns, gap }) => {
-      const colWidth = (containerWidth - (columns - 1) * gap) / columns
-      return Math.round(colWidth * 1.3) // Taller for product info
+    height: (_index, { columnWidth }) => {
+      return Math.round(columnWidth * 1.3) // Taller for product info
     },
     template: (item) => `
       <div class="product">
@@ -396,7 +380,7 @@ catalog.on('selection:change', ({ selectedIndices }) => {
 const masonry = vlist({
   container: '#masonry',
   item: {
-    height: ({ row, column }) => {
+    height: (index, { row, column }) => {
       // Vary height based on position
       const seed = row * 10 + column
       const isSquare = seed % 3 === 0
@@ -425,10 +409,8 @@ const masonry = vlist({
 const icons = vlist({
   container: '#icons',
   item: {
-    height: ({ containerWidth, columns, gap }) => {
-      // Square items
-      const colWidth = (containerWidth - (columns - 1) * gap) / columns
-      return Math.round(colWidth)
+    height: (_index, { columnWidth }) => {
+      return Math.round(columnWidth) // Square items
     },
     template: (item) => `
       <div class="icon">
@@ -612,19 +594,16 @@ Now use `.my-grid--grid` and `.my-grid-item` in your CSS.
 
 ### 1. Use Dynamic Height for Aspect Ratios
 
-**✅ Good** — Maintains aspect ratio across column changes:
+**✅ Good** — Maintains aspect ratio across column changes and resize:
 
 ```js
-height: ({ containerWidth, columns, gap }) => {
-  const colWidth = (containerWidth - (columns - 1) * gap) / columns
-  return Math.round(colWidth * 0.75) // 4:3
-}
+height: (_index, { columnWidth }) => Math.round(columnWidth * 0.75) // 4:3
 ```
 
-**❌ Bad** — Breaks aspect ratio when columns change:
+**❌ Bad** — Breaks aspect ratio when columns change or container resizes:
 
 ```js
-height: 200 // Fixed height
+height: 200 // Fixed height — will not adapt
 ```
 
 ### 2. Consider Container Padding
@@ -710,16 +689,15 @@ template: (item) => `
 - Gap value is correct (not too large)
 - Template elements don't have margins that interfere with layout
 
-### Aspect ratio breaks when columns change
+### Aspect ratio breaks when columns change or on resize
 
-**Solution:** Use a dynamic height function instead of fixed height:
+**Solution:** Use a dynamic height function with `columnWidth` from the context:
 
 ```js
-height: ({ containerWidth, columns, gap }) => {
-  const colWidth = (containerWidth - (columns - 1) * gap) / columns
-  return Math.round(colWidth * desiredAspectRatio)
-}
+height: (_index, { columnWidth }) => Math.round(columnWidth * desiredAspectRatio)
 ```
+
+The context's `columnWidth` is always up-to-date — it recalculates automatically when the container resizes or columns change via `updateGrid()`.
 
 ### Images not loading
 

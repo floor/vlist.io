@@ -1,229 +1,197 @@
-// Grid Photo Album — Vue
-// Uses vlist/builder with withGrid + withScrollbar plugins
-// Demonstrates a virtualized 2D photo gallery with Vue composition API
+// Photo Album — Vue variant
+// Uses useVList composable from vlist-vue with declarative layout config
+// Layout mode toggle: Grid ↔ Masonry
 
-import { createApp, ref, onMounted, onUnmounted, watch } from "vue";
-import { vlist, withGrid, withScrollbar } from "vlist";
+import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { useVList, useVListEvent } from "vlist-vue";
+import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
+import { createStats } from "../../stats.js";
 
 // =============================================================================
-// Data Generation
+// Item config helpers
 // =============================================================================
 
-const PHOTO_COUNT = 1084;
-const ITEM_COUNT = 600;
+function getItemConfig(mode, orientation) {
+  if (mode === "masonry") {
+    return {
+      height: (_index, ctx) =>
+        ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
+      width:
+        orientation === "horizontal"
+          ? (_index, ctx) =>
+              ctx
+                ? Math.round(ctx.columnWidth * items[_index].aspectRatio)
+                : 200
+          : undefined,
+      template: itemTemplate,
+    };
+  }
 
-const categories = [
-  "Nature",
-  "Urban",
-  "Portrait",
-  "Abstract",
-  "Travel",
-  "Food",
-  "Animals",
-  "Architecture",
-  "Art",
-  "Space",
-];
+  // Grid — horizontal needs fixed cross-axis height
+  if (orientation === "horizontal") {
+    return {
+      height: 200,
+      width: (_index, ctx) =>
+        ctx ? Math.round(ctx.columnWidth * (4 / 3)) : 200,
+      template: itemTemplate,
+    };
+  }
 
-const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
-  const picId = i % PHOTO_COUNT;
-  const category = categories[i % categories.length];
   return {
-    id: i + 1,
-    title: `Photo ${i + 1}`,
-    category,
-    likes: Math.floor(Math.random() * 500),
-    picId,
+    height: (_index, ctx) =>
+      ctx ? Math.round(ctx.columnWidth * ASPECT_RATIO) : 200,
+    template: itemTemplate,
   };
-});
+}
 
 // =============================================================================
-// Item Template
+// Stats (module-level)
 // =============================================================================
 
-const itemTemplate = (item) => `
-  <div class="card">
-    <img
-      class="card__img"
-      src="https://picsum.photos/id/${item.picId}/300/225"
-      alt="${item.title}"
-      loading="lazy"
-      decoding="async"
-    />
-    <div class="card__overlay">
-      <span class="card__title">${item.title}</span>
-      <span class="card__category">${item.category}</span>
-    </div>
-    <div class="card__likes">♥ ${item.likes}</div>
-  </div>
-`;
+let statsInstance = null;
 
 // =============================================================================
-// App Component
+// App
 // =============================================================================
 
 const App = {
   setup() {
-    // State
+    const mode = ref("grid");
     const orientation = ref("vertical");
     const columns = ref(4);
     const gap = ref(8);
-    const stats = ref({
-      domNodes: 0,
-      rows: 0,
-      saved: "0.0",
-    });
-    const visibleRange = ref("–");
     const selectedPhoto = ref(null);
-    const gridInfo = ref({
-      orientation: "vertical",
-      columns: 4,
-      gap: 8,
-      width: 0,
-      height: 0,
+
+    // Computed layout config for useVList
+    const vlistConfig = computed(() => {
+      const m = mode.value;
+      const o = orientation.value;
+      const c = columns.value;
+      const g = gap.value;
+
+      const layoutConfig =
+        m === "masonry"
+          ? { layout: "masonry", masonry: { columns: c, gap: g } }
+          : { layout: "grid", grid: { columns: c, gap: g } };
+
+      return {
+        ariaLabel: "Photo gallery",
+        orientation: o,
+        ...layoutConfig,
+        item: getItemConfig(m, o),
+        items,
+        scroll: {
+          scrollbar: { autoHide: true },
+        },
+      };
     });
 
-    // Refs
     const containerRef = ref(null);
     const instance = ref(null);
-    let statsRaf = null;
 
-    // Update stats
-    const scheduleStatsUpdate = () => {
-      if (statsRaf) return;
-      statsRaf = requestAnimationFrame(() => {
-        statsRaf = null;
-        updateStats();
-      });
-    };
+    // Manual lifecycle — useVList doesn't support config changes (needs remount)
+    let cleanup = null;
 
-    const updateStats = () => {
-      const domNodes = document.querySelectorAll(".vlist-item").length;
-      const totalRows = Math.ceil(ITEM_COUNT / columns.value);
-      const saved = ((1 - domNodes / ITEM_COUNT) * 100).toFixed(1);
-      stats.value = { domNodes, rows: totalRows, saved };
-    };
-
-    // Create vlist instance
-    const createListInstance = () => {
+    function mount() {
       if (!containerRef.value) return;
 
-      // Destroy previous instance if exists
+      const config = vlistConfig.value;
+      const { useVList: _, ...rest } = config; // just use config directly
+
+      // Import and build manually since useVList is designed for single mount
+      import("vlist").then(
+        ({ vlist, withGrid, withMasonry, withScrollbar }) => {
+          let builder = vlist({
+            ...config,
+            container: containerRef.value,
+          });
+
+          if (config.layout === "grid" && config.grid) {
+            builder = builder.use(withGrid(config.grid));
+          }
+          if (config.layout === "masonry" && config.masonry) {
+            builder = builder.use(withMasonry(config.masonry));
+          }
+          builder = builder.use(withScrollbar({ autoHide: true }));
+
+          const inst = builder.build();
+          instance.value = inst;
+
+          // Stats
+          if (!statsInstance) {
+            statsInstance = createStats({
+              getList: () => instance.value,
+              getTotal: () => ITEM_COUNT,
+              getItemHeight: () => {
+                const el = containerRef.value;
+                if (!el) return 200;
+                const innerWidth = el.clientWidth - 2;
+                const colW =
+                  (innerWidth - (columns.value - 1) * gap.value) /
+                  columns.value;
+                return mode.value === "masonry"
+                  ? Math.round(colW * 1.05)
+                  : Math.round(colW * ASPECT_RATIO);
+              },
+              container: "#grid-container",
+            });
+          }
+
+          // Events
+          inst.on("scroll", () => statsInstance?.scheduleUpdate());
+          inst.on("range:change", () => statsInstance?.scheduleUpdate());
+          inst.on("velocity:change", ({ velocity }) =>
+            statsInstance?.onVelocity(velocity),
+          );
+          inst.on("item:click", ({ item }) => {
+            selectedPhoto.value = item;
+          });
+
+          statsInstance.update();
+          updateFooterContext();
+        },
+      );
+    }
+
+    function unmount() {
       if (instance.value) {
         instance.value.destroy();
         instance.value = null;
       }
-
-      // Clear container
-      containerRef.value.innerHTML = "";
-
-      // Calculate item dimensions to maintain 4:3 landscape aspect ratio.
-      // colWidth = cross-axis cell size:
-      //   vertical mode  → derived from container width  (cross-axis = horizontal)
-      //   horizontal mode → derived from container height (cross-axis = vertical)
-      let colWidth;
-      if (orientation.value === "horizontal") {
-        const innerHeight = containerRef.value.clientHeight - 2;
-        colWidth =
-          (innerHeight - (columns.value - 1) * gap.value) / columns.value;
-      } else {
-        const innerWidth = containerRef.value.clientWidth - 2;
-        colWidth =
-          (innerWidth - (columns.value - 1) * gap.value) / columns.value;
+      if (containerRef.value) {
+        containerRef.value.innerHTML = "";
       }
+    }
 
-      let height, width;
-      if (orientation.value === "horizontal") {
-        // CSS width = horizontal extent = item.width - gap (main axis)
-        // CSS height = vertical extent  = colWidth         (cross axis)
-        // For 4:3 landscape: (item.width - gap) / colWidth = 4/3
-        //   → item.width = colWidth * (4/3) + gap
-        width = Math.round(colWidth * (4 / 3) + gap.value);
-        height = Math.round(colWidth); // cross-axis (vertical extent)
-      } else {
-        // CSS width = colWidth, CSS height = item.height - gap
-        // For 4:3: item.height ≈ colWidth * 0.75
-        width = Math.round(colWidth);
-        height = Math.round(colWidth * 0.75);
-      }
+    function updateFooterContext() {
+      const ftMode = document.getElementById("ft-mode");
+      const ftOrientation = document.getElementById("ft-orientation");
+      if (ftMode) ftMode.textContent = mode.value;
+      if (ftOrientation) ftOrientation.textContent = orientation.value;
+    }
 
-      // Update grid info
-      gridInfo.value = {
-        orientation: orientation.value,
-        columns: columns.value,
-        gap: gap.value,
-        width,
-        height,
-      };
+    // Recreate on config change
+    watch([mode, orientation, columns, gap], () => {
+      unmount();
+      mount();
+    });
 
-      // Create new instance with builder pattern
-      instance.value = vlist({
-        container: containerRef.value,
-        ariaLabel: "Photo gallery",
-        orientation: orientation.value,
-        item: {
-          height,
-          width: orientation.value === "horizontal" ? width : undefined,
-          template: itemTemplate,
-        },
-        items,
-      })
-        .use(withGrid({ columns: columns.value, gap: gap.value }))
-        .use(withScrollbar({ autoHide: true }))
-        .build();
+    onMounted(() => mount());
+    onUnmounted(() => unmount());
 
-      // Track scroll and range changes
-      instance.value.on("scroll", scheduleStatsUpdate);
-      instance.value.on("range:change", ({ range }) => {
-        visibleRange.value = `rows ${range.start} – ${range.end}`;
-        scheduleStatsUpdate();
-      });
-
-      // Track item clicks
-      instance.value.on("item:click", ({ item }) => {
-        selectedPhoto.value = item;
-      });
-
-      updateStats();
-    };
-
-    // Navigation helpers
-    const scrollToFirst = () => {
-      instance.value?.scrollToIndex(0, "start");
-    };
-
-    const scrollToMiddle = () => {
+    // Navigation
+    const scrollToFirst = () => instance.value?.scrollToIndex(0, "start");
+    const scrollToMiddle = () =>
       instance.value?.scrollToIndex(Math.floor(ITEM_COUNT / 2), "center");
-    };
-
-    const scrollToLast = () => {
+    const scrollToLast = () =>
       instance.value?.scrollToIndex(ITEM_COUNT - 1, "end");
-    };
-
-    // Watch for changes
-    watch([orientation, columns, gap], () => {
-      createListInstance();
-    });
-
-    // Lifecycle
-    onMounted(() => {
-      createListInstance();
-    });
-
-    onUnmounted(() => {
-      if (instance.value) {
-        instance.value.destroy();
-      }
-    });
 
     return {
+      mode,
       orientation,
       columns,
       gap,
-      stats,
-      visibleRange,
       selectedPhoto,
-      gridInfo,
       containerRef,
       scrollToFirst,
       scrollToMiddle,
@@ -235,86 +203,76 @@ const App = {
   template: `
     <div class="container">
       <header>
-        <h1>Builder · Grid</h1>
+        <h1>Photo Album</h1>
         <p class="description">
-          Composable entry point – <code>vlist/builder</code> with
-          <code>withGrid</code> + <code>withScrollbar</code> plugins.
           Virtualized 2D photo gallery with real images from Lorem Picsum.
-          Configurable columns and gap — only visible rows are rendered.
+          Toggle between grid and masonry layouts, adjust columns and gap —
+          only visible rows are rendered.
         </p>
       </header>
 
-      <div class="stats">
-        <strong>Photos:</strong> ${ITEM_COUNT}
-        · <strong>{{ orientation === 'horizontal' ? 'Columns' : 'Rows' }}:</strong> {{ stats.rows }}
-        · <strong>DOM:</strong> {{ stats.domNodes }}
-        · <strong>Virtualized:</strong> {{ stats.saved }}%
-      </div>
-
-      <div class="grid-info">
-        <strong>Orientation:</strong> {{ gridInfo.orientation }}
-        · <strong>{{ orientation === 'horizontal' ? 'Rows' : 'Columns' }}:</strong> {{ gridInfo.columns }}
-        · <strong>Gap:</strong> {{ gridInfo.gap }}px
-        · <strong>Item:</strong> {{ orientation === 'horizontal' ? gridInfo.width - gridInfo.gap : gridInfo.width }}×{{ orientation === 'horizontal' ? gridInfo.height : Math.max(0, gridInfo.height - gridInfo.gap) }}px
-        · <strong>Aspect:</strong> 4:3
-      </div>
-
       <div class="split-layout">
-        <div class="split-main">
+        <div class="split-main split-main--full">
           <div ref="containerRef" id="grid-container"></div>
         </div>
 
         <aside class="split-panel">
-          <!-- Grid Controls -->
+          <!-- Layout -->
           <section class="panel-section">
-            <h3 class="panel-title">Grid</h3>
+            <h3 class="panel-title">Layout</h3>
+
+            <div class="panel-row">
+              <label class="panel-label">Mode</label>
+              <div class="panel-segmented">
+                <button
+                  v-for="m in ['grid', 'masonry']"
+                  :key="m"
+                  :class="['panel-segmented__btn', { 'panel-segmented__btn--active': m === mode }]"
+                  @click="mode = m"
+                >
+                  {{ m === 'grid' ? 'Grid' : 'Masonry' }}
+                </button>
+              </div>
+            </div>
 
             <div class="panel-row">
               <label class="panel-label">Orientation</label>
-              <div class="panel-btn-group">
+              <div class="panel-segmented">
                 <button
-                  class="ctrl-btn"
-                  :class="{ 'ctrl-btn--active': orientation === 'vertical' }"
-                  @click="orientation = 'vertical'"
+                  v-for="o in ['vertical', 'horizontal']"
+                  :key="o"
+                  :class="['panel-segmented__btn', { 'panel-segmented__btn--active': o === orientation }]"
+                  @click="orientation = o"
                 >
-                  Vertical
-                </button>
-                <button
-                  class="ctrl-btn"
-                  :class="{ 'ctrl-btn--active': orientation === 'horizontal' }"
-                  @click="orientation = 'horizontal'"
-                >
-                  Horizontal
+                  {{ o === 'vertical' ? 'Vertical' : 'Horizontal' }}
                 </button>
               </div>
             </div>
 
             <div class="panel-row">
               <label class="panel-label">{{ orientation === 'horizontal' ? 'Rows' : 'Columns' }}</label>
-              <div class="panel-btn-group" id="columns-buttons">
+              <div class="panel-btn-group">
                 <button
-                  v-for="cols in [2, 3, 4, 5, 6]"
-                  :key="cols"
-                  :data-cols="cols"
-                  :class="['ctrl-btn', { 'ctrl-btn--active': cols === columns }]"
-                  @click="setColumns(cols)"
+                  v-for="c in [3, 4, 5, 6, 10]"
+                  :key="c"
+                  :class="['ctrl-btn', { 'ctrl-btn--active': c === columns }]"
+                  @click="columns = c"
                 >
-                  {{ cols }}
+                  {{ c }}
                 </button>
               </div>
             </div>
 
             <div class="panel-row">
               <label class="panel-label">Gap</label>
-              <div class="panel-btn-group" id="gap-buttons">
+              <div class="panel-btn-group">
                 <button
-                  v-for="gapValue in [0, 4, 8, 12, 16]"
-                  :key="gapValue"
-                  :data-gap="gapValue"
-                  :class="['ctrl-btn', { 'ctrl-btn--active': gapValue === gap }]"
-                  @click="setGap(gapValue)"
+                  v-for="g in [0, 4, 8, 12, 16]"
+                  :key="g"
+                  :class="['ctrl-btn', { 'ctrl-btn--active': g === gap }]"
+                  @click="gap = g"
                 >
-                  {{ gapValue }}
+                  {{ g }}
                 </button>
               </div>
             </div>
@@ -324,23 +282,24 @@ const App = {
           <section class="panel-section">
             <h3 class="panel-title">Navigation</h3>
             <div class="panel-row">
-              <label class="panel-label">Quick jump</label>
               <div class="panel-btn-group">
-                <button class="panel-btn" @click="scrollToFirst">First</button>
-                <button class="panel-btn" @click="scrollToMiddle">Middle</button>
-                <button class="panel-btn" @click="scrollToLast">Last</button>
+                <button class="panel-btn panel-btn--icon" title="First" @click="scrollToFirst">
+                  <i class="icon icon--up"></i>
+                </button>
+                <button class="panel-btn panel-btn--icon" title="Middle" @click="scrollToMiddle">
+                  <i class="icon icon--center"></i>
+                </button>
+                <button class="panel-btn panel-btn--icon" title="Last" @click="scrollToLast">
+                  <i class="icon icon--down"></i>
+                </button>
               </div>
-            </div>
-            <div class="panel-row">
-              <span class="panel-label">Range</span>
-              <span class="panel-value">{{ visibleRange }}</span>
             </div>
           </section>
 
           <!-- Photo Detail -->
           <section class="panel-section">
             <h3 class="panel-title">Last clicked</h3>
-            <div class="panel-detail" id="photo-detail">
+            <div class="panel-detail">
               <template v-if="selectedPhoto">
                 <img
                   class="detail__img"
@@ -358,13 +317,30 @@ const App = {
         </aside>
       </div>
 
-      <footer>
-        <p>
-          The builder's <code>withGrid</code> plugin replaces the list
-          renderer with a grid renderer. The virtualizer works in row-space —
-          it only materializes DOM for visible rows. Column width auto-adjusts
-          on resize. 📸
-        </p>
+      <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+          <span class="example-footer__stat">
+            <strong id="ft-progress">0%</strong>
+          </span>
+          <span class="example-footer__stat">
+            <span id="ft-velocity">0.00</span> /
+            <strong id="ft-velocity-avg">0.00</strong>
+            <span class="example-footer__unit">px/ms</span>
+          </span>
+          <span class="example-footer__stat">
+            <span id="ft-dom">0</span> /
+            <strong id="ft-total">0</strong>
+            <span class="example-footer__unit">items</span>
+          </span>
+        </div>
+        <div class="example-footer__right">
+          <span class="example-footer__stat">
+            <strong id="ft-mode">grid</strong>
+          </span>
+          <span class="example-footer__stat">
+            <strong id="ft-orientation">vertical</strong>
+          </span>
+        </div>
       </footer>
     </div>
   `,

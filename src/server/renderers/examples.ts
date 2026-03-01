@@ -506,6 +506,13 @@ export function renderExamplesPage(
     } else {
       contentPath = join(EXAMPLES_DIR, slug, variant, "content.html");
     }
+
+    // Fall back to shared content.html in the parent example directory.
+    // This allows variants to share a single content.html instead of
+    // duplicating it (e.g. photo-album/content.html for all variants).
+    if (!existsSync(contentPath)) {
+      contentPath = join(EXAMPLES_DIR, slug, "content.html");
+    }
   } else {
     // Old structure: examples/{example}/ (backward compatibility)
     contentPath = join(EXAMPLES_DIR, slug, "content.html");

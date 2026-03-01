@@ -104,24 +104,29 @@ const gallery = vlist({
 
 ### Item Height Requirements
 
-Masonry **requires** item heights to be deterministic (calculable before rendering):
+Masonry **requires** item heights to be deterministic (calculable before rendering).
+
+When the height is a function, it receives two parameters — the item **index** and a **context** object:
+
+- `columnWidth` — Current column width in pixels (precomputed, updates on resize)
+- `containerSize` — Current container size in pixels (cross-axis dimension)
+- `columns` — Number of columns
+- `gap` — Gap between items in pixels
+
+> **Responsive by default:** When you use a height function with `columnWidth`, item heights automatically recalculate on container resize — no manual intervention needed.
 
 #### ✅ Good — Deterministic Heights
 
 ```js
-// Heights from data
+// Aspect ratio from data — responsive to resize
 item: {
-  height: (index) => photos[index].height,
+  height: (index, { columnWidth }) => Math.round(columnWidth * photos[index].aspectRatio),
   template: renderPhoto,
 }
 
-// Calculated from aspect ratio
+// Fixed pixel heights from data
 item: {
-  height: (index) => {
-    const aspectRatio = photos[index].aspectRatio
-    const colWidth = 300 // Estimate or calculate
-    return Math.round(colWidth / aspectRatio)
-  },
+  height: (index) => photos[index].height,
   template: renderPhoto,
 }
 
@@ -161,7 +166,8 @@ const gallery = vlist({
   container: '#gallery',
   orientation: 'vertical', // Default
   item: {
-    height: (index) => photos[index].height, // Variable heights
+    // columnWidth adapts on resize — aspect ratios preserved
+    height: (index, { columnWidth }) => Math.round(columnWidth * photos[index].aspectRatio),
     template: renderPhoto,
   },
   items: photos,
@@ -186,6 +192,7 @@ const gallery = vlist({
 - **4 vertical columns** of independent heights
 - Items flow into shortest column
 - Scrolls vertically (↓)
+- The context's `columnWidth` is the width of each column
 
 ### Horizontal Masonry
 
@@ -194,7 +201,8 @@ const timeline = vlist({
   container: '#timeline',
   orientation: 'horizontal',
   item: {
-    width: (index) => events[index].width, // Variable widths
+    // width function receives the same context — columnWidth is now each row's height
+    width: (index, { columnWidth }) => Math.round(columnWidth * events[index].aspectRatio),
     height: 200, // Fixed cross-axis size
     template: renderEvent,
   },
@@ -219,6 +227,9 @@ const timeline = vlist({
 - **3 horizontal rows** of independent widths
 - Items flow into shortest row
 - Scrolls horizontally (→)
+- In horizontal mode, `columns` controls the number of **rows**, and `columnWidth` in the context is each row's height
+
+> The context object works identically in both orientations — `columnWidth` always refers to the cross-axis cell size, adapting automatically on resize.
 
 **Note:** In horizontal mode, you must specify both `height` and `width` in the item config.
 
@@ -230,16 +241,17 @@ const timeline = vlist({
 import { vlist, withMasonry } from '@floor/vlist'
 
 const photos = [
-  { id: 1, url: 'photo1.jpg', height: 250, title: 'Sunset' },
-  { id: 2, url: 'photo2.jpg', height: 380, title: 'Mountain' },
-  { id: 3, url: 'photo3.jpg', height: 200, title: 'Ocean' },
-  // ... more photos
+  { id: 1, url: 'photo1.jpg', aspectRatio: 0.75, title: 'Sunset' },
+  { id: 2, url: 'photo2.jpg', aspectRatio: 1.5, title: 'Mountain' },
+  { id: 3, url: 'photo3.jpg', aspectRatio: 0.66, title: 'Ocean' },
+  // ... more photos with varying aspect ratios
 ]
 
 const gallery = vlist({
   container: '#gallery',
   item: {
-    height: (index) => photos[index].height,
+    // Height derived from columnWidth — adapts on resize
+    height: (index, { columnWidth }) => Math.round(columnWidth * photos[index].aspectRatio),
     template: (item) => `
       <div class="photo-card">
         <img 
@@ -265,7 +277,7 @@ const gallery = vlist({
 const gallery = vlist({
   container: '#gallery',
   item: {
-    height: (index) => photos[index].height,
+    height: (index, { columnWidth }) => Math.round(columnWidth * photos[index].aspectRatio),
     template: renderPhoto,
   },
   items: photos,
@@ -281,38 +293,38 @@ function getResponsiveColumns() {
   return 5
 }
 
-// Update on resize (requires recreation)
+// Update column count on resize
 window.addEventListener('resize', () => {
-  const newColumns = getResponsiveColumns()
-  // Recreate with new columns
-  gallery.destroy()
-  // Create new instance...
+  gallery.updateMasonry({ columns: getResponsiveColumns() })
 })
 ```
+
+> **Note:** Item heights using `columnWidth` adapt automatically on container resize. You only need to update columns manually if you want breakpoint-based column counts.
 
 ### Product Catalog with Variable Heights
 
 ```js
 const products = [
-  { id: 1, name: 'T-Shirt', price: 29, image: 't1.jpg', hasDetails: true },
-  { id: 2, name: 'Shoes', price: 89, image: 's1.jpg', hasDetails: false },
+  { id: 1, name: 'Widget', price: 9.99, image: 'widget.jpg', hasDetails: true },
+  { id: 2, name: 'Gadget', price: 19.99, image: 'gadget.jpg', hasDetails: false },
   // ...
 ]
 
 const catalog = vlist({
   container: '#catalog',
   item: {
-    height: (index) => {
+    height: (index, { columnWidth }) => {
       const product = products[index]
-      // Taller cards for items with details
-      return product.hasDetails ? 320 : 280
+      // Taller cards for products with details, responsive to column width
+      return product.hasDetails
+        ? Math.round(columnWidth * 1.4)
+        : Math.round(columnWidth)
     },
     template: (item) => `
       <div class="product-card">
-        <img src="${item.image}" alt="${item.name}" />
+        <img src="${item.image}" alt="${item.name}" loading="lazy" />
         <h3>${item.name}</h3>
         <p class="price">$${item.price}</p>
-        ${item.hasDetails ? `<p class="details">...</p>` : ''}
       </div>
     `,
   },
@@ -575,13 +587,22 @@ Now use `.my-masonry--masonry` and `.my-masonry-item` in your CSS.
 
 ## Best Practices
 
-### 1. Ensure Deterministic Heights
+### 1. Use Responsive Heights with Context
 
-**✅ Good** — Heights known upfront:
+**✅ Best** — Aspect ratios from data, responsive to resize:
 
 ```js
 item: {
-  height: (index) => items[index].height, // From data
+  height: (index, { columnWidth }) => Math.round(columnWidth * items[index].aspectRatio),
+  template: renderItem,
+}
+```
+
+**✅ OK** — Fixed pixel heights from data (won't adapt on resize):
+
+```js
+item: {
+  height: (index) => items[index].height,
   template: renderItem,
 }
 ```
@@ -655,6 +676,23 @@ gallery.updateItem(id, { height: 300 })
 gallery.removeItem(id)
 ```
 
+### 6. Store Aspect Ratios, Not Pixel Heights
+
+When possible, store aspect ratios in your data instead of fixed pixel heights. This lets items scale proportionally when the container resizes:
+
+```js
+// ✅ Good — scales with column width
+const photos = items.map(item => ({
+  ...item,
+  aspectRatio: item.height / item.width,
+}))
+
+height: (index, { columnWidth }) => Math.round(columnWidth * photos[index].aspectRatio)
+
+// ❌ Fragile — breaks aspect ratio on resize
+height: (index) => photos[index].pixelHeight
+```
+
 ## Limitations
 
 ### Cannot Combine With
@@ -696,10 +734,16 @@ vlist(config)
 
 ### Layout looks wrong after resize
 
-**Solution:** Masonry automatically recalculates on resize. If issues persist:
+Masonry automatically recalculates layout and re-renders on resize. If you're using fixed pixel heights (not `columnWidth`-based), items will keep their original sizes while columns change width — this can look wrong. **Solution:** Use the context's `columnWidth` in your height function:
 
 ```js
-// Force re-render after manual DOM changes
+// Heights adapt automatically on resize
+height: (index, { columnWidth }) => Math.round(columnWidth * items[index].aspectRatio)
+```
+
+If issues persist after manual DOM changes:
+
+```js
 gallery.forceRender()
 ```
 

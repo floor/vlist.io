@@ -1,8 +1,8 @@
 // Photo Album — Panel controls
 // Wires layout mode, orientation, columns, gap, and navigation buttons.
-// Imports state and functions from script.js.
+// Shared by all framework variants (vanilla, react, svelte, vue).
 
-import * as app from "./script.js";
+import * as app from "./shared.js";
 
 // =============================================================================
 // DOM References
