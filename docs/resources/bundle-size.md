@@ -15,7 +15,7 @@ const gallery = vlist({ ... })
   .build();
 
 // Bundle: 12.6 KB gzipped
-// NOT included: withSections, withAsync, withScale, withScrollbar, withPage
+// NOT included: withGroups, withAsync, withScale, withScrollbar, withPage
 ```
 
 **Result:** 8-12 KB gzipped average (vs 20-23 KB for traditional virtual lists).
@@ -31,11 +31,11 @@ All measurements from production builds (minified + gzipped):
 | **Basic list** | 22.5 KB | **8.2 KB** | None |
 | **Controls** | 30.6 KB | **10.5 KB** | `withSelection()` |
 | **Photo gallery** | 34.3 KB | **11.7 KB** | `withGrid()` + `withScrollbar()` |
-| **Contact list** | 34.3 KB | **12.3 KB** | `withSections()` |
-| **Chat UI** | 34.2 KB | **11.9 KB** | `withSections()` (inline) |
+| **Contact list** | 34.3 KB | **12.3 KB** | `withGroups()` |
+| **Chat UI** | 34.2 KB | **11.9 KB** | `withGroups()` (inline) |
 | **Infinite scroll** | 38.2 KB | **13.5 KB** | `withAsync()` + `withPage()` |
 | **Large dataset** | 31.9 KB | **9.9 KB** | `withScale()` + `withScrollbar()` |
-| **File browser** | 46.2 KB | **15.3 KB** | `withGrid()` + `withSections()` + `withScrollbar()` |
+| **File browser** | 46.2 KB | **15.3 KB** | `withGrid()` + `withGroups()` + `withScrollbar()` |
 
 ### Feature Costs
 
@@ -45,7 +45,7 @@ Each feature adds incrementally to the base bundle:
 |--------|---------------------------|-------------|
 | **Base** | 7.7 KB | Core virtualization |
 | `withGrid()` | +4.0 KB | 2D grid layout |
-| `withSections()` | +4.6 KB | Grouped lists with headers |
+| `withGroups()` | +4.6 KB | Grouped lists with headers |
 | `withAsync()` | +5.3 KB | Async data loading |
 | `withSelection()` | +2.3 KB | Item selection & keyboard nav |
 | `withScale()` | +2.2 KB | Handle 1M+ items |
@@ -111,7 +111,7 @@ VList exports everything from a single entry point, allowing perfect tree-shakin
 // vlist/src/index.ts
 export { vlist } from './builder';
 export { withGrid } from './features/grid';
-export { withSections } from './features/sections';
+export { withGroups } from './features/groups';
 export { withAsync } from './features/async';
 export { withSelection } from './features/selection';
 export { withScale } from './features/scale';
@@ -136,7 +136,7 @@ import { vlist, withGrid } from '@floor/vlist';
 import { vlist, withGrid } from '@floor/vlist';
 
 // These are exported but NOT imported, so bundler eliminates them:
-// - withSections and all its code
+// - withGroups and all its code
 // - withAsync and all its code
 // - withSelection and all its code
 // - withScale and all its code
@@ -189,7 +189,7 @@ vlist({ ... })
 import { 
   vlist, 
   withGrid, 
-  withSections, 
+  withGroups, 
   withSelection,
   withAsync,
   withScale,
@@ -198,7 +198,7 @@ import {
 
 vlist({ ... })
   .use(withGrid({ columns: 4 }))
-  .use(withSections({ ... }))
+  .use(withGroups({ ... }))
   .use(withSelection({ mode: 'multiple' }))
   .use(withAsync({ adapter }))
   .use(withScale())
@@ -251,13 +251,13 @@ button.addEventListener('click', async () => {
 ### 3. Conditional Feature Loading
 
 ```typescript
-import { vlist, withSections } from '@floor/vlist';
+import { vlist, withGroups } from '@floor/vlist';
 
 let builder = vlist({ ... });
 
-// Only add sections if grouping enabled
+// Only add groups if grouping enabled
 if (groupBy !== 'none') {
-  builder = builder.use(withSections({ ... }));
+  builder = builder.use(withGroups({ ... }));
 }
 
 const list = builder.build();

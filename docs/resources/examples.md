@@ -53,7 +53,7 @@ examples/
 │   ├── large-list/       # withScale (4 frameworks)
 │   └── velocity-loading/ # Async loading
 │
-├── contact-list/         # A-Z contact list (vlist (withSections))
+├── contact-list/         # A-Z contact list (vlist (withGroups))
 │
 ├── horizontal/           # Horizontal scrolling
 │   └── basic/            # 4 frameworks

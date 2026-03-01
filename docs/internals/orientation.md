@@ -218,7 +218,7 @@ That's it. Six points of axis translation. Everything else — the entire virtua
 
 ## How Features Stay Axis-Neutral
 
-Every feature plugin (`withScale`, `withSections`, `withGrid`, `withAsync`, `withSelection`, `withSnapshots`, `withScrollbar`) interacts with the core through the `BuilderContext`, which exposes only axis-neutral primitives:
+Every feature plugin (`withScale`, `withGroups`, `withGrid`, `withAsync`, `withSelection`, `withSnapshots`, `withScrollbar`) interacts with the core through the `BuilderContext`, which exposes only axis-neutral primitives:
 
 ```typescript
 // Features access these — all axis-neutral
@@ -228,7 +228,7 @@ ctx.compressionState    // CompressionState (actualSize, virtualSize)
 ctx.resolvedConfig      // { horizontal: boolean } — for the rare feature that needs it
 ```
 
-Features that need to do DOM work (like `withScrollbar` rendering a thumb along the correct edge, or `withSections` positioning a sticky header) check `ctx.resolvedConfig.horizontal` at their own DOM boundary — keeping the same pattern of axis-neutral math with thin DOM translation.
+Features that need to do DOM work (like `withScrollbar` rendering a thumb along the correct edge, or `withGroups` positioning a sticky header) check `ctx.resolvedConfig.horizontal` at their own DOM boundary — keeping the same pattern of axis-neutral math with thin DOM translation.
 
 ### Grid: Cross-Axis Resolution
 

@@ -46,7 +46,7 @@ The `/tutorials/` section has 7 files. Only one (`chat-interface.md`) is actuall
 - 918 lines is excessive for a tutorial — tries to be both tutorial and reference
 - Contains a full API reference section (methods, events) that belongs in `/docs/api/`
 - Troubleshooting section duplicates error messages already documented in feature pages
-- Older monolithic config style in some "combining with" examples (uses `getGroupForIndex` at top level instead of `withSections()`)
+- Older monolithic config style in some "combining with" examples (uses `getGroupForIndex` at top level instead of `withGroups()`)
 - Title is "Reverse Mode" not "Chat Interface" — confusing mismatch with nav
 
 **Verdict:** Keep and tighten. Strip API reference and troubleshooting to `/docs/`. Focus on the build-a-chat narrative. Verify all code uses builder API consistently.
@@ -171,8 +171,8 @@ tutorials/
 |----------|------------|-----------------|--------------|
 | **Your First List** | A user directory (100K users) | Install, `vlist()`, `.build()`, template, `scrollToIndex`, events | `/examples/basic` |
 | **Photo Gallery** | A responsive image grid | `withGrid()`, `withScrollbar()`, responsive columns, `item:click` | `/examples/photo-album` |
-| **Contact List** | An A–Z contacts app | `withSections()`, `withSelection()`, sticky headers, keyboard nav | `/examples/contact-list` |
-| **Chat Interface** | A messaging UI | `reverse`, `withAsync()`, `withSections({ sticky: false })`, append/prepend | `/examples/messaging-app` |
+| **Contact List** | An A–Z contacts app | `withGroups()`, `withSelection()`, sticky headers, keyboard nav | `/examples/contact-list` |
+| **Chat Interface** | A messaging UI | `reverse`, `withAsync()`, `withGroups({ sticky: false })`, append/prepend | `/examples/messaging-app` |
 | **Infinite Feed** | A social media feed | `withAsync()`, `withPage()`, placeholders, velocity loading | `/examples/velocity-loading` |
 | **Large Dataset** | A 5M-row data table | `withScale()`, `withScrollbar()`, compression, template perf | `/examples/large-list` |
 | **Styling** | Dark-themed custom list | Tokens, variants, dark mode, scoped styles, `.vlist--scrolling` | — |

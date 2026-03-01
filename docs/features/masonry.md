@@ -676,7 +676,7 @@ vlist({
 // Not supported (yet)
 vlist(config)
   .use(withMasonry({ columns: 4 }))
-  .use(withSections({ ... })) // Won't work correctly
+  .use(withGroups({ ... })) // Won't work correctly
 ```
 
 ### Item Size Requirements

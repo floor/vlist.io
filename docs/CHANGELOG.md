@@ -28,7 +28,7 @@ The first stable release of vlist — a lightweight, high-performance virtual li
 | **Base** | 7.7 KB | Core virtualization engine |
 | `withGrid()` | +4.0 KB | 2D grid layout with horizontal + vertical orientation |
 | `withMasonry()` | +2.9 KB | Pinterest-style shortest-lane placement |
-| `withSections()` | +4.6 KB | Grouped lists with sticky or inline headers, horizontal support |
+| `withGroups()` | +4.6 KB | Grouped lists with sticky or inline headers, horizontal support |
 | `withAsync()` | +5.3 KB | Lazy loading with adapters, sparse storage, network recovery |
 | `withSelection()` | +2.3 KB | Single/multiple selection with keyboard navigation |
 | `withScale()` | +2.2 KB | 1M+ items via scroll compression with touch support |
@@ -122,7 +122,7 @@ The first stable release of vlist — a lightweight, high-performance virtual li
 
 ### Fixed
 
-- Remove unused `Range` import in sections
+- Remove unused `Range` import in groups
 - Resolve all TypeScript errors in test files
 
 ---
@@ -152,7 +152,7 @@ The first stable release of vlist — a lightweight, high-performance virtual li
 ### Added
 
 - **Dimension-agnostic architecture** — all internal APIs use semantically correct terminology (`size`, `scrollPosition`, `containerSize`) that works for both vertical and horizontal orientations
-- **Horizontal sections** — sticky headers work in horizontal carousels
+- **Horizontal groups** — sticky headers work in horizontal carousels
 
 ### Changed
 
@@ -226,7 +226,7 @@ The first stable release of vlist — a lightweight, high-performance virtual li
 Initial tracked release with core virtual list functionality:
 
 - Builder API with composable features
-- `withGrid()`, `withSections()`, `withAsync()`, `withSelection()`, `withScale()`, `withScrollbar()`, `withPage()`, `withSnapshots()`
+- `withGrid()`, `withGroups()`, `withAsync()`, `withSelection()`, `withScale()`, `withScrollbar()`, `withPage()`, `withSnapshots()`
 - React, Vue, and Svelte framework adapters
 - Zero dependencies
 - Full TypeScript support

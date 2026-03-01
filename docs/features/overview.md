@@ -7,7 +7,7 @@
 | Feature | Cost | Description |
 |---|---|---|
 | `withGrid()` | +4.0 KB | 2D grid layout (virtualises by row) |
-| `withSections()` | +4.6 KB | Grouped lists with sticky or inline section headers |
+| `withGroups()` | +4.6 KB | Grouped lists with sticky or inline headers |
 | `withAsync()` | +5.3 KB | Lazy loading via adapter with placeholders |
 | `withSelection()` | +2.3 KB | Single / multiple item selection with keyboard nav |
 | `withScale()` | +2.2 KB | Compress scroll space for 1M+ items |
@@ -39,10 +39,10 @@ const gallery = vlist({
 
 ---
 
-## withSections() — Grouped Lists
+## withGroups() — Grouped Lists
 
 ```typescript
-import { vlist, withSections } from '@floor/vlist';
+import { vlist, withGroups } from '@floor/vlist';
 
 // Sticky headers (Telegram-style contact list)
 const contacts = vlist({
@@ -50,7 +50,7 @@ const contacts = vlist({
   items: sortedContacts, // must be pre-sorted by group
   item: { height: 56, template: (c) => `<div>${c.name}</div>` },
 })
-  .use(withSections({
+  .use(withGroups({
     getGroupForIndex: (i) => sortedContacts[i].lastName[0].toUpperCase(),
     headerHeight: 36,
     headerTemplate: (letter) => `<div class="header">${letter}</div>`,

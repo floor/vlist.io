@@ -18,13 +18,13 @@
         "slug": "messaging-app",
         "name": "Messaging",
         "desc": "Chat UI — reverse mode, date headers, auto-scroll, incoming messages",
-        "features": ["reverse", "sections"]
+        "features": ["reverse", "groups"]
       },
       {
         "slug": "contact-list",
         "name": "Contact List",
-        "desc": "A–Z grouped contacts with sticky section headers and selection",
-        "features": ["sections", "selection"]
+        "desc": "A–Z grouped contacts with sticky headers and selection",
+        "features": ["groups", "selection"]
       },
       {
         "slug": "wizard-nav",
@@ -42,7 +42,7 @@
         "slug": "file-browser",
         "name": "File Browser",
         "desc": "Finder-like file browser with grid/list toggle and breadcrumb navigation",
-        "features": ["grid", "sections", "scrollbar"]
+        "features": ["grid", "groups", "scrollbar"]
       },
       {
         "slug": "carousel",

@@ -22,15 +22,15 @@ All measurements in **gzipped** size (what users actually download):
 |---------|---------------------|-----------------|-------------|--------------|
 | **basic** | 20.6 KB | **8.2 KB** | **🎉 60% smaller** | None |
 | **controls** | 21.3 KB | **10.5 KB** | **🎉 51% smaller** | `withSelection()` |
-| **groups/sticky-headers** | 22.5 KB | **12.3 KB** | **🎉 45% smaller** | `withSections()` |
-| **reverse-chat** | 22.1 KB | **11.9 KB** | **🎉 46% smaller** | `withSections()` |
+| **groups/sticky-headers** | 22.5 KB | **12.3 KB** | **🎉 45% smaller** | `withGroups()` |
+| **reverse-chat** | 22.1 KB | **11.9 KB** | **🎉 46% smaller** | `withGroups()` |
 | **scroll-restore** | 21.2 KB | **10.4 KB** | **🎉 51% smaller** | `withSelection()` |
 | **variable-heights** | 23.3 KB | **10.9 KB** | **🎉 53% smaller** | None |
 | **window-scroll** | 21.3 KB | **13.5 KB** | **🎉 37% smaller** | `withPage()` + `withAsync()` |
 | **wizard-nav** | 22.8 KB | **12.0 KB** | **🎉 47% smaller** | `withSelection()` |
 | **horizontal/basic** | 21.0 KB | **8.6 KB** | **🎉 59% smaller** | None |
 | **data/velocity-loading** | 21.7 KB | **15.0 KB** | **🎉 31% smaller** | `withSelection()` + `withAsync()` |
-| **grid/file-browser** | 22.8 KB | **15.3 KB** | **🎉 33% smaller** | `withGrid()` + `withScrollbar()` + `withSections()` |
+| **grid/file-browser** | 22.8 KB | **15.3 KB** | **🎉 33% smaller** | `withGrid()` + `withScrollbar()` + `withGroups()` |
 
 ### Statistics
 
@@ -63,8 +63,8 @@ All measurements in **gzipped** size (what users actually download):
 | controls | 21.3 KB | 10.5 KB | `withSelection()` | **51% smaller** |
 | scroll-restore | 21.2 KB | 10.4 KB | `withSelection()` | **51% smaller** |
 | wizard-nav | 22.8 KB | 12.0 KB | `withSelection()` | **47% smaller** |
-| groups/sticky-headers | 22.5 KB | 12.3 KB | `withSections()` | **45% smaller** |
-| reverse-chat | 22.1 KB | 11.9 KB | `withSections()` | **46% smaller** |
+| groups/sticky-headers | 22.5 KB | 12.3 KB | `withGroups()` | **45% smaller** |
+| reverse-chat | 22.1 KB | 11.9 KB | `withGroups()` | **46% smaller** |
 
 **Average:** **48% reduction** with 1-2 features  
 **Insight:** Even with features, still 2x smaller than monolithic!
@@ -75,7 +75,7 @@ All measurements in **gzipped** size (what users actually download):
 |---------|--------|-------|---------|-------------|
 | window-scroll | 21.3 KB | 13.5 KB | `withPage()` + `withAsync()` | **37% smaller** |
 | data/velocity-loading | 21.7 KB | 15.0 KB | `withSelection()` + `withAsync()` | **31% smaller** |
-| grid/file-browser | 22.8 KB | 15.3 KB | `withGrid()` + `withScrollbar()` + `withSections()` | **33% smaller** |
+| grid/file-browser | 22.8 KB | 15.3 KB | `withGrid()` + `withScrollbar()` + `withGroups()` | **33% smaller** |
 
 **Average:** **34% reduction** with multiple features  
 **Insight:** Tree-shaking still saves ~7 KB even with many features!
@@ -92,7 +92,7 @@ Based on builder examples, here's what each feature adds:
 | `withSelection()` | +2.3 KB | Single/multiple item selection |
 | `withScale()` | +2.2 KB | Lists with 1M+ items |
 | `withGrid()` | +4.0 KB | 2D grid layouts |
-| `withSections()` | +4.6 KB | Grouped lists with headers |
+| `withGroups()` | +4.6 KB | Grouped lists with headers |
 | `withScrollbar()` | +1.0 KB | Custom scrollbar UI |
 | `withAsync()` | +5.3 KB | Async data loading with adapters |
 | `withPage()` | +0.9 KB | Document-level scrolling |

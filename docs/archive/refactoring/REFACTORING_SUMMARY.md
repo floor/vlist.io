@@ -46,7 +46,7 @@ src/core-light.ts     →         src/core/minimal.ts
 withCompression() → withScale()
 withData()        → withAsync()
 withWindow()      → withPage()
-withGroups()      → withSections()
+withGroups()      → withGroups() (originally renamed to withSections, later reverted)
 ```
 
 #### 4. Main Entry Point - Builder Only
@@ -58,11 +58,11 @@ import { createVList } from 'vlist'  // 20-23 KB gzip, all features
 
 **After:**
 ```typescript
-import { vlist, withGrid, withSections } from 'vlist'
+import { vlist, withGrid, withGroups } from 'vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4 }))
-  .use(withSections({ ... }))
+  .use(withGroups({ ... }))
   .build()
 // Result: 8-12 KB gzip based on features used
 ```
@@ -115,8 +115,8 @@ c173f70 refactor: update all imports and rename feature functions
 | **basic** | `createVList()` | `vlist().build()` | 22.5 KB → **8.2 KB gzip** ⭐ |
 | **controls/javascript** | `createVList()` | `vlist() + withSelection()` | 30.6 KB → **10.5 KB gzip** ⭐ |
 | **controls/vue** | `createVList()` | `vlist() + withSelection()` | Updated |
-| **groups/sticky-headers** | `createVList()` | `vlist() + withSections()` | 34.3 KB → **12.3 KB gzip** ⭐ |
-| **reverse-chat** | `createVList()` | `vlist() + withSections()` | 34.2 KB → **11.9 KB gzip** ⭐ |
+| **groups/sticky-headers** | `createVList()` | `vlist() + withGroups()` | 34.3 KB → **12.3 KB gzip** ⭐ |
+| **reverse-chat** | `createVList()` | `vlist() + withGroups()` | 34.2 KB → **11.9 KB gzip** ⭐ |
 | **scroll-restore** | `createVList()` | `vlist() + withSelection()` | 29.8 KB → **10.4 KB gzip** ⭐ |
 | **variable-heights** | `createVList()` | `vlist().build()` | 28.5 KB → **10.9 KB gzip** ⭐ |
 | **window-scroll** | `createVList()` | `vlist() + withPage() + withAsync()` | 38.2 KB → **13.5 KB gzip** ⭐ |
@@ -265,7 +265,7 @@ const list = vlist({
 
 **With features:**
 ```typescript
-import { vlist, withGrid, withSections, withSelection } from 'vlist'
+import { vlist, withGrid, withGroups, withSelection } from 'vlist'
 
 const list = vlist({
   container: '#app',
@@ -273,7 +273,7 @@ const list = vlist({
   item: { height: 200, template: renderItem }
 })
   .use(withGrid({ columns: 4, gap: 16 }))
-  .use(withSections({ 
+  .use(withGroups({ 
     getGroupForIndex: (i) => data[i].category,
     headerHeight: 40,
     headerTemplate: (category) => `<h2>${category}</h2>`,

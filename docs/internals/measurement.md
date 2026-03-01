@@ -288,7 +288,7 @@ Compression reads `sizeCache.getTotalSize()` to compute the ratio. As measuremen
 
 ### Features
 
-All features (`withScale`, `withSections`, `withGrid`, `withAsync`, `withSelection`, `withSnapshots`, `withScrollbar`) interact with `SizeCache` through the `BuilderContext`. Since `MeasuredSizeCache` implements the same `SizeCache` interface, **no feature code needed changes** for Mode B.
+All features (`withScale`, `withGroups`, `withGrid`, `withAsync`, `withSelection`, `withSnapshots`, `withScrollbar`) interact with `SizeCache` through the `BuilderContext`. Since `MeasuredSizeCache` implements the same `SizeCache` interface, **no feature code needed changes** for Mode B.
 
 ### Reverse Mode
 

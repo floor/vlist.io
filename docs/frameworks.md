@@ -451,7 +451,7 @@ When these fields are present in the config, the adapter automatically chains th
 | `scroll.element = window` | `withPage()` | Scroll element is `window`. |
 | `adapter` | `withAsync()` | Adapter object is present. |
 | `layout = 'grid'` + `grid` | `withGrid()` | Layout is `'grid'` and grid config exists. |
-| `groups` | `withSections()` | Groups config is present. |
+| `groups` | `withGroups()` | Groups config is present. |
 | `selection.mode` | `withSelection()` | Selection mode is not `'none'`. |
 | `scroll.scrollbar` or `scrollbar` | `withScrollbar()` | Scrollbar is not `'none'`. |
 

@@ -198,7 +198,7 @@ This isn't dishonest (it's how every library reports size), but the numbers are 
 benchmarks/size/
 ├── base-only.ts          # import { vlist } from '@floor/vlist'
 ├── with-grid.ts          # + withGrid
-├── with-sections.ts      # + withSections
+├── with-groups.ts        # + withGroups
 ├── with-async.ts         # + withAsync
 ├── with-selection.ts     # + withSelection
 ├── with-scale.ts         # + withScale
@@ -617,13 +617,13 @@ const scenarios = [
   {
     name: 'base-only',
     imports: `import { vlist } from '@floor/vlist'`,
-    mustNotContain: ['withGrid', 'withMasonry', 'withSections', 'withAsync',
+    mustNotContain: ['withGrid', 'withMasonry', 'withGroups', 'withAsync',
                      'withSelection', 'withScale', 'withScrollbar', 'withPage'],
   },
   {
     name: 'grid-only',
     imports: `import { vlist, withGrid } from '@floor/vlist'`,
-    mustNotContain: ['withMasonry', 'withSections', 'withAsync', 'withSelection'],
+    mustNotContain: ['withMasonry', 'withGroups', 'withAsync', 'withSelection'],
   },
   // ... more scenarios
 ];
@@ -657,7 +657,7 @@ Features declare conflicts in code (`conflicts?: readonly string[]`), but there'
 Known conflicts and constraints:
 - `withGrid` + `reverse: true` → error
 - `withMasonry` + `withGrid` → conflict (both position items in 2D)
-- `withMasonry` + `withSections` → likely conflict (untested?)
+- `withMasonry` + `withGroups` → likely conflict (untested?)
 - `withPage` + `withScrollbar` → redundant? conflicting?
 - `withScale` + `withMasonry` → unknown
 

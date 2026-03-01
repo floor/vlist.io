@@ -25,7 +25,7 @@ Generated: $(date)
 | **builder/types.ts** | 6 | Builder type definitions |
 | **features/grid/feature.ts** | 6 | Grid layout feature |
 | **features/grid/renderer.ts** | 6 | Grid rendering logic |
-| **features/sections/feature.ts** | 6 | Sections feature |
+| **features/groups/feature.ts** | 6 | Groups feature |
 | **features/async/feature.ts** | 5 | Async loading feature |
 
 ## Orphan Files (Entry Points)
@@ -86,7 +86,7 @@ All feature features follow a consistent pattern:
 - page (2 files)
 - scale (2 files)
 - scrollbar (4 files)
-- sections (5 files)
+- groups (5 files)
 - selection (3 files)
 - snapshots (2 files)
 

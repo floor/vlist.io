@@ -155,17 +155,17 @@ src/features/scrollbar/
 Grouped lists with sticky or inline headers.
 
 ```
-src/features/sections/
+src/features/groups/
 ├── index.ts           # Module exports
-├── feature.ts          # withSections() feature
-├── layout.ts          # Section layout calculations
+├── feature.ts          # withGroups() feature
+├── layout.ts          # Group layout calculations
 ├── sticky.ts          # Sticky header implementation
-└── types.ts           # Section types
+└── types.ts           # Group types
 ```
 
 **Key exports:**
-- `withSections()` - Feature function
-- `createGroupLayout()` - Layout calculator (aliased as `createSectionLayout`)
+- `withGroups()` - Feature function
+- `createGroupLayout()` - Layout calculator
 - `buildLayoutItems()` - Build layout entries
 - `createGroupedSizeFn()` - Size function for sections
 - `createStickyHeader()` - Sticky header manager
@@ -246,7 +246,7 @@ import '@floor/vlist/styles';
 
 Main package entry point. Exports everything from all domains:
 - Builder API (`vlist`, types)
-- All features (`withGrid`, `withSections`, etc.)
+- All features (`withGrid`, `withGroups`, etc.)
 - Rendering utilities
 - Selection utilities
 - Event system
@@ -306,7 +306,7 @@ export function withFeatureName(config?: FeatureConfig): VListFeature {
 import { vlist } from '@floor/vlist';
 
 // Features
-import { withGrid, withSections, withAsync } from '@floor/vlist';
+import { withGrid, withGroups, withAsync } from '@floor/vlist';
 
 // Utilities
 import { getScaleInfo, createEmitter } from '@floor/vlist';

@@ -90,17 +90,17 @@ import {
 
 ---
 
-## Sections / Groups
+## Groups
 
 Layout utilities for grouped lists with headers.
 
 ```ts
 import {
-  createSectionLayout,
+  createGroupLayout,
   buildLayoutItems,
-  createSectionedSizeFn,
+  createGroupedSizeFn,
   createStickyHeader,
-  isSectionHeader,
+  isGroupHeader,
 } from '@floor/vlist'
 ```
 

@@ -1,8 +1,8 @@
 // Messaging — Chat UI with reverse mode + date headers
-// Demonstrates reverse: true, withSections, DOM measurement,
+// Demonstrates reverse: true, withGroups, DOM measurement,
 // auto-scroll, incoming messages, send input.
 
-import { vlist, withSections } from "vlist";
+import { vlist, withGroups } from "vlist";
 import {
   getChatUser,
   pickMessage,
@@ -267,7 +267,7 @@ export function createList() {
 
   if (currentHeaderMode !== "off") {
     builder.use(
-      withSections({
+      withGroups({
         getGroupForIndex: (index) => {
           const item = currentItems[index];
           return item ? DATE_LABELS[item.dateSection] : "Unknown";

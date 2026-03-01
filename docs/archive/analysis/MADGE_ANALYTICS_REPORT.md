@@ -50,7 +50,7 @@ Level 1-2 (Core Infrastructure):
 
 Level 3-5 (Business Logic):
   - builder/context.ts, core.ts
-  - Feature features (async, grid, sections, etc.)
+  - Feature features (async, grid, groups, etc.)
   - Feature managers and layouts
 
 Level 6-8 (Integration):
@@ -115,7 +115,7 @@ Level 9 (Entry Point):
 | 4 | **rendering/index.ts** | 6 | API | 🟠 High |
 | 5 | **rendering/viewport.ts** | 5 | Core | 🟡 Medium |
 | 6 | **rendering/scale.ts** | 5 | Core | 🟡 Medium |
-| 7 | **features/sections/types.ts** | 5 | Types | 🟡 Medium |
+| 7 | **features/groups/types.ts** | 5 | Types | 🟡 Medium |
 | 8 | **features/grid/types.ts** | 4 | Types | 🟡 Medium |
 | 9 | **features/scrollbar/controller.ts** | 3 | Core | 🟢 Low |
 | 10 | **rendering/renderer.ts** | 3 | Core | 🟢 Low |

@@ -98,11 +98,11 @@ import { withGrid } from 'vlist/grid'
 **After (Builder Only):**
 ```typescript
 // Single entry with tree-shaking (8-12 KB gzip)
-import { vlist, withGrid, withSections } from 'vlist'
+import { vlist, withGrid, withGroups } from 'vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4 }))
-  .use(withSections({ ... }))
+  .use(withGroups({ ... }))
   .build()
 ```
 

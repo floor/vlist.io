@@ -101,9 +101,9 @@ test/
 │   │   ├── controller.test.ts      # Scroll controller (all modes)
 │   │   ├── feature.test.ts         # withScrollbar feature (TODO)
 │   │   └── scrollbar.test.ts       # Custom scrollbar UI
-│   ├── sections/                   # Sections & sticky headers
-│   │   ├── feature.test.ts         # withSections feature (TODO)
-│   │   ├── layout.test.ts          # Section layout
+│   ├── groups/                     # Groups & sticky headers
+│   │   ├── feature.test.ts         # withGroups feature (TODO)
+│   │   ├── layout.test.ts          # Group layout
 │   │   └── sticky.test.ts          # Sticky headers (TODO)
 │   ├── selection/                  # Item selection
 │   │   ├── feature.test.ts         # withSelection feature (TODO)
@@ -161,7 +161,7 @@ Phase 2 tests verify that features work correctly together, resources are proper
 
 | File | Tests | Assertions | What it covers |
 |------|------:|----------:|----------------|
-| `builder/index.test.ts` | 233 | 531 | Composable builder (`vlist().use().build()`) — builder core, validation, feature system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withSections`, feature combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration |
+| `builder/index.test.ts` | 233 | 531 | Composable builder (`vlist().use().build()`) — builder core, validation, feature system, `withSelection`, `withScrollbar`, `withAsync`, `withScale`, `withSnapshots`, `withGrid`, `withGroups`, feature combinations, reverse mode, scroll config, horizontal mode, keyboard navigation, velocity-aware loading, sticky headers, template rendering, grid scroll virtualization integration |
 | `builder/materialize.test.ts` | 85 | 171 | DOM materialization — element creation, positioning, template application, update cycles, render range handling |
 | `builder/data.test.ts` | 78 | 186 | SimpleDataManager — factory, getItem, isItemLoaded, getItemsInRange, setItems (full/partial/offset), updateItem, removeItem, setTotal, clear, reset, callbacks (onStateChange, onItemsLoaded), stub methods, edge cases |
 | `builder/measured.test.ts` | 41 | 121 | Measured heights — dynamic height tracking, resize detection, height cache updates |
@@ -196,8 +196,8 @@ Phase 2 tests verify that features work correctly together, resources are proper
 | `features/selection/state.test.ts` | 1 | 2 | Smoke check (fully covered by `index.test.ts` — 61 tests via barrel export) |
 | `features/scale/feature.test.ts` | 26 | 48 | Touch scroll — touch drag, momentum/inertial scroll, edge clamping, cancellation, horizontal mode, touchcancel, destroy cleanup |
 | `features/scrollbar/feature.test.ts` | 13 | 14 | withScrollbar integration — factory, config variants, DOM class, afterScroll/resize/destroy handler registration |
-| `features/sections/feature.test.ts` | 10 | 12 | withSections integration — factory, config variants, DOM class, template/size replacement, afterScroll handler, destroy cleanup |
-| `features/sections/sticky.test.ts` | 5 | 8 | createStickyHeader — factory, DOM append/remove, destroy cleanup, double-destroy safety, empty layout |
+| `features/groups/feature.test.ts` | 10 | 12 | withGroups integration — factory, config variants, DOM class, template/size replacement, afterScroll handler, destroy cleanup |
+| `features/groups/sticky.test.ts` | 5 | 8 | createStickyHeader — factory, DOM append/remove, destroy cleanup, double-destroy safety, empty layout |
 | `features/page/feature.test.ts` | 20 | 35 | withPage (window scroll) — factory, DOM modifications (overflow, height, scrollbar class), context delegation (disableViewportResize, disableWheelHandler, setScrollTarget, setScrollFns, setContainerDimensions), scroll position functions, handler registration, destroy cleanup |
 
 ### Rendering

@@ -55,7 +55,7 @@ src/                             src/
 withCompression() → withScale()
 withData()        → withAsync()
 withWindow()      → withPage()
-withGroups()      → withSections()
+withGroups()      → withGroups() (originally renamed to withSections, later reverted)
 ```
 
 ### 4. Main Entry Point - Builder Only ✅
@@ -73,11 +73,11 @@ import { withGrid } from 'vlist/grid'
 **After (Builder Only):**
 ```typescript
 // Single entry - builder pattern with tree-shaking
-import { vlist, withGrid, withSections } from 'vlist'
+import { vlist, withGrid, withGroups } from 'vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4 }))
-  .use(withSections({ ... }))
+  .use(withGroups({ ... }))
   .build()
 
 // Result: 8-12 KB gzip based on features used (2-3x smaller!)
@@ -165,14 +165,14 @@ const list = createVList({
 
 ### After (Builder API)
 ```typescript
-import { vlist, withGrid, withSections } from 'vlist'
+import { vlist, withGrid, withGroups } from 'vlist'
 
 const list = vlist({
   container: '#app',
   items: data
 })
   .use(withGrid({ columns: 4 }))
-  .use(withSections({ ... }))
+  .use(withGroups({ ... }))
   .build()
 ```
 

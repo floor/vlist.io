@@ -152,7 +152,7 @@ Bundle sizes after split:
 | **`vlist/core`** | **7.3 KB** | **3.0 KB** | **Lightweight — no selection, groups, compression, scrollbar, or adapter** |
 | `vlist (withAsync)` | 9.2 KB | 3.8 KB | Sparse storage, placeholders, data manager |
 | `vlist (withScrollbar)` | 6.0 KB | 2.3 KB | Scroll controller + custom scrollbar |
-| `vlist (withSections)` | 3.6 KB | 1.4 KB | Group layout + sticky headers |
+| `vlist (withGroups)` | 3.6 KB | 1.4 KB | Group layout + sticky headers |
 | `vlist (withScale)` | 2.6 KB | 1.1 KB | Large-list compression utilities |
 | `vlist/selection` | 1.9 KB | 0.7 KB | Selection state management |
 

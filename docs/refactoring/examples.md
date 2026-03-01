@@ -182,7 +182,7 @@ Chips use the builder function name or config option — what the developer actu
 | `[core]` | No features — `vlist().build()` only |
 | `[grid]` | `withGrid()` |
 | `[masonry]` | `withMasonry()` |
-| `[sections]` | `withSections()` |
+| `[groups]` | `withGroups()` |
 | `[selection]` | `withSelection()` |
 | `[async]` | `withAsync()` |
 | `[scale]` | `withScale()` |
@@ -273,7 +273,7 @@ Add a split layout with aside panel to explore the core API interactively:
 #### 3. Messaging — Header controls
 
 Enhance the existing messaging-app with section header controls:
-- **Headers toggle**: On ↔ Off — rebuild with or without `withSections()`
+- **Headers toggle**: On ↔ Off — rebuild with or without `withGroups()`
 - **Sticky toggle**: Sticky (Telegram style) ↔ Inline (iMessage style) — `sticky: true/false`
 - **Header style** selector: Date labels, sender name, or custom grouping function
 - Keep existing features: auto-scroll, incoming messages, send input, date grouping, DOM measurement
@@ -316,7 +316,7 @@ Enhance the existing file-browser into a polished OS file manager:
 - **Click to preview**: Click a file to see content in a detail pane (text files, images, code with syntax highlighting)
 - **Breadcrumb navigation**: Existing, verify working
 - **Sort controls**: Name, size, date, type
-- Keep existing `withGrid()` + `withSections()` + `withScrollbar()`
+- Keep existing `withGrid()` + `withGroups()` + `withScrollbar()`
 
 ### Phase 3 — Reorganize Directories
 

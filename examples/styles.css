@@ -301,7 +301,7 @@ html[data-theme-mode="dark"] {
     text-transform: uppercase;
     letter-spacing: 0.6px;
     color: var(--text-dim);
-    margin: 0 0 10px;
+    margin: 0 0 8px;
 }
 
 /* ============================================================================
@@ -313,10 +313,11 @@ html[data-theme-mode="dark"] {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    min-height: 30px;
+    min-height: 28px;
 }
 
-.panel-row.slider {
+.panel-row.slider,
+.panel-row.no-margin {
     margin-top: 0 !important;
 }
 
@@ -333,7 +334,7 @@ html[data-theme-mode="dark"] {
 }
 
 .panel-value {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text);
     font-variant-numeric: tabular-nums;
     text-align: right;

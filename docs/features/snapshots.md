@@ -413,7 +413,7 @@ list.on('scroll', () => {
 ### Works With All Features
 
 ✅ `withGrid()` — Saves first visible row
-✅ `withSections()` — Saves data index (not layout index)
+✅ `withGroups()` — Saves data index (not layout index)
 ✅ `withAsync()` — Works with lazy-loaded data (pass `total` from snapshot)
 ✅ `withScale()` — Compression-aware
 ✅ `withPage()` — Works with page-level scrolling

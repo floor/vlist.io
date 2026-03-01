@@ -1,7 +1,7 @@
 // Contact List — A–Z grouped contacts with sticky section headers
-// Demonstrates withSections plugin with sticky/inline toggle
+// Demonstrates withGroups plugin with sticky/inline toggle
 
-import { vlist, withSections } from "vlist";
+import { vlist, withGroups } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { initLetterGrid } from "./controls.js";
@@ -106,7 +106,7 @@ export function createList() {
 
   if (currentHeaderMode !== "off") {
     builder.use(
-      withSections({
+      withGroups({
         getGroupForIndex: (index) => contacts[index].lastName[0].toUpperCase(),
         headerHeight: HEADER_HEIGHT,
         headerTemplate: (group) => renderGroupHeader(group),

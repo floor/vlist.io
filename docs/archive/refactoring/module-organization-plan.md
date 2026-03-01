@@ -144,8 +144,8 @@ git mv src/features/groups src/features/sections
 ```
 
 **Files to update internally:**
-- `src/features/sections/feature.ts` - rename `withGroups` → `withSections`
-- `src/features/sections/index.ts` - update exports
+- `src/features/groups/feature.ts` - `withGroups` (kept as-is)
+- `src/features/groups/index.ts` - update exports
 - `src/features/sections/types.ts` - rename types (GroupsConfig → SectionsConfig, etc.)
 
 **Rationale:** "Sections" is clearer for grouped lists with headers.
@@ -224,7 +224,7 @@ export { withScale } from './features/scale'
 export { withAsync } from './features/async'
 export { withScrollbar } from './features/scrollbar'
 export { withPage } from './features/page'
-export { withSections } from './features/sections'
+export { withGroups } from './features/groups'
 export { withGrid } from './features/grid'
 export { withSelection } from './features/selection'
 export { withSnapshots } from './features/snapshots'
@@ -499,14 +499,14 @@ const list = createVList({
 
 ### After (Builder)
 ```typescript
-import { vlist, withGrid, withSections } from 'vlist'
+import { vlist, withGrid, withGroups } from 'vlist'
 
 const list = vlist({
   container: '#app',
   items: data
 })
   .use(withGrid({ columns: 4 }))
-  .use(withSections({ ... }))
+  .use(withGroups({ ... }))
   .build()
 ```
 

@@ -87,7 +87,7 @@ interface VListConfig<T extends VListItem = VListItem>
 | `grid` | `GridConfig` | `withGrid()` | Grid columns and gap. Only used when `layout` is `'grid'`. |
 | `adapter` | `VListAdapter<T>` | `withAsync()` | Async data source. Omit `items` when using an adapter. |
 | `loading` | `object` | — | Loading behavior passed to `withAsync()`. |
-| `groups` | `GroupsConfig` | `withSections()` | Section grouping with headers. |
+| `groups` | `GroupsConfig` | `withGroups()` | Group items with sticky/inline headers. |
 | `selection` | `SelectionConfig` | `withSelection()` | Item selection mode and initial state. |
 | `scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` | Top-level scrollbar shorthand. |
 | `scroll.scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` | Same as top-level `scrollbar`, nested under `scroll`. |
@@ -457,9 +457,9 @@ type Unsubscribe = () => void
 
 ## Feature Types
 
-### SectionsConfig (GroupsConfig)
+### GroupsConfig
 
-Configuration for `withSections()`. The interface is named `GroupsConfig` in source.
+Configuration for `withGroups()`.
 
 ```typescript
 interface GroupsConfig {

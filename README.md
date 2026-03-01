@@ -10,7 +10,7 @@ Documentation, examples, and benchmarks site for the [vlist](https://github.com/
 
 - **2-3x smaller bundles** (22 KB → 8-12 KB gzipped)
 - **Builder pattern** with explicit features
-- **Clear naming** - `withScale`, `withAsync`, `withSections`, `withPage`
+- **Clear naming** - `withScale`, `withAsync`, `withGroups`, `withPage`
 - **All 34 examples updated** to demonstrate new API
 
 See [BUNDLE_SIZE_COMPARISON.md](./BUNDLE_SIZE_COMPARISON.md) for detailed analysis.
@@ -36,7 +36,7 @@ The examples includes **34 interactive examples** demonstrating the builder patt
 | **Getting Started** | Basic, Controls | 8.2 - 10.5 KB |
 | **Core (Ultra-Light)** | Basic Core | **3.1 KB** (no features) |
 | **Layout** | Grid (Photo Album, File Browser), Horizontal | 8.6 - 15.3 KB |
-| **Grouped Lists** | Sticky Headers (Sections), Reverse Chat | 11.9 - 12.3 KB |
+| **Grouped Lists** | Sticky Headers (Groups), Reverse Chat | 11.9 - 12.3 KB |
 | **Large Datasets** | Large List (Scale), Velocity Loading | 9.9 - 15.0 KB |
 | **Scroll Behaviors** | Scroll Restore, Page Scroll, Wizard Nav | 10.4 - 13.5 KB |
 | **Advanced** | Variable Heights, Chat UI, Complex Combinations | 10.9 - 15.3 KB |
@@ -46,11 +46,11 @@ The examples includes **34 interactive examples** demonstrating the builder patt
 All examples now use the **builder API** with explicit features:
 
 ```typescript
-import { vlist, withGrid, withSections } from 'vlist';
+import { vlist, withGrid, withGroups } from 'vlist';
 
 vlist({ ... })
   .use(withGrid({ columns: 4 }))
-  .use(withSections({ ... }))
+  .use(withGroups({ ... }))
   .build();
 ```
 
@@ -143,7 +143,7 @@ vlist.dev/
 │   ├── features.md          # Feature system guide
 │   ├── grid.md             # Grid feature details
 │   ├── data.md             # Async feature details
-│   ├── groups.md           # Sections feature details
+│   ├── groups.md           # Groups feature details
 │   └── ...                 # More guides
 ├── nginx/                  # nginx vhost config
 │   └── vlist.dev.conf

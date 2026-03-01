@@ -190,7 +190,7 @@ const timeline = vlist({
 }).build();
 ```
 
-**Restrictions:** `withGrid()`, `withSections()`, and `reverse: true` require vertical orientation.
+**Restrictions:** `withGrid()`, `withGroups()`, and `reverse: true` require vertical orientation.
 
 ---
 

@@ -539,10 +539,10 @@ Phases 1–4 left `grid.md` and `masonry.md` marked "✅ Accurate" without catch
 |--------|--------|
 | All imports | `'vlist/builder'` + `'vlist/grid'` etc. → single `'@floor/vlist'` import (10 code blocks) |
 | `withAdapter` | → `withAsync` with correct `{ adapter: { read } }` config shape |
-| `withGroups` | → `withSections` |
+| `withGroups` | kept as `withGroups` (originally renamed to `withSections`, later reverted) |
 | `withScrollbar` import | `'vlist/scroll'` → `'@floor/vlist'` |
 | Infinite Scroll example | Fixed adapter params: `{ start, end }` → `{ offset, limit }` (matches `withAsync` API) |
-| Key Features bullet | "Group Support — Works with `withGroups`" → "Sections Support — Works with `withSections`" |
+| Key Features bullet | "Group Support — Works with `withGroups`" → "Groups Support — Works with `withGroups`" |
 | Key Differences (migration) | "Import path changed: `vlist/builder` + `vlist/grid`" → "Everything from `'@floor/vlist'`" |
 | Related Documentation | Fixed all 5 links to use relative paths to existing files |
 
@@ -553,8 +553,8 @@ Phases 1–4 left `grid.md` and `masonry.md` marked "✅ Accurate" without catch
 | Change | Detail |
 |--------|--------|
 | All imports | `'vlist/builder'` + `'vlist/masonry'` etc. → single `'@floor/vlist'` import (4 code blocks) |
-| Limitations section | `withGroups({ ... })` → `withSections({ ... })` |
-| Limitations heading | "Groups/Sections" → "Sections" |
+| Limitations section | Uses `withGroups({ ... })` |
+| Limitations heading | "Groups" |
 | Related Documentation | Fixed all 4 links to use relative paths to existing files |
 | Footer version | v1.0.0+ → v1.1.0 |
 
@@ -580,7 +580,7 @@ Single `from 'vlist'` → `from '@floor/vlist'` in the SizeCache example.
 
 ### api/types.md — Stale feature name
 
-Heading `GroupsConfig` with description "Configuration for `withGroups()`" → heading `SectionsConfig (GroupsConfig)` with description "Configuration for `withSections()`. The interface is named `GroupsConfig` in source."
+Heading `GroupsConfig` with description "Configuration for `withGroups()`."
 
 ### navigation.json — Missing entry
 
@@ -645,7 +645,7 @@ Read all four adapter source files (`vlist-react/src/index.ts`, `vlist-vue/src/i
 | **Event helper** | `useVListEvent()` | `useVListEvent()` | `onVListEvent()` | `createVListEvent()` |
 | **Config input** | Plain object | Plain object or `Ref` | `{ config, onInstance }` | `Accessor<Config>` |
 
-All four share identical internal wiring: read config fields, conditionally chain `.use(withPage())`, `.use(withAsync())`, `.use(withGrid())`, `.use(withSections())`, `.use(withSelection())`, `.use(withScale())`, `.use(withScrollbar())`, `.use(withSnapshots())`. The user never calls `.use()` or `.build()` — the adapter does it. Adapters use a monolithic config shape, not the builder API directly.
+All four share identical internal wiring: read config fields, conditionally chain `.use(withPage())`, `.use(withAsync())`, `.use(withGrid())`, `.use(withGroups())`, `.use(withSelection())`, `.use(withScale())`, `.use(withScrollbar())`, `.use(withSnapshots())`. The user never calls `.use()` or `.build()` — the adapter does it. Adapters use a monolithic config shape, not the builder API directly.
 
 **Package name correction:** Adapters are `vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-solidjs` (unscoped), NOT `@floor/vlist-react` etc. The Architecture page had the wrong scoped names — fixed.
 
@@ -784,7 +784,7 @@ All four adapter packages import `VListConfig` from `@floor/vlist`, but core onl
 | `grid` | `GridConfig` | `withGrid()` (when `layout = 'grid'`) |
 | `adapter` | `VListAdapter<T>` | `withAsync()` |
 | `loading` | `{ cancelThreshold, preloadThreshold, preloadAhead }` | Passed to `withAsync()` |
-| `groups` | `GroupsConfig` | `withSections()` |
+| `groups` | `GroupsConfig` | `withGroups()` |
 | `selection` | `SelectionConfig` | `withSelection()` |
 | `scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` (top-level shorthand) |
 

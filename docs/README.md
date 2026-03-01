@@ -35,7 +35,7 @@ This documentation now focuses on **reference material** only.
 | **[Features Overview](./features/overview.md)** | – | All features with examples, costs, and compatibility |
 | **[Grid](./features/grid.md)** | +4.0 KB | 2D grid layout with virtualised rows |
 | **[Masonry](./features/masonry.md)** | +2.9 KB | Pinterest-style shortest-lane layout |
-| **[Sections](./features/sections.md)** | +4.6 KB | Grouped lists with sticky/inline headers |
+| **[Groups](./features/groups.md)** | +4.6 KB | Grouped lists with sticky/inline headers |
 | **[Async](./features/async.md)** | +5.3 KB | Async data loading with lazy loading |
 | **[Placeholders](./features/placeholders.md)** | Included | Skeleton loading states (with Async) |
 | **[Selection](./features/selection.md)** | +2.3 KB | Single/multiple selection with keyboard nav |
@@ -147,7 +147,7 @@ For **learning content**, see [/tutorials](/tutorials):
 | Base only | 7.7 KB | None |
 | + Selection | 10.0 KB | `withSelection()` |
 | + Grid | 11.7 KB | `withGrid()` + `withScrollbar()` |
-| + Sections | 12.3 KB | `withSections()` |
+| + Groups | 12.3 KB | `withGroups()` |
 | + Async | 13.5 KB | `withAsync()` + `withPage()` |
 | + Scale | 9.9 KB | `withScale()` + `withScrollbar()` |
 | All features | ~16 KB | Everything |

@@ -1,14 +1,14 @@
-# Sections Feature
+# Groups Feature
 
 > Grouped lists with sticky or inline section headers.
 
 ## Overview
 
-The sections feature transforms a flat list into sections with headers. Perfect for alphabetically sorted contacts, categorized items, or any list that needs visual grouping.
+The groups feature transforms a flat list into sections with headers. Perfect for alphabetically sorted contacts, categorized items, or any list that needs visual grouping.
 
 ### What It Does
 
-The sections feature:
+The groups feature:
 - ✅ **Inserts section headers** at group boundaries
 - ✅ **Sticky headers** (optional) — iOS Contacts style
 - ✅ **Index mapping** — Translates between data indices and layout indices
@@ -53,7 +53,7 @@ The feature:
 ### With Builder (Recommended)
 
 ```typescript
-import { vlist, withSections } from '@floor/vlist'
+import { vlist, withGroups } from '@floor/vlist'
 
 const contacts = vlist({
   container: '#contacts',
@@ -68,7 +68,7 @@ const contacts = vlist({
   },
   items: sortedContacts // IMPORTANT: Must be pre-sorted by group
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (index) => sortedContacts[index].lastName[0],
   headerHeight: 36,
   headerTemplate: (letter) => {
@@ -263,7 +263,7 @@ The sticky header has the class `{classPrefix}-sticky-header`:
 Groups work seamlessly with grid layout. Headers automatically span the full width:
 
 ```typescript
-import { vlist, withGrid, withSections } from '@floor/vlist'
+import { vlist, withGrid, withGroups } from '@floor/vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -274,7 +274,7 @@ const gallery = vlist({
   items: sortedPhotos
 })
 .use(withGrid({ columns: 4, gap: 16 }))
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(sortedPhotos[i].date)
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -356,10 +356,10 @@ contacts.scrollToIndex(2, 'start')
 
 ### Reverse Mode with Date Headers
 
-The sections feature **works seamlessly with reverse mode** - both sticky and inline headers are supported:
+The groups feature **works seamlessly with reverse mode** - both sticky and inline headers are supported:
 
 ```typescript
-import { vlist, withSections } from '@floor/vlist'
+import { vlist, withGroups } from '@floor/vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -375,7 +375,7 @@ const chat = vlist({
   },
   items: messages // Chronological order: oldest first
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return date.toLocaleDateString()
@@ -403,7 +403,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return date.toLocaleDateString()
@@ -451,7 +451,7 @@ As you scroll up through history, older section headers stick at the top - perfe
 
 **Priority:** `10` (runs early)
 
-The sections feature runs before most other features because it:
+The groups feature runs before most other features because it:
 - Transforms the item list (inserts headers)
 - Replaces the height function
 - Modifies the template
@@ -618,7 +618,7 @@ const contacts = vlist({
   },
   items: sortedContacts
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => sortedContacts[i].lastName[0].toUpperCase(),
   headerHeight: 36,
   headerTemplate: (letter) => `
@@ -640,7 +640,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     const today = new Date()
@@ -681,7 +681,7 @@ const catalog = vlist({
   },
   items: sortedProducts
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => sortedProducts[i].category,
   headerHeight: 48,
   headerTemplate: (category) => `
@@ -711,7 +711,7 @@ const gallery = vlist({
   items: sortedPhotos
 })
 .use(withGrid({ columns: 4, gap: 16 }))
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(sortedPhotos[i].date)
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -744,7 +744,7 @@ const carousel = vlist({
   },
   items: sortedProducts
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => sortedProducts[i].category,
   headerHeight: 60, // Width in horizontal mode
   headerTemplate: (category) => `
@@ -806,7 +806,7 @@ const sortedContacts = [...contacts].sort((a, b) =>
 **Solution:** Set `sticky: false`:
 
 ```typescript
-.use(withSections({
+.use(withGroups({
   // ...
   sticky: false // Required for reverse mode
 }))

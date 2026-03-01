@@ -300,7 +300,7 @@ const gallery = vlist({
 ### With Sections
 
 ```typescript
-import { vlist, withScale, withSections, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withGroups, withScrollbar } from '@floor/vlist';
 
 const contacts = generateContacts(2_000_000);
 
@@ -312,7 +312,7 @@ const list = vlist({
     template: (contact) => `<div>${contact.name}</div>`,
   },
 })
-  .use(withSections({
+  .use(withGroups({
     getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase(),
     headerHeight: 36,
     headerTemplate: (letter) => `<div>${letter}</div>`,
@@ -381,7 +381,7 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 | Feature | Compatible | Notes |
 |--------|------------|-------|
 | `withGrid()` | ✅ Yes | Scales grid rows automatically |
-| `withSections()` | ✅ Yes | Scales grouped layout |
+| `withGroups()` | ✅ Yes | Scales grouped layout |
 | `withAsync()` | ✅ Yes | Scales async-loaded data |
 | `withSelection()` | ✅ Yes | No impact on selection |
 | `withScrollbar()` | ✅ Recommended | Custom scrollbar for scaled mode |

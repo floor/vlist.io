@@ -21,7 +21,7 @@ The `withGrid` feature converts a linear virtual list into a 2D grid layout with
 - ✅ **Row Virtualization** — Only visible rows exist in the DOM
 - ✅ **Fixed or Dynamic Heights** — Support for both fixed and computed item heights
 - ✅ **Both Orientations** — Vertical (default) and horizontal grid layouts
-- ✅ **Sections Support** — Works with `withSections` for categorized grids
+- ✅ **Groups Support** — Works with `withGroups` for categorized grids
 - ✅ **Selection Support** — Works with `withSelection` for selectable grids
 - ✅ **Scrollbar Support** — Works with `withScrollbar` for custom scrollbars
 
@@ -495,11 +495,11 @@ const list = vlist(config)
 ### Grid + Groups
 
 ```js
-import { vlist, withGrid, withSections } from '@floor/vlist'
+import { vlist, withGrid, withGroups } from '@floor/vlist'
 
 const list = vlist(config)
   .use(withGrid({ columns: 4, gap: 8 }))
-  .use(withSections({
+  .use(withGroups({
     getGroupForIndex: (index) => items[index].category,
     headerHeight: 40,
     headerTemplate: (group) => `<h2>${group}</h2>`,

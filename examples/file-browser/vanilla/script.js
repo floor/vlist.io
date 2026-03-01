@@ -2,7 +2,7 @@
 // Uses vlist/builder with withGrid plugin for grid view and standard list for list view
 // Demonstrates a virtualized file browser similar to macOS Finder
 
-import { vlist, withGrid, withScrollbar, withSections } from "vlist";
+import { vlist, withGrid, withScrollbar, withGroups } from "vlist";
 
 // =============================================================================
 // File Type Icons
@@ -335,7 +335,7 @@ function createGridView() {
   // Add groups plugin if grouping is enabled
   if (config.groupBy !== "none" && groupMap) {
     builder = builder.use(
-      withSections({
+      withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
         headerHeight: 40,
         headerTemplate: (groupKey) => {
@@ -426,7 +426,7 @@ function createListView() {
   // Add groups plugin if grouping is enabled
   if (config.groupBy !== "none" && groupMap) {
     builder = builder.use(
-      withSections({
+      withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
         headerHeight: 40,
         headerTemplate: (groupKey) => {
