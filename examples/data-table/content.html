@@ -1,0 +1,169 @@
+<div class="container">
+    <header>
+        <h1>Data Table</h1>
+        <p class="description">
+            Virtualized data table with resizable columns, sorting, and
+            selection using <code>withTable</code>. Drag column borders to
+            resize, click headers to sort. Handles 10 000 rows at 60 fps.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Columns -->
+            <section class="panel-section">
+                <h3 class="panel-title">Columns</h3>
+                <div class="panel-row">
+                    <div class="panel-segmented" id="column-preset">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-preset="default"
+                        >
+                            Default
+                        </button>
+                        <button
+                            class="panel-segmented__btn"
+                            data-preset="compact"
+                        >
+                            Compact
+                        </button>
+                        <button class="panel-segmented__btn" data-preset="full">
+                            Full
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Row Height -->
+            <section class="panel-section">
+                <h3 class="panel-title">Row Height</h3>
+                <div class="panel-row slider">
+                    <input
+                        type="range"
+                        id="row-height"
+                        class="panel-slider"
+                        min="28"
+                        max="64"
+                        value="40"
+                    />
+                    <span class="panel-value" id="row-height-value">40px</span>
+                </div>
+            </section>
+
+            <!-- Borders -->
+            <section class="panel-section">
+                <h3 class="panel-title">Borders</h3>
+                <div class="panel-row">
+                    <div class="panel-segmented" id="border-mode">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-mode="rows"
+                        >
+                            Rows
+                        </button>
+                        <button class="panel-segmented__btn" data-mode="both">
+                            Both
+                        </button>
+                        <button class="panel-segmented__btn" data-mode="none">
+                            None
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Navigation</h3>
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button
+                            id="btn-first"
+                            class="panel-btn panel-btn--icon"
+                            title="First row"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-middle"
+                            class="panel-btn panel-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-last"
+                            class="panel-btn panel-btn--icon"
+                            title="Last row"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button
+                            id="btn-random"
+                            class="panel-btn panel-btn--icon"
+                            title="Random row"
+                        >
+                            <i class="icon icon--shuffle"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sort State -->
+            <section class="panel-section">
+                <h3 class="panel-title">Sort</h3>
+                <div class="panel-detail" id="sort-detail">
+                    <span class="panel-detail__empty"
+                        >Click a column header to sort</span
+                    >
+                </div>
+            </section>
+
+            <!-- Selected Row -->
+            <section class="panel-section">
+                <h3 class="panel-title">Selected row</h3>
+                <div class="panel-detail" id="row-detail">
+                    <span class="panel-detail__empty"
+                        >Click a row to see details</span
+                    >
+                </div>
+            </section>
+
+            <!-- Column Widths -->
+            <section class="panel-section">
+                <h3 class="panel-title">Column Widths</h3>
+                <div class="column-widths" id="column-widths"></div>
+            </section>
+        </aside>
+    </div>
+
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">rows</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-columns">0</strong>
+                <span class="example-footer__unit">cols</span>
+            </span>
+            <span class="example-footer__stat">
+                <strong id="ft-sort">none</strong>
+            </span>
+        </div>
+    </footer>
+</div>
