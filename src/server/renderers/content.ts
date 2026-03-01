@@ -145,6 +145,87 @@ export function createContentRenderer(config: ContentConfig) {
   // Table of Contents
   // ===========================================================================
 
+  /**
+   * Post-process parsed HTML to disambiguate duplicate H3 headings.
+   * When multiple H3s share the same text (e.g. "Install" under React, Vue, Svelte),
+   * append the parent H2 text to both the visible heading and the slug.
+   */
+  function disambiguateHeadings(html: string): string {
+    // Collect all H2 and H3 headings in order
+    const headingRegex =
+      /<h([23])\s+id="([^"]+)">(.*?)\s*<a class="anchor" href="#[^"]*">#<\/a><\/h\1>\n?/g;
+
+    interface HeadingInfo {
+      fullMatch: string;
+      depth: number;
+      slug: string;
+      text: string; // raw text (HTML tags stripped)
+      richText: string; // original inline HTML
+      parentH2Text: string | null;
+    }
+
+    const headings: HeadingInfo[] = [];
+    let currentH2Text: string | null = null;
+    let match: RegExpExecArray | null;
+
+    while ((match = headingRegex.exec(html)) !== null) {
+      const depth = Number(match[1]);
+      const slug = match[2];
+      const richText = match[3];
+      const text = richText.replace(/<[^>]*>/g, "").trim();
+
+      if (depth === 2) {
+        currentH2Text = text;
+        headings.push({
+          fullMatch: match[0],
+          depth,
+          slug,
+          text,
+          richText,
+          parentH2Text: null,
+        });
+      } else {
+        headings.push({
+          fullMatch: match[0],
+          depth,
+          slug,
+          text,
+          richText,
+          parentH2Text: currentH2Text,
+        });
+      }
+    }
+
+    // Find H3 texts that appear more than once
+    const h3Texts = headings.filter((h) => h.depth === 3);
+    const textCounts = new Map<string, number>();
+    for (const h of h3Texts) {
+      textCounts.set(h.text, (textCounts.get(h.text) || 0) + 1);
+    }
+
+    // Replace duplicates: append parent H2 context
+    let result = html;
+    for (const h of headings) {
+      if (h.depth !== 3 || !h.parentH2Text) continue;
+      if ((textCounts.get(h.text) || 0) <= 1) continue;
+
+      // Build new slug: "original-slug-parenttext"
+      const parentSlug = h.parentH2Text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+      const newSlug = `${h.slug}-${parentSlug}`;
+      const newText = `${h.richText} <span class="toc-context">${h.parentH2Text}</span>`;
+
+      const newHeading = `<h3 id="${newSlug}">${newText} <a class="anchor" href="#${newSlug}">#</a></h3>\n`;
+      result = result.replace(h.fullMatch, newHeading);
+    }
+
+    return result;
+  }
+
   function extractToc(html: string): TocItem[] {
     const toc: TocItem[] = [];
     const headingRegex =
@@ -155,8 +236,10 @@ export function createContentRenderer(config: ContentConfig) {
       const depth = Number(match[1]) as 2 | 3;
       const slug = match[2];
       const htmlText = match[3];
-      // Strip HTML tags from heading text
-      const text = htmlText.replace(/<[^>]*>/g, "").trim();
+      // Strip HTML tags but preserve toc-context spans for disambiguation styling
+      const text = htmlText
+        .replace(/<(?!span class="toc-context"|\/span)[^>]*>/g, "")
+        .trim();
       toc.push({ text, slug, depth });
     }
 
@@ -516,7 +599,8 @@ export function createContentRenderer(config: ContentConfig) {
     // Read and parse markdown with context-aware link resolution
     const mdSource = readFileSync(mdPath, "utf-8");
     const marked = createMarkedInstance(slug);
-    const parsedHtml = marked.parse(mdSource) as string;
+    const rawHtml = marked.parse(mdSource) as string;
+    const parsedHtml = disambiguateHeadings(rawHtml);
 
     // Extract table of contents
     const tocItems = extractToc(parsedHtml);

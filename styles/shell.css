@@ -381,6 +381,12 @@ body {
     color: var(--accent-text);
 }
 
+/* Context label for disambiguated duplicate headings — hidden visually, keeps slugs unique */
+
+.toc-context {
+    display: none;
+}
+
 /* ─── Overlay (mobile sidebar backdrop) ──────────────────────────── */
 
 .overlay {
