@@ -351,11 +351,6 @@ export function createList() {
     }
   });
 
-  // Resize event — update column widths display
-  list.on("column:resize", () => {
-    updateColumnWidths();
-  });
-
   // Selection event — show detail panel
   list.on("selection:change", ({ selected, items }) => {
     if (items.length > 0) {
@@ -372,7 +367,6 @@ export function createList() {
 
   stats.update();
   updateContext();
-  updateColumnWidths();
 }
 
 // =============================================================================
@@ -430,41 +424,6 @@ function updateSortDetail() {
       </div>
     `;
   }
-}
-
-// =============================================================================
-// Column widths display (panel)
-// =============================================================================
-
-const colWidthsEl = document.getElementById("column-widths");
-
-export function updateColumnWidths() {
-  if (!colWidthsEl || !list || !list.getColumnWidths) return;
-
-  const widths = list.getColumnWidths();
-  const entries = Object.entries(widths);
-
-  if (entries.length === 0) {
-    colWidthsEl.innerHTML = "";
-    return;
-  }
-
-  const maxWidth = Math.max(...entries.map(([, w]) => w));
-
-  colWidthsEl.innerHTML = entries
-    .map(([key, width]) => {
-      const barPct = maxWidth > 0 ? Math.round((width / maxWidth) * 100) : 0;
-      return `
-        <div class="col-width-row" title="${key}: ${Math.round(width)}px">
-          <span class="col-width-label">${key}</span>
-          <div class="col-width-bar-wrap">
-            <div class="col-width-bar" style="width:${barPct}%"></div>
-          </div>
-          <span class="col-width-value">${Math.round(width)}</span>
-        </div>
-      `;
-    })
-    .join("");
 }
 
 // =============================================================================

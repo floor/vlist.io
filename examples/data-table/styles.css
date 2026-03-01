@@ -157,59 +157,6 @@
 }
 
 /* ============================================================================
-   Column Widths Chart (panel)
-   ============================================================================ */
-
-.column-widths {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.col-width-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-}
-
-.col-width-label {
-    flex-shrink: 0;
-    width: 72px;
-    font-weight: 600;
-    color: var(--vlist-text, #111827);
-    text-transform: capitalize;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.col-width-bar-wrap {
-    flex: 1;
-    height: 6px;
-    background: var(--vlist-border, #e5e7eb);
-    border-radius: 3px;
-    overflow: hidden;
-    min-width: 0;
-}
-
-.col-width-bar {
-    height: 100%;
-    min-width: 2px;
-    background: linear-gradient(90deg, var(--accent, #667eea) 0%, #764ba2 100%);
-    border-radius: 3px;
-    transition: width 0.15s ease;
-}
-
-.col-width-value {
-    flex-shrink: 0;
-    width: 32px;
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-    color: var(--text-muted, #6b7280);
-}
-
-/* ============================================================================
    Responsive — table takes more room on wide screens
    ============================================================================ */
 
