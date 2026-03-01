@@ -6,6 +6,7 @@
 
 | Feature | Cost | Description |
 |---|---|---|
+| `withTable()` | +5.8 KB | Data table with resizable columns, sortable headers |
 | `withGrid()` | +4.0 KB | 2D grid layout (virtualises by row) |
 | `withGroups()` | +4.6 KB | Grouped lists with sticky or inline headers |
 | `withAsync()` | +5.3 KB | Lazy loading via adapter with placeholders |
@@ -14,6 +15,36 @@
 | `withScrollbar()` | +1.0 KB | Custom scrollbar UI with auto-hide |
 | `withPage()` | +0.9 KB | Document-level (window) scrolling |
 | `withSnapshots()` | 0 KB | Scroll position save/restore (included in base) |
+
+---
+
+## withTable() — Data Table
+
+```typescript
+import { vlist, withTable, withSelection } from '@floor/vlist';
+
+const table = vlist({
+  container: '#employees',
+  items: employees,
+  item: { height: 40, template: () => '' },
+})
+  .use(withTable({
+    columns: [
+      { key: 'name',       label: 'Name',       width: 220, sortable: true },
+      { key: 'email',      label: 'Email',      width: 280, sortable: true },
+      { key: 'department', label: 'Department',  width: 140, sortable: true },
+      { key: 'role',       label: 'Role',        width: 180 },
+    ],
+    rowHeight: 40,
+    headerHeight: 44,
+  }))
+  .use(withSelection({ mode: 'single' }))
+  .build();
+```
+
+Leverages all of vlist's core — virtualization, element pooling, size caching, scroll compression — and layers column-aware rendering on top. Rows are the unit of virtualization (same as a plain list), so `withScale`, `withAsync`, `withSelection`, and all other features compose unchanged.
+
+→ [Full docs](./table.md)
 
 ---
 

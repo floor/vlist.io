@@ -148,7 +148,7 @@ defineSuite({
   name: "SolidJS Comparison",
   description:
     "Compare vlist vs TanStack Virtual (SolidJS) performance side-by-side",
-  icon: "🔷",
+  icon: "",
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {

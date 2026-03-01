@@ -123,7 +123,7 @@ defineSuite({
   id: "virtua",
   name: "Virtua Comparison",
   description: "Compare vlist vs Virtua performance side-by-side",
-  icon: "⚔️",
+  icon: "",
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {

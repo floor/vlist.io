@@ -27,6 +27,12 @@
         "features": ["groups", "selection"]
       },
       {
+        "slug": "data-table",
+        "name": "Data Table",
+        "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 60 fps",
+        "features": ["table", "selection"]
+      },
+      {
         "slug": "wizard-nav",
         "name": "Wizard",
         "desc": "Button-only step navigation — wheel scrolling disabled",

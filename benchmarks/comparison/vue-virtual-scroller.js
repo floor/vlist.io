@@ -153,7 +153,7 @@ defineSuite({
   id: "vue-virtual-scroller",
   name: "vue-virtual-scroller Comparison",
   description: "Compare vlist vs vue-virtual-scroller performance side-by-side",
-  icon: "⚔️",
+  icon: "",
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {

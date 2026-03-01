@@ -364,6 +364,7 @@ html[data-theme-mode="dark"] {
     outline: none;
     transition: border-color 0.15s;
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .panel-input::-webkit-inner-spin-button,

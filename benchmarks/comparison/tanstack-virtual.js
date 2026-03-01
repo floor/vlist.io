@@ -164,7 +164,7 @@ defineSuite({
   id: "tanstack-virtual",
   name: "TanStack Virtual Comparison",
   description: "Compare vlist vs TanStack Virtual performance side-by-side",
-  icon: "⚔️",
+  icon: "",
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {

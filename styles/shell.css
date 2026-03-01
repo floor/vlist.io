@@ -814,10 +814,6 @@ html[data-theme-mode] .sidebar__link {
     color: var(--accent-text);
 }
 
-.doc-nav__spacer {
-    /* Empty space when no prev/next */
-}
-
 [data-theme-mode="light"] .doc-nav__link {
     background: #f8f8fa;
     border-color: #e0e0e8;

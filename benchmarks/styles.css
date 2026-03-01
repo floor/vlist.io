@@ -776,7 +776,6 @@
     letter-spacing: 0.3px;
 }
 
-
 .bench-viewport--active .bench-viewport__label {
     color: #43e97b;
 }
@@ -1070,4 +1069,3 @@ html[data-theme] .vlist-item {
 .page-footer-note a {
     color: var(--primary);
 }
-</text>

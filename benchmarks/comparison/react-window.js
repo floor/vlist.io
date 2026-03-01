@@ -111,7 +111,7 @@ defineSuite({
   id: "react-window",
   name: "react-window Comparison",
   description: "Compare vlist vs react-window performance side-by-side",
-  icon: "⚔️",
+  icon: "",
   comparison: true,
 
   run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
