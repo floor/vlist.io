@@ -301,6 +301,9 @@
    (x) set the natural width, CSS hides them and shows skeleton blocks.
    ============================================================================ */
 
+.vlist-item {
+    padding: 0 16px;
+}
 .vlist-item--placeholder .result-icon {
     background: var(--border) !important;
     color: transparent;

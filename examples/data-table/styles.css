@@ -11,7 +11,9 @@
 #list-container .vlist {
     border-radius: var(--vlist-border-radius, 0.5rem);
 }
-
+#list-container .vlist-table-header-sort {
+    font-size: 1.1em;
+}
 /* ============================================================================
    Table Header overrides
    ============================================================================ */
@@ -165,7 +167,7 @@
 
 @media (min-width: 1200px) {
     .split-main--full #list-container {
-        height: 700px;
+        height: 600px;
     }
 }
 
