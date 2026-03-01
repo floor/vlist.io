@@ -1,10 +1,10 @@
-// Basic List — React implementation
+// Basic List — React implementation using vlist-react adapter
 // Interactive control panel demonstrating core vlist API: item count, overscan,
 // scrollToIndex, and data operations (append, prepend, remove).
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { vlist, withSelection } from "@floor/vlist";
+import { useVList, useVListEvent } from "vlist-react";
 import {
   DEFAULT_COUNT,
   ITEM_HEIGHT,
@@ -12,6 +12,50 @@ import {
   makeUsers,
   itemTemplate,
 } from "../shared.js";
+
+// =============================================================================
+// VListPanel — owns the vlist instance, reports events + instance to parent
+// =============================================================================
+
+function VListPanel({
+  users,
+  overscan,
+  onReady,
+  onSelectionChange,
+  onRangeChange,
+}: {
+  users: any[];
+  overscan: number;
+  onReady: (instance: any) => void;
+  onSelectionChange: (selected: number[]) => void;
+  onRangeChange: (range: { start: number; end: number }) => void;
+}) {
+  const { containerRef, instanceRef } = useVList({
+    ariaLabel: "User list",
+    overscan,
+    items: users,
+    item: {
+      height: ITEM_HEIGHT,
+      template: itemTemplate,
+    },
+    selection: { mode: "single" },
+  });
+
+  useVListEvent(instanceRef, "selection:change", ({ selected }: any) => {
+    onSelectionChange(selected);
+  });
+
+  useVListEvent(instanceRef, "range:change", ({ range }: any) => {
+    onRangeChange(range);
+  });
+
+  // Expose instance to parent after mount
+  useEffect(() => {
+    if (instanceRef.current) onReady(instanceRef.current);
+  }, [instanceRef.current]);
+
+  return <div ref={containerRef} id="list-container" />;
+}
 
 // =============================================================================
 // App Component
@@ -26,71 +70,19 @@ function App() {
   const [scrollAlign, setScrollAlign] = useState<"start" | "center" | "end">(
     "start",
   );
-  const [stats, setStats] = useState({ dom: 0, total: DEFAULT_COUNT });
+  const [domCount, setDomCount] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [instance, setInstance] = useState<any>(null);
 
-  // Refs
-  const containerRef = useRef<HTMLDivElement>(null);
-  const instanceRef = useRef<any>(null);
-  const usersRef = useRef(users);
-  usersRef.current = users;
-
-  // Create/recreate vlist instance
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    if (instanceRef.current) {
-      instanceRef.current.destroy();
-    }
-
-    instanceRef.current = vlist({
-      container: containerRef.current,
-      ariaLabel: "User list",
-      overscan,
-      items: usersRef.current,
-      item: {
-        height: ITEM_HEIGHT,
-        template: itemTemplate,
-      },
-    })
-      .use(withSelection({ mode: "single" }))
-      .build();
-
-    instanceRef.current.on("selection:change", ({ selected }: any) => {
-      setSelectedIndex(selected.length > 0 ? selected[0] : -1);
-    });
-
-    instanceRef.current.on("range:change", ({ range }: any) => {
-      setStats({
-        dom: range.end - range.start + 1,
-        total: usersRef.current.length,
-      });
-    });
-
-    instanceRef.current.on("scroll", () => {
-      const domNodes =
-        containerRef.current?.querySelectorAll(".vlist-item").length ?? 0;
-      setStats((prev) => ({ ...prev, dom: domNodes }));
-    });
-
-    return () => {
-      if (instanceRef.current) {
-        instanceRef.current.destroy();
-      }
-    };
-  }, [overscan]);
-
-  // Sync items with instance when users change (for append/prepend/remove)
-  const syncItems = useCallback((newUsers: any[]) => {
-    setUsers(newUsers);
-    usersRef.current = newUsers;
-    setStats((prev) => ({ ...prev, total: newUsers.length }));
-  }, []);
+  // Derived values
+  const total = users.length;
+  const visiblePercent = total > 0 ? Math.round((domCount / total) * 100) : 0;
+  const memorySaved = total > 0 ? Math.round((1 - domCount / total) * 100) : 0;
 
   // Navigation
   const handleGoToIndex = () => {
-    const clamped = Math.max(0, Math.min(scrollIndex, users.length - 1));
-    instanceRef.current?.scrollToIndex(clamped, {
+    const clamped = Math.max(0, Math.min(scrollIndex, total - 1));
+    instance?.scrollToIndex(clamped, {
       align: scrollAlign,
       behavior: "smooth",
       duration: 400,
@@ -98,14 +90,11 @@ function App() {
   };
 
   const scrollToFirst = () => {
-    instanceRef.current?.scrollToIndex(0, {
-      behavior: "smooth",
-      duration: 300,
-    });
+    instance?.scrollToIndex(0, { behavior: "smooth", duration: 300 });
   };
 
   const scrollToMiddle = () => {
-    instanceRef.current?.scrollToIndex(Math.floor(users.length / 2), {
+    instance?.scrollToIndex(Math.floor(total / 2), {
       align: "center",
       behavior: "smooth",
       duration: 500,
@@ -113,93 +102,71 @@ function App() {
   };
 
   const scrollToLast = () => {
-    instanceRef.current?.scrollToIndex(users.length - 1, {
+    instance?.scrollToIndex(total - 1, {
       align: "end",
       behavior: "smooth",
       duration: 500,
     });
   };
 
+  // Count slider
+  const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const count = parseInt(e.target.value, 10);
+    setUsers(makeUsers(count));
+    setNextId(count + 1);
+  };
+
+  // Overscan slider
+  const handleOverscanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setOverscan(parseInt(e.target.value, 10));
+  };
+
   // Data operations
   const handleAppend = () => {
     const newUser = makeUser(nextId);
-    setNextId(nextId + 1);
-    const newUsers = [...usersRef.current, newUser];
-    syncItems(newUsers);
-    instanceRef.current?.appendItems([newUser]);
+    setNextId((n) => n + 1);
+    setUsers((prev) => [...prev, newUser]);
+    instance?.appendItems([newUser]);
   };
 
   const handlePrepend = () => {
     const newUser = makeUser(nextId);
-    setNextId(nextId + 1);
-    const newUsers = [newUser, ...usersRef.current];
-    syncItems(newUsers);
-    instanceRef.current?.prependItems([newUser]);
+    setNextId((n) => n + 1);
+    setUsers((prev) => [newUser, ...prev]);
+    instance?.prependItems([newUser]);
   };
 
   const handleAppend100 = () => {
     const batch = makeUsers(100, nextId);
-    setNextId(nextId + 100);
-    const newUsers = [...usersRef.current, ...batch];
-    syncItems(newUsers);
-    instanceRef.current?.appendItems(batch);
+    setNextId((n) => n + 100);
+    setUsers((prev) => [...prev, ...batch]);
+    instance?.appendItems(batch);
   };
 
   const handleRemove = () => {
-    if (usersRef.current.length === 0) return;
+    if (users.length === 0) return;
     const idx =
-      selectedIndex >= 0 && selectedIndex < usersRef.current.length
+      selectedIndex >= 0 && selectedIndex < users.length
         ? selectedIndex
-        : usersRef.current.length - 1;
-    const newUsers = usersRef.current.filter((_, i) => i !== idx);
-    instanceRef.current?.clearSelection();
+        : users.length - 1;
+    instance?.clearSelection();
     setSelectedIndex(-1);
-    syncItems(newUsers);
-    instanceRef.current?.setItems(newUsers);
+    const newUsers = users.filter((_, i) => i !== idx);
+    setUsers(newUsers);
+    instance?.setItems(newUsers);
   };
 
   const handleClear = () => {
-    syncItems([]);
-    instanceRef.current?.setItems([]);
+    setUsers([]);
+    instance?.setItems([]);
   };
 
   const handleReset = () => {
-    const newUsers = makeUsers(DEFAULT_COUNT);
+    setUsers(makeUsers(DEFAULT_COUNT));
     setNextId(DEFAULT_COUNT + 1);
     setOverscan(3);
-    syncItems(newUsers);
-    // Recreate via useEffect by changing overscan (or force recreate)
-    if (instanceRef.current) {
-      instanceRef.current.destroy();
-    }
-    instanceRef.current = vlist({
-      container: containerRef.current!,
-      ariaLabel: "User list",
-      overscan: 3,
-      items: newUsers,
-      item: {
-        height: ITEM_HEIGHT,
-        template: itemTemplate,
-      },
-    })
-      .use(withSelection({ mode: "single" }))
-      .build();
-
-    instanceRef.current.on("selection:change", ({ selected }: any) => {
-      setSelectedIndex(selected.length > 0 ? selected[0] : -1);
-    });
-
-    instanceRef.current.on("range:change", ({ range }: any) => {
-      setStats({
-        dom: range.end - range.start + 1,
-        total: usersRef.current.length,
-      });
-    });
     setSelectedIndex(-1);
   };
-
-  const memorySaved =
-    stats.total > 0 ? Math.round((1 - stats.dom / stats.total) * 100) : 0;
 
   return (
     <div className="container">
@@ -214,7 +181,19 @@ function App() {
 
       <div className="split-layout">
         <div className="split-main">
-          <div ref={containerRef} id="list-container" />
+          {/* key={overscan} remounts VListPanel so useVList picks up new overscan */}
+          <VListPanel
+            key={overscan}
+            users={users}
+            overscan={overscan}
+            onReady={setInstance}
+            onSelectionChange={(selected) => {
+              setSelectedIndex(selected.length > 0 ? selected[0] : -1);
+            }}
+            onRangeChange={(range) => {
+              setDomCount(range.end - range.start + 1);
+            }}
+          />
         </div>
 
         <aside className="split-panel">
@@ -224,9 +203,7 @@ function App() {
 
             <div className="panel-row">
               <label className="panel-label">Count</label>
-              <span className="panel-value">
-                {users.length.toLocaleString()}
-              </span>
+              <span className="panel-value">{total.toLocaleString()}</span>
             </div>
             <div className="panel-row">
               <input
@@ -235,40 +212,8 @@ function App() {
                 min="100"
                 max="100000"
                 step="100"
-                value={Math.min(users.length, 100000)}
-                onChange={(e) => {
-                  const count = parseInt(e.target.value, 10);
-                  const newUsers = makeUsers(count);
-                  setNextId(count + 1);
-                  syncItems(newUsers);
-                  if (instanceRef.current) {
-                    instanceRef.current.destroy();
-                  }
-                  instanceRef.current = vlist({
-                    container: containerRef.current!,
-                    ariaLabel: "User list",
-                    overscan,
-                    items: newUsers,
-                    item: {
-                      height: ITEM_HEIGHT,
-                      template: itemTemplate,
-                    },
-                  })
-                    .use(withSelection({ mode: "single" }))
-                    .build();
-                  instanceRef.current.on(
-                    "selection:change",
-                    ({ selected }: any) => {
-                      setSelectedIndex(selected.length > 0 ? selected[0] : -1);
-                    },
-                  );
-                  instanceRef.current.on("range:change", ({ range }: any) => {
-                    setStats({
-                      dom: range.end - range.start + 1,
-                      total: usersRef.current.length,
-                    });
-                  });
-                }}
+                value={Math.min(total, 100000)}
+                onChange={handleCountChange}
               />
             </div>
 
@@ -284,7 +229,7 @@ function App() {
                 max="10"
                 step="1"
                 value={overscan}
-                onChange={(e) => setOverscan(parseInt(e.target.value, 10))}
+                onChange={handleOverscanChange}
               />
             </div>
           </section>
@@ -386,7 +331,7 @@ function App() {
               <div className="panel-btn-group">
                 <button
                   className="panel-btn"
-                  title="Remove last item"
+                  title="Remove selected or last item"
                   onClick={handleRemove}
                 >
                   <i className="icon icon--remove"></i> Remove
@@ -414,15 +359,10 @@ function App() {
       <footer className="example-footer" id="example-footer">
         <div className="example-footer__left">
           <span className="example-footer__stat">
-            <strong>
-              {stats.total > 0
-                ? Math.round((stats.dom / stats.total) * 100)
-                : 0}
-              %
-            </strong>
+            <strong>{visiblePercent}%</strong>
           </span>
           <span className="example-footer__stat">
-            {stats.dom} / <strong>{stats.total.toLocaleString()}</strong>
+            {domCount} / <strong>{total.toLocaleString()}</strong>
             <span className="example-footer__unit"> items</span>
           </span>
           <span className="example-footer__stat">

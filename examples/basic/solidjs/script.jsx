@@ -1,10 +1,10 @@
-// Basic List — SolidJS implementation
+// Basic List — SolidJS implementation using vlist-solidjs adapter
 // Interactive control panel demonstrating core vlist API: item count, overscan,
 // scrollToIndex, and data operations (append, prepend, remove).
 
 import { render } from "solid-js/web";
-import { createSignal, createEffect, onMount, onCleanup } from "solid-js";
-import { vlist, withSelection } from "vlist";
+import { createSignal, createMemo } from "solid-js";
+import { createVList, createVListEvent } from "vlist-solidjs";
 import {
   DEFAULT_COUNT,
   ITEM_HEIGHT,
@@ -24,95 +24,48 @@ function App() {
   const [overscan, setOverscan] = createSignal(3);
   const [scrollIndex, setScrollIndex] = createSignal(0);
   const [scrollAlign, setScrollAlign] = createSignal("start");
-  const [stats, setStats] = createSignal({ dom: 0, total: DEFAULT_COUNT });
+  const [domCount, setDomCount] = createSignal(0);
   const [selectedIndex, setSelectedIndex] = createSignal(-1);
 
-  // Refs
-  let containerRef;
-  let instance = null;
-
-  // Create/recreate vlist instance
-  function createListInstance() {
-    if (!containerRef) return;
-
-    if (instance) {
-      instance.destroy();
-      instance = null;
-    }
-
-    instance = vlist({
-      container: containerRef,
-      ariaLabel: "User list",
-      overscan: overscan(),
-      items: users(),
-      item: {
-        height: ITEM_HEIGHT,
-        template: itemTemplate,
-      },
-    })
-      .use(withSelection({ mode: "single" }))
-      .build();
-
-    instance.on("selection:change", ({ selected }) => {
-      setSelectedIndex(selected.length > 0 ? selected[0] : -1);
-    });
-
-    instance.on("range:change", ({ range }) => {
-      setStats({
-        dom: range.end - range.start + 1,
-        total: users().length,
-      });
-    });
-
-    instance.on("scroll", () => {
-      const domNodes =
-        containerRef?.querySelectorAll(".vlist-item").length ?? 0;
-      setStats((prev) => ({ ...prev, dom: domNodes }));
-    });
-  }
-
-  onMount(() => {
-    createListInstance();
+  // Config accessor — createVList reacts to items changes automatically
+  const config = () => ({
+    ariaLabel: "User list",
+    overscan: overscan(),
+    items: users(),
+    item: {
+      height: ITEM_HEIGHT,
+      template: itemTemplate,
+    },
+    selection: { mode: "single" },
   });
 
-  // Recreate when overscan changes
-  let prevOverscan = overscan();
-  createEffect(() => {
-    const current = overscan();
-    if (current !== prevOverscan) {
-      prevOverscan = current;
-      createListInstance();
-    }
+  // Create vlist via the SolidJS adapter
+  const { setRef, instance } = createVList(config);
+
+  // Bind events via the adapter helper
+  createVListEvent(instance, "selection:change", ({ selected }) => {
+    setSelectedIndex(selected.length > 0 ? selected[0] : -1);
   });
 
-  onCleanup(() => {
-    if (instance) {
-      instance.destroy();
-      instance = null;
-    }
+  createVListEvent(instance, "range:change", ({ range }) => {
+    setDomCount(range.end - range.start + 1);
   });
 
   // Derived values
-  const memorySaved = () => {
-    const s = stats();
-    return s.total > 0 ? Math.round((1 - s.dom / s.total) * 100) : 0;
-  };
+  const total = () => users().length;
 
   const visiblePercent = () => {
-    const s = stats();
-    return s.total > 0 ? Math.round((s.dom / s.total) * 100) : 0;
+    return total() > 0 ? Math.round((domCount() / total()) * 100) : 0;
   };
 
-  // Sync items helper
-  function syncItems(newUsers) {
-    setUsers(newUsers);
-    setStats((prev) => ({ ...prev, total: newUsers.length }));
-  }
+  const memorySaved = () => {
+    return total() > 0 ? Math.round((1 - domCount() / total()) * 100) : 0;
+  };
 
   // Navigation
   const handleGoToIndex = () => {
-    const clamped = Math.max(0, Math.min(scrollIndex(), users().length - 1));
-    instance?.scrollToIndex(clamped, {
+    const clamped = Math.max(0, Math.min(scrollIndex(), total() - 1));
+    instance()?.scrollToIndex(clamped, {
       align: scrollAlign(),
       behavior: "smooth",
       duration: 400,
@@ -120,11 +73,11 @@ function App() {
   };
 
   const scrollToFirst = () => {
-    instance?.scrollToIndex(0, { behavior: "smooth", duration: 300 });
+    instance()?.scrollToIndex(0, { behavior: "smooth", duration: 300 });
   };
 
   const scrollToMiddle = () => {
-    instance?.scrollToIndex(Math.floor(users().length / 2), {
+    instance()?.scrollToIndex(Math.floor(total() / 2), {
       align: "center",
       behavior: "smooth",
       duration: 500,
@@ -132,7 +85,7 @@ function App() {
   };
 
   const scrollToLast = () => {
-    instance?.scrollToIndex(users().length - 1, {
+    instance()?.scrollToIndex(total() - 1, {
       align: "end",
       behavior: "smooth",
       duration: 500,
@@ -142,10 +95,8 @@ function App() {
   // Count slider
   const handleCountChange = (e) => {
     const count = parseInt(e.target.value, 10);
-    const newUsers = makeUsers(count);
+    setUsers(makeUsers(count));
     setNextId(count + 1);
-    syncItems(newUsers);
-    createListInstance();
   };
 
   // Overscan slider
@@ -157,25 +108,22 @@ function App() {
   const handleAppend = () => {
     const newUser = makeUser(nextId());
     setNextId((n) => n + 1);
-    const newUsers = [...users(), newUser];
-    syncItems(newUsers);
-    instance?.appendItems([newUser]);
+    setUsers((prev) => [...prev, newUser]);
+    instance()?.appendItems([newUser]);
   };
 
   const handlePrepend = () => {
     const newUser = makeUser(nextId());
     setNextId((n) => n + 1);
-    const newUsers = [newUser, ...users()];
-    syncItems(newUsers);
-    instance?.prependItems([newUser]);
+    setUsers((prev) => [newUser, ...prev]);
+    instance()?.prependItems([newUser]);
   };
 
   const handleAppend100 = () => {
     const batch = makeUsers(100, nextId());
     setNextId((n) => n + 100);
-    const newUsers = [...users(), ...batch];
-    syncItems(newUsers);
-    instance?.appendItems(batch);
+    setUsers((prev) => [...prev, ...batch]);
+    instance()?.appendItems(batch);
   };
 
   const handleRemove = () => {
@@ -185,24 +133,22 @@ function App() {
       selectedIndex() >= 0 && selectedIndex() < current.length
         ? selectedIndex()
         : current.length - 1;
-    const newUsers = current.filter((_, i) => i !== idx);
-    instance?.clearSelection();
+    instance()?.clearSelection();
     setSelectedIndex(-1);
-    syncItems(newUsers);
-    instance?.setItems(newUsers);
+    setUsers((prev) => prev.filter((_, i) => i !== idx));
+    instance()?.setItems(users());
   };
 
   const handleClear = () => {
-    syncItems([]);
-    instance?.setItems([]);
+    setUsers([]);
+    instance()?.setItems([]);
   };
 
   const handleReset = () => {
     const newUsers = makeUsers(DEFAULT_COUNT);
+    setUsers(newUsers);
     setNextId(DEFAULT_COUNT + 1);
     setOverscan(3);
-    syncItems(newUsers);
-    createListInstance();
   };
 
   return (
@@ -218,7 +164,7 @@ function App() {
 
       <div class="split-layout">
         <div class="split-main">
-          <div ref={containerRef} id="list-container" />
+          <div ref={setRef} id="list-container" />
         </div>
 
         <aside class="split-panel">
@@ -228,7 +174,7 @@ function App() {
 
             <div class="panel-row">
               <label class="panel-label">Count</label>
-              <span class="panel-value">{users().length.toLocaleString()}</span>
+              <span class="panel-value">{total().toLocaleString()}</span>
             </div>
             <div class="panel-row">
               <input
@@ -237,7 +183,7 @@ function App() {
                 min="100"
                 max="100000"
                 step="100"
-                value={Math.min(users().length, 100000)}
+                value={Math.min(total(), 100000)}
                 onChange={handleCountChange}
               />
             </div>
@@ -385,7 +331,7 @@ function App() {
             <strong>{visiblePercent()}%</strong>
           </span>
           <span class="example-footer__stat">
-            {stats().dom} / <strong>{stats().total.toLocaleString()}</strong>
+            {domCount()} / <strong>{total().toLocaleString()}</strong>
             <span class="example-footer__unit"> items</span>
           </span>
           <span class="example-footer__stat">
