@@ -62,9 +62,9 @@
         "desc": "Pinterest-style layout (withMasonry)"
       },
       {
-        "slug": "features/sections",
-        "name": "Sections",
-        "desc": "Grouped lists with headers (withSections)"
+        "slug": "features/groups",
+        "name": "Groups",
+        "desc": "Grouped lists with headers (withGroups)"
       },
       {
         "slug": "features/async",

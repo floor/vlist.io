@@ -247,7 +247,7 @@
                         <span class="feature__icon">↔️</span>
                         <div class="feature__name">Dimension Agnostic</div>
                         <div class="feature__desc">
-                            Vertical &amp; horizontal orientations with semantic API — grid, sections, all features work both ways
+                            Vertical &amp; horizontal orientations with semantic API — grid, groups, all features work both ways
                         </div>
                     </div>
                     <div class="feature">

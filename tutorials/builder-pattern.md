@@ -4,14 +4,14 @@
 
 ## Why Builder Pattern?
 
-Different use cases need different features. A contact list doesn't need async loading. A photo gallery doesn't need sections. Bundling everything wastes bytes.
+Different use cases need different features. A contact list doesn't need async loading. A photo gallery doesn't need groups. Bundling everything wastes bytes.
 
 | Configuration | Bundle | vs. monolithic |
 |---|---|---|
 | Base (no features) | 7.7 KB | – |
 | + Selection | 10.0 KB | 2.1× smaller |
 | + Grid + Scrollbar | 11.7 KB | 1.8× smaller |
-| + Sections | 12.3 KB | 1.8× smaller |
+| + Groups | 12.3 KB | 1.8× smaller |
 | + Async + Page | 13.5 KB | 1.6× smaller |
 | All features | ~16 KB | 1.4× smaller |
 
@@ -69,7 +69,7 @@ list.destroy();
 | Feature | Import | Cost | Description |
 |---|---|---|---|
 | `withGrid()` | `@floor/vlist` | +4.0 KB | 2D grid layout (virtualises by row) |
-| `withSections()` | `@floor/vlist` | +4.6 KB | Grouped lists with sticky or inline headers |
+| `withGroups()` | `@floor/vlist` | +4.6 KB | Grouped lists with sticky or inline headers |
 | `withAsync()` | `@floor/vlist` | +5.3 KB | Lazy loading via adapter |
 | `withSelection()` | `@floor/vlist` | +2.3 KB | Single / multiple item selection |
 | `withScale()` | `@floor/vlist` | +2.2 KB | 1M+ item compression |
@@ -83,13 +83,13 @@ list.destroy();
 
 | Combination | Works? |
 |---|---|
-| `withGrid()` + `withSections()` | ✅ Grouped grid |
+| `withGrid()` + `withGroups()` | ✅ Grouped grid |
 | `withGrid()` + `withSelection()` | ✅ Selectable gallery |
-| `withSections()` + `withSelection()` | ✅ Selectable grouped list |
+| `withGroups()` + `withSelection()` | ✅ Selectable grouped list |
 | `withAsync()` + `withScale()` | ✅ Large async dataset |
 | `withPage()` + `withAsync()` | ✅ Infinite scroll feed |
 | `withGrid()` + `orientation: 'horizontal'` | ❌ Grid requires vertical |
-| `withSections()` + `orientation: 'horizontal'` | ❌ Sections require vertical |
+| `withGroups()` + `orientation: 'horizontal'` | ❌ Groups require vertical |
 | `withPage()` + `withScrollbar()` | ❌ Conflicting scroll ownership |
 | `reverse: true` + `orientation: 'horizontal'` | ❌ Reverse requires vertical |
 
@@ -105,7 +105,7 @@ File browser with grouped grid, multi-select, and custom scrollbar:
 import {
   vlist,
   withGrid,
-  withSections,
+  withGroups,
   withSelection,
   withScrollbar,
 } from '@floor/vlist';
@@ -124,7 +124,7 @@ const browser = vlist({
   },
 })
   .use(withGrid({ columns: 6, gap: 12 }))
-  .use(withSections({
+  .use(withGroups({
     getGroupForIndex: (i) => files[i].category,
     headerHeight: 40,
     headerTemplate: (cat) => `<h2 class="category-header">${cat}</h2>`,
@@ -172,6 +172,6 @@ const list = builder.build();
 
 - **[Quick Start](./quick-start)** — Copy-paste examples for every use case
 - **[Features Overview](/docs/features/overview)** — All features with correct API
-- **[Grid](/docs/features/grid)** · **[Sections](/docs/features/sections)** · **[Async](/docs/features/async)**
+- **[Grid](/docs/features/grid)** · **[Groups](/docs/features/groups)** · **[Async](/docs/features/async)**
 - **[Selection](/docs/features/selection)** · **[Scale](/docs/features/scale)** · **[Scrollbar](/docs/features/scrollbar)**
 - **[API Reference](/docs/api/reference)** — Complete method reference

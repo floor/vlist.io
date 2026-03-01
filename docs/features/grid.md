@@ -780,7 +780,7 @@ const list = vlist({
 
 - [API Reference](../api/reference.md) — Complete API — config, methods, events
 - [Selection Feature](./selection.md) — Select grid items
-- [Sections Feature](./sections.md) — Categorized grids with sticky headers
+- [Groups Feature](./groups.md) — Categorized grids with sticky headers
 - [Scrollbar Feature](./scrollbar.md) — Custom scrollbars
 - [Async Feature](./async.md) — Lazy data loading
 

@@ -284,7 +284,7 @@ Systematic pass across all user-facing docs to fix stale references, broken link
 |-----|--------|
 | `VListConfig` → `BuilderConfig` | Two references in Scroll Configuration and createScrollController description |
 
-### features/sections.md
+### features/groups.md
 
 | Fix | Detail |
 |-----|--------|
@@ -310,7 +310,7 @@ The npm package name is `@floor/vlist`. All code examples must use the scoped na
 |------|-------------------|
 | `features/page.md` | 6 |
 | `features/snapshots.md` | 7 |
-| `features/sections.md` | 3 (also combined split `import { vlist } from` / `import { withX } from` into single imports) |
+| `features/groups.md` | 3 (also combined split `import { vlist } from` / `import { withX } from` into single imports) |
 | `features/scrollbar.md` | 2 |
 | `features/placeholders.md` | 1 |
 | `features/async.md` | 1 (also removed non-existent `'vlist/async'` sub-path import) |
@@ -353,7 +353,7 @@ Also fixed: broken link `[optimization.md]/tutorials/optimization)` → `[Optimi
 | Bundle cost footer | "Opt-in feature (tree-shakeable)" → "Included in base (0 KB additional)" — matches `overview.md` which says 0 KB |
 | `./README.md` → `./overview.md` | See Also link |
 
-### features/sections.md
+### features/groups.md
 
 | Fix | Detail |
 |-----|--------|
@@ -539,7 +539,7 @@ Phases 1–4 left `grid.md` and `masonry.md` marked "✅ Accurate" without catch
 |--------|--------|
 | All imports | `'vlist/builder'` + `'vlist/grid'` etc. → single `'@floor/vlist'` import (10 code blocks) |
 | `withAdapter` | → `withAsync` with correct `{ adapter: { read } }` config shape |
-| `withGroups` | kept as `withGroups` (originally renamed to `withSections`, later reverted) |
+| `withGroups` | kept as `withGroups` (originally renamed to `withSections`, then reverted back to `withGroups`) |
 | `withScrollbar` import | `'vlist/scroll'` → `'@floor/vlist'` |
 | Infinite Scroll example | Fixed adapter params: `{ start, end }` → `{ offset, limit }` (matches `withAsync` API) |
 | Key Features bullet | "Group Support — Works with `withGroups`" → "Groups Support — Works with `withGroups`" |
@@ -838,7 +838,7 @@ All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-patter
 |------|-------------|-------------|
 | `features/async.md` | `/examples/velocity-loading` | Smart loading that skips during fast scrolling |
 | `features/scale.md` | `/examples/large-list` | 100K–5M items with withScale (4 frameworks) |
-| `features/sections.md` | `/examples/contact-list` | A–Z contact list with sticky section headers |
+| `features/groups.md` | `/examples/contact-list` | A–Z contact list with sticky section headers |
 | `features/selection.md` | `/examples/controls` | Full API exploration with selection (4 frameworks) |
 | `features/scrollbar.md` | `/examples/photo-album`, `/examples/controls`, `/examples/large-list` | Three examples showcasing scrollbar in different contexts |
 

@@ -400,7 +400,7 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 
 - [Scrollbar Feature](./scrollbar.md) - Custom scrollbar (required for scaled mode)
 - [Grid Feature](./grid.md) - 2D grid layout with scaling support
-- [Sections Feature](./sections.md) - Grouped lists with scaling support
+- [Groups Feature](./groups.md) - Grouped lists with scaling support
 - [Page Feature](./page.md) - Window scrolling with mathematical scaling
 
 ## Live Examples

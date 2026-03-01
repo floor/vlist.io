@@ -93,7 +93,7 @@ const gallery = vlist({
 ### 4. Contact List (A-Z Sections)
 
 ```typescript
-import { vlist, withSections } from '@floor/vlist';
+import { vlist, withGroups } from '@floor/vlist';
 
 const contacts = vlist({
   container: '#contacts',
@@ -103,7 +103,7 @@ const contacts = vlist({
     template: (contact) => `<div>${contact.name}</div>`,
   },
 })
-  .use(withSections({
+  .use(withGroups({
     getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase(),
     headerHeight: 36,
     headerTemplate: (letter) => `<div class="header">${letter}</div>`,
@@ -119,7 +119,7 @@ const contacts = vlist({
 ### 5. Chat UI (Reverse Mode)
 
 ```typescript
-import { vlist, withSections } from '@floor/vlist';
+import { vlist, withGroups } from '@floor/vlist';
 
 const chat = vlist({
   container: '#messages',
@@ -130,7 +130,7 @@ const chat = vlist({
     template: (msg) => `<div class="msg">${msg.text}</div>`,
   },
 })
-  .use(withSections({
+  .use(withGroups({
     getGroupForIndex: (i) => formatDate(messages[i].timestamp),
     headerHeight: 32,
     headerTemplate: (date) => `<div class="date">${date}</div>`,
@@ -269,7 +269,7 @@ list.removeItem(5);
 | Feature | Cost | Description |
 |--------|------|-------------|
 | `withGrid()` | +4.0 KB | 2D grid layout |
-| `withSections()` | +4.6 KB | Grouped lists with headers |
+| `withGroups()` | +4.6 KB | Grouped lists with headers |
 | `withAsync()` | +5.3 KB | Async data loading |
 | `withSelection()` | +2.3 KB | Item selection |
 | `withScale()` | +2.2 KB | Handle 1M+ items |

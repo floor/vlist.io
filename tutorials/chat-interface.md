@@ -351,7 +351,7 @@ Groups work seamlessly with reverse mode - both sticky and inline headers are su
 
 ```typescript
 import { vlist } from 'vlist'
-import { withSections } from 'vlist'
+import { withGroups } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -362,7 +362,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date) // "Today", "Yesterday", "Jan 15"
@@ -395,7 +395,7 @@ Sticky headers also work with reverse mode! As you scroll UP through chat histor
 
 ```typescript
 import { vlist } from 'vlist'
-import { withSections } from 'vlist'
+import { withGroups } from 'vlist'
 
 const chat = vlist({
   container: '#messages',
@@ -406,7 +406,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
@@ -673,7 +673,7 @@ init()
 
 ```typescript
 import { vlist } from 'vlist'
-import { withSections } from 'vlist'
+import { withGroups } from 'vlist'
 
 function formatDateLabel(date) {
   const today = new Date()
@@ -709,7 +709,7 @@ const chat = vlist({
   },
   items: messages
 })
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
@@ -854,7 +854,7 @@ const chat = vlist({
 })
 ```
 
-### Error: "withSections cannot be used with reverse: true"
+### Error: "withGroups cannot be used with reverse: true"
 
 **Symptom:** Error when combining groups with reverse mode.
 
@@ -863,7 +863,7 @@ const chat = vlist({
 **Solution:** Set `sticky: false`:
 
 ```typescript
-.use(withSections({
+.use(withGroups({
   getGroupForIndex: (i) => getDateGroup(messages[i]),
   headerHeight: 28,
   headerTemplate: (date) => `<div>${date}</div>`,
@@ -911,7 +911,7 @@ const messages = [...originalMessages].reverse() // Don't do this!
 
 ## Further Reading
 
-- [Sections Feature](/docs/features/sections) — Add date headers to chat UIs
+- [Groups Feature](/docs/features/groups) — Add date headers to chat UIs
 - [Async Feature](/docs/features/async) — Infinite scrolling with async loading
 - [Selection Feature](/docs/features/selection) — Add message selection
 - [API Reference](/docs/api/reference) — Full API documentation

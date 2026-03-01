@@ -59,7 +59,7 @@ const contacts = vlist({
   .build();
 ```
 
-→ [Full docs](./sections.md)
+→ [Full docs](./groups.md)
 
 ---
 
@@ -216,11 +216,11 @@ if (saved) list.restoreScroll(saved);
 
 Most features compose freely. This matrix shows the known constraints:
 
-| | Grid | Masonry | Sections | Async | Selection | Scale | Scrollbar | Page | Snapshots |
+| | Grid | Masonry | Groups | Async | Selection | Scale | Scrollbar | Page | Snapshots |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Grid** | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
 | **Masonry** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Sections** | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Groups** | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Async** | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Selection** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ |
 | **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ |
@@ -237,7 +237,7 @@ Most features compose freely. This matrix shows the known constraints:
 **Key constraints:**
 
 - **Grid ↔ Masonry** — Mutually exclusive layout modes
-- **Masonry ↔ Sections** — Masonry doesn't support grouped layouts
+- **Masonry ↔ Groups** — Masonry doesn't support grouped layouts
 - **Masonry + reverse** — Not supported
 - **Page ↔ Scrollbar** — Page uses the native browser scrollbar; builder throws if both are active
 - **Page ↔ Scale** — Page scroll is vertical-only with native overflow; scale requires a controlled scroll container
