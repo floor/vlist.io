@@ -21,6 +21,7 @@ vlist(document.getElementById("list-container"), {
     items,
     item: {
       height: ITEM_HEIGHT,
+      striped: true,
       template: itemTemplate,
     },
   },

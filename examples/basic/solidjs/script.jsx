@@ -22,6 +22,7 @@ function App() {
     items,
     item: {
       height: ITEM_HEIGHT,
+      striped: true,
       template: itemTemplate,
     },
   }));
