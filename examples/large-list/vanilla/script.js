@@ -3,6 +3,7 @@
 // Demonstrates handling 1M+ items with automatic scroll scaling
 
 import { vlist, withScale, withScrollbar } from "vlist";
+import { createStats } from "../../stats.js";
 
 // =============================================================================
 // Constants
@@ -36,45 +37,62 @@ const hash = (n) => {
 };
 
 // =============================================================================
-// Generate items on the fly
+// Generate lightweight items (only id — display data computed in template)
 // =============================================================================
 
 const generateItems = (count) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: i + 1,
-    value: hash(i) % 100,
-    hash: hash(i).toString(16).slice(0, 8).toUpperCase(),
-    color: COLORS[i % COLORS.length],
-  }));
+  Array.from({ length: count }, (_, i) => ({ id: i + 1 }));
 
 // =============================================================================
 // Item template
 // =============================================================================
 
-const itemTemplate = (item, index) => `
+const itemTemplate = (_item, index) => {
+  const h = hash(index);
+  const value = h % 100;
+  const hex = h.toString(16).slice(0, 8).toUpperCase();
+  const color = COLORS[index % COLORS.length];
+
+  return `
   <div class="item-row">
-    <div class="item-color" style="background:${item.color}"></div>
+    <div class="item-color" style="background:${color}"></div>
     <div class="item-info">
       <span class="item-label">#${(index + 1).toLocaleString()}</span>
-      <span class="item-hash">${item.hash}</span>
+      <span class="item-hash">${hex}</span>
     </div>
     <div class="item-bar-wrap">
-      <div class="item-bar" style="width:${item.value}%;background:${item.color}"></div>
+      <div class="item-bar" style="width:${value}%;background:${color}"></div>
     </div>
-    <span class="item-value">${item.value}%</span>
+    <span class="item-value">${value}%</span>
   </div>
 `;
+};
 
 // =============================================================================
 // DOM references
 // =============================================================================
 
-const statsEl = document.getElementById("stats");
-const compressionEl = document.getElementById("compression-info");
 const scrollPosEl = document.getElementById("scroll-position");
 const scrollDirEl = document.getElementById("scroll-direction");
 const rangeEl = document.getElementById("visible-range");
 const sizeButtons = document.getElementById("size-buttons");
+
+// Footer right-side elements
+const ftVirtualizedEl = document.getElementById("ft-virtualized");
+const ftScaleEl = document.getElementById("ft-scale");
+const ftModeEl = document.getElementById("ft-mode");
+const ftModeStatEl = document.getElementById("ft-mode-stat");
+
+// =============================================================================
+// Shared footer stats (left side — progress, velocity, items)
+// =============================================================================
+
+const stats = createStats({
+  getList: () => list,
+  getTotal: () => SIZES[currentSize],
+  getItemHeight: () => ITEM_HEIGHT,
+  container: "#list-container",
+});
 
 // =============================================================================
 // State
@@ -99,11 +117,9 @@ function createList(sizeKey) {
   container.innerHTML = "";
 
   const count = SIZES[sizeKey];
-  const startTime = performance.now();
   const items = generateItems(count);
-  const genTime = performance.now() - startTime;
 
-  list = vlist({
+  const builder = vlist({
     container: "#list-container",
     ariaLabel: `${count.toLocaleString()} items list`,
     item: {
@@ -111,76 +127,49 @@ function createList(sizeKey) {
       template: itemTemplate,
     },
     items,
-  })
-    .use(withScale())
-    .use(withScrollbar({ autoHide: true }))
-    .build();
+  });
 
-  const buildTime = performance.now() - startTime;
+  if (count > 100_000) {
+    builder.use(withScale()).use(withScrollbar({ autoHide: true }));
+  }
+
+  list = builder.build();
 
   // Bind events
   list.on("scroll", ({ scrollTop, direction }) => {
     scrollPosEl.textContent = `${Math.round(scrollTop).toLocaleString()}px`;
     scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
-    scheduleStatsUpdate();
+    stats.scheduleUpdate();
   });
 
   list.on("range:change", ({ range }) => {
     rangeEl.textContent = `${range.start.toLocaleString()} – ${range.end.toLocaleString()}`;
-    scheduleStatsUpdate();
+    stats.scheduleUpdate();
   });
 
-  // Show initial stats
-  updateStats(count, genTime, buildTime);
-  updateCompressionInfo(count);
+  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+
+  // Update footer
+  stats.update();
+  updateContext(count);
 }
 
 // =============================================================================
-// Stats
+// Footer right side — context (virtualized %, scale mode)
 // =============================================================================
 
-let statsRaf = null;
-
-function scheduleStatsUpdate() {
-  if (statsRaf) return;
-  statsRaf = requestAnimationFrame(() => {
-    statsRaf = null;
-    updateStats(SIZES[currentSize]);
-    updateCompressionInfo(SIZES[currentSize]);
-  });
-}
-
-function updateStats(count, genTime, buildTime) {
-  const domNodes = document.querySelectorAll(".vlist-item").length;
-  const virtualized = ((1 - domNodes / count) * 100).toFixed(4);
-
-  let html = `<strong>Total:</strong> ${count.toLocaleString()}`;
-  html += ` · <strong>DOM:</strong> ${domNodes}`;
-  html += ` · <strong>Virtualized:</strong> ${virtualized}%`;
-  if (genTime !== undefined) {
-    html += ` · <strong>Gen:</strong> ${genTime.toFixed(0)}ms`;
-  }
-  if (buildTime !== undefined) {
-    html += ` · <strong>Build:</strong> ${buildTime.toFixed(0)}ms`;
-  }
-  statsEl.innerHTML = html;
-}
-
-function updateCompressionInfo(count) {
+function updateContext(count) {
   const totalHeight = count * ITEM_HEIGHT;
   const maxHeight = 16_777_216; // browser limit ~16.7M px
-  const isCompressed = totalHeight > maxHeight;
-  const ratio = isCompressed ? (totalHeight / maxHeight).toFixed(1) : "1.0";
+  const isScaled = totalHeight > maxHeight;
+  const ratio = isScaled ? (totalHeight / maxHeight).toFixed(1) : "1.0";
+  const domNodes = document.querySelectorAll(".vlist-item").length;
+  const virtualized = ((1 - domNodes / count) * 100).toFixed(2);
 
-  let html = `<span class="compression-badge ${isCompressed ? "compression-badge--active" : "compression-badge--off"}">`;
-  html += isCompressed ? "COMPRESSED" : "NATIVE";
-  html += "</span>";
-  html += ` <span class="compression-detail">`;
-  html += `Virtual height: <strong>${(totalHeight / 1_000_000).toFixed(1)}M px</strong>`;
-  html += ` · Ratio: <strong>${ratio}×</strong>`;
-  html += ` · Limit: <strong>16.7M px</strong>`;
-  html += `</span>`;
-  compressionEl.innerHTML = html;
+  ftVirtualizedEl.textContent = `${virtualized}%`;
+  ftScaleEl.textContent = `${ratio}×`;
+  ftModeEl.textContent = isScaled ? "SCALED" : "NATIVE";
+  ftModeStatEl.className = `example-footer__stat ${isScaled ? "example-footer__stat--warn" : "example-footer__stat--ok"}`;
 }
 
 // =============================================================================

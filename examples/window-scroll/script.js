@@ -20,7 +20,7 @@ const DOMAINS = [
 ];
 
 // Simulated API — generates items with a realistic delay
-let simulatedDelay = 300;
+let simulatedDelay = 0;
 
 const generateItem = (id) => {
   const catIndex = (id - 1) % CATEGORIES.length;

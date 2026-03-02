@@ -7,16 +7,17 @@
    ============================================================================ */
 
 .vlist {
-    min-height: 500px;
+    min-height: 1500px;
 }
 
 .sticky-bar {
-    position: sticky;
-    top: var(--sb-header-h, 0px);
+    position: fixed;
+    bottom: 39.5px;
     z-index: 90;
     display: flex;
     align-items: center;
     gap: 16px;
+    width: 800px;
     padding: 10px 20px;
     background: var(--header-bg);
     backdrop-filter: blur(12px);
@@ -209,7 +210,7 @@
 
 /* The vlist viewport — no fixed height in window mode, it flows naturally */
 #list-container {
-    border-radius: 12px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
@@ -305,7 +306,7 @@
     padding: 0 16px;
 }
 .vlist-item--placeholder .result-icon {
-    background: var(--border) !important;
+    background: var(--vlist-placeholder-bg) !important;
     color: transparent;
 }
 
@@ -315,9 +316,17 @@
 .vlist-item--placeholder .result-date,
 .vlist-item--placeholder .result-category {
     color: transparent;
-    background: var(--border);
+    background-color: var(--vlist-placeholder-bg);
     border-radius: 4px;
     width: fit-content;
+}
+.vlist-item--placeholder .result-domain,
+.vlist-item--placeholder .result-date,
+.vlist-item--placeholder .result-category {
+    font-size: 0.6em;
+}
+.vlist-item--placeholder .result-description {
+    font-size: 0.6em;
 }
 
 .vlist-item--placeholder .result-index {

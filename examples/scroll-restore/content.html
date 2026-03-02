@@ -10,24 +10,36 @@
 
     <!-- List page -->
     <div id="list-page">
-        <div class="toolbar">
-            <div class="toolbar-left">
-                <div class="stats" id="stats">Scroll to see stats</div>
+        <div class="split-layout">
+            <div class="split-main">
+                <div id="list-container"></div>
             </div>
-            <div class="toolbar-right">
-                <button class="btn btn--primary" id="navigate-away">
-                    Navigate Away →
-                </button>
-            </div>
-        </div>
 
-        <div id="list-container"></div>
+            <aside class="split-panel">
+                <!-- Live Snapshot -->
+                <section class="panel-section">
+                    <h3 class="panel-title">Live Snapshot</h3>
+                    <pre class="snapshot-code" id="snapshot-code">
+{
+  "index": 0,
+  "offsetInItem": 0
+}</pre
+                    >
+                </section>
 
-        <div class="snapshot-panel" id="snapshot-panel">
-            <div class="snapshot-label">Live snapshot preview</div>
-            <pre class="snapshot-code" id="snapshot-code">
-{ index: 0, offsetInItem: 0 }</pre
-            >
+                <!-- Navigation -->
+                <section class="panel-section">
+                    <h3 class="panel-title">Navigation</h3>
+                    <div class="panel-row">
+                        <button
+                            class="panel-btn panel-btn--primary"
+                            id="navigate-away"
+                        >
+                            Navigate Away →
+                        </button>
+                    </div>
+                </section>
+            </aside>
         </div>
     </div>
 
@@ -54,11 +66,27 @@
         </div>
     </div>
 
-    <footer>
-        <p>
-            Uses <code>getScrollSnapshot()</code> and
-            <code>withSnapshots({ restore })</code> — snapshots are plain JSON,
-            perfect for <code>sessionStorage</code>. ✨
-        </p>
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-selected">0</strong>
+                <span class="example-footer__unit">selected</span>
+            </span>
+        </div>
     </footer>
 </div>

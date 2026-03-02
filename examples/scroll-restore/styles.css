@@ -1,71 +1,15 @@
 /* Scroll Save/Restore — example-specific styles only
    Common styles (.container, h1, .description, .stats, footer)
-   are provided by examples/examples.css using shell.css design tokens. */
-
-/* ==========================================================================
-   Toolbar
-   ========================================================================== */
-
-.toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 12px;
-}
-
-.stats {
-    gap: 8px;
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin-bottom: 0;
-}
-
-.stats-sep {
-    color: var(--border);
-}
-
-/* ==========================================================================
-   Buttons
-   ========================================================================== */
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    transition: all 0.15s ease;
-    white-space: nowrap;
-}
-
-.btn--primary {
-    background: var(--accent);
-    color: #fff;
-}
-
-.btn--primary:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.btn--primary:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
+   are provided by examples/examples.css using shell.css design tokens.
+   Panel system (.split-layout, .split-panel, .panel-*)
+   is also provided by example/example.css. */
 
 /* ==========================================================================
    List container
    ========================================================================== */
 
 #list-container {
-    height: 450px;
+    height: 600px;
 }
 
 /* ==========================================================================
@@ -121,25 +65,8 @@
 }
 
 /* ==========================================================================
-   Snapshot panel
+   Snapshot code (panel + detail page)
    ========================================================================== */
-
-.snapshot-panel {
-    margin-top: 12px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 18px;
-}
-
-.snapshot-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-}
 
 .snapshot-code {
     font-family: "SF Mono", Monaco, Menlo, monospace;
@@ -152,6 +79,30 @@
     border-radius: 6px;
     overflow-x: auto;
     white-space: pre;
+    margin: 0;
+}
+
+/* ==========================================================================
+   Panel button — primary variant
+   ========================================================================== */
+
+.panel-btn--primary {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.panel-btn--primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.panel-btn--primary:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 /* ==========================================================================
@@ -216,12 +167,45 @@
     text-align: left;
 }
 
+.saved-snapshot .snapshot-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+}
+
 .saved-snapshot .snapshot-code {
     font-size: 12px;
 }
 
 .detail-card .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    background: var(--accent);
+    color: #fff;
     margin-bottom: 12px;
+}
+
+.detail-card .btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.detail-card .btn:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 .detail-hint {

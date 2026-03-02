@@ -39,8 +39,8 @@
         "features": ["scroll.wheel", "selection"]
       },
       {
-        "slug": "auto-size",
-        "name": "Feed",
+        "slug": "social-feed",
+        "name": "Social Feed",
         "desc": "Social feed with real posts — variable heights measured automatically",
         "features": ["estimatedHeight", "async"]
       },
