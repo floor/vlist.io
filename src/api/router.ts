@@ -3,6 +3,8 @@
 
 import { getUsers, getUserById, DEFAULT_TOTAL, MAX_LIMIT } from "./users";
 import { listDirectory, getFilesBrowserInfo } from "./files";
+import { fetchFeed, feedSourceIds, REDDIT_PRESETS } from "./feed/index";
+import type { FeedSourceId } from "./feed/index";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -152,6 +154,54 @@ const handleGetFiles = async (url: URL): Promise<Response> => {
 const handleFilesInfo = (): Response => json(getFilesBrowserInfo());
 
 /**
+ * GET /api/feed?source=reddit&target=worldnews&limit=25&after=t3_xxx&delay=0
+ *
+ * Query params:
+ *   source  — feed source id: "reddit" | "rss" (default: "reddit")
+ *   target  — subreddit name (reddit) or feed URL (rss) (default: "worldnews")
+ *   limit   — number of posts to return (default: 25, min: 1, max: 100)
+ *   after   — pagination cursor from previous response (default: "")
+ *   delay   — simulated latency in ms (default: 0, min: 0, max: 5000)
+ *
+ * Response: FeedResponse { posts, nextCursor, total, source, target }
+ */
+const handleGetFeed = async (url: URL): Promise<Response> => {
+  const source = (url.searchParams.get("source") ?? "reddit") as FeedSourceId;
+  const target = url.searchParams.get("target") ?? "worldnews";
+  const limit = intParam(url, "limit", 25, 1, 100);
+  const delay = intParam(url, "delay", 0, 0, 5000);
+  const after = url.searchParams.get("after") ?? undefined;
+
+  if (!feedSourceIds.includes(source)) {
+    return error(
+      `Unknown source "${source}". Valid sources: ${feedSourceIds.join(", ")}`,
+      400,
+    );
+  }
+
+  await sleep(delay);
+
+  try {
+    const result = await fetchFeed({ source, target, limit, after });
+    return json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(`Feed fetch failed: ${message}`, 502);
+  }
+};
+
+/**
+ * GET /api/feed/presets
+ *
+ * Returns the curated list of available presets per source.
+ * Response: { reddit: Array<{ label, value }> }
+ */
+const handleFeedPresets = (): Response =>
+  json({
+    reddit: REDDIT_PRESETS,
+  });
+
+/**
  * GET /api/info
  *
  * Returns API metadata — available endpoints, defaults, limits.
@@ -162,6 +212,30 @@ const handleInfo = (): Response =>
     version: "0.1.0",
     description: "Deterministic user data API for vlist demos",
     endpoints: {
+      "GET /api/feed": {
+        description: "Live social feed from external sources",
+        params: {
+          source: { type: "string", default: "reddit", enum: feedSourceIds },
+          target: {
+            type: "string",
+            default: "worldnews",
+            description: "Subreddit (reddit) or feed URL (rss)",
+          },
+          limit: { type: "number", default: 25, min: 1, max: 100 },
+          after: {
+            type: "string",
+            default: "",
+            description: "Pagination cursor",
+          },
+          delay: { type: "number", default: 0, min: 0, max: 5000, unit: "ms" },
+        },
+        response:
+          "{ posts: FeedPost[], nextCursor: string | null, total: number | null, source: string, target: string }",
+      },
+      "GET /api/feed/presets": {
+        description: "Curated list of presets per source",
+        response: "{ reddit: Array<{ label, value }> }",
+      },
       "GET /api/users": {
         description: "Paginated user list",
         params: {
@@ -263,6 +337,16 @@ export const routeApi = async (req: Request): Promise<Response | null> => {
   if (match) {
     const id = parseInt(match[1], 10);
     return handleGetUser(url, id);
+  }
+
+  // GET /api/feed/presets
+  if (path === "/api/feed/presets") {
+    return handleFeedPresets();
+  }
+
+  // GET /api/feed
+  if (path === "/api/feed" || path === "/api/feed/") {
+    return handleGetFeed(url);
   }
 
   // GET /api/files/info

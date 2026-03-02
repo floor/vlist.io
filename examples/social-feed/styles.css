@@ -1,4 +1,4 @@
-/* Social Feed Example — variable-height posts with Mode A/B toggle
+/* Social Feed Example — variable-height posts with Source + Mode controls
    Common styles (.container, h1, .description, .stats, footer)
    are provided by examples/examples.css using shell.css design tokens.
    Panel system (.split-layout, .split-panel, .panel-*)
@@ -98,6 +98,18 @@
 }
 
 /* ==========================================================================
+   Post title (live posts have a separate title)
+   ========================================================================== */
+
+.post__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--vlist-text);
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* ==========================================================================
    Post body text
    ========================================================================== */
 
@@ -111,7 +123,7 @@
 }
 
 /* ==========================================================================
-   Image placeholder
+   Image — gradient placeholder (generated source)
    ========================================================================== */
 
 .post__image {
@@ -130,6 +142,29 @@
     color: white;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
     letter-spacing: 0.2px;
+}
+
+/* ==========================================================================
+   Image — real <img> (live sources)
+   ========================================================================== */
+
+.post__image--real {
+    height: auto;
+    max-height: 240px;
+    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.06));
+    display: block;
+    padding: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.post__image--real img {
+    width: 100%;
+    height: auto;
+    max-height: 240px;
+    display: block;
+    object-fit: cover;
+    object-position: center top;
 }
 
 /* ==========================================================================
@@ -178,4 +213,130 @@
 
 .post__action:active {
     transform: scale(0.96);
+}
+
+.post__action--link {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* ==========================================================================
+   Source badges — small coloured dot after the username
+   ========================================================================== */
+
+.post--reddit .post__user::after,
+.post--rss .post__user::after {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 5px;
+    vertical-align: middle;
+    border-radius: 50%;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.post--reddit .post__user::after {
+    background: #ff4500;
+}
+
+.post--rss .post__user::after {
+    background: #ee802f;
+}
+
+/* ==========================================================================
+   Panel — select dropdown
+   ========================================================================== */
+
+.panel-select {
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--vlist-border);
+    background: var(--vlist-bg);
+    color: var(--vlist-text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+    transition: border-color 0.12s ease;
+}
+
+.panel-select:focus {
+    outline: none;
+    border-color: var(--accent, #667eea);
+}
+
+.panel-select optgroup {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--vlist-text-muted);
+}
+
+.panel-select option {
+    font-weight: 500;
+    color: var(--vlist-text);
+}
+
+/* ==========================================================================
+   Panel — load more button variant
+   ========================================================================== */
+
+.panel-row--action {
+    padding-top: 4px;
+}
+
+.panel-btn--load {
+    width: 100%;
+    justify-content: center;
+    background: var(--accent, #667eea);
+    color: white;
+    opacity: 1;
+    font-weight: 600;
+}
+
+.panel-btn--load:hover:not(:disabled) {
+    background: var(--accent, #667eea);
+    filter: brightness(1.1);
+    color: white;
+}
+
+.panel-btn--load:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Panel section visibility toggle
+   ========================================================================== */
+
+.panel-section--hidden {
+    display: none;
+}
+
+/* ==========================================================================
+   Disabled segmented button
+   ========================================================================== */
+
+.panel-segmented__btn--disabled,
+.panel-segmented__btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   Muted label (placeholder text)
+   ========================================================================== */
+
+.panel-label--muted {
+    color: var(--vlist-text-muted);
+    font-style: italic;
+    font-size: 12px;
 }
