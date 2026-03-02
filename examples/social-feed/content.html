@@ -5,11 +5,13 @@
             <span class="mode-badge" id="mode-badge">Mode B</span>
         </h1>
         <p class="description">
-            Social feed where item heights are <strong>unknown upfront</strong>.
-            Toggle between <strong>Mode A</strong> (pre-measure all items at
-            init via hidden DOM element) and <strong>Mode B</strong> (estimate
-            height, let <code>ResizeObserver</code> measure on the fly and
-            correct scroll position).
+            Social feed where item sizes are <strong>unknown upfront</strong>.
+            Choose a <strong>source</strong> (live Reddit, generated data, or
+            RSS) and a <strong>mode</strong> to control how vlist handles
+            variable sizes: <strong>A</strong> (pre-measure all items at init
+            via hidden DOM element) or <strong>B</strong> (estimated size, let
+            <code>ResizeObserver</code> measure on the fly and correct scroll
+            position).
         </p>
     </header>
 
@@ -19,9 +21,179 @@
         </div>
 
         <aside class="split-panel">
+            <!-- Source -->
+            <section class="panel-section">
+                <h3 class="panel-title">Source</h3>
+                <div class="panel-row">
+                    <div class="panel-segmented" id="feed-source">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-source="reddit"
+                        >
+                            Reddit
+                        </button>
+                        <button class="panel-segmented__btn" data-source="rss">
+                            RSS
+                        </button>
+                        <button
+                            class="panel-segmented__btn"
+                            data-source="generated"
+                        >
+                            Generated
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reddit options (only visible when source=reddit) -->
+            <section class="panel-section" id="section-reddit">
+                <h3 class="panel-title">Subreddit</h3>
+                <div class="panel-row">
+                    <select class="panel-select" id="feed-subreddit">
+                        <option value="worldnews">r/worldnews</option>
+                        <option value="technology">r/technology</option>
+                        <option value="science">r/science</option>
+                        <option value="music">r/music</option>
+                        <option value="movies">r/movies</option>
+                        <option value="dataisbeautiful">
+                            r/dataisbeautiful
+                        </option>
+                        <option value="todayilearned">r/todayilearned</option>
+                        <option value="space">r/space</option>
+                        <option value="explainlikeimfive">
+                            r/explainlikeimfive
+                        </option>
+                        <option value="AskScience">r/AskScience</option>
+                    </select>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Status</span>
+                    <span class="panel-value" id="info-feed-status">–</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Posts loaded</span>
+                    <span class="panel-value" id="info-feed-count">–</span>
+                </div>
+                <div class="panel-row panel-row--action">
+                    <button
+                        class="panel-btn panel-btn--load"
+                        id="feed-load-more"
+                        disabled
+                    >
+                        ↓ Load more
+                    </button>
+                </div>
+            </section>
+
+            <!-- RSS options (only visible when source=rss) -->
+            <section
+                class="panel-section panel-section--hidden"
+                id="section-rss"
+            >
+                <h3 class="panel-title">RSS Feed</h3>
+                <div class="panel-row">
+                    <select class="panel-select" id="feed-rss">
+                        <optgroup label="News">
+                            <option
+                                value="https://feeds.bbci.co.uk/news/world/rss.xml"
+                            >
+                                BBC World News
+                            </option>
+                            <option
+                                value="https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+                            >
+                                New York Times
+                            </option>
+                            <option
+                                value="https://www.theguardian.com/world/rss"
+                            >
+                                The Guardian World
+                            </option>
+                            <option
+                                value="https://feeds.reuters.com/reuters/topNews"
+                            >
+                                Reuters Top News
+                            </option>
+                        </optgroup>
+                        <optgroup label="Tech">
+                            <option value="https://hnrss.org/frontpage">
+                                Hacker News
+                            </option>
+                            <option
+                                value="https://feeds.arstechnica.com/arstechnica/index"
+                            >
+                                Ars Technica
+                            </option>
+                            <option
+                                value="https://www.theverge.com/rss/index.xml"
+                            >
+                                The Verge
+                            </option>
+                            <option value="https://twobithistory.org/feed.xml">
+                                Two-Bit History
+                            </option>
+                        </optgroup>
+                        <optgroup label="Science & Space">
+                            <option
+                                value="https://www.nasa.gov/rss/dyn/breaking_news.rss"
+                            >
+                                NASA Breaking News
+                            </option>
+                            <option
+                                value="https://www.newscientist.com/section/news/feed/"
+                            >
+                                New Scientist
+                            </option>
+                            <option
+                                value="https://www.quantamagazine.org/feed/"
+                            >
+                                Quanta Magazine
+                            </option>
+                        </optgroup>
+                        <optgroup label="Culture & Music">
+                            <option
+                                value="https://pitchfork.com/feed/feed-news/rss"
+                            >
+                                Pitchfork
+                            </option>
+                            <option value="https://www.openculture.com/feed">
+                                Open Culture
+                            </option>
+                            <option
+                                value="https://feeds.feedburner.com/brainpickings/rss"
+                            >
+                                The Marginalian
+                            </option>
+                            <option value="https://lithub.com/feed/">
+                                Literary Hub
+                            </option>
+                        </optgroup>
+                        <optgroup label="Design & Visual">
+                            <option value="https://www.designboom.com/feed/">
+                                Designboom
+                            </option>
+                            <option value="https://www.creativebloq.com/feed">
+                                Creative Bloq
+                            </option>
+                            <option value="https://colossal.art/feed/">
+                                Colossal
+                            </option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Status</span>
+                    <span class="panel-value" id="info-rss-status">–</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Items loaded</span>
+                    <span class="panel-value" id="info-rss-count">–</span>
+                </div>
+            </section>
+
             <!-- Mode -->
             <section class="panel-section">
-                <h3 class="panel-title">Height Mode</h3>
+                <h3 class="panel-title">Mode</h3>
                 <div class="panel-row">
                     <div class="panel-segmented" id="mode-toggle">
                         <button class="panel-segmented__btn" data-mode="a">
@@ -38,12 +210,12 @@
             </section>
 
             <!-- Measurement -->
-            <section class="panel-section">
+            <section class="panel-section" id="section-measurement">
                 <h3 class="panel-title">Measurement</h3>
                 <div class="panel-row">
                     <span class="panel-label">Strategy</span>
                     <span class="panel-value" id="info-strategy"
-                        >estimatedHeight</span
+                        >estimatedSize</span
                     >
                 </div>
                 <div class="panel-row">
@@ -51,7 +223,7 @@
                     <span class="panel-value" id="info-init">–</span>
                 </div>
                 <div class="panel-row">
-                    <span class="panel-label">Unique heights</span>
+                    <span class="panel-label">Unique sizes</span>
                     <span class="panel-value" id="info-unique">–</span>
                 </div>
             </section>
@@ -94,7 +266,9 @@
             </span>
         </div>
         <div class="example-footer__right">
-            <span class="example-footer__stat">
+            <span class="example-footer__stat" id="ft-source-stat">
+                <span id="ft-source">Reddit</span>
+                ·
                 <strong id="ft-mode">Mode B</strong>
             </span>
         </div>

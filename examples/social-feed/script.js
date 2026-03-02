@@ -1,14 +1,61 @@
 // Social Feed Example
-// Demonstrates two strategies for variable-height items:
-//   Mode A: Pre-measure all items at init via hidden DOM element
-//   Mode B: estimatedHeight — vlist renders with a guess, ResizeObserver
-//           measures actual DOM height, caches the result, corrects scroll
+// Demonstrates variable-size items with two independent axes:
+//   Source: Reddit (live feed via /api/feed) | Generated (5 000 mock posts) | RSS
+//   Mode:   A (pre-measure all items at init) | B (estimatedSize + ResizeObserver)
+//
+// Any combination works — you can pre-measure Reddit posts or auto-size generated ones.
 
 import { vlist } from "vlist";
 import { createStats } from "../stats.js";
 
 // =============================================================================
-// Data — social feed posts with wildly varying content lengths
+// Reddit feed — fetcher + state
+// =============================================================================
+
+const feedState = {
+  posts: [],
+  nextCursor: null,
+  subreddit: "worldnews",
+  loading: false,
+};
+
+const rssState = {
+  posts: [],
+  feedUrl: "https://feeds.bbci.co.uk/news/world/rss.xml",
+  loading: false,
+};
+
+/**
+ * Fetch a page of posts from /api/feed (proxied through the Bun server).
+ * @param {string} subreddit
+ * @param {string|null} after  pagination cursor (null = first page)
+ * @returns {Promise<{posts: object[], nextCursor: string|null}>}
+ */
+const loadFeedPage = async (subreddit, after = null) => {
+  const url = new URL("/api/feed", location.origin);
+  url.searchParams.set("source", "reddit");
+  url.searchParams.set("target", subreddit);
+  url.searchParams.set("limit", "25");
+  if (after) url.searchParams.set("after", after);
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Feed API error ${res.status}`);
+  return res.json();
+};
+
+const loadRssFeed = async (feedUrl) => {
+  const url = new URL("/api/feed", location.origin);
+  url.searchParams.set("source", "rss");
+  url.searchParams.set("target", feedUrl);
+  url.searchParams.set("limit", "50");
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`RSS API error ${res.status}`);
+  return res.json();
+};
+
+// =============================================================================
+// Generated data — social feed posts with wildly varying content lengths
 // =============================================================================
 
 const AVATARS = [
@@ -131,12 +178,11 @@ const generatePosts = (count) => {
       hasImage = false;
     } else if (type <= 5) {
       text = MEDIUM_POSTS[i % MEDIUM_POSTS.length];
-      hasImage = seed % 3 === 0; // 1/3 of medium posts have images
+      hasImage = seed % 3 === 0;
     } else if (type <= 7) {
       text = LONG_POSTS[i % LONG_POSTS.length];
       hasImage = false;
     } else {
-      // Image post with short caption
       text = SHORT_POSTS[(i + 5) % SHORT_POSTS.length];
       hasImage = true;
     }
@@ -158,6 +204,7 @@ const generatePosts = (count) => {
       user: user.name,
       initials: user.initials,
       color: user.color,
+      title: null,
       text,
       hasImage,
       image: image || null,
@@ -165,7 +212,9 @@ const generatePosts = (count) => {
       time: timeStr,
       likes,
       comments,
-      height: 0, // filled by Mode A pre-measurement
+      source: "generated",
+      url: null,
+      size: 0, // filled by Mode A pre-measurement
     });
   }
 
@@ -173,9 +222,10 @@ const generatePosts = (count) => {
 };
 
 // =============================================================================
-// Template — variable-height social feed cards
+// Template — renders any post (generated or live)
 // =============================================================================
 
+/** Gradient placeholder image (generated posts) */
 const renderImagePlaceholder = (image) => {
   if (!image) return "";
   const height =
@@ -188,39 +238,83 @@ const renderImagePlaceholder = (image) => {
   `;
 };
 
-const renderPost = (post) => `
-  <article class="post">
-    <div class="post__header">
-      <div class="post__avatar" style="background:${post.color}">${post.initials}</div>
-      <div class="post__meta">
-        <span class="post__user">${post.user}</span>
-        <span class="post__time">${post.time}</span>
+/** Real image from URL (Reddit posts) */
+const renderImageReal = (image) => {
+  if (!image) return "";
+  if (image.url) {
+    return `
+      <div class="post__image post__image--real">
+        <img src="${image.url}" alt="${image.alt ?? ""}" loading="lazy" onerror="this.parentElement.style.display='none'">
       </div>
-    </div>
-    <div class="post__body">${post.text}</div>
-    ${renderImagePlaceholder(post.image)}
-    <div class="post__tags">${post.tags.map((t) => `<span class="post__tag">${t}</span>`).join(" ")}</div>
-    <div class="post__actions">
-      <button class="post__action">♡ ${post.likes}</button>
-      <button class="post__action">💬 ${post.comments}</button>
-      <button class="post__action">↗ Share</button>
-    </div>
-  </article>
-`;
+    `;
+  }
+  return renderImagePlaceholder(image);
+};
+
+/** Unified post renderer — works for both generated and live posts */
+const renderPost = (post) => {
+  const titleHtml = post.title
+    ? `<div class="post__title">${post.title}</div>`
+    : "";
+
+  const imageHtml =
+    post.source === "generated" || !post.source
+      ? renderImagePlaceholder(post.image)
+      : renderImageReal(post.image);
+
+  const openAction = post.url
+    ? `<a class="post__action post__action--link" href="${post.url}" target="_blank" rel="noopener">↗ Open</a>`
+    : `<button class="post__action">↗ Share</button>`;
+
+  const tagsHtml =
+    post.tags.length > 0
+      ? `<div class="post__tags">${post.tags.map((t) => `<span class="post__tag">${t}</span>`).join(" ")}</div>`
+      : "";
+
+  const isLive = post.source && post.source !== "generated";
+  const likesHtml =
+    !isLive || post.likes > 0
+      ? `<button class="post__action">♡ ${post.likes}</button>`
+      : "";
+  const commentsHtml =
+    !isLive || post.comments > 0
+      ? `<button class="post__action">💬 ${post.comments}</button>`
+      : "";
+
+  return `
+    <article class="post${post.source ? ` post--${post.source}` : ""}">
+      <div class="post__header">
+        <div class="post__avatar" style="background:${post.color}">${post.initials}</div>
+        <div class="post__meta">
+          <span class="post__user">${post.user}</span>
+          <span class="post__time">${post.time}</span>
+        </div>
+      </div>
+      ${titleHtml}
+      ${imageHtml}
+      ${post.text ? `<div class="post__body">${post.text}</div>` : ""}
+      ${tagsHtml}
+      <div class="post__actions">
+        ${likesHtml}
+        ${commentsHtml}
+        ${openAction}
+      </div>
+    </article>
+  `;
+};
 
 // =============================================================================
 // Mode A — Pre-measure all items via hidden DOM element
 // =============================================================================
 
 /**
- * Measure the actual rendered height of every item by inserting its HTML
+ * Measure the actual rendered size of every item by inserting its HTML
  * into a hidden element that matches the list's inner width.
  *
  * We cache by a content key (text + hasImage + aspect) so items with
- * identical templates share a single measurement. For 5 000 items with
- * ~40 unique combinations this means ~40 DOM measurements, not 5 000.
+ * identical templates share a single measurement.
  */
-const measureHeights = (posts, container) => {
+const measureSizes = (items, container) => {
   const measurer = document.createElement("div");
   measurer.style.cssText =
     "position:absolute;top:0;left:0;visibility:hidden;pointer-events:none;" +
@@ -230,17 +324,18 @@ const measureHeights = (posts, container) => {
   const cache = new Map();
   let uniqueCount = 0;
 
-  for (const post of posts) {
-    const key = post.text + (post.image ? post.image.aspect : "");
+  for (const item of items) {
+    const key =
+      (item.title ?? "") + item.text + (item.image ? item.image.aspect : "");
 
     if (cache.has(key)) {
-      post.height = cache.get(key);
+      item.size = cache.get(key);
       continue;
     }
 
-    measurer.innerHTML = renderPost(post);
+    measurer.innerHTML = renderPost(item);
     const measured = measurer.firstElementChild.offsetHeight;
-    post.height = measured;
+    item.size = measured;
     cache.set(key, measured);
     uniqueCount++;
   }
@@ -250,52 +345,76 @@ const measureHeights = (posts, container) => {
 };
 
 // =============================================================================
-// Setup
+// Setup — generated data
 // =============================================================================
 
-const TOTAL = 5000;
-const ESTIMATED_HEIGHT = 120;
-const posts = generatePosts(TOTAL);
+const TOTAL_GENERATED = 5000;
+const ESTIMATED_SIZE = 120;
+const generatedPosts = generatePosts(TOTAL_GENERATED);
 
 // =============================================================================
 // DOM references
 // =============================================================================
 
-const containerEl = document.getElementById("list-container");
-const modeBadgeEl = document.getElementById("mode-badge");
-const modeToggleEl = document.getElementById("mode-toggle");
+// Source panel
+const sourceToggleEl = document.getElementById("feed-source");
+const sectionRedditEl = document.getElementById("section-reddit");
+const sectionRssEl = document.getElementById("section-rss");
+const feedSubredditEl = document.getElementById("feed-subreddit");
+const infoFeedStatusEl = document.getElementById("info-feed-status");
+const infoFeedCountEl = document.getElementById("info-feed-count");
+const feedLoadMoreEl = document.getElementById("feed-load-more");
+const feedRssEl = document.getElementById("feed-rss");
+const infoRssStatusEl = document.getElementById("info-rss-status");
+const infoRssCountEl = document.getElementById("info-rss-count");
 
-// Panel info elements
+// Mode panel
+const modeToggleEl = document.getElementById("mode-toggle");
+const sectionMeasurementEl = document.getElementById("section-measurement");
+
+// Measurement info
 const infoStrategyEl = document.getElementById("info-strategy");
 const infoInitEl = document.getElementById("info-init");
 const infoUniqueEl = document.getElementById("info-unique");
 
-// Footer right side
+// List + badge + footer
+const containerEl = document.getElementById("list-container");
+const modeBadgeEl = document.getElementById("mode-badge");
 const ftModeEl = document.getElementById("ft-mode");
+const ftSourceEl = document.getElementById("ft-source");
 
 // =============================================================================
-// Shared footer stats (left side — progress, velocity, items)
+// Stats (footer left — progress, velocity, items)
 // =============================================================================
 
 const stats = createStats({
   getList: () => list,
-  getTotal: () => TOTAL,
-  getItemHeight: () => ESTIMATED_HEIGHT,
+  getTotal: () => getActiveItems().length || TOTAL_GENERATED,
+  getItemHeight: () => ESTIMATED_SIZE,
   container: "#list-container",
 });
 
 // =============================================================================
-// State
+// State — two independent axes
 // =============================================================================
 
-let currentMode = "b";
+let currentSource = "reddit"; // "reddit" | "generated" | "rss"
+let currentMode = "b"; // "a" | "b"
 let list = null;
 
+/** Return the items array for the active source */
+const getActiveItems = () =>
+  currentSource === "reddit"
+    ? feedState.posts
+    : currentSource === "rss"
+      ? rssState.posts
+      : generatedPosts;
+
 // =============================================================================
-// Create / recreate list
+// Create / recreate list — called when source OR mode changes
 // =============================================================================
 
-function createList(mode) {
+function createList() {
   // Destroy previous
   if (list) {
     list.destroy();
@@ -303,40 +422,50 @@ function createList(mode) {
   }
   containerEl.innerHTML = "";
 
-  let initTime = 0;
-  let uniqueHeights = 0;
+  const items = getActiveItems();
+  const isLive = currentSource !== "generated";
+  const ariaLabel =
+    currentSource === "reddit"
+      ? "Live Reddit feed"
+      : currentSource === "rss"
+        ? "RSS feed"
+        : "Social feed";
 
-  if (mode === "a") {
-    // Mode A: pre-measure all items, then use height function
+  let initTime = 0;
+  let uniqueSizes = 0;
+
+  if (currentMode === "a") {
+    // Mode A: pre-measure all items, then use size function
     const start = performance.now();
-    uniqueHeights = measureHeights(posts, containerEl);
+    if (items.length > 0) {
+      uniqueSizes = measureSizes(items, containerEl);
+    }
     initTime = performance.now() - start;
 
     list = vlist({
       container: containerEl,
-      ariaLabel: "Social feed",
-      items: posts,
+      ariaLabel,
+      items,
       item: {
-        height: (index) => posts[index]?.height ?? ESTIMATED_HEIGHT,
+        height: (index) => items[index]?.size ?? ESTIMATED_SIZE,
         template: renderPost,
       },
     }).build();
   } else {
-    // Mode B: estimated height, auto-measured by ResizeObserver
+    // Mode B: estimated size, auto-measured by ResizeObserver
     const start = performance.now();
 
     list = vlist({
       container: containerEl,
-      ariaLabel: "Social feed",
-      items: posts,
+      ariaLabel,
+      items,
       item: {
-        estimatedHeight: ESTIMATED_HEIGHT,
+        estimatedHeight: isLive ? 160 : ESTIMATED_SIZE,
         template: renderPost,
       },
     }).build();
 
     initTime = performance.now() - start;
-    uniqueHeights = 0; // not known upfront
   }
 
   // Wire up events
@@ -344,36 +473,185 @@ function createList(mode) {
   list.on("range:change", stats.scheduleUpdate);
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
 
-  list.on("item:click", ({ item, index }) => {
+  list.on("item:click", ({ item, event }) => {
+    // Only open URL if the click was on the "Open" link itself
+    const target = event?.target;
+    if (target && target.closest && target.closest(".post__action--link"))
+      return;
     console.log(
-      `Clicked post by ${item.user}: "${item.text.slice(0, 50)}…" at index ${index}`,
+      `Clicked post by ${item.user}: "${(item.title || item.text || "").slice(0, 50)}…"`,
     );
   });
 
-  // Update stats + panel info
+  // If live source and no posts loaded yet, trigger first fetch
+  if (currentSource === "reddit" && feedState.posts.length === 0) {
+    loadNextFeedPage();
+  }
+  if (currentSource === "rss" && rssState.posts.length === 0) {
+    loadRssItems();
+  }
+
   stats.update();
-  updatePanelInfo(mode, initTime, uniqueHeights);
+  updatePanelInfo(initTime, uniqueSizes);
 }
 
 // =============================================================================
-// Panel info + footer context
+// Reddit feed loading
 // =============================================================================
 
-function updatePanelInfo(mode, initTime, uniqueHeights) {
-  const isA = mode === "a";
-  const label = isA ? "Mode A" : "Mode B";
+async function loadNextFeedPage() {
+  if (feedState.loading) return;
 
-  modeBadgeEl.textContent = label;
-  ftModeEl.textContent = label;
+  feedState.loading = true;
+  feedLoadMoreEl.disabled = true;
+  setFeedStatus("loading…");
 
-  infoStrategyEl.textContent = isA
-    ? "height: (index) => px"
-    : "estimatedHeight: 120";
+  try {
+    const data = await loadFeedPage(feedState.subreddit, feedState.nextCursor);
+
+    feedState.posts.push(...data.posts);
+    feedState.nextCursor = data.nextCursor;
+
+    // Update the live vlist with the new items
+    if (list && currentSource === "reddit") {
+      list.setItems(feedState.posts);
+
+      // If Mode A, re-measure the new items
+      if (currentMode === "a") {
+        measureSizes(feedState.posts, containerEl);
+      }
+
+      stats.update();
+    }
+
+    setFeedStatus(feedState.nextCursor ? "ready" : "end of feed");
+    infoFeedCountEl.textContent = String(feedState.posts.length);
+    feedLoadMoreEl.disabled = feedState.nextCursor === null;
+  } catch (err) {
+    console.error("Feed fetch failed:", err);
+    setFeedStatus(`error: ${err.message}`);
+    feedLoadMoreEl.disabled = false;
+  } finally {
+    feedState.loading = false;
+  }
+}
+
+/** @param {string} msg */
+function setFeedStatus(msg) {
+  if (infoFeedStatusEl) infoFeedStatusEl.textContent = msg;
+}
+
+// =============================================================================
+// RSS feed loading
+// =============================================================================
+
+async function loadRssItems() {
+  if (rssState.loading) return;
+
+  rssState.loading = true;
+  setRssStatus("loading…");
+
+  try {
+    const data = await loadRssFeed(rssState.feedUrl);
+
+    rssState.posts = data.posts;
+
+    if (list && currentSource === "rss") {
+      list.setItems(rssState.posts);
+
+      if (currentMode === "a") {
+        measureSizes(rssState.posts, containerEl);
+      }
+
+      stats.update();
+    }
+
+    setRssStatus("ready");
+    infoRssCountEl.textContent = String(rssState.posts.length);
+  } catch (err) {
+    console.error("RSS fetch failed:", err);
+    setRssStatus(`error: ${err.message}`);
+  } finally {
+    rssState.loading = false;
+  }
+}
+
+/** @param {string} msg */
+function setRssStatus(msg) {
+  if (infoRssStatusEl) infoRssStatusEl.textContent = msg;
+}
+
+// =============================================================================
+// Panel info — update badge, footer, measurement section
+// =============================================================================
+
+function updatePanelInfo(initTime, uniqueSizes) {
+  const modeLabel = currentMode === "a" ? "Mode A" : "Mode B";
+  const sourceLabel =
+    currentSource === "reddit"
+      ? "Reddit"
+      : currentSource === "rss"
+        ? "RSS"
+        : "Generated";
+
+  modeBadgeEl.textContent = modeLabel;
+  ftModeEl.textContent = modeLabel;
+  ftSourceEl.textContent = sourceLabel;
+
+  infoStrategyEl.textContent =
+    currentMode === "a" ? "size: (index) => px" : "estimatedSize";
 
   infoInitEl.textContent = `${initTime.toFixed(0)}ms`;
-
-  infoUniqueEl.textContent = isA ? String(uniqueHeights) : "–";
+  infoUniqueEl.textContent = currentMode === "a" ? String(uniqueSizes) : "–";
 }
+
+// =============================================================================
+// Panel visibility — show/hide source-specific sections
+// =============================================================================
+
+function updateSourceSections() {
+  sectionRedditEl.classList.toggle(
+    "panel-section--hidden",
+    currentSource !== "reddit",
+  );
+  sectionRssEl.classList.toggle(
+    "panel-section--hidden",
+    currentSource !== "rss",
+  );
+}
+
+// =============================================================================
+// Source toggle
+// =============================================================================
+
+sourceToggleEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-source]");
+  if (!btn || btn.disabled) return;
+
+  const source = btn.dataset.source;
+  if (source === currentSource) return;
+
+  currentSource = source;
+
+  // Update active button
+  sourceToggleEl.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle(
+      "panel-segmented__btn--active",
+      b.dataset.source === source,
+    );
+  });
+
+  // Ensure state is ready for the selected source
+  if (source === "reddit" && feedState.posts.length === 0) {
+    feedState.subreddit = feedSubredditEl.value;
+  }
+  if (source === "rss" && rssState.posts.length === 0) {
+    rssState.feedUrl = feedRssEl.value;
+  }
+
+  updateSourceSections();
+  createList();
+});
 
 // =============================================================================
 // Mode toggle
@@ -388,12 +666,46 @@ modeToggleEl.addEventListener("click", (e) => {
 
   currentMode = mode;
 
-  // Update active state
+  // Update active button
   modeToggleEl.querySelectorAll("button").forEach((b) => {
     b.classList.toggle("panel-segmented__btn--active", b.dataset.mode === mode);
   });
 
-  createList(mode);
+  createList();
+});
+
+// =============================================================================
+// Reddit controls — subreddit picker + load more
+// =============================================================================
+
+feedSubredditEl.addEventListener("change", () => {
+  if (currentSource !== "reddit") return;
+
+  // Reset feed for the new subreddit
+  feedState.posts = [];
+  feedState.nextCursor = null;
+  feedState.subreddit = feedSubredditEl.value;
+  infoFeedCountEl.textContent = "–";
+
+  createList();
+});
+
+feedLoadMoreEl.addEventListener("click", () => {
+  if (currentSource === "reddit") loadNextFeedPage();
+});
+
+// =============================================================================
+// RSS controls — feed picker
+// =============================================================================
+
+feedRssEl.addEventListener("change", () => {
+  if (currentSource !== "rss") return;
+
+  rssState.posts = [];
+  rssState.feedUrl = feedRssEl.value;
+  infoRssCountEl.textContent = "–";
+
+  createList();
 });
 
 // =============================================================================
@@ -405,26 +717,30 @@ document.getElementById("jump-top").addEventListener("click", () => {
 });
 
 document.getElementById("jump-middle").addEventListener("click", () => {
-  list.scrollToIndex(Math.floor(posts.length / 2), {
+  const total = getActiveItems().length;
+  list.scrollToIndex(Math.floor(total / 2), {
     align: "center",
     behavior: "smooth",
   });
 });
 
 document.getElementById("jump-bottom").addEventListener("click", () => {
-  list.scrollToIndex(posts.length - 1, {
+  const total = getActiveItems().length;
+  list.scrollToIndex(Math.max(0, total - 1), {
     align: "end",
     behavior: "smooth",
   });
 });
 
 document.getElementById("jump-random").addEventListener("click", () => {
-  const idx = Math.floor(Math.random() * posts.length);
+  const total = getActiveItems().length;
+  const idx = Math.floor(Math.random() * total);
   list.scrollToIndex(idx, { align: "center", behavior: "smooth" });
 });
 
 // =============================================================================
-// Initialise with Mode B
+// Initialise — Generated source, Mode B
 // =============================================================================
 
-createList(currentMode);
+updateSourceSections();
+createList();
