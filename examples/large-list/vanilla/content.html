@@ -1,20 +1,16 @@
-<div class="container container">
+<div class="container">
     <header>
         <h1>Large List</h1>
         <p class="description">
             Builder pattern with <code>vlist/builder</code> +
-            <code>withCompression</code> + <code>withScrollbar</code> plugins.
-            Handles 100K–5M items with automatic scroll compression when total
-            height exceeds the browser's 16.7M pixel limit.
+            <code>withScale</code> + <code>withScrollbar</code> plugins. Handles
+            100K–5M items with automatic scroll scaling when total height
+            exceeds the browser's 16.7M pixel limit.
         </p>
     </header>
 
-    <div class="stats" id="stats">Loading…</div>
-
-    <div class="compression-bar" id="compression-info"></div>
-
     <div class="split-layout">
-        <div class="split-main split-main--full">
+        <div class="split-main">
             <div id="list-container"></div>
         </div>
 
@@ -132,12 +128,31 @@
         </aside>
     </div>
 
-    <footer>
-        <p>
-            Compression activates automatically when the virtual height exceeds
-            ~16.7 million pixels. The builder's plugin system keeps the core
-            small — compression logic is only loaded when you
-            <code>.use(withCompression())</code>. ⚡
-        </p>
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-virtualized">0%</strong>
+                <span class="example-footer__unit">virtualized</span>
+            </span>
+            <span class="example-footer__stat" id="ft-mode-stat">
+                <strong id="ft-mode">NATIVE</strong>
+                <span class="example-footer__unit" id="ft-scale">1.0×</span>
+            </span>
+        </div>
     </footer>
 </div>

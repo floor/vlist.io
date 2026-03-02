@@ -1,0 +1,102 @@
+<div class="container">
+    <header>
+        <h1>
+            Social Feed
+            <span class="mode-badge" id="mode-badge">Mode B</span>
+        </h1>
+        <p class="description">
+            Social feed where item heights are <strong>unknown upfront</strong>.
+            Toggle between <strong>Mode A</strong> (pre-measure all items at
+            init via hidden DOM element) and <strong>Mode B</strong> (estimate
+            height, let <code>ResizeObserver</code> measure on the fly and
+            correct scroll position).
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Mode -->
+            <section class="panel-section">
+                <h3 class="panel-title">Height Mode</h3>
+                <div class="panel-row">
+                    <div class="panel-segmented" id="mode-toggle">
+                        <button class="panel-segmented__btn" data-mode="a">
+                            A · Pre-measure
+                        </button>
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-mode="b"
+                        >
+                            B · Auto-size
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Measurement -->
+            <section class="panel-section">
+                <h3 class="panel-title">Measurement</h3>
+                <div class="panel-row">
+                    <span class="panel-label">Strategy</span>
+                    <span class="panel-value" id="info-strategy"
+                        >estimatedHeight</span
+                    >
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Init time</span>
+                    <span class="panel-value" id="info-init">–</span>
+                </div>
+                <div class="panel-row">
+                    <span class="panel-label">Unique heights</span>
+                    <span class="panel-value" id="info-unique">–</span>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="panel-section">
+                <h3 class="panel-title">Navigation</h3>
+                <div class="panel-row">
+                    <div class="panel-btn-group">
+                        <button id="jump-top" class="panel-btn">⬆ Top</button>
+                        <button id="jump-middle" class="panel-btn">
+                            ◆ Middle
+                        </button>
+                        <button id="jump-bottom" class="panel-btn">
+                            ⬇ Bottom
+                        </button>
+                        <button id="jump-random" class="panel-btn">
+                            🎲 Random
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-progress">0%</strong>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-velocity">0.00</span> /
+                <strong id="ft-velocity-avg">0.00</strong>
+                <span class="example-footer__unit">px/ms</span>
+            </span>
+            <span class="example-footer__stat">
+                <span id="ft-dom">0</span> /
+                <strong id="ft-total">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-mode">Mode B</strong>
+            </span>
+        </div>
+    </footer>
+</div>

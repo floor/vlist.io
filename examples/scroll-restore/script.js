@@ -2,12 +2,14 @@
 // Demonstrates getScrollSnapshot() and withSnapshots({ restore }) for SPA navigation
 
 import { vlist, withSelection, withSnapshots } from "vlist";
+import { createStats } from "../stats.js";
 
 // ---------------------------------------------------------------------------
 // Data
 // ---------------------------------------------------------------------------
 
 const TOTAL_ITEMS = 5000;
+const ITEM_HEIGHT = 64;
 const DEPARTMENTS = [
   "Engineering",
   "Design",
@@ -50,11 +52,24 @@ const STORAGE_KEY = "vlist-scroll-restore-demo";
 const listPage = document.getElementById("list-page");
 const detailPage = document.getElementById("detail-page");
 const listContainer = document.getElementById("list-container");
-const statsEl = document.getElementById("stats");
 const snapshotCodeEl = document.getElementById("snapshot-code");
 const savedSnapshotCodeEl = document.getElementById("saved-snapshot-code");
 const navigateAwayBtn = document.getElementById("navigate-away");
 const goBackBtn = document.getElementById("go-back");
+
+// Footer right-side element
+const ftSelectedEl = document.getElementById("ft-selected");
+
+// ---------------------------------------------------------------------------
+// Shared footer stats (left side — progress, velocity, items)
+// ---------------------------------------------------------------------------
+
+const stats = createStats({
+  getList: () => list,
+  getTotal: () => TOTAL_ITEMS,
+  getItemHeight: () => ITEM_HEIGHT,
+  container: "#list-container",
+});
 
 // ---------------------------------------------------------------------------
 // List management
@@ -77,7 +92,7 @@ function createList(snapshot) {
     container: listContainer,
     ariaLabel: "Employee list",
     item: {
-      height: 64,
+      height: ITEM_HEIGHT,
       template: (item, index, { selected }) => {
         const selectedClass = selected ? " item--selected" : "";
         return `
@@ -98,23 +113,14 @@ function createList(snapshot) {
     .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
     .build();
 
-  // Live stats
-  const updateStats = () => {
-    const domNodes = listContainer.querySelectorAll(".vlist-item").length;
-    const selected = list.getSelected().length;
-    statsEl.innerHTML = `
-      <span><strong>${TOTAL_ITEMS.toLocaleString()}</strong> items</span>
-      <span class="stats-sep">·</span>
-      <span><strong>${domNodes}</strong> DOM nodes</span>
-      <span class="stats-sep">·</span>
-      <span><strong>${selected}</strong> selected</span>
-    `;
-  };
+  // Footer updates
+  list.on("scroll", stats.scheduleUpdate);
+  list.on("range:change", stats.scheduleUpdate);
+  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("selection:change", updateContext);
 
-  list.on("scroll", updateStats);
-  list.on("range:change", updateStats);
-  list.on("selection:change", updateStats);
-  updateStats();
+  stats.update();
+  updateContext();
 
   // Live snapshot preview (throttled)
   const updateSnapshotPreview = () => {
@@ -145,6 +151,15 @@ function destroyList() {
     list.destroy();
     list = null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Footer right side — context (selected count)
+// ---------------------------------------------------------------------------
+
+function updateContext() {
+  if (!list || !ftSelectedEl) return;
+  ftSelectedEl.textContent = list.getSelected().length;
 }
 
 // ---------------------------------------------------------------------------

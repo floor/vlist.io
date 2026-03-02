@@ -22,6 +22,7 @@ import {
   formatVelocity,
   formatLoadedCount,
 } from "../shared.js";
+import { createStats } from "../../stats.js";
 
 // Storage key for snapshots
 const STORAGE_KEY = "vlist-velocity-loading-snapshot";
@@ -41,15 +42,16 @@ if (savedRaw) {
 let loadRequests = 0;
 let loadedCount = 0;
 let currentVelocity = 0;
-let currentScrollTop = 0;
 let isLoading = false;
 let saveSnapshotTimeoutId = null;
 let isRestoringSnapshot = !!snapshot;
 
 // DOM references (will be set after DOM loads)
-let statRequestsEl, statLoadedEl, statVelocityEl, statScrollTopEl;
 let loadRequestsEl, loadedCountEl;
 let velocityValueEl, velocityFillEl, velocityStatusEl;
+
+// Footer right-side elements
+let ftRequestsEl, ftLoadedEl;
 
 let prevState = {
   loadRequests: -1,
@@ -59,16 +61,7 @@ let prevState = {
   velocityPercent: -1,
 };
 
-// Update functions
-function updateStatsBar() {
-  if (statRequestsEl) statRequestsEl.textContent = loadRequests;
-  if (statLoadedEl) statLoadedEl.textContent = formatLoadedCount(loadedCount);
-  if (statVelocityEl)
-    statVelocityEl.textContent = formatVelocity(currentVelocity);
-  if (statScrollTopEl)
-    statScrollTopEl.textContent = Math.round(currentScrollTop).toLocaleString();
-}
-
+// Update panel controls (velocity display, sidebar stats)
 function updateControls() {
   if (!velocityValueEl) return; // DOM not ready
 
@@ -113,6 +106,12 @@ function updateControls() {
   }
 }
 
+// Update footer right side (requests + loaded)
+function updateContext() {
+  if (ftRequestsEl) ftRequestsEl.textContent = loadRequests;
+  if (ftLoadedEl) ftLoadedEl.textContent = formatLoadedCount(loadedCount);
+}
+
 // Build list — snapshot restoration happens automatically via withSnapshots({ restore })
 // before the browser's first paint, so the user never sees position 0.
 const list = vlist({
@@ -131,11 +130,11 @@ const list = vlist({
           loadRequests++;
           isLoading = true;
           updateControls();
-          updateStatsBar();
+          updateContext();
           const result = await fetchItems(offset, limit);
           isLoading = false;
           updateControls();
-          updateStatsBar();
+          updateContext();
           return result;
         },
       },
@@ -154,16 +153,27 @@ const list = vlist({
   .use(withSnapshots({ restore: snapshot }))
   .build();
 
+// =============================================================================
+// Shared footer stats (left side — progress, velocity, items)
+// =============================================================================
+
+const stats = createStats({
+  getList: () => list,
+  getTotal: () => TOTAL_ITEMS,
+  getItemHeight: () => ITEM_HEIGHT,
+  container: "#list-container",
+});
+
 // Get DOM references
-statRequestsEl = document.getElementById("stat-requests");
-statLoadedEl = document.getElementById("stat-loaded");
-statVelocityEl = document.getElementById("stat-velocity");
-statScrollTopEl = document.getElementById("stat-scrolltop");
 loadRequestsEl = document.getElementById("load-requests");
 loadedCountEl = document.getElementById("loaded-count");
 velocityValueEl = document.getElementById("velocity-value");
 velocityFillEl = document.getElementById("velocity-fill");
 velocityStatusEl = document.getElementById("velocity-status");
+
+// Footer right-side refs
+ftRequestsEl = document.getElementById("ft-requests");
+ftLoadedEl = document.getElementById("ft-loaded");
 
 const btnSimulated = document.getElementById("btn-simulated");
 const btnLiveApi = document.getElementById("btn-live-api");
@@ -190,29 +200,28 @@ function scheduleSaveSnapshot() {
 }
 
 // Event bindings
-list.on("scroll", ({ scrollTop }) => {
-  currentScrollTop = scrollTop;
-  updateStatsBar();
+list.on("scroll", () => {
+  stats.scheduleUpdate();
   scheduleSaveSnapshot();
 });
 
 list.on("velocity:change", ({ velocity }) => {
   currentVelocity = velocity;
+  stats.onVelocity(velocity);
   updateControls();
-  updateStatsBar();
 });
 
 list.on("load:start", () => {
   isLoading = true;
   updateControls();
-  updateStatsBar();
+  updateContext();
 });
 
 list.on("load:end", ({ items }) => {
   isLoading = false;
   loadedCount += items.length;
   updateControls();
-  updateStatsBar();
+  updateContext();
 });
 
 list.on("selection:change", () => {
@@ -246,7 +255,7 @@ btnSimulated.addEventListener("click", async () => {
   loadedCount = 0;
   prevState.loadedCount = -1;
   updateControls();
-  updateStatsBar();
+  updateContext();
   await list.reload();
 });
 
@@ -257,7 +266,7 @@ btnLiveApi.addEventListener("click", async () => {
   loadedCount = 0;
   prevState.loadedCount = -1;
   updateControls();
-  updateStatsBar();
+  updateContext();
   await list.reload();
 });
 
@@ -293,7 +302,7 @@ btnReload.addEventListener("click", async () => {
   loadedCount = 0;
   prevState.loadedCount = -1;
   updateControls();
-  updateStatsBar();
+  updateContext();
   await list.reload();
 });
 
@@ -303,10 +312,11 @@ btnResetStats.addEventListener("click", () => {
   prevState.loadRequests = -1;
   prevState.loadedCount = -1;
   updateControls();
-  updateStatsBar();
+  updateContext();
 });
 
 // Initial update
 updateDataSourceButtons();
 updateControls();
-updateStatsBar();
+updateContext();
+stats.update();
