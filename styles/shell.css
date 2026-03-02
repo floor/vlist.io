@@ -17,8 +17,8 @@
 
 :root {
     --text: #e8e8ed;
-    --text-muted: #9a9aaa;
-    --text-dim: #5a5a68;
+    --text-muted: #a8a8ba;
+    --text-dim: #8888a0;
     --bg: #0c0c10;
     --bg-sidebar: #101014;
     --bg-card: #141418;
@@ -60,8 +60,8 @@
 
 [data-theme-mode="light"] {
     --text: #1a1a2e;
-    --text-muted: #4a4a60;
-    --text-dim: #8080a0;
+    --text-muted: #40405a;
+    --text-dim: #5c5c78;
     --bg: #ffffff;
     --bg-sidebar: #f5f5f8;
     --bg-card: #f0f0f5;
@@ -93,6 +93,20 @@
     --text-primary: #1a1a2e;
     --color-success: #2e7d32;
     --color-error: #c62828;
+}
+
+/* ─── Utilities ──────────────────────────────────────────────────── */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* ─── Base ───────────────────────────────────────────────────────── */
@@ -527,16 +541,14 @@ body {
 }
 
 .variant-switcher__option--active {
-    color: var(--text);
-    background: var(--bg-hover);
-    font-weight: 500;
+    color: #ffffff;
     background-color: #4a5cd8;
+    font-weight: 500;
 }
 .variant-switcher__option--active:hover {
-    color: var(--text);
-    background: var(--bg-hover);
-    font-weight: 500;
+    color: #ffffff;
     background-color: #4a5cd8;
+    font-weight: 500;
 }
 
 .variant-switcher__option--disabled {

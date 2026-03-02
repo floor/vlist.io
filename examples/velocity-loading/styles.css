@@ -38,6 +38,10 @@
    Item styles (inside list)
    ============================================================================ */
 
+.vlist-item {
+    padding: 0 16px;
+}
+
 .item-content {
     display: flex;
     align-items: center;

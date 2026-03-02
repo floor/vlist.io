@@ -319,9 +319,47 @@ async function buildExample(name: string): Promise<BuildResult> {
       });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error(`[${name}] Build exception:`, errorMsg);
+      console.error(`\n[${name}] ── Build exception ──`);
+      console.error(`[${name}]   message: ${errorMsg}`);
+
+      // Use Bun.inspect for full dump (catches non-enumerable + prototype props)
+      if (err && typeof err === "object") {
+        try {
+          console.error(
+            `[${name}]   inspect:\n${Bun.inspect(err, { depth: 4, colors: true })}`,
+          );
+        } catch {
+          // fallback: dump own + prototype keys
+          const allKeys = new Set([
+            ...Object.getOwnPropertyNames(err),
+            ...Object.keys(err as Record<string, unknown>),
+          ]);
+          for (const key of allKeys) {
+            if (key === "stack") continue;
+            const val = (err as any)[key];
+            if (key === "logs" && Array.isArray(val)) {
+              console.error(`[${name}]   logs (${val.length}):`);
+              for (const log of val) {
+                const pos = log.position
+                  ? ` at ${log.position.file ?? "?"}:${log.position.line ?? "?"}:${log.position.column ?? "?"}`
+                  : "";
+                console.error(
+                  `[${name}]     ${log.level ?? "error"}: ${log.message}${pos}`,
+                );
+              }
+            } else {
+              try {
+                console.error(`[${name}]   ${key}: ${JSON.stringify(val)}`);
+              } catch {
+                console.error(`[${name}]   ${key}: ${String(val)}`);
+              }
+            }
+          }
+        }
+      }
+
       if (err instanceof Error && err.stack) {
-        console.error(err.stack);
+        console.error(`[${name}]   stack:\n${err.stack}`);
       }
       return {
         name,
