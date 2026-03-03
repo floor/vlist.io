@@ -27,7 +27,7 @@ layoutMode.addEventListener("click", (e) => {
   app.setCurrentMode(mode);
 
   layoutMode.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("panel-segmented__btn--active", b.dataset.mode === mode);
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
   });
 
   app.createView();
@@ -47,13 +47,12 @@ orientationButtons.addEventListener("click", (e) => {
 
   orientationButtons.querySelectorAll("button").forEach((b) => {
     b.classList.toggle(
-      "panel-segmented__btn--active",
+      "ui-segmented__btn--active",
       b.dataset.orientation === orientation,
     );
   });
 
-  columnsLabel.textContent =
-    orientation === "horizontal" ? "Rows" : "Columns";
+  columnsLabel.textContent = orientation === "horizontal" ? "Rows" : "Columns";
 
   app.createView();
 });
@@ -71,7 +70,10 @@ columnsButtons.addEventListener("click", (e) => {
   app.setCurrentColumns(cols);
 
   columnsButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.cols) === cols);
+    b.classList.toggle(
+      "ui-ctrl-btn--active",
+      parseInt(b.dataset.cols) === cols,
+    );
   });
 
   app.createView();
@@ -90,7 +92,7 @@ gapButtons.addEventListener("click", (e) => {
   app.setCurrentGap(gap);
 
   gapButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.gap) === gap);
+    b.classList.toggle("ui-ctrl-btn--active", parseInt(b.dataset.gap) === gap);
   });
 
   app.createView();

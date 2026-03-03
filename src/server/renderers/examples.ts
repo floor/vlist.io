@@ -319,7 +319,9 @@ function buildOverviewContent(): string {
     );
     sections.push(`    <div class="overview__grid">`);
     if (group.items.length === 0) {
-      sections.push(`      <div class="overview__card overview__card--soon">`);
+      sections.push(
+        `      <div class="ui-card overview__card overview__card--soon">`,
+      );
       sections.push(
         `        <div class="overview__card-title">Coming soon</div>`,
       );
@@ -330,7 +332,7 @@ function buildOverviewContent(): string {
     } else {
       for (const item of group.items) {
         sections.push(
-          `      <a href="/examples/${item.slug}" class="overview__card">`,
+          `      <a href="/examples/${item.slug}" class="ui-card ui-card--interactive overview__card">`,
         );
         sections.push(
           `        <div class="overview__card-title">${item.name}</div>`,
@@ -449,7 +451,9 @@ function assemblePage(
     CONTENT: content,
 
     // Styles & scripts
-    EXTRA_STYLES: '<link rel="stylesheet" href="/dist/examples/styles.css" />',
+    EXTRA_STYLES:
+      '<link rel="stylesheet" href="/styles/ui.css" />' +
+      '<link rel="stylesheet" href="/dist/examples/styles.css" />',
     EXTRA_HEAD: buildExtraHead(slug, example, variant),
     EXTRA_BODY: buildExtraBody(slug, example, variant),
     MAIN_CLASS: "",
@@ -543,7 +547,7 @@ export function renderExamplesPage(
   // Build feature chips bar
   const featureChips =
     example.features && example.features.length > 0
-      ? `<div class="example-chips">${example.features.map((f) => `<span class="example-chip">${f}</span>`).join("")}</div>`
+      ? `<div class="ui-chips">${example.features.map((f) => `<span class="ui-chip">${f}</span>`).join("")}</div>`
       : "";
 
   // Build source tabs for the selected variant

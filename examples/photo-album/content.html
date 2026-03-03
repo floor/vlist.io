@@ -15,38 +15,35 @@
 
         <aside class="split-panel">
             <!-- Layout -->
-            <section class="panel-section">
-                <h3 class="panel-title">Layout</h3>
+            <section class="ui-section">
+                <h3 class="ui-title">Layout</h3>
 
-                <div class="panel-row">
-                    <label class="panel-label">Mode</label>
-                    <div class="panel-segmented" id="layout-mode">
+                <div class="ui-row">
+                    <label class="ui-label">Mode</label>
+                    <div class="ui-segmented" id="layout-mode">
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-mode="grid"
                         >
                             Grid
                         </button>
-                        <button
-                            class="panel-segmented__btn"
-                            data-mode="masonry"
-                        >
+                        <button class="ui-segmented__btn" data-mode="masonry">
                             Masonry
                         </button>
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Orientation</label>
-                    <div class="panel-segmented" id="orientation-buttons">
+                <div class="ui-row">
+                    <label class="ui-label">Orientation</label>
+                    <div class="ui-segmented" id="orientation-buttons">
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-orientation="vertical"
                         >
                             Vertical
                         </button>
                         <button
-                            class="panel-segmented__btn"
+                            class="ui-segmented__btn"
                             data-orientation="horizontal"
                         >
                             Horizontal
@@ -54,57 +51,61 @@
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label" id="columns-label"
-                        >Columns</label
-                    >
-                    <div class="panel-btn-group" id="columns-buttons">
-                        <button class="ctrl-btn" data-cols="3">3</button>
-                        <button class="ctrl-btn ctrl-btn--active" data-cols="4">
+                <div class="ui-row">
+                    <label class="ui-label" id="columns-label">Columns</label>
+                    <div class="ui-btn-group" id="columns-buttons">
+                        <button class="ui-ctrl-btn" data-cols="3">3</button>
+                        <button
+                            class="ui-ctrl-btn ui-ctrl-btn--active"
+                            data-cols="4"
+                        >
                             4
                         </button>
-                        <button class="ctrl-btn" data-cols="5">5</button>
-                        <button class="ctrl-btn" data-cols="6">6</button>
-                        <button class="ctrl-btn" data-cols="10">10</button>
+                        <button class="ui-ctrl-btn" data-cols="5">5</button>
+                        <button class="ui-ctrl-btn" data-cols="6">6</button>
+                        <button class="ui-ctrl-btn" data-cols="10">10</button>
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Gap</label>
-                    <div class="panel-btn-group" id="gap-buttons">
-                        <button class="ctrl-btn" data-gap="0">0</button>
-                        <button class="ctrl-btn" data-gap="4">4</button>
-                        <button class="ctrl-btn ctrl-btn--active" data-gap="8">
+                <div class="ui-row">
+                    <label class="ui-label">Gap</label>
+                    <div class="ui-btn-group" id="gap-buttons">
+                        <button class="ui-ctrl-btn" data-gap="0">0</button>
+                        <button class="ui-ctrl-btn" data-gap="4">4</button>
+                        <button
+                            class="ui-ctrl-btn ui-ctrl-btn--active"
+                            data-gap="8"
+                        >
                             8
                         </button>
-                        <button class="ctrl-btn" data-gap="12">12</button>
-                        <button class="ctrl-btn" data-gap="16">16</button>
+                        <button class="ui-ctrl-btn" data-gap="12">12</button>
+                        <button class="ui-ctrl-btn" data-gap="16">16</button>
                     </div>
                 </div>
             </section>
 
             <!-- Navigation -->
-            <section class="panel-section">
-                <h3 class="panel-title">Navigation</h3>
-                <div class="panel-row">
-                    <div class="panel-btn-group">
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
                         <button
                             id="btn-first"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="First"
                         >
                             <i class="icon icon--up"></i>
                         </button>
                         <button
                             id="btn-middle"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Middle"
                         >
                             <i class="icon icon--center"></i>
                         </button>
                         <button
                             id="btn-last"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Last"
                         >
                             <i class="icon icon--down"></i>
@@ -114,10 +115,10 @@
             </section>
 
             <!-- Photo Detail -->
-            <section class="panel-section">
-                <h3 class="panel-title">Last clicked</h3>
-                <div class="panel-detail" id="photo-detail">
-                    <span class="panel-detail__empty"
+            <section class="ui-section">
+                <h3 class="ui-title">Last clicked</h3>
+                <div class="ui-detail" id="photo-detail">
+                    <span class="ui-detail__empty"
                         >Click a photo to see details</span
                     >
                 </div>

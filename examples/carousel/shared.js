@@ -105,7 +105,7 @@ const variableTemplate = (item) => {
         <div class="card-category">${item.category}</div>
         <div class="card-width">${item.width}px</div>
       </div>
-      ${item.isFeatured ? '<div class="card-badge">Featured</div>' : ""}
+      ${item.isFeatured ? '<div class="ui-badge ui-badge--pill ui-badge--glass">Featured</div>' : ""}
     </div>
   `;
 };
@@ -169,7 +169,7 @@ export function getDetailHtml(item, index, variableWidth) {
     <div class="detail-meta">
       <strong>${item.title}</strong>
       <span>Index ${index}${variableWidth ? ` · ${item.category} · ${item.width}px` : ` · ${item.subtitle}`}</span>
-      ${item.isFeatured && variableWidth ? '<span class="detail-meta__badge">⭐ Featured</span>' : ""}
+      ${item.isFeatured && variableWidth ? '<span class="ui-badge ui-badge--accent">⭐ Featured</span>' : ""}
     </div>
   `;
 }

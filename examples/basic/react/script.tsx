@@ -44,31 +44,31 @@ function App() {
         </div>
 
         <aside className="split-panel">
-          <section className="panel-section">
-            <h3 className="panel-title">About</h3>
-            <p className="panel-text">
+          <section className="ui-section">
+            <h3 className="ui-title">About</h3>
+            <p className="ui-text">
               This list renders <strong>100,000 items</strong> but only creates
               DOM nodes for the visible rows. Scroll at any speed — the frame
               rate stays constant.
             </p>
-            <p className="panel-text">
+            <p className="ui-text">
               Built with <strong>vlist-react</strong>, the React adapter for
               vlist. One hook, zero boilerplate.
             </p>
           </section>
 
-          <section className="panel-section">
-            <h3 className="panel-title">How it works</h3>
-            <p className="panel-text">
+          <section className="ui-section">
+            <h3 className="ui-title">How it works</h3>
+            <p className="ui-text">
               Each item has a fixed height of <strong>64 px</strong>. vlist
               calculates which rows are visible and renders only those,
               recycling DOM elements as you scroll.
             </p>
           </section>
 
-          <section className="panel-section">
-            <h3 className="panel-title">Accessibility</h3>
-            <p className="panel-text">
+          <section className="ui-section">
+            <h3 className="ui-title">Accessibility</h3>
+            <p className="ui-text">
               vlist implements the <strong>WAI-ARIA Listbox</strong> pattern to
               provide a fully accessible virtual list experience — including{" "}
               <code>role</code>, <code>aria-setsize</code>,{" "}

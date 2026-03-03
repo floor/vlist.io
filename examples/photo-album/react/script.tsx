@@ -197,16 +197,16 @@ function App() {
 
         <aside className="split-panel">
           {/* Layout */}
-          <section className="panel-section">
-            <h3 className="panel-title">Layout</h3>
+          <section className="ui-section">
+            <h3 className="ui-title">Layout</h3>
 
-            <div className="panel-row">
-              <label className="panel-label">Mode</label>
-              <div className="panel-segmented">
+            <div className="ui-row">
+              <label className="ui-label">Mode</label>
+              <div className="ui-segmented">
                 {(["grid", "masonry"] as const).map((m) => (
                   <button
                     key={m}
-                    className={`panel-segmented__btn${m === mode ? " panel-segmented__btn--active" : ""}`}
+                    className={`ui-segmented__btn${m === mode ? " ui-segmented__btn--active" : ""}`}
                     onClick={() => setMode(m)}
                   >
                     {m === "grid" ? "Grid" : "Masonry"}
@@ -215,13 +215,13 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">Orientation</label>
-              <div className="panel-segmented">
+            <div className="ui-row">
+              <label className="ui-label">Orientation</label>
+              <div className="ui-segmented">
                 {(["vertical", "horizontal"] as const).map((o) => (
                   <button
                     key={o}
-                    className={`panel-segmented__btn${o === orientation ? " panel-segmented__btn--active" : ""}`}
+                    className={`ui-segmented__btn${o === orientation ? " ui-segmented__btn--active" : ""}`}
                     onClick={() => setOrientation(o)}
                   >
                     {o === "vertical" ? "Vertical" : "Horizontal"}
@@ -230,15 +230,15 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">
+            <div className="ui-row">
+              <label className="ui-label">
                 {orientation === "horizontal" ? "Rows" : "Columns"}
               </label>
-              <div className="panel-btn-group">
+              <div className="ui-btn-group">
                 {[3, 4, 5, 6, 10].map((c) => (
                   <button
                     key={c}
-                    className={`ctrl-btn${c === columns ? " ctrl-btn--active" : ""}`}
+                    className={`ui-ctrl-btn${c === columns ? " ui-ctrl-btn--active" : ""}`}
                     onClick={() => setColumns(c)}
                   >
                     {c}
@@ -247,13 +247,13 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">Gap</label>
-              <div className="panel-btn-group">
+            <div className="ui-row">
+              <label className="ui-label">Gap</label>
+              <div className="ui-btn-group">
                 {[0, 4, 8, 12, 16].map((g) => (
                   <button
                     key={g}
-                    className={`ctrl-btn${g === gap ? " ctrl-btn--active" : ""}`}
+                    className={`ui-ctrl-btn${g === gap ? " ui-ctrl-btn--active" : ""}`}
                     onClick={() => setGap(g)}
                   >
                     {g}
@@ -264,26 +264,26 @@ function App() {
           </section>
 
           {/* Navigation */}
-          <section className="panel-section">
-            <h3 className="panel-title">Navigation</h3>
-            <div className="panel-row">
-              <div className="panel-btn-group">
+          <section className="ui-section">
+            <h3 className="ui-title">Navigation</h3>
+            <div className="ui-row">
+              <div className="ui-btn-group">
                 <button
-                  className="panel-btn panel-btn--icon"
+                  className="ui-btn ui-btn--icon"
                   title="First"
                   onClick={() => scrollTo("first")}
                 >
                   <i className="icon icon--up" />
                 </button>
                 <button
-                  className="panel-btn panel-btn--icon"
+                  className="ui-btn ui-btn--icon"
                   title="Middle"
                   onClick={() => scrollTo("middle")}
                 >
                   <i className="icon icon--center" />
                 </button>
                 <button
-                  className="panel-btn panel-btn--icon"
+                  className="ui-btn ui-btn--icon"
                   title="Last"
                   onClick={() => scrollTo("last")}
                 >
@@ -294,9 +294,9 @@ function App() {
           </section>
 
           {/* Photo Detail */}
-          <section className="panel-section">
-            <h3 className="panel-title">Last clicked</h3>
-            <div className="panel-detail">
+          <section className="ui-section">
+            <h3 className="ui-title">Last clicked</h3>
+            <div className="ui-detail">
               {selectedPhoto ? (
                 <>
                   <img
@@ -312,7 +312,7 @@ function App() {
                   </div>
                 </>
               ) : (
-                <span className="panel-detail__empty">
+                <span className="ui-detail__empty">
                   Click a photo to see details
                 </span>
               )}

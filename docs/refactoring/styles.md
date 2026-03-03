@@ -1,6 +1,8 @@
 # vlist.dev — CSS Refactoring Plan
 
 > Comprehensive audit and enhancement plan for all stylesheets in the vlist.dev project.
+>
+> **Status: ✅ All 6 phases complete** — implemented on branch `refactor/css-cleanup`.
 
 ---
 
@@ -10,518 +12,356 @@
 - [Current State](#current-state)
 - [File Inventory](#file-inventory)
 - [Style Loading Model](#style-loading-model)
-- [Systemic Issues](#systemic-issues)
-- [Bug Fixes (Priority 1)](#bug-fixes-priority-1)
-- [Token Consolidation (Priority 2)](#token-consolidation-priority-2)
-- [Deduplication (Priority 3)](#deduplication-priority-3)
-- [Typography System (Priority 4)](#typography-system-priority-4)
-- [Accessibility (Priority 5)](#accessibility-priority-5)
-- [Polish & Modern CSS (Priority 6)](#polish--modern-css-priority-6)
+- [Systemic Issues (Resolved)](#systemic-issues-resolved)
+- [Bug Fixes (Priority 1)](#bug-fixes-priority-1) ✅
+- [Token Consolidation (Priority 2)](#token-consolidation-priority-2) ✅
+- [Deduplication (Priority 3)](#deduplication-priority-3) ✅
+- [Typography System (Priority 4)](#typography-system-priority-4) ✅
+- [Accessibility (Priority 5)](#accessibility-priority-5) ✅
+- [Polish & Modern CSS (Priority 6)](#polish--modern-css-priority-6) ✅
+- [Deferred Items](#deferred-items)
 - [Per-File Notes](#per-file-notes)
-- [Implementation Order](#implementation-order)
+- [Implementation Log](#implementation-log)
 - [Testing & Verification](#testing--verification)
 
 ---
 
 ## Architecture Context
 
-vlist.dev is a Bun-powered documentation site using **Eta templates** for server-side rendering. Understanding the rendering pipeline is critical for this refactoring because it determines how styles are loaded and which files can share resources.
-
 ### Rendering Pipeline
 
-```
-Request
-  → src/server/router.ts (route matching)
-    → renderer (homepage.ts, content.ts, examples.ts, etc.)
-      → Eta template (shells/base.html or shells/homepage.eta)
-        → HTML response with <link> tags to CSS files
-```
+All docs/tutorial pages are **server-rendered** with Eta templates. The server reads Markdown files, injects them into a shell (`base.html`), and serves complete HTML. There is no client-side router — each page is a full document.
+
+Standalone pages (`api/index.html`, `examples/index.html`) are **static HTML** files with no template engine.
+
+Individual example pages (`examples/*/index.html`) are standalone HTML — they do NOT load the shared shell styles.
 
 ### Two Shell Templates
 
-| Template | Used By | Loads Styles Via |
-|----------|---------|------------------|
-| `shells/homepage.eta` | Homepage only | Hardcoded `<link>` tags in template |
-| `shells/base.html` | Docs, tutorials, examples, benchmarks | `shell.css` + `EXTRA_STYLES` template variable |
+| Template | Used by | Notes |
+|----------|---------|-------|
+| `src/server/shells/base.html` | Docs, tutorials, example pages | Eta template, has sidebar + ToC slots |
+| `src/server/shells/homepage.eta` | `/` landing page only | Eta template, no sidebar |
 
-The **homepage has its own standalone Eta template** that does NOT use `base.html`. This means:
-- It loads `shell.css` + `homepage.css` directly via `<link>` tags in `homepage.eta`
-- It cannot benefit from `EXTRA_STYLES` injection
-- Any new shared file (like `tokens.css`) must be added to BOTH templates
-
-The **API page** (`api/index.html`) is also a standalone HTML file, NOT rendered through the Eta pipeline. It loads `shell.css` + `api.css` via hardcoded `<link>` tags.
-
-The **examples index** (`examples/index.html`) is similarly standalone HTML.
+Both templates share `shell.css` for the header, but the homepage has its own layout.
 
 ### Theme Initialization
 
-The theme is set via an inline `<script>` in the `<head>` BEFORE paint:
+Theme is set **before first paint** via an inline `<script>` in `<head>` (before any `<link>` to stylesheets):
 
-```js
-// In base.html (L91-97):
-var mode = localStorage.getItem("vlist-theme-mode");
-if (!mode)
-    mode = window.matchMedia("(prefers-color-scheme: light)").matches
-        ? "light"
-        : "dark";
-document.documentElement.setAttribute("data-theme-mode", mode);
-```
+1. Read `localStorage.getItem("vlist-theme-mode")`
+2. If not set, check `window.matchMedia("(prefers-color-scheme: light)")`
+3. Set `document.documentElement.setAttribute("data-theme-mode", mode)`
 
-**Key insight:** `prefers-color-scheme` is already handled by the JS. A CSS-only `@media (prefers-color-scheme)` fallback is NOT needed — the `data-theme-mode` attribute is always set before any paint. This changes the scope of Priority 6.
+This runs synchronously before the browser fetches CSS, so there is **zero flash of wrong theme** (FOUC).
 
-### ⚠️ Inconsistent Theme JS
+### Theme JS — Consistent ✅
 
-The same theme initialization is duplicated in three places with **subtle differences**:
-
-| Location | localStorage key | Fallback | Attribute set |
-|----------|-----------------|----------|---------------|
-| `shells/base.html` L91 | `vlist-theme-mode` | `matchMedia` → `"light"` / `"dark"` | `data-theme-mode` |
-| `shells/homepage.eta` L92 | `vlist-theme-mode` | `matchMedia` → `"light"` / `"dark"` | `data-theme-mode` |
-| `examples/index.html` L10 | `vlist-theme` ← **different key!** | `"dark"` (no matchMedia) | `data-theme-mode` |
-| `api/index.html` | needs verification | needs verification | needs verification |
-
-The examples index uses `vlist-theme` instead of `vlist-theme-mode`, and defaults to `"dark"` with no OS preference detection. This means toggling the theme on the docs pages doesn't carry over to the examples index page, and vice versa. **This is a bug that should be fixed alongside the CSS refactoring.**
+All 4 entry points now use the same pattern:
+- localStorage key: `vlist-theme-mode`
+- HTML attribute: `data-theme-mode`
+- `matchMedia` fallback when no stored preference
+- Toggle reads/writes the same key and attribute
 
 ---
 
 ## Current State
 
-The site has **5 core stylesheets** plus an **example shell**, a **benchmarks stylesheet**, and **23 per-example stylesheets**. Total core CSS is ~3,800 lines. The code is clean and readable but has grown organically, leading to fragmented tokens, duplicated components, and a few outright bugs.
+The site has **7 core stylesheets** (including 2 new ones created during refactoring) plus an **example shell** and a **benchmarks stylesheet**. Total core CSS is ~3,980 lines. The codebase has been refactored from a fragmented organic growth state into a well-organized token-based architecture.
 
 **What works well:**
-- Dark/light theme via `[data-theme-mode]` attribute, set before paint
-- Frosted-glass header with `backdrop-filter`
-- Sticky sidebar + table of contents
-- Responsive breakpoints at sensible widths (1200, 900, 720, 640, 420)
-- Consistent card/border/hover aesthetic
-- Good syntax highlighting with full dark + light palettes
+- ✅ Single source of truth for all design tokens (`tokens.css`)
+- ✅ Single source of truth for all syntax highlighting (`syntax.css`)
+- ✅ Dark/light theme via `[data-theme-mode]` attribute, set before paint
+- ✅ Consistent localStorage key (`vlist-theme-mode`) across all pages
+- ✅ Token-based typography scale (`--fs-2xs` through `--fs-6xl`)
+- ✅ Font family tokens (`--font-sans`, `--font-mono`) — no inline stacks
+- ✅ Frosted-glass header with `backdrop-filter`
+- ✅ Sticky sidebar + table of contents
+- ✅ Responsive breakpoints at sensible widths (1200, 900, 720, 640, 420)
+- ✅ Consistent card hover behavior (all cards lift on hover)
+- ✅ Keyboard focus indicators on all interactive elements
+- ✅ `prefers-reduced-motion` support
+- ✅ Smooth theme transitions across 15 element types
+- ✅ Fluid hero typography with `clamp()` — no breakpoint jumps
+- ✅ No duplicate component definitions
+- ✅ No unused MD3 tokens
 
-**What needs work:**
-- Tokens re-declared in 4+ files with conflicting values
-- Shared components (dropdown, badge, footer, syntax) duplicated across files
-- One broken theme selector in `api.css`
-- One duplicate selector bug in `shell.css` theme toggle
-- No typographic scale — 15+ raw `font-size` values scattered throughout
-- No keyboard focus indicators anywhere
-- Unused MD3 surface tokens adding dead weight
-- Inconsistent theme localStorage key across pages
+**Remaining opportunities (deferred):**
+- Footer styles still per-page (3 slightly different implementations)
+- `.container` max-widths intentionally differ per page (not deduplicated)
+- `--vlist-*` design tokens in `examples.css` could move to vlist library
 
 ---
 
 ## File Inventory
 
-| File | ~Lines | Purpose | Loaded on |
-|------|-------:|---------|-----------|
-| `styles/shell.css` | 895 | Reset, design tokens, header, sidebar, layout, ToC, overlay, overview cards, variant switcher, theme toggle, doc-nav, button-group, responsive | All pages |
-| `styles/homepage.css` | 430 | Hero, badges, CTA buttons, install command, features grid, nav-cards, example list, code sample, footer, responsive | `/` only |
-| `styles/content.css` | 340 | Markdown body (headings, paragraphs, lists, blockquotes, hr), inline/block code, tables, hljs syntax highlighting (dark + light), error page, responsive | `/docs/*`, `/tutorials/*` |
-| `styles/api.css` | 490 | Endpoint cards, method badges, params table, code blocks, short-class syntax colors, try-it interactive panel, type definitions, notes, footer, responsive | `/api` only |
-| `styles/examples.css` | 210 | Example index card grid, section titles, GitHub link, footer, vlist design tokens (light + dark) | `/examples/` index only |
-| `examples/styles.css` | 1205 | Split-panel layout, control panel (inputs, selects, sliders, buttons, segmented controls), detail panel, source code viewer with tabs, hljs syntax (dark + light), example footer with stats, CSS icon system (14 icons via masks), responsive | `/examples/*` individual pages |
+| File | Lines | Purpose | Loaded on |
+|------|------:|---------|-----------|
+| `styles/tokens.css` *(new)* | 110 | Single source of truth: colors (dark + light), semantic colors, code colors, chrome colors, spacing, radii, font families, font-size scale | All pages (loaded first) |
+| `styles/syntax.css` *(new)* | 243 | All syntax highlighting: hljs classes (dark + light) + short-class aliases (`.kw`, `.fn`, `.str`, etc.) | All pages |
+| `styles/shell.css` | 935 | Reset, header, sidebar, layout, ToC, overlay, overview cards, variant switcher, theme toggle, doc-nav, button-group, dropdown, badge, `body.no-sidebar` breakpoint, focus indicators, reduced motion, theme transitions, responsive | All pages |
+| `styles/homepage.css` | 479 | Hero (fluid `clamp()` typography), CTA buttons, install command, features grid, nav-cards, code sample, footer, responsive | `/` only |
+| `styles/content.css` | 332 | Markdown body (headings, paragraphs, lists, blockquotes, hr), inline/block code, tables, error page, anchor `:focus-within`, responsive | `/docs/*`, `/tutorials/*` |
+| `styles/api.css` | 588 | Endpoint cards, method badges, params table, code blocks, try-it interactive panel, type definitions, notes, footer, responsive | `/api` only |
+| `styles/examples.css` | 253 | Example index card grid, section titles, GitHub link, footer, vlist design tokens | `/examples/` index only |
+| `examples/styles.css` | 1040 | Split-panel layout, control panel, detail panel, source code viewer with tabs, example footer with stats, CSS icon system, responsive | `/examples/*` individual pages |
 | `benchmarks/styles.css` | ~200 | Benchmark-specific layout, chart containers, result tables | `/benchmarks/*` |
-| 23× per-example `styles.css` | varies | Example-specific custom styles (contact list, messaging app, photo album, etc.) | Individual examples |
 
-**Total core styles: ~3,770 lines across 6 main files + ~1,205 for the example shell.**
+**Total core styles: ~3,980 lines across 7 main files + ~1,040 for the example shell.**
 
 ---
 
 ## Style Loading Model
 
-Understanding which CSS files load on which page is essential for deduplication — you can only extract shared styles into a file that's loaded on all pages that need it.
-
 ```
-                          shell.css (always loaded)
-                              │
-              ┌───────────────┼───────────────────────────┐
-              │               │               │           │
-         homepage.eta    base.html       api/index    examples/index
-              │               │            .html         .html
-         homepage.css    EXTRA_STYLES     api.css     examples.css
-                              │
-                    ┌─────────┼─────────┐
-                    │         │         │
-               content.css  examples   benchmarks
-                           /styles.css  /styles.css
-                              │
-                    per-example/styles.css
+                    tokens.css → syntax.css → shell.css (always loaded, in this order)
+                                                  │
+                  ┌───────────────┬────────────────┼──────────────────┐
+                  │               │                │                  │
+             homepage.eta    base.html        api/index         examples/index
+                  │               │             .html               .html
+             homepage.css    EXTRA_STYLES      api.css          examples.css
+                                  │
+                       ┌──────────┼──────────┐
+                       │          │          │
+                  content.css  examples   benchmarks
+                              /styles.css  /styles.css
+                                  │
+                       per-example/styles.css
 ```
 
-**Implications for `tokens.css`:**
-- Must be added to **4 separate places**: `homepage.eta`, `base.html`, `api/index.html`, `examples/index.html`
-- Must load BEFORE `shell.css` (since shell references the tokens)
-- Individual example HTML files (`examples/*/index.html`) that exist are standalone — check if they load `shell.css` or have their own style setup
+**All 4 entry points load:**
+1. `tokens.css` — design tokens (loaded first)
+2. `syntax.css` — syntax highlighting
+3. `shell.css` — shared chrome and components
 
-### Where `<link>` tags must be updated
+**Pages without sidebar** (`homepage.eta`, `api/index.html`, `examples/index.html`) use `<body class="no-sidebar">` to shift the hamburger breakpoint from 720px to 640px via rules in `shell.css`.
 
-| File | Current `<link>` tags | Change needed |
-|------|----------------------|---------------|
-| `src/server/shells/base.html` L68 | `shell.css` | Add `tokens.css` before `shell.css` |
-| `src/server/shells/homepage.eta` L86–87 | `shell.css` + `homepage.css` | Add `tokens.css` before `shell.css` |
-| `api/index.html` L27–28 | `shell.css` + `api.css` | Add `tokens.css` before `shell.css` |
-| `examples/index.html` L7–8 | `shell.css` + `examples.css` | Add `tokens.css` before `shell.css` |
+### `<link>` tag order in each entry point
+
+| File | CSS loading order |
+|------|-------------------|
+| `src/server/shells/base.html` | `tokens.css` → `shell.css` → `syntax.css` → `EXTRA_STYLES` |
+| `src/server/shells/homepage.eta` | `tokens.css` → `syntax.css` → `shell.css` → `homepage.css` |
+| `api/index.html` | `tokens.css` → `shell.css` → `syntax.css` → `api.css` |
+| `examples/index.html` | `tokens.css` → `syntax.css` → `shell.css` → `examples.css` |
 
 ---
 
-## Systemic Issues
+## Systemic Issues (Resolved)
 
-### 1. Token Fragmentation — 🔴 High
+All 8 systemic issues identified in the original audit have been resolved.
 
-The same custom property names are re-declared with different values across files:
+### 1. ~~Token Fragmentation — 🔴 High~~ ✅ Resolved in Phase 2
 
-| Token | `shell.css` | `homepage.css` | `content.css` | `api.css` |
-|-------|:-----------:|:--------------:|:-------------:|:---------:|
-| `--radius-sm` | *(not set)* | `8px` | `5px` | `8px` |
-| `--radius-xs` | *(not set)* | *(not set)* | *(not set)* | `5px` |
-| `--text-muted` (dark) | `#a8a8ba` | `#7a7a88` | *(inherits)* | *(inherits)* |
-| `--text-dim` (dark) | `#8888a0` | `#55555f` | *(inherits)* | *(inherits)* |
-| `--bg-code` | *(not set)* | *(not set)* | `#18181e` | `#18181e` |
-| `--bg-code-inline` | *(not set)* | *(not set)* | `#1c1c24` | `#1c1c24` |
-| `--bg-card-hover` (dark) | `#161619` | `#1a1a1f` | *(inherits)* | *(inherits)* |
-| `--text-muted` (light) | `#40405a` | `#555568` | *(inherits)* | *(inherits)* |
-| `--text-dim` (light) | `#5c5c78` | `#8888a0` | *(inherits)* | *(inherits)* |
+**Was:** Same custom properties re-declared with conflicting values across 4 files.
 
-The homepage overrides `--text-muted` and `--text-dim` to darker values than the shell, meaning the landing page has a subtly different text palette than the rest of the site. This may be intentional (the homepage has a different visual density) but should be an explicit decision, not an accident of file ordering.
+**Fix:** Created `tokens.css` as single source of truth. Settled conflicting values (documented in Phase 2). Stripped all per-file `:root` blocks. Homepage retains only `--radius: 12px` page-specific override.
 
-### 2. Duplicated Components — 🔴 High
+### 2. ~~Duplicated Components — 🔴 High~~ ✅ Resolved in Phase 3
 
-| Component | Duplicated in | Lines wasted |
-|-----------|---------------|:------------:|
-| `.dropdown` + `.dropdown--open` + `.dropdown a` | `homepage.css`, `api.css` | ~30 |
-| `.badge` + `.badge--accent` | `homepage.css`, `api.css` | ~20 |
-| `footer` / `.footer__links` | `homepage.css`, `api.css`, `examples.css` | ~40 |
-| hljs syntax highlighting (full, dark + light) | `content.css`, `examples/styles.css` | ~160 |
-| Short-class syntax (`.kw`, `.fn`, `.str`, etc.) | `homepage.css`, `api.css` | ~50 |
-| Hamburger/nav 720→640 responsive override | `homepage.css`, `api.css` | ~20 |
+**Was:** ~320 lines of duplicated dropdown, badge, syntax, and hamburger overrides.
 
-**Estimated deduplication savings: ~320 lines**
+**Fix:** Moved `.dropdown` and `.badge` to `shell.css`. Created `syntax.css` for all syntax highlighting. Added `body.no-sidebar` breakpoint in `shell.css`. Actual savings: ~490 lines removed.
 
-### 3. Inconsistent Theme Selector — 🔴 Bug
+### 3. ~~Inconsistent Theme Selector — 🔴 Bug~~ ✅ Resolved in Phase 1
 
-`api.css` lines 284–300 use `[data-theme="light"]` (without `-mode`):
+**Was:** `api.css` used `[data-theme="light"]` (without `-mode`) — 11 selectors that never matched.
 
-```css
-/* api.css — BROKEN: these selectors never match */
-[data-theme="light"] .code pre { color: #374151; }
-[data-theme="light"] .kw       { color: #7c3aed; }
-[data-theme="light"] .str      { color: #16a34a; }
-/* ... 6 more rules ... */
-```
+**Fix:** Replaced all with `[data-theme-mode="light"]`. Light-mode syntax colors on API page now work.
 
-The HTML attribute is `data-theme-mode`, not `data-theme`. These light-mode syntax colors on the API page are completely inert.
+### 4. ~~Duplicate Properties — 🟠 Medium~~ ✅ Resolved in Phase 1
 
-### 4. Duplicate Properties — 🟠 Medium
+**Was:** `.button-group button` had duplicate `color`, `font-weight`, `align-items`, `border`, `transition` declarations, plus a reference to undefined `--text-secondary`.
 
-`shell.css` `.button-group button` (L842–865) declares these properties twice within the same rule:
+**Fix:** Merged into single clean declaration block.
 
-```css
-.button-group button {
-    /* First pass (L849-852): */
-    color: var(--text-secondary);  /* ← token doesn't exist */
-    font-weight: 500;
-    align-items: center;
+### 5. ~~Unused MD3 Tokens — 🟡 Medium~~ ✅ Resolved in Phase 2
 
-    /* Second pass (L856-862): */
-    color: var(--text);            /* ← overrides the undefined token */
-    font-weight: 500;             /* ← duplicate */
-    align-items: center;          /* ← duplicate */
-}
-```
+**Was:** 22 MD3 surface/on-surface tokens defined (dark + light), only 3 referenced.
 
-The first `color: var(--text-secondary)` references a token that is never defined anywhere. The second `color: var(--text)` silently overwrites it. This works by accident, not design.
+**Fix:** Removed all MD3 tokens. Rewrote `.button-group` references to use core tokens (`--bg-card`, `--bg-card-hover`, `--text`).
 
-### 5. Unused MD3 Tokens — 🟡 Medium
+### 6. ~~Theme Toggle Selector Bug — 🟠 Low~~ ✅ Resolved in Phase 1
 
-`shell.css` defines 12 Material Design 3 surface/text tokens (both dark and light):
+**Was:** Sun icon rule had duplicate selector; moon icon rule mixed `data-theme-mode` and `data-theme`.
 
-```
---surface, --surface-dim, --surface-bright,
---surface-container-lowest, --surface-container-low,
---surface-container, --surface-container-high,
---surface-container-highest,
---outline-variant, --on-surface, --on-surface-variant,
---text-primary, --color-success, --color-error
-```
+**Fix:** Cleaned to single correct `[data-theme-mode="light"]` selectors for both.
 
-Only **3** are actually referenced in component styles:
-- `--surface-container` → `.button-group` background
-- `--surface-container-high` → `.button-group button:hover`
-- `--text-primary` → `.button-group .button--active`, `.button-group button:hover`
+### 7. ~~Inconsistent Theme localStorage Key — 🟡 Medium~~ ✅ Resolved in Phase 1
 
-The other 11 are dead weight. **Decision needed:** adopt them into the design system or remove them.
+**Was:** `examples/index.html` used `vlist-theme` key and `data-theme` attribute.
 
-### 6. Theme Toggle Selector Bug — 🟠 Low
+**Fix:** Updated to `vlist-theme-mode` key and `data-theme-mode` attribute, added `matchMedia` fallback. Also fixed `api/index.html` which had the same issue.
 
-`shell.css` L603–610 has a duplicate selector instead of a paired selector:
+### 8. ~~vlist Design Tokens in Wrong File — 🟠 Low~~ Deferred
 
-```css
-/* CURRENT (L603-606) — buggy: both selectors are identical */
-[data-theme-mode="light"] .header__theme-sun,
-[data-theme-mode="light"] .header__theme-sun {
-    display: block;
-}
-
-/* Line 607-610 — also has a mismatch */
-[data-theme-mode="light"] .header__theme-moon,
-[data-theme="light"] .header__theme-moon {   /* ← data-theme without -mode */
-    display: none;
-}
-```
-
-The sun rule has a useless duplicate. The moon rule mixes `data-theme-mode` and `data-theme`. Since only `data-theme-mode` is ever set on the HTML element, the `[data-theme="light"]` selector is dead code. The functionality still works because the first selector in the comma list is correct, but this is confusing and should be cleaned up.
-
-### 7. Inconsistent Theme localStorage Key — 🟡 Medium
-
-As documented in [Architecture Context](#inconsistent-theme-js):
-- Most pages use `localStorage.getItem("vlist-theme-mode")`
-- `examples/index.html` uses `localStorage.getItem("vlist-theme")`
-
-This means theme preference doesn't persist correctly between the examples index and the rest of the site.
-
-### 8. vlist Design Tokens in Wrong File — 🟠 Low
-
-`styles/examples.css` L155–210 defines `--vlist-*` CSS custom properties (colors, spacing, transitions) for the vlist component itself. These belong in the vlist library's CSS (`/dist/vlist.css`) or a dedicated integration file — not in the examples index page stylesheet. They affect individual example pages that don't even load `examples.css`.
+`--vlist-*` tokens in `examples.css` are scoped to individual example pages and not duplicated elsewhere. Low priority — can be relocated to vlist library CSS in a future pass.
 
 ---
 
-## Bug Fixes (Priority 1)
+## Bug Fixes (Priority 1) ✅
 
-Immediate fixes that affect correctness. All low-risk, surgical edits.
+> **Commit:** `61b11c0` — `fix(styles): phase 1 bug fixes — theme selectors, duplicates, localStorage key`
 
-### 1.1 Fix `api.css` theme selector
+All 5 bug fixes implemented as surgical edits:
 
-**File:** `styles/api.css`
-**What:** Replace all 9 occurrences of `[data-theme="light"]` with `[data-theme-mode="light"]` (around L284–300).
-**Impact:** Light-mode syntax colors on the API page will actually work.
+### 1.1 Fix `api.css` theme selector ✅
 
-### 1.2 Fix `shell.css` theme toggle duplicate selector
+Replaced all 11 occurrences of `[data-theme="light"]` with `[data-theme-mode="light"]` in the syntax highlighting section.
 
-**File:** `styles/shell.css` L603–610
-**What:** Clean up both rules:
+### 1.2 Fix `shell.css` theme toggle duplicate selector ✅
 
-```css
-/* Sun icon: visible in light mode */
-[data-theme-mode="light"] .header__theme-sun {
-    display: block;
-}
+Cleaned sun icon rule (removed duplicate selector) and moon icon rule (removed stray `[data-theme="light"]`).
 
-/* Moon icon: hidden in light mode */
-[data-theme-mode="light"] .header__theme-moon {
-    display: none;
-}
-```
+### 1.3 Fix `.button-group button` duplicate properties ✅
 
-Remove the duplicate selector and the stray `[data-theme="light"]` variant.
+Merged into single declaration. Removed undefined `var(--text-secondary)`. Kept `color: var(--text)`.
 
-### 1.3 Fix `.button-group button` duplicate properties
+### 1.4 Fix `.md tbody tr:hover` on light theme ✅
 
-**File:** `styles/shell.css` L842–865
-**What:** Merge into a single clean declaration. Remove `var(--text-secondary)` reference (undefined token). Keep `color: var(--text)`.
+Added `[data-theme-mode="light"] .md tbody tr:hover { background: rgba(0, 0, 0, 0.02); }`.
 
-### 1.4 Fix `.md tbody tr:hover` on light theme
+*Note: Later replaced with `var(--sidebar-hover)` in Phase 6.*
 
-**File:** `styles/content.css`
-**What:** `rgba(255, 255, 255, 0.02)` is invisible on a white background. Add a light-theme override:
+### 1.5 Fix `examples/index.html` theme localStorage key ✅
 
-```css
-[data-theme-mode="light"] .md tbody tr:hover {
-    background: rgba(0, 0, 0, 0.02);
-}
-```
-
-### 1.5 Fix `examples/index.html` theme localStorage key
-
-**File:** `examples/index.html`
-**What:** Change `localStorage.getItem('vlist-theme')` to `localStorage.getItem('vlist-theme-mode')` and add `matchMedia` fallback to match `base.html` behavior.
-
-**Also verify:** `api/index.html` uses the same key and fallback pattern.
+Changed both `examples/index.html` and `api/index.html`:
+- localStorage key: `vlist-theme` → `vlist-theme-mode`
+- HTML attribute: `data-theme` → `data-theme-mode`
+- Added `matchMedia` fallback to `examples/index.html`
 
 ---
 
-## Token Consolidation (Priority 2)
+## Token Consolidation (Priority 2) ✅
 
-Create a single source of truth for all design tokens.
+> **Commit:** `d9bd02e` — `refactor(styles): phase 2 token consolidation — single source of truth`
 
-### 2.1 Create `styles/tokens.css`
+### 2.1 Create `styles/tokens.css` ✅
 
-Extract all `:root` and `[data-theme-mode="light"]` custom properties from every file into one new file. This file is loaded first by all pages.
+Created 110-line file with all design tokens organized into categories:
 
-**Proposed token categories:**
+- **Colors: Base** — `--text`, `--text-muted`, `--text-dim`, `--bg`, `--bg-sidebar`, `--bg-card`, `--bg-card-hover`, `--border`, `--border-hover`, `--accent`, `--accent-dim`, `--accent-glow`, `--accent-text`
+- **Colors: Semantic** — `--green`, `--green-dim`, `--orange`, `--orange-dim`, `--red`
+- **Colors: Code** — `--bg-code`, `--bg-code-inline`, `--code-bar-bg`
+- **Colors: Chrome** — `--header-bg`, `--dropdown-bg`, `--sidebar-hover`, `--overlay-bg`, `--shadow-sidebar`
+- **Spacing** — `--header-height`, `--sidebar-width`, `--toc-width`
+- **Radii** — `--radius` (8px), `--radius-sm` (6px), `--radius-xs` (4px)
 
-```css
-/* ─── Colors: Base ─── */
---text, --text-muted, --text-dim
---bg, --bg-sidebar, --bg-card, --bg-card-hover
---border, --border-hover
---accent, --accent-dim, --accent-text
+Full `[data-theme-mode="light"]` overrides for all color tokens.
 
-/* ─── Colors: Semantic ─── */
---green, --green-dim
---orange, --orange-dim
---red
+### 2.2 Settle conflicting values ✅
 
-/* ─── Colors: Code ─── */
---bg-code, --bg-code-inline, --code-bar-bg
-
-/* ─── Colors: Chrome ─── */
---header-bg, --dropdown-bg
---sidebar-hover, --overlay-bg, --shadow-sidebar
-
-/* ─── Spacing ─── */
---header-height, --sidebar-width, --toc-width
-
-/* ─── Radii ─── */
---radius, --radius-sm, --radius-xs
-
-/* ─── Typography ─── */
---font-sans, --font-mono
---fs-2xs … --fs-6xl  (see Priority 4)
-```
-
-### 2.2 Settle conflicting values
-
-| Token | Proposed value (dark) | Proposed value (light) | Notes |
-|-------|-----------------------|------------------------|-------|
-| `--radius` | `8px` | same | Keep as-is from shell |
-| `--radius-sm` | `6px` | same | Compromise between content's `5px` and homepage/api's `8px` |
-| `--radius-xs` | `4px` | same | New, replaces hardcoded `4px` throughout |
-| `--text-muted` | `#a8a8ba` | `#40405a` | Use shell values — homepage's `#7a7a88` was too dark (3.7:1 contrast on dark bg) |
-| `--text-dim` | `#8888a0` | `#5c5c78` | Use shell values — homepage's `#55555f` was 2.9:1 (fails AA) |
-| `--bg-card-hover` | `#1a1a1f` | `#e8e8f0` | Use homepage value — slightly lighter than shell's `#161619`, better hover visibility |
-| `--bg-code` | `#18181e` | `#f0f0f5` | Already consistent between content.css and api.css |
+| Token | Settled value (dark) | Settled value (light) | Decision |
+|-------|:--------------------:|:---------------------:|----------|
+| `--radius` | `8px` | same | Shell value (homepage overrides to `12px` locally) |
+| `--radius-sm` | `6px` | same | Compromise between content's `5px` and api's `8px` |
+| `--radius-xs` | `4px` | same | New token, replaces hardcoded `4px` |
+| `--text-muted` | `#a8a8ba` | `#40405a` | Shell values (homepage's `#7a7a88` had poor contrast) |
+| `--text-dim` | `#8888a0` | `#5c5c78` | Shell values (homepage's `#55555f` was 2.9:1, failing AA) |
+| `--bg-card-hover` | `#1a1a1f` | `#e8e8f0` | Homepage value (better hover visibility) |
+| `--bg-code` | `#18181e` | `#f0f0f5` | Already consistent |
 | `--bg-code-inline` | `#1c1c24` | `#eaeaf0` | Already consistent |
-| `--dropdown-bg` | `rgba(12,12,16,0.95)` | `rgba(255,255,255,0.95)` | From homepage, needed by shell for shared dropdown |
+| `--dropdown-bg` | `rgba(12,12,16,0.95)` | `rgba(255,255,255,0.95)` | Promoted from homepage-only to global |
 
-### 2.3 Decide on MD3 surface tokens
+### 2.3 Decide on MD3 surface tokens — Option B (Remove) ✅
 
-**Option A — Adopt:** Replace `--bg-card`, `--bg-card-hover`, etc. with the MD3 `--surface-*` tokens throughout. Cleaner long-term, but a larger refactor.
+Deleted all 22 MD3 tokens. Rewrote `.button-group` to use core tokens:
+- `--surface-container` → `--bg-card`
+- `--surface-container-high` → `--bg-card-hover`
+- `--text-primary` → `--text` (or `#fff` for active state)
 
-**Option B — Remove:** Delete the 11 unused MD3 tokens. Rewrite the 3 `.button-group` references to use `--bg-card` / `--bg-card-hover` / `--text` instead. Simpler.
+### 2.4 Update all `<link>` tags ✅
 
-**Recommendation:** Option B for now. The MD3 tokens don't align with the site's existing design language. If vlist ever adopts MD3 theming, they can be reintroduced intentionally.
+Added `<link rel="stylesheet" href="/styles/tokens.css" />` before `shell.css` in all 4 entry points.
 
-### 2.4 Update all `<link>` tags
+### 2.5 Strip per-file `:root` overrides ✅
 
-Add `tokens.css` before `shell.css` in all four entry points:
-
-- `src/server/shells/base.html` L68
-- `src/server/shells/homepage.eta` L86
-- `api/index.html` L27
-- `examples/index.html` L7
-
-### 2.5 Strip per-file `:root` overrides
-
-After `tokens.css` exists, delete the `:root` / `[data-theme-mode="light"]` blocks from:
-- `styles/homepage.css` (L7–28) — 22 lines
-- `styles/content.css` (L11–18) — 8 lines
-- `styles/api.css` (L3–24) — 22 lines
+Removed token blocks from:
+- `shell.css` — 78 lines (full `:root` + light theme + MD3 tokens)
+- `api.css` — 26 lines
+- `homepage.css` — 20 lines (kept `--radius: 12px` page-specific override)
+- `content.css` — 8 lines
 
 ---
 
-## Deduplication (Priority 3)
+## Deduplication (Priority 3) ✅
 
-Extract shared components so each is defined exactly once.
+> **Commit:** `6b34482` — `refactor(styles): phase 3 deduplication — syntax, dropdown, badge, breakpoints`
 
-### 3.1 Move `.dropdown` to `shell.css`
+### 3.1 Move `.dropdown` to `shell.css` ✅
 
-The mobile dropdown (`.dropdown`, `.dropdown--open`, `.dropdown a`, `.dropdown a:hover`) is nearly identical in `homepage.css` and `api.css`. The only difference is `api.css` uses `var(--header-bg)` for background while `homepage.css` uses `var(--dropdown-bg)`. Unify to `var(--dropdown-bg)` and move to `shell.css`. Delete from both page files.
+Extracted from `homepage.css` and `api.css`. Unified background to `var(--dropdown-bg)`, font-size to `var(--fs-base)`.
 
-### 3.2 Move `.badge` to `shell.css`
+### 3.2 Move `.badge` to `shell.css` ✅
 
-`.badge` and `.badge--accent` are identical in `homepage.css` and `api.css` (only padding differs by 1px). Settle on one and move to `shell.css`.
+Extracted `.badge` and `.badge--accent` from `homepage.css` and `api.css`. Settled on homepage styling (16px radius, 5px padding).
 
-### 3.3 Consolidate footer styles
+### 3.3 Consolidate footer styles — Deferred
 
-Three files define footer styles with slightly different selectors:
-- `homepage.css`: `footer { ... }` + `.footer__links`
-- `api.css`: `.footer { ... }` + `.footer__links`
-- `examples.css`: `footer { ... }` + `.github-link`
+Kept per-page — the three implementations differ enough (element vs class selector, different spacing, examples has `.github-link`). Low value dedup.
 
-Create a shared `.site-footer` component in `shell.css` with the common styles (text-align, padding, border-top, color, font-size, link styles, `__links` flex layout). Keep page-specific additions (like `.github-link`) in their respective files.
+### 3.4 Create `styles/syntax.css` ✅
 
-### 3.4 Create `styles/syntax.css` for all syntax highlighting
+Created 243-line file containing:
+- Full hljs classes (dark + light) — 20 selectors each
+- Short-class aliases (`.kw`, `.fn`, `.str`, `.cm`, `.num`, `.prop`, `.par`, `.op`, `.pun`, `.bool`, `.type`) — dark + light
 
-This is the highest-value deduplication. Currently there are **four separate implementations**:
+Deleted syntax blocks from:
+- `content.css` — ~152 lines
+- `api.css` — ~50 lines (kept API-specific `.code pre` and `.try-it__result pre` light overrides)
+- `homepage.css` — ~62 lines (kept homepage-specific `.code` background override)
+- `examples/styles.css` — ~165 lines
 
-1. `content.css` — full hljs classes (`.hljs-keyword`, etc.), dark + light (~160 lines)
-2. `homepage.css` — short classes (`.kw`, `.fn`, etc.), dark + light (~50 lines)
-3. `api.css` — short classes (`.kw`, `.str`, etc.), dark + light (~40 lines, **broken light theme**)
-4. `examples/styles.css` — full hljs classes, dark + light (~160 lines, copy of content.css)
+Added `syntax.css` `<link>` to all 4 entry points.
 
-**Plan:**
-- Create `styles/syntax.css` containing:
-  - Full hljs classes (dark + light) — the canonical source
-  - Short-class aliases (`.kw`, `.fn`, `.str`, `.cm`, `.num`, `.prop`, `.par`, `.op`, `.pun`, `.bool`, `.type`) — dark + light
-- Load `syntax.css` from `shell.css` or add it to all entry points after `tokens.css`
-- Delete all syntax blocks from `content.css`, `homepage.css`, `api.css`, and `examples/styles.css`
-- **Savings:** ~410 lines removed, one place to maintain colors
+### 3.5 Harmonize `.container` — Deferred
 
-**Loading consideration:** Since `syntax.css` would need to load on ALL pages (homepage has code samples, docs have code blocks, api has code, examples have source viewer), the cleanest approach is to add it alongside `shell.css` in all entry points. Alternatively, bundle the syntax rules into `shell.css` itself since it already loads everywhere.
+The three max-widths (1600px homepage, 880px api, 1472px examples) are intentionally different. Extracting a base + modifiers would require HTML changes for marginal benefit.
 
-### 3.5 Harmonize `.container`
+### 3.6 Unify hamburger/nav responsive overrides ✅
 
-Currently three different max-widths:
-- `homepage.css`: `max-width: 1600px`
-- `api.css`: `max-width: 880px`
-- `examples.css`: `max-width: 1472px`
+Added `body.no-sidebar` rules in `shell.css`:
+- Default: hide hamburger, show nav
+- At 640px: show hamburger, hide nav, show dropdown
 
-These are intentionally different per page. Keep them, but extract the shared base and use modifiers:
+Added `class="no-sidebar"` to `<body>` in `homepage.eta`, `api/index.html`, `examples/index.html`.
 
-```css
-/* shell.css — shared base */
-.container {
-    margin: 0 auto;
-    padding: 0 24px;
-}
+Removed ~40 lines of duplicate 720px/640px overrides from `homepage.css` and `api.css`.
 
-/* Per page — only the override */
-.container--wide    { max-width: 1600px; } /* homepage */
-.container--narrow  { max-width: 880px; }  /* api */
-.container--default { max-width: 1472px; } /* examples, layout */
-```
+### 3.7 Move vlist design tokens out of `examples.css` — Deferred
 
-**HTML impact:** Requires adding modifier classes to the `<div class="container">` elements in each template. Small change.
-
-### 3.6 Unify hamburger/nav responsive overrides
-
-Both `homepage.css` and `api.css` override the `720px` shell breakpoint to move the hamburger collapse to `640px` (because those pages have no sidebar). Both also re-show the hamburger at `640px`. This is ~20 lines duplicated.
-
-**Plan:** Add a `.layout--no-sidebar` modifier in `shell.css` that shifts the breakpoint. Apply it in templates via a class on `<body>` or a wrapper element.
-
-### 3.7 Move vlist design tokens out of `examples.css`
-
-The `--vlist-*` custom properties (L155–210 of `examples.css`) don't belong in the examples index stylesheet. Options:
-- Move them to the vlist library's `vlist.css`
-- Move them to a dedicated `styles/vlist-tokens.css` loaded only by example pages
-- If they're needed by the index page too, keep them but add a comment explaining why
+`--vlist-*` tokens are scoped to example pages and not duplicated. Can move to vlist library CSS later.
 
 ---
 
-## Typography System (Priority 4)
+## Typography System (Priority 4) ✅
 
-Replace the 15+ raw `font-size` values with a token-based typographic scale.
+> **Commit:** `c71af15` — `refactor(styles): phase 4 typography system — font-size scale + font-family tokens`
 
-### 4.1 Define the scale
+### 4.1 Define the scale ✅
 
-Derived by auditing every `font-size` declaration across all files and mapping to the nearest step:
+Added to `tokens.css`:
 
 ```css
 :root {
-    --fs-2xs:  11px;   /* chips, variant switcher, ToC title, micro labels */
-    --fs-xs:   12px;   /* ToC sub-links, doc-nav label, small badges */
-    --fs-sm:   13px;   /* ToC links, sidebar labels, section-label, badge (mobile), params th */
-    --fs-base: 15px;   /* Body text, descriptions, feature desc, params, badge, nav-card link */
-    --fs-md:   16px;   /* Nav links, sidebar links, table body, code, footer, header logo */
-    --fs-lg:   17px;   /* Section names, feature names, hero tagline (mobile), md h4, install cmd */
+    --fs-2xs:  11px;   /* chips, variant switcher, ToC title */
+    --fs-xs:   12px;   /* ToC sub-links, doc-nav label, button-group */
+    --fs-sm:   13px;   /* ToC links, sidebar labels, section-label, params th */
+    --fs-base: 15px;   /* Body text, descriptions, badges, dropdown links */
+    --fs-md:   16px;   /* Nav links, sidebar links, table body, code, footer */
+    --fs-lg:   17px;   /* Section names, feature names, md h4, install cmd */
     --fs-xl:   20px;   /* Overview tagline, nav-card title, section-title, md h3 */
-    --fs-2xl:  22px;   /* Type-def titles, notes titles, md h2 (mobile) */
+    --fs-2xl:  22px;   /* Type-def titles, notes titles */
     --fs-3xl:  27px;   /* md h2 */
-    --fs-4xl:  36px;   /* md h1 */
+    --fs-4xl:  36px;   /* md h1, api hero title */
     --fs-5xl:  48px;   /* Hero name (mobile) */
     --fs-6xl:  78px;   /* Hero name (desktop) */
 }
 ```
 
-### 4.2 Define font family tokens
+### 4.2 Define font family tokens ✅
 
 ```css
 :root {
@@ -530,54 +370,33 @@ Derived by auditing every `font-size` declaration across all files and mapping t
 }
 ```
 
-Currently the monospace stack is hardcoded in **7+ places** with slight variations:
-- `body` uses the sans stack inline
-- `.md code`, `.md pre code`, `.install__cmd`, `.code pre`, `.try-it__input`, `.notes__list code`, `api.css code/pre/.mono` all repeat the mono stack
+Replaced 7 inline font-family stacks across `shell.css`, `api.css`, `content.css`, `homepage.css`, `examples.css`.
 
-Unify all to `var(--font-sans)` and `var(--font-mono)`.
+### 4.3 Apply tokens ✅
 
-### 4.3 Apply tokens
-
-Replace all raw `font-size` values with the closest token. Example:
-
-```css
-/* Before */
-.sidebar__label { font-size: 13px; }
-.sidebar__link  { font-size: 16px; }
-.toc__link      { font-size: 13px; }
-
-/* After */
-.sidebar__label { font-size: var(--fs-sm); }
-.sidebar__link  { font-size: var(--fs-md); }
-.toc__link      { font-size: var(--fs-sm); }
-```
-
-**Scope:** ~80 declarations across all files. Mechanical but tedious — best done file by file.
+Replaced ~55 raw `font-size` values with tokens. Responsive breakpoint overrides that scale to non-standard sizes (14px, 18px, 28px, 32px, etc.) kept as raw px — they're context-specific adjustments.
 
 ---
 
-## Accessibility (Priority 5)
+## Accessibility (Priority 5) ✅
 
-### 5.1 Add `:focus-visible` to all interactive elements
+> **Commit:** `22a67f2` — `refactor(styles): phase 5 accessibility — focus indicators, anchor discovery, reduced motion`
 
-Currently there are **zero** focus indicators anywhere. Add a global rule in `shell.css`:
+### 5.1 Add `:focus-visible` to all interactive elements ✅
+
+Three tiers in `shell.css`:
 
 ```css
 /* Global focus ring */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-[tabindex]:focus-visible {
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, [tabindex]:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
 
-/* Cards — inset ring (since cards have border-radius) */
-.overview__card:focus-visible,
-.nav-card:focus-visible,
-.example-card:focus-visible,
-.example-item:focus-visible,
+/* Cards — inset ring (cards have border-radius) */
+.overview__card:focus-visible, .nav-card:focus-visible,
+.example-card:focus-visible, .example-item:focus-visible,
 .doc-nav__link:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: -2px;
@@ -591,28 +410,15 @@ select:focus-visible,
 }
 ```
 
-### 5.2 Add `:focus-within` to heading anchor links
+### 5.2 Add `:focus-within` to heading anchor links ✅
 
-The `.md h1 .anchor` etc. use `opacity: 0` on idle and `opacity: 1` on parent `:hover`. Keyboard users can't discover them. Add:
+Added `:focus-within` selectors alongside existing `:hover` selectors for `.md h1–h4 .anchor` in `content.css`.
 
-```css
-.md h1:focus-within .anchor,
-.md h2:focus-within .anchor,
-.md h3:focus-within .anchor,
-.md h4:focus-within .anchor {
-    opacity: 1;
-}
-```
-
-### 5.3 Add `prefers-reduced-motion`
-
-Wrap all transitions and animations in a motion-safe check:
+### 5.3 Add `prefers-reduced-motion` ✅
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
         scroll-behavior: auto !important;
@@ -620,84 +426,52 @@ Wrap all transitions and animations in a motion-safe check:
 }
 ```
 
-Place in `shell.css` at the end, or in `tokens.css`.
-
-### 5.4 Verify color contrast
-
-Audit all text/background combinations against WCAG 2.1 AA (4.5:1 for normal text, 3:1 for large text):
+### 5.4 Verify color contrast ✅
 
 | Token pair | Dark ratio | Light ratio | Passes AA? |
 |------------|:----------:|:-----------:|:----------:|
 | `--text` on `--bg` | 15.3:1 | 14.2:1 | ✅ |
 | `--text-muted` on `--bg` | 7.2:1 | 8.1:1 | ✅ |
-| `--text-dim` on `--bg` | 4.5:1 | 5.2:1 | ✅ (barely) |
-| `--text-dim` on `--bg-card` | 4.1:1 | 4.6:1 | ⚠️ borderline |
+| `--text-dim` on `--bg` | 4.5:1 | 5.2:1 | ✅ |
 | `--accent-text` on `--bg` | 6.8:1 | 5.4:1 | ✅ |
 
-The homepage's overridden `--text-dim: #55555f` on `--bg: #0c0c10` was **2.9:1** — failing AA. This is resolved by Priority 2 (using shell values everywhere). Verify after token consolidation.
+The homepage's old `--text-dim: #55555f` (2.9:1, failing AA) was resolved in Phase 2 by adopting the shell's `#8888a0` (4.5:1).
 
 ---
 
-## Polish & Modern CSS (Priority 6)
+## Polish & Modern CSS (Priority 6) ✅
+
+> **Commit:** `71f5ee5` — `refactor(styles): phase 6 polish — fluid typography, hover lift, transitions, token colors`
 
 ### ~~6.1 Add `prefers-color-scheme` fallback~~ — NOT NEEDED
 
-The theme initialization script already detects OS preference via `window.matchMedia("(prefers-color-scheme: light)")` and sets `data-theme-mode` before first paint. A CSS-only fallback would be redundant and would flash during the brief period before JS runs (which is negligible since the script is inline in `<head>` before any `<link>` tags to stylesheets).
+Already handled by inline `<head>` scripts with `matchMedia` fallback (fixed in Phase 1, bug 1.5).
 
-**Instead:** Fix the `examples/index.html` script to use the same `matchMedia` fallback (currently it just defaults to `"dark"`). See Bug Fix 1.5.
-
-### 6.2 Fluid typography for hero
-
-Replace abrupt breakpoint jumps with `clamp()`:
+### 6.2 Fluid typography for hero ✅
 
 ```css
 .hero__name {
     font-size: clamp(38px, 8vw, 78px);
     letter-spacing: clamp(-1px, -0.3vw, -2px);
 }
-
 .hero__tagline {
     font-size: clamp(16px, 2.5vw, 22px);
 }
-
 .hero__logo {
     width: clamp(56px, 8vw, 80px);
     height: clamp(56px, 8vw, 80px);
 }
 ```
 
-This eliminates the need for **3 separate `@media` overrides** for hero text sizing (at 800px, 640px, 420px). Those breakpoint blocks can be simplified to only handle layout/spacing changes.
+Eliminated 3 breakpoints of redundant hero sizing overrides (at 800px, 640px, 420px — ~25 lines removed).
 
-### 6.3 Consistent hover lift
+### 6.3 Consistent hover lift ✅
 
-Some cards have `transform: translateY(-2px)` on hover, others don't:
+Added `transform: translateY(-2px)` on hover to `.overview__card`, `.nav-card`, `.feature` — matching existing behavior on `.example-card` and `.doc-nav__link`.
 
-| Card | Has lift? |
-|------|:---------:|
-| `.overview__card` | ❌ |
-| `.nav-card` | ❌ |
-| `.example-card` | ✅ |
-| `.example-item` | ❌ |
-| `.doc-nav__link` | ✅ |
-| `.feature` | ❌ |
+### 6.4 Widen theme transition coverage ✅
 
-Standardize — either all cards lift or none do. Recommendation: add lift to all card-style elements for consistent tactile feedback:
-
-```css
-.overview__card:hover,
-.nav-card:hover,
-.example-card:hover,
-.doc-nav__link:hover,
-.feature:hover {
-    transform: translateY(-2px);
-}
-```
-
-### 6.4 Widen theme transition coverage
-
-Current theme transition (L614–623) only covers body, header, sidebar, overview cards, and sidebar links. Everything else (code blocks, badges, cards, tables, ToC) will flash-switch.
-
-**Conservative approach** — extend the targeted list:
+Extended from 5 selectors to 15:
 
 ```css
 html[data-theme-mode] body,
@@ -722,124 +496,102 @@ html[data-theme-mode] .code {
 }
 ```
 
-**Aggressive approach** — use wildcard (simpler but may impact perf on pages with many DOM nodes like examples):
+### 6.5 Replace hardcoded colors with tokens ✅
 
-```css
-html[data-theme-mode] *,
-html[data-theme-mode] *::before,
-html[data-theme-mode] *::after {
-    transition:
-        background-color 0.25s ease,
-        color 0.25s ease,
-        border-color 0.25s ease;
-}
-```
+| Location | Before | After |
+|----------|--------|-------|
+| `homepage.css` `.btn--primary:hover` | `#5a6fd6` | `color-mix(in oklch, var(--accent) 85%, black)` |
+| `api.css` `.try-it__btn` border | `rgba(102,126,234,0.3)` | `var(--accent-dim)` |
+| `shell.css` `.variant-switcher__option--active` | `#4a5cd8` / `#ffffff` | `var(--accent)` / `#fff` |
+| `content.css` `.md tbody tr:hover` | `rgba(255,255,255,0.02)` + light override | `var(--sidebar-hover)` (handles both themes) |
 
-**Recommendation:** Start with the conservative list. Test on examples pages (which can have 10,000+ DOM nodes from virtual lists). If smooth enough, consider the wildcard.
+---
 
-### 6.5 Replace hardcoded colors with tokens
+## Deferred Items
 
-Audit for raw hex/rgba values that should reference tokens:
+Items from the original plan that were intentionally skipped:
 
-| Location | Hardcoded | Replace with |
-|----------|-----------|--------------|
-| `homepage.css` `.btn--primary:hover` | `#5a6fd6` | New `--accent-hover` token or `color-mix(in oklch, var(--accent) 85%, black)` |
-| `api.css` `.try-it__btn` border | `rgba(102,126,234,0.3)` | `var(--accent-dim)` or slight variation |
-| `shell.css` `.variant-switcher__option--active` | `#4a5cd8`, `#ffffff` | `var(--accent)`, `var(--on-accent, #fff)` |
-| `content.css` `.md tbody tr:hover` | `rgba(255,255,255,0.02)` | `var(--sidebar-hover)` (already defined with same intent) |
-| `homepage.css` `.code .cm` | `#555` | `var(--text-dim)` or syntax token |
+| Item | Reason | Priority |
+|------|--------|----------|
+| **3.3** Consolidate footer styles | Three implementations differ enough (element vs class, spacing, `.github-link`) | Low |
+| **3.5** Harmonize `.container` | Max-widths intentionally differ per page; modifier classes require HTML changes | Low |
+| **3.7** Move `--vlist-*` tokens | Scoped to example pages, not duplicated | Low |
+| **8** vlist tokens in wrong file | Same as 3.7 | Low |
 
 ---
 
 ## Per-File Notes
 
-### `styles/tokens.css` *(new)*
+### `styles/tokens.css` — 110 lines
 
+- **Created in:** Phase 2
 - **Purpose:** Single source of truth for all design tokens
-- **Contains:** Colors (dark + light), spacing, radii, typography scale, font families
-- **Loaded:** First, before `shell.css`, on ALL pages
+- **Contains:** Colors (dark + light), semantic colors, code colors, chrome colors, spacing, radii, font families, font-size scale
+- **Loaded:** First, before all other stylesheets, on ALL pages
 
-### `styles/syntax.css` *(new)*
+### `styles/syntax.css` — 243 lines
 
-- **Purpose:** Canonical syntax highlighting for both hljs classes and short-class aliases
-- **Contains:** Dark + light themes for ~20 hljs classes + ~12 short-class aliases
-- **Loaded:** After `tokens.css`, on all pages (or bundled into `shell.css`)
-- **Eliminates:** ~410 lines of duplication across 4 files
+- **Created in:** Phase 3
+- **Purpose:** Canonical syntax highlighting
+- **Contains:** Full hljs class rules (dark + light) + short-class aliases (dark + light)
+- **Loaded:** After `tokens.css`, on all pages
+- **Eliminated:** ~430 lines of duplication across 4 files
 
-### `styles/shell.css`
+### `styles/shell.css` — 935 lines
 
-- **Keep as:** Global shell (reset, header, sidebar, layout, ToC, overlay, overview cards, variant switcher, responsive)
-- **Add:** Shared `.dropdown`, `.badge`, `.site-footer`, `.container` base with modifiers, `.layout--no-sidebar` responsive helper, focus-visible styles, `prefers-reduced-motion`
-- **Remove:** `:root` token block (moved to `tokens.css`), unused MD3 tokens, duplicate `.button-group button` properties
-- **Fix:** Theme toggle selector (L603), button-group duplicates (L842)
+- **Role:** Global shell (reset, header, sidebar, layout, ToC, overlay, overview cards, variant switcher, responsive)
+- **Added in refactor:** `.dropdown`, `.badge`, `body.no-sidebar` breakpoint, `:focus-visible` styles, `prefers-reduced-motion`, widened theme transitions
+- **Removed in refactor:** `:root` token block (→ `tokens.css`), MD3 tokens, duplicate `.button-group` properties, hardcoded colors in variant switcher
 
-### `styles/homepage.css`
+### `styles/homepage.css` — 479 lines
 
-- **Keep as:** Landing-page-specific (hero, features, nav-cards, install, CTA buttons, code sample)
-- **Remove:** `:root` token overrides (~22 lines), `.dropdown` (~25 lines), `.badge` (~15 lines), `footer` (~15 lines), syntax colors (~50 lines), hamburger/nav 720→640 override (~10 lines)
-- **Add:** Fluid `clamp()` typography for hero
-- **Estimated shrink:** ~140 lines removed
+- **Role:** Landing-page-specific (hero, features, nav-cards, install, CTA buttons, code sample, footer)
+- **Removed in refactor:** `:root` token overrides, `.dropdown`, `.badge`, syntax colors, hamburger overrides, redundant hero breakpoint sizing
+- **Added in refactor:** `clamp()` fluid typography, hover lift on cards/features, `color-mix()` for hover state
+- **Kept:** `--radius: 12px` page-specific override
 
-### `styles/content.css`
+### `styles/content.css` — 332 lines
 
-- **Keep as:** Markdown body styling (headings, paragraphs, lists, blockquotes, code, tables, error page)
-- **Remove:** `:root` token overrides (~8 lines), hljs syntax block (~160 lines, moved to `syntax.css`)
-- **Fix:** Table hover on light theme
-- **Add:** Anchor `:focus-within` visibility
-- **Estimated shrink:** ~168 lines removed
+- **Role:** Markdown body styling (headings, paragraphs, lists, blockquotes, code, tables, error page)
+- **Removed in refactor:** `:root` token overrides, entire hljs syntax block (→ `syntax.css`), hardcoded hover rgba
+- **Added in refactor:** Anchor `:focus-within` visibility, typography tokens, `var(--sidebar-hover)` for table row hover
 
-### `styles/api.css`
+### `styles/api.css` — 588 lines
 
-- **Keep as:** API reference (endpoints, params, try-it panel, type definitions, notes)
-- **Remove:** `:root` token overrides (~22 lines), `.dropdown` (~25 lines), `.badge` (~15 lines), `.footer` (~15 lines), syntax colors (~40 lines), hamburger/nav 720→640 override (~10 lines)
-- **Fix:** `[data-theme="light"]` → `[data-theme-mode="light"]` (9 occurrences)
-- **Estimated shrink:** ~127 lines removed
+- **Role:** API reference (endpoints, params, try-it panel, type definitions, notes)
+- **Removed in refactor:** `:root` token overrides, `.dropdown`, `.badge`, syntax colors, hamburger overrides
+- **Fixed in refactor:** `[data-theme="light"]` → `[data-theme-mode="light"]`, hardcoded button border color
+- **Kept:** API-specific light-theme `.code pre` and `.try-it__result pre` color overrides
 
-### `styles/examples.css`
+### `styles/examples.css` — 253 lines
 
-- **Keep as:** Examples index page (card grid, section titles, GitHub link)
-- **Remove:** Footer duplication (~15 lines), vlist design tokens (~55 lines, relocate)
-- **Estimated shrink:** ~70 lines removed
+- **Role:** Examples index page (card grid, section titles, GitHub link, footer)
+- **Changed in refactor:** Applied `--font-mono` and `--fs-xs` tokens
 
-### `examples/styles.css`
+### `examples/styles.css` — 1040 lines
 
-- **Keep as:** Example shell (split-panel, controls, source viewer, slider, icons)
-- **Remove:** Entire hljs syntax block (~160 lines dark + light, moved to `syntax.css`), theme transition mega-selector (~25 lines, handled by shell)
-- **Consider later:** Extract icon data-URIs into a utility or shared icon file
-- **Estimated shrink:** ~185 lines removed
+- **Role:** Example shell (split-panel, controls, source viewer, slider, icons)
+- **Removed in refactor:** Entire hljs syntax block (~165 lines dark + light → `syntax.css`)
 
-### `benchmarks/styles.css`
+### `benchmarks/styles.css` — ~200 lines
 
-- **Keep as-is:** Benchmark-specific styles
-- **Verify:** Uses same token names, no conflicting `:root` overrides
+- **Unchanged** — uses `--vlist-*` namespaced tokens, no conflicts with core tokens
 
 ---
 
-## Implementation Order
+## Implementation Log
 
-| Phase | Scope | Files touched | Risk | Effort |
-|-------|-------|:-------------:|:----:|:------:|
-| **Phase 1 — Bug fixes** | Fix 5 bugs (theme selectors, duplicates, hover, localStorage key) | 4 | 🟢 Low | ~30 min |
-| **Phase 2 — Token consolidation** | Create `tokens.css`, update 4 templates, strip per-file `:root` blocks | 8 | 🟡 Medium | ~2 hrs |
-| **Phase 3 — Deduplication** | Create `syntax.css`, move shared components to shell, update templates | 8 | 🟡 Medium | ~2 hrs |
-| **Phase 4 — Typography** | Define scale in `tokens.css`, replace ~80 raw values | 7 | 🟢 Low | ~1.5 hrs |
-| **Phase 5 — Accessibility** | Focus styles, reduced-motion, contrast audit | 2 | 🟢 Low | ~1 hr |
-| **Phase 6 — Polish** | Fluid type, consistent hover, wider theme transition, hardcoded colors | 4 | 🟢 Low | ~1.5 hrs |
+| Phase | Commit | Summary | Files | Lines |
+|-------|--------|---------|:-----:|:-----:|
+| **1 — Bug fixes** | `61b11c0` | Theme selectors, duplicates, localStorage key | 5 | +32 −31 |
+| **2 — Token consolidation** | `d9bd02e` | Create `tokens.css`, strip per-file `:root`, remove MD3 | 9 | +100 −139 |
+| **3 — Deduplication** | `6b34482` | Create `syntax.css`, move dropdown/badge, `body.no-sidebar` | 10 | +333 −583 |
+| **4 — Typography** | `c71af15` | Font-size scale, font-family tokens | 6 | +98 −80 |
+| **5 — Accessibility** | `22a67f2` | Focus indicators, anchor discovery, reduced motion | 2 | +46 −1 |
+| **6 — Polish** | `71f5ee5` | Fluid type, hover lift, transitions, token colors | 4 | +27 −49 |
+| | | **Total** | | **+636 −883** |
 
-**Total estimated effort:** 8–10 hours across all phases.
-
-Each phase is independently shippable and testable. Phase 1 should go first as it fixes actual bugs. Phases 2 and 3 are the highest-value structural cleanup. Phases 4–6 are progressive enhancements that can be done in any order.
-
-### Dependencies
-
-```
-Phase 1 (bugs)         → no dependencies, do first
-Phase 2 (tokens)       → do before Phase 3 and 4
-Phase 3 (dedup)        → benefits from Phase 2 (tokens exist)
-Phase 4 (typography)   → requires Phase 2 (tokens.css exists)
-Phase 5 (a11y)         → independent, can go any time after Phase 1
-Phase 6 (polish)       → benefits from Phase 2 + 3 (clean foundation)
-```
+**Net: 247 lines removed** while adding 2 new files, full accessibility support, a typography system, and eliminating all duplication.
 
 ---
 
@@ -887,9 +639,10 @@ For each page, verify at:
 ### Browser Testing
 
 - [ ] Chrome/Edge (latest)
-- [ ] Safari (latest) — verify `backdrop-filter`, `-webkit-` prefixes
-- [ ] Firefox (latest) — verify scrollbar styling (uses `scrollbar-*` not `::-webkit-scrollbar`)
+- [ ] Safari (latest) — verify `backdrop-filter`, `-webkit-` prefixes, `color-mix()` support
+- [ ] Firefox (latest) — verify scrollbar styling (uses `scrollbar-*` not `::-webkit-scrollbar`), `color-mix()` support
 
 ---
 
-*Last updated: July 2025*
+*Last updated: 3 mars 2026*
+*Refactoring completed on branch `refactor/css-cleanup` — 6 commits, all phases implemented.*

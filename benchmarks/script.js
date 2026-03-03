@@ -343,7 +343,7 @@ const buildSuiteCards = (container, suites) => {
 
     // Create suite card
     const card = document.createElement("div");
-    card.className = "bench-suite";
+    card.className = "ui-card ui-card--strong bench-suite";
     card.id = `suite-${suite.id}`;
 
     // Build tabs for item counts

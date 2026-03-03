@@ -416,7 +416,7 @@ export function createContentRenderer(config: ContentConfig) {
 
     if (prev) {
       lines.push(
-        `  <a href="${urlPrefix}/${prev.slug}" class="doc-nav__link doc-nav__link--prev">`,
+        `  <a href="${urlPrefix}/${prev.slug}" class="ui-card ui-card--interactive doc-nav__link doc-nav__link--prev">`,
       );
       lines.push(`    <span class="doc-nav__label">← Previous</span>`);
       lines.push(`    <span class="doc-nav__title">${prev.name}</span>`);
@@ -427,7 +427,7 @@ export function createContentRenderer(config: ContentConfig) {
 
     if (next) {
       lines.push(
-        `  <a href="${urlPrefix}/${next.slug}" class="doc-nav__link doc-nav__link--next">`,
+        `  <a href="${urlPrefix}/${next.slug}" class="ui-card ui-card--interactive doc-nav__link doc-nav__link--next">`,
       );
       lines.push(`    <span class="doc-nav__label">Next →</span>`);
       lines.push(`    <span class="doc-nav__title">${next.name}</span>`);
@@ -484,7 +484,7 @@ export function createContentRenderer(config: ContentConfig) {
       lines.push(`    <div class="overview__grid">`);
       for (const card of section.cards) {
         lines.push(
-          `      <a href="${urlPrefix}/${card.slug}" class="overview__card">`,
+          `      <a href="${urlPrefix}/${card.slug}" class="ui-card ui-card--interactive overview__card">`,
         );
         lines.push(
           `        <div class="overview__card-title">${card.name}</div>`,

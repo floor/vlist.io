@@ -55,8 +55,8 @@ export function setCurrentBorderMode(v) {
 const statusCell = (item) => {
   const active = item.id % 3 !== 0;
   const label = active ? "Active" : "Inactive";
-  const cls = active ? "status-badge--active" : "status-badge--inactive";
-  return `<span class="status-badge ${cls}">${label}</span>`;
+  const cls = active ? "ui-badge--success" : "ui-badge--error";
+  return `<span class="ui-badge ui-badge--pill ${cls}">${label}</span>`;
 };
 
 /** Avatar + name cell renderer */
@@ -378,14 +378,14 @@ const detailEl = document.getElementById("row-detail");
 function showRowDetail(contact) {
   if (!detailEl) return;
   detailEl.innerHTML = `
-    <div class="panel-detail__header">
+    <div class="ui-detail__header">
       <div class="table-detail__avatar" style="background:${contact.color}">${contact.initials}</div>
       <div>
-        <div class="panel-detail__name">${contact.firstName} ${contact.lastName}</div>
+        <div class="ui-detail__name">${contact.firstName} ${contact.lastName}</div>
         <div class="table-detail__role">${contact.role}</div>
       </div>
     </div>
-    <div class="panel-detail__meta">
+    <div class="ui-detail__meta">
       <span>${contact.department} · ${contact.company}</span>
       <span>${contact.email}</span>
       <span>${contact.phone}</span>
@@ -397,7 +397,7 @@ function showRowDetail(contact) {
 function clearRowDetail() {
   if (!detailEl) return;
   detailEl.innerHTML = `
-    <span class="panel-detail__empty">Click a row to see details</span>
+    <span class="ui-detail__empty">Click a row to see details</span>
   `;
 }
 
@@ -412,7 +412,7 @@ function updateSortDetail() {
 
   if (sortKey === null) {
     sortDetailEl.innerHTML = `
-      <span class="panel-detail__empty">Click a column header to sort</span>
+      <span class="ui-detail__empty">Click a column header to sort</span>
     `;
   } else {
     const arrow = sortDirection === "asc" ? "▲" : "▼";

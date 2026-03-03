@@ -151,14 +151,14 @@ const detailEl = document.getElementById("contact-detail");
 
 function showContactDetail(contact) {
   detailEl.innerHTML = `
-    <div class="panel-detail__header">
+    <div class="ui-detail__header">
       <div class="contact-detail__avatar" style="background:${contact.color}">${contact.initials}</div>
       <div>
-        <div class="panel-detail__name">${contact.firstName} ${contact.lastName}</div>
+        <div class="ui-detail__name">${contact.firstName} ${contact.lastName}</div>
         <div class="contact-detail__role">${contact.role}</div>
       </div>
     </div>
-    <div class="panel-detail__meta">
+    <div class="ui-detail__meta">
       <span>${contact.department} · ${contact.company}</span>
       <span>${contact.email}</span>
       <span>${contact.phone}</span>
@@ -169,7 +169,7 @@ function showContactDetail(contact) {
 
 function clearContactDetail() {
   detailEl.innerHTML = `
-    <span class="panel-detail__empty">Click a contact to see details</span>
+    <span class="ui-detail__empty">Click a contact to see details</span>
   `;
 }
 

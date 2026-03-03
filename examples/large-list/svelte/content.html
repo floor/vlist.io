@@ -20,26 +20,26 @@
 
         <aside class="split-panel">
             <!-- Size -->
-            <section class="panel-section">
-                <h3 class="panel-title">Size</h3>
-                <div class="panel-row">
-                    <div class="panel-segmented" id="size-buttons">
-                        <button class="panel-segmented__btn" data-size="100k">
+            <section class="ui-section">
+                <h3 class="ui-title">Size</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="size-buttons">
+                        <button class="ui-segmented__btn" data-size="100k">
                             100K
                         </button>
-                        <button class="panel-segmented__btn" data-size="500k">
+                        <button class="ui-segmented__btn" data-size="500k">
                             500K
                         </button>
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-size="1m"
                         >
                             1M
                         </button>
-                        <button class="panel-segmented__btn" data-size="2m">
+                        <button class="ui-segmented__btn" data-size="2m">
                             2M
                         </button>
-                        <button class="panel-segmented__btn" data-size="5m">
+                        <button class="ui-segmented__btn" data-size="5m">
                             5M
                         </button>
                     </div>
@@ -47,29 +47,29 @@
             </section>
 
             <!-- Navigation -->
-            <section class="panel-section">
-                <h3 class="panel-title">Navigation</h3>
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
 
-                <div class="panel-row">
-                    <label class="panel-label" for="scroll-index"
+                <div class="ui-row">
+                    <label class="ui-label" for="scroll-index"
                         >Scroll to index</label
                     >
-                    <div class="panel-input-group">
+                    <div class="ui-input-group">
                         <input
                             type="number"
                             id="scroll-index"
                             min="0"
                             value="0"
-                            class="panel-input"
+                            class="ui-input"
                         />
-                        <select id="scroll-align" class="panel-select">
+                        <select id="scroll-align" class="ui-select">
                             <option value="start">start</option>
                             <option value="center">center</option>
                             <option value="end">end</option>
                         </select>
                         <button
                             id="btn-go"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Go"
                         >
                             <svg
@@ -86,27 +86,27 @@
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Quick jump</label>
-                    <div class="panel-btn-group">
-                        <button id="btn-first" class="panel-btn">First</button>
-                        <button id="btn-middle" class="panel-btn">
+                <div class="ui-row">
+                    <label class="ui-label">Quick jump</label>
+                    <div class="ui-btn-group">
+                        <button id="btn-first" class="ui-btn">First</button>
+                        <button id="btn-middle" class="ui-btn">
                             Middle
                         </button>
-                        <button id="btn-last" class="panel-btn">Last</button>
-                        <button id="btn-random" class="panel-btn">
+                        <button id="btn-last" class="ui-btn">Last</button>
+                        <button id="btn-random" class="ui-btn">
                             Random
                         </button>
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Smooth scroll</label>
-                    <div class="panel-btn-group">
-                        <button id="btn-smooth-top" class="panel-btn">
+                <div class="ui-row">
+                    <label class="ui-label">Smooth scroll</label>
+                    <div class="ui-btn-group">
+                        <button id="btn-smooth-top" class="ui-btn">
                             ↑ Top
                         </button>
-                        <button id="btn-smooth-bottom" class="panel-btn">
+                        <button id="btn-smooth-bottom" class="ui-btn">
                             ↓ Bottom
                         </button>
                     </div>
@@ -114,19 +114,19 @@
             </section>
 
             <!-- Viewport -->
-            <section class="panel-section">
-                <h3 class="panel-title">Viewport</h3>
-                <div class="panel-row">
-                    <span class="panel-label">Scroll</span>
-                    <span class="panel-value" id="scroll-position">0px</span>
+            <section class="ui-section">
+                <h3 class="ui-title">Viewport</h3>
+                <div class="ui-row">
+                    <span class="ui-label">Scroll</span>
+                    <span class="ui-value" id="scroll-position">0px</span>
                 </div>
-                <div class="panel-row">
-                    <span class="panel-label">Direction</span>
-                    <span class="panel-value" id="scroll-direction">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Direction</span>
+                    <span class="ui-value" id="scroll-direction">–</span>
                 </div>
-                <div class="panel-row">
-                    <span class="panel-label">Range</span>
-                    <span class="panel-value" id="visible-range">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Range</span>
+                    <span class="ui-value" id="visible-range">–</span>
                 </div>
             </section>
         </aside>

@@ -30,30 +30,30 @@
 
         <aside class="split-panel">
             <!-- Navigation -->
-            <section class="panel-section">
-                <h3 class="panel-title">Navigation</h3>
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
 
-                <div class="panel-row">
-                    <label class="panel-label" for="scroll-index"
+                <div class="ui-row">
+                    <label class="ui-label" for="scroll-index"
                         >Scroll to index</label
                     >
-                    <div class="panel-input-group">
+                    <div class="ui-input-group">
                         <input
                             type="number"
                             id="scroll-index"
                             min="0"
                             max="99999"
                             value="0"
-                            class="panel-input"
+                            class="ui-input"
                         />
-                        <select id="scroll-align" class="panel-select">
+                        <select id="scroll-align" class="ui-select">
                             <option value="start">start</option>
                             <option value="center">center</option>
                             <option value="end">end</option>
                         </select>
                         <button
                             id="btn-go"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Go"
                         >
                             <svg
@@ -70,10 +70,10 @@
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Quick jump</label>
-                    <div class="panel-btn-group">
-                        <button id="btn-first" class="panel-btn">
+                <div class="ui-row">
+                    <label class="ui-label">Quick jump</label>
+                    <div class="ui-btn-group">
+                        <button id="btn-first" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -86,7 +86,7 @@
                             </svg>
                             First
                         </button>
-                        <button id="btn-middle" class="panel-btn">
+                        <button id="btn-middle" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -99,7 +99,7 @@
                             </svg>
                             Middle
                         </button>
-                        <button id="btn-last" class="panel-btn">
+                        <button id="btn-last" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -112,7 +112,7 @@
                             </svg>
                             Last
                         </button>
-                        <button id="btn-random" class="panel-btn">
+                        <button id="btn-random" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -128,10 +128,10 @@
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Smooth scroll</label>
-                    <div class="panel-btn-group">
-                        <button id="btn-smooth-top" class="panel-btn">
+                <div class="ui-row">
+                    <label class="ui-label">Smooth scroll</label>
+                    <div class="ui-btn-group">
+                        <button id="btn-smooth-top" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -144,7 +144,7 @@
                             </svg>
                             Top
                         </button>
-                        <button id="btn-smooth-bottom" class="panel-btn">
+                        <button id="btn-smooth-bottom" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -162,23 +162,23 @@
             </section>
 
             <!-- Selection -->
-            <section class="panel-section">
-                <h3 class="panel-title">Selection</h3>
+            <section class="ui-section">
+                <h3 class="ui-title">Selection</h3>
 
-                <div class="panel-row">
-                    <label class="panel-label">Mode</label>
-                    <div class="panel-segmented" id="selection-mode">
-                        <button class="panel-segmented__btn" data-value="none">
+                <div class="ui-row">
+                    <label class="ui-label">Mode</label>
+                    <div class="ui-segmented" id="selection-mode">
+                        <button class="ui-segmented__btn" data-value="none">
                             none
                         </button>
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-value="single"
                         >
                             single
                         </button>
                         <button
-                            class="panel-segmented__btn"
+                            class="ui-segmented__btn"
                             data-value="multiple"
                         >
                             multiple
@@ -186,10 +186,10 @@
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Actions</label>
-                    <div class="panel-btn-group">
-                        <button id="btn-select-all" class="panel-btn">
+                <div class="ui-row">
+                    <label class="ui-label">Actions</label>
+                    <div class="ui-btn-group">
+                        <button id="btn-select-all" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -202,7 +202,7 @@
                             </svg>
                             Select all
                         </button>
-                        <button id="btn-clear" class="panel-btn">
+                        <button id="btn-clear" class="ui-btn">
                             <svg
                                 width="14"
                                 height="14"
@@ -218,19 +218,19 @@
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <span class="panel-label">Selected</span>
-                    <span class="panel-value" id="selection-count"
+                <div class="ui-row">
+                    <span class="ui-label">Selected</span>
+                    <span class="ui-value" id="selection-count"
                         >0 items</span
                     >
                 </div>
             </section>
 
             <!-- Item Detail -->
-            <section class="panel-section">
-                <h3 class="panel-title">Last clicked</h3>
-                <div class="panel-detail" id="item-detail">
-                    <span class="panel-detail__empty"
+            <section class="ui-section">
+                <h3 class="ui-title">Last clicked</h3>
+                <div class="ui-detail" id="item-detail">
+                    <span class="ui-detail__empty"
                         >Click an item to see details</span
                     >
                 </div>

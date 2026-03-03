@@ -4,18 +4,25 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>vlist - Examples</title>
+        <link rel="stylesheet" href="/styles/tokens.css" />
+        <link rel="stylesheet" href="/styles/syntax.css" />
         <link rel="stylesheet" href="/styles/shell.css" />
+        <link rel="stylesheet" href="/styles/ui.css" />
         <link rel="stylesheet" href="/styles/examples.css" />
 
         <!-- Theme: apply before paint to prevent flash -->
         <script>
             (function() {
-                var t = localStorage.getItem('vlist-theme') || 'dark';
-                document.documentElement.setAttribute('data-theme', t);
+                var mode = localStorage.getItem('vlist-theme-mode');
+                if (!mode)
+                    mode = window.matchMedia('(prefers-color-scheme: light)').matches
+                        ? 'light'
+                        : 'dark';
+                document.documentElement.setAttribute('data-theme-mode', mode);
             })();
         </script>
     </head>
-    <body>
+    <body class="no-sidebar">
         <!-- Header -->
         <header class="header">
             <div class="header__inner">
@@ -69,7 +76,7 @@
             <section class="section">
                 <h2 class="section-title">Getting Started</h2>
                 <div class="example-grid">
-                    <a href="/examples/basic/" class="example-card">
+                    <a href="/examples/basic/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Basic</div>
                             <div class="example-description">
@@ -79,7 +86,7 @@
                         <div class="example-arrow">→</div>
                     </a>
 
-                    <a href="/examples/controls/" class="example-card">
+                    <a href="/examples/controls/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Controls</div>
                             <div class="example-description">
@@ -96,7 +103,7 @@
             <section class="section">
                 <h2 class="section-title">Grid Feature</h2>
                 <div class="example-grid">
-                    <a href="/examples/photo-album/" class="example-card">
+                    <a href="/examples/photo-album/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Photo Album</div>
                             <div class="example-description">
@@ -105,7 +112,7 @@
                         </div>
                         <div class="example-arrow">→</div>
                     </a>
-                    <a href="/examples/file-browser/" class="example-card">
+                    <a href="/examples/file-browser/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">File Browser</div>
                             <div class="example-description">
@@ -121,7 +128,7 @@
             <section class="section">
                 <h2 class="section-title">Data Feature</h2>
                 <div class="example-grid">
-                    <a href="/examples/large-list/" class="example-card">
+                    <a href="/examples/large-list/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Large List (Scale)</div>
                             <div class="example-description">
@@ -131,7 +138,7 @@
                         <div class="example-arrow">→</div>
                     </a>
 
-                    <a href="/examples/velocity-loading/" class="example-card">
+                    <a href="/examples/velocity-loading/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Velocity Loading</div>
                             <div class="example-description">
@@ -147,7 +154,7 @@
             <section class="section">
                 <h2 class="section-title">Horizontal</h2>
                 <div class="example-grid">
-                    <a href="/examples/horizontal/basic/" class="example-card">
+                    <a href="/examples/horizontal/basic/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Basic Horizontal</div>
                             <div class="example-description">
@@ -163,7 +170,7 @@
             <section class="section">
                 <h2 class="section-title">Groups Feature</h2>
                 <div class="example-grid">
-                    <a href="/examples/contact-list/" class="example-card">
+                    <a href="/examples/contact-list/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Contact List</div>
                             <div class="example-description">
@@ -179,7 +186,7 @@
             <section class="section">
                 <h2 class="section-title">Other Features</h2>
                 <div class="example-grid">
-                    <a href="/examples/scroll-restore/" class="example-card">
+                    <a href="/examples/scroll-restore/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Snapshots (Scroll Restore)</div>
                             <div class="example-description">
@@ -189,7 +196,7 @@
                         <div class="example-arrow">→</div>
                     </a>
 
-                    <a href="/examples/window-scroll/" class="example-card">
+                    <a href="/examples/window-scroll/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Window (Page Scroll)</div>
                             <div class="example-description">
@@ -205,7 +212,7 @@
             <section class="section">
                 <h2 class="section-title">Advanced Examples</h2>
                 <div class="example-grid">
-                    <a href="/examples/social-feed/" class="example-card">
+                    <a href="/examples/social-feed/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Social Feed</div>
                             <div class="example-description">
@@ -215,7 +222,7 @@
                         <div class="example-arrow">→</div>
                     </a>
 
-                    <a href="/examples/variable-heights/" class="example-card">
+                    <a href="/examples/variable-heights/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Variable Heights</div>
                             <div class="example-description">
@@ -225,7 +232,7 @@
                         <div class="example-arrow">→</div>
                     </a>
 
-                    <a href="/examples/messaging-app/" class="example-card">
+                    <a href="/examples/messaging-app/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Messaging App</div>
                             <div class="example-description">
@@ -235,7 +242,7 @@
                         <div class="example-arrow">→</div>
                     </a>
 
-                    <a href="/examples/wizard-nav/" class="example-card">
+                    <a href="/examples/wizard-nav/" class="ui-card ui-card--interactive example-card">
                         <div class="example-content">
                             <div class="example-title">Wizard Navigation</div>
                             <div class="example-description">
@@ -254,7 +261,7 @@
                     <a
                         href="https://github.com/beenotung/vlist"
                         target="_blank"
-                        class="github-link"
+                        class="ui-card ui-card--interactive github-link"
                     >
                         <svg
                             viewBox="0 0 16 16"
@@ -277,10 +284,10 @@
                 var btn = document.getElementById('theme-toggle');
                 if (!btn) return;
                 btn.addEventListener('click', function() {
-                    var current = document.documentElement.getAttribute('data-theme');
+                    var current = document.documentElement.getAttribute('data-theme-mode');
                     var next = current === 'light' ? 'dark' : 'light';
-                    document.documentElement.setAttribute('data-theme', next);
-                    localStorage.setItem('vlist-theme', next);
+                    document.documentElement.setAttribute('data-theme-mode', next);
+                    localStorage.setItem('vlist-theme-mode', next);
                 });
             })();
         </script>

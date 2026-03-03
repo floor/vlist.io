@@ -213,14 +213,14 @@ function App() {
 
         <aside className="split-panel">
           {/* Navigation */}
-          <section className="panel-section">
-            <h3 className="panel-title">Navigation</h3>
+          <section className="ui-section">
+            <h3 className="ui-title">Navigation</h3>
 
-            <div className="panel-row">
-              <label className="panel-label" htmlFor="scroll-index">
+            <div className="ui-row">
+              <label className="ui-label" htmlFor="scroll-index">
                 Scroll to index
               </label>
-              <div className="panel-input-group">
+              <div className="ui-input-group">
                 <input
                   type="number"
                   id="scroll-index"
@@ -236,7 +236,7 @@ function App() {
                       handleGoToIndex();
                     }
                   }}
-                  className="panel-input"
+                  className="ui-input"
                 />
                 <select
                   id="scroll-align"
@@ -244,7 +244,7 @@ function App() {
                   onChange={(e) =>
                     setScrollAlign(e.target.value as typeof scrollAlign)
                   }
-                  className="panel-select"
+                  className="ui-select"
                 >
                   <option value="start">start</option>
                   <option value="center">center</option>
@@ -252,7 +252,7 @@ function App() {
                 </select>
                 <button
                   onClick={handleGoToIndex}
-                  className="panel-btn panel-btn--icon"
+                  className="ui-btn ui-btn--icon"
                   title="Go"
                 >
                   <svg
@@ -267,10 +267,10 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">Quick jump</label>
-              <div className="panel-btn-group">
-                <button onClick={scrollToFirst} className="panel-btn">
+            <div className="ui-row">
+              <label className="ui-label">Quick jump</label>
+              <div className="ui-btn-group">
+                <button onClick={scrollToFirst} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -281,7 +281,7 @@ function App() {
                   </svg>
                   First
                 </button>
-                <button onClick={scrollToMiddle} className="panel-btn">
+                <button onClick={scrollToMiddle} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -292,7 +292,7 @@ function App() {
                   </svg>
                   Middle
                 </button>
-                <button onClick={scrollToLast} className="panel-btn">
+                <button onClick={scrollToLast} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -303,7 +303,7 @@ function App() {
                   </svg>
                   Last
                 </button>
-                <button onClick={scrollToRandom} className="panel-btn">
+                <button onClick={scrollToRandom} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -317,10 +317,10 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">Smooth scroll</label>
-              <div className="panel-btn-group">
-                <button onClick={handleSmoothTop} className="panel-btn">
+            <div className="ui-row">
+              <label className="ui-label">Smooth scroll</label>
+              <div className="ui-btn-group">
+                <button onClick={handleSmoothTop} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -331,7 +331,7 @@ function App() {
                   </svg>
                   Top
                 </button>
-                <button onClick={handleSmoothBottom} className="panel-btn">
+                <button onClick={handleSmoothBottom} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -347,19 +347,19 @@ function App() {
           </section>
 
           {/* Selection */}
-          <section className="panel-section">
-            <h3 className="panel-title">Selection</h3>
+          <section className="ui-section">
+            <h3 className="ui-title">Selection</h3>
 
-            <div className="panel-row">
-              <label className="panel-label">Mode</label>
-              <div className="panel-segmented">
+            <div className="ui-row">
+              <label className="ui-label">Mode</label>
+              <div className="ui-segmented">
                 {(["none", "single", "multiple"] as SelectionMode[]).map(
                   (mode) => (
                     <button
                       key={mode}
-                      className={`panel-segmented__btn ${
+                      className={`ui-segmented__btn ${
                         selectionMode === mode
-                          ? "panel-segmented__btn--active"
+                          ? "ui-segmented__btn--active"
                           : ""
                       }`}
                       onClick={() => handleSelectionModeChange(mode)}
@@ -371,10 +371,10 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">Actions</label>
-              <div className="panel-btn-group">
-                <button onClick={handleSelectAll} className="panel-btn">
+            <div className="ui-row">
+              <label className="ui-label">Actions</label>
+              <div className="ui-btn-group">
+                <button onClick={handleSelectAll} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -385,7 +385,7 @@ function App() {
                   </svg>
                   Select all
                 </button>
-                <button onClick={handleClearSelection} className="panel-btn">
+                <button onClick={handleClearSelection} className="ui-btn">
                   <svg
                     width="14"
                     height="14"
@@ -399,40 +399,40 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <span className="panel-label">Selected</span>
-              <span className="panel-value">
+            <div className="ui-row">
+              <span className="ui-label">Selected</span>
+              <span className="ui-value">
                 {formatSelectionCount(selection.length)}
               </span>
             </div>
           </section>
 
           {/* Item Detail */}
-          <section className="panel-section">
-            <h3 className="panel-title">Last clicked</h3>
-            <div className="panel-detail">
+          <section className="ui-section">
+            <h3 className="ui-title">Last clicked</h3>
+            <div className="ui-detail">
               {lastClicked ? (
                 <>
-                  <div className="panel-detail__header">
-                    <span className="panel-detail__avatar">
+                  <div className="ui-detail__header">
+                    <span className="ui-detail__avatar">
                       {lastClicked.item.initials}
                     </span>
                     <div>
-                      <div className="panel-detail__name">
+                      <div className="ui-detail__name">
                         {lastClicked.item.name}
                       </div>
-                      <div className="panel-detail__email">
+                      <div className="ui-detail__email">
                         {lastClicked.item.email}
                       </div>
                     </div>
                   </div>
-                  <div className="panel-detail__meta">
+                  <div className="ui-detail__meta">
                     <span>id: {lastClicked.item.id}</span>
                     <span>index: {lastClicked.index}</span>
                   </div>
                 </>
               ) : (
-                <span className="panel-detail__empty">
+                <span className="ui-detail__empty">
                   Click an item to see details
                 </span>
               )}
