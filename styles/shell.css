@@ -442,6 +442,7 @@ body {
 .overview__card:hover {
     border-color: var(--border-hover);
     background: var(--bg-card-hover);
+    transform: translateY(-2px);
 }
 
 .overview__card-icon {
@@ -512,13 +513,13 @@ body {
 }
 
 .variant-switcher__option--active {
-    color: #ffffff;
-    background-color: #4a5cd8;
+    color: #fff;
+    background-color: var(--accent);
     font-weight: 500;
 }
 .variant-switcher__option--active:hover {
-    color: #ffffff;
-    background-color: #4a5cd8;
+    color: #fff;
+    background-color: var(--accent);
     font-weight: 500;
 }
 
@@ -583,8 +584,18 @@ body {
 html[data-theme-mode] body,
 html[data-theme-mode] .header,
 html[data-theme-mode] .sidebar,
+html[data-theme-mode] .content,
+html[data-theme-mode] .toc,
 html[data-theme-mode] .overview__card,
-html[data-theme-mode] .sidebar__link {
+html[data-theme-mode] .sidebar__link,
+html[data-theme-mode] .doc-nav__link,
+html[data-theme-mode] .md pre,
+html[data-theme-mode] .md code,
+html[data-theme-mode] .md table,
+html[data-theme-mode] .badge,
+html[data-theme-mode] .feature,
+html[data-theme-mode] .nav-card,
+html[data-theme-mode] .code {
     transition:
         background-color 0.25s ease,
         color 0.25s ease,

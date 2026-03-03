@@ -326,7 +326,7 @@ pre,
 
 .try-it__btn {
     background: var(--accent-dim);
-    border: 1px solid rgba(102, 126, 234, 0.3);
+    border: 1px solid var(--accent-dim);
     border-radius: var(--radius-xs);
     padding: 6px 16px;
     font-size: var(--fs-base);
