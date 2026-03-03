@@ -52,8 +52,7 @@ orientationButtons.addEventListener("click", (e) => {
     );
   });
 
-  columnsLabel.textContent =
-    orientation === "horizontal" ? "Rows" : "Columns";
+  columnsLabel.textContent = orientation === "horizontal" ? "Rows" : "Columns";
 
   app.createView();
 });
@@ -71,7 +70,10 @@ columnsButtons.addEventListener("click", (e) => {
   app.setCurrentColumns(cols);
 
   columnsButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.cols) === cols);
+    b.classList.toggle(
+      "ui-ctrl-btn--active",
+      parseInt(b.dataset.cols) === cols,
+    );
   });
 
   app.createView();
@@ -90,7 +92,7 @@ gapButtons.addEventListener("click", (e) => {
   app.setCurrentGap(gap);
 
   gapButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.gap) === gap);
+    b.classList.toggle("ui-ctrl-btn--active", parseInt(b.dataset.gap) === gap);
   });
 
   app.createView();

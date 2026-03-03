@@ -268,7 +268,7 @@ const App = {
       </div>
 
       <div class="compression-bar">
-        <span :class="['compression-badge', compression.isCompressed ? 'compression-badge--active' : 'compression-badge--off']">
+        <span :class="['ui-badge ui-badge--pill', compression.isCompressed ? 'ui-badge--success' : 'ui-badge--muted']">
           {{ compression.isCompressed ? 'COMPRESSED' : 'NATIVE' }}
         </span>
         <span class="compression-detail">

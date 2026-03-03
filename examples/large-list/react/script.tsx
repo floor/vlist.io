@@ -261,10 +261,8 @@ function App() {
 
       <div className="compression-bar" id="compression-info">
         <span
-          className={`compression-badge ${
-            compression.isCompressed
-              ? "compression-badge--active"
-              : "compression-badge--off"
+          className={`ui-badge ui-badge--pill ${
+            compression.isCompressed ? "ui-badge--success" : "ui-badge--muted"
           }`}
         >
           {compression.isCompressed ? "COMPRESSED" : "NATIVE"}

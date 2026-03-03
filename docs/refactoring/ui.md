@@ -140,15 +140,16 @@ base.html
 | 21 | Detail name | `.panel-detail__name` | Bold item name |
 | 22 | Detail meta | `.panel-detail__meta` | Monospace metadata list |
 
-### Standalone components (5) — move to `ui.css`
+### Standalone components (6) — move to `ui.css`
 
 | # | Component | Current class | Description |
 |---|-----------|--------------|-------------|
 | 23 | Stats bar | `.stats` | Top metrics bar |
 | 24 | Controls bar | `.controls` (+ `label`, `select`, `button`) | Horizontal control row |
 | 25 | Chips | `.example-chips`, `.example-chip` | Feature tag overlays |
-| 26 | Source viewer | `.source`, `__header`, `__title`, `__tabs`, `__toggle`, `__tab`, `__body`, `__panel` | Collapsible code drawer |
-| 27 | Icon | `.icon`, `--up/down/center/add/remove/trash/shuffle/back/forward/search/sort/filter/send/settings` | CSS mask-image icons |
+| 26 | Badge | `.item__badge`, `.status-badge`, `.card-badge`, `.mode-badge`, `.badge`, `.meta-tag` | Small inline status/metadata labels (6 copies!) |
+| 27 | Source viewer | `.source`, `__header`, `__title`, `__tabs`, `__toggle`, `__tab`, `__body`, `__panel` | Collapsible code drawer |
+| 28 | Icon | `.icon`, `--up/down/center/add/remove/trash/shuffle/back/forward/search/sort/filter/send/settings` | CSS mask-image icons |
 
 ### Page scaffolding — stays in `examples/styles.css`
 
@@ -180,10 +181,11 @@ base.html
 
 ### Duplicated across examples (future centralization candidates)
 
-| Component | Current class | Duplicated in |
-|-----------|--------------|---------------|
-| Toggle switch | `.toggle`, `.toggle-track` | carousel |
-| Control button | `.ctrl-btn`, `--active` | carousel, file-browser, photo-album (3 identical copies) |
+| Component | Original class | Status |
+|-----------|---------------|--------|
+| ~~Toggle switch~~ | ~~`.toggle`, `.toggle-track`~~ | ✅ Already migrated to `.ui-switch` / `.ui-switch__track` in Phase 1 |
+| ~~Control button~~ | ~~`.ctrl-btn`, `--active`~~ | ✅ Centralized as `.ui-ctrl-btn` in `ui.css` |
+| ~~Badge~~ | ~~`.item__badge`, `.status-badge`, `.card-badge`, `.mode-badge`, `.badge`, `.meta-tag`~~ | ✅ Centralized as `.ui-badge` in `ui.css` |
 
 ---
 
@@ -239,6 +241,8 @@ base.html
 | `.panel-btn--load` | `.ui-btn--load` |
 | `.panel-btn-group` | `.ui-btn-group` |
 | `.panel-btn-group--fill` | `.ui-btn-group--fill` |
+| `.ctrl-btn` | `.ui-ctrl-btn` |
+| `.ctrl-btn--active` | `.ui-ctrl-btn--active` |
 | `.panel-segmented` | `.ui-segmented` |
 | `.panel-segmented__btn` | `.ui-segmented__btn` |
 | `.panel-segmented__btn--active` | `.ui-segmented__btn--active` |
@@ -262,6 +266,26 @@ base.html
 |---------|-----|
 | `.example-chips` | `.ui-chips` |
 | `.example-chip` | `.ui-chip` |
+
+### Badges → `ui-badge`
+
+| Current | New |
+|---------|-----|
+| `.item__badge` (basic) | `.ui-badge .ui-badge--sm` |
+| `.item__badge--shipped` | `.ui-badge--info` |
+| `.item__badge--delivered` | `.ui-badge--success` |
+| `.item__badge--pending` | `.ui-badge--warning` |
+| `.item__badge--processing` | `.ui-badge--purple` |
+| `.item__badge--cancelled` | `.ui-badge--error` |
+| `.item__badge--returned` | `.ui-badge--muted` |
+| `.status-badge` (data-table) | `.ui-badge .ui-badge--pill` |
+| `.status-badge--active` | `.ui-badge--success` |
+| `.status-badge--inactive` | `.ui-badge--error` |
+| `.card-badge` (carousel, horizontal) | `.ui-badge .ui-badge--pill .ui-badge--glass` |
+| `.mode-badge` (social-feed) | `.ui-badge .ui-badge--pill .ui-badge--accent` |
+| `.badge` (window-scroll) | `.ui-badge .ui-badge--pill .ui-badge--accent` |
+| `.meta-tag` (wizard-nav) | `.ui-badge .ui-badge--pill` |
+| `.compression-badge` (large-list) | `.ui-badge .ui-badge--pill` |
 
 ### Unchanged
 
@@ -461,23 +485,112 @@ These stay in per-example files because they override `ui.css` defaults with dif
 | file-browser/vanilla/styles.css | `.ui-value` | Overrides `color`, adds `word-break: break-all` |
 | velocity-loading/styles.css | `.ui-btn-group`, `.ui-btn--active` | Completely restyled (pill-shaped, surface tokens) |
 
-### 3.3 Deferred: `ctrl-btn` and `toggle`
+### 3.3 Control buttons — `.ctrl-btn` → `.ui-ctrl-btn` ✅
 
-These are duplicated across 3+ examples but use different class names:
+Identical `.ctrl-btn` blocks (3 copies, 26 lines each) centralized into `styles/ui.css`
+as `.ui-ctrl-btn`. These are discrete-value picker buttons (gap, radius, columns) —
+visually distinct from `.ui-btn` (larger padding, accent-fill active state, card background).
 
-| Component | Current class | Duplicated in |
-|-----------|--------------|---------------|
-| Toggle switch | `.toggle`, `.toggle-track` | carousel |
-| Control button | `.ctrl-btn`, `--active` | carousel, file-browser, photo-album |
+| Action | Files |
+|--------|-------|
+| **Added to `ui.css`** | `.ui-ctrl-btn`, `:hover`, `--active` (26 lines) + theme transition |
+| **Removed CSS block** | `carousel/styles.css`, `photo-album/styles.css`, `file-browser/vanilla/styles.css` |
+| **Renamed in HTML** | `carousel/vanilla/content.html`, `photo-album/content.html` |
+| **Renamed in JS** | `carousel/vanilla/script.js`, `photo-album/controls.js` |
+| **Renamed in React** | `photo-album/react/script.tsx` |
+| **Renamed in Vue** | `photo-album/vue/script.js` |
 
-**Decision: deferred.** Lower priority, different naming pattern (`ctrl-btn` vs `ui-btn`),
-can be consolidated in a follow-up pass.
+**Note:** `file-browser/vanilla/styles.css` had the CSS defined but never referenced
+in its HTML/JS — it was dead code, now removed.
 
-### 3.4 Verify
+### 3.4 Toggle switch — `.toggle` → `.ui-switch` ✅ (done in Phase 1)
 
-- [x] Deduplicated files are smaller (CSS total: 83.3 KB → 80.1 KB)
+The `.toggle` / `.toggle-track` classes were already migrated to `.ui-switch` /
+`.ui-switch__track` during Phase 1 when the switch was extracted from carousel
+into `styles/ui.css`. Carousel's `content.html` already uses the new markup:
+
+```html
+<label class="ui-switch">
+    <input type="checkbox" id="toggle-variable" />
+    <span class="ui-switch__track"></span>
+</label>
+```
+
+No `.toggle` CSS or class references remain anywhere in `examples/`.
+Currently consumed by carousel; ready for reuse by other examples.
+
+### 3.5 Badge — 6 classes → `.ui-badge` ✅
+
+Six different badge/label classes across 8 examples unified into a single `.ui-badge`
+component system in `styles/ui.css`. The base provides structure; modifiers handle
+shape (`--pill`, `--sm`), appearance (`--glass`), and semantic colors
+(`--success`, `--warning`, `--error`, `--info`, `--muted`, `--purple`, `--accent`).
+
+**Added to `ui.css` (122 lines):**
+
+| Class | Purpose |
+|-------|---------|
+| `.ui-badge` | Base — inline-flex, 11px, 600 weight, 4px radius |
+| `.ui-badge--pill` | Full radius (20px) |
+| `.ui-badge--sm` | 9px, tighter padding, uppercase |
+| `.ui-badge--glass` | Translucent white + backdrop-blur (card overlays) |
+| `.ui-badge--success` | Green (delivered, active) |
+| `.ui-badge--warning` | Amber (pending) |
+| `.ui-badge--error` | Red (cancelled, inactive) |
+| `.ui-badge--info` | Blue (shipped) |
+| `.ui-badge--muted` | Grey (returned, default) |
+| `.ui-badge--purple` | Purple (processing) |
+| `.ui-badge--accent` | Accent gradient (mode badge, hero badges) |
+| Light-mode overrides | 6 `[data-theme-mode="light"]` selectors |
+
+**Removed per-example CSS:**
+
+| File | Removed | Notes |
+|------|---------|-------|
+| `basic/styles.css` | −80 lines | `.item__badge` + 6 variants × dark/light |
+| `data-table/styles.css` | −36 lines | `.status-badge` + active/inactive × dark |
+| `carousel/styles.css` | −16 lines | `.card-badge` + `.detail-meta__badge` |
+| `horizontal/variable-width/styles.css` | −8 lines | `.card-badge` (near-identical to carousel) |
+| `social-feed/styles.css` | −10 lines | `.mode-badge` |
+| `window-scroll/styles.css` | −7 lines | `.badge` |
+| `wizard-nav/styles.css` | −8 lines | `.meta-tag` |
+
+**Renamed in JS/HTML/TSX:**
+
+| File | Change |
+|------|--------|
+| `basic/shared.js` | `item__badge--${status}` → `ui-badge--${semantic}` via lookup map |
+| `data-table/script.js` | `status-badge` → `ui-badge ui-badge--pill` |
+| `carousel/shared.js` | `card-badge` → `ui-badge--pill--glass`, `detail-meta__badge` → `ui-badge--accent` |
+| `horizontal/variable-width/shared.js` | `card-badge` → `ui-badge--pill--glass` |
+| `social-feed/content.html` | `mode-badge` → `ui-badge--pill--accent` |
+| `window-scroll/content.html` + `index.html` | `badge` → `ui-badge--pill--accent` |
+| `wizard-nav/script.js` | `meta-tag` → `ui-badge--pill` |
+| `large-list/react/script.tsx` | `compression-badge` → `ui-badge--pill` |
+| `large-list/svelte/script.js` | `compression-badge` → `ui-badge--pill` |
+| `large-list/vue/script.js` | `compression-badge` → `ui-badge--pill` |
+
+**Per-example overrides kept (positioning / fonts only):**
+
+| File | Class | Why |
+|------|-------|-----|
+| `carousel/styles.css` | `.card .ui-badge--glass` | `position: absolute; top; right` |
+| `horizontal/variable-width/styles.css` | `.card .ui-badge--glass` | `position: absolute; top; right` + responsive override |
+| `social-feed/styles.css` | `h1 .ui-badge` | `margin-left; vertical-align` |
+| `window-scroll/styles.css` | `.hero-badges .ui-badge` | `font-family: monospace; letter-spacing` |
+| `wizard-nav/styles.css` | `.meta-time`, `.meta-difficulty` | Color overrides using design tokens |
+
+**Note:** `large-list/compression-badge` had no CSS at all — it was unstyled.
+Now properly styled via `.ui-badge .ui-badge--pill .ui-badge--success` / `--muted`.
+
+### 3.6 Verify
+
+- [x] Deduplicated files are smaller (CSS total: 83.3 KB → 80.1 KB → ~77.8 KB → 71.2 KB)
 - [x] No visual changes on any example (34/34 build)
-- [x] `ctrl-btn` and `toggle` still work in their respective examples
+- [x] `.ui-ctrl-btn` works in carousel and photo-album (all variants)
+- [x] `.ui-switch` works in carousel (was `.toggle`, migrated in Phase 1)
+- [x] `.ui-badge` works in all 8 consuming examples
+- [x] No stray `.toggle`, `.ctrl-btn`, `.item__badge`, `.status-badge`, `.card-badge`, `.mode-badge`, `.badge`, `.meta-tag`, or `.compression-badge` CSS/class references remain
 
 ---
 
@@ -487,9 +600,11 @@ can be consolidated in a follow-up pass.
 
 | File | Lines |
 |------|------:|
-| `styles/ui.css` | 877 |
+| `styles/ui.css` | 1 078 |
 
-### Files modified (51 total)
+### Files modified (51 + 10 + 16 = 77 total)
+
+**Phase 1–3 (panel-* → ui-* rename + dedup):**
 
 | File | Change |
 |------|--------|
@@ -503,8 +618,45 @@ can be consolidated in a follow-up pass.
 | 12 per-example `styles.css` files | `.panel-*` → `.ui-*` + duplicate removal |
 | `docs/refactoring/ui.md` | This file — status updates |
 
-**Git stats:** `51 files changed, 1692 insertions, 1698 deletions`
-**CSS total:** 83.3 KB → 80.1 KB (−3.2 KB from deduplication)
+**ctrl-btn dedup (`.ctrl-btn` → `.ui-ctrl-btn`):**
+
+| File | Change |
+|------|--------|
+| `styles/ui.css` | +31 lines (`.ui-ctrl-btn` block + theme transition selector) |
+| `examples/carousel/styles.css` | −30 lines (removed `.ctrl-btn` block) |
+| `examples/photo-album/styles.css` | −30 lines (removed `.ctrl-btn` block) |
+| `examples/file-browser/vanilla/styles.css` | −30 lines (removed dead `.ctrl-btn` block) |
+| `examples/carousel/vanilla/content.html` | `ctrl-btn` → `ui-ctrl-btn` |
+| `examples/carousel/vanilla/script.js` | `ctrl-btn--active` → `ui-ctrl-btn--active` |
+| `examples/photo-album/content.html` | `ctrl-btn` → `ui-ctrl-btn` |
+| `examples/photo-album/controls.js` | `ctrl-btn--active` → `ui-ctrl-btn--active` |
+| `examples/photo-album/react/script.tsx` | `ctrl-btn` → `ui-ctrl-btn` |
+| `examples/photo-album/vue/script.js` | `ctrl-btn` → `ui-ctrl-btn` |
+
+**Badge dedup (6 badge classes → `.ui-badge`):**
+
+| File | Change |
+|------|--------|
+| `styles/ui.css` | +122 lines (`.ui-badge` system + theme transition selector) |
+| `examples/basic/styles.css` | −80 lines (removed `.item__badge` + 12 variant/theme rules) |
+| `examples/basic/shared.js` | Status → semantic color mapping |
+| `examples/data-table/styles.css` | −36 lines (removed `.status-badge` + dark overrides) |
+| `examples/data-table/script.js` | `status-badge` → `ui-badge ui-badge--pill` |
+| `examples/carousel/styles.css` | −16 lines (`.card-badge` → position-only, removed `.detail-meta__badge`) |
+| `examples/carousel/shared.js` | `card-badge` → `ui-badge--glass`, `detail-meta__badge` → `ui-badge--accent` |
+| `examples/horizontal/variable-width/styles.css` | −8 lines (`.card-badge` → position-only) |
+| `examples/horizontal/variable-width/shared.js` | `card-badge` → `ui-badge--glass` |
+| `examples/social-feed/styles.css` | −10 lines (`.mode-badge` → position-only) |
+| `examples/social-feed/content.html` | `mode-badge` → `ui-badge--pill--accent` |
+| `examples/window-scroll/styles.css` | −7 lines (`.badge` → font-only override) |
+| `examples/window-scroll/content.html` + `index.html` | `badge` → `ui-badge--pill--accent` |
+| `examples/wizard-nav/styles.css` | −8 lines (removed `.meta-tag` base) |
+| `examples/wizard-nav/script.js` | `meta-tag` → `ui-badge--pill` |
+| `examples/large-list/react/script.tsx` | `compression-badge` → `ui-badge--pill` |
+| `examples/large-list/svelte/script.js` | `compression-badge` → `ui-badge--pill` |
+| `examples/large-list/vue/script.js` | `compression-badge` → `ui-badge--pill` |
+
+**CSS total:** 83.3 KB → 80.1 KB (−3.2 KB Phase 1–3) → 77.2 KB (−2.9 KB ctrl-btn) → 71.2 KB (−6.0 KB badge dedup)
 
 ### Files unchanged
 
@@ -579,5 +731,10 @@ Verify every example page renders identically after the extraction:
 ---
 
 *Created: February 2026*
-*Completed: 03 February 2026*
-*Commit: `refactor(css): extract UI components into styles/ui.css, rename panel-* → ui-*`*
+*Phase 1–3 completed: 03 February 2026*
+*ctrl-btn dedup completed: 04 February 2026*
+*badge dedup completed: 04 February 2026*
+*Commits:*
+- *`refactor(css): extract UI components into styles/ui.css, rename panel-* → ui-*`*
+- *`refactor(css): centralize .ctrl-btn → .ui-ctrl-btn in ui.css`*
+- *`refactor(css): centralize 6 badge classes → .ui-badge system in ui.css`*

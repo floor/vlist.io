@@ -238,7 +238,7 @@ function App() {
                 {[3, 4, 5, 6, 10].map((c) => (
                   <button
                     key={c}
-                    className={`ctrl-btn${c === columns ? " ctrl-btn--active" : ""}`}
+                    className={`ui-ctrl-btn${c === columns ? " ui-ctrl-btn--active" : ""}`}
                     onClick={() => setColumns(c)}
                   >
                     {c}
@@ -253,7 +253,7 @@ function App() {
                 {[0, 4, 8, 12, 16].map((g) => (
                   <button
                     key={g}
-                    className={`ctrl-btn${g === gap ? " ctrl-btn--active" : ""}`}
+                    className={`ui-ctrl-btn${g === gap ? " ui-ctrl-btn--active" : ""}`}
                     onClick={() => setGap(g)}
                   >
                     {g}

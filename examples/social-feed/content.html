@@ -2,7 +2,11 @@
     <header>
         <h1>
             Social Feed
-            <span class="mode-badge" id="mode-badge">Mode A</span>
+            <span
+                class="ui-badge ui-badge--pill ui-badge--accent"
+                id="mode-badge"
+                >Mode A</span
+            >
         </h1>
         <p class="description">
             Social feed where item sizes are <strong>unknown upfront</strong>.
@@ -73,10 +77,7 @@
             </section>
 
             <!-- RSS options (only visible when source=rss) -->
-            <section
-                class="ui-section ui-section--hidden"
-                id="section-rss"
-            >
+            <section class="ui-section ui-section--hidden" id="section-rss">
                 <h3 class="ui-title">RSS Feed</h3>
                 <div class="ui-row">
                     <select class="ui-select" id="feed-rss">
@@ -189,10 +190,7 @@
                         >
                             Card
                         </button>
-                        <button
-                            class="ui-segmented__btn"
-                            data-layout="compact"
-                        >
+                        <button class="ui-segmented__btn" data-layout="compact">
                             Compact
                         </button>
                     </div>

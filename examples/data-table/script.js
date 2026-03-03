@@ -55,8 +55,8 @@ export function setCurrentBorderMode(v) {
 const statusCell = (item) => {
   const active = item.id % 3 !== 0;
   const label = active ? "Active" : "Inactive";
-  const cls = active ? "status-badge--active" : "status-badge--inactive";
-  return `<span class="status-badge ${cls}">${label}</span>`;
+  const cls = active ? "ui-badge--success" : "ui-badge--error";
+  return `<span class="ui-badge ui-badge--pill ${cls}">${label}</span>`;
 };
 
 /** Avatar + name cell renderer */

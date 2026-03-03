@@ -255,7 +255,7 @@ const App = {
                 <button
                   v-for="c in [3, 4, 5, 6, 10]"
                   :key="c"
-                  :class="['ctrl-btn', { 'ctrl-btn--active': c === columns }]"
+                  :class="['ui-ctrl-btn', { 'ui-ctrl-btn--active': c === columns }]"
                   @click="columns = c"
                 >
                   {{ c }}
@@ -269,7 +269,7 @@ const App = {
                 <button
                   v-for="g in [0, 4, 8, 12, 16]"
                   :key="g"
-                  :class="['ctrl-btn', { 'ctrl-btn--active': g === gap }]"
+                  :class="['ui-ctrl-btn', { 'ui-ctrl-btn--active': g === gap }]"
                   @click="gap = g"
                 >
                   {{ g }}
