@@ -303,6 +303,26 @@
     color: var(--vlist-text-muted);
 }
 
+.rpost__more {
+    margin-left: auto;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 2px;
+    color: var(--vlist-text-muted);
+    text-decoration: none;
+    opacity: 0.5;
+    transition: opacity 0.12s ease;
+    flex-shrink: 0;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.rpost__more:hover {
+    opacity: 1;
+    color: var(--vlist-text);
+    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.08));
+}
+
 .rpost__avatar {
     width: 24px;
     height: 24px;
@@ -359,16 +379,11 @@
 .rpost__link {
     font-size: 12px;
     color: var(--accent, #667eea);
-    text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
     display: block;
-}
-
-.rpost__link:hover {
-    text-decoration: underline;
 }
 
 .rpost__text {
@@ -444,11 +459,6 @@
     color: var(--vlist-text);
 }
 
-.rpost__pill--link {
-    text-decoration: none;
-    color: var(--vlist-text-muted);
-}
-
 .rpost__pill-icon {
     font-size: 13px;
     line-height: 1;
@@ -477,22 +487,6 @@
 .rpost__count {
     font-size: 12px;
     font-weight: 600;
-}
-
-/* --- Tags (inline in action row) --- */
-
-.rpost__tags {
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-    margin-left: auto;
-}
-
-.rpost__tag {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--accent, #667eea);
-    opacity: 0.7;
 }
 
 /* --- Compact layout: skeleton placeholders --- */
@@ -553,11 +547,8 @@
     visibility: hidden;
 }
 
-.vlist-item--placeholder .rpost__tag {
-    color: transparent;
-    background-color: var(--vlist-placeholder-bg);
-    border-radius: 3px;
-    min-width: 50px;
+.vlist-item--placeholder .rpost__more {
+    visibility: hidden;
 }
 
 /* ==========================================================================

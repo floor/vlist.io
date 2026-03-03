@@ -100,15 +100,6 @@ const formatCount = (n) => {
   return String(n);
 };
 
-/** Extract domain from URL for display: "https://apnews.com/article/..." → "apnews.com" */
-const extractDomain = (url) => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-};
-
 // =============================================================================
 // Template — renders any post (Reddit or RSS)
 // =============================================================================
@@ -232,15 +223,12 @@ const renderRedditPost = (post, { measure = false } = {}) => {
     ? `<h3 class="rpost__title">${post.title}</h3>`
     : "";
 
-  const linkDomain = post.url ? extractDomain(post.url) : "";
-  const linkHtml = post.url
-    ? `<a class="rpost__link" href="${post.url}" target="_blank" rel="noopener">${linkDomain}</a>`
-    : "";
+  const linkUrl = post.url || "";
+  const linkHtml = linkUrl ? `<span class="rpost__link">${linkUrl}</span>` : "";
 
-  const tagsHtml =
-    post.tags.length > 0
-      ? `<span class="rpost__tags">${post.tags.map((t) => `<span class="rpost__tag">${t}</span>`).join("")}</span>`
-      : "";
+  const openHtml = post.url
+    ? `<a class="rpost__more" href="${post.url}" target="_blank" rel="noopener" title="Open">···</a>`
+    : "";
 
   return `
     <article class="rpost">
@@ -249,6 +237,7 @@ const renderRedditPost = (post, { measure = false } = {}) => {
         <span class="rpost__user">u/${post.user}</span>
         <span class="rpost__dot">·</span>
         <span class="rpost__time">${post.time}</span>
+        ${openHtml}
       </div>
       <div class="rpost__body">
         <div class="rpost__content">
@@ -268,11 +257,7 @@ const renderRedditPost = (post, { measure = false } = {}) => {
           <span class="rpost__pill-icon">💬</span>
           <span class="rpost__count">${post.comments > 0 ? formatCount(post.comments) : "0"}</span>
         </span>
-        ${tagsHtml}
-        <a class="rpost__pill rpost__pill--link" href="${post.url || "#"}" target="_blank" rel="noopener">
-          <span class="rpost__pill-icon">↗</span>
-          <span class="rpost__count">Open</span>
-        </a>
+
       </div>
     </article>
   `;
