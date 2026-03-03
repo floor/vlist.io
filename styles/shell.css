@@ -881,3 +881,44 @@ doc-nav__link
     background: #f0f0f5;
     border-color: #d0d0d8;
 }
+
+/* ─── Accessibility: Focus indicators ────────────────────────────── */
+
+/* Global focus ring */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Cards — inset ring (cards have border-radius) */
+.overview__card:focus-visible,
+.nav-card:focus-visible,
+.example-card:focus-visible,
+.example-item:focus-visible,
+.doc-nav__link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+/* Sidebar links — highlight instead of ring */
+.sidebar__link:focus-visible {
+    background: var(--accent-dim);
+    color: var(--accent-text);
+    outline: none;
+}
+
+/* ─── Accessibility: Reduced motion ──────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

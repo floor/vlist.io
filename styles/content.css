@@ -73,7 +73,11 @@
 .md h1:hover .anchor,
 .md h2:hover .anchor,
 .md h3:hover .anchor,
-.md h4:hover .anchor {
+.md h4:hover .anchor,
+.md h1:focus-within .anchor,
+.md h2:focus-within .anchor,
+.md h3:focus-within .anchor,
+.md h4:focus-within .anchor {
     opacity: 1;
 }
 
