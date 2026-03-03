@@ -79,6 +79,13 @@
     text-align: center;
 }
 
+.hero__logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+}
+
 .hero__name {
     font-size: 78px;
     font-weight: 700;
@@ -522,6 +529,12 @@ footer a:hover {
         padding: calc(var(--header-height) + 28px) 0 36px;
     }
 
+    .hero__logo {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 16px;
+    }
+
     .hero__name {
         font-size: 48px;
         letter-spacing: -1.5px;
@@ -616,6 +629,12 @@ footer a:hover {
 /* ─── Small phone ────────────────────────────────── */
 
 @media (max-width: 420px) {
+    .hero__logo {
+        width: 56px;
+        height: 56px;
+        margin-bottom: 14px;
+    }
+
     .hero__name {
         font-size: 38px;
         letter-spacing: -1px;
