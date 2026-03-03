@@ -32,12 +32,7 @@
         "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 60 fps",
         "features": ["table", "selection"]
       },
-      {
-        "slug": "wizard-nav",
-        "name": "Wizard",
-        "desc": "Button-only step navigation — wheel scrolling disabled",
-        "features": ["scroll.wheel", "selection"]
-      },
+
       {
         "slug": "social-feed",
         "name": "Social Feed",
@@ -61,6 +56,12 @@
         "name": "Window Scroll",
         "desc": "Document-level scrolling with async data loading — no inner scrollbar",
         "features": ["page", "async"]
+      },
+      {
+        "slug": "wizard-nav",
+        "name": "Wizard",
+        "desc": "Button-only step navigation — wheel scrolling disabled",
+        "features": ["scroll.wheel", "selection"]
       },
       {
         "slug": "accessibility",
