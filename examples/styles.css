@@ -100,7 +100,7 @@ html[data-theme-mode="dark"] {
 }
 
 .container .description code {
-    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 14px;
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -157,7 +157,7 @@ html[data-theme-mode="dark"] {
 }
 
 .container footer code {
-    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     border: 1px solid var(--border);
     padding: 1px 6px;
