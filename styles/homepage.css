@@ -28,23 +28,23 @@
 }
 
 .hero__logo {
-    width: 80px;
-    height: 80px;
+    width: clamp(56px, 8vw, 80px);
+    height: clamp(56px, 8vw, 80px);
     margin: 0 auto 20px;
     border-radius: 50%;
 }
 
 .hero__name {
-    font-size: 78px;
+    font-size: clamp(38px, 8vw, 78px);
     font-weight: 700;
-    letter-spacing: -2px;
+    letter-spacing: clamp(-1px, -0.3vw, -2px);
     line-height: 1;
     margin-bottom: 16px;
     color: var(--text);
 }
 
 .hero__tagline {
-    font-size: 22px;
+    font-size: clamp(16px, 2.5vw, 22px);
     color: var(--text-muted);
     line-height: 1.5;
     max-width: 480px;
@@ -88,8 +88,8 @@
 }
 
 .btn--primary:hover {
-    background: #5a6fd6;
-    border-color: #5a6fd6;
+    background: color-mix(in oklch, var(--accent) 85%, black);
+    border-color: color-mix(in oklch, var(--accent) 85%, black);
 }
 
 .btn--ghost {
@@ -167,6 +167,7 @@
 
 .feature:hover {
     border-color: var(--border-hover);
+    transform: translateY(-2px);
 }
 
 .feature__icon {
@@ -214,6 +215,7 @@
 .nav-card:hover {
     background: var(--bg-card-hover);
     border-color: var(--border-hover);
+    transform: translateY(-2px);
 }
 
 .nav-card__icon {
@@ -362,14 +364,6 @@ footer a:hover {
 /* ─── Tablet ─────────────────────────────────────── */
 
 @media (max-width: 800px) {
-    .hero__name {
-        font-size: 64px;
-    }
-
-    .hero__tagline {
-        font-size: 20px;
-    }
-
     .features {
         grid-template-columns: 1fr 1fr;
     }
@@ -391,19 +385,7 @@ footer a:hover {
     }
 
     .hero__logo {
-        width: 64px;
-        height: 64px;
         margin-bottom: 16px;
-    }
-
-    .hero__name {
-        font-size: var(--fs-5xl);
-        letter-spacing: -1.5px;
-    }
-
-    .hero__tagline {
-        font-size: 17px;
-        margin-bottom: 24px;
     }
 
     .hero__badges {
@@ -483,18 +465,7 @@ footer a:hover {
 
 @media (max-width: 420px) {
     .hero__logo {
-        width: 56px;
-        height: 56px;
         margin-bottom: 14px;
-    }
-
-    .hero__name {
-        font-size: 38px;
-        letter-spacing: -1px;
-    }
-
-    .hero__tagline {
-        font-size: 16px;
     }
 
     .features {
