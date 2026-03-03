@@ -1,8 +1,8 @@
-<div class="container">
+<div class="container social-feed">
     <header>
         <h1>
             Social Feed
-            <span class="mode-badge" id="mode-badge">Mode B</span>
+            <span class="mode-badge" id="mode-badge">Mode A</span>
         </h1>
         <p class="description">
             Social feed where item sizes are <strong>unknown upfront</strong>.
@@ -16,7 +16,8 @@
     </header>
 
     <div class="split-layout">
-        <div class="split-main split-main--full">
+        <div class="split-main layout-feed">
+            <h2 id="feed-name">Feed</h2>
             <div id="list-container"></div>
         </div>
 
@@ -73,15 +74,6 @@
                 <div class="panel-row">
                     <span class="panel-label">Posts loaded</span>
                     <span class="panel-value" id="info-feed-count">–</span>
-                </div>
-                <div class="panel-row panel-row--action">
-                    <button
-                        class="panel-btn panel-btn--load"
-                        id="feed-load-more"
-                        disabled
-                    >
-                        ↓ Load more
-                    </button>
                 </div>
             </section>
 
@@ -196,13 +188,13 @@
                 <h3 class="panel-title">Mode</h3>
                 <div class="panel-row">
                     <div class="panel-segmented" id="mode-toggle">
-                        <button class="panel-segmented__btn" data-mode="a">
-                            A · Pre-measure
-                        </button>
                         <button
                             class="panel-segmented__btn panel-segmented__btn--active"
-                            data-mode="b"
+                            data-mode="a"
                         >
+                            A · Pre-measure
+                        </button>
+                        <button class="panel-segmented__btn" data-mode="b">
                             B · Auto-size
                         </button>
                     </div>
@@ -215,7 +207,7 @@
                 <div class="panel-row">
                     <span class="panel-label">Strategy</span>
                     <span class="panel-value" id="info-strategy"
-                        >estimatedSize</span
+                        >size: (index) =&gt; px</span
                     >
                 </div>
                 <div class="panel-row">
@@ -233,15 +225,33 @@
                 <h3 class="panel-title">Navigation</h3>
                 <div class="panel-row">
                     <div class="panel-btn-group">
-                        <button id="jump-top" class="panel-btn">⬆ Top</button>
-                        <button id="jump-middle" class="panel-btn">
-                            ◆ Middle
+                        <button
+                            id="jump-top"
+                            class="panel-btn panel-btn--icon"
+                            title="Top"
+                        >
+                            <i class="icon icon--up"></i>
                         </button>
-                        <button id="jump-bottom" class="panel-btn">
-                            ⬇ Bottom
+                        <button
+                            id="jump-middle"
+                            class="panel-btn panel-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
                         </button>
-                        <button id="jump-random" class="panel-btn">
-                            🎲 Random
+                        <button
+                            id="jump-bottom"
+                            class="panel-btn panel-btn--icon"
+                            title="Bottom"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button
+                            id="jump-random"
+                            class="panel-btn panel-btn--icon"
+                            title="Random"
+                        >
+                            <i class="icon icon--shuffle"></i>
                         </button>
                     </div>
                 </div>
@@ -269,7 +279,7 @@
             <span class="example-footer__stat" id="ft-source-stat">
                 <span id="ft-source">Reddit</span>
                 ·
-                <strong id="ft-mode">Mode B</strong>
+                <strong id="ft-mode">Mode A</strong>
             </span>
         </div>
     </footer>
