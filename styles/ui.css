@@ -654,6 +654,52 @@
 }
 
 /* ============================================================================
+   Switch — checkbox toggle (label > input + span)
+   ============================================================================ */
+
+.ui-switch {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.ui-switch input {
+    display: none;
+}
+
+.ui-switch__track {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--border);
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+}
+
+.ui-switch input:checked + .ui-switch__track {
+    background: var(--accent, #667eea);
+}
+
+.ui-switch__track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.ui-switch input:checked + .ui-switch__track::after {
+    transform: translateX(16px);
+}
+
+/* ============================================================================
    Slider — styled range input for control panels
    ============================================================================ */
 
