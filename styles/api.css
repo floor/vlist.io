@@ -368,37 +368,37 @@ pre,
 
 /* ─── Syntax colors (light) ──────────────────────── */
 
-[data-theme="light"] .code pre {
+[data-theme-mode="light"] .code pre {
     color: #374151;
 }
-[data-theme="light"] .kw {
+[data-theme-mode="light"] .kw {
     color: #7c3aed;
 }
-[data-theme="light"] .str {
+[data-theme-mode="light"] .str {
     color: #16a34a;
 }
-[data-theme="light"] .num {
+[data-theme-mode="light"] .num {
     color: #ea580c;
 }
-[data-theme="light"] .prop {
+[data-theme-mode="light"] .prop {
     color: #0d9488;
 }
-[data-theme="light"] .pun {
+[data-theme-mode="light"] .pun {
     color: #6366f1;
 }
-[data-theme="light"] .cm {
+[data-theme-mode="light"] .cm {
     color: #94a3b8;
 }
-[data-theme="light"] .bool {
+[data-theme-mode="light"] .bool {
     color: #dc2626;
 }
-[data-theme="light"] .type {
+[data-theme-mode="light"] .type {
     color: #d97706;
 }
-[data-theme="light"] .try-it__result pre {
+[data-theme-mode="light"] .try-it__result pre {
     color: #374151;
 }
-[data-theme="light"] .notes__list code {
+[data-theme-mode="light"] .notes__list code {
     color: #374151;
 }
 

@@ -229,6 +229,10 @@
     background: rgba(255, 255, 255, 0.02);
 }
 
+[data-theme-mode="light"] .md tbody tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
 .md tbody td code {
     font-size: 15px;
 }

@@ -600,12 +600,10 @@ body {
 }
 
 /* Light mode: show sun, hide moon */
-[data-theme-mode="light"] .header__theme-sun,
 [data-theme-mode="light"] .header__theme-sun {
     display: block;
 }
-[data-theme-mode="light"] .header__theme-moon,
-[data-theme="light"] .header__theme-moon {
+[data-theme-mode="light"] .header__theme-moon {
     display: none;
 }
 
@@ -841,17 +839,12 @@ SWICHER
 
 .button-group button {
     flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-    font-weight: 500;
-    align-items: center;
-    justify-content: center;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     padding: 5px 10px;
+    background: transparent;
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);

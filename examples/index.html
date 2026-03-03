@@ -10,8 +10,12 @@
         <!-- Theme: apply before paint to prevent flash -->
         <script>
             (function() {
-                var t = localStorage.getItem('vlist-theme') || 'dark';
-                document.documentElement.setAttribute('data-theme', t);
+                var mode = localStorage.getItem('vlist-theme-mode');
+                if (!mode)
+                    mode = window.matchMedia('(prefers-color-scheme: light)').matches
+                        ? 'light'
+                        : 'dark';
+                document.documentElement.setAttribute('data-theme-mode', mode);
             })();
         </script>
     </head>
@@ -277,10 +281,10 @@
                 var btn = document.getElementById('theme-toggle');
                 if (!btn) return;
                 btn.addEventListener('click', function() {
-                    var current = document.documentElement.getAttribute('data-theme');
+                    var current = document.documentElement.getAttribute('data-theme-mode');
                     var next = current === 'light' ? 'dark' : 'light';
-                    document.documentElement.setAttribute('data-theme', next);
-                    localStorage.setItem('vlist-theme', next);
+                    document.documentElement.setAttribute('data-theme-mode', next);
+                    localStorage.setItem('vlist-theme-mode', next);
                 });
             })();
         </script>
