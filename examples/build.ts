@@ -5,16 +5,21 @@ import {
   mkdirSync,
   readFileSync,
   writeFileSync,
+  rmSync,
+  statSync,
   watch,
 } from "fs";
 import { join, resolve } from "path";
 import { brotliCompressSync, gzipSync, constants } from "zlib";
+import { createHash } from "crypto";
 import { transformSync } from "@babel/core";
 
 const isWatch = process.argv.includes("--watch");
+const isForce = process.argv.includes("--force");
 
 const EXAMPLES_DIR = "./examples";
 const PROJECT_ROOT = resolve(".");
+const MANIFEST_PATH = join("dist", EXAMPLES_DIR, ".manifest.json");
 
 const BUILD_OPTIONS = {
   minify: !isWatch,
@@ -207,8 +212,100 @@ interface BuildResult {
   name: string;
   success: boolean;
   time: number;
-  error?: string;
   size?: SizeInfo;
+  error?: string;
+  cached?: boolean;
+}
+
+interface ManifestEntry {
+  hash: string;
+  size: SizeInfo;
+}
+
+type Manifest = Record<string, ManifestEntry>;
+
+// ── Hashing ──
+
+function hashFiles(dir: string): string {
+  const h = createHash("sha1");
+  const walk = (d: string): void => {
+    if (!existsSync(d)) return;
+    const entries = readdirSync(d, { withFileTypes: true });
+    for (const e of entries) {
+      if (e.name === "dist" || e.name === "node_modules") continue;
+      const p = join(d, e.name);
+      if (e.isDirectory()) {
+        walk(p);
+      } else {
+        h.update(e.name);
+        h.update(readFileSync(p));
+      }
+    }
+  };
+  walk(dir);
+  return h.digest("hex");
+}
+
+/** Hash of vlist/src — computed once per build */
+let _vlistHash: string | null = null;
+function getVlistHash(): string {
+  if (_vlistHash) return _vlistHash;
+  const vlistSrc = resolve("../vlist/src");
+  _vlistHash = existsSync(vlistSrc) ? hashFiles(vlistSrc) : "none";
+  return _vlistHash;
+}
+
+function computeExampleHash(name: string): string {
+  const h = createHash("sha1");
+  const exampleDir = join(EXAMPLES_DIR, name);
+  h.update(hashFiles(exampleDir));
+
+  // Include parent shared files for variants
+  const isVariant = ["vanilla", "react", "vue", "svelte", "solidjs"].some((v) =>
+    name.endsWith(`/${v}`),
+  );
+  if (isVariant) {
+    const parentDir = join(exampleDir, "..");
+    for (const f of [
+      "styles.css",
+      "shared.js",
+      "controls.js",
+      "content.html",
+    ]) {
+      const p = join(parentDir, f);
+      if (existsSync(p)) {
+        h.update(f);
+        h.update(readFileSync(p));
+      }
+    }
+  }
+
+  // Include global shared styles
+  const globalCss = join(EXAMPLES_DIR, "styles.css");
+  if (existsSync(globalCss)) {
+    h.update(readFileSync(globalCss));
+  }
+
+  h.update(getVlistHash());
+  h.update(isWatch ? "dev" : "prod");
+  return h.digest("hex");
+}
+
+function loadManifest(): Manifest {
+  if (existsSync(MANIFEST_PATH)) {
+    try {
+      return JSON.parse(readFileSync(MANIFEST_PATH, "utf-8"));
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+function saveManifest(manifest: Manifest): void {
+  const dir = join("dist", EXAMPLES_DIR);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
 }
 
 /** Supported script entry point extensions, in priority order */
@@ -250,7 +347,10 @@ async function discoverExamples(): Promise<string[]> {
   return examples.sort();
 }
 
-async function buildExample(name: string): Promise<BuildResult> {
+async function buildExample(
+  name: string,
+  manifest?: Manifest,
+): Promise<BuildResult> {
   const start = performance.now();
   const exampleDir = join(EXAMPLES_DIR, name);
   const entrypoint = findEntrypoint(exampleDir);
@@ -267,6 +367,28 @@ async function buildExample(name: string): Promise<BuildResult> {
   }
 
   try {
+    // Check cache: skip if hash matches and output exists
+    if (manifest && !isForce) {
+      const hash = computeExampleHash(name);
+      const cached = manifest[name];
+      const jsPath = join(outdir, "script.js");
+      if (cached && cached.hash === hash && existsSync(jsPath)) {
+        return {
+          name,
+          success: true,
+          time: performance.now() - start,
+          size: cached.size,
+          cached: true,
+        };
+      }
+    }
+
+    // Ensure output directory exists before building (prevents race conditions
+    // with parallel builds on deeply nested paths like horizontal/basic/react)
+    if (!existsSync(outdir)) {
+      mkdirSync(outdir, { recursive: true });
+    }
+
     // Shared styles support: examples with variants (vanilla/react/vue/svelte)
     // can have a shared styles.css at the example root that all variants use.
     // Example structure:
@@ -428,18 +550,27 @@ async function buildExample(name: string): Promise<BuildResult> {
 }
 
 function printResult(result: BuildResult): void {
-  const icon = result.success ? "✅" : "❌";
-  const time = `${result.time.toFixed(0)}ms`;
+  if (result.success) return;
 
+  const time = `${result.time.toFixed(0)}ms`;
+  console.log(`❌ ${result.name.padEnd(20)} ${time.padStart(5)}`);
+  if (result.error) {
+    console.log(`   └─ ${result.error}`);
+  }
+}
+
+function printWatchResult(result: BuildResult): void {
+  const time = `${result.time.toFixed(0)}ms`;
   if (result.success && result.size) {
-    const { jsMin, jsGzip, css } = result.size;
-    const sizeStr = `${formatKB(jsMin)} KB → ${formatKB(jsGzip)} KB gzip`;
-    const cssStr = css > 0 ? `  css ${formatKB(css)} KB` : "";
+    const { jsGzip, css } = result.size;
+    const cssStr = css > 0 ? ` + ${formatKB(css)} css` : "";
     console.log(
-      `${icon} ${result.name.padEnd(20)} ${time.padStart(5)}   ${sizeStr}${cssStr}`,
+      `✅ ${result.name}  ${formatKB(jsGzip)} KB gzip${cssStr}  (${time})`,
     );
+  } else if (result.success) {
+    console.log(`✅ ${result.name}  (${time})`);
   } else {
-    console.log(`${icon} ${result.name.padEnd(20)} ${time.padStart(5)}`);
+    console.log(`❌ ${result.name}  (${time})`);
     if (result.error) {
       console.log(`   └─ ${result.error}`);
     }
@@ -450,32 +581,18 @@ function printSizeTable(results: BuildResult[]): void {
   const successful = results.filter((r) => r.success && r.size);
   if (successful.length === 0) return;
 
-  console.log("");
-  console.log(
-    `${"  Example".padEnd(24)} ${"JS min".padStart(9)} ${"JS gzip".padStart(9)} ${"CSS".padStart(9)} ${"Total".padStart(9)}`,
-  );
-  console.log(`  ${"─".repeat(58)}`);
-
-  let totalJsMin = 0;
   let totalJsGzip = 0;
   let totalCss = 0;
 
   for (const r of successful) {
     const s = r.size!;
-    const total = s.jsGzip + s.css;
-    totalJsMin += s.jsMin;
     totalJsGzip += s.jsGzip;
     totalCss += s.css;
-
-    console.log(
-      `  ${r.name.padEnd(22)} ${(formatKB(s.jsMin) + " KB").padStart(9)} ${(formatKB(s.jsGzip) + " KB").padStart(9)} ${s.css > 0 ? (formatKB(s.css) + " KB").padStart(9) : "—".padStart(9)} ${(formatKB(total) + " KB").padStart(9)}`,
-    );
   }
 
   const grandTotal = totalJsGzip + totalCss;
-  console.log(`  ${"─".repeat(58)}`);
   console.log(
-    `  ${"Total".padEnd(22)} ${(formatKB(totalJsMin) + " KB").padStart(9)} ${(formatKB(totalJsGzip) + " KB").padStart(9)} ${(formatKB(totalCss) + " KB").padStart(9)} ${(formatKB(grandTotal) + " KB").padStart(9)}`,
+    `   Total: ${formatKB(totalJsGzip)} KB gzip + ${formatKB(totalCss)} KB css = ${formatKB(grandTotal)} KB`,
   );
 }
 
@@ -490,14 +607,22 @@ function buildSharedCss(): void {
   const raw = readFileSync(cssPath, "utf-8");
   const minified = minifyCss(raw);
   writeFileSync(join(outdir, "styles.css"), minified);
-  const size = Buffer.byteLength(minified, "utf-8");
-  console.log(`✅ ${"styles.css".padEnd(20)}          ${formatKB(size)} KB\n`);
 }
 
 async function main() {
   const totalStart = performance.now();
 
-  console.log("🔨 Building examples...\n");
+  // Force mode: clean everything
+  const distExamplesDir = join("dist", EXAMPLES_DIR);
+  if (isForce && existsSync(distExamplesDir)) {
+    rmSync(distExamplesDir, { recursive: true });
+  }
+
+  // Load cache manifest
+  const manifest = isForce ? {} : loadManifest();
+
+  // Invalidate vlist hash so it's recomputed fresh
+  _vlistHash = null;
 
   // Build shared CSS first
   buildSharedCss();
@@ -510,31 +635,46 @@ async function main() {
     process.exit(0);
   }
 
-  console.log(`📦 Found ${examples.length} examples: ${examples.join(", ")}\n`);
+  // Build all examples in parallel (with cache)
+  const results = await Promise.all(
+    examples.map((name) => buildExample(name, manifest)),
+  );
 
-  // Build all examples in parallel
-  const results = await Promise.all(examples.map(buildExample));
+  // Update manifest with successful builds
+  const newManifest: Manifest = {};
+  for (const r of results) {
+    if (r.success && r.size) {
+      const hash = r.cached
+        ? (manifest[r.name]?.hash ?? computeExampleHash(r.name))
+        : computeExampleHash(r.name);
+      newManifest[r.name] = { hash, size: r.size };
+    }
+  }
+  saveManifest(newManifest);
 
-  // Report results
+  // Report failures
   const successful = results.filter((r) => r.success);
   const failed = results.filter((r) => !r.success);
+  const cached = results.filter((r) => r.cached);
+  const built = successful.filter((r) => !r.cached);
 
-  for (const result of results) {
+  for (const result of failed) {
     printResult(result);
   }
 
-  // Size summary table
-  printSizeTable(results);
-
   const totalTime = (performance.now() - totalStart).toFixed(0);
 
-  console.log("\n" + "─".repeat(40));
+  const parts: string[] = [];
+  if (built.length > 0) parts.push(`${built.length} built`);
+  if (cached.length > 0) parts.push(`${cached.length} cached`);
+  if (failed.length > 0) parts.push(`${failed.length} failed`);
+
   console.log(
-    `✨ Built ${successful.length}/${results.length} examples in ${totalTime}ms`,
+    `✨ ${successful.length}/${results.length} examples (${parts.join(", ")}) in ${totalTime}ms`,
   );
+  printSizeTable(results);
 
   if (failed.length > 0) {
-    console.log(`\n⚠️  ${failed.length} example(s) failed to build`);
     process.exit(1);
   }
 }
@@ -593,13 +733,45 @@ async function watchMode() {
             !filename.includes("dist") &&
             !filename.includes("node_modules")
           ) {
-            // Determine which example changed from the filename path
-            const exampleName = `${parts[0]}/${filename.split("/")[0]}`;
-            console.log(
-              `\n📝 ${exampleName}/${filename.split("/").slice(1).join("/")} changed`,
-            );
-            const result = await buildExample(exampleName);
-            printResult(result);
+            const category = parts[0];
+
+            // If the file is at the root of the category (no subfolder),
+            // e.g. "styles.css" or "shared.js", rebuild all variants
+            if (!filename.includes("/")) {
+              console.log(
+                `\n📝 ${category}/${filename} changed - rebuilding all variants...`,
+              );
+              const allExamples = await discoverExamples();
+              const variants = allExamples.filter((e) =>
+                e.startsWith(category + "/"),
+              );
+              for (const variant of variants) {
+                const result = await buildExample(variant);
+                printWatchResult(result);
+              }
+
+              // Also rebuild shared CSS if it was a styles.css change
+              if (filename === "styles.css") {
+                const sharedCssPath = join(categoryDir, "styles.css");
+                const parentOutdir = join("dist", EXAMPLES_DIR, category);
+                if (existsSync(sharedCssPath)) {
+                  if (!existsSync(parentOutdir))
+                    mkdirSync(parentOutdir, { recursive: true });
+                  const raw = readFileSync(sharedCssPath, "utf-8");
+                  const minified = minifyCss(raw);
+                  writeFileSync(join(parentOutdir, "styles.css"), minified);
+                  console.log(`✅ ${category}/styles.css rebuilt`);
+                }
+              }
+            } else {
+              // File is inside a variant subfolder, rebuild just that variant
+              const exampleName = `${category}/${filename.split("/")[0]}`;
+              console.log(
+                `\n📝 ${exampleName}/${filename.split("/").slice(1).join("/")} changed`,
+              );
+              const result = await buildExample(exampleName);
+              printWatchResult(result);
+            }
           }
         });
       }
@@ -614,7 +786,7 @@ async function watchMode() {
           ) {
             console.log(`\n📝 ${name}/${filename} changed`);
             const result = await buildExample(name);
-            printResult(result);
+            printWatchResult(result);
           }
         });
       }
