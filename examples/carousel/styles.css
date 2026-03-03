@@ -115,7 +115,7 @@
 .card-width {
     font-size: calc(8px + 3px * var(--card-scale));
     opacity: 0.7;
-    font-family: monospace;
+    font-family: var(--font-mono);
 }
 
 .card .ui-badge--glass {

@@ -69,7 +69,7 @@
    ========================================================================== */
 
 .snapshot-code {
-    font-family: "SF Mono", Monaco, Menlo, monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     line-height: 1.6;
     color: var(--accent-text);
@@ -126,7 +126,7 @@
 }
 
 .detail-card code {
-    font-family: "SF Mono", Monaco, Menlo, monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     background: var(--bg);
     border: 1px solid var(--border);

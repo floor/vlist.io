@@ -31,7 +31,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #667eea;
+    background: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -140,7 +140,7 @@
 }
 
 .stat-card__value--loading {
-    color: #667eea;
+    color: var(--accent);
 }
 
 .stat-card__value--idle {

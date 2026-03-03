@@ -160,7 +160,7 @@ h1 .ui-badge {
 }
 
 .post__body a {
-    color: var(--accent, #667eea);
+    color: var(--accent);
     text-decoration: none;
     font-weight: 500;
 }
@@ -204,7 +204,7 @@ h1 .ui-badge {
 .post__tag {
     font-size: 12px;
     font-weight: 500;
-    color: var(--accent, #667eea);
+    color: var(--accent);
     opacity: 0.8;
 }
 
@@ -368,7 +368,7 @@ h1 .ui-badge {
 
 .rpost__link {
     font-size: 12px;
-    color: var(--accent, #667eea);
+    color: var(--accent);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -389,7 +389,7 @@ h1 .ui-badge {
 }
 
 .rpost__text a {
-    color: var(--accent, #667eea);
+    color: var(--accent);
     text-decoration: none;
 }
 
@@ -565,7 +565,7 @@ h1 .ui-badge {
 
 .ui-select:focus {
     outline: none;
-    border-color: var(--accent, #667eea);
+    border-color: var(--accent);
 }
 
 .ui-select optgroup {
