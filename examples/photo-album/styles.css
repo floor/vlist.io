@@ -35,11 +35,8 @@
    ============================================================================ */
 
 .grid-info {
-    padding: 8px 14px;
+    /* surface via .ui-card .ui-card--compact */
     margin-bottom: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
     font-size: 13px;
     color: var(--text-muted);
 }

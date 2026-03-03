@@ -81,9 +81,7 @@ pre,
 /* ─── Endpoint card ──────────────────────────────── */
 
 .endpoint {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    /* surface via .ui-card .ui-card--flush .ui-card--lg */
     margin-bottom: 24px;
     overflow: hidden;
 }

@@ -128,7 +128,7 @@ export function buildBundlePageHTML(bundleData) {
 
   return `
     <div class="bench-page">
-      <div class="bench-bundle">
+      <div class="ui-card ui-card--xl bench-bundle">
         <h2 class="bench-bundle__title">📦 Bundle Size</h2>
         <p class="bench-bundle__desc">Minified and gzipped sizes — smaller is better for load time.</p>
         <table class="bench-bundle__table">
@@ -170,7 +170,7 @@ export function buildFeaturesPageHTML(featureLibs, featureData) {
 
   return `
     <div class="bench-page">
-      <div class="bench-features">
+      <div class="ui-card ui-card--xl bench-features">
         <h2 class="bench-features__title">⚖️ Feature Comparison</h2>
         <p class="bench-features__desc">Feature coverage across popular virtual list libraries.</p>
         <table class="bench-features__table">
@@ -197,7 +197,7 @@ export function buildFeaturesPageHTML(featureLibs, featureData) {
 export function buildComparisonsOverviewHTML() {
   return `
     <div class="bench-page">
-      <div class="bench-bundle">
+      <div class="ui-card ui-card--xl bench-bundle">
         <h2 class="bench-bundle__title">⚔️ Library Comparisons</h2>
         <p class="bench-bundle__desc">
           Objective, reproducible performance comparisons between vlist and popular virtualization libraries.
@@ -328,7 +328,7 @@ export function buildPerformanceComparisonHTML(performanceData) {
 
   return `
     <div class="bench-page">
-      <div class="bench-bundle">
+      <div class="ui-card ui-card--xl bench-bundle">
         <h2 class="bench-bundle__title">⚔️ Performance Comparison</h2>
         <p class="bench-bundle__desc">Head-to-head performance metrics at 10,000 items — all benchmarks run in your browser.</p>
         <table class="bench-bundle__table">

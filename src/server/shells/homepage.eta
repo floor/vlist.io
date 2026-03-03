@@ -86,6 +86,7 @@
         <link rel="stylesheet" href="/styles/tokens.css" />
         <link rel="stylesheet" href="/styles/syntax.css" />
         <link rel="stylesheet" href="/styles/shell.css" />
+        <link rel="stylesheet" href="/styles/ui.css" />
         <link rel="stylesheet" href="/styles/homepage.css" />
 
         <!-- Theme: apply before paint to prevent flash -->
@@ -198,19 +199,19 @@
                     Verified benchmarks show VList's exceptional efficiency. All tests run live in your browser.
                 </p>
                 <div class="features" style="max-width: 900px; margin: 0 auto;">
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <div class="feature__name">Constant Memory</div>
                         <div class="feature__desc">
                             Just 0.24 MB at 10K items, scales to 0.1-0.3 MB even at 1M+ items
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <div class="feature__name">Fast Renders</div>
                         <div class="feature__desc">
                             Initial render in ~8.5ms, optimized for instant user feedback
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <div class="feature__name">Smooth Scrolling</div>
                         <div class="feature__desc">
                             Perfect 120 FPS sustained performance, buttery smooth at any scale
@@ -231,70 +232,70 @@
             <section class="section">
                 <h2 class="section__title">Features</h2>
                 <div class="features">
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">⚡</span>
                         <div class="feature__name">Blazing Fast</div>
                         <div class="feature__desc">
                             DOM recycling, RAF batching, O(log n) lookups — 120+ FPS sustained
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">💾</span>
                         <div class="feature__name">Constant Memory</div>
                         <div class="feature__desc">
                             Just 0.24 MB at 10K items, scales to 0.1-0.3 MB even at 1M+ items — true O(1) memory complexity
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">↔️</span>
                         <div class="feature__name">Dimension Agnostic</div>
                         <div class="feature__desc">
                             Vertical &amp; horizontal orientations with semantic API — grid, groups, all features work both ways
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">📏</span>
                         <div class="feature__name">Variable Sizes</div>
                         <div class="feature__desc">
                             Per-item size function with DOM measurement support
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">♾️</span>
                         <div class="feature__name">Infinite Scroll</div>
                         <div class="feature__desc">
                             Async adapter with placeholders, velocity-aware loading
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">🔀</span>
                         <div class="feature__name">Reverse Mode</div>
                         <div class="feature__desc">
                             Chat UIs — start at bottom, prepend history, auto-scroll
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">☑️</span>
                         <div class="feature__name">Selection</div>
                         <div class="feature__desc">
                             Single &amp; multi-select with full keyboard navigation
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">🔲</span>
                         <div class="feature__name">Grid Layout</div>
                         <div class="feature__desc">
                             Virtualized 2D grid in vertical or horizontal orientation
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">📌</span>
                         <div class="feature__name">Sticky Headers</div>
                         <div class="feature__desc">
                             Grouped lists with sticky headers in any orientation
                         </div>
                     </div>
-                    <div class="feature">
+                    <div class="ui-card ui-card--interactive feature">
                         <span class="feature__icon">🗜️</span>
                         <div class="feature__name">Compression</div>
                         <div class="feature__desc">
@@ -312,28 +313,28 @@
                 <h2 class="section__title">Explore</h2>
 
                 <div class="nav-grid">
-                    <a href="/examples/" class="nav-card">
+                    <a href="/examples/" class="ui-card ui-card--interactive nav-card">
                         <div class="nav-card__title">Examples</div>
                         <div class="nav-card__desc">
                             13 interactive examples — from basic lists to million-item stress tests
                         </div>
                         <span class="nav-card__link">Browse examples →</span>
                     </a>
-                    <a href="/docs/" class="nav-card">
+                    <a href="/docs/" class="ui-card ui-card--interactive nav-card">
                         <div class="nav-card__title">Documentation</div>
                         <div class="nav-card__desc">
                             API reference, configuration, events, methods, styling, and more
                         </div>
                         <span class="nav-card__link">Read docs →</span>
                     </a>
-                    <a href="/benchmarks/" class="nav-card">
+                    <a href="/benchmarks/" class="ui-card ui-card--interactive nav-card">
                         <div class="nav-card__title">Benchmarks</div>
                         <div class="nav-card__desc">
                             Live performance tests — scroll FPS, render time, memory stability, bundle size
                         </div>
                         <span class="nav-card__link">Run benchmarks →</span>
                     </a>
-                    <a href="/tutorials/" class="nav-card">
+                    <a href="/tutorials/" class="ui-card ui-card--interactive nav-card">
                         <div class="nav-card__title">Tutorials</div>
                         <div class="nav-card__desc">
                             Step-by-step guides to learn vlist from beginner to advanced
@@ -349,7 +350,7 @@
 
             <section class="section">
                 <h2 class="section__title">Quick Start</h2>
-                <div class="code">
+                <div class="ui-card code">
                     <pre><span class="kw">import</span> { <span class="fn">vlist</span> } <span class="kw">from</span> <span class="str">"@floor/vlist"</span>
 
 <span class="kw">const</span> list = <span class="fn">vlist</span>({
@@ -376,67 +377,67 @@ list.<span class="fn">setItems</span>(
             <section class="section">
                 <h2 class="section__title">Examples (13)</h2>
                 <div class="example-grid">
-                    <a href="/examples/basic" class="example-item">
+                    <a href="/examples/basic" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Basic</span>
                         <span class="example-item__desc">Simple list with 10K items — vanilla JavaScript, zero dependencies</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/controls" class="example-item">
+                    <a href="/examples/controls" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Controls</span>
                         <span class="example-item__desc">Multi-selection, keyboard navigation, scroll events</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/photo-album" class="example-item">
+                    <a href="/examples/photo-album" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Photo Album</span>
                         <span class="example-item__desc">Responsive image grid — available in JavaScript, React, Vue, Svelte</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/file-browser" class="example-item">
+                    <a href="/examples/file-browser" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">File Browser</span>
                         <span class="example-item__desc">Finder-like browser with grid/list views</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/large-list" class="example-item">
+                    <a href="/examples/large-list" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Large List</span>
                         <span class="example-item__desc">100K–5M items with compression</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/velocity-loading" class="example-item">
+                    <a href="/examples/velocity-loading" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Velocity Loading</span>
                         <span class="example-item__desc">Intelligent async loading — pauses during fast scrolling</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/horizontal/basic" class="example-item">
+                    <a href="/examples/horizontal/basic" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Horizontal</span>
                         <span class="example-item__desc">Sideways scrolling carousel — 10K items with smooth navigation</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/contact-list" class="example-item">
+                    <a href="/examples/contact-list" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Contact List</span>
                         <span class="example-item__desc">A–Z contact list with sticky section headers</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/scroll-restore" class="example-item">
+                    <a href="/examples/scroll-restore" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Scroll Restore</span>
                         <span class="example-item__desc">Save &amp; restore scroll position across navigations</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/window-scroll" class="example-item">
+                    <a href="/examples/window-scroll" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Window Scroll</span>
                         <span class="example-item__desc">Full-page scrolling — uses document body instead of container</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/variable-heights" class="example-item">
+                    <a href="/examples/variable-heights" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Variable Heights</span>
                         <span class="example-item__desc">Dynamic sizing — automatically measures each item's height</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/messaging-app" class="example-item">
+                    <a href="/examples/messaging-app" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Messaging App</span>
                         <span class="example-item__desc">Chat UI — reverse mode, prepend history, auto-scroll</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/wizard-nav" class="example-item">
+                    <a href="/examples/wizard-nav" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Wizard Nav</span>
                         <span class="example-item__desc">Step-by-step navigation — scroll wheel disabled, button controls only</span>
                         <span class="example-item__arrow">→</span>

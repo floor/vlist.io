@@ -1,11 +1,67 @@
 /* styles/ui.css — Reusable UI components for vlist.dev
 
-   Split layout, sections, form controls, buttons, control buttons,
+   Card, split layout, sections, form controls, buttons, control buttons,
    segmented toggles, detail cards, stats bar, controls bar, chips,
    badges, source viewer, switch, slider, icons.
 
    Loaded on pages that use interactive UI components.
    Uses tokens.css design tokens for theming. */
+
+/* ============================================================================
+   Card — surface container with bg, border, radius
+   ============================================================================ */
+
+.ui-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all 0.2s ease;
+}
+
+/* -- Interactive: hoverable link / button cards ----------------------------- */
+
+.ui-card--interactive {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.ui-card--interactive:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+}
+
+/* -- Radius variants -------------------------------------------------------- */
+
+.ui-card--sm {
+    border-radius: var(--radius-sm);
+}
+.ui-card--xs {
+    border-radius: var(--radius-xs);
+}
+.ui-card--lg {
+    border-radius: 12px;
+}
+.ui-card--xl {
+    border-radius: 16px;
+}
+
+/* -- Padding variants ------------------------------------------------------- */
+
+.ui-card--flush {
+    padding: 0;
+}
+.ui-card--compact {
+    padding: 14px 18px;
+}
+
+/* -- Border emphasis -------------------------------------------------------- */
+
+.ui-card--strong {
+    border-width: 2px;
+}
 
 /* ============================================================================
    Split Layout — list + side panel
@@ -966,6 +1022,7 @@
    Theme Transitions — UI component subset
    ============================================================================ */
 
+html[data-theme] .ui-card,
 html[data-theme] .stats,
 html[data-theme] .controls button,
 html[data-theme] .controls select,

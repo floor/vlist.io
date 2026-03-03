@@ -430,19 +430,7 @@ body {
 
 .overview__card {
     display: block;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
     padding: 20px 22px;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.15s;
-}
-
-.overview__card:hover {
-    border-color: var(--border-hover);
-    background: var(--bg-card-hover);
-    transform: translateY(-2px);
 }
 
 .overview__card-icon {
@@ -586,16 +574,12 @@ html[data-theme-mode] .header,
 html[data-theme-mode] .sidebar,
 html[data-theme-mode] .content,
 html[data-theme-mode] .toc,
-html[data-theme-mode] .overview__card,
+html[data-theme-mode] .ui-card,
 html[data-theme-mode] .sidebar__link,
-html[data-theme-mode] .doc-nav__link,
 html[data-theme-mode] .md pre,
 html[data-theme-mode] .md code,
 html[data-theme-mode] .md table,
-html[data-theme-mode] .badge,
-html[data-theme-mode] .feature,
-html[data-theme-mode] .nav-card,
-html[data-theme-mode] .code {
+html[data-theme-mode] .badge {
     transition:
         background-color 0.25s ease,
         color 0.25s ease,
@@ -793,17 +777,6 @@ body.no-sidebar .header__nav {
     display: flex;
     flex-direction: column;
     padding: 20px 24px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    text-decoration: none;
-    transition: all 0.2s;
-}
-
-.doc-nav__link:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-hover);
-    transform: translateY(-2px);
 }
 
 .doc-nav__link--prev {
@@ -906,11 +879,7 @@ select:focus-visible,
 }
 
 /* Cards — inset ring (cards have border-radius) */
-.overview__card:focus-visible,
-.nav-card:focus-visible,
-.example-card:focus-visible,
-.example-item:focus-visible,
-.doc-nav__link:focus-visible {
+.ui-card:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: -2px;
 }

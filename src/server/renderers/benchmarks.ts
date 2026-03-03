@@ -193,7 +193,7 @@ function buildOverviewContent(): string {
     lines.push(`    <div class="overview__grid">`);
     for (const item of group.items) {
       lines.push(
-        `      <a href="/benchmarks/${item.slug}" class="overview__card">`,
+        `      <a href="/benchmarks/${item.slug}" class="ui-card ui-card--interactive overview__card">`,
       );
       lines.push(`        <div class="overview__card-icon">${item.icon}</div>`);
       lines.push(
