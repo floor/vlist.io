@@ -19,42 +19,6 @@
 }
 
 /* ============================================================
-   Mobile Dropdown
-   ============================================================ */
-
-.dropdown {
-    display: none;
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    background: var(--dropdown-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 24px 16px;
-    z-index: 99;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.dropdown--open {
-    display: flex;
-}
-
-.dropdown a {
-    display: block;
-    font-size: 14px;
-    color: var(--text-muted);
-    text-decoration: none;
-    padding: 8px 0;
-}
-
-.dropdown a:hover {
-    color: var(--text);
-}
-
-/* ============================================================
    Hero
    ============================================================ */
 
@@ -93,21 +57,6 @@
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 36px;
-}
-
-.badge {
-    font-size: 15px;
-    padding: 5px 12px;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    letter-spacing: 0.2px;
-}
-
-.badge--accent {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-dim);
 }
 
 .hero__actions {
@@ -368,62 +317,14 @@
     color: var(--text-muted);
 }
 
-.code .kw {
-    color: #c792ea;
-}
-.code .fn {
-    color: #82aaff;
-}
-.code .str {
-    color: #c3e88d;
-}
-.code .cm {
-    color: #555;
-}
-.code .num {
-    color: #f78c6c;
-}
-.code .prop {
-    color: #f07178;
-}
-.code .par {
-    color: #89ddff;
-}
-.code .op {
-    color: #89ddff;
-}
-
-/* ─── Light theme: code ──────────────────────────── */
+/* ─── Light theme: homepage code block overrides ─── */
 
 [data-theme-mode="light"] .code {
     background: var(--bg-card);
 }
+
 [data-theme-mode="light"] .code pre {
     color: var(--text-muted);
-}
-[data-theme-mode="light"] .code .kw {
-    color: #7c3aed;
-}
-[data-theme-mode="light"] .code .fn {
-    color: #2563eb;
-}
-[data-theme-mode="light"] .code .str {
-    color: #16a34a;
-}
-[data-theme-mode="light"] .code .cm {
-    color: #94a3b8;
-}
-[data-theme-mode="light"] .code .num {
-    color: #ea580c;
-}
-[data-theme-mode="light"] .code .prop {
-    color: #dc2626;
-}
-[data-theme-mode="light"] .code .par {
-    color: #6366f1;
-}
-[data-theme-mode="light"] .code .op {
-    color: #6366f1;
 }
 
 /* ============================================================
@@ -458,18 +359,6 @@ footer a:hover {
    Responsive
    ============================================================ */
 
-/* Reset shell.css 720px breakpoint — landing has no sidebar,
-   so the hamburger collapses at 640px instead */
-@media (max-width: 720px) {
-    .header__hamburger {
-        display: none;
-    }
-
-    .header__nav {
-        display: flex;
-    }
-}
-
 /* ─── Tablet ─────────────────────────────────────── */
 
 @media (max-width: 800px) {
@@ -497,18 +386,6 @@ footer a:hover {
 /* ─── Mobile ─────────────────────────────────────── */
 
 @media (max-width: 640px) {
-    .header__nav {
-        display: none;
-    }
-
-    .header__hamburger {
-        display: block;
-    }
-
-    .dropdown--open {
-        display: flex;
-    }
-
     .hero {
         padding: calc(var(--header-height) + 28px) 0 36px;
     }
@@ -533,10 +410,6 @@ footer a:hover {
         margin-bottom: 28px;
     }
 
-    .badge {
-        font-size: 13px;
-    }
-
     .btn {
         font-size: 15px;
         padding: 9px 18px;
@@ -549,10 +422,6 @@ footer a:hover {
 
     .install {
         margin-bottom: 40px;
-    }
-
-    .section__title {
-        font-size: 14px;
     }
 
     .feature__icon {
@@ -630,11 +499,6 @@ footer a:hover {
 
     .features {
         grid-template-columns: 1fr;
-    }
-
-    .badge {
-        font-size: 12px;
-        padding: 4px 10px;
     }
 
     .btn {

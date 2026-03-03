@@ -14,40 +14,6 @@ pre,
     padding: calc(var(--header-height) + 40px) 24px 80px;
 }
 
-/* ─── Mobile Dropdown ────────────────────────────── */
-
-.dropdown {
-    display: none;
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    background: var(--header-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 24px 16px;
-    z-index: 99;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.dropdown--open {
-    display: flex;
-}
-
-.dropdown a {
-    display: block;
-    font-size: 16px;
-    color: var(--text-muted);
-    text-decoration: none;
-    padding: 8px 0;
-}
-
-.dropdown a:hover {
-    color: var(--text);
-}
-
 /* ─── Hero ───────────────────────────────────────── */
 
 .hero {
@@ -72,20 +38,6 @@ pre,
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-}
-
-.badge {
-    font-size: 15px;
-    padding: 4px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-}
-
-.badge--accent {
-    border-color: var(--accent);
-    color: var(--accent-text);
-    background: var(--accent-dim);
 }
 
 /* ─── Base URL ───────────────────────────────────── */
@@ -312,62 +264,12 @@ pre,
     border-radius: 2px;
 }
 
-/* ─── Syntax colors (dark) ───────────────────────── */
+/* Syntax colors are now in syntax.css */
 
-.kw {
-    color: #c792ea;
-}
-.str {
-    color: #c3e88d;
-}
-.num {
-    color: #f78c6c;
-}
-.prop {
-    color: #80cbc4;
-}
-.pun {
-    color: #89ddff;
-}
-.cm {
-    color: #546e7a;
-    font-style: italic;
-}
-.bool {
-    color: #ff5370;
-}
-.type {
-    color: #ffcb6b;
-}
-
-/* ─── Syntax colors (light) ──────────────────────── */
+/* ─── Light theme: API-specific text overrides ───── */
 
 [data-theme-mode="light"] .code pre {
     color: #374151;
-}
-[data-theme-mode="light"] .kw {
-    color: #7c3aed;
-}
-[data-theme-mode="light"] .str {
-    color: #16a34a;
-}
-[data-theme-mode="light"] .num {
-    color: #ea580c;
-}
-[data-theme-mode="light"] .prop {
-    color: #0d9488;
-}
-[data-theme-mode="light"] .pun {
-    color: #6366f1;
-}
-[data-theme-mode="light"] .cm {
-    color: #94a3b8;
-}
-[data-theme-mode="light"] .bool {
-    color: #dc2626;
-}
-[data-theme-mode="light"] .type {
-    color: #d97706;
 }
 [data-theme-mode="light"] .try-it__result pre {
     color: #374151;
@@ -603,31 +505,7 @@ pre,
 
 /* ─── Responsive ─────────────────────────────────── */
 
-/* Reset shell.css 720px breakpoint — API has no sidebar,
-   so the hamburger collapses at 640px instead */
-@media (max-width: 720px) {
-    .header__hamburger {
-        display: none;
-    }
-
-    .header__nav {
-        display: flex;
-    }
-}
-
 @media (max-width: 640px) {
-    .header__nav {
-        display: none;
-    }
-
-    .header__hamburger {
-        display: block;
-    }
-
-    .dropdown--open {
-        display: flex;
-    }
-
     .container {
         padding-left: 16px;
         padding-right: 16px;
@@ -639,10 +517,6 @@ pre,
 
     .hero__desc {
         font-size: 17px;
-    }
-
-    .badge {
-        font-size: 13px;
     }
 
     .base-url__value {
