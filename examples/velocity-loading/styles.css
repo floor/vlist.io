@@ -255,8 +255,18 @@
     margin-bottom: 12px;
 }
 
-.velocity-labels__threshold {
+.velocity-labels .velocity-labels__first {
+    flex: 1;
+}
+
+.velocity-labels .velocity-labels__threshold {
+    flex: none;
     font-weight: 600;
+}
+
+.velocity-labels .velocity-labels__last {
+    flex: 1;
+    text-align: right;
 }
 
 .velocity-status {
@@ -297,6 +307,8 @@
     color: var(--text-secondary);
     transition: all 0.2s ease;
     font-weight: 500;
+    align-items: center;
+    justify-content: center;
 }
 
 .panel-btn-group .panel-btn:hover {

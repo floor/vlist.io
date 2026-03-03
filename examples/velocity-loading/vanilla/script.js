@@ -239,11 +239,11 @@ if (isRestoringSnapshot) {
 function updateDataSourceButtons() {
   const useRealApi = getUseRealApi();
   if (useRealApi) {
-    btnSimulated.classList.remove("panel-btn--active");
-    btnLiveApi.classList.add("panel-btn--active");
+    btnSimulated.classList.remove("button--active");
+    btnLiveApi.classList.add("button--active");
   } else {
-    btnSimulated.classList.add("panel-btn--active");
-    btnLiveApi.classList.remove("panel-btn--active");
+    btnSimulated.classList.add("button--active");
+    btnLiveApi.classList.remove("button--active");
   }
 }
 
