@@ -91,6 +91,7 @@
     padding: 0;
     border-bottom: none;
     cursor: default;
+    border-bottom: 1px solid var(--vlist-border);
 }
 
 /* ==========================================================================
@@ -177,28 +178,6 @@
 .post__body a:hover {
     text-decoration: underline;
     opacity: 0.9;
-}
-
-/* ==========================================================================
-   Image — gradient placeholder (generated source)
-   ========================================================================== */
-
-.post__image {
-    border-radius: 10px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: flex-start;
-    padding: 12px 16px;
-    position: relative;
-    overflow: hidden;
-}
-
-.post__image-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: white;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
-    letter-spacing: 0.2px;
 }
 
 /* ==========================================================================
@@ -299,6 +278,286 @@
 
 .post--rss .post__user::after {
     background: #ee802f;
+}
+
+/* ==========================================================================
+   Compact layout (.rpost)
+   Title-dominant, thumbnail on right, vote pills — denser news-style cards.
+   ========================================================================== */
+
+.rpost {
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* --- Header: avatar · u/name · time --- */
+
+.rpost__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--vlist-text-muted);
+}
+
+.rpost__avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 9px;
+    flex-shrink: 0;
+    letter-spacing: -0.3px;
+}
+
+.rpost__user {
+    font-weight: 600;
+    color: var(--vlist-text);
+    font-size: 12px;
+}
+
+.rpost__dot {
+    opacity: 0.4;
+}
+
+.rpost__time {
+    font-size: 12px;
+}
+
+/* --- Body: content left + thumbnail right --- */
+
+.rpost__body {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.rpost__content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rpost__title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--vlist-text);
+    line-height: 1.35;
+    margin: 0;
+    word-break: break-word;
+}
+
+.rpost__link {
+    font-size: 12px;
+    color: var(--accent, #667eea);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+
+.rpost__link:hover {
+    text-decoration: underline;
+}
+
+.rpost__text {
+    font-size: 13px;
+    color: var(--vlist-text);
+    opacity: 0.8;
+    line-height: 1.45;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.rpost__text a {
+    color: var(--accent, #667eea);
+    text-decoration: none;
+}
+
+/* --- Thumbnail --- */
+
+.rpost__thumb {
+    width: 128px;
+    height: 98px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--vlist-placeholder-bg, rgba(127, 127, 127, 0.12));
+}
+
+.rpost__thumb img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+}
+
+.rpost__thumb--broken img {
+    display: none;
+}
+
+/* --- Action pills --- */
+
+.rpost__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 2px;
+}
+
+.rpost__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.08));
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vlist-text-muted);
+    cursor: pointer;
+    transition: background 0.12s ease;
+    border: none;
+    text-decoration: none;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.rpost__pill:hover {
+    background: var(--vlist-border);
+    color: var(--vlist-text);
+}
+
+.rpost__pill--link {
+    text-decoration: none;
+    color: var(--vlist-text-muted);
+}
+
+.rpost__pill-icon {
+    font-size: 13px;
+    line-height: 1;
+}
+
+.rpost__vote {
+    font-size: 11px;
+    line-height: 1;
+    opacity: 0.6;
+    cursor: pointer;
+    transition: opacity 0.1s ease;
+}
+
+.rpost__vote:hover {
+    opacity: 1;
+}
+
+.rpost__vote--up:hover {
+    color: #ff4500;
+}
+
+.rpost__vote--down:hover {
+    color: #7193ff;
+}
+
+.rpost__count {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* --- Tags (inline in action row) --- */
+
+.rpost__tags {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    margin-left: auto;
+}
+
+.rpost__tag {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent, #667eea);
+    opacity: 0.7;
+}
+
+/* --- Compact layout: skeleton placeholders --- */
+
+.vlist-item--placeholder .rpost__avatar {
+    background-color: var(--vlist-placeholder-bg) !important;
+    color: transparent;
+}
+
+.vlist-item--placeholder .rpost__user,
+.vlist-item--placeholder .rpost__time {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 3px;
+    min-width: 60px;
+}
+
+.vlist-item--placeholder .rpost__time {
+    min-width: 40px;
+}
+
+.vlist-item--placeholder .rpost__dot {
+    visibility: hidden;
+}
+
+.vlist-item--placeholder .rpost__title {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: 80%;
+    min-height: 1.3em;
+}
+
+.vlist-item--placeholder .rpost__link {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 3px;
+    width: 40%;
+    min-height: 1em;
+}
+
+.vlist-item--placeholder .rpost__thumb {
+    background: var(--vlist-placeholder-bg);
+}
+
+.vlist-item--placeholder .rpost__thumb img {
+    visibility: hidden;
+}
+
+.vlist-item--placeholder .rpost__pill {
+    color: transparent;
+    min-width: 60px;
+}
+
+.vlist-item--placeholder .rpost__count,
+.vlist-item--placeholder .rpost__vote,
+.vlist-item--placeholder .rpost__pill-icon {
+    visibility: hidden;
+}
+
+.vlist-item--placeholder .rpost__tag {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 3px;
+    min-width: 50px;
 }
 
 /* ==========================================================================

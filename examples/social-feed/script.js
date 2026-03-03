@@ -1,9 +1,10 @@
 // Social Feed Example
-// Demonstrates variable-size items with two independent axes:
-//   Source: Reddit (live feed via /api/feed) | Generated (5 000 mock posts) | RSS
+// Demonstrates variable-size items with three independent axes:
+//   Source: Reddit (live feed via /api/feed) | RSS (any feed URL)
+//   Layout: Card (social-card style) | Compact (title-dominant, thumbnail right)
 //   Mode:   A (pre-measure all items at init) | B (estimatedSize + ResizeObserver)
 //
-// Any combination works — you can pre-measure Reddit posts or auto-size generated ones.
+// Any combination works — you can pre-measure Reddit posts or auto-size RSS items.
 
 import { vlist } from "vlist";
 import { createStats } from "../stats.js";
@@ -86,193 +87,42 @@ const loadRssFeed = async (feedUrl) => {
 };
 
 // =============================================================================
-// Generated data — social feed posts with wildly varying content lengths
+// Helpers
 // =============================================================================
 
-const AVATARS = [
-  { name: "Alice Chen", initials: "AC", color: "#667eea" },
-  { name: "Bob Martinez", initials: "BM", color: "#e06595" },
-  { name: "Charlie Park", initials: "CP", color: "#38a169" },
-  { name: "Diana Okafor", initials: "DO", color: "#d97706" },
-  { name: "Eve Larsson", initials: "EL", color: "#4facfe" },
-  { name: "Frank Rossi", initials: "FR", color: "#f5576c" },
-  { name: "Grace Kim", initials: "GK", color: "#764ba2" },
-  { name: "Hugo Dubois", initials: "HD", color: "#43e97b" },
-];
-
-const SHORT_POSTS = [
-  "🎵",
-  "Nice!",
-  "love this",
-  "👍👍👍",
-  "haha same",
-  "brb",
-  "omw!",
-  "🔥🔥🔥",
-  "mood",
-  "facts",
-  "this >>>",
-  "💯",
-];
-
-const MEDIUM_POSTS = [
-  "Just discovered 1970s Brazilian funk on Radiooooo and I can't stop dancing at my desk. The groove is absolutely infectious.",
-  "Has anyone tried exploring music from Mongolia? The throat singing combined with modern production is mind-blowing.",
-  "Spent my entire Sunday afternoon going through 1960s Ethiopian jazz. Mulatu Astatke was way ahead of his time.",
-  "The algorithm dropped me into 1980s Japanese city pop and now I understand the hype. The production quality is unreal.",
-  "Today I learned that psychedelic rock had a massive scene in 1960s Turkey. The guitar tones are completely unique.",
-  "Listening to 1950s Cuban mambo at 7am on a Monday and honestly it's the best decision I've made this week.",
-  "Can we talk about how good 1990s Malian blues is? Ali Farka Touré basically invented a genre.",
-  "Random mode dropped me into 1940s Argentina tango and now I'm emotionally compromised.",
-];
-
-const LONG_POSTS = [
-  "I've been going down the deepest rabbit hole exploring how music traveled along the Silk Road. You can trace melodic patterns from Chinese traditional music through Central Asian folk songs into Persian classical music and eventually into Andalusian flamenco. It's like an audible map of human migration spanning thousands of years. The pentatonic scales, the ornamentation techniques, the rhythmic patterns — they mutate and evolve but you can hear the common DNA running through all of it.",
-
-  "OK so I just spent 4 hours exploring Soviet-era Georgian polyphonic singing and I need everyone to stop what they're doing and listen to this immediately. The way multiple voices weave together in these complex harmonic structures that predate Western classical harmony by centuries is absolutely staggering. UNESCO recognized it as a masterpiece of intangible cultural heritage and honestly they undersold it. Each voice operates independently but they lock together into these resonant overtone patterns that feel almost mathematical in their precision.",
-
-  "The thing about exploring music geographically is that you start to hear connections that history books don't teach you. Like how West African griot traditions traveled across the Atlantic with enslaved people and became the foundation for blues, which became jazz, which became funk, which became hip-hop — but simultaneously those same rhythmic patterns went to Cuba and became son, which became salsa, which influenced Afrobeat back in West Africa. It's a giant feedback loop spanning centuries and continents. Once you hear it, you can never unhear it. Every genre is a conversation with every other genre.",
-
-  "I made a playlist that follows the evolution of electronic music across continents and decades: starting with Delia Derbyshire and the BBC Radiophonic Workshop in 1960s UK, through Kraftwerk in 1970s Germany, to Yellow Magic Orchestra in 1970s Japan, then Chicago house and Detroit techno in the 1980s, Goa trance from India in the 1990s, and finally the minimal techno scene in 2000s Romania. What strikes me is how each scene took the technology of the previous one and filtered it through their own cultural lens, creating something genuinely new each time.",
-];
-
-const IMAGE_SUBJECTS = [
-  {
-    label: "Sunset over the mountains",
-    aspect: "wide",
-    palette: ["#ff6b35", "#ffa94d", "#c92a2a", "#2b2d42"],
-  },
-  {
-    label: "Street market in Marrakech",
-    aspect: "tall",
-    palette: ["#e07a5f", "#f2cc8f", "#81b29a", "#3d405b"],
-  },
-  {
-    label: "Cherry blossoms in Kyoto",
-    aspect: "wide",
-    palette: ["#ffb7c5", "#f8bbd0", "#4a7c59", "#2d3436"],
-  },
-  {
-    label: "Northern lights in Iceland",
-    aspect: "wide",
-    palette: ["#00b4d8", "#06d6a0", "#073b4c", "#118ab2"],
-  },
-  {
-    label: "Vinyl record collection",
-    aspect: "square",
-    palette: ["#1a1a2e", "#16213e", "#e94560", "#0f3460"],
-  },
-  {
-    label: "Café in Paris",
-    aspect: "tall",
-    palette: ["#d4a373", "#ccd5ae", "#e9edc9", "#606c38"],
-  },
-  {
-    label: "Festival crowd at sunset",
-    aspect: "wide",
-    palette: ["#ff006e", "#fb5607", "#ffbe0b", "#3a0ca3"],
-  },
-  {
-    label: "Old radio dial close-up",
-    aspect: "square",
-    palette: ["#6b705c", "#a5a58d", "#cb997e", "#ddbea9"],
-  },
-];
-
-const TAGS = [
-  ["#music", "#discovery"],
-  ["#worldmusic", "#culture"],
-  ["#vinyl", "#analog"],
-  ["#jazz", "#soul"],
-  ["#electronic", "#ambient"],
-  ["#folk", "#traditional"],
-  ["#radiooooo", "#timetraveling"],
-  ["#playlist", "#vibes"],
-];
-
-// =============================================================================
-// Post generation — each post is a unique combination of content types
-// =============================================================================
-
-const generatePosts = (count) => {
-  const posts = [];
-
-  for (let i = 0; i < count; i++) {
-    const user = AVATARS[i % AVATARS.length];
-    const seed = i * 7 + 3;
-    const type = seed % 10; // 0-1: short, 2-5: medium, 6-7: long, 8-9: image
-
-    let text, hasImage, image;
-
-    if (type <= 1) {
-      text = SHORT_POSTS[i % SHORT_POSTS.length];
-      hasImage = false;
-    } else if (type <= 5) {
-      text = MEDIUM_POSTS[i % MEDIUM_POSTS.length];
-      hasImage = seed % 3 === 0;
-    } else if (type <= 7) {
-      text = LONG_POSTS[i % LONG_POSTS.length];
-      hasImage = false;
-    } else {
-      text = SHORT_POSTS[(i + 5) % SHORT_POSTS.length];
-      hasImage = true;
-    }
-
-    if (hasImage) {
-      image = IMAGE_SUBJECTS[i % IMAGE_SUBJECTS.length];
-    }
-
-    const tags = TAGS[i % TAGS.length];
-    const hours = Math.floor(i / 4);
-    const timeStr =
-      hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`;
-
-    const likes = Math.floor(Math.abs(Math.sin(i * 2.1)) * 500);
-    const comments = Math.floor(Math.abs(Math.cos(i * 1.7)) * 80);
-
-    posts.push({
-      id: i,
-      user: user.name,
-      initials: user.initials,
-      color: user.color,
-      title: null,
-      text,
-      hasImage,
-      image: image || null,
-      tags,
-      time: timeStr,
-      likes,
-      comments,
-      source: "generated",
-      url: null,
-      size: 0, // filled by Mode A pre-measurement
-    });
+/** Format large numbers like Reddit: 1234 → "1.2K", 35000 → "35K" */
+const formatCount = (n) => {
+  if (n >= 100_000) return `${Math.round(n / 1000)}K`;
+  if (n >= 1_000) {
+    const k = n / 1000;
+    return k >= 10 ? `${Math.round(k)}K` : `${k.toFixed(1)}K`;
   }
+  return String(n);
+};
 
-  return posts;
+/** Extract domain from URL for display: "https://apnews.com/article/..." → "apnews.com" */
+const extractDomain = (url) => {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
 };
 
 // =============================================================================
-// Template — renders any post (generated or live)
+// Template — renders any post (Reddit or RSS)
 // =============================================================================
-
-/** Gradient placeholder image (generated posts) */
-const renderImagePlaceholder = (image) => {
-  if (!image) return "";
-  const height =
-    image.aspect === "wide" ? 180 : image.aspect === "tall" ? 260 : 200;
-  const gradient = `linear-gradient(135deg, ${image.palette[0]} 0%, ${image.palette[1]} 35%, ${image.palette[2]} 70%, ${image.palette[3]} 100%)`;
-  return `
-    <div class="post__image" style="height:${height}px;background:${gradient}">
-      <span class="post__image-label">${image.label}</span>
-    </div>
-  `;
-};
 
 /** Image slot for measurement — same container, no <img> tag */
 const renderImageSlot = (image) => {
   if (!image) return "";
   return `<div class="post__image post__image--real"></div>`;
+};
+
+/** Thumbnail slot for measurement — compact layout */
+const renderThumbnailSlot = (image) => {
+  if (!image) return "";
+  return `<div class="rpost__thumb"></div>`;
 };
 
 const renderImageReal = (image) => {
@@ -284,7 +134,7 @@ const renderImageReal = (image) => {
       </div>
     `;
   }
-  return renderImagePlaceholder(image);
+  return "";
 };
 
 /**
@@ -314,8 +164,8 @@ const renderEndOfFeed = (post) => `
   </div>
 `;
 
-/** Unified post renderer — works for both generated and live posts */
-const renderPost = (post, { measure = false } = {}) => {
+/** Card post renderer — social-card style (default) */
+const renderCardPost = (post, { measure = false } = {}) => {
   if (post._endOfFeed) return renderEndOfFeed(post);
 
   const titleHtml = post.title
@@ -324,26 +174,23 @@ const renderPost = (post, { measure = false } = {}) => {
 
   const imageHtml = measure
     ? renderImageSlot(post.image)
-    : post.source === "generated" || !post.source
-      ? renderImagePlaceholder(post.image)
-      : renderImageReal(post.image);
+    : renderImageReal(post.image);
 
   const openAction = post.url
     ? `<a class="post__action post__action--link" href="${post.url}" target="_blank" rel="noopener">↗ Open</a>`
-    : `<button class="post__action">↗ Share</button>`;
+    : "";
 
   const tagsHtml =
     post.tags.length > 0
       ? `<div class="post__tags">${post.tags.map((t) => `<span class="post__tag">${t}</span>`).join(" ")}</div>`
       : "";
 
-  const isLive = post.source && post.source !== "generated";
   const likesHtml =
-    !isLive || post.likes > 0
+    post.likes > 0
       ? `<button class="post__action">♡ ${post.likes}</button>`
       : "";
   const commentsHtml =
-    !isLive || post.comments > 0
+    post.comments > 0
       ? `<button class="post__action">💬 ${post.comments}</button>`
       : "";
 
@@ -368,6 +215,74 @@ const renderPost = (post, { measure = false } = {}) => {
     </article>
   `;
 };
+
+/** Reddit-native post renderer — title-dominant, thumbnail right, vote pills */
+const renderRedditPost = (post, { measure = false } = {}) => {
+  if (post._endOfFeed) return renderEndOfFeed(post);
+
+  const thumbHtml = measure
+    ? renderThumbnailSlot(post.image)
+    : post.image?.url
+      ? `<a class="rpost__thumb" href="${post.url || "#"}" target="_blank" rel="noopener">
+          <img src="${post.image.url}" alt="${post.image.alt ?? ""}" loading="lazy" onerror="this.parentElement.classList.add('rpost__thumb--broken')">
+        </a>`
+      : "";
+
+  const titleHtml = post.title
+    ? `<h3 class="rpost__title">${post.title}</h3>`
+    : "";
+
+  const linkDomain = post.url ? extractDomain(post.url) : "";
+  const linkHtml = post.url
+    ? `<a class="rpost__link" href="${post.url}" target="_blank" rel="noopener">${linkDomain}</a>`
+    : "";
+
+  const tagsHtml =
+    post.tags.length > 0
+      ? `<span class="rpost__tags">${post.tags.map((t) => `<span class="rpost__tag">${t}</span>`).join("")}</span>`
+      : "";
+
+  return `
+    <article class="rpost">
+      <div class="rpost__header">
+        <div class="rpost__avatar" style="background:${post.color}">${post.initials}</div>
+        <span class="rpost__user">u/${post.user}</span>
+        <span class="rpost__dot">·</span>
+        <span class="rpost__time">${post.time}</span>
+      </div>
+      <div class="rpost__body">
+        <div class="rpost__content">
+          ${titleHtml}
+          ${linkHtml}
+          ${post.text && !post.title ? `<div class="rpost__text">${markdownToHtml(post.text)}</div>` : ""}
+        </div>
+        ${thumbHtml}
+      </div>
+      <div class="rpost__actions">
+        <span class="rpost__pill">
+          <span class="rpost__vote rpost__vote--up">⬆</span>
+          <span class="rpost__count">${post.likes > 0 ? formatCount(post.likes) : "Vote"}</span>
+          <span class="rpost__vote rpost__vote--down">⬇</span>
+        </span>
+        <span class="rpost__pill">
+          <span class="rpost__pill-icon">💬</span>
+          <span class="rpost__count">${post.comments > 0 ? formatCount(post.comments) : "0"}</span>
+        </span>
+        ${tagsHtml}
+        <a class="rpost__pill rpost__pill--link" href="${post.url || "#"}" target="_blank" rel="noopener">
+          <span class="rpost__pill-icon">↗</span>
+          <span class="rpost__count">Open</span>
+        </a>
+      </div>
+    </article>
+  `;
+};
+
+/** Dispatch to the right renderer based on current layout */
+const renderPost = (post, opts) =>
+  currentLayout === "compact"
+    ? renderRedditPost(post, opts)
+    : renderCardPost(post, opts);
 
 // =============================================================================
 // Mode A — Pre-measure all items via hidden DOM element
@@ -411,12 +326,11 @@ const measureSizes = (items, container) => {
 };
 
 // =============================================================================
-// Setup — generated data
+// Constants
 // =============================================================================
 
-const TOTAL_GENERATED = 5000;
-const ESTIMATED_SIZE = 120;
-const generatedPosts = generatePosts(TOTAL_GENERATED);
+const ESTIMATED_SIZE = 160;
+const ESTIMATED_SIZE_COMPACT = 120;
 
 // =============================================================================
 // DOM references
@@ -427,6 +341,7 @@ const sourceToggleEl = document.getElementById("feed-source");
 const sectionRedditEl = document.getElementById("section-reddit");
 const sectionRssEl = document.getElementById("section-rss");
 const feedSubredditEl = document.getElementById("feed-subreddit");
+const layoutToggleEl = document.getElementById("layout-toggle");
 const infoFeedStatusEl = document.getElementById("info-feed-status");
 const infoFeedCountEl = document.getElementById("info-feed-count");
 const feedRssEl = document.getElementById("feed-rss");
@@ -455,7 +370,7 @@ const ftSourceEl = document.getElementById("ft-source");
 
 const stats = createStats({
   getList: () => list,
-  getTotal: () => getActiveItems().length || TOTAL_GENERATED,
+  getTotal: () => getActiveItems().length,
   getItemHeight: () => ESTIMATED_SIZE,
   container: "#list-container",
 });
@@ -465,17 +380,14 @@ const stats = createStats({
 // =============================================================================
 
 const prefs = loadPrefs();
-let currentSource = prefs.source || "reddit";
+let currentSource = prefs.source === "rss" ? "rss" : "reddit";
 let currentMode = prefs.mode || "a";
+let currentLayout = prefs.layout || "card";
 let list = null;
 
 /** Return the items array for the active source */
 const getActiveItems = () =>
-  currentSource === "reddit"
-    ? feedState.posts
-    : currentSource === "rss"
-      ? rssState.posts
-      : generatedPosts;
+  currentSource === "reddit" ? feedState.posts : rssState.posts;
 
 // =============================================================================
 // Create / recreate list — called when source OR mode changes
@@ -489,14 +401,15 @@ function createList() {
   }
   containerEl.innerHTML = "";
 
+  // Apply layout class to container
+  containerEl.classList.toggle("layout--compact", currentLayout === "compact");
+
   const items = getActiveItems();
-  const isLive = currentSource !== "generated";
   const ariaLabel =
-    currentSource === "reddit"
-      ? "Live Reddit feed"
-      : currentSource === "rss"
-        ? "RSS feed"
-        : "Social feed";
+    currentSource === "reddit" ? "Live Reddit feed" : "RSS feed";
+
+  const isCompact = currentLayout === "compact";
+  const estimatedSize = isCompact ? ESTIMATED_SIZE_COMPACT : ESTIMATED_SIZE;
 
   let initTime = 0;
   let uniqueSizes = 0;
@@ -514,7 +427,7 @@ function createList() {
       ariaLabel,
       items,
       item: {
-        height: (index) => getActiveItems()[index]?.size ?? ESTIMATED_SIZE,
+        height: (index) => getActiveItems()[index]?.size ?? estimatedSize,
         template: renderPost,
       },
     }).build();
@@ -527,7 +440,7 @@ function createList() {
       ariaLabel,
       items,
       item: {
-        estimatedHeight: isLive ? 160 : ESTIMATED_SIZE,
+        estimatedHeight: estimatedSize,
         template: renderPost,
       },
     }).build();
@@ -553,7 +466,7 @@ function createList() {
     );
   });
 
-  // If live source and no posts loaded yet, trigger initial fetch
+  // If no posts loaded yet, trigger initial fetch
   if (currentSource === "reddit" && feedState.posts.length === 0) {
     loadInitialPages();
   }
@@ -722,22 +635,15 @@ function updateFeedName() {
   if (currentSource === "reddit") {
     const sub = feedSubredditEl.value;
     feedNameEl.textContent = `r/${sub}`;
-  } else if (currentSource === "rss") {
+  } else {
     const selected = feedRssEl.options[feedRssEl.selectedIndex];
     feedNameEl.textContent = selected ? selected.textContent.trim() : "RSS";
-  } else {
-    feedNameEl.textContent = `Generated · ${TOTAL_GENERATED.toLocaleString()} posts`;
   }
 }
 
 function updatePanelInfo(initTime, uniqueSizes) {
   const modeLabel = currentMode === "a" ? "Mode A" : "Mode B";
-  const sourceLabel =
-    currentSource === "reddit"
-      ? "Reddit"
-      : currentSource === "rss"
-        ? "RSS"
-        : "Generated";
+  const sourceLabel = currentSource === "reddit" ? "Reddit" : "RSS";
 
   modeBadgeEl.textContent = modeLabel;
   ftModeEl.textContent = modeLabel;
@@ -763,6 +669,16 @@ function updateSourceSections() {
     "panel-section--hidden",
     currentSource !== "rss",
   );
+}
+
+function updateLayoutToggle() {
+  if (!layoutToggleEl) return;
+  layoutToggleEl.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle(
+      "panel-segmented__btn--active",
+      b.dataset.layout === currentLayout,
+    );
+  });
 }
 
 // =============================================================================
@@ -801,6 +717,30 @@ sourceToggleEl.addEventListener("click", (e) => {
 });
 
 // =============================================================================
+// Layout toggle
+// =============================================================================
+
+layoutToggleEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-layout]");
+  if (!btn) return;
+
+  const layout = btn.dataset.layout;
+  if (layout === currentLayout) return;
+
+  currentLayout = layout;
+  savePrefs({ layout });
+
+  updateLayoutToggle();
+
+  // Clear cached sizes — layout changes dimensions
+  for (const item of getActiveItems()) {
+    item.size = 0;
+  }
+
+  createList();
+});
+
+// =============================================================================
 // Mode toggle
 // =============================================================================
 
@@ -823,7 +763,7 @@ modeToggleEl.addEventListener("click", (e) => {
 });
 
 // =============================================================================
-// Reddit controls — subreddit picker + load more
+// Reddit controls — subreddit picker
 // =============================================================================
 
 feedSubredditEl.addEventListener("change", () => {
@@ -924,15 +864,13 @@ modeToggleEl.querySelectorAll("button").forEach((b) => {
   );
 });
 
+// Restore layout toggle UI
+updateLayoutToggle();
+
 // Update badge / footer to match restored state
 modeBadgeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";
 ftModeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";
-ftSourceEl.textContent =
-  currentSource === "reddit"
-    ? "Reddit"
-    : currentSource === "rss"
-      ? "RSS"
-      : "Generated";
+ftSourceEl.textContent = currentSource === "reddit" ? "Reddit" : "RSS";
 
 updateSourceSections();
 updateFeedName();

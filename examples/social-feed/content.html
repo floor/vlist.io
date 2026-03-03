@@ -6,10 +6,10 @@
         </h1>
         <p class="description">
             Social feed where item sizes are <strong>unknown upfront</strong>.
-            Choose a <strong>source</strong> (live Reddit, generated data, or
-            RSS) and a <strong>mode</strong> to control how vlist handles
-            variable sizes: <strong>A</strong> (pre-measure all items at init
-            via hidden DOM element) or <strong>B</strong> (estimated size, let
+            Choose a <strong>source</strong> (live Reddit or RSS) and a
+            <strong>mode</strong> to control how vlist handles variable sizes:
+            <strong>A</strong> (pre-measure all items at init via hidden DOM
+            element) or <strong>B</strong> (estimated size, let
             <code>ResizeObserver</code> measure on the fly and correct scroll
             position).
         </p>
@@ -36,12 +36,6 @@
                         <button class="panel-segmented__btn" data-source="rss">
                             RSS
                         </button>
-                        <button
-                            class="panel-segmented__btn"
-                            data-source="generated"
-                        >
-                            Generated
-                        </button>
                     </div>
                 </div>
             </section>
@@ -67,6 +61,7 @@
                         <option value="AskScience">r/AskScience</option>
                     </select>
                 </div>
+
                 <div class="panel-row">
                     <span class="panel-label">Status</span>
                     <span class="panel-value" id="info-feed-status">–</span>
@@ -180,6 +175,27 @@
                 <div class="panel-row">
                     <span class="panel-label">Items loaded</span>
                     <span class="panel-value" id="info-rss-count">–</span>
+                </div>
+            </section>
+
+            <!-- Layout -->
+            <section class="panel-section">
+                <h3 class="panel-title">Layout</h3>
+                <div class="panel-row">
+                    <div class="panel-segmented" id="layout-toggle">
+                        <button
+                            class="panel-segmented__btn panel-segmented__btn--active"
+                            data-layout="card"
+                        >
+                            Card
+                        </button>
+                        <button
+                            class="panel-segmented__btn"
+                            data-layout="compact"
+                        >
+                            Compact
+                        </button>
+                    </div>
                 </div>
             </section>
 
