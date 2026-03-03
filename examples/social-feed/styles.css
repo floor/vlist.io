@@ -27,14 +27,60 @@
    List container
    ========================================================================== */
 
+.container.social-feed {
+    height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.container > .header {
+    flex: none;
+}
+
 .split-main {
     padding: 0 !important;
 }
 
+.split-layout {
+    flex: 1;
+    min-height: 0;
+}
+
+.container > .example-footer {
+    flex: none;
+    margin-bottom: 64px;
+}
+
+.layout-feed {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
+
+#feed-name {
+    flex: none;
+    margin: 0;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--vlist-text-muted);
+    letter-spacing: 0.2px;
+}
+
 #list-container {
-    height: 600px;
+    flex: 1;
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
     background: var(--vlist-bg);
-    border-radius: 2px;
+    border-radius: 6px;
+}
+
+.split-main [id$="-container"] {
+    width: 100%;
+    margin: 0 auto;
 }
 
 /* ==========================================================================
@@ -122,6 +168,17 @@
     word-break: break-word;
 }
 
+.post__body a {
+    color: var(--accent, #667eea);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.post__body a:hover {
+    text-decoration: underline;
+    opacity: 0.9;
+}
+
 /* ==========================================================================
    Image — gradient placeholder (generated source)
    ========================================================================== */
@@ -149,9 +206,8 @@
    ========================================================================== */
 
 .post__image--real {
-    height: auto;
-    max-height: 240px;
-    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.06));
+    aspect-ratio: 16 / 9;
+    background: var(--vlist-placeholder-bg, rgba(127, 127, 127, 0.12));
     display: block;
     padding: 0;
     border-radius: 10px;
@@ -160,11 +216,10 @@
 
 .post__image--real img {
     width: 100%;
-    height: auto;
-    max-height: 240px;
+    height: 100%;
     display: block;
     object-fit: cover;
-    object-position: center top;
+    object-position: center;
 }
 
 /* ==========================================================================
@@ -321,6 +376,32 @@
 }
 
 /* ==========================================================================
+   End-of-feed indicator
+   ========================================================================== */
+
+.post-end {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 20px;
+    height: 100%;
+}
+
+.post-end__line {
+    flex: 1;
+    height: 1px;
+    background: var(--vlist-border);
+}
+
+.post-end__label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vlist-text-muted);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+/* ==========================================================================
    Disabled segmented button
    ========================================================================== */
 
@@ -329,6 +410,74 @@
     opacity: 0.35;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+/* ==========================================================================
+   Placeholder skeleton — .vlist-item--placeholder on the wrapper.
+   Same template renders, CSS hides text and shows skeleton blocks.
+   ========================================================================== */
+
+.vlist-item--placeholder .post {
+    gap: 12px;
+}
+
+.vlist-item--placeholder .post__avatar {
+    background-color: var(--vlist-placeholder-bg) !important;
+    color: transparent;
+}
+
+.vlist-item--placeholder .post__user,
+.vlist-item--placeholder .post__time {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: fit-content;
+    min-width: 60%;
+    line-height: 1.1;
+}
+
+.vlist-item--placeholder .post__time {
+    min-width: 30%;
+}
+
+.vlist-item--placeholder .post__title {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: 85%;
+    line-height: 1.2;
+}
+
+.vlist-item--placeholder .post__body {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: 100%;
+    min-height: 2.4em;
+    line-height: 1.2;
+}
+
+.vlist-item--placeholder .post__image--real {
+    background: var(--vlist-placeholder-bg);
+}
+
+.vlist-item--placeholder .post__image--real img {
+    visibility: hidden;
+}
+
+.vlist-item--placeholder .post__tag {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    min-width: 50px;
+    line-height: 1;
+}
+
+.vlist-item--placeholder .post__action {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    min-width: 48px;
 }
 
 /* ==========================================================================

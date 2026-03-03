@@ -12,11 +12,42 @@ import { createStats } from "../stats.js";
 // Reddit feed — fetcher + state
 // =============================================================================
 
+// Preload-ahead: fetch pages before the user reaches the boundary
+const PRELOAD_THRESHOLD = 15; // trigger fetch when within N items of the end
+const INITIAL_PAGES = 3; // pages to fetch on init (75 posts)
+const INITIAL_PAGE_DELAY = 1500; // ms between initial burst requests
+const MIN_FETCH_INTERVAL = 2000; // minimum ms between requests
+
+// =============================================================================
+// Preferences — persist source, mode, subreddit, RSS feed in localStorage
+// =============================================================================
+
+const STORAGE_KEY = "vlist-social-feed";
+
+const loadPrefs = () => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+};
+
+const savePrefs = (patch) => {
+  try {
+    const prefs = { ...loadPrefs(), ...patch };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  } catch {
+    // localStorage unavailable — ignore
+  }
+};
+
 const feedState = {
   posts: [],
   nextCursor: null,
   subreddit: "worldnews",
   loading: false,
+  endOfFeed: false,
+  lastFetchTime: 0,
 };
 
 const rssState = {
@@ -238,7 +269,12 @@ const renderImagePlaceholder = (image) => {
   `;
 };
 
-/** Real image from URL (Reddit posts) */
+/** Image slot for measurement — same container, no <img> tag */
+const renderImageSlot = (image) => {
+  if (!image) return "";
+  return `<div class="post__image post__image--real"></div>`;
+};
+
 const renderImageReal = (image) => {
   if (!image) return "";
   if (image.url) {
@@ -251,14 +287,44 @@ const renderImageReal = (image) => {
   return renderImagePlaceholder(image);
 };
 
+/**
+ * Light markdown → HTML for body text.
+ * Converts [text](url) links and bare URLs to clickable <a> tags.
+ */
+const markdownToHtml = (text) => {
+  // 1. Convert [text](url) markdown links
+  let html = text.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener">$1</a>',
+  );
+  // 2. Convert remaining bare URLs (not already inside an href="...")
+  html = html.replace(
+    /(?<!href="|">)(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener">$1</a>',
+  );
+  return html;
+};
+
+/** End-of-feed sentinel renderer */
+const renderEndOfFeed = (post) => `
+  <div class="post-end">
+    <div class="post-end__line"></div>
+    <span class="post-end__label">End of feed · ${post.count} items</span>
+    <div class="post-end__line"></div>
+  </div>
+`;
+
 /** Unified post renderer — works for both generated and live posts */
-const renderPost = (post) => {
+const renderPost = (post, { measure = false } = {}) => {
+  if (post._endOfFeed) return renderEndOfFeed(post);
+
   const titleHtml = post.title
     ? `<div class="post__title">${post.title}</div>`
     : "";
 
-  const imageHtml =
-    post.source === "generated" || !post.source
+  const imageHtml = measure
+    ? renderImageSlot(post.image)
+    : post.source === "generated" || !post.source
       ? renderImagePlaceholder(post.image)
       : renderImageReal(post.image);
 
@@ -292,7 +358,7 @@ const renderPost = (post) => {
       </div>
       ${titleHtml}
       ${imageHtml}
-      ${post.text ? `<div class="post__body">${post.text}</div>` : ""}
+      ${post.text ? `<div class="post__body">${markdownToHtml(post.text)}</div>` : ""}
       ${tagsHtml}
       <div class="post__actions">
         ${likesHtml}
@@ -333,7 +399,7 @@ const measureSizes = (items, container) => {
       continue;
     }
 
-    measurer.innerHTML = renderPost(item);
+    measurer.innerHTML = renderPost(item, { measure: true });
     const measured = measurer.firstElementChild.offsetHeight;
     item.size = measured;
     cache.set(key, measured);
@@ -363,7 +429,6 @@ const sectionRssEl = document.getElementById("section-rss");
 const feedSubredditEl = document.getElementById("feed-subreddit");
 const infoFeedStatusEl = document.getElementById("info-feed-status");
 const infoFeedCountEl = document.getElementById("info-feed-count");
-const feedLoadMoreEl = document.getElementById("feed-load-more");
 const feedRssEl = document.getElementById("feed-rss");
 const infoRssStatusEl = document.getElementById("info-rss-status");
 const infoRssCountEl = document.getElementById("info-rss-count");
@@ -377,7 +442,8 @@ const infoStrategyEl = document.getElementById("info-strategy");
 const infoInitEl = document.getElementById("info-init");
 const infoUniqueEl = document.getElementById("info-unique");
 
-// List + badge + footer
+// List + badge + footer + feed name
+const feedNameEl = document.getElementById("feed-name");
 const containerEl = document.getElementById("list-container");
 const modeBadgeEl = document.getElementById("mode-badge");
 const ftModeEl = document.getElementById("ft-mode");
@@ -398,8 +464,9 @@ const stats = createStats({
 // State — two independent axes
 // =============================================================================
 
-let currentSource = "reddit"; // "reddit" | "generated" | "rss"
-let currentMode = "b"; // "a" | "b"
+const prefs = loadPrefs();
+let currentSource = prefs.source || "reddit";
+let currentMode = prefs.mode || "a";
 let list = null;
 
 /** Return the items array for the active source */
@@ -447,7 +514,7 @@ function createList() {
       ariaLabel,
       items,
       item: {
-        height: (index) => items[index]?.size ?? ESTIMATED_SIZE,
+        height: (index) => getActiveItems()[index]?.size ?? ESTIMATED_SIZE,
         template: renderPost,
       },
     }).build();
@@ -470,7 +537,10 @@ function createList() {
 
   // Wire up events
   list.on("scroll", stats.scheduleUpdate);
-  list.on("range:change", stats.scheduleUpdate);
+  list.on("range:change", ({ range }) => {
+    stats.scheduleUpdate();
+    preloadIfNeeded(range.end);
+  });
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
 
   list.on("item:click", ({ item, event }) => {
@@ -483,9 +553,9 @@ function createList() {
     );
   });
 
-  // If live source and no posts loaded yet, trigger first fetch
+  // If live source and no posts loaded yet, trigger initial fetch
   if (currentSource === "reddit" && feedState.posts.length === 0) {
-    loadNextFeedPage();
+    loadInitialPages();
   }
   if (currentSource === "rss" && rssState.posts.length === 0) {
     loadRssItems();
@@ -499,11 +569,21 @@ function createList() {
 // Reddit feed loading
 // =============================================================================
 
-async function loadNextFeedPage() {
-  if (feedState.loading) return;
+async function loadNextFeedPage({ skipRateLimit = false } = {}) {
+  if (feedState.loading || feedState.endOfFeed) return;
+
+  // Rate-limit: don't fetch faster than MIN_FETCH_INTERVAL
+  if (!skipRateLimit) {
+    const now = Date.now();
+    const elapsed = now - feedState.lastFetchTime;
+    if (elapsed < MIN_FETCH_INTERVAL) {
+      setTimeout(() => loadNextFeedPage(), MIN_FETCH_INTERVAL - elapsed);
+      return;
+    }
+  }
 
   feedState.loading = true;
-  feedLoadMoreEl.disabled = true;
+  feedState.lastFetchTime = Date.now();
   setFeedStatus("loading…");
 
   try {
@@ -512,27 +592,67 @@ async function loadNextFeedPage() {
     feedState.posts.push(...data.posts);
     feedState.nextCursor = data.nextCursor;
 
-    // Update the live vlist with the new items
-    if (list && currentSource === "reddit") {
-      list.setItems(feedState.posts);
-
-      // If Mode A, re-measure the new items
-      if (currentMode === "a") {
-        measureSizes(feedState.posts, containerEl);
-      }
-
-      stats.update();
+    if (!data.nextCursor) {
+      feedState.endOfFeed = true;
+      // Append end-of-feed sentinel
+      feedState.posts.push({
+        id: "__end__",
+        _endOfFeed: true,
+        count: feedState.posts.length,
+        tags: [],
+        size: 0,
+      });
     }
 
-    setFeedStatus(feedState.nextCursor ? "ready" : "end of feed");
+    // Update the live vlist with the new items
+    if (list && currentSource === "reddit") {
+      // If Mode A, measure BEFORE setItems so heights are available
+      let uniqueSizes = 0;
+      if (currentMode === "a") {
+        uniqueSizes = measureSizes(data.posts, containerEl);
+      }
+
+      list.setItems(feedState.posts);
+      stats.update();
+      updatePanelInfo(0, uniqueSizes);
+    }
+
+    setFeedStatus(feedState.endOfFeed ? "end of feed" : "ready");
     infoFeedCountEl.textContent = String(feedState.posts.length);
-    feedLoadMoreEl.disabled = feedState.nextCursor === null;
   } catch (err) {
     console.error("Feed fetch failed:", err);
     setFeedStatus(`error: ${err.message}`);
-    feedLoadMoreEl.disabled = false;
   } finally {
     feedState.loading = false;
+  }
+}
+
+/**
+ * Preload-ahead: called on range:change to auto-fetch more posts
+ * when the user scrolls near the end of loaded data.
+ */
+function preloadIfNeeded(rangeEnd) {
+  if (currentSource !== "reddit") return;
+  if (feedState.endOfFeed || feedState.loading) return;
+
+  const remaining = feedState.posts.length - rangeEnd;
+  if (remaining <= PRELOAD_THRESHOLD) {
+    loadNextFeedPage();
+  }
+}
+
+/**
+ * Load multiple pages sequentially on init for a comfortable buffer.
+ * Stops early if end-of-feed is reached.
+ */
+async function loadInitialPages() {
+  for (let i = 0; i < INITIAL_PAGES; i++) {
+    if (feedState.endOfFeed) break;
+    await loadNextFeedPage({ skipRateLimit: true });
+    // Delay between pages to avoid Reddit rate-limiting
+    if (i < INITIAL_PAGES - 1 && !feedState.endOfFeed) {
+      await new Promise((r) => setTimeout(r, INITIAL_PAGE_DELAY));
+    }
   }
 }
 
@@ -554,16 +674,28 @@ async function loadRssItems() {
   try {
     const data = await loadRssFeed(rssState.feedUrl);
 
-    rssState.posts = data.posts;
+    // Append end-of-feed sentinel
+    rssState.posts = [
+      ...data.posts,
+      {
+        id: "__end__",
+        _endOfFeed: true,
+        count: data.posts.length,
+        tags: [],
+        size: 0,
+      },
+    ];
 
     if (list && currentSource === "rss") {
-      list.setItems(rssState.posts);
-
+      // If Mode A, measure BEFORE setItems so heights are available
+      let uniqueSizes = 0;
       if (currentMode === "a") {
-        measureSizes(rssState.posts, containerEl);
+        uniqueSizes = measureSizes(rssState.posts, containerEl);
       }
 
+      list.setItems(rssState.posts);
       stats.update();
+      updatePanelInfo(0, uniqueSizes);
     }
 
     setRssStatus("ready");
@@ -584,6 +716,19 @@ function setRssStatus(msg) {
 // =============================================================================
 // Panel info — update badge, footer, measurement section
 // =============================================================================
+
+function updateFeedName() {
+  if (!feedNameEl) return;
+  if (currentSource === "reddit") {
+    const sub = feedSubredditEl.value;
+    feedNameEl.textContent = `r/${sub}`;
+  } else if (currentSource === "rss") {
+    const selected = feedRssEl.options[feedRssEl.selectedIndex];
+    feedNameEl.textContent = selected ? selected.textContent.trim() : "RSS";
+  } else {
+    feedNameEl.textContent = `Generated · ${TOTAL_GENERATED.toLocaleString()} posts`;
+  }
+}
 
 function updatePanelInfo(initTime, uniqueSizes) {
   const modeLabel = currentMode === "a" ? "Mode A" : "Mode B";
@@ -632,6 +777,7 @@ sourceToggleEl.addEventListener("click", (e) => {
   if (source === currentSource) return;
 
   currentSource = source;
+  savePrefs({ source });
 
   // Update active button
   sourceToggleEl.querySelectorAll("button").forEach((b) => {
@@ -650,6 +796,7 @@ sourceToggleEl.addEventListener("click", (e) => {
   }
 
   updateSourceSections();
+  updateFeedName();
   createList();
 });
 
@@ -665,6 +812,7 @@ modeToggleEl.addEventListener("click", (e) => {
   if (mode === currentMode) return;
 
   currentMode = mode;
+  savePrefs({ mode });
 
   // Update active button
   modeToggleEl.querySelectorAll("button").forEach((b) => {
@@ -684,14 +832,14 @@ feedSubredditEl.addEventListener("change", () => {
   // Reset feed for the new subreddit
   feedState.posts = [];
   feedState.nextCursor = null;
+  feedState.endOfFeed = false;
+  feedState.lastFetchTime = 0;
   feedState.subreddit = feedSubredditEl.value;
+  savePrefs({ subreddit: feedSubredditEl.value });
   infoFeedCountEl.textContent = "–";
 
+  updateFeedName();
   createList();
-});
-
-feedLoadMoreEl.addEventListener("click", () => {
-  if (currentSource === "reddit") loadNextFeedPage();
 });
 
 // =============================================================================
@@ -703,8 +851,10 @@ feedRssEl.addEventListener("change", () => {
 
   rssState.posts = [];
   rssState.feedUrl = feedRssEl.value;
+  savePrefs({ rssFeed: feedRssEl.value });
   infoRssCountEl.textContent = "–";
 
+  updateFeedName();
   createList();
 });
 
@@ -739,8 +889,51 @@ document.getElementById("jump-random").addEventListener("click", () => {
 });
 
 // =============================================================================
-// Initialise — Generated source, Mode B
+// Initialise — restore preferences and boot
 // =============================================================================
 
+// Restore saved selections into UI controls
+if (
+  prefs.subreddit &&
+  feedSubredditEl.querySelector(`option[value="${prefs.subreddit}"]`)
+) {
+  feedSubredditEl.value = prefs.subreddit;
+  feedState.subreddit = prefs.subreddit;
+}
+if (
+  prefs.rssFeed &&
+  feedRssEl.querySelector(`option[value="${prefs.rssFeed}"]`)
+) {
+  feedRssEl.value = prefs.rssFeed;
+  rssState.feedUrl = prefs.rssFeed;
+}
+
+// Restore source toggle UI
+sourceToggleEl.querySelectorAll("button").forEach((b) => {
+  b.classList.toggle(
+    "panel-segmented__btn--active",
+    b.dataset.source === currentSource,
+  );
+});
+
+// Restore mode toggle UI
+modeToggleEl.querySelectorAll("button").forEach((b) => {
+  b.classList.toggle(
+    "panel-segmented__btn--active",
+    b.dataset.mode === currentMode,
+  );
+});
+
+// Update badge / footer to match restored state
+modeBadgeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";
+ftModeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";
+ftSourceEl.textContent =
+  currentSource === "reddit"
+    ? "Reddit"
+    : currentSource === "rss"
+      ? "RSS"
+      : "Generated";
+
 updateSourceSections();
+updateFeedName();
 createList();
