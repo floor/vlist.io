@@ -1,0 +1,90 @@
+/* =================================================================
+   tokens.css — Single source of truth for all design tokens
+   Loaded first by every page. No component styles — only custom properties.
+   ================================================================= */
+
+/* ─── Dark Theme (default) ───────────────────────────────────────── */
+
+:root {
+    /* Colors: Base */
+    --text: #e8e8ed;
+    --text-muted: #a8a8ba;
+    --text-dim: #8888a0;
+    --bg: #0c0c10;
+    --bg-sidebar: #101014;
+    --bg-card: #141418;
+    --bg-card-hover: #1a1a1f;
+    --border: #1e1e25;
+    --border-hover: #2e2e38;
+    --accent: #667eea;
+    --accent-dim: rgba(102, 126, 234, 0.15);
+    --accent-glow: rgba(102, 126, 234, 0.06);
+    --accent-text: #8da0f2;
+
+    /* Colors: Semantic */
+    --green: #4ade80;
+    --green-dim: rgba(74, 222, 128, 0.1);
+    --orange: #fb923c;
+    --orange-dim: rgba(251, 146, 60, 0.1);
+    --red: #f87171;
+
+    /* Colors: Code */
+    --bg-code: #18181e;
+    --bg-code-inline: #1c1c24;
+    --code-bar-bg: rgba(255, 255, 255, 0.02);
+
+    /* Colors: Chrome */
+    --header-bg: rgba(12, 12, 16, 0.85);
+    --dropdown-bg: rgba(12, 12, 16, 0.95);
+    --sidebar-hover: rgba(255, 255, 255, 0.03);
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+    --shadow-sidebar: rgba(0, 0, 0, 0.4);
+
+    /* Spacing */
+    --header-height: 56px;
+    --sidebar-width: 220px;
+    --toc-width: 240px;
+
+    /* Radii */
+    --radius: 8px;
+    --radius-sm: 6px;
+    --radius-xs: 4px;
+}
+
+/* ─── Light Theme ────────────────────────────────────────────────── */
+
+[data-theme-mode="light"] {
+    /* Colors: Base */
+    --text: #1a1a2e;
+    --text-muted: #40405a;
+    --text-dim: #5c5c78;
+    --bg: #ffffff;
+    --bg-sidebar: #f5f5f8;
+    --bg-card: #f0f0f5;
+    --bg-card-hover: #e8e8f0;
+    --border: #dcdce5;
+    --border-hover: #c0c0d0;
+    --accent: #4a5cd8;
+    --accent-dim: rgba(74, 92, 216, 0.08);
+    --accent-glow: rgba(74, 92, 216, 0.04);
+    --accent-text: #4a5cd8;
+
+    /* Colors: Semantic */
+    --green: #16a34a;
+    --green-dim: rgba(22, 163, 74, 0.08);
+    --orange: #ea580c;
+    --orange-dim: rgba(234, 88, 12, 0.08);
+    --red: #dc2626;
+
+    /* Colors: Code */
+    --bg-code: #f0f0f5;
+    --bg-code-inline: #eaeaf0;
+    --code-bar-bg: rgba(0, 0, 0, 0.02);
+
+    /* Colors: Chrome */
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --dropdown-bg: rgba(255, 255, 255, 0.95);
+    --sidebar-hover: rgba(0, 0, 0, 0.03);
+    --overlay-bg: rgba(0, 0, 0, 0.3);
+    --shadow-sidebar: rgba(0, 0, 0, 0.15);
+}

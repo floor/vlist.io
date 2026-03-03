@@ -15,85 +15,7 @@
 
 /* ─── Design Tokens ──────────────────────────────────────────────── */
 
-:root {
-    --text: #e8e8ed;
-    --text-muted: #a8a8ba;
-    --text-dim: #8888a0;
-    --bg: #0c0c10;
-    --bg-sidebar: #101014;
-    --bg-card: #141418;
-    --bg-card-hover: #161619;
-    --border: #1e1e25;
-    --border-hover: #2e2e38;
-    --accent: #667eea;
-    --accent-dim: rgba(102, 126, 234, 0.15);
-    --accent-text: #8da0f2;
-    --header-bg: rgba(12, 12, 16, 0.85);
-    --sidebar-hover: rgba(255, 255, 255, 0.03);
-    --overlay-bg: rgba(0, 0, 0, 0.5);
-    --shadow-sidebar: rgba(0, 0, 0, 0.4);
-    --sidebar-width: 220px;
-    --toc-width: 240px;
-    --header-height: 56px;
-    --radius: 8px;
-
-    /* Material Design 3 Surface Tokens - Dark Theme */
-    --surface: #1a1a1e;
-    --surface-dim: #131316;
-    --surface-bright: #3a3a3e;
-    --surface-container-lowest: #0e0e11;
-    --surface-container-low: #1a1a1e;
-    --surface-container: #1e1e22;
-    --surface-container-high: #282831;
-    --surface-container-highest: #33333c;
-    --outline-variant: rgba(255, 255, 255, 0.2);
-
-    /* Material Design 3 On-Surface Text Tokens - Dark Theme */
-    --on-surface: #e6e1e5;
-    --on-surface-variant: #cac4d0;
-    --text-primary: #e8e8ed;
-    --color-success: #4caf50;
-    --color-error: #ef5350;
-}
-
-/* ─── Light Theme ────────────────────────────────────────────────── */
-
-[data-theme-mode="light"] {
-    --text: #1a1a2e;
-    --text-muted: #40405a;
-    --text-dim: #5c5c78;
-    --bg: #ffffff;
-    --bg-sidebar: #f5f5f8;
-    --bg-card: #f0f0f5;
-    --bg-card-hover: #e8e8f0;
-    --border: #dcdce5;
-    --border-hover: #c0c0d0;
-    --accent: #4a5cd8;
-    --accent-dim: rgba(74, 92, 216, 0.08);
-    --accent-text: #4a5cd8;
-    --header-bg: rgba(255, 255, 255, 0.85);
-    --sidebar-hover: rgba(0, 0, 0, 0.03);
-    --overlay-bg: rgba(0, 0, 0, 0.3);
-    --shadow-sidebar: rgba(0, 0, 0, 0.15);
-
-    /* Material Design 3 Surface Tokens - Light Theme */
-    --surface: #fefbff;
-    --surface-dim: #ddd9e0;
-    --surface-bright: #fefbff;
-    --surface-container-lowest: #ffffff;
-    --surface-container-low: #f7f4fa;
-    --surface-container: #f2eff5;
-    --surface-container-high: #ece9ef;
-    --surface-container-highest: #e6e3e9;
-    --outline-variant: rgba(0, 0, 0, 0.15);
-
-    /* Material Design 3 On-Surface Text Tokens - Light Theme */
-    --on-surface: #1c1b1f;
-    --on-surface-variant: #49454f;
-    --text-primary: #1a1a2e;
-    --color-success: #2e7d32;
-    --color-error: #c62828;
-}
+/* All design tokens are now in tokens.css — loaded before this file */
 
 /* ─── Utilities ──────────────────────────────────────────────────── */
 
@@ -832,7 +754,7 @@ SWICHER
 .button-group {
     display: flex;
     gap: 4px;
-    background: var(--surface-container);
+    background: var(--bg-card);
     padding: 3px;
     border-radius: 6px;
 }
@@ -858,13 +780,13 @@ SWICHER
 }
 
 .button-group button:hover {
-    background: var(--surface-container-high);
-    color: var(--text-primary);
+    background: var(--bg-card-hover);
+    color: var(--text);
 }
 
 .button-group .button--active {
     background: var(--accent);
-    color: var(--text-primary);
+    color: #fff;
     font-weight: 600;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
