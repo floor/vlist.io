@@ -319,7 +319,9 @@ function buildOverviewContent(): string {
     );
     sections.push(`    <div class="overview__grid">`);
     if (group.items.length === 0) {
-      sections.push(`      <div class="overview__card overview__card--soon">`);
+      sections.push(
+        `      <div class="ui-card overview__card overview__card--soon">`,
+      );
       sections.push(
         `        <div class="overview__card-title">Coming soon</div>`,
       );
@@ -330,7 +332,7 @@ function buildOverviewContent(): string {
     } else {
       for (const item of group.items) {
         sections.push(
-          `      <a href="/examples/${item.slug}" class="overview__card">`,
+          `      <a href="/examples/${item.slug}" class="ui-card ui-card--interactive overview__card">`,
         );
         sections.push(
           `        <div class="overview__card-title">${item.name}</div>`,

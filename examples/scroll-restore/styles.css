@@ -97,9 +97,7 @@
 }
 
 .detail-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
+    /* surface via .ui-card .ui-card--xl */
     padding: 40px 48px;
     text-align: center;
     max-width: 520px;

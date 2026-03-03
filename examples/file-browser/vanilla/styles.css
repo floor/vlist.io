@@ -75,15 +75,12 @@
    ============================================================================ */
 
 .toolbar {
+    /* surface via .ui-card .ui-card--compact */
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    padding: 8px 12px;
     margin-bottom: 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
 }
 
 .toolbar__left {

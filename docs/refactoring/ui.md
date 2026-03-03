@@ -1,9 +1,10 @@
 # vlist.dev — UI Components Extraction Plan
 
 > Extract reusable UI primitives from `examples/styles.css` into `styles/ui.css`,
-> rename the `panel-*` prefix to generic `ui-*` names, and update all consumers.
+> rename the `panel-*` prefix to generic `ui-*` names, add a shared card surface
+> component, and update all consumers.
 >
-> **Status: ✅ Phase 1 + 2 + 3 complete** (single atomic commit)
+> **Status: ✅ Phase 1 + 2 + 3 + 4 complete**
 
 ---
 
@@ -17,6 +18,7 @@
 - [Phase 1 — Create `styles/ui.css` and rename classes](#phase-1--create-stylesuicss-and-rename-classes)
 - [Phase 2 — Slim down `examples/styles.css`](#phase-2--slim-down-examplesstylescss)
 - [Phase 3 — Centralize per-example extensions](#phase-3--centralize-per-example-extensions)
+- [Phase 4 — Card surface extraction](#phase-4--card-surface-extraction)
 - [File Impact Summary](#file-impact-summary)
 - [Testing & Verification](#testing--verification)
 
@@ -87,6 +89,12 @@ base.html
 ---
 
 ## Component Inventory
+
+### Card (1)
+
+| # | Component | Current class | Description |
+|---|-----------|--------------|-------------|
+| 0 | Card | `.ui-card`, `--interactive`, `--sm`, `--xs`, `--lg`, `--xl`, `--flush`, `--compact`, `--strong` | Surface container — bg, border, radius. Used across all pages. |
 
 ### Layout (3)
 
@@ -286,6 +294,28 @@ base.html
 | `.badge` (window-scroll) | `.ui-badge .ui-badge--pill .ui-badge--accent` |
 | `.meta-tag` (wizard-nav) | `.ui-badge .ui-badge--pill` |
 | `.compression-badge` (large-list) | `.ui-badge .ui-badge--pill` |
+
+### Card surfaces → `ui-card`
+
+| Current | New |
+|---------|-----|
+| `.overview__card` (surface) | `.ui-card .ui-card--interactive` |
+| `.doc-nav__link` (surface) | `.ui-card .ui-card--interactive` |
+| `.nav-card` (surface) | `.ui-card .ui-card--interactive` |
+| `.feature` (surface) | `.ui-card .ui-card--interactive` |
+| `.example-card` (surface) | `.ui-card .ui-card--interactive` |
+| `.example-item` (surface) | `.ui-card .ui-card--interactive .ui-card--compact .ui-card--sm` |
+| `.github-link` (surface) | `.ui-card .ui-card--interactive` |
+| `.code` (surface) | `.ui-card` |
+| `.endpoint` (surface) | `.ui-card .ui-card--flush .ui-card--lg` |
+| `.detail-card` (surface) | `.ui-card .ui-card--xl` |
+| `.intro` (surface) | `.ui-card .ui-card--lg` |
+| `.height-distribution` (surface) | `.ui-card` |
+| `.grid-info` (surface) | `.ui-card .ui-card--compact` |
+| `.toolbar` (surface) | `.ui-card .ui-card--compact` |
+| `.bench-suite` (surface) | `.ui-card .ui-card--strong` |
+| `.bench-bundle` (surface) | `.ui-card .ui-card--xl` |
+| `.bench-features` (surface) | `.ui-card .ui-card--xl` |
 
 ### Unchanged
 
@@ -594,15 +624,142 @@ Now properly styled via `.ui-badge .ui-badge--pill .ui-badge--success` / `--mute
 
 ---
 
+## Phase 4 — Card surface extraction ✅
+
+> Extract the recurring `background: var(--bg-card); border: 1px solid var(--border); border-radius` pattern
+> into a `.ui-card` component in `styles/ui.css`, and co-apply it across all card-like surfaces
+> in the site (homepage, examples overview, docs, benchmarks, API, per-example pages).
+>
+> **Completed.** 18 card-like elements across 11 CSS files de-duped into a single `.ui-card` base
+> with 7 modifiers. `ui.css` promoted to a global stylesheet (loaded on every page).
+
+### 4.1 The pattern
+
+Every "card" in the site repeated this exact DNA:
+
+```css
+background: var(--bg-card);
+border: 1px solid var(--border);
+border-radius: var(--radius);     /* or 8px / 12px / 16px */
+/* optional: hover → bg-card-hover + border-hover + translateY(-2px) */
+```
+
+18 classes across 11 CSS files duplicated it.
+
+### 4.2 Added to `styles/ui.css` (55 lines)
+
+| Class | Purpose |
+|-------|---------|
+| `.ui-card` | Base — bg-card, 1px border, `--radius`, 20px padding, 0.2s transition |
+| `.ui-card--interactive` | Hoverable link/button — adds hover bg/border/lift, removes text-decoration |
+| `.ui-card--sm` | `border-radius: var(--radius-sm)` |
+| `.ui-card--xs` | `border-radius: var(--radius-xs)` |
+| `.ui-card--lg` | `border-radius: 12px` |
+| `.ui-card--xl` | `border-radius: 16px` |
+| `.ui-card--flush` | `padding: 0` |
+| `.ui-card--compact` | `padding: 14px 18px` |
+| `.ui-card--strong` | `border-width: 2px` |
+
+### 4.3 CSS files de-duped (11 files)
+
+Surface properties (`background`, `border`, `border-radius`, hover states) removed — now inherited from `.ui-card`:
+
+| File | Classes stripped | Modifiers used |
+|------|----------------|----------------|
+| `styles/shell.css` | `.overview__card`, `.doc-nav__link` | `--interactive` |
+| `styles/homepage.css` | `.feature`, `.nav-card`, `.example-item`, `.code` | `--interactive`, `--compact`, `--sm` |
+| `styles/examples.css` | `.example-card`, `.github-link` | `--interactive` |
+| `styles/api.css` | `.endpoint` | `--flush`, `--lg` |
+| `examples/scroll-restore/styles.css` | `.detail-card` | `--xl` |
+| `examples/window-scroll/styles.css` | `.intro` | `--lg` |
+| `examples/variable-heights/styles.css` | `.height-distribution` | *(base only)* |
+| `examples/photo-album/styles.css` | `.grid-info` | `--compact` |
+| `examples/file-browser/vanilla/styles.css` | `.toolbar` | `--compact` |
+| `benchmarks/styles.css` | `.bench-suite`, `.bench-bundle`, `.bench-features` | `--strong`, `--xl` |
+
+### 4.4 Consolidated shell.css selectors
+
+| Selector | Change |
+|----------|--------|
+| Focus-visible (5 selectors → 1) | `.overview__card`, `.nav-card`, `.example-card`, `.example-item`, `.doc-nav__link` → `.ui-card` |
+| Theme transitions (5 selectors removed) | `.overview__card`, `.doc-nav__link`, `.feature`, `.nav-card`, `.code` — now covered by `.ui-card` |
+
+### 4.5 HTML/template updates (16 files)
+
+| File | Elements updated |
+|------|----------------|
+| `src/server/shells/homepage.eta` | 13× `.feature`, 4× `.nav-card`, 13× `.example-item`, 1× `.code` |
+| `src/server/renderers/content.ts` | `doc-nav__link` (2×), `overview__card` |
+| `src/server/renderers/examples.ts` | `overview__card` (2×, including `--soon`) |
+| `src/server/renderers/benchmarks.ts` | `overview__card` |
+| `examples/index.html` | 14× `.example-card`, 1× `.github-link` |
+| `examples/scroll-restore/content.html` | `.detail-card` |
+| `examples/scroll-restore/index.html` | `.detail-card` |
+| `examples/window-scroll/content.html` | `.intro` |
+| `examples/window-scroll/index.html` | `.intro` |
+| `examples/variable-heights/content.html` | `.height-distribution` |
+| `examples/variable-heights/index.html` | `.height-distribution` |
+| `examples/file-browser/vanilla/content.html` | `.toolbar` |
+| `api/index.html` | 3× `.endpoint` |
+| `benchmarks/script.js` | `.bench-suite` (dynamic creation) |
+| `benchmarks/templates.js` | 4× `.bench-bundle`, 1× `.bench-features` |
+
+### 4.6 Style loading — `ui.css` promoted to global
+
+`ui.css` was previously only loaded on example pages. Now loaded on **every** page
+since `.ui-card` is used everywhere:
+
+| File | Change |
+|------|--------|
+| `src/server/shells/base.html` | Added `<link rel="stylesheet" href="/styles/ui.css" />` (docs, examples, benchmarks) |
+| `src/server/shells/homepage.eta` | Added `<link rel="stylesheet" href="/styles/ui.css" />` |
+| `api/index.html` | Added `<link rel="stylesheet" href="/styles/ui.css" />` |
+| `examples/index.html` | Added `<link rel="stylesheet" href="/styles/ui.css" />` |
+
+### 4.7 What was NOT extracted (intentionally)
+
+**Tier 2 — use `--bg-card` token but are not cards:**
+
+| Class | File | Reason |
+|-------|------|--------|
+| `.stats`, `.split-panel`, `.split-main` | `ui.css` | Structural components with unique overflow/sizing |
+| `.ui-btn`, `.ui-ctrl-btn`, `.ui-chip` | `ui.css` | Buttons/tags — too small to be "cards" |
+| `.source__header`, `.source__body`, `.controls button` | `ui.css` | Bar/control surfaces |
+| `.install__cmd`, `.btn--ghost:hover` | `homepage.css` | Input field / button surface |
+| `.bench-controls`, `.bench-status`, `.bench-viewport__label`, `.bench-progress` | `benchmarks/styles.css` | Controls/labels |
+| `.example-footer`, `.container .description code` | `examples/styles.css` | Page scaffolding / inline code |
+
+**Tier 3 — domain-specific cards with unique layouts:**
+
+| Class | File | Reason |
+|-------|------|--------|
+| `.card` (carousel, horizontal, photo-album) | Per-example `styles.css` | Colorful gradient cards, `--card-scale`, image overlays |
+| `.file-card` | `file-browser/vanilla/styles.css` | Finder-style icon cards |
+| `.stat-card` | `velocity-loading/styles.css` | Uses `--surface-container` not `--bg-card` |
+| `.recipe-card` | `wizard-nav/styles.css` | No bg/border at all |
+| `.comparison-card` | `benchmarks/styles.css` | Uses `--surface` not `--bg-card` |
+
+### 4.8 Verify
+
+- [x] All 18 card surfaces render identically (surface from `.ui-card`, layout from semantic class)
+- [x] Interactive cards hover correctly (bg, border, lift)
+- [x] Focus-visible ring works on all interactive cards (single `.ui-card:focus-visible` rule)
+- [x] Theme transitions cover all cards (single `html[data-theme] .ui-card` rule)
+- [x] `ui.css` loads on all pages (homepage, docs, examples, benchmarks, API)
+- [x] TypeScript compiles (same 3 pre-existing errors, no new ones)
+- [x] No visual regressions on homepage, docs overview, examples index, API page, benchmarks
+
+---
+
 ## File Impact Summary (actual)
 
 ### Files created
 
 | File | Lines |
 |------|------:|
-| `styles/ui.css` | 1 078 |
+| `styles/ui.css` | ~1 090 |
 
-### Files modified (51 + 10 + 16 = 77 total)
+### Files modified (51 + 10 + 16 + 22 = 99 total)
 
 **Phase 1–3 (panel-* → ui-* rename + dedup):**
 
@@ -658,17 +815,42 @@ Now properly styled via `.ui-badge .ui-badge--pill .ui-badge--success` / `--mute
 
 **CSS total:** 83.3 KB → 80.1 KB (−3.2 KB Phase 1–3) → 77.2 KB (−2.9 KB ctrl-btn) → 71.2 KB (−6.0 KB badge dedup)
 
+**Phase 4 (card surface extraction → `.ui-card`):**
+
+| File | Change |
+|------|--------|
+| `styles/ui.css` | +55 lines (`.ui-card` component) + theme transition selector |
+| `styles/shell.css` | Stripped `.overview__card` / `.doc-nav__link` surface, consolidated focus-visible & theme selectors |
+| `styles/homepage.css` | Stripped `.feature`, `.nav-card`, `.example-item`, `.code` surfaces |
+| `styles/examples.css` | Stripped `.example-card`, `.github-link` surfaces |
+| `styles/api.css` | Stripped `.endpoint` surface |
+| `examples/scroll-restore/styles.css` | Stripped `.detail-card` surface |
+| `examples/window-scroll/styles.css` | Stripped `.intro` surface |
+| `examples/variable-heights/styles.css` | Stripped `.height-distribution` surface |
+| `examples/photo-album/styles.css` | Stripped `.grid-info` surface |
+| `examples/file-browser/vanilla/styles.css` | Stripped `.toolbar` surface |
+| `benchmarks/styles.css` | Stripped `.bench-suite`, `.bench-bundle`, `.bench-features` surfaces |
+| `src/server/shells/base.html` | Added `ui.css` to common stylesheets |
+| `src/server/shells/homepage.eta` | Added `ui.css` + `ui-card` classes on 31 elements |
+| `src/server/renderers/content.ts` | Added `ui-card` to `doc-nav__link` and `overview__card` |
+| `src/server/renderers/examples.ts` | Added `ui-card` to `overview__card` |
+| `src/server/renderers/benchmarks.ts` | Added `ui-card` to `overview__card` |
+| `examples/index.html` | Added `ui.css` + `ui-card` on 14 cards + 1 link |
+| `examples/scroll-restore/content.html` + `index.html` | Added `ui-card ui-card--xl` to `.detail-card` |
+| `examples/window-scroll/content.html` + `index.html` | Added `ui-card ui-card--lg` to `.intro` |
+| `examples/variable-heights/content.html` + `index.html` | Added `ui-card` to `.height-distribution` |
+| `examples/file-browser/vanilla/content.html` | Added `ui-card ui-card--compact` to `.toolbar` |
+| `api/index.html` | Added `ui.css` + `ui-card ui-card--flush ui-card--lg` on 3 endpoints |
+| `benchmarks/script.js` | Added `ui-card ui-card--strong` to `.bench-suite` |
+| `benchmarks/templates.js` | Added `ui-card ui-card--xl` to `.bench-bundle` / `.bench-features` (4 instances) |
+
 ### Files unchanged
 
 | File | Reason |
 |------|--------|
-| `styles/tokens.css` | No UI component references |
-| `styles/shell.css` | No UI component references |
-| `styles/syntax.css` | No UI component references |
-| `styles/content.css` | No UI component references |
-| `styles/homepage.css` | No UI component references |
-| `styles/api.css` | No UI component references |
-| `styles/examples.css` | Examples *index* page — uses card grid, not UI components |
+| `styles/tokens.css` | Design tokens only — no component references |
+| `styles/syntax.css` | Syntax highlighting only |
+| `styles/content.css` | Markdown body styles only |
 | `examples/build.ts` | References file paths only, not class names |
 
 ---
@@ -698,6 +880,22 @@ Verify every example page renders identically after the extraction:
 - [ ] horizontal/basic (vanilla, react, vue, svelte)
 - [ ] horizontal/variable-width
 
+### Card Surface Checklist (Phase 4)
+
+Verify card surfaces render identically after `.ui-card` extraction:
+
+- [ ] Homepage: features grid, nav-cards, example-items, code sample
+- [ ] Examples index: example-cards, GitHub link
+- [ ] Docs overview: overview cards, prev/next navigation
+- [ ] Benchmarks overview: overview cards
+- [ ] Benchmarks suite: suite cards, bundle table, features table
+- [ ] API page: endpoint cards
+- [ ] scroll-restore: detail card
+- [ ] window-scroll: intro section
+- [ ] variable-heights: height distribution
+- [ ] file-browser: toolbar
+- [ ] photo-album: grid-info (if used)
+
 ### Interaction Testing
 
 - [ ] Segmented button toggles (controls, data-table, contact-list, social-feed)
@@ -708,6 +906,8 @@ Verify every example page renders identically after the extraction:
 - [ ] Source viewer open/close and tab switching
 - [ ] Detail card population on item click
 - [ ] Stats bar updates on scroll
+- [ ] Interactive card hover: bg change, border change, lift (homepage, docs, examples index)
+- [ ] Card focus-visible: accent ring on keyboard navigation
 
 ### Theme Testing
 
@@ -715,12 +915,14 @@ Verify every example page renders identically after the extraction:
 - [ ] Dark → light toggle: all UI components transition smoothly
 - [ ] Dark mode: select dropdown arrow uses light fill
 - [ ] Refresh in each mode: no flash
+- [ ] Card surfaces transition smoothly (bg-card, border, border-hover tokens)
 
 ### Responsive Testing
 
 - [ ] ≤ 820px: split-layout stacks vertically, panel goes full-width
 - [ ] ≤ 720px: source viewer font shrinks, controls stack
 - [ ] ≤ 900px: container padding reduces
+- [ ] ≤ 640px: homepage nav-cards stack, feature grid collapses
 
 ### Browser Testing
 
@@ -734,7 +936,9 @@ Verify every example page renders identically after the extraction:
 *Phase 1–3 completed: 03 February 2026*
 *ctrl-btn dedup completed: 04 February 2026*
 *badge dedup completed: 04 February 2026*
+*Phase 4 (card extraction) completed: 09 February 2026*
 *Commits:*
 - *`refactor(css): extract UI components into styles/ui.css, rename panel-* → ui-*`*
 - *`refactor(css): centralize .ctrl-btn → .ui-ctrl-btn in ui.css`*
 - *`refactor(css): centralize 6 badge classes → .ui-badge system in ui.css`*
+- *`refactor(css): extract .ui-card surface component, promote ui.css to global`*

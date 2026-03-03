@@ -160,9 +160,7 @@
    ============================================================================ */
 
 .intro {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    /* surface via .ui-card .ui-card--lg */
     padding: 20px 24px;
     margin-bottom: 24px;
     line-height: 1.7;

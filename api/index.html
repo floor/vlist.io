@@ -26,6 +26,7 @@
 
         <link rel="stylesheet" href="/styles/tokens.css" />
         <link rel="stylesheet" href="/styles/shell.css" />
+        <link rel="stylesheet" href="/styles/ui.css" />
         <link rel="stylesheet" href="/styles/syntax.css" />
         <link rel="stylesheet" href="/styles/api.css" />
 
@@ -150,7 +151,7 @@
             <div class="section-label">Endpoints</div>
 
             <!-- ─── GET /api/users ─────────────────────────── -->
-            <div class="endpoint" id="get-users">
+            <div class="ui-card ui-card--flush ui-card--lg endpoint" id="get-users">
                 <div class="endpoint__header">
                     <span class="endpoint__method endpoint__method--get">GET</span>
                     <span class="endpoint__path mono">/api/users</span>
@@ -256,7 +257,7 @@
             </div>
 
             <!-- ─── GET /api/users/:id ─────────────────────── -->
-            <div class="endpoint" id="get-user">
+            <div class="ui-card ui-card--flush ui-card--lg endpoint" id="get-user">
                 <div class="endpoint__header">
                     <span class="endpoint__method endpoint__method--get">GET</span>
                     <span class="endpoint__path mono">/api/users/<span class="endpoint__path-param">:id</span></span>
@@ -341,7 +342,7 @@
             </div>
 
             <!-- ─── GET /api/health ────────────────────────── -->
-            <div class="endpoint" id="get-health">
+            <div class="ui-card ui-card--flush ui-card--lg endpoint" id="get-health">
                 <div class="endpoint__header">
                     <span class="endpoint__method endpoint__method--get">GET</span>
                     <span class="endpoint__path mono">/api/health</span>
