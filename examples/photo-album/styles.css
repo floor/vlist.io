@@ -1,7 +1,7 @@
 /* Photo Album — shared styles for all variants (javascript, react, vue, svelte)
    Common styles (.container, h1, .description, .stats, footer)
    are provided by example/example.css using shell.css design tokens.
-   Panel system (.split-layout, .split-panel, .panel-*)
+   UI components (.split-layout, .split-panel, .ui-*)
    is also provided by example/example.css. */
 
 .split-main {
@@ -35,47 +35,14 @@
    ============================================================================ */
 
 .grid-info {
-    padding: 8px 14px;
+    /* surface via .ui-card .ui-card--compact */
     margin-bottom: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
     font-size: 13px;
     color: var(--text-muted);
 }
 
 .grid-info strong {
     color: var(--text);
-}
-
-/* ============================================================================
-   Control Buttons (columns / gap)
-   ============================================================================ */
-
-.ctrl-btn {
-    padding: 6px 14px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg-card);
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    min-width: 36px;
-    text-align: center;
-}
-
-.ctrl-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent-text);
-}
-
-.ctrl-btn--active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
 }
 
 /* ============================================================================

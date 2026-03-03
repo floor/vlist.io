@@ -113,10 +113,20 @@ export const makeItems = (count, startIndex = 0) => {
 // Template
 // =============================================================================
 
+/** Map order status → ui-badge semantic color */
+const STATUS_BADGE = {
+  shipped: "info",
+  delivered: "success",
+  pending: "warning",
+  processing: "purple",
+  cancelled: "error",
+  returned: "muted",
+};
+
 export const itemTemplate = (item, i) => `
   <div class="item__row">
     <span class="item__label">Order #${item.id} — C-${item.customer}</span>
-    <span class="item__badge item__badge--${item.status}">${item.status}</span>
+    <span class="ui-badge ui-badge--sm ui-badge--${STATUS_BADGE[item.status] || "muted"}">${item.status}</span>
   </div>
   <div class="item__row">
     <span class="item__date">${item.date}</span>

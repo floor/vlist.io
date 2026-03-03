@@ -268,7 +268,7 @@ const App = {
       </div>
 
       <div class="compression-bar">
-        <span :class="['compression-badge', compression.isCompressed ? 'compression-badge--active' : 'compression-badge--off']">
+        <span :class="['ui-badge ui-badge--pill', compression.isCompressed ? 'ui-badge--success' : 'ui-badge--muted']">
           {{ compression.isCompressed ? 'COMPRESSED' : 'NATIVE' }}
         </span>
         <span class="compression-detail">
@@ -287,14 +287,14 @@ const App = {
 
         <aside class="split-panel">
           <!-- Size -->
-          <section class="panel-section">
-            <h3 class="panel-title">Size</h3>
-            <div class="panel-row">
-              <div class="panel-segmented">
+          <section class="ui-section">
+            <h3 class="ui-title">Size</h3>
+            <div class="ui-row">
+              <div class="ui-segmented">
                 <button
                   v-for="(count, size) in SIZES"
                   :key="size"
-                  :class="['panel-segmented__btn', { 'panel-segmented__btn--active': currentSize === size }]"
+                  :class="['ui-segmented__btn', { 'ui-segmented__btn--active': currentSize === size }]"
                   @click="handleSizeChange(size)"
                 >
                   {{ size.toUpperCase() }}
@@ -304,28 +304,28 @@ const App = {
           </section>
 
           <!-- Navigation -->
-          <section class="panel-section">
-            <h3 class="panel-title">Navigation</h3>
+          <section class="ui-section">
+            <h3 class="ui-title">Navigation</h3>
 
-            <div class="panel-row">
-              <label class="panel-label" for="scroll-index">Scroll to index</label>
-              <div class="panel-input-group">
+            <div class="ui-row">
+              <label class="ui-label" for="scroll-index">Scroll to index</label>
+              <div class="ui-input-group">
                 <input
                   type="number"
                   id="scroll-index"
                   min="0"
                   v-model.number="scrollIndex"
                   @keydown.enter.prevent="handleGoToIndex"
-                  class="panel-input"
+                  class="ui-input"
                 />
-                <select id="scroll-align" v-model="scrollAlign" class="panel-select">
+                <select id="scroll-align" v-model="scrollAlign" class="ui-select">
                   <option value="start">start</option>
                   <option value="center">center</option>
                   <option value="end">end</option>
                 </select>
                 <button
                   @click="handleGoToIndex"
-                  class="panel-btn panel-btn--icon"
+                  class="ui-btn ui-btn--icon"
                   title="Go"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -335,39 +335,39 @@ const App = {
               </div>
             </div>
 
-            <div class="panel-row">
-              <label class="panel-label">Quick jump</label>
-              <div class="panel-btn-group">
-                <button @click="scrollToFirst" class="panel-btn">First</button>
-                <button @click="scrollToMiddle" class="panel-btn">Middle</button>
-                <button @click="scrollToLast" class="panel-btn">Last</button>
-                <button @click="scrollToRandom" class="panel-btn">Random</button>
+            <div class="ui-row">
+              <label class="ui-label">Quick jump</label>
+              <div class="ui-btn-group">
+                <button @click="scrollToFirst" class="ui-btn">First</button>
+                <button @click="scrollToMiddle" class="ui-btn">Middle</button>
+                <button @click="scrollToLast" class="ui-btn">Last</button>
+                <button @click="scrollToRandom" class="ui-btn">Random</button>
               </div>
             </div>
 
-            <div class="panel-row">
-              <label class="panel-label">Smooth scroll</label>
-              <div class="panel-btn-group">
-                <button @click="handleSmoothTop" class="panel-btn">↑ Top</button>
-                <button @click="handleSmoothBottom" class="panel-btn">↓ Bottom</button>
+            <div class="ui-row">
+              <label class="ui-label">Smooth scroll</label>
+              <div class="ui-btn-group">
+                <button @click="handleSmoothTop" class="ui-btn">↑ Top</button>
+                <button @click="handleSmoothBottom" class="ui-btn">↓ Bottom</button>
               </div>
             </div>
           </section>
 
           <!-- Viewport -->
-          <section class="panel-section">
-            <h3 class="panel-title">Viewport</h3>
-            <div class="panel-row">
-              <span class="panel-label">Scroll</span>
-              <span class="panel-value">{{ viewport.scrollPos.toLocaleString() }}px</span>
+          <section class="ui-section">
+            <h3 class="ui-title">Viewport</h3>
+            <div class="ui-row">
+              <span class="ui-label">Scroll</span>
+              <span class="ui-value">{{ viewport.scrollPos.toLocaleString() }}px</span>
             </div>
-            <div class="panel-row">
-              <span class="panel-label">Direction</span>
-              <span class="panel-value">{{ viewport.direction }}</span>
+            <div class="ui-row">
+              <span class="ui-label">Direction</span>
+              <span class="ui-value">{{ viewport.direction }}</span>
             </div>
-            <div class="panel-row">
-              <span class="panel-label">Range</span>
-              <span class="panel-value">{{ viewport.range }}</span>
+            <div class="ui-row">
+              <span class="ui-label">Range</span>
+              <span class="ui-value">{{ viewport.range }}</span>
             </div>
           </section>
         </aside>

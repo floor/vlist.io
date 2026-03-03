@@ -4,19 +4,6 @@
    Covers: markdown body, code blocks, tables, syntax highlighting, errors.
    ============================================================================= */
 
-/* ─── Content Token Overrides ────────────────────────────────────────────── */
-
-:root {
-    --bg-code: #18181e;
-    --bg-code-inline: #1c1c24;
-    --radius-sm: 5px;
-}
-
-[data-theme-mode="light"] {
-    --bg-code: #f0f0f5;
-    --bg-code-inline: #eaeaf0;
-}
-
 /* ─── Markdown body ──────────────────────────────────────────────────────── */
 
 .md {
@@ -28,7 +15,7 @@
 }
 
 .md h1 {
-    font-size: 36px;
+    font-size: var(--fs-4xl);
     font-weight: 700;
     letter-spacing: -0.5px;
     margin-bottom: 8px;
@@ -37,7 +24,7 @@
 }
 
 .md h2 {
-    font-size: 27px;
+    font-size: var(--fs-3xl);
     font-weight: 650;
     margin-top: 48px;
     margin-bottom: 16px;
@@ -47,14 +34,14 @@
 }
 
 .md h3 {
-    font-size: 21px;
+    font-size: var(--fs-xl);
     font-weight: 600;
     margin-top: 32px;
     margin-bottom: 12px;
 }
 
 .md h4 {
-    font-size: 17px;
+    font-size: var(--fs-lg);
     font-weight: 600;
     margin-top: 24px;
     margin-bottom: 8px;
@@ -86,7 +73,11 @@
 .md h1:hover .anchor,
 .md h2:hover .anchor,
 .md h3:hover .anchor,
-.md h4:hover .anchor {
+.md h4:hover .anchor,
+.md h1:focus-within .anchor,
+.md h2:focus-within .anchor,
+.md h3:focus-within .anchor,
+.md h4:focus-within .anchor {
     opacity: 1;
 }
 
@@ -94,6 +85,7 @@
     margin-bottom: 16px;
     color: var(--text-muted);
     line-height: 1.7;
+    font-size: var(--fs-md);
 }
 
 .md blockquote {
@@ -146,8 +138,7 @@
 /* ─── Code ───────────────────────────────────────────────────────────────── */
 
 .md code {
-    font-family:
-        "SF Mono", Monaco, Menlo, "Cascadia Code", "Consolas", monospace;
+    font-family: var(--font-mono);
     font-size: 0.88em;
     background: var(--bg-code-inline);
     padding: 2px 7px;
@@ -186,7 +177,7 @@
     background: none;
     padding: 0;
     border-radius: 0;
-    font-size: 16px;
+    font-size: var(--fs-md);
     color: #c8cedc;
 }
 
@@ -200,7 +191,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 16px;
-    font-size: 16px;
+    font-size: var(--fs-md);
 }
 
 .md thead th {
@@ -209,7 +200,7 @@
     color: var(--text);
     padding: 8px 12px;
     border-bottom: 2px solid var(--border);
-    font-size: 15px;
+    font-size: var(--fs-base);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -226,159 +217,14 @@
 }
 
 .md tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--sidebar-hover);
 }
 
 .md tbody td code {
-    font-size: 15px;
+    font-size: var(--fs-base);
 }
 
-/* ─── Syntax highlighting — dark theme (default) ─────────────────────────── */
-
-.hljs-keyword,
-.hljs-selector-tag,
-.hljs-built_in,
-.hljs-type {
-    color: #c792ea;
-}
-
-.hljs-string,
-.hljs-attr {
-    color: #c3e88d;
-}
-
-.hljs-number,
-.hljs-literal {
-    color: #f78c6c;
-}
-
-.hljs-comment {
-    color: #546e7a;
-    font-style: italic;
-}
-
-.hljs-function .hljs-title,
-.hljs-title.function_ {
-    color: #82aaff;
-}
-
-.hljs-variable,
-.hljs-template-variable {
-    color: #eeffff;
-}
-
-.hljs-params {
-    color: #c8cedc;
-}
-
-.hljs-property {
-    color: #80cbc4;
-}
-
-.hljs-punctuation {
-    color: #89ddff;
-}
-
-.hljs-meta {
-    color: #ffcb6b;
-}
-
-.hljs-selector-class {
-    color: #ffcb6b;
-}
-
-.hljs-selector-id {
-    color: #82aaff;
-}
-
-.hljs-attribute {
-    color: #c792ea;
-}
-
-.hljs-regexp {
-    color: #89ddff;
-}
-
-.hljs-addition {
-    color: #c3e88d;
-}
-
-.hljs-deletion {
-    color: #ff5370;
-}
-
-/* ─── Syntax highlighting — light theme ─────────────────────────────────── */
-
-[data-theme-mode="light"] .hljs-keyword,
-[data-theme-mode="light"] .hljs-selector-tag,
-[data-theme-mode="light"] .hljs-built_in,
-[data-theme-mode="light"] .hljs-type {
-    color: #7c3aed;
-}
-
-[data-theme-mode="light"] .hljs-string,
-[data-theme-mode="light"] .hljs-attr {
-    color: #16a34a;
-}
-
-[data-theme-mode="light"] .hljs-number,
-[data-theme-mode="light"] .hljs-literal {
-    color: #ea580c;
-}
-
-[data-theme-mode="light"] .hljs-comment {
-    color: #94a3b8;
-}
-
-[data-theme-mode="light"] .hljs-function .hljs-title,
-[data-theme-mode="light"] .hljs-title.function_ {
-    color: #2563eb;
-}
-
-[data-theme-mode="light"] .hljs-variable,
-[data-theme-mode="light"] .hljs-template-variable {
-    color: #1e293b;
-}
-
-[data-theme-mode="light"] .hljs-params {
-    color: #475569;
-}
-
-[data-theme-mode="light"] .hljs-property {
-    color: #0d9488;
-}
-
-[data-theme-mode="light"] .hljs-punctuation {
-    color: #6366f1;
-}
-
-[data-theme-mode="light"] .hljs-meta {
-    color: #d97706;
-}
-
-[data-theme-mode="light"] .hljs-selector-class {
-    color: #d97706;
-}
-
-[data-theme-mode="light"] .hljs-selector-id {
-    color: #2563eb;
-}
-
-[data-theme-mode="light"] .hljs-attribute {
-    color: #7c3aed;
-}
-
-[data-theme-mode="light"] .hljs-regexp {
-    color: #6366f1;
-}
-
-[data-theme-mode="light"] .hljs-addition {
-    color: #16a34a;
-}
-
-[data-theme-mode="light"] .hljs-deletion {
-    color: #dc2626;
-}
+/* All syntax highlighting is now in syntax.css */
 
 /* ─── Error ──────────────────────────────────────────────────────────────── */
 
@@ -389,14 +235,14 @@
 }
 
 .error__title {
-    font-size: 22px;
+    font-size: var(--fs-2xl);
     font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 8px;
 }
 
 .error__message {
-    font-size: 17px;
+    font-size: var(--fs-lg);
     margin-bottom: 20px;
 }
 

@@ -148,9 +148,7 @@
    ========================================================================== */
 
 .height-distribution {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    /* surface via .ui-card */
     padding: 16px 20px;
     margin-top: 12px;
     display: flex;

@@ -18,18 +18,18 @@
 
         <aside class="split-panel">
             <!-- Mode -->
-            <section class="panel-section">
-                <h3 class="panel-title">Mode</h3>
+            <section class="ui-section">
+                <h3 class="ui-title">Mode</h3>
 
-                <div class="panel-row">
-                    <label class="panel-label">Size</label>
-                    <span class="panel-value" id="size-value">240px</span>
+                <div class="ui-row">
+                    <label class="ui-label">Size</label>
+                    <span class="ui-value" id="size-value">240px</span>
                 </div>
-                <div class="panel-row">
+                <div class="ui-row">
                     <input
                         type="range"
                         id="size-slider"
-                        class="panel-slider"
+                        class="ui-slider"
                         min="200"
                         max="500"
                         step="10"
@@ -37,67 +37,70 @@
                     />
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Variable width</label>
-                    <label class="toggle">
+                <div class="ui-row">
+                    <label class="ui-label">Variable width</label>
+                    <label class="ui-switch">
                         <input type="checkbox" id="toggle-variable" />
-                        <span class="toggle-track"></span>
+                        <span class="ui-switch__track"></span>
                     </label>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Gap</label>
-                    <div class="panel-btn-group" id="gap-buttons">
-                        <button class="ctrl-btn" data-gap="0">0</button>
-                        <button class="ctrl-btn" data-gap="4">4</button>
-                        <button class="ctrl-btn ctrl-btn--active" data-gap="8">
+                <div class="ui-row">
+                    <label class="ui-label">Gap</label>
+                    <div class="ui-btn-group" id="gap-buttons">
+                        <button class="ui-ctrl-btn" data-gap="0">0</button>
+                        <button class="ui-ctrl-btn" data-gap="4">4</button>
+                        <button
+                            class="ui-ctrl-btn ui-ctrl-btn--active"
+                            data-gap="8"
+                        >
                             8
                         </button>
-                        <button class="ctrl-btn" data-gap="12">12</button>
-                        <button class="ctrl-btn" data-gap="16">16</button>
+                        <button class="ui-ctrl-btn" data-gap="12">12</button>
+                        <button class="ui-ctrl-btn" data-gap="16">16</button>
                     </div>
                 </div>
 
-                <div class="panel-row">
-                    <label class="panel-label">Radius</label>
-                    <div class="panel-btn-group" id="radius-buttons">
-                        <button class="ctrl-btn" data-radius="0">0</button>
-                        <button class="ctrl-btn" data-radius="4">4</button>
-                        <button class="ctrl-btn" data-radius="8">8</button>
+                <div class="ui-row">
+                    <label class="ui-label">Radius</label>
+                    <div class="ui-btn-group" id="radius-buttons">
+                        <button class="ui-ctrl-btn" data-radius="0">0</button>
+                        <button class="ui-ctrl-btn" data-radius="4">4</button>
+                        <button class="ui-ctrl-btn" data-radius="8">8</button>
                         <button
-                            class="ctrl-btn ctrl-btn--active"
+                            class="ui-ctrl-btn ui-ctrl-btn--active"
                             data-radius="12"
                         >
                             12
                         </button>
-                        <button class="ctrl-btn" data-radius="16">16</button>
+                        <button class="ui-ctrl-btn" data-radius="16">16</button>
                     </div>
                 </div>
             </section>
 
             <!-- Scroll To -->
-            <section class="panel-section">
-                <h3 class="panel-title">Scroll To</h3>
+            <section class="ui-section">
+                <h3 class="ui-title">Scroll To</h3>
 
-                <div class="panel-row">
-                    <div class="panel-btn-group">
+                <div class="ui-row">
+                    <div class="ui-btn-group">
                         <button
                             id="btn-start"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Start"
                         >
                             <i class="icon icon--back"></i>
                         </button>
                         <button
                             id="btn-center"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Center"
                         >
                             <i class="icon icon--center"></i>
                         </button>
                         <button
                             id="btn-end"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="End"
                         >
                             <i class="icon icon--forward"></i>
@@ -107,10 +110,10 @@
             </section>
 
             <!-- Card Detail -->
-            <section class="panel-section">
-                <h3 class="panel-title">Last clicked</h3>
-                <div class="panel-detail" id="card-detail">
-                    <span class="panel-detail__empty"
+            <section class="ui-section">
+                <h3 class="ui-title">Last clicked</h3>
+                <div class="ui-detail" id="card-detail">
+                    <span class="ui-detail__empty"
                         >Click a card to preview</span
                     >
                 </div>

@@ -190,9 +190,9 @@ function setSelectionMode(mode) {
   currentSelectionMode = mode;
 
   // Update segmented button active state
-  selectionModeEl.querySelectorAll(".panel-segmented__btn").forEach((btn) => {
+  selectionModeEl.querySelectorAll(".ui-segmented__btn").forEach((btn) => {
     btn.classList.toggle(
-      "panel-segmented__btn--active",
+      "ui-segmented__btn--active",
       btn.dataset.value === mode,
     );
   });
@@ -203,7 +203,7 @@ function setSelectionMode(mode) {
 }
 
 selectionModeEl.addEventListener("click", (e) => {
-  const btn = e.target.closest(".panel-segmented__btn");
+  const btn = e.target.closest(".ui-segmented__btn");
   if (btn) setSelectionMode(btn.dataset.value);
 });
 
@@ -228,14 +228,14 @@ function updateSelectionCount(selected) {
 
 function showItemDetail(item, index) {
   itemDetailEl.innerHTML = `
-    <div class="panel-detail__header">
-      <span class="panel-detail__avatar">${item.initials}</span>
+    <div class="ui-detail__header">
+      <span class="ui-detail__avatar">${item.initials}</span>
       <div>
-        <div class="panel-detail__name">${item.name}</div>
-        <div class="panel-detail__email">${item.email}</div>
+        <div class="ui-detail__name">${item.name}</div>
+        <div class="ui-detail__email">${item.email}</div>
       </div>
     </div>
-    <div class="panel-detail__meta">
+    <div class="ui-detail__meta">
       <span>id: ${item.id}</span>
       <span>index: ${index}</span>
     </div>

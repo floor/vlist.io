@@ -260,9 +260,7 @@
    ============================================================================ */
 
 .bench-suite {
-    background: var(--bg-card);
-    border: 2px solid var(--border);
-    border-radius: 8px;
+    /* surface via .ui-card .ui-card--strong */
     padding: 24px;
     transition: all 0.3s ease;
 }
@@ -483,9 +481,7 @@
    ============================================================================ */
 
 .bench-bundle {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
+    /* surface via .ui-card .ui-card--xl */
     padding: 24px;
     margin-bottom: 40px;
 }
@@ -566,9 +562,7 @@
    ============================================================================ */
 
 .bench-features {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
+    /* surface via .ui-card .ui-card--xl */
     padding: 24px;
     margin-bottom: 40px;
 }

@@ -147,14 +147,6 @@
     gap: 6px;
 }
 
-.meta-tag {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.2px;
-}
-
 .meta-time {
     background: var(--accent-dim);
     color: var(--accent-text);

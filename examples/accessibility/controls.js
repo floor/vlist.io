@@ -22,7 +22,7 @@ function activateMode(mode) {
   if (app.selectionMode === mode) return;
   for (const [key, btn] of Object.entries(modeButtons)) {
     const active = key === mode;
-    btn.classList.toggle("panel-btn--active", active);
+    btn.classList.toggle("ui-btn--active", active);
     btn.setAttribute("aria-pressed", String(active));
   }
   app.setSelectionMode(mode);

@@ -240,8 +240,8 @@ const itemTemplate = (item) => `
     <div class="recipe-header">
       <span class="recipe-emoji">${item.emoji}</span>
       <div class="recipe-meta">
-        <span class="meta-tag meta-time">⏱ ${item.time}</span>
-        <span class="meta-tag meta-difficulty">${item.difficulty}</span>
+        <span class="ui-badge ui-badge--pill meta-time">⏱ ${item.time}</span>
+        <span class="ui-badge ui-badge--pill meta-difficulty">${item.difficulty}</span>
       </div>
     </div>
     <h2 class="recipe-title">${item.title}</h2>

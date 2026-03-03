@@ -1,0 +1,243 @@
+/* =================================================================
+   syntax.css — Single source of truth for all syntax highlighting
+   Covers: highlight.js classes + short-class aliases used in
+   hand-written code samples (homepage, API page).
+   Loaded on every page via tokens.css → syntax.css → shell.css.
+   ================================================================= */
+
+/* ─── highlight.js — Dark theme (default) ────────────────────────── */
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-type {
+    color: #c792ea;
+}
+
+.hljs-tag {
+    color: #89ddff;
+}
+
+.hljs-tag .hljs-name {
+    color: #f07178;
+}
+
+.hljs-string,
+.hljs-attr {
+    color: #c3e88d;
+}
+
+.hljs-number,
+.hljs-literal {
+    color: #f78c6c;
+}
+
+.hljs-comment {
+    color: #546e7a;
+    font-style: italic;
+}
+
+.hljs-function .hljs-title,
+.hljs-title.function_ {
+    color: #82aaff;
+}
+
+.hljs-variable,
+.hljs-template-variable {
+    color: #eeffff;
+}
+
+.hljs-params {
+    color: #c8cedc;
+}
+
+.hljs-property {
+    color: #80cbc4;
+}
+
+.hljs-punctuation {
+    color: #89ddff;
+}
+
+.hljs-meta {
+    color: #ffcb6b;
+}
+
+.hljs-selector-class {
+    color: #ffcb6b;
+}
+
+.hljs-selector-id {
+    color: #82aaff;
+}
+
+.hljs-attribute {
+    color: #c792ea;
+}
+
+.hljs-regexp {
+    color: #89ddff;
+}
+
+.hljs-addition {
+    color: #c3e88d;
+}
+
+.hljs-deletion {
+    color: #ff5370;
+}
+
+/* ─── highlight.js — Light theme ─────────────────────────────────── */
+
+[data-theme-mode="light"] .hljs-keyword,
+[data-theme-mode="light"] .hljs-selector-tag,
+[data-theme-mode="light"] .hljs-built_in,
+[data-theme-mode="light"] .hljs-type {
+    color: #7c3aed;
+}
+
+[data-theme-mode="light"] .hljs-tag {
+    color: #6366f1;
+}
+
+[data-theme-mode="light"] .hljs-tag .hljs-name {
+    color: #dc2626;
+}
+
+[data-theme-mode="light"] .hljs-string,
+[data-theme-mode="light"] .hljs-attr {
+    color: #16a34a;
+}
+
+[data-theme-mode="light"] .hljs-number,
+[data-theme-mode="light"] .hljs-literal {
+    color: #ea580c;
+}
+
+[data-theme-mode="light"] .hljs-comment {
+    color: #94a3b8;
+}
+
+[data-theme-mode="light"] .hljs-function .hljs-title,
+[data-theme-mode="light"] .hljs-title.function_ {
+    color: #2563eb;
+}
+
+[data-theme-mode="light"] .hljs-variable,
+[data-theme-mode="light"] .hljs-template-variable {
+    color: #1e293b;
+}
+
+[data-theme-mode="light"] .hljs-params {
+    color: #475569;
+}
+
+[data-theme-mode="light"] .hljs-property {
+    color: #0d9488;
+}
+
+[data-theme-mode="light"] .hljs-punctuation {
+    color: #6366f1;
+}
+
+[data-theme-mode="light"] .hljs-meta {
+    color: #d97706;
+}
+
+[data-theme-mode="light"] .hljs-selector-class {
+    color: #d97706;
+}
+
+[data-theme-mode="light"] .hljs-selector-id {
+    color: #2563eb;
+}
+
+[data-theme-mode="light"] .hljs-attribute {
+    color: #7c3aed;
+}
+
+[data-theme-mode="light"] .hljs-regexp {
+    color: #6366f1;
+}
+
+[data-theme-mode="light"] .hljs-addition {
+    color: #16a34a;
+}
+
+[data-theme-mode="light"] .hljs-deletion {
+    color: #dc2626;
+}
+
+/* ─── Short-class aliases — Dark theme (default) ─────────────────── */
+/* Used in hand-written <span class="kw"> markup (homepage, API page) */
+
+.kw {
+    color: #c792ea;
+}
+.fn {
+    color: #82aaff;
+}
+.str {
+    color: #c3e88d;
+}
+.num {
+    color: #f78c6c;
+}
+.prop {
+    color: #80cbc4;
+}
+.par {
+    color: #89ddff;
+}
+.op {
+    color: #89ddff;
+}
+.pun {
+    color: #89ddff;
+}
+.cm {
+    color: #546e7a;
+    font-style: italic;
+}
+.bool {
+    color: #ff5370;
+}
+.type {
+    color: #ffcb6b;
+}
+
+/* ─── Short-class aliases — Light theme ──────────────────────────── */
+
+[data-theme-mode="light"] .kw {
+    color: #7c3aed;
+}
+[data-theme-mode="light"] .fn {
+    color: #2563eb;
+}
+[data-theme-mode="light"] .str {
+    color: #16a34a;
+}
+[data-theme-mode="light"] .num {
+    color: #ea580c;
+}
+[data-theme-mode="light"] .prop {
+    color: #0d9488;
+}
+[data-theme-mode="light"] .par {
+    color: #6366f1;
+}
+[data-theme-mode="light"] .op {
+    color: #6366f1;
+}
+[data-theme-mode="light"] .pun {
+    color: #6366f1;
+}
+[data-theme-mode="light"] .cm {
+    color: #94a3b8;
+}
+[data-theme-mode="light"] .bool {
+    color: #dc2626;
+}
+[data-theme-mode="light"] .type {
+    color: #d97706;
+}

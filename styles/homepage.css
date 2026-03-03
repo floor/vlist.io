@@ -2,26 +2,10 @@
    Homepage Styles
    ============================================================ */
 
-/* ─── Landing Token Overrides ─────────────────────── */
+/* All design tokens are now in tokens.css — homepage overrides only */
 
 :root {
-    --text-muted: #7a7a88;
-    --text-dim: #55555f;
-    --bg-card-hover: #1a1a1f;
-    --accent-dim: rgba(102, 126, 234, 0.12);
-    --accent-glow: rgba(102, 126, 234, 0.06);
-    --dropdown-bg: rgba(12, 12, 16, 0.95);
     --radius: 12px;
-    --radius-sm: 8px;
-}
-
-[data-theme-mode="light"] {
-    --text-muted: #555568;
-    --text-dim: #8888a0;
-    --bg-card-hover: #e8e8f0;
-    --accent-dim: rgba(74, 92, 216, 0.08);
-    --accent-glow: rgba(74, 92, 216, 0.04);
-    --dropdown-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* ============================================================
@@ -35,42 +19,6 @@
 }
 
 /* ============================================================
-   Mobile Dropdown
-   ============================================================ */
-
-.dropdown {
-    display: none;
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    right: 0;
-    background: var(--dropdown-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 24px 16px;
-    z-index: 99;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.dropdown--open {
-    display: flex;
-}
-
-.dropdown a {
-    display: block;
-    font-size: 14px;
-    color: var(--text-muted);
-    text-decoration: none;
-    padding: 8px 0;
-}
-
-.dropdown a:hover {
-    color: var(--text);
-}
-
-/* ============================================================
    Hero
    ============================================================ */
 
@@ -80,23 +28,23 @@
 }
 
 .hero__logo {
-    width: 80px;
-    height: 80px;
+    width: clamp(56px, 8vw, 80px);
+    height: clamp(56px, 8vw, 80px);
     margin: 0 auto 20px;
     border-radius: 50%;
 }
 
 .hero__name {
-    font-size: 78px;
+    font-size: clamp(38px, 8vw, 78px);
     font-weight: 700;
-    letter-spacing: -2px;
+    letter-spacing: clamp(-1px, -0.3vw, -2px);
     line-height: 1;
     margin-bottom: 16px;
     color: var(--text);
 }
 
 .hero__tagline {
-    font-size: 22px;
+    font-size: clamp(16px, 2.5vw, 22px);
     color: var(--text-muted);
     line-height: 1.5;
     max-width: 480px;
@@ -109,21 +57,6 @@
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 36px;
-}
-
-.badge {
-    font-size: 15px;
-    padding: 5px 12px;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    letter-spacing: 0.2px;
-}
-
-.badge--accent {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-dim);
 }
 
 .hero__actions {
@@ -139,7 +72,7 @@
     gap: 8px;
     padding: 10px 22px;
     border-radius: var(--radius-sm);
-    font-size: 17px;
+    font-size: var(--fs-lg);
     font-weight: 500;
     font-family: inherit;
     text-decoration: none;
@@ -155,8 +88,8 @@
 }
 
 .btn--primary:hover {
-    background: #5a6fd6;
-    border-color: #5a6fd6;
+    background: color-mix(in oklch, var(--accent) 85%, black);
+    border-color: color-mix(in oklch, var(--accent) 85%, black);
 }
 
 .btn--ghost {
@@ -183,8 +116,8 @@
 }
 
 .install__cmd {
-    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    font-size: 17px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -205,7 +138,7 @@
 }
 
 .section__title {
-    font-size: 16px;
+    font-size: var(--fs-base);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -225,15 +158,7 @@
 }
 
 .feature {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    transition: border-color 0.2s ease;
-}
-
-.feature:hover {
-    border-color: var(--border-hover);
+    /* surface via .ui-card .ui-card--interactive */
 }
 
 .feature__icon {
@@ -243,14 +168,14 @@
 }
 
 .feature__name {
-    font-size: 17px;
+    font-size: var(--fs-lg);
     font-weight: 600;
     color: var(--text);
     margin-bottom: 4px;
 }
 
 .feature__desc {
-    font-size: 15px;
+    font-size: var(--fs-base);
     color: var(--text-muted);
     line-height: 1.5;
 }
@@ -266,41 +191,31 @@
 }
 
 .nav-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    /* surface via .ui-card .ui-card--interactive */
     padding: 24px 20px;
-    text-decoration: none;
-    color: inherit;
-    transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.nav-card:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-hover);
-}
-
 .nav-card__icon {
-    font-size: 30px;
+    font-size: 28px;
 }
 
 .nav-card__title {
-    font-size: 20px;
+    font-size: var(--fs-xl);
     font-weight: 600;
     color: var(--text);
 }
 
 .nav-card__desc {
-    font-size: 16px;
+    font-size: var(--fs-base);
     color: var(--text-muted);
     line-height: 1.5;
 }
 
 .nav-card__link {
-    font-size: 15px;
+    font-size: var(--fs-base);
     color: var(--accent);
     margin-top: auto;
     display: flex;
@@ -318,21 +233,10 @@
 }
 
 .example-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 14px 18px;
-    text-decoration: none;
-    color: inherit;
+    /* surface via .ui-card .ui-card--interactive .ui-card--compact .ui-card--sm */
     display: flex;
     align-items: center;
     gap: 16px;
-    transition: all 0.15s ease;
-}
-
-.example-item:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--border-hover);
 }
 
 .example-item__name {
@@ -370,76 +274,21 @@
    ============================================================ */
 
 .code {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
+    /* surface via .ui-card */
     overflow-x: auto;
 }
 
 .code pre {
-    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    font-size: 16px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
     line-height: 1.7;
     color: var(--text-muted);
 }
 
-.code .kw {
-    color: #c792ea;
-}
-.code .fn {
-    color: #82aaff;
-}
-.code .str {
-    color: #c3e88d;
-}
-.code .cm {
-    color: #555;
-}
-.code .num {
-    color: #f78c6c;
-}
-.code .prop {
-    color: #f07178;
-}
-.code .par {
-    color: #89ddff;
-}
-.code .op {
-    color: #89ddff;
-}
+/* ─── Light theme: homepage code block overrides ─── */
 
-/* ─── Light theme: code ──────────────────────────── */
-
-[data-theme-mode="light"] .code {
-    background: var(--bg-card);
-}
 [data-theme-mode="light"] .code pre {
     color: var(--text-muted);
-}
-[data-theme-mode="light"] .code .kw {
-    color: #7c3aed;
-}
-[data-theme-mode="light"] .code .fn {
-    color: #2563eb;
-}
-[data-theme-mode="light"] .code .str {
-    color: #16a34a;
-}
-[data-theme-mode="light"] .code .cm {
-    color: #94a3b8;
-}
-[data-theme-mode="light"] .code .num {
-    color: #ea580c;
-}
-[data-theme-mode="light"] .code .prop {
-    color: #dc2626;
-}
-[data-theme-mode="light"] .code .par {
-    color: #6366f1;
-}
-[data-theme-mode="light"] .code .op {
-    color: #6366f1;
 }
 
 /* ============================================================
@@ -450,7 +299,7 @@ footer {
     text-align: center;
     padding: 48px 0 40px;
     color: var(--text-dim);
-    font-size: 16px;
+    font-size: var(--fs-md);
     border-top: 1px solid var(--border);
 }
 
@@ -474,29 +323,9 @@ footer a:hover {
    Responsive
    ============================================================ */
 
-/* Reset shell.css 720px breakpoint — landing has no sidebar,
-   so the hamburger collapses at 640px instead */
-@media (max-width: 720px) {
-    .header__hamburger {
-        display: none;
-    }
-
-    .header__nav {
-        display: flex;
-    }
-}
-
 /* ─── Tablet ─────────────────────────────────────── */
 
 @media (max-width: 800px) {
-    .hero__name {
-        font-size: 64px;
-    }
-
-    .hero__tagline {
-        font-size: 20px;
-    }
-
     .features {
         grid-template-columns: 1fr 1fr;
     }
@@ -513,48 +342,20 @@ footer a:hover {
 /* ─── Mobile ─────────────────────────────────────── */
 
 @media (max-width: 640px) {
-    .header__nav {
-        display: none;
-    }
-
-    .header__hamburger {
-        display: block;
-    }
-
-    .dropdown--open {
-        display: flex;
-    }
-
     .hero {
         padding: calc(var(--header-height) + 28px) 0 36px;
     }
 
     .hero__logo {
-        width: 64px;
-        height: 64px;
         margin-bottom: 16px;
-    }
-
-    .hero__name {
-        font-size: 48px;
-        letter-spacing: -1.5px;
-    }
-
-    .hero__tagline {
-        font-size: 17px;
-        margin-bottom: 24px;
     }
 
     .hero__badges {
         margin-bottom: 28px;
     }
 
-    .badge {
-        font-size: 13px;
-    }
-
     .btn {
-        font-size: 15px;
+        font-size: var(--fs-base);
         padding: 9px 18px;
     }
 
@@ -565,10 +366,6 @@ footer a:hover {
 
     .install {
         margin-bottom: 40px;
-    }
-
-    .section__title {
-        font-size: 14px;
     }
 
     .feature__icon {
@@ -630,27 +427,11 @@ footer a:hover {
 
 @media (max-width: 420px) {
     .hero__logo {
-        width: 56px;
-        height: 56px;
         margin-bottom: 14px;
-    }
-
-    .hero__name {
-        font-size: 38px;
-        letter-spacing: -1px;
-    }
-
-    .hero__tagline {
-        font-size: 16px;
     }
 
     .features {
         grid-template-columns: 1fr;
-    }
-
-    .badge {
-        font-size: 12px;
-        padding: 4px 10px;
     }
 
     .btn {
