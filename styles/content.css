@@ -15,7 +15,7 @@
 }
 
 .md h1 {
-    font-size: 36px;
+    font-size: var(--fs-4xl);
     font-weight: 700;
     letter-spacing: -0.5px;
     margin-bottom: 8px;
@@ -24,7 +24,7 @@
 }
 
 .md h2 {
-    font-size: 27px;
+    font-size: var(--fs-3xl);
     font-weight: 650;
     margin-top: 48px;
     margin-bottom: 16px;
@@ -34,14 +34,14 @@
 }
 
 .md h3 {
-    font-size: 21px;
+    font-size: var(--fs-xl);
     font-weight: 600;
     margin-top: 32px;
     margin-bottom: 12px;
 }
 
 .md h4 {
-    font-size: 17px;
+    font-size: var(--fs-lg);
     font-weight: 600;
     margin-top: 24px;
     margin-bottom: 8px;
@@ -81,6 +81,7 @@
     margin-bottom: 16px;
     color: var(--text-muted);
     line-height: 1.7;
+    font-size: var(--fs-md);
 }
 
 .md blockquote {
@@ -133,8 +134,7 @@
 /* ─── Code ───────────────────────────────────────────────────────────────── */
 
 .md code {
-    font-family:
-        "SF Mono", Monaco, Menlo, "Cascadia Code", "Consolas", monospace;
+    font-family: var(--font-mono);
     font-size: 0.88em;
     background: var(--bg-code-inline);
     padding: 2px 7px;
@@ -173,7 +173,7 @@
     background: none;
     padding: 0;
     border-radius: 0;
-    font-size: 16px;
+    font-size: var(--fs-md);
     color: #c8cedc;
 }
 
@@ -187,7 +187,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 16px;
-    font-size: 16px;
+    font-size: var(--fs-md);
 }
 
 .md thead th {
@@ -196,7 +196,7 @@
     color: var(--text);
     padding: 8px 12px;
     border-bottom: 2px solid var(--border);
-    font-size: 15px;
+    font-size: var(--fs-base);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -221,7 +221,7 @@
 }
 
 .md tbody td code {
-    font-size: 15px;
+    font-size: var(--fs-base);
 }
 
 /* All syntax highlighting is now in syntax.css */
@@ -235,14 +235,14 @@
 }
 
 .error__title {
-    font-size: 22px;
+    font-size: var(--fs-2xl);
     font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 8px;
 }
 
 .error__message {
-    font-size: 17px;
+    font-size: var(--fs-lg);
     margin-bottom: 20px;
 }
 

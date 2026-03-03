@@ -49,6 +49,26 @@
     --radius: 8px;
     --radius-sm: 6px;
     --radius-xs: 4px;
+
+    /* Typography: Font families */
+    --font-sans:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+        sans-serif;
+    --font-mono: "SF Mono", Monaco, Menlo, "Cascadia Code", Consolas, monospace;
+
+    /* Typography: Font-size scale */
+    --fs-2xs: 11px;
+    --fs-xs: 12px;
+    --fs-sm: 13px;
+    --fs-base: 15px;
+    --fs-md: 16px;
+    --fs-lg: 17px;
+    --fs-xl: 20px;
+    --fs-2xl: 22px;
+    --fs-3xl: 27px;
+    --fs-4xl: 36px;
+    --fs-5xl: 48px;
+    --fs-6xl: 78px;
 }
 
 /* ─── Light Theme ────────────────────────────────────────────────── */
