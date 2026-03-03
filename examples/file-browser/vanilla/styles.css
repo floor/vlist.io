@@ -217,36 +217,6 @@
 }
 
 /* ============================================================================
-   Control Buttons (columns / gap)
-   ============================================================================ */
-
-.ctrl-btn {
-    padding: 6px 14px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--bg-card);
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    min-width: 36px;
-    text-align: center;
-}
-
-.ctrl-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent-text);
-}
-
-.ctrl-btn--active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-}
-
-/* ============================================================================
    File Card (Grid View)
    ============================================================================ */
 

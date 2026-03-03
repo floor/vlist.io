@@ -134,7 +134,7 @@ gapButtons?.addEventListener("click", (e) => {
   currentGap = gap;
 
   gapButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ctrl-btn--active", parseInt(b.dataset.gap) === gap);
+    b.classList.toggle("ui-ctrl-btn--active", parseInt(b.dataset.gap) === gap);
   });
 
   createList();
@@ -154,7 +154,7 @@ radiusButtons?.addEventListener("click", (e) => {
 
   radiusButtons.querySelectorAll("button").forEach((b) => {
     b.classList.toggle(
-      "ctrl-btn--active",
+      "ui-ctrl-btn--active",
       parseInt(b.dataset.radius) === radius,
     );
   });

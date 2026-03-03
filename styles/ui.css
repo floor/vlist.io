@@ -1,7 +1,8 @@
 /* styles/ui.css — Reusable UI components for vlist.dev
 
-   Split layout, sections, form controls, buttons, segmented toggles,
-   detail cards, stats bar, controls bar, chips, source viewer, icons.
+   Split layout, sections, form controls, buttons, control buttons,
+   segmented toggles, detail cards, stats bar, controls bar, chips,
+   badges, source viewer, switch, slider, icons.
 
    Loaded on pages that use interactive UI components.
    Uses tokens.css design tokens for theming. */
@@ -305,6 +306,36 @@
 }
 
 /* ============================================================================
+   Control Buttons — discrete-value pickers (gap, radius, columns)
+   ============================================================================ */
+
+.ui-ctrl-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 36px;
+    text-align: center;
+}
+
+.ui-ctrl-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+.ui-ctrl-btn--active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* ============================================================================
    Segmented Buttons — toggle group (e.g. selection mode)
    ============================================================================ */
 
@@ -515,6 +546,128 @@
     border: 1px solid var(--border, rgba(127, 127, 127, 0.15));
     color: var(--text-muted, #6b7280);
     white-space: nowrap;
+}
+
+/* ============================================================================
+   Badge — small inline status / metadata labels
+   ============================================================================ */
+
+.ui-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+    white-space: nowrap;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme-mode="light"] .ui-badge {
+    background: #f0f0f2;
+}
+
+/* -- Shape: pill ----------------------------------------------------------- */
+
+.ui-badge--pill {
+    border-radius: 20px;
+    padding: 2px 10px;
+}
+
+/* -- Size: small ----------------------------------------------------------- */
+
+.ui-badge--sm {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* -- Variant: glass (translucent overlay for colored cards) ---------------- */
+
+.ui-badge--glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 9px;
+}
+
+/* -- Semantic colors ------------------------------------------------------- */
+
+.ui-badge--success {
+    color: #6fcf97;
+    background: rgba(111, 207, 151, 0.1);
+}
+
+.ui-badge--warning {
+    color: #d4a052;
+    background: rgba(212, 160, 82, 0.1);
+}
+
+.ui-badge--error {
+    color: #e07575;
+    background: rgba(224, 117, 117, 0.1);
+}
+
+.ui-badge--info {
+    color: #7eb8f0;
+    background: rgba(126, 184, 240, 0.1);
+}
+
+.ui-badge--muted {
+    color: #9a9aaa;
+    background: rgba(154, 154, 170, 0.1);
+}
+
+.ui-badge--purple {
+    color: #b09adf;
+    background: rgba(176, 154, 223, 0.1);
+}
+
+.ui-badge--accent {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    letter-spacing: 0.03em;
+}
+
+/* -- Light mode overrides ------------------------------------------------- */
+
+[data-theme-mode="light"] .ui-badge--success {
+    color: #1b6e20;
+    background: #e1f0e2;
+}
+
+[data-theme-mode="light"] .ui-badge--warning {
+    color: #7a5000;
+    background: #f5ede0;
+}
+
+[data-theme-mode="light"] .ui-badge--error {
+    color: #a21c1c;
+    background: #f8e2e2;
+}
+
+[data-theme-mode="light"] .ui-badge--info {
+    color: #1a5296;
+    background: #e2ecf7;
+}
+
+[data-theme-mode="light"] .ui-badge--muted {
+    color: #444454;
+    background: #e8e8ec;
+}
+
+[data-theme-mode="light"] .ui-badge--purple {
+    color: #4a3590;
+    background: #eae6f5;
 }
 
 /* ============================================================================
@@ -864,6 +1017,8 @@ html[data-theme] .controls button,
 html[data-theme] .controls select,
 html[data-theme] .split-panel,
 html[data-theme] .ui-btn,
+html[data-theme] .ui-ctrl-btn,
+html[data-theme] .ui-badge,
 html[data-theme] .ui-input,
 html[data-theme] .ui-select,
 html[data-theme] .ui-segmented,

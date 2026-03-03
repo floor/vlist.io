@@ -120,7 +120,7 @@ function updateCompressionInfo(count) {
   const isCompressed = totalHeight > maxHeight;
   const ratio = isCompressed ? (totalHeight / maxHeight).toFixed(1) : "1.0";
 
-  let html = `<span class="compression-badge ${isCompressed ? "compression-badge--active" : "compression-badge--off"}">`;
+  let html = `<span class="ui-badge ui-badge--pill ${isCompressed ? "ui-badge--success" : "ui-badge--muted"}">`;
   html += isCompressed ? "COMPRESSED" : "NATIVE";
   html += "</span>";
   html += ` <span class="compression-detail">`;

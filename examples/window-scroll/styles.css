@@ -150,13 +150,7 @@
     flex-wrap: wrap;
 }
 
-.badge {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
+.hero-badges .ui-badge {
     font-family: "Monaco", "Menlo", "Consolas", monospace;
     letter-spacing: -0.2px;
 }

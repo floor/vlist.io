@@ -73,7 +73,7 @@ export const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
 
 // Card template - width is set by vlist
 export const itemTemplate = (item) => {
-  const featuredClass = item.isFeatured ? 'card--featured' : '';
+  const featuredClass = item.isFeatured ? "card--featured" : "";
   return `
     <div class="card ${featuredClass}" style="background: linear-gradient(135deg, ${item.gradientStart} 0%, ${item.gradientEnd} 100%);">
       <div class="card-icon">${item.icon}</div>
@@ -82,7 +82,7 @@ export const itemTemplate = (item) => {
         <div class="card-category">${item.category}</div>
         <div class="card-width">${item.width}px</div>
       </div>
-      ${item.isFeatured ? '<div class="card-badge">Featured</div>' : ''}
+      ${item.isFeatured ? '<div class="ui-badge ui-badge--pill ui-badge--glass">Featured</div>' : ""}
     </div>
   `;
 };
@@ -96,10 +96,12 @@ export function calculateStats(domNodes, total) {
   const saved = Math.round((1 - domNodes / total) * 100);
 
   // Calculate width statistics
-  const widths = items.map(item => item.width);
+  const widths = items.map((item) => item.width);
   const minWidth = Math.min(...widths);
   const maxWidth = Math.max(...widths);
-  const avgWidth = Math.round(widths.reduce((a, b) => a + b, 0) / widths.length);
+  const avgWidth = Math.round(
+    widths.reduce((a, b) => a + b, 0) / widths.length,
+  );
   const totalWidth = widths.reduce((a, b) => a + b, 0);
 
   return { saved, minWidth, maxWidth, avgWidth, totalWidth };
@@ -107,7 +109,10 @@ export function calculateStats(domNodes, total) {
 
 // Format stats HTML
 export function formatStatsHtml(domNodes, total) {
-  const { saved, minWidth, maxWidth, avgWidth } = calculateStats(domNodes, total);
+  const { saved, minWidth, maxWidth, avgWidth } = calculateStats(
+    domNodes,
+    total,
+  );
   return `
     <span><strong>Total:</strong> ${total.toLocaleString()} items</span>
     <span><strong>DOM nodes:</strong> ${domNodes}</span>
