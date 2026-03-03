@@ -218,16 +218,16 @@ const App = {
 
         <aside class="split-panel">
           <!-- Layout -->
-          <section class="panel-section">
-            <h3 class="panel-title">Layout</h3>
+          <section class="ui-section">
+            <h3 class="ui-title">Layout</h3>
 
-            <div class="panel-row">
-              <label class="panel-label">Mode</label>
-              <div class="panel-segmented">
+            <div class="ui-row">
+              <label class="ui-label">Mode</label>
+              <div class="ui-segmented">
                 <button
                   v-for="m in ['grid', 'masonry']"
                   :key="m"
-                  :class="['panel-segmented__btn', { 'panel-segmented__btn--active': m === mode }]"
+                  :class="['ui-segmented__btn', { 'ui-segmented__btn--active': m === mode }]"
                   @click="mode = m"
                 >
                   {{ m === 'grid' ? 'Grid' : 'Masonry' }}
@@ -235,13 +235,13 @@ const App = {
               </div>
             </div>
 
-            <div class="panel-row">
-              <label class="panel-label">Orientation</label>
-              <div class="panel-segmented">
+            <div class="ui-row">
+              <label class="ui-label">Orientation</label>
+              <div class="ui-segmented">
                 <button
                   v-for="o in ['vertical', 'horizontal']"
                   :key="o"
-                  :class="['panel-segmented__btn', { 'panel-segmented__btn--active': o === orientation }]"
+                  :class="['ui-segmented__btn', { 'ui-segmented__btn--active': o === orientation }]"
                   @click="orientation = o"
                 >
                   {{ o === 'vertical' ? 'Vertical' : 'Horizontal' }}
@@ -249,9 +249,9 @@ const App = {
               </div>
             </div>
 
-            <div class="panel-row">
-              <label class="panel-label">{{ orientation === 'horizontal' ? 'Rows' : 'Columns' }}</label>
-              <div class="panel-btn-group">
+            <div class="ui-row">
+              <label class="ui-label">{{ orientation === 'horizontal' ? 'Rows' : 'Columns' }}</label>
+              <div class="ui-btn-group">
                 <button
                   v-for="c in [3, 4, 5, 6, 10]"
                   :key="c"
@@ -263,9 +263,9 @@ const App = {
               </div>
             </div>
 
-            <div class="panel-row">
-              <label class="panel-label">Gap</label>
-              <div class="panel-btn-group">
+            <div class="ui-row">
+              <label class="ui-label">Gap</label>
+              <div class="ui-btn-group">
                 <button
                   v-for="g in [0, 4, 8, 12, 16]"
                   :key="g"
@@ -279,17 +279,17 @@ const App = {
           </section>
 
           <!-- Navigation -->
-          <section class="panel-section">
-            <h3 class="panel-title">Navigation</h3>
-            <div class="panel-row">
-              <div class="panel-btn-group">
-                <button class="panel-btn panel-btn--icon" title="First" @click="scrollToFirst">
+          <section class="ui-section">
+            <h3 class="ui-title">Navigation</h3>
+            <div class="ui-row">
+              <div class="ui-btn-group">
+                <button class="ui-btn ui-btn--icon" title="First" @click="scrollToFirst">
                   <i class="icon icon--up"></i>
                 </button>
-                <button class="panel-btn panel-btn--icon" title="Middle" @click="scrollToMiddle">
+                <button class="ui-btn ui-btn--icon" title="Middle" @click="scrollToMiddle">
                   <i class="icon icon--center"></i>
                 </button>
-                <button class="panel-btn panel-btn--icon" title="Last" @click="scrollToLast">
+                <button class="ui-btn ui-btn--icon" title="Last" @click="scrollToLast">
                   <i class="icon icon--down"></i>
                 </button>
               </div>
@@ -297,9 +297,9 @@ const App = {
           </section>
 
           <!-- Photo Detail -->
-          <section class="panel-section">
-            <h3 class="panel-title">Last clicked</h3>
-            <div class="panel-detail">
+          <section class="ui-section">
+            <h3 class="ui-title">Last clicked</h3>
+            <div class="ui-detail">
               <template v-if="selectedPhoto">
                 <img
                   class="detail__img"
@@ -311,7 +311,7 @@ const App = {
                   <span>{{ selectedPhoto.category }} · ♥ {{ selectedPhoto.likes }}</span>
                 </div>
               </template>
-              <span v-else class="panel-detail__empty">Click a photo to see details</span>
+              <span v-else class="ui-detail__empty">Click a photo to see details</span>
             </div>
           </section>
         </aside>

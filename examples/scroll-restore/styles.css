@@ -1,7 +1,7 @@
 /* Scroll Save/Restore — example-specific styles only
    Common styles (.container, h1, .description, .stats, footer)
    are provided by examples/examples.css using shell.css design tokens.
-   Panel system (.split-layout, .split-panel, .panel-*)
+   UI components (.split-layout, .split-panel, .ui-*)
    is also provided by example/example.css. */
 
 /* ==========================================================================
@@ -80,29 +80,6 @@
     overflow-x: auto;
     white-space: pre;
     margin: 0;
-}
-
-/* ==========================================================================
-   Panel button — primary variant
-   ========================================================================== */
-
-.panel-btn--primary {
-    width: 100%;
-    background: var(--accent);
-    color: #fff;
-    font-weight: 500;
-    transition: all 0.15s ease;
-}
-
-.panel-btn--primary:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-}
-
-.panel-btn--primary:active {
-    transform: translateY(0);
-    box-shadow: none;
 }
 
 /* ==========================================================================

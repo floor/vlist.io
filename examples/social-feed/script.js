@@ -647,11 +647,11 @@ function updatePanelInfo(initTime, uniqueSizes) {
 
 function updateSourceSections() {
   sectionRedditEl.classList.toggle(
-    "panel-section--hidden",
+    "ui-section--hidden",
     currentSource !== "reddit",
   );
   sectionRssEl.classList.toggle(
-    "panel-section--hidden",
+    "ui-section--hidden",
     currentSource !== "rss",
   );
 }
@@ -660,7 +660,7 @@ function updateLayoutToggle() {
   if (!layoutToggleEl) return;
   layoutToggleEl.querySelectorAll("button").forEach((b) => {
     b.classList.toggle(
-      "panel-segmented__btn--active",
+      "ui-segmented__btn--active",
       b.dataset.layout === currentLayout,
     );
   });
@@ -683,7 +683,7 @@ sourceToggleEl.addEventListener("click", (e) => {
   // Update active button
   sourceToggleEl.querySelectorAll("button").forEach((b) => {
     b.classList.toggle(
-      "panel-segmented__btn--active",
+      "ui-segmented__btn--active",
       b.dataset.source === source,
     );
   });
@@ -741,7 +741,7 @@ modeToggleEl.addEventListener("click", (e) => {
 
   // Update active button
   modeToggleEl.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("panel-segmented__btn--active", b.dataset.mode === mode);
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
   });
 
   createList();
@@ -836,7 +836,7 @@ if (
 // Restore source toggle UI
 sourceToggleEl.querySelectorAll("button").forEach((b) => {
   b.classList.toggle(
-    "panel-segmented__btn--active",
+    "ui-segmented__btn--active",
     b.dataset.source === currentSource,
   );
 });
@@ -844,7 +844,7 @@ sourceToggleEl.querySelectorAll("button").forEach((b) => {
 // Restore mode toggle UI
 modeToggleEl.querySelectorAll("button").forEach((b) => {
   b.classList.toggle(
-    "panel-segmented__btn--active",
+    "ui-segmented__btn--active",
     b.dataset.mode === currentMode,
   );
 });

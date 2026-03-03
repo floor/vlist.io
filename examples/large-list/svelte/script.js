@@ -211,7 +211,7 @@ sizeButtons.addEventListener("click", (e) => {
 
   // Update active state
   sizeButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("panel-segmented__btn--active", b.dataset.size === size);
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.size === size);
   });
 
   createList(size);

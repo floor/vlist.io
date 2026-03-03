@@ -288,14 +288,14 @@ function App() {
 
         <aside className="split-panel">
           {/* Size */}
-          <section className="panel-section">
-            <h3 className="panel-title">Size</h3>
-            <div className="panel-row">
-              <div className="panel-segmented">
+          <section className="ui-section">
+            <h3 className="ui-title">Size</h3>
+            <div className="ui-row">
+              <div className="ui-segmented">
                 {(Object.keys(SIZES) as SizeKey[]).map((size) => (
                   <button
                     key={size}
-                    className={`panel-segmented__btn ${currentSize === size ? "panel-segmented__btn--active" : ""}`}
+                    className={`ui-segmented__btn ${currentSize === size ? "ui-segmented__btn--active" : ""}`}
                     onClick={() => handleSizeChange(size)}
                   >
                     {size.toUpperCase()}
@@ -306,14 +306,14 @@ function App() {
           </section>
 
           {/* Navigation */}
-          <section className="panel-section">
-            <h3 className="panel-title">Navigation</h3>
+          <section className="ui-section">
+            <h3 className="ui-title">Navigation</h3>
 
-            <div className="panel-row">
-              <label className="panel-label" htmlFor="scroll-index">
+            <div className="ui-row">
+              <label className="ui-label" htmlFor="scroll-index">
                 Scroll to index
               </label>
-              <div className="panel-input-group">
+              <div className="ui-input-group">
                 <input
                   type="number"
                   id="scroll-index"
@@ -328,13 +328,13 @@ function App() {
                       handleGoToIndex();
                     }
                   }}
-                  className="panel-input"
+                  className="ui-input"
                 />
                 <select
                   id="scroll-align"
                   value={scrollAlign}
                   onChange={(e) => setScrollAlign(e.target.value as any)}
-                  className="panel-select"
+                  className="ui-select"
                 >
                   <option value="start">start</option>
                   <option value="center">center</option>
@@ -342,7 +342,7 @@ function App() {
                 </select>
                 <button
                   onClick={handleGoToIndex}
-                  className="panel-btn panel-btn--icon"
+                  className="ui-btn ui-btn--icon"
                   title="Go"
                 >
                   <svg
@@ -357,31 +357,31 @@ function App() {
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">Quick jump</label>
-              <div className="panel-btn-group">
-                <button onClick={scrollToFirst} className="panel-btn">
+            <div className="ui-row">
+              <label className="ui-label">Quick jump</label>
+              <div className="ui-btn-group">
+                <button onClick={scrollToFirst} className="ui-btn">
                   First
                 </button>
-                <button onClick={scrollToMiddle} className="panel-btn">
+                <button onClick={scrollToMiddle} className="ui-btn">
                   Middle
                 </button>
-                <button onClick={scrollToLast} className="panel-btn">
+                <button onClick={scrollToLast} className="ui-btn">
                   Last
                 </button>
-                <button onClick={scrollToRandom} className="panel-btn">
+                <button onClick={scrollToRandom} className="ui-btn">
                   Random
                 </button>
               </div>
             </div>
 
-            <div className="panel-row">
-              <label className="panel-label">Smooth scroll</label>
-              <div className="panel-btn-group">
-                <button onClick={handleSmoothTop} className="panel-btn">
+            <div className="ui-row">
+              <label className="ui-label">Smooth scroll</label>
+              <div className="ui-btn-group">
+                <button onClick={handleSmoothTop} className="ui-btn">
                   ↑ Top
                 </button>
-                <button onClick={handleSmoothBottom} className="panel-btn">
+                <button onClick={handleSmoothBottom} className="ui-btn">
                   ↓ Bottom
                 </button>
               </div>
@@ -389,21 +389,21 @@ function App() {
           </section>
 
           {/* Viewport */}
-          <section className="panel-section">
-            <h3 className="panel-title">Viewport</h3>
-            <div className="panel-row">
-              <span className="panel-label">Scroll</span>
-              <span className="panel-value">
+          <section className="ui-section">
+            <h3 className="ui-title">Viewport</h3>
+            <div className="ui-row">
+              <span className="ui-label">Scroll</span>
+              <span className="ui-value">
                 {viewport.scrollPos.toLocaleString()}px
               </span>
             </div>
-            <div className="panel-row">
-              <span className="panel-label">Direction</span>
-              <span className="panel-value">{viewport.direction}</span>
+            <div className="ui-row">
+              <span className="ui-label">Direction</span>
+              <span className="ui-value">{viewport.direction}</span>
             </div>
-            <div className="panel-row">
-              <span className="panel-label">Range</span>
-              <span className="panel-value">{viewport.range}</span>
+            <div className="ui-row">
+              <span className="ui-label">Range</span>
+              <span className="ui-value">{viewport.range}</span>
             </div>
           </section>
         </aside>

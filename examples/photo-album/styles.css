@@ -1,7 +1,7 @@
 /* Photo Album — shared styles for all variants (javascript, react, vue, svelte)
    Common styles (.container, h1, .description, .stats, footer)
    are provided by example/example.css using shell.css design tokens.
-   Panel system (.split-layout, .split-panel, .panel-*)
+   UI components (.split-layout, .split-panel, .ui-*)
    is also provided by example/example.css. */
 
 .split-main {

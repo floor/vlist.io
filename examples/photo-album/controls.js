@@ -27,7 +27,7 @@ layoutMode.addEventListener("click", (e) => {
   app.setCurrentMode(mode);
 
   layoutMode.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("panel-segmented__btn--active", b.dataset.mode === mode);
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
   });
 
   app.createView();
@@ -47,7 +47,7 @@ orientationButtons.addEventListener("click", (e) => {
 
   orientationButtons.querySelectorAll("button").forEach((b) => {
     b.classList.toggle(
-      "panel-segmented__btn--active",
+      "ui-segmented__btn--active",
       b.dataset.orientation === orientation,
     );
   });

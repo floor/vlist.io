@@ -449,7 +449,9 @@ function assemblePage(
     CONTENT: content,
 
     // Styles & scripts
-    EXTRA_STYLES: '<link rel="stylesheet" href="/dist/examples/styles.css" />',
+    EXTRA_STYLES:
+      '<link rel="stylesheet" href="/styles/ui.css" />' +
+      '<link rel="stylesheet" href="/dist/examples/styles.css" />',
     EXTRA_HEAD: buildExtraHead(slug, example, variant),
     EXTRA_BODY: buildExtraBody(slug, example, variant),
     MAIN_CLASS: "",
@@ -543,7 +545,7 @@ export function renderExamplesPage(
   // Build feature chips bar
   const featureChips =
     example.features && example.features.length > 0
-      ? `<div class="example-chips">${example.features.map((f) => `<span class="example-chip">${f}</span>`).join("")}</div>`
+      ? `<div class="ui-chips">${example.features.map((f) => `<span class="ui-chip">${f}</span>`).join("")}</div>`
       : "";
 
   // Build source tabs for the selected variant

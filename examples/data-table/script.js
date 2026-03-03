@@ -378,14 +378,14 @@ const detailEl = document.getElementById("row-detail");
 function showRowDetail(contact) {
   if (!detailEl) return;
   detailEl.innerHTML = `
-    <div class="panel-detail__header">
+    <div class="ui-detail__header">
       <div class="table-detail__avatar" style="background:${contact.color}">${contact.initials}</div>
       <div>
-        <div class="panel-detail__name">${contact.firstName} ${contact.lastName}</div>
+        <div class="ui-detail__name">${contact.firstName} ${contact.lastName}</div>
         <div class="table-detail__role">${contact.role}</div>
       </div>
     </div>
-    <div class="panel-detail__meta">
+    <div class="ui-detail__meta">
       <span>${contact.department} · ${contact.company}</span>
       <span>${contact.email}</span>
       <span>${contact.phone}</span>
@@ -397,7 +397,7 @@ function showRowDetail(contact) {
 function clearRowDetail() {
   if (!detailEl) return;
   detailEl.innerHTML = `
-    <span class="panel-detail__empty">Click a row to see details</span>
+    <span class="ui-detail__empty">Click a row to see details</span>
   `;
 }
 
@@ -412,7 +412,7 @@ function updateSortDetail() {
 
   if (sortKey === null) {
     sortDetailEl.innerHTML = `
-      <span class="panel-detail__empty">Click a column header to sort</span>
+      <span class="ui-detail__empty">Click a column header to sort</span>
     `;
   } else {
     const arrow = sortDirection === "asc" ? "▲" : "▼";

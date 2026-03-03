@@ -1,7 +1,7 @@
 /* Social Feed Example — variable-height posts with Source + Mode controls
    Common styles (.container, h1, .description, .stats, footer)
    are provided by examples/examples.css using shell.css design tokens.
-   Panel system (.split-layout, .split-panel, .panel-*)
+   UI components (.split-layout, .split-panel, .ui-*)
    is also provided by example/example.css. */
 
 /* ==========================================================================
@@ -555,7 +555,7 @@
    Panel — select dropdown
    ========================================================================== */
 
-.panel-select {
+.ui-select {
     width: 100%;
     padding: 6px 10px;
     border-radius: 6px;
@@ -573,56 +573,20 @@
     transition: border-color 0.12s ease;
 }
 
-.panel-select:focus {
+.ui-select:focus {
     outline: none;
     border-color: var(--accent, #667eea);
 }
 
-.panel-select optgroup {
+.ui-select optgroup {
     font-weight: 600;
     font-size: 12px;
     color: var(--vlist-text-muted);
 }
 
-.panel-select option {
+.ui-select option {
     font-weight: 500;
     color: var(--vlist-text);
-}
-
-/* ==========================================================================
-   Panel — load more button variant
-   ========================================================================== */
-
-.panel-row--action {
-    padding-top: 4px;
-}
-
-.panel-btn--load {
-    width: 100%;
-    justify-content: center;
-    background: var(--accent, #667eea);
-    color: white;
-    opacity: 1;
-    font-weight: 600;
-}
-
-.panel-btn--load:hover:not(:disabled) {
-    background: var(--accent, #667eea);
-    filter: brightness(1.1);
-    color: white;
-}
-
-.panel-btn--load:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* ==========================================================================
-   Panel section visibility toggle
-   ========================================================================== */
-
-.panel-section--hidden {
-    display: none;
 }
 
 /* ==========================================================================
@@ -649,17 +613,6 @@
     color: var(--vlist-text-muted);
     white-space: nowrap;
     letter-spacing: 0.3px;
-}
-
-/* ==========================================================================
-   Disabled segmented button
-   ========================================================================== */
-
-.panel-segmented__btn--disabled,
-.panel-segmented__btn:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-    pointer-events: none;
 }
 
 /* ==========================================================================
@@ -728,14 +681,4 @@
     background-color: var(--vlist-placeholder-bg);
     border-radius: 4px;
     min-width: 48px;
-}
-
-/* ==========================================================================
-   Muted label (placeholder text)
-   ========================================================================== */
-
-.panel-label--muted {
-    color: var(--vlist-text-muted);
-    font-style: italic;
-    font-size: 12px;
 }

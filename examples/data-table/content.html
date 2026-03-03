@@ -15,23 +15,23 @@
 
         <aside class="split-panel">
             <!-- Columns -->
-            <section class="panel-section">
-                <h3 class="panel-title">Columns</h3>
-                <div class="panel-row">
-                    <div class="panel-segmented" id="column-preset">
+            <section class="ui-section">
+                <h3 class="ui-title">Columns</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="column-preset">
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-preset="default"
                         >
                             Default
                         </button>
                         <button
-                            class="panel-segmented__btn"
+                            class="ui-segmented__btn"
                             data-preset="compact"
                         >
                             Compact
                         </button>
-                        <button class="panel-segmented__btn" data-preset="full">
+                        <button class="ui-segmented__btn" data-preset="full">
                             Full
                         </button>
                     </div>
@@ -39,37 +39,37 @@
             </section>
 
             <!-- Row Height -->
-            <section class="panel-section">
-                <h3 class="panel-title">Row Height</h3>
-                <div class="panel-row slider">
+            <section class="ui-section">
+                <h3 class="ui-title">Row Height</h3>
+                <div class="ui-row slider">
                     <input
                         type="range"
                         id="row-height"
-                        class="panel-slider"
+                        class="ui-slider"
                         min="28"
                         max="64"
                         value="40"
                     />
-                    <span class="panel-value" id="row-height-value">40px</span>
+                    <span class="ui-value" id="row-height-value">40px</span>
                 </div>
             </section>
 
             <!-- Borders -->
-            <section class="panel-section">
-                <h3 class="panel-title">Borders</h3>
-                <div class="panel-row">
-                    <div class="panel-segmented" id="border-mode">
+            <section class="ui-section">
+                <h3 class="ui-title">Borders</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="border-mode">
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-mode="both"
                         >
                             Both
                         </button>
-                        <button class="panel-segmented__btn" data-mode="rows">
+                        <button class="ui-segmented__btn" data-mode="rows">
                             Rows
                         </button>
 
-                        <button class="panel-segmented__btn" data-mode="none">
+                        <button class="ui-segmented__btn" data-mode="none">
                             None
                         </button>
                     </div>
@@ -77,34 +77,34 @@
             </section>
 
             <!-- Navigation -->
-            <section class="panel-section">
-                <h3 class="panel-title">Navigation</h3>
-                <div class="panel-row">
-                    <div class="panel-btn-group">
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
                         <button
                             id="btn-first"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="First row"
                         >
                             <i class="icon icon--up"></i>
                         </button>
                         <button
                             id="btn-middle"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Middle"
                         >
                             <i class="icon icon--center"></i>
                         </button>
                         <button
                             id="btn-last"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Last row"
                         >
                             <i class="icon icon--down"></i>
                         </button>
                         <button
                             id="btn-random"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Random row"
                         >
                             <i class="icon icon--shuffle"></i>
@@ -114,20 +114,20 @@
             </section>
 
             <!-- Sort State -->
-            <section class="panel-section">
-                <h3 class="panel-title">Sort</h3>
-                <div class="panel-detail" id="sort-detail">
-                    <span class="panel-detail__empty"
+            <section class="ui-section">
+                <h3 class="ui-title">Sort</h3>
+                <div class="ui-detail" id="sort-detail">
+                    <span class="ui-detail__empty"
                         >Click a column header to sort</span
                     >
                 </div>
             </section>
 
             <!-- Selected Row -->
-            <section class="panel-section">
-                <h3 class="panel-title">Selected row</h3>
-                <div class="panel-detail" id="row-detail">
-                    <span class="panel-detail__empty"
+            <section class="ui-section">
+                <h3 class="ui-title">Selected row</h3>
+                <div class="ui-detail" id="row-detail">
+                    <span class="ui-detail__empty"
                         >Click a row to see details</span
                     >
                 </div>

@@ -1,6 +1,6 @@
 /* Carousel Example — example-specific styles only
-   Common styles (.container, h1, .description, .stats, footer, .split-*, .panel-*)
-   are provided by example/example.css using shell.css design tokens. */
+   Common styles (.container, h1, .description, .stats, footer, .split-*, .ui-*)
+   are provided by styles/ui.css and examples/styles.css using design tokens. */
 
 /* Center the list vertically in the split-main */
 .split-main {

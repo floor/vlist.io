@@ -1,7 +1,7 @@
 /* Basic Example — example-specific styles only
    Common styles (.container, h1, .description, .stats, footer)
    are provided by examples/examples.css using shell.css design tokens.
-   Panel system (.split-layout, .split-panel, .panel-*)
+   UI components (.split-layout, .split-panel, .ui-*)
    is also provided by examples/examples.css. */
 
 /* List container height */
@@ -9,29 +9,6 @@
     height: 600px;
     max-width: 360px;
     margin: 0 auto;
-}
-
-/* ============================================================================
-   Item Detail — example-specific avatar + email
-   ============================================================================ */
-
-.panel-detail__avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #667eea;
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.panel-detail__email {
-    font-size: 12px;
-    color: var(--text-muted);
 }
 
 /* ============================================================================

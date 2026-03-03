@@ -3,7 +3,7 @@
 > Extract reusable UI primitives from `examples/styles.css` into `styles/ui.css`,
 > rename the `panel-*` prefix to generic `ui-*` names, and update all consumers.
 >
-> **Status: 🔲 Not started**
+> **Status: 🟡 Phase 1 complete — Phase 2 & 3 not started**
 
 ---
 
@@ -276,10 +276,14 @@ base.html
 
 ---
 
-## Phase 1 — Create `styles/ui.css` and rename classes
+## Phase 1 — Create `styles/ui.css` and rename classes ✅
 
 > Extract all UI primitives from `examples/styles.css` into `styles/ui.css`,
 > applying the `ui-*` rename in one atomic pass. Update all consumer files.
+>
+> **Completed.** All UI primitives extracted, all `panel-*` → `ui-*` renames applied,
+> `.ui-text` defined, `example-chips`/`example-chip` → `ui-chips`/`ui-chip`,
+> renderer updated to load `styles/ui.css`. Build passes (34/34 examples).
 
 ### 1.1 Create `styles/ui.css`
 
@@ -368,9 +372,9 @@ Apply the rename map across all ~67 consumer files:
 
 ### 1.6 Verify
 
-- [ ] `grep -r "panel-" examples/` returns zero hits (except comments if any)
-- [ ] `grep -r "panel-" styles/ui.css` returns zero hits
-- [ ] `grep -r "example-chip" examples/` returns zero hits
+- [x] `grep -r "panel-" examples/` returns zero hits (except comments if any)
+- [x] `grep -r "panel-" styles/ui.css` returns zero hits
+- [x] `grep -r "example-chip" examples/` returns zero hits
 - [ ] All example pages render identically
 - [ ] All JS interactions work (segmented toggles, detail cards, etc.)
 - [ ] Theme toggle works on every example

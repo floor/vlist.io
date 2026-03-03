@@ -23,17 +23,17 @@
 
         <aside class="split-panel">
             <!-- Source -->
-            <section class="panel-section">
-                <h3 class="panel-title">Source</h3>
-                <div class="panel-row">
-                    <div class="panel-segmented" id="feed-source">
+            <section class="ui-section">
+                <h3 class="ui-title">Source</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="feed-source">
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-source="reddit"
                         >
                             Reddit
                         </button>
-                        <button class="panel-segmented__btn" data-source="rss">
+                        <button class="ui-segmented__btn" data-source="rss">
                             RSS
                         </button>
                     </div>
@@ -41,10 +41,10 @@
             </section>
 
             <!-- Reddit options (only visible when source=reddit) -->
-            <section class="panel-section" id="section-reddit">
-                <h3 class="panel-title">Subreddit</h3>
-                <div class="panel-row">
-                    <select class="panel-select" id="feed-subreddit">
+            <section class="ui-section" id="section-reddit">
+                <h3 class="ui-title">Subreddit</h3>
+                <div class="ui-row">
+                    <select class="ui-select" id="feed-subreddit">
                         <option value="worldnews">r/worldnews</option>
                         <option value="technology">r/technology</option>
                         <option value="science">r/science</option>
@@ -62,24 +62,24 @@
                     </select>
                 </div>
 
-                <div class="panel-row">
-                    <span class="panel-label">Status</span>
-                    <span class="panel-value" id="info-feed-status">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Status</span>
+                    <span class="ui-value" id="info-feed-status">–</span>
                 </div>
-                <div class="panel-row">
-                    <span class="panel-label">Posts loaded</span>
-                    <span class="panel-value" id="info-feed-count">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Posts loaded</span>
+                    <span class="ui-value" id="info-feed-count">–</span>
                 </div>
             </section>
 
             <!-- RSS options (only visible when source=rss) -->
             <section
-                class="panel-section panel-section--hidden"
+                class="ui-section ui-section--hidden"
                 id="section-rss"
             >
-                <h3 class="panel-title">RSS Feed</h3>
-                <div class="panel-row">
-                    <select class="panel-select" id="feed-rss">
+                <h3 class="ui-title">RSS Feed</h3>
+                <div class="ui-row">
+                    <select class="ui-select" id="feed-rss">
                         <optgroup label="News">
                             <option
                                 value="https://feeds.bbci.co.uk/news/world/rss.xml"
@@ -168,29 +168,29 @@
                         </optgroup>
                     </select>
                 </div>
-                <div class="panel-row">
-                    <span class="panel-label">Status</span>
-                    <span class="panel-value" id="info-rss-status">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Status</span>
+                    <span class="ui-value" id="info-rss-status">–</span>
                 </div>
-                <div class="panel-row">
-                    <span class="panel-label">Items loaded</span>
-                    <span class="panel-value" id="info-rss-count">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Items loaded</span>
+                    <span class="ui-value" id="info-rss-count">–</span>
                 </div>
             </section>
 
             <!-- Layout -->
-            <section class="panel-section">
-                <h3 class="panel-title">Layout</h3>
-                <div class="panel-row">
-                    <div class="panel-segmented" id="layout-toggle">
+            <section class="ui-section">
+                <h3 class="ui-title">Layout</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="layout-toggle">
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-layout="card"
                         >
                             Card
                         </button>
                         <button
-                            class="panel-segmented__btn"
+                            class="ui-segmented__btn"
                             data-layout="compact"
                         >
                             Compact
@@ -200,17 +200,17 @@
             </section>
 
             <!-- Mode -->
-            <section class="panel-section">
-                <h3 class="panel-title">Mode</h3>
-                <div class="panel-row">
-                    <div class="panel-segmented" id="mode-toggle">
+            <section class="ui-section">
+                <h3 class="ui-title">Mode</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="mode-toggle">
                         <button
-                            class="panel-segmented__btn panel-segmented__btn--active"
+                            class="ui-segmented__btn ui-segmented__btn--active"
                             data-mode="a"
                         >
                             A · Pre-measure
                         </button>
-                        <button class="panel-segmented__btn" data-mode="b">
+                        <button class="ui-segmented__btn" data-mode="b">
                             B · Auto-size
                         </button>
                     </div>
@@ -218,53 +218,53 @@
             </section>
 
             <!-- Measurement -->
-            <section class="panel-section" id="section-measurement">
-                <h3 class="panel-title">Measurement</h3>
-                <div class="panel-row">
-                    <span class="panel-label">Strategy</span>
-                    <span class="panel-value" id="info-strategy"
+            <section class="ui-section" id="section-measurement">
+                <h3 class="ui-title">Measurement</h3>
+                <div class="ui-row">
+                    <span class="ui-label">Strategy</span>
+                    <span class="ui-value" id="info-strategy"
                         >size: (index) =&gt; px</span
                     >
                 </div>
-                <div class="panel-row">
-                    <span class="panel-label">Init time</span>
-                    <span class="panel-value" id="info-init">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Init time</span>
+                    <span class="ui-value" id="info-init">–</span>
                 </div>
-                <div class="panel-row">
-                    <span class="panel-label">Unique sizes</span>
-                    <span class="panel-value" id="info-unique">–</span>
+                <div class="ui-row">
+                    <span class="ui-label">Unique sizes</span>
+                    <span class="ui-value" id="info-unique">–</span>
                 </div>
             </section>
 
             <!-- Navigation -->
-            <section class="panel-section">
-                <h3 class="panel-title">Navigation</h3>
-                <div class="panel-row">
-                    <div class="panel-btn-group">
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
                         <button
                             id="jump-top"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Top"
                         >
                             <i class="icon icon--up"></i>
                         </button>
                         <button
                             id="jump-middle"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Middle"
                         >
                             <i class="icon icon--center"></i>
                         </button>
                         <button
                             id="jump-bottom"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Bottom"
                         >
                             <i class="icon icon--down"></i>
                         </button>
                         <button
                             id="jump-random"
-                            class="panel-btn panel-btn--icon"
+                            class="ui-btn ui-btn--icon"
                             title="Random"
                         >
                             <i class="icon icon--shuffle"></i>

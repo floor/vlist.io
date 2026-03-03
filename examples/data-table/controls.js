@@ -22,7 +22,7 @@ if (presetEl) {
 
     presetEl.querySelectorAll("button").forEach((b) => {
       b.classList.toggle(
-        "panel-segmented__btn--active",
+        "ui-segmented__btn--active",
         b.dataset.preset === preset,
       );
     });
@@ -64,7 +64,7 @@ if (borderModeEl) {
 
     borderModeEl.querySelectorAll("button").forEach((b) => {
       b.classList.toggle(
-        "panel-segmented__btn--active",
+        "ui-segmented__btn--active",
         b.dataset.mode === mode,
       );
     });
@@ -136,7 +136,7 @@ export function initControls() {
   if (presetEl) {
     presetEl.querySelectorAll("button").forEach((b) => {
       b.classList.toggle(
-        "panel-segmented__btn--active",
+        "ui-segmented__btn--active",
         b.dataset.preset === app.currentPreset,
       );
     });
@@ -146,7 +146,7 @@ export function initControls() {
   if (borderModeEl) {
     borderModeEl.querySelectorAll("button").forEach((b) => {
       b.classList.toggle(
-        "panel-segmented__btn--active",
+        "ui-segmented__btn--active",
         b.dataset.mode === app.currentBorderMode,
       );
     });

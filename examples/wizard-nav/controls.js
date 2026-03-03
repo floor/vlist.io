@@ -20,7 +20,7 @@ orientationMode.addEventListener("click", (e) => {
 
   orientationMode.querySelectorAll("button").forEach((b) => {
     b.classList.toggle(
-      "panel-segmented__btn--active",
+      "ui-segmented__btn--active",
       b.dataset.orientation === orientation,
     );
   });
@@ -44,7 +44,7 @@ wrapMode.addEventListener("click", (e) => {
 
   wrapMode.querySelectorAll("button").forEach((b) => {
     b.classList.toggle(
-      "panel-segmented__btn--active",
+      "ui-segmented__btn--active",
       b.dataset.wrap === String(on),
     );
   });

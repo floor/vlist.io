@@ -1,7 +1,7 @@
 /* Builder Grid — File Browser example-specific styles
    Common styles (.container, h1, .description, .stats, footer)
    are provided by example/example.css using shell.css design tokens.
-   Panel system (.split-layout, .split-panel, .panel-*)
+   UI components (.split-layout, .split-panel, .ui-*)
    is also provided by example/example.css. */
 
 /* Browser container */
@@ -530,7 +530,7 @@
    Panel value styling
    ============================================================================ */
 
-.panel-value {
+.ui-value {
     font-size: 12px;
     color: var(--text-muted);
     word-break: break-all;
