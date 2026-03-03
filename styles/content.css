@@ -4,19 +4,6 @@
    Covers: markdown body, code blocks, tables, syntax highlighting, errors.
    ============================================================================= */
 
-/* ─── Content Token Overrides ────────────────────────────────────────────── */
-
-:root {
-    --bg-code: #18181e;
-    --bg-code-inline: #1c1c24;
-    --radius-sm: 5px;
-}
-
-[data-theme-mode="light"] {
-    --bg-code: #f0f0f5;
-    --bg-code-inline: #eaeaf0;
-}
-
 /* ─── Markdown body ──────────────────────────────────────────────────────── */
 
 .md {

@@ -2,26 +2,10 @@
    Homepage Styles
    ============================================================ */
 
-/* ─── Landing Token Overrides ─────────────────────── */
+/* All design tokens are now in tokens.css — homepage overrides only */
 
 :root {
-    --text-muted: #7a7a88;
-    --text-dim: #55555f;
-    --bg-card-hover: #1a1a1f;
-    --accent-dim: rgba(102, 126, 234, 0.12);
-    --accent-glow: rgba(102, 126, 234, 0.06);
-    --dropdown-bg: rgba(12, 12, 16, 0.95);
     --radius: 12px;
-    --radius-sm: 8px;
-}
-
-[data-theme-mode="light"] {
-    --text-muted: #555568;
-    --text-dim: #8888a0;
-    --bg-card-hover: #e8e8f0;
-    --accent-dim: rgba(74, 92, 216, 0.08);
-    --accent-glow: rgba(74, 92, 216, 0.04);
-    --dropdown-bg: rgba(255, 255, 255, 0.95);
 }
 
 /* ============================================================
