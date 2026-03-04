@@ -51,6 +51,7 @@ import "./comparison/tanstack-virtual.js";
 import "./comparison/virtua.js";
 import "./comparison/vue-virtual-scroller.js";
 import "./comparison/solidjs.js";
+import "./comparison/legend-list.js";
 
 import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
 
