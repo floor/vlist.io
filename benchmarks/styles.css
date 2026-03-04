@@ -135,19 +135,17 @@
 .bench-controls .ui-btn--primary {
     width: auto;
     margin-left: auto;
-    background: #43e97b;
-    border-color: #43e97b;
-    color: #000;
-}
-
-.bench-controls .ui-btn--primary:hover {
-    background: #38d56d;
-    border-color: #38d56d;
+    background: var(--accent);
+    border-color: var(--accent);
 }
 
 .bench-run-btn--stop {
     background: #f44336;
     border-color: #f44336;
+}
+
+.bench-controls .ui-segmented {
+    flex: none;
 }
 
 /* ============================================================================
@@ -184,11 +182,11 @@
     /* surface via .ui-card .ui-card--strong */
     padding: 24px;
     transition: all 0.3s ease;
+    border-radius: 8px;
 }
 
 .bench-suite--running {
     border-color: var(--accent);
-    box-shadow: 0 4px 16px rgba(var(--accent-rgb, 99, 102, 241), 0.15);
 }
 
 .bench-suite--done {
@@ -213,16 +211,17 @@
 
 .bench-metrics {
     display: grid;
-    gap: 8px;
+    gap: 1px;
+    border-radius: 6px;
+    overflow: hidden;
 }
 
 .bench-metric {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
+    padding: 3px 12px;
     background: var(--bg);
-    border-radius: 8px;
     min-height: 38px;
 }
 
@@ -231,7 +230,6 @@
     color: var(--text-muted);
     display: flex;
     flex-direction: column;
-    gap: 2px;
 }
 
 .bench-metric__meta {
@@ -243,7 +241,7 @@
 
 .bench-metric__value {
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text);
     display: flex;
@@ -459,13 +457,12 @@
 .bench-viewport {
     width: 100%;
     height: 600px;
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
     background: var(--bg);
     border: 2px solid var(--border);
     position: relative;
     display: block;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: border-color 0.3s ease;
 }
 

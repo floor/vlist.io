@@ -32,46 +32,40 @@
     "label": "Comparisons",
     "items": [
       {
-        "slug": "comparisons",
-        "name": "Overview",
-        "icon": "📋",
-        "desc": "How library comparisons are conducted and what metrics mean"
-      },
-      {
         "slug": "react-window",
         "name": "react-window",
-        "icon": "⚔️",
+        "icon": "",
         "desc": "Head-to-head performance: vlist vs react-window"
       },
       {
         "slug": "tanstack-virtual",
         "name": "TanStack Virtual",
-        "icon": "⚔️",
+        "icon": "",
         "desc": "Head-to-head performance: vlist vs TanStack Virtual"
+      },
+      {
+        "slug": "legend-list",
+        "name": "Legend List",
+        "icon": "",
+        "desc": "Head-to-head performance: vlist vs Legend List"
       },
       {
         "slug": "solidjs",
         "name": "SolidJS",
-        "icon": "⚔️",
+        "icon": "",
         "desc": "Head-to-head performance: vlist vs TanStack Virtual (SolidJS)"
       },
       {
         "slug": "virtua",
         "name": "Virtua",
-        "icon": "⚔️",
+        "icon": "",
         "desc": "Head-to-head performance: vlist vs Virtua"
       },
       {
         "slug": "vue-virtual-scroller",
         "name": "vue-virtual-scroller",
-        "icon": "⚔️",
+        "icon": "",
         "desc": "Head-to-head performance: vlist vs vue-virtual-scroller"
-      },
-      {
-        "slug": "legend-list",
-        "name": "Legend List",
-        "icon": "⚔️",
-        "desc": "Head-to-head performance: vlist vs Legend List"
       }
     ]
   },
@@ -81,19 +75,19 @@
       {
         "slug": "bundle",
         "name": "Bundle Size",
-        "icon": "📦",
+        "icon": "",
         "desc": "Minified and gzipped sizes across virtual list libraries"
       },
       {
         "slug": "features",
         "name": "Features",
-        "icon": "⚖️",
+        "icon": "",
         "desc": "Feature coverage across popular virtual list libraries"
       },
       {
         "slug": "performance-comparison",
         "name": "Performance Comparison",
-        "icon": "⚔️",
+        "icon": "",
         "desc": "Head-to-head performance metrics across all libraries"
       }
     ]

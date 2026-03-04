@@ -108,6 +108,7 @@
     align-items: center;
     gap: 16px;
     padding-top: 4px;
+    border-top: 1px solid var(--vlist-text-dim);
 }
 
 .post-card__action {
@@ -116,7 +117,7 @@
     gap: 4px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--vlist-text-muted);
+    color: var(--text-dim);
     cursor: default;
     user-select: none;
 }
