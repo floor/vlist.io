@@ -35,10 +35,55 @@ export { ITEM_NAMES, ITEM_BADGES };
 // =============================================================================
 
 export const ITEM_HEIGHT = 48;
+export const VLIST_OVERSCAN = 5;
 export const MEASURE_ITERATIONS = 5;
-export const MEMORY_ATTEMPTS = 3;
-export const SCROLL_DURATION_MS = 5000;
-export const SCROLL_SPEED_PX_PER_FRAME = 100;
+export const MEMORY_ATTEMPTS = 10;
+export const SCROLL_DURATION_MS = 2000;
+
+/**
+ * Base scroll speed in pixels per second.
+ * 1× = 7200 px/s ≈ 2.5 items/frame at 60fps (48px items).
+ * All speed multipliers are derived from this value.
+ */
+export const BASE_SCROLL_SPEED = 7200;
+
+/**
+ * Scroll speed presets for comparison benchmarks.
+ * Each library is tested at all 7 speeds automatically — no user selection.
+ * 2 seconds per speed × 7 speeds × 2 libraries = ~28s total scroll time.
+ *
+ * All speeds are multiples of BASE_SCROLL_SPEED (7200 px/s).
+ * Time-based scrolling ensures consistent speed regardless of refresh rate.
+ *
+ *   - 0.1× (720 px/s): Barely moving — pure baseline overhead
+ *   - 0.25× (1800 px/s): Gentle browsing — minimal recycling
+ *   - 0.5× (3600 px/s): Casual scrolling
+ *   - 1× (7200 px/s): Normal scroll speed
+ *   - 2× (14400 px/s): Fast flick — aggressive touch/wheel
+ *   - 3× (21600 px/s): Aggressive scroll
+ *   - 5× (36000 px/s): Stress test — heavy DOM churn
+ *
+ * Progressive speeds build a complete scroll performance profile,
+ * exposing performance cliffs invisible at any single speed.
+ */
+const scrollSpeed = (id, multiplier) => {
+  const pxPerSec = BASE_SCROLL_SPEED * multiplier;
+  return {
+    id,
+    label: `${pxPerSec.toLocaleString()} px/s`,
+    pxPerSec,
+  };
+};
+
+export const COMPARISON_SCROLL_SPEEDS = [
+  scrollSpeed("crawl", 0.1),
+  scrollSpeed("gentle", 0.25),
+  scrollSpeed("slow", 0.5),
+  scrollSpeed("normal", 1),
+  scrollSpeed("fast", 2),
+  scrollSpeed("aggressive", 3),
+  scrollSpeed("extreme", 5),
+];
 
 // =============================================================================
 // Helper: Realistic React item children
@@ -185,31 +230,79 @@ export const findViewport = (container) => {
  * Scroll and measure frame times over a duration.
  * Returns median FPS and frame time percentiles.
  *
+ * Uses a dual-loop architecture (same as the scroll suite):
+ *   1. setTimeout scroll driver (~250 updates/sec) — smooth sub-pixel scrolling
+ *   2. rAF paint counter — accurate frame timing without coupling to scroll
+ *
+ * The high-frequency scroll driver ensures smooth movement at all speeds,
+ * especially slow ones where a single rAF loop would produce visible stepping.
+ *
  * @param {HTMLElement} viewport - Scrollable element
  * @param {number} durationMs - Duration to scroll in milliseconds
  * @param {number} [stressMs=0] - CPU burn per frame (simulates app workload)
+ * @param {number} [speedPxPerSec=6000] - Scroll speed in pixels per second
  * @returns {Promise<{medianFPS: number, medianFrameTime: number, p95FrameTime: number, totalFrames: number}>}
  */
 export const measureScrollPerformance = async (
   viewport,
   durationMs,
   stressMs = 0,
+  speedPxPerSec = 6000,
 ) => {
-  const frameTimes = [];
-  let lastTime = performance.now();
-  let scrollPos = 0;
-  let direction = 1;
   const maxScroll = viewport.scrollHeight - viewport.clientHeight;
 
   return new Promise((resolve) => {
-    const startTime = performance.now();
+    // -------------------------------------------------------------------
+    // Shared state
+    // -------------------------------------------------------------------
+    const frameTimes = [];
+    let running = true;
+    let scrollPos = 0;
+    let direction = 1;
 
-    const tick = () => {
+    // -------------------------------------------------------------------
+    // Loop 1 — Paint counter (rAF)
+    // Pure timing — records when frames are delivered to compute FPS.
+    // Stress burns happen here so the library's rendering competes
+    // for the remaining frame budget.
+    // -------------------------------------------------------------------
+    let lastPaintTime = 0;
+
+    const paintTick = (timestamp) => {
+      if (!running) return;
+
+      if (lastPaintTime > 0) {
+        frameTimes.push(timestamp - lastPaintTime);
+      }
+      lastPaintTime = timestamp;
+
+      // Simulate additional CPU work (stress mode).
+      // Burns in the rAF callback so the library's rendering
+      // competes for the remaining frame budget.
+      if (stressMs > 0) burnCpu(stressMs);
+
+      requestAnimationFrame(paintTick);
+    };
+
+    // -------------------------------------------------------------------
+    // Loop 2 — Scroll driver (setTimeout)
+    // Advances scrollTop at constant px/s using wall-clock time.
+    // setTimeout(0) fires ~4ms apart in Chrome, giving ~250 scroll
+    // updates/sec — much smoother than 60fps rAF, especially at
+    // slow scroll speeds.
+    // -------------------------------------------------------------------
+    const scrollStartTime = performance.now();
+    let lastScrollTime = scrollStartTime;
+
+    const scrollTick = () => {
+      if (!running) return;
+
       const now = performance.now();
-      const elapsed = now - startTime;
+      const elapsed = now - scrollStartTime;
 
       if (elapsed >= durationMs) {
-        // Calculate FPS from frame times
+        running = false;
+
         const medianFrameTime = median(frameTimes);
         const p95FrameTime = percentile(
           [...frameTimes].sort((a, b) => a - b),
@@ -226,34 +319,29 @@ export const measureScrollPerformance = async (
         return;
       }
 
-      // Record frame time
-      const frameTime = now - lastTime;
-      frameTimes.push(frameTime);
-      lastTime = now;
+      // Advance scroll position based on real elapsed time (NOT per-frame)
+      const dt = now - lastScrollTime;
+      lastScrollTime = now;
 
-      // Simulate additional CPU work (stress mode).
-      // Burns BEFORE the scroll update so the library's rendering
-      // competes for the remaining frame budget — just like in a
-      // real app where other components consume CPU time.
-      if (stressMs > 0) burnCpu(stressMs);
-
-      // Update scroll position (bidirectional)
-      scrollPos += SCROLL_SPEED_PX_PER_FRAME * direction;
+      const pxDelta = (speedPxPerSec * dt) / 1000;
+      scrollPos += pxDelta * direction;
 
       if (scrollPos >= maxScroll) {
         scrollPos = maxScroll;
-        direction = -1; // Reverse direction
+        direction = -1;
       } else if (scrollPos <= 0) {
         scrollPos = 0;
-        direction = 1; // Forward direction
+        direction = 1;
       }
 
       viewport.scrollTop = scrollPos;
 
-      requestAnimationFrame(tick);
+      setTimeout(scrollTick, 0);
     };
 
-    requestAnimationFrame(tick);
+    // Start both loops
+    requestAnimationFrame(paintTick);
+    setTimeout(scrollTick, 0);
   });
 };
 
@@ -375,6 +463,7 @@ export const benchmarkVList = async (
       async () => {
         const list = vlist({
           container,
+          overscan: VLIST_OVERSCAN,
           item: {
             height: ITEM_HEIGHT,
             template: benchmarkTemplate,
@@ -407,6 +496,7 @@ export const benchmarkVList = async (
     createFn: () => {
       const l = vlist({
         container,
+        overscan: VLIST_OVERSCAN,
         item: {
           height: ITEM_HEIGHT,
           template: benchmarkTemplate,
@@ -423,18 +513,32 @@ export const benchmarkVList = async (
 
   // ── Phase 3: SCROLL ────────────────────────────────────────────────────
   // Uses the instance from the last memory attempt (still mounted).
+  // Tests at all COMPARISON_SCROLL_SPEEDS to expose performance cliffs.
 
-  onStatus(
-    stressMs > 0
-      ? `Testing vlist - scrolling (stress ${stressMs}ms)...`
-      : "Testing vlist - scrolling...",
-  );
   const viewport = findViewport(container);
-  const scrollMetrics = await measureScrollPerformance(
-    viewport,
-    SCROLL_DURATION_MS,
-    stressMs,
-  );
+  const scrollResults = [];
+
+  for (const speed of COMPARISON_SCROLL_SPEEDS) {
+    const stressLabel = stressMs > 0 ? ` (stress ${stressMs}ms)` : "";
+    onStatus(`Testing vlist - scrolling ${speed.label}${stressLabel}...`);
+
+    // Reset scroll position between speed runs
+    if (viewport) viewport.scrollTop = 0;
+    await nextFrame();
+
+    const scrollMetrics = await measureScrollPerformance(
+      viewport,
+      SCROLL_DURATION_MS,
+      stressMs,
+      speed.pxPerSec,
+    );
+
+    scrollResults.push({
+      speed,
+      medianFPS: scrollMetrics.medianFPS,
+      p95FrameTime: scrollMetrics.p95FrameTime,
+    });
+  }
 
   // Cleanup
   if (list) list.destroy();
@@ -444,8 +548,7 @@ export const benchmarkVList = async (
     library: "vlist",
     renderTime: round(median(renderTimes), 2),
     memoryUsed,
-    scrollFPS: scrollMetrics.medianFPS,
-    p95FrameTime: scrollMetrics.p95FrameTime,
+    scrollResults,
   };
 };
 
@@ -529,12 +632,8 @@ export const benchmarkLibrary = async (config) => {
 
   // ── Phase 3: SCROLL ────────────────────────────────────────────────────
   // Uses the instance from the last memory attempt (still mounted).
+  // Tests at all COMPARISON_SCROLL_SPEEDS to expose performance cliffs.
 
-  onStatus(
-    stressMs > 0
-      ? `Testing ${libraryName} - scrolling (stress ${stressMs}ms)...`
-      : `Testing ${libraryName} - scrolling...`,
-  );
   const viewport = findViewport(container);
 
   // Scroll nudge: some libraries (e.g. Virtua) keep items visibility:hidden
@@ -547,11 +646,31 @@ export const benchmarkLibrary = async (config) => {
     await nextFrame();
   }
 
-  const scrollMetrics = await measureScrollPerformance(
-    viewport,
-    SCROLL_DURATION_MS,
-    stressMs,
-  );
+  const scrollResults = [];
+
+  for (const speed of COMPARISON_SCROLL_SPEEDS) {
+    const stressLabel = stressMs > 0 ? ` (stress ${stressMs}ms)` : "";
+    onStatus(
+      `Testing ${libraryName} - scrolling ${speed.label}${stressLabel}...`,
+    );
+
+    // Reset scroll position between speed runs
+    if (viewport) viewport.scrollTop = 0;
+    await nextFrame();
+
+    const scrollMetrics = await measureScrollPerformance(
+      viewport,
+      SCROLL_DURATION_MS,
+      stressMs,
+      speed.pxPerSec,
+    );
+
+    scrollResults.push({
+      speed,
+      medianFPS: scrollMetrics.medianFPS,
+      p95FrameTime: scrollMetrics.p95FrameTime,
+    });
+  }
 
   // Cleanup
   await destroyComponent(instance);
@@ -561,8 +680,7 @@ export const benchmarkLibrary = async (config) => {
     library: libraryName,
     renderTime: round(median(renderTimes), 2),
     memoryUsed,
-    scrollFPS: scrollMetrics.medianFPS,
-    p95FrameTime: scrollMetrics.p95FrameTime,
+    scrollResults,
   };
 };
 
@@ -621,7 +739,12 @@ export const calculateComparisonMetrics = (
       unit: "%",
       better: "lower",
       rating: pct < 0 ? "good" : pct < 20 ? "ok" : "bad",
-      meta: pct < 0 ? "vlist is faster" : `${libraryName} is faster`,
+      meta:
+        pct === 0
+          ? undefined
+          : pct < 0
+            ? "vlist is faster"
+            : `${libraryName} is faster`,
     });
   }
 
@@ -660,7 +783,12 @@ export const calculateComparisonMetrics = (
       unit: "%",
       better: "lower",
       rating: pct < 0 ? "good" : pct < 20 ? "ok" : "bad",
-      meta: pct < 0 ? "vlist uses less" : `${libraryName} uses less`,
+      meta:
+        pct === 0
+          ? undefined
+          : pct < 0
+            ? "vlist uses less"
+            : `${libraryName} uses less`,
     });
   } else {
     // At least one measurement was unreliable — show individual values where
@@ -704,54 +832,84 @@ export const calculateComparisonMetrics = (
     });
   }
 
-  // Scroll FPS Comparison
-  if (vlistResults.scrollFPS && libResults.scrollFPS) {
-    const diff = vlistResults.scrollFPS - libResults.scrollFPS;
-    const pct = round((diff / libResults.scrollFPS) * 100, 1);
+  // Scroll FPS Comparison — average across all speeds
+  const vlistScroll = vlistResults.scrollResults || [];
+  const libScroll = libResults.scrollResults || [];
 
-    metrics.push({
-      label: "vlist Scroll FPS",
-      value: vlistResults.scrollFPS,
-      unit: "fps",
-      better: "higher",
-      rating: rateHigher(vlistResults.scrollFPS, 55, 50),
-    });
+  if (vlistScroll.length > 0 && libScroll.length > 0) {
+    // Collect valid FPS and P95 values from all speed runs
+    const vlistFPSValues = vlistScroll.map((r) => r.medianFPS).filter(Boolean);
+    const libFPSValues = libScroll.map((r) => r.medianFPS).filter(Boolean);
+    const vlistP95Values = vlistScroll
+      .map((r) => r.p95FrameTime)
+      .filter(Boolean);
+    const libP95Values = libScroll.map((r) => r.p95FrameTime).filter(Boolean);
 
-    metrics.push({
-      label: `${libraryName} Scroll FPS`,
-      value: libResults.scrollFPS,
-      unit: "fps",
-      better: "higher",
-      rating: rateHigher(libResults.scrollFPS, 55, 50),
-    });
+    // Average FPS across speeds
+    const avgFn = (arr) =>
+      arr.length > 0
+        ? round(arr.reduce((a, b) => a + b, 0) / arr.length, 1)
+        : null;
 
-    metrics.push({
-      label: "FPS Difference",
-      value: pct,
-      unit: "%",
-      better: "higher",
-      rating: pct > 0 ? "good" : pct > -5 ? "ok" : "bad",
-      meta: pct > 0 ? "vlist is smoother" : `${libraryName} is smoother`,
-    });
-  }
+    const vlistAvgFPS = avgFn(vlistFPSValues);
+    const libAvgFPS = avgFn(libFPSValues);
+    const vlistAvgP95 = avgFn(vlistP95Values);
+    const libAvgP95 = avgFn(libP95Values);
 
-  // P95 Frame Time Comparison
-  if (vlistResults.p95FrameTime && libResults.p95FrameTime) {
-    metrics.push({
-      label: "vlist P95 Frame Time",
-      value: vlistResults.p95FrameTime,
-      unit: "ms",
-      better: "lower",
-      rating: rateLower(vlistResults.p95FrameTime, 20, 30),
-    });
+    // FPS
+    if (vlistAvgFPS && libAvgFPS) {
+      const diff = vlistAvgFPS - libAvgFPS;
+      const pct = round((diff / libAvgFPS) * 100, 1);
 
-    metrics.push({
-      label: `${libraryName} P95 Frame Time`,
-      value: libResults.p95FrameTime,
-      unit: "ms",
-      better: "lower",
-      rating: rateLower(libResults.p95FrameTime, 20, 30),
-    });
+      metrics.push({
+        label: "vlist Scroll FPS",
+        value: vlistAvgFPS,
+        unit: "fps",
+        better: "higher",
+        rating: rateHigher(vlistAvgFPS, 55, 50),
+      });
+
+      metrics.push({
+        label: `${libraryName} Scroll FPS`,
+        value: libAvgFPS,
+        unit: "fps",
+        better: "higher",
+        rating: rateHigher(libAvgFPS, 55, 50),
+      });
+
+      metrics.push({
+        label: "FPS Difference",
+        value: pct,
+        unit: "%",
+        better: "higher",
+        rating: pct > 0 ? "good" : pct > -5 ? "ok" : "bad",
+        meta:
+          pct === 0
+            ? undefined
+            : pct > 0
+              ? "vlist is smoother"
+              : `${libraryName} is smoother`,
+      });
+    }
+
+    // P95 Frame Time
+    if (vlistAvgP95 && libAvgP95) {
+      metrics.push({
+        label: "vlist P95 Frame Time",
+        value: vlistAvgP95,
+        unit: "ms",
+        better: "lower",
+        rating: rateLower(vlistAvgP95, 20, 30),
+      });
+
+      metrics.push({
+        label: `${libraryName} P95 Frame Time`,
+        value: libAvgP95,
+        unit: "ms",
+        better: "lower",
+        rating: rateLower(libAvgP95, 20, 30),
+      });
+    }
   }
 
   // Add error metric if library failed
@@ -834,8 +992,7 @@ export const runComparison = async ({
         library: libraryName,
         renderTime: null,
         memoryUsed: null,
-        scrollFPS: null,
-        p95FrameTime: null,
+        scrollResults: [],
         error: err.message,
       };
     }

@@ -134,6 +134,12 @@ import {
   formatItemCount,
 } from "./runner.js";
 
+// Import comparison constants for progress tracking
+import {
+  SCROLL_DURATION_MS as COMP_SCROLL_DURATION_MS,
+  COMPARISON_SCROLL_SPEEDS,
+} from "./comparison/shared.js";
+
 // =============================================================================
 // Constants
 // =============================================================================
@@ -160,11 +166,8 @@ const results = {};
 // DOM references (populated by build* functions)
 const dom = {
   runBtn: null,
-  progressBar: null,
-  progressText: null,
-  progressContainer: null,
   suitesContainer: null,
-  suiteCards: new Map(), // suiteId → { card, statusEl, metricsContainer, viewport, viewportInner }
+  suiteCards: new Map(), // suiteId → { card, statusEl, progressContainer, progressBar, progressText, metricsContainer, viewport, viewportInner }
   sizeBtns: [],
 };
 
@@ -183,9 +186,6 @@ function buildSuitePage(root, suite) {
 
   // Cache DOM refs
   dom.runBtn = root.querySelector("#bench-run");
-  dom.progressBar = root.querySelector("#bench-progress-bar");
-  dom.progressText = root.querySelector("#bench-progress-text");
-  dom.progressContainer = root.querySelector("#bench-progress");
   dom.suitesContainer = root.querySelector("#bench-suites");
 
   // Wire up size buttons (pre-rendered as ui-segmented in template)
@@ -318,6 +318,10 @@ const buildSuiteCards = (container, suites) => {
 
     card.innerHTML = `
       <div class="bench-suite__status" id="status-${suite.id}"></div>
+      <div class="bench-progress" id="bench-progress-${suite.id}">
+        <div class="bench-progress__bar" id="bench-progress-bar-${suite.id}"></div>
+        <div class="bench-progress__text" id="bench-progress-text-${suite.id}">0%</div>
+      </div>
       <div class="bench-metrics" id="metrics-${suite.id}">
         <div class="bench-metric bench-metric--empty">
           <span class="bench-metric__value">Click "Run" to benchmark</span>
@@ -332,12 +336,18 @@ const buildSuiteCards = (container, suites) => {
 
     // Cache refs
     const statusEl = card.querySelector(`#status-${suite.id}`);
+    const progressContainer = card.querySelector(`#bench-progress-${suite.id}`);
+    const progressBar = card.querySelector(`#bench-progress-bar-${suite.id}`);
+    const progressText = card.querySelector(`#bench-progress-text-${suite.id}`);
     const metricsContainer = card.querySelector(`#metrics-${suite.id}`);
     const viewportInner = viewport.querySelector(`#viewport-inner-${suite.id}`);
 
     dom.suiteCards.set(suite.id, {
       card,
       statusEl,
+      progressContainer,
+      progressBar,
+      progressText,
       metricsContainer,
       viewport,
       viewportInner,
@@ -420,8 +430,36 @@ const handleSuiteRunClick = async (suiteId) => {
 
   let currentStepProgress = 0;
 
+  // Track which comparison library we're on (0 = first, 1 = second)
+  let compLibIndex = -1;
+  let lastCompLib = "";
+
+  // Timer to animate progress during scroll phases (no status updates during scroll)
+  let scrollProgressTimer = null;
+  const SCROLL_TICK = 200; // update every 200ms
+
+  const startScrollProgressTimer = (baseProgress, endProgress, durationMs) => {
+    stopScrollProgressTimer();
+    const start = performance.now();
+    scrollProgressTimer = setInterval(() => {
+      const elapsed = performance.now() - start;
+      const fraction = Math.min(elapsed / durationMs, 1);
+      currentStepProgress =
+        baseProgress + fraction * (endProgress - baseProgress);
+      setProgress(suiteId, currentStepProgress);
+      if (fraction >= 1) stopScrollProgressTimer();
+    }, SCROLL_TICK);
+  };
+
+  const stopScrollProgressTimer = () => {
+    if (scrollProgressTimer) {
+      clearInterval(scrollProgressTimer);
+      scrollProgressTimer = null;
+    }
+  };
+
   // Initialize progress bar
-  setProgress(0);
+  setProgress(suiteId, 0);
 
   try {
     await runBenchmarks({
@@ -435,7 +473,79 @@ const handleSuiteRunClick = async (suiteId) => {
       onStatus: (sid, itemCount, message) => {
         updateSuiteStatus(sid, message);
 
-        // Estimate progress based on status message
+        // ── Comparison benchmarks ──────────────────────────────────
+        // Messages follow: "Testing {lib} - {phase}..."
+        // Two libraries × (prepare + memory + N scroll speeds) each
+        // Progress: lib1 maps to 0→0.48, lib2 maps to 0.50→0.98
+        const compMatch = message.match(
+          /^Testing (.+?) - (preparing|measuring memory|scrolling)/,
+        );
+        if (compMatch) {
+          const lib = compMatch[1];
+          const phase = compMatch[2];
+
+          // Detect library switch
+          if (lib !== lastCompLib) {
+            compLibIndex++;
+            lastCompLib = lib;
+          }
+
+          // Stop any running scroll timer when phase changes
+          stopScrollProgressTimer();
+
+          // Base offset: first lib 0→0.48, second lib 0.50→0.98
+          const libBase = compLibIndex === 0 ? 0 : 0.5;
+
+          const numSpeeds = COMPARISON_SCROLL_SPEEDS.length; // 3
+
+          // Phase offsets within each library's half (0→0.48)
+          // Prepare + render: 0.00→0.08  (fast, no per-iteration status)
+          // Memory:           0.08→0.20  (X/Y parsed from status message)
+          // Scroll speeds:    0.20→0.48  (split evenly across N speeds)
+          if (phase === "preparing") {
+            currentStepProgress = libBase + 0.02;
+          } else if (phase === "measuring memory") {
+            // Parse attempt number if available: "measuring memory (X/Y)"
+            const memMatch = message.match(/measuring memory \((\d+)\/(\d+)\)/);
+            if (memMatch) {
+              const current = parseInt(memMatch[1], 10);
+              const total = parseInt(memMatch[2], 10);
+              // Memory spans from 0.08 to 0.20 within the lib's half
+              currentStepProgress = libBase + 0.08 + (current / total) * 0.12;
+            } else {
+              currentStepProgress = libBase + 0.08;
+            }
+          } else if (phase === "scrolling") {
+            // Detect which scroll speed we're on from the label (e.g. "scrolling 7,200 px/s...")
+            const speedMatch = message.match(/scrolling ([\d,.]+ px\/s)/);
+            let speedIndex = 0;
+            if (speedMatch) {
+              const label = speedMatch[1];
+              const idx = COMPARISON_SCROLL_SPEEDS.findIndex(
+                (s) => s.label === label,
+              );
+              if (idx >= 0) speedIndex = idx;
+            }
+
+            // Each speed gets an equal slice of the scroll range (0.20→0.48)
+            const scrollRange = 0.28; // total scroll band within the half
+            const sliceSize = scrollRange / numSpeeds;
+            const sliceStart = libBase + 0.2 + speedIndex * sliceSize;
+            const sliceEnd = sliceStart + sliceSize;
+
+            currentStepProgress = sliceStart;
+            startScrollProgressTimer(
+              sliceStart,
+              sliceEnd,
+              COMP_SCROLL_DURATION_MS,
+            );
+          }
+
+          setProgress(suiteId, currentStepProgress);
+          return;
+        }
+
+        // ── Solo benchmarks ────────────────────────────────────────
         // Phase-based progress (scroll benchmark)
         if (message.includes("Waking up display")) {
           currentStepProgress = 0.1;
@@ -485,7 +595,7 @@ const handleSuiteRunClick = async (suiteId) => {
           // Map jumps from 0.4 to 0.95 of the current step
           currentStepProgress = 0.4 + (current / total) * 0.55;
         }
-        setProgress(currentStepProgress);
+        setProgress(suiteId, currentStepProgress);
       },
 
       onResult: (result) => {
@@ -495,6 +605,7 @@ const handleSuiteRunClick = async (suiteId) => {
 
       onComplete: () => {
         setSuiteState(suiteId, "done");
+        updateSuiteStatus(suiteId, "Final results");
         hideViewport(suiteId);
       },
     });
@@ -504,13 +615,14 @@ const handleSuiteRunClick = async (suiteId) => {
     }
   }
 
+  stopScrollProgressTimer();
   hideViewport(suiteId);
   isRunning = false;
   abortController = null;
   setRunningState(false);
 
   // Fade out progress bar after a moment
-  setTimeout(() => setProgress(0), 1500);
+  setTimeout(() => setProgress(suiteId, 0), 1500);
 };
 
 // =============================================================================
@@ -534,30 +646,27 @@ const setRunningState = (running) => {
     btn.classList.toggle("ui-segmented__btn--disabled", running);
   });
 
-  if (dom.progressContainer) {
-    dom.progressContainer.classList.toggle("bench-progress--active", running);
-  }
-
   // Switch to single-column layout while running so the active suite + viewport is larger
   dom.suitesContainer?.classList.toggle("bench-suites--running", running);
 };
 
-const setProgress = (fraction) => {
-  if (!dom.progressBar || !dom.progressContainer) return;
+const setProgress = (suiteId, fraction) => {
+  const ref = dom.suiteCards.get(suiteId);
+  if (!ref?.progressBar || !ref?.progressContainer) return;
   const pct = Math.round(fraction * 100);
-  dom.progressBar.style.width = `${pct}%`;
+  ref.progressBar.style.width = `${pct}%`;
 
-  if (dom.progressText) {
-    dom.progressText.textContent = `${pct}%`;
+  if (ref.progressText) {
+    ref.progressText.textContent = `${pct}%`;
   }
 
   if (fraction === 0) {
-    dom.progressContainer.classList.remove("bench-progress--active");
-    if (dom.progressText) {
-      dom.progressText.textContent = "0%";
+    ref.progressContainer.classList.remove("bench-progress--active");
+    if (ref.progressText) {
+      ref.progressText.textContent = "0%";
     }
   } else {
-    dom.progressContainer.classList.add("bench-progress--active");
+    ref.progressContainer.classList.add("bench-progress--active");
   }
 };
 
@@ -574,8 +683,13 @@ const updateSuiteStatus = (suiteId, message) => {
   const ref = dom.suiteCards.get(suiteId);
   if (!ref) return;
 
-  ref.statusEl.textContent = message;
-  ref.statusEl.classList.toggle("bench-suite__status--running", true);
+  // Strip redundant "Testing " prefix from comparison status messages
+  const cleaned = message.replace(/^Testing /, "");
+  ref.statusEl.textContent = cleaned;
+  ref.statusEl.classList.toggle(
+    "bench-suite__status--running",
+    cleaned !== "Final results",
+  );
 };
 
 // =============================================================================

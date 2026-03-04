@@ -260,7 +260,7 @@ Each comparison runs in **three isolated phases**:
 |-------|------|-----|
 | **1. Timing** | Render time (median of 5 iterations) | `performance.mark()` + `performance.measure()` |
 | **2. Memory** | Heap delta for a single mounted instance | `measureMemoryDelta()` with `settleHeap()` isolation |
-| **3. Scroll** | FPS and P95 frame time over 5s | `requestAnimationFrame` loop with bidirectional scrolling |
+| **3. Scroll** | FPS and P95 frame time across 7 speeds | Dual-loop: `setTimeout` scroll driver + `rAF` paint counter |
 
 **Why three separate phases?** Render iterations create and destroy components repeatedly, generating garbage that contaminates heap snapshots. By isolating memory measurement into its own phase — with aggressive GC settling between phases — we get reliable heap deltas instead of GC timing artifacts.
 
@@ -295,10 +295,10 @@ When either library's memory measurement is unreliable (null), the memory compar
 | **vlist Memory Usage** | MB | Lower | Heap delta after mounting vlist |
 | **{Library} Memory Usage** | MB | Lower | Heap delta after mounting the compared library |
 | **Memory Difference** | % | Lower | Percentage difference (negative = vlist uses less) |
-| **vlist Scroll FPS** | fps | Higher | Median FPS during 5s bidirectional scroll |
+| **vlist Scroll FPS** | fps | Higher | Average median FPS across 7 scroll speeds |
 | **{Library} Scroll FPS** | fps | Higher | Same for the compared library |
 | **FPS Difference** | % | Higher | Percentage difference (positive = vlist smoother) |
-| **vlist P95 Frame Time** | ms | Lower | 95th percentile frame time (consistency) |
+| **vlist P95 Frame Time** | ms | Lower | Average P95 frame time across 7 scroll speeds |
 | **{Library} P95 Frame Time** | ms | Lower | Same for the compared library |
 
 ### Randomized Execution Order
@@ -327,6 +327,32 @@ This ensures performance differences reflect library overhead, not template comp
 
 All comparison suites accept an optional `stressMs` parameter that burns CPU for the specified duration on every scroll frame (via `burnCpu()`). This simulates real-world application overhead (e.g., state management, analytics, other components) and reveals how each library degrades under load — whereas on idle benchmarks both libraries often hit the display's FPS ceiling.
 
+### Multi-Speed Scroll Profiling
+
+Each library is tested at **7 scroll speeds** automatically (no user selection), derived from `BASE_SCROLL_SPEED` (7,200 px/s):
+
+| Speed | px/s | Items/frame @60fps | Character |
+|-------|------|--------------------|-----------|
+| 0.1× | 720 | ~0.25 | Pure baseline overhead |
+| 0.25× | 1,800 | ~0.6 | Gentle browsing |
+| 0.5× | 3,600 | ~1.25 | Casual scrolling |
+| 1× | 7,200 | ~2.5 | Normal speed |
+| 2× | 14,400 | ~5 | Fast flick |
+| 3× | 21,600 | ~7.5 | Aggressive scroll |
+| 5× | 36,000 | ~12.5 | Stress test |
+
+Each speed runs for **2 seconds** per library (7 speeds × 2s × 2 libraries = ~28s total scroll time). FPS and P95 frame time are **averaged across all 7 speeds** into single values — exposing performance cliffs invisible at any single speed.
+
+The scroll phase uses a **dual-loop architecture** matching the scroll suite:
+- **`setTimeout(0)` scroll driver** (~250 updates/sec) — smooth sub-pixel scrolling at all speeds
+- **`rAF` paint counter** — accurate frame timing decoupled from scroll updates
+
+Scroll distance is time-based (`px/s × dt / 1000`), ensuring consistent speed regardless of display refresh rate (60Hz, 120Hz, variable).
+
+### vlist Overscan
+
+vlist's default overscan of 3 items (144px) is insufficient at high scroll speeds (5× / 36,000 px/s). The comparison benchmarks use `VLIST_OVERSCAN = 5` (240px buffer at 48px items), which keeps up at all tested speeds. Legend List uses its default `drawDistance: 250` (250px) — comparable overscan budgets.
+
 ### Shared Utilities (`shared.js`)
 
 All comparison suites import from `shared.js` to ensure consistent methodology:
@@ -336,49 +362,48 @@ All comparison suites import from `shared.js` to ensure consistent methodology:
 | Constant | Value | Purpose |
 |----------|-------|---------|
 | `ITEM_HEIGHT` | 48 px | Fixed row height for all benchmarks |
+| `VLIST_OVERSCAN` | 5 | Extra items rendered beyond viewport (240px at 48px items) |
 | `MEASURE_ITERATIONS` | 5 | Render iterations for median calculation |
-| `MEMORY_ATTEMPTS` | 3 | Retries for reliable heap measurement |
-| `SCROLL_DURATION_MS` | 5000 | Scroll test duration |
-| `SCROLL_SPEED_PX_PER_FRAME` | 100 | Pixels scrolled per animation frame |
+| `MEMORY_ATTEMPTS` | 10 | Retries for reliable heap measurement |
+| `SCROLL_DURATION_MS` | 2000 | Scroll test duration per speed |
+| `BASE_SCROLL_SPEED` | 7200 | Base scroll speed in px/s (1× multiplier) |
+| `COMPARISON_SCROLL_SPEEDS` | 7 entries | Speed presets from 0.1× (720 px/s) to 5× (36,000 px/s) |
 
 **Functions:**
 
 | Function | Purpose |
 |----------|---------|
-| `benchmarkVList(container, itemCount, onStatus, stressMs)` | vlist baseline — 3-phase measurement (timing → memory → scroll) |
+| `benchmarkVList(container, itemCount, onStatus, stressMs)` | vlist baseline — 3-phase measurement (timing → memory → multi-speed scroll) |
 | `benchmarkLibrary(config)` | Generic wrapper — same 3-phase measurement for any library |
 | `runComparison(opts)` | Randomized runner — coin-flip execution order + GC barrier + metrics calculation |
-| `calculateComparisonMetrics(vlist, lib, name, ...)` | Builds the side-by-side metrics array with percentage diffs and ratings |
+| `calculateComparisonMetrics(vlist, lib, name, ...)` | Builds the side-by-side metrics array with averaged scroll results and percentage diffs |
 | `findViewport(container)` | Locates the scrollable element — tries `.vlist-viewport` first, then depth-first search for any `overflow: auto/scroll` descendant |
-| `measureScrollPerformance(viewport, duration, stressMs)` | rAF loop with bidirectional scrolling, returns median FPS + P95 frame time |
+| `measureScrollPerformance(viewport, duration, stressMs, speedPxPerSec)` | Dual-loop (setTimeout scroll driver + rAF paint counter) with time-based scrolling, returns median FPS + P95 frame time |
 | `measureMemoryWithRetries(config)` | Up to `MEMORY_ATTEMPTS` isolated heap measurements, returns median of valid readings |
 | `createRealisticReactChildren(React, index)` | Shared React element tree for consistent templates |
 | `populateRealisticDOMChildren(el, index)` | Same structure via raw DOM for SolidJS |
 
 ### Typical Results (10K Items)
 
-Based on standard hardware (M1 Mac, Chrome):
+Based on standard hardware (M1 Mac, Chrome). Scroll FPS and P95 are averages across 7 speeds (720–36,000 px/s):
 
 | Library | Render Time | Memory | Scroll FPS | P95 Frame Time |
 |---------|------------|--------|------------|----------------|
-| **vlist** | ~8.5 ms | ~0.24 MB | 120.5 fps | ~9.2 ms |
-| react-window | ~9.1 ms | ~2.26 MB | 120.5 fps | ~9.1 ms |
-| TanStack Virtual | ~9.1 ms | ~2.26 MB | 120.5 fps | ~9.1 ms |
-| Virtua | ~17.2 ms | ~14.3 MB | 120.5 fps | ~9.0 ms |
-| Legend List | ~26.9 ms | ~3.72 MB | 120.5 fps | ~9.4 ms |
-| vue-virtual-scroller | ~13.4 ms | ~11.0 MB | 120.5 fps | ~10.4 ms |
+| **vlist** | ~8.3 ms | ~0.04 MB | ~120.5 fps | ~9.2 ms |
+| react-window | ~9.1 ms | ~2.26 MB | ~120.5 fps | ~9.1 ms |
+| TanStack Virtual | ~11.2 ms | ~0.97 MB | ~117.9 fps | ~12 ms |
+| Legend List | ~25.1 ms | ~3.64 MB | ~109.9 fps | ~17.8 ms |
+| vue-virtual-scroller | ~13.4 ms | ~11.0 MB | ~120.5 fps | ~10.4 ms |
 
-**Key insight:** vlist consistently uses **10–60× less memory** while maintaining equal or better render and scroll performance. The FPS ceiling means all libraries saturate the display refresh rate under light load — use CPU throttling (DevTools → Performance → 4×/6× slowdown) to reveal real differences.
+**Key insight:** Multi-speed scroll profiling reveals real performance differences that were hidden when both libraries capped at the display refresh rate at a single speed. vlist consistently uses **10–60× less memory** while maintaining equal or better render and scroll performance across all speed levels.
 
 ### Known Limitations
 
 **Architectural asymmetry:** vlist is a zero-dependency vanilla JS library. Libraries like TanStack Virtual require React. The benchmark includes framework runtime overhead (fiber tree, reconciliation, effects) in the compared library's numbers. This is the real cost users pay, but it measures **framework + library**, not just the virtualization algorithm.
 
-**FPS ceiling:** On high-refresh-rate displays, both libraries often saturate the display's refresh rate (e.g. 120 fps). When both hit the ceiling, FPS shows 0% difference — which is accurate but not differentiating. Use CPU throttling in DevTools (4x/6x) to see real differences under load.
-
 **Memory API limitations:** `performance.memory.usedJSHeapSize` is Chrome-only and non-deterministic. Even with `settleHeap()` isolation, results can vary between runs. The negative-delta rejection prevents impossible values, but small positive values (< 0.1 MB) should be treated as approximate.
 
-**Scope:** These benchmarks test core virtualization performance with fixed-height, simple items. They do not test variable heights, complex templates (images, rich content), user interactions, or real-world application overhead (though `stressMs` simulates CPU load).
+**Scope:** These benchmarks test core virtualization performance with fixed-height items and realistic templates. They do not test variable heights, images/rich content, user interactions, or real-world application overhead (though `stressMs` simulates CPU load and multi-speed scroll profiling reveals performance under varying DOM churn pressure).
 
 ### Adding a New Comparison
 
@@ -550,7 +575,8 @@ Thresholds adapt to context. For example, at 1M items the render time thresholds
 - **Use Chrome** — the memory suite requires `performance.memory`
 - **Launch with `--enable-precise-memory-info`** — improves heap measurement granularity for memory and comparison suites
 - **Run multiple times** — results vary slightly between runs; look for consistency
-- **Use CPU throttling** (comparison suites) — DevTools → Performance → 4x/6x slowdown reveals real FPS differences when both libraries cap at display refresh rate
+- **Use CPU throttling** (comparison suites) — DevTools → Performance → 4x/6x slowdown for additional stress
+- **Be patient with comparisons** — multi-speed scroll profiling runs 7 speeds × 2s × 2 libraries = ~28s of scroll testing
 
 ---
 
