@@ -140,6 +140,7 @@
 }
 
 .bench-run-btn--stop {
+    display: none;
     background: #f44336;
     border-color: #f44336;
 }
