@@ -72,7 +72,9 @@ export const itemTemplate = (item) => `
       alt="${item.title}"
       loading="lazy"
       decoding="async"
-      onload="this.classList.add('card__img--loaded')"
+      data-t="${performance.now()}"
+      onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('card__img--loaded')"
+      onerror="this.style.transition='none';this.classList.add('card__img--loaded')"
     />
     <div class="card__overlay">
       <span class="card__title">${item.title}</span>
