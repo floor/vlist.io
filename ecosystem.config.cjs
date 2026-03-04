@@ -1,5 +1,10 @@
 // PM2 Ecosystem Configuration — vlist.dev
 // https://pm2.keymetrics.io/docs/usage/application-declaration/
+//
+// NOTE: fork mode is required because PM2 cluster mode ignores the
+// `interpreter` setting and always spawns workers with Node.js.
+// Fork mode correctly uses Bun as the interpreter and still supports
+// zero-downtime `pm2 reload` with wait_ready + listen_timeout.
 
 module.exports = {
   apps: [
@@ -12,8 +17,8 @@ module.exports = {
         NODE_ENV: "production",
         PORT: 3338,
       },
-      instances: 2,
-      exec_mode: "cluster",
+      instances: 1,
+      exec_mode: "fork",
       wait_ready: true,
       listen_timeout: 5000,
       autorestart: true,
