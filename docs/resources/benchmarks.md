@@ -31,11 +31,12 @@ This allows direct comparison of vlist performance across different framework in
 
 | Suite | Compares against | Metrics |
 |-------|-----------------|---------|
-| **TanStack Virtual** | `@tanstack/react-virtual` | Render time, memory, scroll FPS, P95 frame time |
-| **react-window** | `react-window` | Render time, memory, scroll FPS, P95 frame time |
-| **Virtua** | `virtua` (React) | Render time, memory, scroll FPS, P95 frame time |
-| **vue-virtual-scroller** | `vue-virtual-scroller` | Render time, memory, scroll FPS, P95 frame time |
-| **SolidJS** | `@tanstack/solid-virtual` | Render time, memory, scroll FPS, P95 frame time |
+| **TanStack Virtual** | `@tanstack/react-virtual` v3.13.18 | Render time, memory, scroll FPS, P95 frame time |
+| **react-window** | `react-window` v1.8.10 | Render time, memory, scroll FPS, P95 frame time |
+| **Virtua** | `virtua` v0.48.6 (React) | Render time, memory, scroll FPS, P95 frame time |
+| **vue-virtual-scroller** | `vue-virtual-scroller` v2.0.0-beta.8 | Render time, memory, scroll FPS, P95 frame time |
+| **SolidJS** | `@tanstack/solid-virtual` v3.13.18 | Render time, memory, scroll FPS, P95 frame time |
+| **Legend List** | `@legendapp/list/react` v3.0.0-beta.40 | Render time, memory, scroll FPS, P95 frame time |
 
 All suites can be run at three item counts: **10K**, **100K**, and **1M**.
 
@@ -238,17 +239,18 @@ The comparison benchmarks (`benchmarks/comparison/`) run vlist head-to-head agai
 
 | Library | Ecosystem | Architecture | Suite File |
 |---------|-----------|-------------|------------|
-| **[react-window](https://github.com/bvaughn/react-window)** | React | Component-based, fixed/variable size lists | `react-window.js` |
-| **[TanStack Virtual](https://tanstack.com/virtual)** | React | Headless virtualizer hook (`useVirtualizer`) | `tanstack-virtual.js` |
-| **[Virtua](https://github.com/inokawa/virtua)** | React | Zero-config `<VList>` component (~3 kB per component) | `virtua.js` |
-| **[vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller)** | Vue 3 | `<RecycleScroller>` component with DOM recycling | `vue-virtual-scroller.js` |
-| **[TanStack Virtual (SolidJS)](https://tanstack.com/virtual)** | SolidJS | `createVirtualizer` with fine-grained reactivity | `solidjs.js` |
+| **[react-window](https://github.com/bvaughn/react-window)** v1.8.10 | React | Component-based, fixed/variable size lists | `react-window.js` |
+| **[TanStack Virtual](https://tanstack.com/virtual)** v3.13.18 | React | Headless virtualizer hook (`useVirtualizer`) | `tanstack-virtual.js` |
+| **[Virtua](https://github.com/inokawa/virtua)** v0.48.6 | React | Zero-config `<VList>` component (~3 kB per component) | `virtua.js` |
+| **[Legend List](https://github.com/LegendApp/legend-list)** v3.0.0-beta.40 | React (+ React Native) | `LegendList` component with item recycling, v3 React DOM entry point | `legend-list.js` |
+| **[vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller)** v2.0.0-beta.8 | Vue 3 | `<RecycleScroller>` component with DOM recycling | `vue-virtual-scroller.js` |
+| **[TanStack Virtual (SolidJS)](https://tanstack.com/virtual)** v3.13.18 | SolidJS | `createVirtualizer` with fine-grained reactivity | `solidjs.js` |
 
 **Why these libraries?** Selection criteria:
 - **Popularity** — High npm download counts and community adoption
 - **Quality** — Production-ready, actively maintained
-- **Diversity** — Different ecosystems (React, Vue, SolidJS)
-- **Approach** — Different architectural styles (headless, component-based, zero-config)
+- **Diversity** — Different ecosystems (React, Vue, SolidJS, React Native)
+- **Approach** — Different architectural styles (headless, component-based, zero-config, cross-platform)
 
 ### Measurement Methodology
 
@@ -363,6 +365,7 @@ Based on standard hardware (M1 Mac, Chrome):
 | react-window | ~9.1 ms | ~2.26 MB | 120.5 fps | ~9.1 ms |
 | TanStack Virtual | ~9.1 ms | ~2.26 MB | 120.5 fps | ~9.1 ms |
 | Virtua | ~17.2 ms | ~14.3 MB | 120.5 fps | ~9.0 ms |
+| Legend List | ~26.9 ms | ~3.72 MB | 120.5 fps | ~9.4 ms |
 | vue-virtual-scroller | ~13.4 ms | ~11.0 MB | 120.5 fps | ~10.4 ms |
 
 **Key insight:** vlist consistently uses **10–60× less memory** while maintaining equal or better render and scroll performance. The FPS ceiling means all libraries saturate the display refresh rate under light load — use CPU throttling (DevTools → Performance → 4×/6× slowdown) to reveal real differences.
@@ -439,11 +442,12 @@ The `shared.js` utilities handle all measurement infrastructure — you only nee
 | File | Purpose |
 |------|---------|
 | `benchmarks/comparison/shared.js` | Shared infrastructure — `benchmarkVList()`, `benchmarkLibrary()`, `runComparison()`, `calculateComparisonMetrics()` |
-| `benchmarks/comparison/tanstack-virtual.js` | TanStack Virtual (React) comparison suite |
-| `benchmarks/comparison/react-window.js` | react-window comparison suite |
-| `benchmarks/comparison/virtua.js` | Virtua (React) comparison suite |
-| `benchmarks/comparison/vue-virtual-scroller.js` | vue-virtual-scroller comparison suite |
-| `benchmarks/comparison/solidjs.js` | TanStack Virtual (SolidJS) comparison suite |
+| `benchmarks/comparison/tanstack-virtual.js` | TanStack Virtual v3.13.18 (React) comparison suite |
+| `benchmarks/comparison/react-window.js` | react-window v1.8.10 comparison suite |
+| `benchmarks/comparison/virtua.js` | Virtua v0.48.6 (React) comparison suite |
+| `benchmarks/comparison/legend-list.js` | Legend List v3.0.0-beta.40 (React DOM, `@legendapp/list/react`) comparison suite |
+| `benchmarks/comparison/vue-virtual-scroller.js` | vue-virtual-scroller v2.0.0-beta.8 comparison suite |
+| `benchmarks/comparison/solidjs.js` | TanStack Virtual v3.13.18 (SolidJS) comparison suite |
 
 ---
 
