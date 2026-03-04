@@ -393,7 +393,7 @@ Remove everything that moved to `ui.css`. What remains (~170 lines):
 
 ```
 /* VList Theme Overrides */           html[data-theme-mode] --vlist-* tokens
-/* Design Token */                    .container { --examples-radius }
+/* Design Token */                    .container { --radius }
 /* Container */                       .container sizing, header, h1, description, footer
 /* List Containers */                 [id$="-container"] rules
 /* Example Footer */                  .example-footer, __left, __right, __stat, __unit

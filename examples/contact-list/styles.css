@@ -127,7 +127,7 @@
     align-items: center;
     justify-content: center;
     border: 1px solid var(--border);
-    border-radius: var(--examples-radius, 6px);
+    border-radius: var(--radius, 6px);
     background: var(--bg);
     color: var(--text-muted);
     font-size: 11px;

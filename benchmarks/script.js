@@ -138,8 +138,7 @@ import {
 // Constants
 // =============================================================================
 
-const ITEM_COUNTS = [10_000, 100_000, 1_000_000];
-const DEFAULT_ITEM_COUNT_INDEX = 0; // Start with 10K selected
+const DEFAULT_ITEM_COUNT = 10_000;
 
 // Convert features data from JSON to array format for backward compatibility
 const FEATURE_LIBS = FEATURES_DATA.libraries;
@@ -149,7 +148,7 @@ const FEATURE_DATA = FEATURES_DATA.features.map((f) => [f.name, ...f.support]);
 // Shared State
 // =============================================================================
 
-let selectedItemCounts = [ITEM_COUNTS[DEFAULT_ITEM_COUNT_INDEX]];
+let selectedItemCount = DEFAULT_ITEM_COUNT;
 let selectedStressMs = 0;
 let selectedScrollSpeed = SCROLL_SPEEDS[0].pxPerSec;
 let isRunning = false;
@@ -161,12 +160,11 @@ const results = {};
 // DOM references (populated by build* functions)
 const dom = {
   runBtn: null,
-  statusEl: null,
   progressBar: null,
   progressText: null,
   progressContainer: null,
   suitesContainer: null,
-  suiteCards: new Map(), // suiteId → { card, statusEl, metricsContainer, tabs, runBtn, viewport, viewportInner }
+  suiteCards: new Map(), // suiteId → { card, statusEl, metricsContainer, viewport, viewportInner }
   sizeBtns: [],
 };
 
@@ -185,14 +183,13 @@ function buildSuitePage(root, suite) {
 
   // Cache DOM refs
   dom.runBtn = root.querySelector("#bench-run");
-  dom.statusEl = root.querySelector("#bench-status");
   dom.progressBar = root.querySelector("#bench-progress-bar");
   dom.progressText = root.querySelector("#bench-progress-text");
   dom.progressContainer = root.querySelector("#bench-progress");
   dom.suitesContainer = root.querySelector("#bench-suites");
 
-  // Build size buttons
-  buildSizeButtons(root.querySelector("#bench-sizes"));
+  // Wire up size buttons (pre-rendered as ui-segmented in template)
+  wireSizeButtons(root.querySelector("#bench-sizes"));
 
   // Wire up stress buttons (comparison suites only)
   const stressContainer = root.querySelector("#bench-stress");
@@ -204,7 +201,7 @@ function buildSuitePage(root, suite) {
         selectedStressMs = parseInt(btn.dataset.stress, 10);
         stressBtns.forEach((b) =>
           b.classList.toggle(
-            "bench-size-btn--active",
+            "ui-segmented__btn--active",
             b.dataset.stress === btn.dataset.stress,
           ),
         );
@@ -222,7 +219,7 @@ function buildSuitePage(root, suite) {
         selectedScrollSpeed = parseInt(btn.dataset.speed, 10);
         speedBtns.forEach((b) =>
           b.classList.toggle(
-            "bench-size-btn--active",
+            "ui-segmented__btn--active",
             b.dataset.speed === btn.dataset.speed,
           ),
         );
@@ -273,53 +270,25 @@ function buildFeaturesPage(root) {
 // Size Buttons
 // =============================================================================
 
-const buildSizeButtons = (container) => {
-  dom.sizeBtns = [];
+const wireSizeButtons = (container) => {
+  const btns = Array.from(container.querySelectorAll(".ui-segmented__btn"));
+  dom.sizeBtns = btns;
 
-  ITEM_COUNTS.forEach((count, i) => {
-    const btn = document.createElement("button");
-    btn.className = "bench-size-btn";
-    btn.textContent = formatItemCount(count);
-    btn.dataset.count = String(count);
+  btns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (isRunning) return;
+      const count = parseInt(btn.dataset.count);
+      if (count === selectedItemCount) return;
 
-    if (i === DEFAULT_ITEM_COUNT_INDEX) {
-      btn.classList.add("bench-size-btn--active");
-    }
-
-    btn.addEventListener("click", () => handleSizeClick(count));
-    container.appendChild(btn);
-    dom.sizeBtns.push(btn);
+      selectedItemCount = count;
+      btns.forEach((b) =>
+        b.classList.toggle(
+          "ui-segmented__btn--active",
+          parseInt(b.dataset.count) === count,
+        ),
+      );
+    });
   });
-};
-
-const handleSizeClick = (count) => {
-  if (isRunning) return;
-
-  const wasSelected = selectedItemCounts.includes(count);
-
-  if (wasSelected && selectedItemCounts.length > 1) {
-    // Deselect (but keep at least one selected)
-    selectedItemCounts = selectedItemCounts.filter((c) => c !== count);
-  } else if (wasSelected && selectedItemCounts.length === 1) {
-    // Can't deselect the last one — do nothing
-    return;
-  } else {
-    // Select this one (toggle: add to selection)
-    selectedItemCounts.push(count);
-    selectedItemCounts.sort((a, b) => a - b);
-  }
-
-  // Update button states
-  dom.sizeBtns.forEach((btn) => {
-    const btnCount = parseInt(btn.dataset.count);
-    btn.classList.toggle(
-      "bench-size-btn--active",
-      selectedItemCounts.includes(btnCount),
-    );
-  });
-
-  // Update tab visibility for all suite cards
-  updateAllTabs();
 };
 
 // =============================================================================
@@ -347,20 +316,8 @@ const buildSuiteCards = (container, suites) => {
     card.className = "ui-card ui-card--strong bench-suite";
     card.id = `suite-${suite.id}`;
 
-    // Build tabs for item counts
-    const tabsHtml = ITEM_COUNTS.map(
-      (count) =>
-        `<button class="bench-tab" data-suite="${suite.id}" data-count="${count}">${formatItemCount(count)}</button>`,
-    ).join("");
-
     card.innerHTML = `
-      <div class="bench-suite__header">
-        <span class="bench-suite__icon">${suite.icon}</span>
-        <h3 class="bench-suite__name">${suite.name}</h3>
-      </div>
-      <p class="bench-suite__desc">${suite.description}</p>
       <div class="bench-suite__status" id="status-${suite.id}"></div>
-      <div class="bench-suite__tabs" id="tabs-${suite.id}">${tabsHtml}</div>
       <div class="bench-metrics" id="metrics-${suite.id}">
         <div class="bench-metric bench-metric--empty">
           <span class="bench-metric__value">Click "Run" to benchmark</span>
@@ -376,87 +333,27 @@ const buildSuiteCards = (container, suites) => {
     // Cache refs
     const statusEl = card.querySelector(`#status-${suite.id}`);
     const metricsContainer = card.querySelector(`#metrics-${suite.id}`);
-    const tabsContainer = card.querySelector(`#tabs-${suite.id}`);
-    const tabs = Array.from(tabsContainer.querySelectorAll(".bench-tab"));
     const viewportInner = viewport.querySelector(`#viewport-inner-${suite.id}`);
 
     dom.suiteCards.set(suite.id, {
       card,
       statusEl,
       metricsContainer,
-      tabs,
-      tabsContainer,
       viewport,
       viewportInner,
-      activeTab: null,
     });
-
-    // Wire up tabs
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", () => {
-        const count = parseInt(tab.dataset.count);
-        setActiveTab(suite.id, count);
-      });
-    });
-
-    // Initialize tabs
-    updateTabs(suite.id);
   }
-};
-
-// =============================================================================
-// Tab Management
-// =============================================================================
-
-const updateAllTabs = () => {
-  for (const suiteId of dom.suiteCards.keys()) {
-    updateTabs(suiteId);
-  }
-};
-
-const updateTabs = (suiteId) => {
-  const ref = dom.suiteCards.get(suiteId);
-  if (!ref) return;
-
-  // Show/hide tabs based on selectedItemCounts
-  ref.tabs.forEach((tab) => {
-    const count = parseInt(tab.dataset.count);
-    tab.style.display = selectedItemCounts.includes(count) ? "" : "none";
-  });
-
-  // If current active tab is not in selected counts, switch to first selected
-  const currentActive = ref.activeTab;
-  if (!currentActive || !selectedItemCounts.includes(currentActive)) {
-    setActiveTab(suiteId, selectedItemCounts[0]);
-  }
-};
-
-const setActiveTab = (suiteId, itemCount) => {
-  const ref = dom.suiteCards.get(suiteId);
-  if (!ref) return;
-
-  ref.activeTab = itemCount;
-
-  // Update tab button states
-  ref.tabs.forEach((tab) => {
-    const count = parseInt(tab.dataset.count);
-    const isActive = count === itemCount;
-    tab.classList.toggle("bench-tab--active", isActive);
-  });
-
-  // Render the metrics for this tab
-  renderMetrics(suiteId, itemCount);
 };
 
 // =============================================================================
 // Metrics Rendering
 // =============================================================================
 
-const renderMetrics = (suiteId, itemCount) => {
+const renderMetrics = (suiteId) => {
   const ref = dom.suiteCards.get(suiteId);
   if (!ref) return;
 
-  const result = results[suiteId]?.[itemCount];
+  const result = results[suiteId];
 
   if (!result) {
     ref.metricsContainer.innerHTML = `
@@ -517,25 +414,18 @@ const handleSuiteRunClick = async (suiteId) => {
   setSuiteState(suiteId, "running");
   showViewport(suiteId);
 
-  const totalSteps = selectedItemCounts.length;
-  let completedSteps = 0;
-  let currentStepProgress = 0;
+  // Clear stale metrics while running
+  const ref = dom.suiteCards.get(suiteId);
+  if (ref) ref.metricsContainer.innerHTML = "";
 
-  // Helper to update progress with sub-step granularity
-  const updateProgress = () => {
-    const baseProgress = completedSteps / totalSteps;
-    const currentStepWeight = 1 / totalSteps;
-    const totalProgress =
-      baseProgress + currentStepProgress * currentStepWeight;
-    setProgress(totalProgress);
-  };
+  let currentStepProgress = 0;
 
   // Initialize progress bar
   setProgress(0);
 
   try {
     await runBenchmarks({
-      itemCounts: selectedItemCounts,
+      itemCounts: [selectedItemCount],
       suiteIds: [suiteId],
       stressMs: selectedStressMs,
       scrollSpeed: selectedScrollSpeed,
@@ -543,8 +433,7 @@ const handleSuiteRunClick = async (suiteId) => {
       signal: abortController.signal,
 
       onStatus: (sid, itemCount, message) => {
-        updateSuiteStatus(sid, itemCount, message);
-        setGlobalStatus(`${formatItemCount(itemCount)} — ${message}`);
+        updateSuiteStatus(sid, message);
 
         // Estimate progress based on status message
         // Phase-based progress (scroll benchmark)
@@ -596,23 +485,12 @@ const handleSuiteRunClick = async (suiteId) => {
           // Map jumps from 0.4 to 0.95 of the current step
           currentStepProgress = 0.4 + (current / total) * 0.55;
         }
-        updateProgress();
+        setProgress(currentStepProgress);
       },
 
       onResult: (result) => {
         storeResult(result);
-        completedSteps++;
-        currentStepProgress = 0;
-        updateProgress();
-
-        // Mark tab as done
-        markTabDone(result.suiteId, result.itemCount);
-
-        // If this is the active tab, re-render
-        const ref = dom.suiteCards.get(result.suiteId);
-        if (ref?.activeTab === result.itemCount) {
-          renderMetrics(result.suiteId, result.itemCount);
-        }
+        renderMetrics(result.suiteId);
       },
 
       onComplete: () => {
@@ -630,7 +508,6 @@ const handleSuiteRunClick = async (suiteId) => {
   isRunning = false;
   abortController = null;
   setRunningState(false);
-  setGlobalStatus("Done ✓");
 
   // Fade out progress bar after a moment
   setTimeout(() => setProgress(0), 1500);
@@ -641,20 +518,21 @@ const handleSuiteRunClick = async (suiteId) => {
 // =============================================================================
 
 const storeResult = (result) => {
-  if (!results[result.suiteId]) {
-    results[result.suiteId] = {};
-  }
-  results[result.suiteId][result.itemCount] = result;
+  results[result.suiteId] = result;
 };
 
 const setRunningState = (running) => {
   if (dom.runBtn) {
     dom.runBtn.textContent = running ? "■ Stop" : "▶ Run";
     dom.runBtn.classList.toggle("bench-run-btn--stop", running);
+    dom.runBtn.classList.toggle("ui-btn--primary", !running);
   }
 
   // Disable size buttons while running
-  dom.sizeBtns.forEach((btn) => (btn.disabled = running));
+  dom.sizeBtns.forEach((btn) => {
+    btn.disabled = running;
+    btn.classList.toggle("ui-segmented__btn--disabled", running);
+  });
 
   if (dom.progressContainer) {
     dom.progressContainer.classList.toggle("bench-progress--active", running);
@@ -662,12 +540,6 @@ const setRunningState = (running) => {
 
   // Switch to single-column layout while running so the active suite + viewport is larger
   dom.suitesContainer?.classList.toggle("bench-suites--running", running);
-};
-
-const setGlobalStatus = (message) => {
-  if (!dom.statusEl) return;
-  dom.statusEl.textContent = message;
-  dom.statusEl.classList.toggle("bench-status--running", isRunning);
 };
 
 const setProgress = (fraction) => {
@@ -698,42 +570,12 @@ const setSuiteState = (suiteId, state) => {
   if (state === "done") ref.card.classList.add("bench-suite--done");
 };
 
-const updateSuiteStatus = (suiteId, itemCount, message) => {
+const updateSuiteStatus = (suiteId, message) => {
   const ref = dom.suiteCards.get(suiteId);
   if (!ref) return;
 
-  ref.statusEl.textContent = `${formatItemCount(itemCount)}: ${message}`;
+  ref.statusEl.textContent = message;
   ref.statusEl.classList.toggle("bench-suite__status--running", true);
-
-  // Also mark the tab for this itemCount as running
-  ref.tabs.forEach((tab) => {
-    const count = parseInt(tab.dataset.count);
-    if (count === itemCount) {
-      tab.classList.add("bench-tab--running");
-    }
-  });
-};
-
-const markTabDone = (suiteId, itemCount) => {
-  const ref = dom.suiteCards.get(suiteId);
-  if (!ref) return;
-
-  ref.tabs.forEach((tab) => {
-    const count = parseInt(tab.dataset.count);
-    if (count === itemCount) {
-      tab.classList.remove("bench-tab--running");
-      tab.classList.add("bench-tab--done");
-    }
-  });
-
-  // Clear status if all selected counts are done for this suite
-  const allDone = selectedItemCounts.every(
-    (count) => results[suiteId]?.[count],
-  );
-  if (allDone) {
-    ref.statusEl.textContent = "";
-    ref.statusEl.classList.remove("bench-suite__status--running");
-  }
 };
 
 // =============================================================================

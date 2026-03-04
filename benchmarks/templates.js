@@ -4,8 +4,11 @@
 // All static HTML templates and page builders live here.
 
 import vlistPackage from "@floor/vlist/package.json";
-import { STRESS_LEVELS } from "./runner.js";
+import { STRESS_LEVELS, formatItemCount } from "./runner.js";
 import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
+
+const ITEM_COUNTS = [10_000, 100_000, 1_000_000];
+const DEFAULT_ITEM_COUNT = ITEM_COUNTS[0];
 
 // =============================================================================
 // Helpers
@@ -31,7 +34,7 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
     <div class="bench-page">
       <!-- Header -->
       <header class="bench-header">
-        <h1 class="bench-header__title">${suite.icon} ${escapeHtml(suite.name)}</h1>
+        <h1 class="bench-header__title">${escapeHtml(suite.name)}</h1>
         <p class="bench-header__desc">${escapeHtml(suite.description)}</p>
         <div class="bench-header__meta">
           <span class="bench-tag bench-tag--accent">vlist ${getVlistVersion()}</span>
@@ -43,16 +46,21 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
       <!-- Controls -->
       <div class="bench-controls" id="bench-controls">
         <span class="bench-controls__label">Items</span>
-        <div class="bench-controls__sizes" id="bench-sizes"></div>
+        <div class="ui-segmented" id="bench-sizes">
+          ${ITEM_COUNTS.map(
+            (count) =>
+              `<button class="ui-segmented__btn${count === DEFAULT_ITEM_COUNT ? " ui-segmented__btn--active" : ""}" data-count="${count}">${formatItemCount(count)}</button>`,
+          ).join("")}
+        </div>
         ${
           suite.comparison
             ? `
         <div class="bench-controls__sep"></div>
         <span class="bench-controls__label">Stress ms</span>
-        <div class="bench-controls__sizes" id="bench-stress">
+        <div class="ui-segmented" id="bench-stress">
           ${STRESS_LEVELS.map(
             (level, i) =>
-              `<button class="bench-size-btn bench-stress-btn${i === 0 ? " bench-size-btn--active" : ""}" data-stress="${level.ms}" title="${level.ms === 0 ? "No extra CPU load" : `Burn ${level.ms}ms of CPU per frame during scroll`}">${level.label}</button>`,
+              `<button class="ui-segmented__btn bench-stress-btn${i === 0 ? " ui-segmented__btn--active" : ""}" data-stress="${level.ms}" title="${level.ms === 0 ? "No extra CPU load" : `Burn ${level.ms}ms of CPU per frame during scroll`}">${level.label}</button>`,
           ).join("")}
         </div>
         `
@@ -63,18 +71,17 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
             ? `
         <div class="bench-controls__sep"></div>
         <span class="bench-controls__label">Speed</span>
-        <div class="bench-controls__sizes" id="bench-scroll-speed">
+        <div class="ui-segmented" id="bench-scroll-speed">
           ${SCROLL_SPEEDS.map(
             (speed, i) =>
-              `<button class="bench-size-btn bench-speed-btn${i === 0 ? " bench-size-btn--active" : ""}" data-speed="${speed.pxPerSec}" title="${speed.pxPerSec.toLocaleString()} px/s — ${speed.id} scroll speed">${speed.label}</button>`,
+              `<button class="ui-segmented__btn bench-speed-btn${i === 0 ? " ui-segmented__btn--active" : ""}" data-speed="${speed.pxPerSec}" title="${speed.pxPerSec.toLocaleString()} px/s — ${speed.id} scroll speed">${speed.label}</button>`,
           ).join("")}
         </div>
         `
             : ""
         }
         <div class="bench-controls__sep"></div>
-        <button class="bench-run-btn" id="bench-run">▶ Run</button>
-        <span class="bench-status" id="bench-status">Ready</span>
+        <button class="ui-btn ui-btn--primary" id="bench-run">▶ Run</button>
       </div>
 
       <!-- Progress -->
