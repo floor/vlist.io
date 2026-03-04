@@ -6,8 +6,8 @@
 //   - Scroll performance (FPS)
 //   - P95 frame time (consistency)
 //
-// Legend List v3 provides a dedicated React DOM entry point
-// (@legendapp/list/react) that renders plain div elements — no
+// Legend List v3 (3.0.0-beta.40) provides a dedicated React DOM entry
+// point (@legendapp/list/react) that renders plain div elements — no
 // react-native-web dependency required.
 //
 // Execution order is randomized per run to eliminate GC bleed-through

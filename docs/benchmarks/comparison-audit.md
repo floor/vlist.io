@@ -1,15 +1,15 @@
 # Comparison Benchmark Audit
 
-> Honest analysis of the vlist vs TanStack Virtual comparison benchmark.
+> Honest analysis of the vlist comparison benchmarks.
 > Written to identify methodological issues, measurement artifacts, and actionable improvements.
 >
-> **Last updated:** Partial fixes applied — see Status column in [Recommendations](#recommendations).
+> **Last updated:** Legend List comparison added. See Status column in [Recommendations](#recommendations).
 
 ## Overview
 
-The comparison benchmark (`benchmarks/comparison/tanstack-virtual.js`) measures vlist against TanStack Virtual across four metrics: render time, memory usage, scroll FPS, and P95 frame time. While the benchmark infrastructure is well-structured and not intentionally biased, several methodological issues inflate vlist's apparent advantage.
+The comparison benchmarks (`benchmarks/comparison/*.js`) measure vlist against popular virtualization libraries across four metrics: render time, memory usage, scroll FPS, and P95 frame time. While the benchmark infrastructure is well-structured and not intentionally biased, several methodological issues have been identified and addressed over time.
 
-This document breaks down each metric, explains what's real vs artifact, and proposes fixes.
+This document breaks down each metric, explains what's real vs artifact, proposes fixes, and documents library-specific integration challenges.
 
 ---
 
@@ -189,9 +189,9 @@ always inserted between the two runs regardless of order. An informational
 "Execution Order" row is appended to every result set showing which library
 ran first (e.g. "vlist ran first (randomized to reduce ordering bias)").
 
-All 5 comparison suites (`tanstack-virtual.js`, `react-window.js`, `virtua.js`,
-`vue-virtual-scroller.js`, `solidjs.js`) now delegate to `runComparison()`
-instead of duplicating the sequencing logic.
+All 6 comparison suites (`tanstack-virtual.js`, `react-window.js`, `virtua.js`,
+`vue-virtual-scroller.js`, `solidjs.js`, `legend-list.js`) now delegate to
+`runComparison()` instead of duplicating the sequencing logic.
 
 ### Priority 4: Add Context Disclaimer — 🔲 TODO
 
@@ -204,6 +204,62 @@ Display a visible note in the benchmark UI:
 ### Priority 5: Consider Same-Framework Comparison — 🔲 TODO
 
 Create a variant that benchmarks vlist's React wrapper (`vlist-react`) against TanStack Virtual. This isolates the virtualization algorithm by putting both libraries on equal footing within the same framework.
+
+---
+
+---
+
+## Library-Specific Notes
+
+### Legend List (`@legendapp/list`) — Added February 2026
+
+Legend List is primarily a React Native list component (drop-in `FlatList`/`FlashList` replacement). Starting with v3, it provides a dedicated React DOM entry point (`@legendapp/list/react`) that renders plain `div` elements with no `react-native-web` dependency.
+
+**Version:** `3.0.0-beta.40` (v3 beta with platform-specific exports)
+
+**Integration challenges and solutions:**
+
+1. **react-native-web dependency eliminated.** The initial integration used `@legendapp/list` (v2) which imports from `react-native`, requiring `react-native-web` as a runtime shim. This added ~300 KB to the bundle and 170+ MB to memory measurements (StyleSheet compiler, Animated, View/Text abstractions). Switching to `@legendapp/list/react` (v3) eliminated this entirely — the React DOM entry point uses plain `div` elements internally.
+
+2. **`ResizeObserver` forced reflows.** Legend List measures item sizes via `ResizeObserver` + synchronous `getBoundingClientRect()` calls in `useLayoutEffect`. During the benchmark's memory phase (which runs with `visibility: hidden`), each `getBoundingClientRect()` triggered a full synchronous layout recalculation (~550-600ms per reflow). With 3 memory measurement attempts, this caused 170+ MB of heap inflation from browser layout engine allocations captured in the heap snapshot.
+
+   **Fix:** `getFixedItemSize: () => ITEM_HEIGHT` tells Legend List all items are exactly 48px, bypassing the `ResizeObserver`-based measurement. This is a fair optimization — all other benchmarks (react-window, TanStack Virtual) also pass fixed item sizes. Memory dropped from ~175 MB to ~3.7 MB.
+
+3. **Container pool overhead.** Legend List pre-allocates a pool of container elements at `initialContainerPoolRatio × numContainers`. The default ratio of 2 doubled the DOM nodes. Setting `initialContainerPoolRatio: 1` halved container allocation without affecting scroll performance.
+
+4. **Scroll viewport not found.** The benchmark's `findViewport()` searches for the scrollable element via `getComputedStyle` overflow detection. Legend List's scroll container rendered correctly but wasn't constrained — without `style: { height: "100%" }` on the `LegendList` component and `overflow: hidden` on the wrapper div, the scroll container expanded to fit all content and `scrollTop` assignments had no effect. The list appeared to render but never scrolled during the scroll phase.
+
+5. **`estimatedListSize` for initial layout.** Without this prop, Legend List calls `getBoundingClientRect()` on mount to determine viewport dimensions, triggering forced reflows when the container is hidden during Phase 1 (timing). Providing `estimatedListSize: { width, height }` upfront avoids this.
+
+**Configuration used in benchmark:**
+
+```js
+LegendList({
+  data,
+  renderItem,                              // plain div/span elements (same as other React benchmarks)
+  keyExtractor: (item) => item.id,
+  estimatedItemSize: 48,                   // same as ITEM_HEIGHT
+  getFixedItemSize: () => 48,              // skip ResizeObserver measurement
+  estimatedListSize: { width, height },    // skip getBoundingClientRect on mount
+  style: { height: "100%" },              // constrain scroll container
+  recycleItems: true,                      // enable DOM recycling
+  drawDistance: 250,                       // overscan buffer
+  initialContainerPoolRatio: 1,            // minimal container pool
+  waitForInitialLayout: false,             // don't delay rendering
+  maintainVisibleContentPosition: false,   // not needed for benchmarks
+})
+```
+
+**Typical results (10K items, M1 Mac, Chrome):**
+
+| Metric | vlist | Legend List | Notes |
+|--------|-------|-------------|-------|
+| Render | ~8.3 ms | ~26.9 ms | React overhead + container allocation |
+| Memory | ~0.04 MB | ~3.72 MB | State management, position tracking, container pool |
+| Scroll FPS | 120.5 | 120.5 | Both hit display cap |
+| P95 Frame | ~9.2 ms | ~9.4 ms | Essentially tied |
+
+**Assessment:** Legend List's scroll performance is excellent — identical FPS and P95 frame times. The render time gap (~3.2×) comes from React's reconciliation pipeline plus Legend List's container allocation system (`useLayoutEffect` → `ResizeObserver` setup → position calculations). The 3.72 MB memory is reasonable for a React-based library with state management, Maps/Sets for position tracking, and a container pool for 10K items. For context, react-window and TanStack Virtual measure ~2.26 MB — Legend List is in the same ballpark, slightly higher due to its more feature-rich architecture (bidirectional scrolling, item recycling, dynamic sizes).
 
 ---
 
@@ -233,5 +289,6 @@ The pitch — "comparable performance with zero dependencies and framework freed
 | P95 Frame Time | ✅ Honest, TanStack wins | Keep as-is |
 | Execution Order | ✅ Fixed | Randomized via `runComparison()` helper; meta row shows which ran first |
 | Template Complexity | ✅ Fixed | Simple/Realistic toggle; realistic = 7 child elements per item |
+| Legend List | ✅ Added | v3 React DOM entry point, optimized config for fair fixed-size comparison |
 
-**Bottom line:** The benchmark infrastructure is solid and well-engineered. The four most critical issues — memory measurement, FPS ceiling, execution order, and template complexity — have been fixed. Remaining items (context disclaimer, rapid scroll reversals) are tracked above.
+**Bottom line:** The benchmark infrastructure is solid and well-engineered. The four most critical issues — memory measurement, FPS ceiling, execution order, and template complexity — have been fixed. The Legend List comparison (6th library) was added using the v3 `@legendapp/list/react` entry point, requiring careful configuration to avoid `ResizeObserver` artifacts. Remaining items (context disclaimer, rapid scroll reversals) are tracked above.
