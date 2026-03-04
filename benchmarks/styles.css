@@ -110,7 +110,7 @@
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 4px;
+    margin-bottom: 20px;
     padding: 4px 20px;
     background: var(--bg-card);
     border-radius: 6px;
@@ -197,7 +197,7 @@
     font-size: 12px;
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
     color: var(--text-dim);
-    margin: 0 0 12px;
+    margin: 0;
     min-height: 18px;
 }
 
@@ -600,7 +600,7 @@
 }
 
 .bench-viewport--active .bench-viewport__label {
-    color: #43e97b;
+    color: var(--accent);
 }
 
 /* ============================================================================
@@ -610,17 +610,17 @@
 .bench-progress {
     position: relative;
     width: 100%;
-    height: 8px;
+    height: 4px;
     background: var(--bg-card);
     border-radius: 6px;
     overflow: visible;
-    margin: 12px 0;
+    margin: 8px 0 12px;
     visibility: hidden;
     transition: opacity 0.3s ease;
-    border: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #eaeaea;
 }
 
 .bench-progress--active {
@@ -633,7 +633,7 @@
     top: 0;
     height: 100%;
     width: 0%;
-    background: #43e97b;
+    background: var(--accent);
     border-radius: 7px;
     transition: width 0.2s ease-out;
     opacity: 0.75;

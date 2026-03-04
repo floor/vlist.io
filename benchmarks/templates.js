@@ -84,12 +84,6 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
         <button class="ui-btn ui-btn--primary" id="bench-run">▶ Run</button>
       </div>
 
-      <!-- Progress -->
-      <div class="bench-progress" id="bench-progress">
-        <div class="bench-progress__bar" id="bench-progress-bar"></div>
-        <div class="bench-progress__text" id="bench-progress-text">0%</div>
-      </div>
-
       <!-- Suite Card -->
       <div class="bench-suites" id="bench-suites"></div>
 
