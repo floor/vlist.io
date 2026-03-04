@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="vlist variable sizes example — social feed with Mode A (pre-measure) and Mode B (auto-size via ResizeObserver) for variable-height items."
+        />
+        <title>vlist - Variable Sizes Example</title>
+        <link rel="stylesheet" href="/dist/vlist.css" />
+        <link
+            rel="stylesheet"
+            href="/examples/variable-sizes/dist/styles.css"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <a href="/examples/" class="back-link">← Back to Examples</a>
+                <h1>Variable Sizes</h1>
+                <p class="description">
+                    Social feed where item sizes are
+                    <strong>unknown upfront</strong>. Switch between
+                    <strong>Mode A</strong> (pre-measure all items at init via
+                    hidden DOM element) and <strong>Mode B</strong> (estimated
+                    size, let <code>ResizeObserver</code> measure on the fly and
+                    correct scroll position).
+                </p>
+            </header>
+
+            <div class="split-layout">
+                <div class="split-main">
+                    <div id="list-container"></div>
+                </div>
+
+                <aside class="split-panel">
+                    <!-- Mode -->
+                    <section class="ui-section">
+                        <h3 class="ui-title">Mode</h3>
+                        <div class="ui-row">
+                            <div class="ui-segmented" id="mode-toggle">
+                                <button class="ui-segmented__btn" data-mode="a">
+                                    A · Pre-measure
+                                </button>
+                                <button
+                                    class="ui-segmented__btn ui-segmented__btn--active"
+                                    data-mode="b"
+                                >
+                                    B · Auto-size
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Measurement -->
+                    <section class="ui-section" id="section-measurement">
+                        <h3 class="ui-title">Measurement</h3>
+                        <div class="ui-row">
+                            <span class="ui-label">Strategy</span>
+                            <span class="ui-value" id="info-strategy"
+                                >estimatedHeight</span
+                            >
+                        </div>
+                        <div class="ui-row">
+                            <span class="ui-label">Init time</span>
+                            <span class="ui-value" id="info-init">–</span>
+                        </div>
+                        <div class="ui-row">
+                            <span class="ui-label">Unique sizes</span>
+                            <span class="ui-value" id="info-unique">–</span>
+                        </div>
+                    </section>
+
+                    <!-- Navigation -->
+                    <section class="ui-section">
+                        <h3 class="ui-title">Navigation</h3>
+                        <div class="ui-row">
+                            <div class="ui-btn-group">
+                                <button
+                                    id="jump-top"
+                                    class="ui-btn ui-btn--icon"
+                                    title="Top"
+                                >
+                                    <i class="icon icon--up"></i>
+                                </button>
+                                <button
+                                    id="jump-middle"
+                                    class="ui-btn ui-btn--icon"
+                                    title="Middle"
+                                >
+                                    <i class="icon icon--center"></i>
+                                </button>
+                                <button
+                                    id="jump-bottom"
+                                    class="ui-btn ui-btn--icon"
+                                    title="Bottom"
+                                >
+                                    <i class="icon icon--down"></i>
+                                </button>
+                                <button
+                                    id="jump-random"
+                                    class="ui-btn ui-btn--icon"
+                                    title="Random"
+                                >
+                                    <i class="icon icon--shuffle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+
+            <footer class="example-footer" id="example-footer">
+                <div class="example-footer__left">
+                    <span class="example-footer__stat">
+                        <strong id="ft-progress">0%</strong>
+                    </span>
+                    <span class="example-footer__stat">
+                        <span id="ft-velocity">0.00</span> /
+                        <strong id="ft-velocity-avg">0.00</strong>
+                        <span class="example-footer__unit">px/ms</span>
+                    </span>
+                    <span class="example-footer__stat">
+                        <span id="ft-dom">0</span> /
+                        <strong id="ft-total">0</strong>
+                        <span class="example-footer__unit">items</span>
+                    </span>
+                </div>
+                <div class="example-footer__right">
+                    <span class="example-footer__stat">
+                        <strong id="ft-mode">Mode B</strong>
+                    </span>
+                    <span class="example-footer__stat">
+                        <strong id="ft-estimate">200px</strong>
+                        <span class="example-footer__unit">estimate</span>
+                    </span>
+                </div>
+            </footer>
+        </div>
+
+        <script
+            type="module"
+            src="/examples/variable-sizes/dist/script.js"
+        ></script>
+    </body>
+</html>

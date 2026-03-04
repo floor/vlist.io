@@ -72,7 +72,7 @@
     ]
   },
   {
-    "label": "Data",
+    "label": "Specific",
     "items": [
       {
         "slug": "velocity-loading",
@@ -85,6 +85,12 @@
         "name": "Large Dataset",
         "desc": "100K–5M items with scroll compression",
         "features": ["scale", "scrollbar"]
+      },
+      {
+        "slug": "variable-sizes",
+        "name": "Variables Sizes",
+        "desc": "Variable Sizes Exmaples",
+        "features": ["core", "invert"]
       },
       {
         "slug": "scroll-restore",
