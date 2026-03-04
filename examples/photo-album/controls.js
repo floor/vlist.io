@@ -103,13 +103,26 @@ gapButtons.addEventListener("click", (e) => {
 // =============================================================================
 
 document.getElementById("btn-first").addEventListener("click", () => {
-  app.list?.scrollToIndex(0, "start");
+  app.list?.scrollToIndex(0, { behavior: "smooth", duration: 300 });
 });
 
 document.getElementById("btn-middle").addEventListener("click", () => {
-  app.list?.scrollToIndex(Math.floor(app.ITEM_COUNT / 2), "center");
+  app.list?.scrollToIndex(Math.floor(app.ITEM_COUNT / 2), {
+    align: "center",
+    behavior: "smooth",
+    duration: 500,
+  });
 });
 
 document.getElementById("btn-last").addEventListener("click", () => {
-  app.list?.scrollToIndex(app.ITEM_COUNT - 1, "end");
+  app.list?.scrollToIndex(app.ITEM_COUNT - 1, {
+    align: "end",
+    behavior: "smooth",
+    duration: 500,
+  });
+});
+
+document.getElementById("btn-random").addEventListener("click", () => {
+  const idx = Math.floor(Math.random() * app.ITEM_COUNT);
+  app.list?.scrollToIndex(idx, { behavior: "smooth", duration: 400 });
 });
