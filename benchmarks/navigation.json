@@ -66,6 +66,12 @@
         "name": "vue-virtual-scroller",
         "icon": "⚔️",
         "desc": "Head-to-head performance: vlist vs vue-virtual-scroller"
+      },
+      {
+        "slug": "legend-list",
+        "name": "Legend List",
+        "icon": "⚔️",
+        "desc": "Head-to-head performance: vlist vs Legend List"
       }
     ]
   },

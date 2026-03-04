@@ -8,6 +8,7 @@ Head-to-head performance comparisons between **vlist** and popular virtualizatio
 - **[react-window](./react-window.js)** — Brian Vaughn's minimalist library, component-based with fixed/variable size lists
 - **[TanStack Virtual](./tanstack-virtual.js)** — Headless virtualization hook (`useVirtualizer`) for React
 - **[Virtua](./virtua.js)** — Zero-config `<VList>` component (~3 kB per component)
+- **[Legend List](./legend-list.js)** — High-performance list with dedicated React DOM entry point (`@legendapp/list/react`), item recycling, and bidirectional infinite scroll
 
 ### Vue Ecosystem
 - **[vue-virtual-scroller](./vue-virtual-scroller.js)** — `<RecycleScroller>` component with DOM recycling for Vue 3
@@ -73,6 +74,7 @@ comparison/
 ├── react-window.js              # vs react-window
 ├── tanstack-virtual.js          # vs TanStack Virtual (React)
 ├── virtua.js                    # vs Virtua (React)
+├── legend-list.js               # vs Legend List (React DOM)
 ├── vue-virtual-scroller.js      # vs vue-virtual-scroller (Vue 3)
 └── solidjs.js                   # vs TanStack Virtual (SolidJS)
 ```
@@ -239,6 +241,7 @@ open http://localhost:3338/benchmarks/comparisons
 - `/benchmarks/virtua` — vs Virtua
 - `/benchmarks/vue-virtual-scroller` — vs vue-virtual-scroller
 - `/benchmarks/solidjs` — vs TanStack Virtual (SolidJS)
+- `/benchmarks/legend-list` — vs Legend List
 
 ## Requirements
 
@@ -265,8 +268,8 @@ Based on standard hardware (M1 Mac, Chrome):
 Selection criteria:
 - **Popularity** — High npm download counts and community adoption
 - **Quality** — Production-ready, actively maintained
-- **Diversity** — Different ecosystems (React, Vue, SolidJS)
-- **Approach** — Different architectural styles (headless, component-based, zero-config)
+- **Diversity** — Different ecosystems (React, Vue, SolidJS, React Native)
+- **Approach** — Different architectural styles (headless, component-based, zero-config, cross-platform)
 
 ## Limitations
 
