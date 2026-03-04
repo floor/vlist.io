@@ -41,6 +41,7 @@ import {
 | `isInRange(index, range)` | Returns `true` if an index falls within a range. |
 | `getRangeCount(range)` | Returns the number of items in a range. |
 | `diffRanges(prev, next)` | Returns items that entered and left the viewport between two ranges. |
+| `sortRenderedDOM(container, keys, getElement)` | Reorder DOM children to match logical index order. Used on scroll idle for accessibility — screen readers traverse DOM order, not visual order. See [Rendering — Accessibility DOM Sort](../internals/rendering.md#accessibility-dom-sort). |
 
 ---
 

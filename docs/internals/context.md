@@ -75,6 +75,7 @@ interface BuilderContext<T extends VListItem = VListItem> {
 
   // ── Handler registration slots ────────────────────────────────
   afterScroll:         Array<(scrollPosition: number, direction: string) => void>
+  idleHandlers:        Array<() => void>
   clickHandlers:       Array<(event: MouseEvent) => void>
   keydownHandlers:     Array<(event: KeyboardEvent) => void>
   resizeHandlers:      Array<(width: number, height: number) => void>
@@ -260,6 +261,18 @@ Keyboard events on the root element.
 
 Called when the container is resized (via `ResizeObserver`).
 
+### idleHandlers
+
+Called when scrolling becomes idle (after the configurable idle timeout, default 150ms). Use this for deferred work that should not run on the hot scroll path.
+
+```typescript
+ctx.idleHandlers.push(() => {
+  // Reorder DOM, update external state, etc.
+})
+```
+
+The primary use case is accessibility: grid and masonry features register their `sortDOM()` calls here so screen readers encounter items in logical order after scrolling stops. See [Rendering — Accessibility DOM Sort](./rendering.md#accessibility-dom-sort).
+
 ### contentSizeHandlers
 
 Called when total content size changes (e.g., items added/removed).
@@ -359,6 +372,14 @@ renderIfNeeded() — diff ranges, update DOM
 afterScroll callbacks run
     ↓
 Emitter fires 'scroll', 'velocity:change', 'range:change'
+    ↓
+... idle timeout (150ms) ...
+    ↓
+DOM children sorted for accessibility (sortRenderedDOM)
+    ↓
+idleHandlers run (e.g. grid/masonry sortDOM)
+    ↓
+Velocity reset, '.vlist--scrolling' class removed
 ```
 
 ```

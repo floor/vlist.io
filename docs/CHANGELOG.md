@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Accessibility: DOM sort on scroll idle** — Screen readers traverse DOM order, not visual order. Virtual list renderers append new elements at the end for performance, causing random DOM order after scrolling. Now, when scrolling stops (idle timeout), DOM children are reordered to match logical `data-index` order. Items are `position: absolute`, so this causes zero visual change — a single lightweight reflow with no geometry impact.
+  - New shared utility `sortRenderedDOM()` in `src/rendering/sort.ts` — used by all four render paths (core renderer, grid renderer, masonry renderer, inlined core.ts path)
+  - `sortDOM()` method added to `Renderer`, `GridRenderer`, and `MasonryRenderer` interfaces
+  - New `idleHandlers` array on `BuilderContext` — features register callbacks that run when scrolling becomes idle (grid and masonry register their `sortDOM()` here)
+  - Fast bail-out: uses rendered Map keys (numeric sort) and `firstChild`/`nextSibling` DOM walk to detect already-sorted state — zero work when order is correct
+
+---
+
 ## [1.0.0] — 2026-02-26
 
 ### 🎉 Stable Release

@@ -214,6 +214,7 @@ src/rendering/
 ├── sizes.ts           # Size cache (prefix-sum array, dimension-agnostic)
 ├── measured.ts        # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts        # DOM renderer
+├── sort.ts            # Shared DOM sort utility for accessibility (scroll idle)
 ├── scale.ts           # Scaling calculations for 1M+ items
 └── viewport.ts        # Viewport state management
 ```
@@ -222,6 +223,7 @@ src/rendering/
 - `createSizeCache()` - Size cache factory (dimension-agnostic for vertical/horizontal)
 - `createMeasuredSizeCache()` - Measured size cache factory (Mode B)
 - `createRenderer()` - Renderer factory
+- `sortRenderedDOM()` - Shared DOM sort for accessibility (used by all renderers)
 - `createDOMStructure()` - DOM structure factory
 - Viewport utilities: `calculateRenderRange()`, `calculateTotalSize()`, etc.
 - Scale utilities: `getCompressionState()`, `calculateCompressed*()`, etc.

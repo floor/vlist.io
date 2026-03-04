@@ -20,6 +20,7 @@ src/rendering/
 ├── sizes.ts        # Size cache for fixed and variable item sizes (axis-neutral)
 ├── measured.ts     # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts     # DOM rendering with compression support (axis-aware)
+├── sort.ts         # Shared DOM sort utility for accessibility (scroll idle)
 ├── viewport.ts     # Virtual scrolling calculations and viewport state
 └── scale.ts        # Large list compression logic (1M+ items)
 ```
@@ -133,7 +134,7 @@ When acquiring elements, the pool also sets the static `role="option"` attribute
 
 ### DocumentFragment Batching
 
-When rendering new items, the renderer collects them in a `DocumentFragment` and appends them in a single DOM operation. This reduces layout thrashing during fast scrolling.
+When rendering new items, the renderer collects them in a `DocumentFragment` and appends them in a single DOM operation. This reduces layout thrashing during fast scrolling. New elements are always appended at the end of the items container — DOM order is corrected on scroll idle (see [Accessibility DOM Sort](#accessibility-dom-sort) below).
 
 ### Optimized Attribute Setting
 
@@ -303,6 +304,7 @@ interface Renderer<T extends VListItem> {
   updateItem: (index: number, item: T, isSelected: boolean, isFocused: boolean) => void;
   updateItemClasses: (index: number, isSelected: boolean, isFocused: boolean) => void;
   getElement: (index: number) => HTMLElement | undefined;
+  sortDOM: () => void;     // Reorder DOM children for accessibility (scroll idle)
   clear: () => void;
   destroy: () => void;
 }
@@ -680,6 +682,68 @@ simpleVisibleRange(scrollPosition, containerSize, sizeCache, totalItems, compres
 - Only `transform` is updated on scroll (GPU-accelerated)
 - Class toggles use `classList.toggle()` for efficiency
 - **Scroll transition suppression**: `.vlist--scrolling` class is toggled during active scroll to disable CSS transitions, re-enabled on idle
+
+---
+
+## Accessibility DOM Sort
+
+Virtual list renderers append new elements at the end of the items container for performance (batched `DocumentFragment` insertion). After scrolling, DOM order diverges from logical item order — item 50 may precede item 10 in the DOM tree. Since items are `position: absolute` with `transform`-based positioning, this has zero visual impact.
+
+However, **screen readers traverse DOM order**, not visual order. A user navigating in browse mode would encounter items in a nonsensical sequence.
+
+### Solution: Sort on Scroll Idle
+
+When scrolling stops (after the configurable idle timeout, default 150ms), DOM children are reordered to match their logical `data-index` order. This is the optimal moment because:
+
+- **Zero cost during scroll** — the hot path stays untouched
+- **Screen readers interact at rest** — users navigate when the list is idle, not mid-scroll
+- **Single lightweight reflow** — items are `position: absolute`, so reordering causes no geometry change
+
+### Shared Utility (`sort.ts`)
+
+A single `sortRenderedDOM` function is shared by all four render paths (core renderer, grid renderer, masonry renderer, and the inlined `core.ts` path):
+
+```typescript
+sortRenderedDOM(
+  container: HTMLElement,
+  keys: IterableIterator<number>,
+  getElement: (index: number) => HTMLElement | undefined,
+): void
+```
+
+The function:
+
+1. **Extracts and sorts** the rendered Map's numeric keys (no DOM attribute parsing)
+2. **Checks if already sorted** — compares elements against the DOM child list via `firstChild`/`nextSibling` traversal. If order matches, returns immediately (zero work)
+3. **Re-appends in order** — a single reflow with no geometry change
+
+### Wiring
+
+The idle hook uses the `idleHandlers` array on `BuilderContext` (see [Context](./context.md)):
+
+- **Core list renderer** — `sortDOMChildren()` called directly in the idle timer
+- **Grid feature** — registers `gridRenderer.sortDOM()` on `ctx.idleHandlers`
+- **Masonry feature** — registers `masonryRenderer.sortDOM()` on `ctx.idleHandlers`
+
+```
+Scroll stops (idle timeout)
+    ↓
+core.ts idle timer fires:
+  1. sortDOMChildren()      ← core list renderer
+  2. idleHandlers[0]()      ← grid/masonry sortDOM()
+    ↓
+Screen reader sees items in correct order ✓
+```
+
+### ARIA Attributes
+
+In addition to correct DOM order, vlist sets ARIA attributes on each rendered item for screen reader context:
+
+- `role="option"` — set once per element lifetime (in the pool)
+- `aria-setsize` — total item count
+- `aria-posinset` — item's 1-based position
+- `aria-selected` — selection state
+- `aria-activedescendant` — on the root element, pointing to the focused item
 
 ---
 
