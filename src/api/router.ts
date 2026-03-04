@@ -2,6 +2,11 @@
 // API router for vlist.dev — handles /api/* routes with CORS support
 
 import { getUsers, getUserById, DEFAULT_TOTAL, MAX_LIMIT } from "./users";
+import {
+  getPosts,
+  DEFAULT_TOTAL as POSTS_DEFAULT_TOTAL,
+  MAX_LIMIT as POSTS_MAX_LIMIT,
+} from "./posts";
 import { listDirectory, getFilesBrowserInfo } from "./files";
 import { fetchFeed, feedSourceIds, REDDIT_PRESETS } from "./feed/index";
 import type { FeedSourceId } from "./feed/index";
@@ -154,6 +159,30 @@ const handleGetFiles = async (url: URL): Promise<Response> => {
 const handleFilesInfo = (): Response => json(getFilesBrowserInfo());
 
 /**
+ * GET /api/posts?offset=0&limit=50&delay=0&total=5000
+ *
+ * Query params:
+ *   offset  — start index (default: 0, min: 0)
+ *   limit   — page size (default: 50, min: 1, max: 200)
+ *   delay   — simulated latency in ms (default: 0, min: 0, max: 5000)
+ *   total   — total dataset size (default: 5000, min: 1, max: 100_000)
+ *
+ * Response: { items: Post[], total: number, hasMore: boolean }
+ */
+const handleGetPosts = async (url: URL): Promise<Response> => {
+  const offset = intParam(url, "offset", 0, 0, 100_000);
+  const limit = intParam(url, "limit", 50, 1, POSTS_MAX_LIMIT);
+  const delay = intParam(url, "delay", 0, 0, 5000);
+  const total = intParam(url, "total", POSTS_DEFAULT_TOTAL, 1, 100_000);
+
+  await sleep(delay);
+
+  const result = getPosts(offset, limit, total);
+
+  return json(result);
+};
+
+/**
  * GET /api/feed?source=reddit&target=worldnews&limit=25&after=t3_xxx&delay=0
  *
  * Query params:
@@ -212,6 +241,26 @@ const handleInfo = (): Response =>
     version: "0.1.0",
     description: "Deterministic user data API for vlist demos",
     endpoints: {
+      "GET /api/posts": {
+        description: "Paginated social feed posts (deterministic)",
+        params: {
+          offset: { type: "number", default: 0, min: 0, max: 100_000 },
+          limit: {
+            type: "number",
+            default: 50,
+            min: 1,
+            max: POSTS_MAX_LIMIT,
+          },
+          delay: { type: "number", default: 0, min: 0, max: 5000, unit: "ms" },
+          total: {
+            type: "number",
+            default: POSTS_DEFAULT_TOTAL,
+            min: 1,
+            max: 100_000,
+          },
+        },
+        response: "{ items: Post[], total: number, hasMore: boolean }",
+      },
       "GET /api/feed": {
         description: "Live social feed from external sources",
         params: {
@@ -337,6 +386,11 @@ export const routeApi = async (req: Request): Promise<Response | null> => {
   if (match) {
     const id = parseInt(match[1], 10);
     return handleGetUser(url, id);
+  }
+
+  // GET /api/posts
+  if (path === "/api/posts" || path === "/api/posts/") {
+    return handleGetPosts(url);
   }
 
   // GET /api/feed/presets
