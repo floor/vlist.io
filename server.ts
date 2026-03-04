@@ -44,4 +44,8 @@ ${packages.join("\n")}
 Bun.serve({
   port: PORT,
   fetch: handleRequest,
+  reusePort: true,
 });
+
+// Signal PM2 cluster that this instance is ready to accept connections
+if (process.send) process.send("ready");
