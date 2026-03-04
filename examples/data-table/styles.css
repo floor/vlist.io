@@ -22,6 +22,7 @@
     text-transform: uppercase;
     font-size: 0.6875rem;
     letter-spacing: 0.04em;
+    background: var(--bg-card) !important;
 }
 
 #list-container .vlist-table-header-cell {

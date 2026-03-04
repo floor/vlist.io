@@ -44,6 +44,7 @@
    ============================================================================ */
 
 .bench-page {
+    --radius: 6px;
     max-width: 760px;
     margin: 0 auto;
     padding: 40px 36px 80px;
@@ -125,108 +126,28 @@
     white-space: nowrap;
 }
 
-.bench-controls__sizes {
-    display: flex;
-    gap: 6px;
-}
-
-.bench-size-btn {
-    padding: 6px 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-muted);
-    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.bench-size-btn:hover {
-    border-color: var(--border-hover);
-    color: var(--text);
-}
-
-.bench-size-btn--active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-}
-
-.bench-size-btn--active:hover {
-    opacity: 0.9;
-}
-
 .bench-controls__sep {
     width: 1px;
     height: 28px;
     background: var(--border);
 }
 
-.bench-run-btn {
-    padding: 8px 24px;
-    border-radius: 8px;
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    white-space: nowrap;
+.bench-controls .ui-btn--primary {
+    width: auto;
+    margin-left: auto;
+    background: #43e97b;
+    border-color: #43e97b;
+    color: #000;
 }
 
-.bench-run-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.bench-run-btn:active {
-    transform: translateY(0);
-}
-
-.bench-run-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
+.bench-controls .ui-btn--primary:hover {
+    background: #38d56d;
+    border-color: #38d56d;
 }
 
 .bench-run-btn--stop {
     background: #f44336;
-}
-
-.bench-status {
-    font-size: 14px;
-    color: var(--text-dim);
-    margin-left: auto;
-    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    white-space: nowrap;
-    font-weight: 500;
-    padding: 4px 12px;
-    border-radius: 6px;
-    background: var(--bg-card);
-    border: 1px solid transparent;
-    transition: all 0.2s ease;
-}
-
-.bench-status--running {
-    display: none;
-    color: var(--accent);
-    font-weight: 600;
-    background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
-    border-color: var(--accent);
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
+    border-color: #f44336;
 }
 
 /* ============================================================================
@@ -272,54 +193,6 @@
 
 .bench-suite--done {
     border-color: var(--border-hover);
-}
-
-.bench-suite__header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-}
-
-.bench-suite__icon {
-    font-size: 20px;
-    line-height: 1;
-}
-
-.bench-suite__name {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0;
-}
-
-.bench-suite__run-btn {
-    margin-left: auto;
-    padding: 4px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.bench-suite__run-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent-text);
-}
-
-.bench-suite__run-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.bench-suite__desc {
-    font-size: 13px;
-    color: var(--text-dim);
-    margin: 0 0 16px;
-    line-height: 1.5;
 }
 
 .bench-suite__status {
@@ -433,47 +306,6 @@
     font-size: 13px;
     color: #f44336;
     font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-}
-
-/* ============================================================================
-   Multi-count Results (tabs for 10K / 100K / 1M inside each card)
-   ============================================================================ */
-
-.bench-suite__tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 12px;
-}
-
-.bench-tab {
-    padding: 4px 10px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--text-dim);
-    font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.bench-tab:hover {
-    color: var(--text-muted);
-}
-
-.bench-tab--active {
-    border-color: var(--border-hover);
-    background: var(--bg);
-    color: var(--text);
-}
-
-.bench-tab--done {
-    color: #43e97b;
-}
-
-.bench-tab--running {
-    color: var(--accent-text);
 }
 
 /* ============================================================================
@@ -891,10 +723,6 @@ html[data-theme] .vlist-item {
         font-size: 15px;
     }
 
-    .bench-suite__name {
-        font-size: 16px;
-    }
-
     .bench-bundle__title,
     .bench-features__title {
         font-size: 18px;
@@ -924,20 +752,6 @@ html[data-theme] .vlist-item {
 
     .bench-controls__sep {
         display: none;
-    }
-
-    .bench-controls__sizes {
-        justify-content: center;
-    }
-
-    .bench-status {
-        margin-left: 0;
-        text-align: center;
-    }
-
-    .bench-run-btn {
-        width: 100%;
-        text-align: center;
     }
 
     .bench-suites {
