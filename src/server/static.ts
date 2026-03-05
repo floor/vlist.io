@@ -1,5 +1,5 @@
 // src/server/static.ts
-// Static file serving: MIME types, file reading, path resolution.
+// Static file serving: MIME types, file reading, path resolution, cache headers.
 
 import { existsSync, statSync, readFileSync } from "fs";
 import { join, extname, resolve } from "path";
@@ -35,14 +35,60 @@ export const getMimeType = (filePath: string): string => {
 };
 
 // =============================================================================
+// Cache-Control
+// =============================================================================
+
+// Build outputs and other immutable assets — content-hashed or rebuilt rarely.
+// 1 year max-age + immutable tells browsers to never revalidate.
+const CACHE_IMMUTABLE = "public, max-age=31536000, immutable";
+
+// Development-time assets (raw CSS, source files, markdown) that may change
+// between page loads during local development or after a deploy.
+const CACHE_NOCACHE = "no-cache";
+
+/**
+ * Determine the Cache-Control header for a given URL pathname.
+ *
+ * Immutable (long cache):
+ *   - /dist/*            — bundled JS/CSS build output
+ *   - /benchmarks/dist/* — benchmark build output
+ *   - Fonts (.woff, .woff2, .ttf)
+ *   - /favicon.ico
+ *
+ * No-cache (revalidate every time):
+ *   - Everything else (raw CSS, HTML, markdown, source .ts/.js, images)
+ */
+function getCacheControl(pathname: string): string {
+  // Build output directories (contain pre-compressed .br/.gz siblings)
+  if (/\/dist\//.test(pathname)) return CACHE_IMMUTABLE;
+
+  // Fonts rarely change
+  const ext = extname(pathname).toLowerCase();
+  if (ext === ".woff" || ext === ".woff2" || ext === ".ttf") {
+    return CACHE_IMMUTABLE;
+  }
+
+  // Favicon
+  if (pathname === "/favicon.ico") return CACHE_IMMUTABLE;
+
+  return CACHE_NOCACHE;
+}
+
+// =============================================================================
 // File Serving
 // =============================================================================
 
 /**
  * Serve a file from an absolute path.
  * Returns null if the file doesn't exist or is a directory without index.html.
+ *
+ * @param filePath - Absolute filesystem path
+ * @param pathname - Original URL pathname (used for cache-control decisions)
  */
-export const serveFile = (filePath: string): Response | null => {
+export const serveFile = (
+  filePath: string,
+  pathname: string,
+): Response | null => {
   if (!existsSync(filePath)) return null;
 
   const stat = statSync(filePath);
@@ -62,7 +108,7 @@ export const serveFile = (filePath: string): Response | null => {
     return new Response(content, {
       headers: {
         "Content-Type": getMimeType(filePath),
-        "Cache-Control": "no-cache",
+        "Cache-Control": getCacheControl(pathname),
       },
     });
   } catch {
@@ -82,7 +128,7 @@ export const serveStatic = (pathname: string): Response | null => {
     return new Response("Forbidden", { status: 403 });
   }
 
-  return serveFile(filePath);
+  return serveFile(filePath, pathname);
 };
 
 /**
@@ -92,6 +138,7 @@ export const serveStatic = (pathname: string): Response | null => {
 export const serveFromPackage = (
   packageRoot: string | null,
   subpath: string,
+  pathname: string,
 ): Response | null => {
   if (!packageRoot) return null;
 
@@ -102,7 +149,7 @@ export const serveFromPackage = (
     return new Response("Forbidden", { status: 403 });
   }
 
-  return serveFile(filePath);
+  return serveFile(filePath, pathname);
 };
 
 // =============================================================================
@@ -126,7 +173,7 @@ export const resolveStatic = (pathname: string): Response | null => {
 
   // /dist/* → vlist package dist directory
   if (pathname.startsWith("/dist/")) {
-    return serveFromPackage(VLIST_ROOT, pathname);
+    return serveFromPackage(VLIST_ROOT, pathname, pathname);
   }
 
   // /docs/*.md → serve raw markdown

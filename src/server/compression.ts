@@ -3,32 +3,50 @@
 //
 // Priority:
 //   1. Serve pre-compressed .br/.gz files (generated at build time — instant)
-//   2. Fall back to synchronous compression with an LRU cache (slow first hit)
+//   2. Fall back to synchronous compression with a bounded cache (slow first hit)
 
 import { gzipSync, brotliCompressSync } from "zlib";
-import { createHash } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import { resolve, join } from "path";
 
 // =============================================================================
-// Cache
+// Pre-compressed file cache
 // =============================================================================
+// Build artifacts (.br / .gz) are static — read once, serve forever.
+// Maps absolute filesystem path → file contents (or null if missing).
+
+const preCompressedCache = new Map<string, Buffer | null>();
+
+function readPreCompressed(filePath: string): Buffer | null {
+  if (preCompressedCache.has(filePath)) {
+    return preCompressedCache.get(filePath)!;
+  }
+
+  let content: Buffer | null = null;
+  if (existsSync(filePath)) {
+    content = readFileSync(filePath);
+  }
+
+  preCompressedCache.set(filePath, content);
+  return content;
+}
+
+// =============================================================================
+// Slow-path compression cache
+// =============================================================================
+// For dynamic responses (HTML pages) that don't have pre-compressed siblings.
+// Keyed by pathname — content rarely changes at runtime and the cache is small.
 
 interface CachedCompression {
   br?: Buffer;
   gzip?: Buffer;
-  timestamp: number;
+  raw: Buffer;
 }
 
 const compressionCache = new Map<string, CachedCompression>();
-const MAX_CACHE_SIZE = 100;
-const CACHE_TTL = 60_000; // 1 minute
+const MAX_CACHE_SIZE = 200;
 
-function getCacheKey(pathname: string, contentHash: string): string {
-  return `${pathname}:${contentHash}`;
-}
-
-function evictOldCache(): void {
+function evictOldest(): void {
   if (compressionCache.size >= MAX_CACHE_SIZE) {
     const oldestKey = compressionCache.keys().next().value;
     if (oldestKey) compressionCache.delete(oldestKey);
@@ -48,10 +66,6 @@ function shouldCompress(contentType: string): boolean {
     contentType.includes("image/svg")
   );
 }
-
-// =============================================================================
-// Public API
-// =============================================================================
 
 // =============================================================================
 // Pre-compressed file lookup
@@ -87,9 +101,8 @@ function tryPreCompressed(
 
   // Prefer brotli
   if (lowerEncoding.includes("br")) {
-    const brPath = filePath + ".br";
-    if (existsSync(brPath)) {
-      const content = readFileSync(brPath);
+    const content = readPreCompressed(filePath + ".br");
+    if (content) {
       headers.set("Content-Encoding", "br");
       headers.set("Content-Length", content.length.toString());
       return new Response(content, {
@@ -102,9 +115,8 @@ function tryPreCompressed(
 
   // Fallback to gzip
   if (lowerEncoding.includes("gzip")) {
-    const gzPath = filePath + ".gz";
-    if (existsSync(gzPath)) {
-      const content = readFileSync(gzPath);
+    const content = readPreCompressed(filePath + ".gz");
+    if (content) {
       headers.set("Content-Encoding", "gzip");
       headers.set("Content-Length", content.length.toString());
       return new Response(content, {
@@ -126,7 +138,7 @@ function tryPreCompressed(
  * Compress a response based on the Accept-Encoding header.
  *
  * 1. Try pre-compressed .br/.gz files (instant, generated at build time)
- * 2. Fall back to synchronous compression with an LRU cache
+ * 2. Fall back to synchronous compression with a bounded cache
  *
  * Returns the original response unchanged for non-compressible content.
  */
@@ -146,7 +158,7 @@ export async function compressResponse(
   const preCompressed = tryPreCompressed(response, acceptEncoding, pathname);
   if (preCompressed) return preCompressed;
 
-  // ── Slow path: compress on the fly with LRU cache ──
+  // ── Slow path: compress on the fly with bounded cache ──
   try {
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -160,21 +172,19 @@ export async function compressResponse(
       });
     }
 
-    const contentHash = createHash("md5").update(buffer).digest("hex");
-    const cacheKey = getCacheKey(pathname, contentHash);
+    // Cache by pathname — content is stable for server-rendered pages
+    let cached = compressionCache.get(pathname);
 
-    let cached = compressionCache.get(cacheKey);
-
-    // Evict stale entry
-    if (cached && Date.now() - cached.timestamp > CACHE_TTL) {
-      compressionCache.delete(cacheKey);
+    // Invalidate if the underlying content changed (e.g. hot-reload)
+    if (cached && !cached.raw.equals(buffer)) {
+      compressionCache.delete(pathname);
       cached = undefined;
     }
 
     if (!cached) {
-      evictOldCache();
-      cached = { timestamp: Date.now() };
-      compressionCache.set(cacheKey, cached);
+      evictOldest();
+      cached = { raw: buffer };
+      compressionCache.set(pathname, cached);
     }
 
     const lowerEncoding = acceptEncoding.toLowerCase();

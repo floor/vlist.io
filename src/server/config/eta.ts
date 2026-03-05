@@ -90,39 +90,29 @@ export function clearNavigationCache(): void {
 // =============================================================================
 
 /**
- * Eta configuration options
+ * Singleton Eta instance — created once so compiled template caching persists
+ * across renders. Previously a new instance was created per render() call,
+ * discarding the internal cache every time.
  */
-const etaConfig = {
-  // Use template caching for better performance (Eta handles this internally)
+const eta = new Eta({
   cache: true,
-
-  // Remove whitespace for smaller HTML
   rmWhitespace: true,
-
-  // Don't escape HTML by default (we control the content)
-  // Use <%~ %> for unescaped output, <%= %> for escaped output
   autoEscape: false,
-
-  // Don't use 'with' statement (better performance and TypeScript compatibility)
   useWith: false,
-
-  // Template data accessible via 'it'
   varName: "it",
-};
+});
 
 /**
  * Render a template string with Eta
  *
- * Uses Eta's internal caching when the same template is rendered multiple times.
- * Since cache: true is set, Eta will automatically cache compiled templates.
+ * Uses the module-level Eta instance so compiled templates are cached across
+ * calls. Since cache: true is set, repeated renders of the same template
+ * string skip the parse/compile step entirely.
  *
  * @param template - HTML template with Eta syntax
  * @param data - Template data object (accessed via `it` in template)
  * @returns Rendered HTML string
  */
 export function render(template: string, data: TemplateData): string {
-  // Create a new Eta instance for this render
-  // Eta will handle caching internally based on the template string
-  const eta = new Eta(etaConfig);
   return eta.renderString(template, data);
 }
