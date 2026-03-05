@@ -16,17 +16,20 @@
 import { brotliCompressSync } from "zlib";
 import { existsSync, readFileSync } from "fs";
 import { resolve, join } from "path";
+import { IS_PROD } from "./config";
 
 // =============================================================================
 // Pre-compressed file cache
 // =============================================================================
-// Build artifacts (.br / .gz) are static — read once, serve forever.
-// Maps absolute filesystem path → file contents (or null if missing).
+// Build artifacts (.br / .gz) are static in production — read once, serve forever.
+// In development, files are read fresh every time to avoid stale builds after
+// rebuilding vlist or examples.
 
 const preCompressedCache = new Map<string, Uint8Array | null>();
 
 function readPreCompressed(filePath: string): Uint8Array | null {
-  if (preCompressedCache.has(filePath)) {
+  // In dev, always read from disk — cached .br/.gz go stale after rebuilds
+  if (IS_PROD && preCompressedCache.has(filePath)) {
     return preCompressedCache.get(filePath)!;
   }
 
@@ -35,7 +38,7 @@ function readPreCompressed(filePath: string): Uint8Array | null {
     content = new Uint8Array(readFileSync(filePath));
   }
 
-  preCompressedCache.set(filePath, content);
+  if (IS_PROD) preCompressedCache.set(filePath, content);
   return content;
 }
 
@@ -44,6 +47,7 @@ function readPreCompressed(filePath: string): Uint8Array | null {
 // =============================================================================
 // For dynamic responses (HTML pages) that don't have pre-compressed siblings.
 // Keyed by pathname — content rarely changes at runtime and the cache is small.
+// In development, this cache is skipped entirely.
 
 interface CachedCompression {
   br?: Uint8Array;
@@ -168,10 +172,19 @@ async function compressAsync(
       });
     }
 
-    // Cache by pathname — content is stable for server-rendered pages
+    // In dev, compress on the fly without caching to avoid stale responses
+    if (!IS_PROD) {
+      const body =
+        encoding === "br"
+          ? new Uint8Array(brotliCompressSync(Buffer.from(raw)))
+          : Bun.gzipSync(raw);
+      return compressedResponse(body, encoding, response);
+    }
+
+    // Production: cache by pathname — content is stable for server-rendered pages
     let cached = compressionCache.get(pathname);
 
-    // Invalidate if the underlying content changed (e.g. hot-reload)
+    // Invalidate if the underlying content changed
     if (cached && !uint8Equals(cached.raw, raw)) {
       compressionCache.delete(pathname);
       cached = undefined;

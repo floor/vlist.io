@@ -13,6 +13,7 @@ import { join, resolve } from "path";
 import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 import { createHash } from "crypto";
 import { transformSync } from "@babel/core";
+import { $ } from "bun";
 
 const isWatch = process.argv.includes("--watch");
 const isForce = process.argv.includes("--force");
@@ -218,13 +219,72 @@ function hashFiles(dir: string): string {
   return h.digest("hex");
 }
 
-/** Hash of vlist/src — computed once per build */
+/** Hash of vlist/dist/index.js — the actual file that gets bundled.
+ *  Hashing src/ was wrong: the bundler resolves imports from dist/,
+ *  so src changes without `bun run build` in vlist/ went undetected. */
 let _vlistHash: string | null = null;
 function getVlistHash(): string {
   if (_vlistHash) return _vlistHash;
-  const vlistSrc = resolve("../vlist/src");
-  _vlistHash = existsSync(vlistSrc) ? hashFiles(vlistSrc) : "none";
+  const vlistDist = resolve("../vlist/dist/index.js");
+  if (existsSync(vlistDist)) {
+    const h = createHash("sha1");
+    h.update(readFileSync(vlistDist));
+    // Also hash the CSS files that get copied
+    for (const css of ["vlist.css", "vlist-table.css", "vlist-extras.css"]) {
+      const p = resolve("../vlist/dist", css);
+      if (existsSync(p)) h.update(readFileSync(p));
+    }
+    _vlistHash = h.digest("hex");
+  } else {
+    _vlistHash = "none";
+  }
   return _vlistHash;
+}
+
+/** Check if vlist/dist is stale compared to vlist/src.
+ *  Returns true if any src file is newer than dist/index.js. */
+function isVlistDistStale(): boolean {
+  const distFile = resolve("../vlist/dist/index.js");
+  if (!existsSync(distFile)) return true;
+
+  const distMtime = statSync(distFile).mtimeMs;
+  const srcDir = resolve("../vlist/src");
+  if (!existsSync(srcDir)) return false;
+
+  const checkDir = (dir: string): boolean => {
+    const entries = readdirSync(dir, { withFileTypes: true });
+    for (const e of entries) {
+      if (e.name === "node_modules" || e.name === "dist") continue;
+      const p = join(dir, e.name);
+      if (e.isDirectory()) {
+        if (checkDir(p)) return true;
+      } else if (statSync(p).mtimeMs > distMtime) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  return checkDir(srcDir);
+}
+
+/** Auto-rebuild vlist/dist if source is newer. */
+async function ensureVlistDist(): Promise<void> {
+  if (!isVlistDistStale()) return;
+
+  console.log("⚡ vlist/dist is stale — rebuilding...\n");
+  const start = performance.now();
+  const result = await $`bun run build.ts`
+    .cwd(resolve("../vlist"))
+    .quiet()
+    .nothrow();
+  if (result.exitCode !== 0) {
+    console.error("❌ vlist build failed:\n");
+    console.error(result.stderr.toString());
+    process.exit(1);
+  }
+  const time = (performance.now() - start).toFixed(0);
+  console.log(`✅ vlist rebuilt in ${time}ms\n`);
 }
 
 function computeExampleHash(name: string): string {
@@ -583,6 +643,9 @@ function buildSharedCss(): void {
 
 async function main() {
   const totalStart = performance.now();
+
+  // Auto-rebuild vlist/dist if src is newer (prevents stale bundle bugs)
+  await ensureVlistDist();
 
   // Force mode: clean everything
   const distExamplesDir = join("dist", EXAMPLES_DIR);
