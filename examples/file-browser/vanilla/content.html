@@ -1,95 +1,129 @@
-<div class="container container">
+<div class="container">
     <header>
         <h1>File Browser</h1>
         <p class="description">
-            Finder-like file browser using <code>vlist/builder</code> with
-            <code>withGrid</code> plugin. Browse files from vlist and vlist.dev
-            projects with switchable grid/list views. Click to select,
-            double-click folders to navigate.
+            Finder-like file browser using <code>withTable</code> for the list
+            view with resizable, sortable columns and <code>withGrid</code> for
+            the grid view. Click headers to sort, drag borders to resize.
+            Double-click folders to navigate. [Experimental]
         </p>
     </header>
 
-    <!-- Toolbar -->
-    <div class="ui-card ui-card--compact toolbar">
-        <div class="toolbar__left">
-            <button
-                id="btn-back"
-                class="toolbar__btn toolbar__btn--icon"
-                disabled
-                title="Back"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    height="20px"
-                    viewBox="0 0 24 24"
-                    width="20px"
-                    fill="currentColor"
-                >
-                    <path d="M0 0h24v24H0z" fill="none" />
-                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-                </svg>
-            </button>
-            <button
-                id="btn-forward"
-                class="toolbar__btn toolbar__btn--icon"
-                disabled
-                title="Forward"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    height="20px"
-                    viewBox="0 0 24 24"
-                    width="20px"
-                    fill="currentColor"
-                >
-                    <path d="M0 0h24v24H0z" fill="none" />
-                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
-                </svg>
-            </button>
-            <!-- Breadcrumb navigation -->
-            <div class="breadcrumb" id="breadcrumb">
-                <button class="breadcrumb__item" data-path="">Home</button>
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar__left">
+                    <button
+                        id="btn-back"
+                        class="ui-btn ui-btn--icon"
+                        disabled
+                        title="Back"
+                    >
+                        <i class="icon icon--prev"></i>
+                    </button>
+                    <button
+                        id="btn-forward"
+                        class="ui-btn ui-btn--icon"
+                        disabled
+                        title="Forward"
+                    >
+                        <i class="icon icon--next"></i>
+                    </button>
+                    <!-- Breadcrumb navigation -->
+                    <div class="breadcrumb" id="breadcrumb">
+                        <button class="breadcrumb__item" data-path="">
+                            root
+                        </button>
+                    </div>
+                </div>
+                <div class="toolbar__right">
+                    <select id="arrange-by-select" class="ui-select">
+                        <option value="name" selected>Name</option>
+                        <option value="kind">Kind</option>
+                        <option value="date-modified">Date Modified</option>
+                        <option value="size">Size</option>
+                    </select>
+                    <div class="ui-segmented">
+                        <button
+                            id="btn-view-grid"
+                            class="ui-segmented__btn"
+                            title="Grid View"
+                        >
+                            <i class="icon icon--grid"></i>
+                        </button>
+                        <button
+                            id="btn-view-list"
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            title="List View"
+                        >
+                            <i class="icon icon--list"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            <!-- File browser container -->
+            <div id="browser-container"></div>
         </div>
-        <div class="toolbar__right">
-            <select id="arrange-by-select" class="toolbar__select">
-                <option value="name" selected>Name</option>
-                <option value="kind">Kind</option>
-                <option value="date-modified">Date Modified</option>
-                <option value="size">Size</option>
-            </select>
-            <div class="view-switcher">
-                <button id="btn-view-grid" class="view-btn" title="Grid View">
-                    <span class="icon">⊞</span>
-                </button>
-                <button
-                    id="btn-view-list"
-                    class="view-btn view-btn--active"
-                    title="List View"
-                >
-                    <span class="icon">☰</span>
-                </button>
-            </div>
-        </div>
+
+        <aside class="split-panel">
+            <!-- Sort State -->
+            <section class="ui-section">
+                <h3 class="ui-title">Sort</h3>
+                <div class="ui-detail" id="sort-detail">
+                    <span class="ui-detail__empty"
+                        >Click a column header to sort</span
+                    >
+                </div>
+            </section>
+
+            <!-- Selected File -->
+            <section class="ui-section">
+                <h3 class="ui-title">Selected File</h3>
+                <div class="ui-detail" id="file-detail">
+                    <span class="ui-detail__empty"
+                        >Click a row to see details</span
+                    >
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
+                        <button
+                            id="btn-nav-back"
+                            class="ui-btn ui-btn--icon"
+                            title="Back"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-nav-forward"
+                            class="ui-btn ui-btn--icon"
+                            title="Forward"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </aside>
     </div>
 
-    <!-- List view header (hidden in grid view) -->
-    <div class="list-header" id="list-header" style="display: none">
-        <div class="list-header__icon"></div>
-        <div class="list-header__name">Name</div>
-        <div class="list-header__size">Size</div>
-        <div class="list-header__date">Date Modified</div>
-        <div class="list-header__kind">Kind</div>
-    </div>
-
-    <!-- File browser container -->
-    <div id="browser-container"></div>
-
-    <footer>
-        <p>
-            File browser demo using <code>withGrid</code> plugin with switchable
-            views. Backend API serves real filesystem data. Click to select,
-            double-click folders to navigate. 📁
-        </p>
+    <footer class="example-footer" id="example-footer">
+        <div class="example-footer__left">
+            <span class="example-footer__stat">
+                <strong id="ft-items">0</strong>
+                <span class="example-footer__unit">items</span>
+            </span>
+        </div>
+        <div class="example-footer__right">
+            <span class="example-footer__stat">
+                <strong id="ft-path">/</strong>
+            </span>
+        </div>
     </footer>
 </div>

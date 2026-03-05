@@ -1,8 +1,15 @@
-// Builder Grid — File Browser
-// Uses vlist/builder with withGrid plugin for grid view and standard list for list view
-// Demonstrates a virtualized file browser similar to macOS Finder
+// File Browser — Finder-like file browser with grid/list views
+// Grid view uses withGrid, list view uses withTable for resizable/sortable columns
+// Demonstrates switching between two layout modes with shared navigation
 
-import { vlist, withGrid, withScrollbar, withGroups } from "vlist";
+import {
+  vlist,
+  withGrid,
+  withScrollbar,
+  withGroups,
+  withTable,
+  withSelection,
+} from "vlist";
 
 // =============================================================================
 // File Type Icons
@@ -67,6 +74,7 @@ function getFileKind(item) {
 
 let currentPath = "";
 let items = [];
+let sortedItems = [];
 let currentView = "list";
 let currentColumns = 6;
 let currentGap = 8;
@@ -76,66 +84,48 @@ let historyIndex = 0;
 let selectedIndex = -1;
 let currentArrangeBy = "name";
 
+// Table sort state
+let sortKey = null;
+let sortDirection = "asc";
+
 // =============================================================================
-// Templates
+// Utility Functions
 // =============================================================================
 
-const gridItemTemplate = (item) => {
-  const icon = getFileIcon(item);
+function formatFileSize(bytes) {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+}
 
-  return `
-    <div class="file-card">
-      <div class="file-card__icon">
-        ${icon}
-      </div>
-      <div class="file-card__name" title="${item.name}">
-        ${item.name}
-      </div>
-    </div>
-  `;
-};
-
-const listItemTemplate = (item) => {
-  const icon = getFileIcon(item);
-  const sizeText =
-    item.type === "file" && item.size != null ? formatFileSize(item.size) : "—";
-  const kind = getFileKind(item);
-
-  // Format date
+function formatDate(dateStr) {
   const now = new Date();
-  const modified = new Date(item.modified);
+  const modified = new Date(dateStr);
   const isToday =
     now.getFullYear() === modified.getFullYear() &&
     now.getMonth() === modified.getMonth() &&
     now.getDate() === modified.getDate();
 
-  let dateText = "";
   if (isToday) {
     const timeStr = modified.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
-    dateText = `Today at ${timeStr}`;
-  } else {
-    const month = modified.toLocaleDateString("en-US", { month: "short" });
-    const day = modified.getDate();
-    const year = modified.getFullYear();
-    dateText = `${month} ${day}, ${year}`;
+    return `Today at ${timeStr}`;
   }
 
-  return `
-    <div class="file-row">
-      <div class="file-row__icon">
-        ${icon}
-      </div>
-      <div class="file-row__name">${item.name}</div>
-      <div class="file-row__size">${sizeText}</div>
-      <div class="file-row__date">${dateText}</div>
-      <div class="file-row__kind">${kind}</div>
-    </div>
-  `;
-};
+  const month = modified.toLocaleDateString("en-US", { month: "short" });
+  const day = modified.getDate();
+  const year = modified.getFullYear();
+  return `${month} ${day}, ${year}`;
+}
+
+function formatPath(path) {
+  return path || "/";
+}
 
 // =============================================================================
 // Date Grouping
@@ -145,7 +135,6 @@ function getDateGroup(item) {
   const now = new Date();
   const modified = new Date(item.modified);
 
-  // Check if today
   if (
     now.getFullYear() === modified.getFullYear() &&
     now.getMonth() === modified.getMonth() &&
@@ -162,17 +151,18 @@ function getDateGroup(item) {
   return "Older";
 }
 
-// Get arrangement configuration
+// =============================================================================
+// Arrangement / Sorting
+// =============================================================================
+
 function getArrangementConfig(arrangeBy) {
   switch (arrangeBy) {
     case "name":
       return {
         groupBy: "none",
         sortFn: (a, b) => {
-          // Folders first
           if (a.type === "directory" && b.type !== "directory") return -1;
           if (a.type !== "directory" && b.type === "directory") return 1;
-          // Then alphabetically
           return a.name.localeCompare(b.name, undefined, { numeric: true });
         },
       };
@@ -182,10 +172,7 @@ function getArrangementConfig(arrangeBy) {
         sortFn: (a, b) => {
           const kindA = getFileKind(a);
           const kindB = getFileKind(b);
-          if (kindA !== kindB) {
-            return kindA.localeCompare(kindB);
-          }
-          // Within same kind, sort by name
+          if (kindA !== kindB) return kindA.localeCompare(kindB);
           return a.name.localeCompare(b.name, undefined, { numeric: true });
         },
       };
@@ -203,10 +190,7 @@ function getArrangementConfig(arrangeBy) {
           ];
           const orderA = groupOrder.indexOf(groupA);
           const orderB = groupOrder.indexOf(groupB);
-          if (orderA !== orderB) {
-            return orderA - orderB;
-          }
-          // Within same group, sort by date (newest first)
+          if (orderA !== orderB) return orderA - orderB;
           const dateA = new Date(a.modified).getTime();
           const dateB = new Date(b.modified).getTime();
           if (isNaN(dateA)) return 1;
@@ -220,7 +204,7 @@ function getArrangementConfig(arrangeBy) {
         sortFn: (a, b) => {
           if (a.type === "directory" && b.type !== "directory") return -1;
           if (a.type !== "directory" && b.type === "directory") return 1;
-          return (b.size || 0) - (a.size || 0); // Largest first
+          return (b.size || 0) - (a.size || 0);
         },
       };
     default:
@@ -232,20 +216,156 @@ function getArrangementConfig(arrangeBy) {
 }
 
 // =============================================================================
-// Utility Functions
+// Table Column Sorting (for list view)
 // =============================================================================
 
-function formatFileSize(bytes) {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+/**
+ * Sort items by a column key and direction.
+ * Always keeps directories first, then applies the column sort.
+ */
+function sortByColumn(data, key, direction) {
+  const dir = direction === "desc" ? -1 : 1;
+
+  return [...data].sort((a, b) => {
+    // Directories always first
+    if (a.type === "directory" && b.type !== "directory") return -1;
+    if (a.type !== "directory" && b.type === "directory") return 1;
+
+    let aVal, bVal;
+
+    switch (key) {
+      case "name":
+        return a.name.localeCompare(b.name, undefined, { numeric: true }) * dir;
+
+      case "size":
+        aVal = a.size || 0;
+        bVal = b.size || 0;
+        return (aVal - bVal) * dir;
+
+      case "modified":
+        aVal = new Date(a.modified).getTime();
+        bVal = new Date(b.modified).getTime();
+        if (isNaN(aVal)) return 1;
+        if (isNaN(bVal)) return -1;
+        return (aVal - bVal) * dir;
+
+      case "kind":
+        aVal = getFileKind(a);
+        bVal = getFileKind(b);
+        return aVal.localeCompare(bVal) * dir;
+
+      default:
+        return 0;
+    }
+  });
 }
 
-function formatPath(path) {
-  return path || "/";
+function applyColumnSort(key, direction) {
+  sortKey = key;
+  sortDirection = direction || "asc";
+
+  if (key === null) {
+    // Reset to default name sort
+    sortedItems = [...items].sort((a, b) => {
+      if (a.type === "directory" && b.type !== "directory") return -1;
+      if (a.type !== "directory" && b.type === "directory") return 1;
+      return a.name.localeCompare(b.name, undefined, { numeric: true });
+    });
+  } else {
+    sortedItems = sortByColumn(items, key, direction);
+  }
+
+  if (list && currentView === "list") {
+    list.setItems(sortedItems);
+  }
+
+  updateSortDetail();
 }
+
+// =============================================================================
+// Templates
+// =============================================================================
+
+// Grid view template — icon + name card
+const gridItemTemplate = (item) => {
+  const icon = getFileIcon(item);
+  return `
+    <div class="file-card" data-type="${item.type}">
+      <div class="file-card__icon">${icon}</div>
+      <div class="file-card__name" title="${item.name}">${item.name}</div>
+    </div>
+  `;
+};
+
+// Fallback template for table (withTable uses cell renderers instead)
+const tableRowTemplate = () => "";
+
+// =============================================================================
+// Table Column Definitions
+// =============================================================================
+
+/** Icon + name cell renderer */
+const nameCell = (item) => {
+  const icon = getFileIcon(item);
+  return `
+    <div class="file-name">
+      <span class="file-name__icon">${icon}</span>
+      <span class="file-name__text">${item.name}</span>
+    </div>
+  `;
+};
+
+/** File size cell renderer */
+const sizeCell = (item) => {
+  if (item.type === "directory") return "—";
+  return item.size != null ? formatFileSize(item.size) : "—";
+};
+
+/** Date modified cell renderer */
+const dateCell = (item) => {
+  return formatDate(item.modified);
+};
+
+/** File kind cell renderer */
+const kindCell = (item) => {
+  return getFileKind(item);
+};
+
+const FILE_COLUMNS = [
+  {
+    key: "name",
+    label: "Name",
+    width: 360,
+    minWidth: 140,
+    sortable: true,
+    cell: nameCell,
+  },
+  {
+    key: "size",
+    label: "Size",
+    width: 100,
+    minWidth: 70,
+    sortable: true,
+    align: "right",
+    cell: sizeCell,
+  },
+  {
+    key: "modified",
+    label: "Date Modified",
+    width: 200,
+    minWidth: 120,
+    sortable: true,
+    cell: dateCell,
+  },
+  {
+    key: "kind",
+    label: "Kind",
+    width: 140,
+    minWidth: 80,
+    sortable: true,
+    cell: kindCell,
+  },
+];
 
 // =============================================================================
 // API
@@ -269,14 +389,12 @@ async function fetchDirectory(path) {
 // View Creation
 // =============================================================================
 
-async function createBrowser(view = "grid") {
-  // Destroy previous
+async function createBrowser(view = "list") {
   if (list) {
     list.destroy();
     list = null;
   }
 
-  // Clear container
   const container = document.getElementById("browser-container");
   container.innerHTML = "";
 
@@ -291,14 +409,17 @@ async function createBrowser(view = "grid") {
   updateNavigationState();
 }
 
+// =============================================================================
+// Grid View (withGrid + withGroups)
+// =============================================================================
+
 function createGridView() {
   const container = document.getElementById("browser-container");
   const innerWidth = container.clientWidth - 2;
   const colWidth =
     (innerWidth - (currentColumns - 1) * currentGap) / currentColumns;
-  const height = colWidth * 0.8; // Icon + text
+  const height = colWidth * 0.8;
 
-  // Get arrangement config (grouping + sorting)
   const config = getArrangementConfig(currentArrangeBy);
   const sorted = [...items].sort(config.sortFn);
 
@@ -315,11 +436,6 @@ function createGridView() {
     });
   }
 
-  // Hide list header in grid view
-  const listHeader = document.getElementById("list-header");
-  if (listHeader) listHeader.style.display = "none";
-
-  // Create list with builder pattern
   let builder = vlist({
     container: "#browser-container",
     ariaLabel: "File browser",
@@ -332,24 +448,22 @@ function createGridView() {
     .use(withGrid({ columns: currentColumns, gap: currentGap }))
     .use(withScrollbar({ autoHide: true }));
 
-  // Add groups plugin if grouping is enabled
   if (config.groupBy !== "none" && groupMap) {
     builder = builder.use(
       withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
         headerHeight: 40,
         headerTemplate: (groupKey) => {
-          // Count items in this group
           let count = 0;
           groupMap.forEach((key) => {
             if (key === groupKey) count++;
           });
           return `
-          <div class="group-header">
-            <span class="group-header__label">${groupKey}</span>
-            <span class="group-header__count">${count} items</span>
-          </div>
-        `;
+            <div class="group-header">
+              <span class="group-header__label">${groupKey}</span>
+              <span class="group-header__count">${count} items</span>
+            </div>
+          `;
         },
         sticky: true,
       }),
@@ -358,117 +472,133 @@ function createGridView() {
 
   list = builder.build();
 
-  // Bind events
-
   list.on("item:click", ({ item, index }) => {
     handleItemClick(item, index);
   });
 
-  list.on("item:dblclick", ({ item, index }) => {
+  list.on("item:dblclick", ({ item }) => {
     if (!item.__groupHeader) {
       handleItemDoubleClick(item);
     }
   });
 }
 
+// =============================================================================
+// List View (withTable + withSelection)
+// =============================================================================
+
 function createListView() {
-  const height = 28; // Fixed row height for list view
+  const rowHeight = 28;
+  const headerHeight = 28;
 
-  // Get arrangement config (grouping + sorting)
+  // Check if current arrangement has grouping
   const config = getArrangementConfig(currentArrangeBy);
-  const sorted = [...items].sort(config.sortFn);
+  const hasGroups = config.groupBy !== "none";
 
-  // Show list header
-  const listHeader = document.getElementById("list-header");
-  if (listHeader) listHeader.style.display = "grid";
+  // When grouping is active, use the arrangement sort (groups must be contiguous).
+  // Otherwise use column sort or default name sort.
+  if (hasGroups) {
+    sortedItems = [...items].sort(config.sortFn);
+  } else if (sortKey) {
+    sortedItems = sortByColumn(items, sortKey, sortDirection);
+  } else {
+    sortedItems = [...items].sort((a, b) => {
+      if (a.type === "directory" && b.type !== "directory") return -1;
+      if (a.type !== "directory" && b.type === "directory") return 1;
+      return a.name.localeCompare(b.name, undefined, { numeric: true });
+    });
+  }
 
-  // Create group map if grouping is enabled
+  // Build group map if grouping is enabled
   let groupMap = null;
-  if (config.groupBy !== "none") {
+  if (hasGroups) {
     groupMap = new Map();
     const groupCounts = {};
-    sorted.forEach((item, index) => {
+    sortedItems.forEach((item, index) => {
       const groupKey =
         config.groupBy === "date" ? getDateGroup(item) : getFileKind(item);
       groupMap.set(index, groupKey);
       groupCounts[groupKey] = (groupCounts[groupKey] || 0) + 1;
     });
-    console.log("🔍 List View Grouping Debug:", {
-      arrangeBy: currentArrangeBy,
-      groupBy: config.groupBy,
-      totalItems: sorted.length,
-      groupCounts,
-      firstTenGroups: Array.from(
-        { length: Math.min(10, sorted.length) },
-        (_, i) => ({
-          index: i,
-          name: sorted[i].name,
-          type: sorted[i].type,
-          kind: getFileKind(sorted[i]),
-          dateGroup: getDateGroup(sorted[i]),
-          assignedGroup: groupMap.get(i),
-        }),
-      ),
-    });
   }
 
-  // Create list with builder pattern
   let builder = vlist({
     container: "#browser-container",
     ariaLabel: "File browser",
     item: {
-      height,
-      template: listItemTemplate,
+      height: rowHeight,
+      striped: true,
+      template: tableRowTemplate,
     },
-    items: sorted,
-  }).use(withScrollbar({ autoHide: true }));
+    items: sortedItems,
+  });
 
-  // Add groups plugin if grouping is enabled
-  if (config.groupBy !== "none" && groupMap) {
+  builder = builder.use(
+    withTable({
+      columns: FILE_COLUMNS,
+      rowHeight,
+      headerHeight,
+      resizable: true,
+      columnBorders: false,
+      rowBorders: false,
+      minColumnWidth: 50,
+      sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
+    }),
+  );
+
+  if (hasGroups && groupMap) {
     builder = builder.use(
       withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
-        headerHeight: 40,
+        headerHeight: 32,
         headerTemplate: (groupKey) => {
-          // Count items in this group
           let count = 0;
           groupMap.forEach((key) => {
             if (key === groupKey) count++;
           });
           return `
-          <div class="group-header">
-            <span class="group-header__label">${groupKey}</span>
-            <span class="group-header__count">${count} items</span>
-          </div>
-        `;
+            <div class="group-header">
+              <span class="group-header__label">${groupKey}</span>
+              <span class="group-header__count">${count} items</span>
+            </div>
+          `;
         },
         sticky: true,
       }),
     );
   }
 
+  builder = builder.use(withSelection({ mode: "single" }));
+  builder = builder.use(withScrollbar({ autoHide: true }));
+
   list = builder.build();
 
-  // Bind events
+  // Column sort — user clicks a sortable header
+  list.on("column:sort", ({ key, direction }) => {
+    applyColumnSort(direction === null ? null : key, direction);
 
-  list.on("item:click", ({ item, index }) => {
-    handleItemClick(item, index);
-  });
-
-  list.on("item:dblclick", ({ item, index }) => {
-    console.log("🖱️🖱️ List dblclick event fired:", {
-      item,
-      index,
-      type: item.type,
-      name: item.name,
-    });
-    if (!item.__groupHeader) {
-      console.log("📁 Calling handleItemDoubleClick for:", item.name);
-      handleItemDoubleClick(item);
-    } else {
-      console.log("⚠️ Skipping group header");
+    if (list.setSort) {
+      list.setSort(sortKey, sortDirection);
     }
   });
+
+  // Selection — show detail in panel
+  list.on("selection:change", ({ items: selectedItems }) => {
+    if (selectedItems.length > 0) {
+      showFileDetail(selectedItems[0]);
+    } else {
+      clearFileDetail();
+    }
+  });
+
+  // Double-click row to navigate into folder
+  list.on("item:dblclick", ({ item }) => {
+    if (item && !item.__groupHeader && item.type === "directory") {
+      handleItemDoubleClick(item);
+    }
+  });
+
+  updateSortDetail();
 }
 
 // =============================================================================
@@ -478,14 +608,11 @@ function createListView() {
 async function navigateTo(path, addToHistory = true) {
   const data = await fetchDirectory(path);
   currentPath = data.path;
-  items = data.items;
+  items = data.items.map((item) => ({ ...item, id: item.name }));
 
-  // Clear selection when navigating
   selectedIndex = -1;
 
-  // Update history
   if (addToHistory) {
-    // Remove any forward history
     navigationHistory = navigationHistory.slice(0, historyIndex + 1);
     navigationHistory.push(path);
     historyIndex = navigationHistory.length - 1;
@@ -494,19 +621,17 @@ async function navigateTo(path, addToHistory = true) {
   await createBrowser(currentView);
   updateBreadcrumb();
   updateNavigationState();
+  updateFooter();
 }
 
 function handleItemClick(item, index) {
-  // Update selection state
   if (selectedIndex >= 0) {
-    // Deselect previous
     const prevEl = document.querySelector(`[data-index="${selectedIndex}"]`);
     if (prevEl) prevEl.setAttribute("aria-selected", "false");
   }
 
   selectedIndex = index;
 
-  // Select current
   const currentEl = document.querySelector(`[data-index="${index}"]`);
   if (currentEl) currentEl.setAttribute("aria-selected", "true");
 }
@@ -514,7 +639,7 @@ function handleItemClick(item, index) {
 function handleItemDoubleClick(item) {
   if (item.type === "directory") {
     const newPath = currentPath ? `${currentPath}/${item.name}` : item.name;
-    selectedIndex = -1; // Clear selection when navigating
+    selectedIndex = -1;
     navigateTo(newPath);
   }
 }
@@ -541,7 +666,7 @@ const breadcrumbEl = document.getElementById("breadcrumb");
 
 function updateBreadcrumb() {
   const parts = currentPath ? currentPath.split("/") : [];
-  let html = `<button class="breadcrumb__item" data-path="">home</button>`;
+  let html = `<button class="breadcrumb__item" data-path="">root</button>`;
   let pathSoFar = "";
 
   parts.forEach((part, index) => {
@@ -561,38 +686,130 @@ function updateNavigationState() {
 }
 
 // =============================================================================
+// Footer Stats
+// =============================================================================
+
+const ftItems = document.getElementById("ft-items");
+const ftPath = document.getElementById("ft-path");
+
+function updateFooter() {
+  if (ftItems) ftItems.textContent = String(items.length);
+  if (ftPath) ftPath.textContent = currentPath ? `/${currentPath}` : "/";
+}
+
+// =============================================================================
+// Detail Panel — selected file info
+// =============================================================================
+
+const detailEl = document.getElementById("file-detail");
+
+function showFileDetail(item) {
+  if (!detailEl) return;
+  const icon = getFileIcon(item);
+  const kind = getFileKind(item);
+  const sizeText =
+    item.type === "file" && item.size != null ? formatFileSize(item.size) : "—";
+  const dateText = formatDate(item.modified);
+
+  detailEl.innerHTML = `
+    <div class="file-detail__header">
+      <span class="file-detail__icon">${icon}</span>
+      <div>
+        <div class="file-detail__name">${item.name}</div>
+        <div class="file-detail__kind">${kind}</div>
+      </div>
+    </div>
+    <div class="file-detail__meta">
+      <span>${sizeText}</span>
+      <span>${dateText}</span>
+    </div>
+  `;
+}
+
+function clearFileDetail() {
+  if (!detailEl) return;
+  detailEl.innerHTML = `
+    <span class="ui-detail__empty">Click a row to see details</span>
+  `;
+}
+
+// =============================================================================
+// Sort Detail Panel
+// =============================================================================
+
+const sortDetailEl = document.getElementById("sort-detail");
+
+function updateSortDetail() {
+  if (!sortDetailEl) return;
+
+  if (sortKey === null) {
+    sortDetailEl.innerHTML = `
+      <span class="ui-detail__empty">Click a column header to sort</span>
+    `;
+  } else {
+    const arrow = sortDirection === "asc" ? "▲" : "▼";
+    const label = sortDirection === "asc" ? "Ascending" : "Descending";
+    sortDetailEl.innerHTML = `
+      <div class="sort-info">
+        <span class="sort-info__key">${sortKey}</span>
+        <span class="sort-info__dir">${arrow} ${label}</span>
+      </div>
+    `;
+  }
+}
+
+// =============================================================================
 // Initialization
 // =============================================================================
 
 (async () => {
-  // Set up view switcher
+  // View switcher
   document.getElementById("btn-view-grid").addEventListener("click", () => {
     if (currentView === "grid") return;
-    document.getElementById("btn-view-grid").classList.add("view-btn--active");
+    document
+      .getElementById("btn-view-grid")
+      .classList.add("ui-segmented__btn--active");
     document
       .getElementById("btn-view-list")
-      .classList.remove("view-btn--active");
+      .classList.remove("ui-segmented__btn--active");
     createBrowser("grid");
   });
 
   document.getElementById("btn-view-list").addEventListener("click", () => {
     if (currentView === "list") return;
-    document.getElementById("btn-view-list").classList.add("view-btn--active");
+    document
+      .getElementById("btn-view-list")
+      .classList.add("ui-segmented__btn--active");
     document
       .getElementById("btn-view-grid")
-      .classList.remove("view-btn--active");
+      .classList.remove("ui-segmented__btn--active");
     createBrowser("list");
   });
 
-  // Set up arrange by
+  // Arrange by (still useful for grid view grouping)
   document
     .getElementById("arrange-by-select")
     .addEventListener("change", (e) => {
       currentArrangeBy = e.target.value;
-      createBrowser(currentView);
+      // In list view, map arrange-by to column sort
+      if (currentView === "list") {
+        const keyMap = {
+          name: "name",
+          kind: "kind",
+          "date-modified": "modified",
+          size: "size",
+        };
+        const key = keyMap[currentArrangeBy] || "name";
+        applyColumnSort(key, "asc");
+        if (list && list.setSort) {
+          list.setSort(sortKey, sortDirection);
+        }
+      } else {
+        createBrowser(currentView);
+      }
     });
 
-  // Set up navigation
+  // Toolbar navigation
   document.getElementById("btn-back").addEventListener("click", () => {
     navigateBack();
   });
@@ -601,6 +818,22 @@ function updateNavigationState() {
     navigateForward();
   });
 
+  // Side panel navigation buttons
+  const btnNavBack = document.getElementById("btn-nav-back");
+  const btnNavForward = document.getElementById("btn-nav-forward");
+
+  if (btnNavBack) {
+    btnNavBack.addEventListener("click", () => {
+      navigateBack();
+    });
+  }
+
+  if (btnNavForward) {
+    btnNavForward.addEventListener("click", () => {
+      navigateForward();
+    });
+  }
+
   // Breadcrumb click handler
   breadcrumbEl.addEventListener("click", (e) => {
     const btn = e.target.closest("[data-path]");
@@ -608,6 +841,6 @@ function updateNavigationState() {
     navigateTo(btn.dataset.path);
   });
 
-  // Initial load - start in vlist folder with list view
+  // Initial load — start in vlist folder with list view
   await navigateTo("vlist");
 })();
