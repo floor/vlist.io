@@ -101,21 +101,21 @@
 }
 
 [data-theme-mode="light"] .hljs-tag .hljs-name {
-    color: #dc2626;
+    color: #b01d1d;
 }
 
 [data-theme-mode="light"] .hljs-string,
 [data-theme-mode="light"] .hljs-attr {
-    color: #16a34a;
+    color: #0f7334;
 }
 
 [data-theme-mode="light"] .hljs-number,
 [data-theme-mode="light"] .hljs-literal {
-    color: #ea580c;
+    color: #a53c05;
 }
 
 [data-theme-mode="light"] .hljs-comment {
-    color: #94a3b8;
+    color: #646f7f;
 }
 
 [data-theme-mode="light"] .hljs-function .hljs-title,
