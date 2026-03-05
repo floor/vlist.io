@@ -4,7 +4,7 @@
 import { Eta } from "eta";
 import { resolve } from "path";
 import { readFileSync } from "fs";
-import { SITE } from "./config";
+import { SITE, IS_PROD } from "./config";
 import { VLIST_ROOT } from "../config";
 import { htmlHeaders } from "../cache";
 
@@ -41,7 +41,7 @@ let versionCache: string | null = null;
 let pageCache: string | null = null;
 
 function loadTemplate(): string {
-  if (!templateCache) {
+  if (!templateCache || !IS_PROD) {
     const templatePath = resolve("src/server/shells/homepage.eta");
     templateCache = readFileSync(templatePath, "utf-8");
   }
@@ -79,7 +79,8 @@ function loadVersion(): string {
  * Render the homepage
  */
 export function renderHomepage(): Response {
-  if (!pageCache) {
+  // In dev, always re-render so changes are picked up without restarting
+  if (!pageCache || !IS_PROD) {
     const template = loadTemplate();
     pageCache = eta.renderString(template, {
       title: "VList — Virtual List for the Web",

@@ -10,7 +10,7 @@ import {
   render as renderEta,
   loadNavigation as loadHeaderNavigation,
 } from "../config/eta";
-import { SITE } from "./config";
+import { SITE, IS_PROD } from "./config";
 import {
   loadShell as loadShellBase,
   loadNavigation as loadNavigationBase,
@@ -580,12 +580,15 @@ export function createContentRenderer(config: ContentConfig) {
   function render(slug: string | null): Response | null {
     const cacheKey = slug ?? "__overview__";
 
-    // Return cached page if available (content only changes on deploy/restart)
-    const cached = pageCache.get(cacheKey);
-    if (cached !== undefined) {
-      return new Response(cached, {
-        headers: htmlHeaders(),
-      });
+    // Return cached page if available (production only — in dev, always re-render
+    // so rebuilds are picked up without restarting the server)
+    if (IS_PROD) {
+      const cached = pageCache.get(cacheKey);
+      if (cached !== undefined) {
+        return new Response(cached, {
+          headers: htmlHeaders(),
+        });
+      }
     }
 
     // Overview page

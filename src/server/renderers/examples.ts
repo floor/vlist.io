@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
 import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
-import { SITE } from "./config";
+import { SITE, IS_PROD } from "./config";
 import {
   loadShell,
   loadNavigation,
@@ -497,12 +497,15 @@ export function renderExamplesPage(
     slug !== null && url ? parseVariant(url.searchParams) : "vanilla";
   const cacheKey = slug === null ? "__overview__" : `${slug}::${variant}`;
 
-  // Return cached page if available (content only changes on deploy/restart)
-  const cached = pageCache.get(cacheKey);
-  if (cached !== undefined) {
-    return new Response(cached, {
-      headers: htmlHeaders(),
-    });
+  // Return cached page if available (production only — in dev, always re-render
+  // so rebuilds are picked up without restarting the server)
+  if (IS_PROD) {
+    const cached = pageCache.get(cacheKey);
+    if (cached !== undefined) {
+      return new Response(cached, {
+        headers: htmlHeaders(),
+      });
+    }
   }
 
   // Overview page

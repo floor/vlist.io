@@ -4,6 +4,9 @@
 import { existsSync, realpathSync } from "fs";
 import { join, resolve } from "path";
 
+/** True when NODE_ENV is explicitly set to "production". */
+export const IS_PROD = process.env.NODE_ENV === "production";
+
 export const PORT = parseInt(process.env.PORT || "3338", 10);
 export const ROOT = resolve(".");
 export const SITE = "https://vlist.dev";
