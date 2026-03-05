@@ -328,7 +328,7 @@ const FILE_COLUMNS = [
   {
     key: "name",
     label: "Name",
-    width: 360,
+    width: 350,
     minWidth: 140,
     sortable: true,
     cell: nameCell,
