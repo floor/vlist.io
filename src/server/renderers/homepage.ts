@@ -6,6 +6,7 @@ import { resolve } from "path";
 import { readFileSync } from "fs";
 import { SITE } from "./config";
 import { VLIST_ROOT } from "../config";
+import { htmlHeaders } from "../cache";
 
 // =============================================================================
 // Types
@@ -91,10 +92,7 @@ export function renderHomepage(): Response {
   }
 
   return new Response(pageCache, {
-    headers: {
-      "Content-Type": "text/html; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
-    },
+    headers: htmlHeaders(),
   });
 }
 

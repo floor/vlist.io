@@ -6,6 +6,7 @@
 
 import { execSync } from "child_process";
 import { ROOT, SITE } from "./config";
+import { CACHE_META } from "./cache";
 import {
   DOC_GROUPS,
   TUTORIAL_GROUPS,
@@ -258,7 +259,7 @@ export function renderSitemap(): Response {
   return new Response(xml, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": CACHE_META,
     },
   });
 }
@@ -277,7 +278,7 @@ Sitemap: ${SITE}/sitemap.xml
   return new Response(txt, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "public, max-age=86400",
+      "Cache-Control": CACHE_META,
     },
   });
 }
