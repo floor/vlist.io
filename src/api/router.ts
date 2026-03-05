@@ -145,8 +145,8 @@ const handleGetFiles = async (url: URL): Promise<Response> => {
     const requestedPath = url.searchParams.get("path") || "";
     const result = await listDirectory(requestedPath);
     return json(result);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
     const status = message.includes("Access denied") ? 403 : 500;
     return error(message, status);
   }

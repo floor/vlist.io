@@ -9,6 +9,13 @@ import { gzipSync, brotliCompressSync } from "zlib";
 import { existsSync, readFileSync } from "fs";
 import { resolve, join } from "path";
 
+/** Convert a Node Buffer to an ArrayBuffer suitable for Response body. */
+const toBodyInit = (buf: Buffer): ArrayBuffer =>
+  buf.buffer.slice(
+    buf.byteOffset,
+    buf.byteOffset + buf.byteLength,
+  ) as ArrayBuffer;
+
 // =============================================================================
 // Pre-compressed file cache
 // =============================================================================
@@ -105,7 +112,7 @@ function tryPreCompressed(
     if (content) {
       headers.set("Content-Encoding", "br");
       headers.set("Content-Length", content.length.toString());
-      return new Response(content, {
+      return new Response(toBodyInit(content), {
         status: response.status,
         statusText: response.statusText,
         headers,
@@ -119,7 +126,7 @@ function tryPreCompressed(
     if (content) {
       headers.set("Content-Encoding", "gzip");
       headers.set("Content-Length", content.length.toString());
-      return new Response(content, {
+      return new Response(toBodyInit(content), {
         status: response.status,
         statusText: response.statusText,
         headers,
@@ -196,7 +203,7 @@ export async function compressResponse(
       if (!cached.br) cached.br = brotliCompressSync(buffer);
       headers.set("Content-Encoding", "br");
       headers.set("Content-Length", cached.br.length.toString());
-      return new Response(cached.br, {
+      return new Response(toBodyInit(cached.br), {
         status: response.status,
         statusText: response.statusText,
         headers,
@@ -208,7 +215,7 @@ export async function compressResponse(
       if (!cached.gzip) cached.gzip = gzipSync(buffer);
       headers.set("Content-Encoding", "gzip");
       headers.set("Content-Length", cached.gzip.length.toString());
-      return new Response(cached.gzip, {
+      return new Response(toBodyInit(cached.gzip), {
         status: response.status,
         statusText: response.statusText,
         headers,
