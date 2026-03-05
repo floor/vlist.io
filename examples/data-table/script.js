@@ -62,7 +62,7 @@ const statusCell = (item) => {
 /** Avatar + name cell renderer */
 const nameCell = (item) => `
   <div class="table-name">
-    <div class="table-avatar" style="background:${item.color}">${item.initials}</div>
+    <div class="table-avatar" style="background:${item.color};color:${item.textColor}">${item.initials}</div>
     <span class="table-name__text">${item.firstName} ${item.lastName}</span>
   </div>
 `;
@@ -379,7 +379,7 @@ function showRowDetail(contact) {
   if (!detailEl) return;
   detailEl.innerHTML = `
     <div class="ui-detail__header">
-      <div class="table-detail__avatar" style="background:${contact.color}">${contact.initials}</div>
+      <div class="table-detail__avatar" style="background:${contact.color};color:${contact.textColor}">${contact.initials}</div>
       <div>
         <div class="ui-detail__name">${contact.firstName} ${contact.lastName}</div>
         <div class="table-detail__role">${contact.role}</div>

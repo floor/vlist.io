@@ -34,7 +34,7 @@ export let selectionMode = "single"; // "none" | "single" | "multiple"
 // =============================================================================
 
 export const itemTemplate = (user, index) => `
-  <div class="item__avatar" style="background:${user.color}">${user.initials}</div>
+  <div class="item__avatar" style="background:${user.color};color:${user.textColor}">${user.initials}</div>
   <div class="item__text">
     <div class="item__name">${user.name}</div>
     <div class="item__email">${user.email}</div>
