@@ -10,7 +10,7 @@ import {
   watch,
 } from "fs";
 import { join, resolve } from "path";
-import { brotliCompressSync, gzipSync, constants } from "zlib";
+import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 import { createHash } from "crypto";
 import { transformSync } from "@babel/core";
 
@@ -172,34 +172,6 @@ function minifyCss(css: string): string {
     .replace(/;\}/g, "}") // drop trailing semicolons
     .replace(/\s+/g, " ") // collapse whitespace
     .trim();
-}
-
-function formatKB(bytes: number): string {
-  return (bytes / 1024).toFixed(1);
-}
-
-function gzipSize(path: string): number {
-  const raw = readFileSync(path);
-  return Bun.gzipSync(new Uint8Array(raw)).byteLength;
-}
-
-/**
- * Pre-compress a file with brotli and gzip, writing .br and .gz siblings.
- * This avoids expensive synchronous compression at serve time.
- */
-function preCompress(filePath: string): void {
-  const raw = readFileSync(filePath);
-  if (raw.length < 1024) return; // skip tiny files
-
-  const br = brotliCompressSync(raw, {
-    params: {
-      [constants.BROTLI_PARAM_QUALITY]: 6, // good balance of speed vs ratio
-    },
-  });
-  writeFileSync(filePath + ".br", br);
-
-  const gz = gzipSync(raw, { level: 6 });
-  writeFileSync(filePath + ".gz", gz);
 }
 
 interface SizeInfo {

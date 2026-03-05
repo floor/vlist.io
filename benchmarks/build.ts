@@ -12,6 +12,7 @@ import {
   readdirSync,
 } from "fs";
 import { join } from "path";
+import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 
 const isWatch = process.argv.includes("--watch");
 const BENCHMARKS_DIR = "./benchmarks";
@@ -106,15 +107,6 @@ function minifyCss(css: string): string {
     .replace(/;\}/g, "}") // drop trailing semicolons
     .replace(/\s+/g, " ") // collapse whitespace
     .trim();
-}
-
-function formatKB(bytes: number): string {
-  return (bytes / 1024).toFixed(1);
-}
-
-function gzipSize(path: string): number {
-  const raw = readFileSync(path);
-  return Bun.gzipSync(new Uint8Array(raw)).byteLength;
 }
 
 /**
@@ -219,14 +211,21 @@ async function build(): Promise<void> {
     if (existsSync(cssPath)) {
       const raw = readFileSync(cssPath, "utf-8");
       const minified = minifyCss(raw);
-      writeFileSync(join(outdir, "styles.css"), minified);
+      const cssOutPath = join(outdir, "styles.css");
+      writeFileSync(cssOutPath, minified);
       cssSize = Buffer.byteLength(minified, "utf-8");
+      preCompress(cssOutPath);
     }
 
-    // Measure JS bundle
+    // Measure JS bundle size and pre-compress
     const jsPath = join(outdir, "script.js");
     const jsMin = Bun.file(jsPath).size;
     const jsGzip = gzipSize(jsPath);
+    preCompress(jsPath);
+
+    // Pre-compress runner.js as well
+    const runnerOutPath = join(outdir, "runner.js");
+    if (existsSync(runnerOutPath)) preCompress(runnerOutPath);
 
     const elapsed = (performance.now() - start).toFixed(0);
 

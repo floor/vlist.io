@@ -59,10 +59,10 @@ function shouldCompress(contentType: string): boolean {
 
 /**
  * Resolve a URL pathname to a filesystem path for pre-compressed files.
- * Only works for /dist/* paths (build output).
+ * Matches any path that contains a /dist/ segment (e.g. /dist/*, /benchmarks/dist/*).
  */
 function resolveDistPath(pathname: string): string | null {
-  if (!pathname.startsWith("/dist/")) return null;
+  if (!/\/dist\//.test(pathname)) return null;
   const filePath = resolve(join(".", pathname));
   // Security: ensure we stay within the project
   if (!filePath.startsWith(resolve("."))) return null;
