@@ -7,6 +7,7 @@ import {
   DEFAULT_TOTAL as POSTS_DEFAULT_TOTAL,
   MAX_LIMIT as POSTS_MAX_LIMIT,
 } from "./posts";
+import { getRecipes, getRecipeById } from "./recipes";
 import { listDirectory, getFilesBrowserInfo } from "./files";
 import { fetchFeed, feedSourceIds, REDDIT_PRESETS } from "./feed/index";
 import type { FeedSourceId } from "./feed/index";
@@ -231,6 +232,30 @@ const handleFeedPresets = (): Response =>
   });
 
 /**
+ * GET /api/recipes
+ *
+ * Returns all recipes.
+ * Response: Recipe[]
+ */
+const handleGetRecipes = (): Response => json(getRecipes());
+
+/**
+ * GET /api/recipes/:id
+ *
+ * Path params:
+ *   id — recipe ID (1-based)
+ *
+ * Response: Recipe | { error: string }
+ */
+const handleGetRecipe = (_url: URL, id: number): Response => {
+  const recipe = getRecipeById(id);
+  if (!recipe) {
+    return error("Recipe not found", 404);
+  }
+  return json(recipe);
+};
+
+/**
  * GET /api/info
  *
  * Returns API metadata — available endpoints, defaults, limits.
@@ -324,6 +349,14 @@ const handleInfo = (): Response =>
         },
         response: "{ path: string, items: FileItem[] }",
       },
+      "GET /api/recipes": {
+        description: "All recipe cards",
+        response: "Recipe[]",
+      },
+      "GET /api/recipes/:id": {
+        description: "Single recipe by ID (1-based)",
+        response: "Recipe | { error: string }",
+      },
       "GET /api/files/info": {
         description: "File browser configuration",
       },
@@ -401,6 +434,18 @@ export const routeApi = async (req: Request): Promise<Response | null> => {
   // GET /api/feed
   if (path === "/api/feed" || path === "/api/feed/") {
     return handleGetFeed(url);
+  }
+
+  // GET /api/recipes/:id
+  const recipeMatch = path.match(/^\/api\/recipes\/(\d+)$/);
+  if (recipeMatch) {
+    const id = parseInt(recipeMatch[1], 10);
+    return handleGetRecipe(url, id);
+  }
+
+  // GET /api/recipes
+  if (path === "/api/recipes" || path === "/api/recipes/") {
+    return handleGetRecipes();
   }
 
   // GET /api/files/info
