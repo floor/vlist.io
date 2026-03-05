@@ -53,7 +53,7 @@ export function setCurrentHeaderMode(v) {
 
 const renderContact = (item) => `
   <div class="contact">
-    <div class="contact__avatar" style="background:${item.color}">${item.initials}</div>
+    <div class="contact__avatar" style="background:${item.color};color:${item.textColor}">${item.initials}</div>
     <div class="contact__info">
       <div class="contact__name">${item.firstName} ${item.lastName}</div>
       <div class="contact__detail">${item.department} · ${item.email}</div>
@@ -152,7 +152,7 @@ const detailEl = document.getElementById("contact-detail");
 function showContactDetail(contact) {
   detailEl.innerHTML = `
     <div class="ui-detail__header">
-      <div class="contact-detail__avatar" style="background:${contact.color}">${contact.initials}</div>
+      <div class="contact-detail__avatar" style="background:${contact.color};color:${contact.textColor}">${contact.initials}</div>
       <div>
         <div class="ui-detail__name">${contact.firstName} ${contact.lastName}</div>
         <div class="contact-detail__role">${contact.role}</div>
