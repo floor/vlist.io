@@ -4,6 +4,7 @@
 import { existsSync, statSync } from "fs";
 import { join, extname, resolve } from "path";
 import { ROOT, VLIST_ROOT } from "./config";
+import { CACHE_IMMUTABLE, CACHE_NOCACHE } from "./cache";
 
 // =============================================================================
 // MIME Types
@@ -37,14 +38,6 @@ export const getMimeType = (filePath: string): string => {
 // =============================================================================
 // Cache-Control
 // =============================================================================
-
-// Build outputs and other immutable assets — content-hashed or rebuilt rarely.
-// 1 year max-age + immutable tells browsers to never revalidate.
-const CACHE_IMMUTABLE = "public, max-age=31536000, immutable";
-
-// Development-time assets (raw CSS, source files, markdown) that may change
-// between page loads during local development or after a deploy.
-const CACHE_NOCACHE = "no-cache";
 
 /**
  * Determine the Cache-Control header for a given URL pathname.

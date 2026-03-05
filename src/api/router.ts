@@ -1,6 +1,7 @@
 // src/api/router.ts
 // API router for vlist.dev — handles /api/* routes with CORS support
 
+import { CACHE_API, CACHE_API_DOCS } from "../server/cache";
 import { getUsers, getUserById, DEFAULT_TOTAL, MAX_LIMIT } from "./users";
 import {
   getPosts,
@@ -26,7 +27,10 @@ const API_DOCS_HTML = existsSync(API_DOCS_PATH)
 const serveApiDocs = (): Response | null => {
   if (!API_DOCS_HTML) return null;
   return new Response(API_DOCS_HTML, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": CACHE_API_DOCS,
+    },
   });
 };
 
@@ -46,6 +50,7 @@ const json = (data: unknown, status: number = 200): Response =>
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": CACHE_API,
       ...CORS_HEADERS,
     },
   });

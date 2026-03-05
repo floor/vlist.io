@@ -14,6 +14,7 @@ import {
   clearAllCaches,
   type BaseNavGroup,
 } from "./base";
+import { htmlHeaders } from "../cache";
 
 // =============================================================================
 // Types
@@ -500,7 +501,7 @@ export function renderExamplesPage(
   const cached = pageCache.get(cacheKey);
   if (cached !== undefined) {
     return new Response(cached, {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
+      headers: htmlHeaders(),
     });
   }
 
@@ -510,7 +511,7 @@ export function renderExamplesPage(
     const html = assemblePage(null, null, content);
     pageCache.set(cacheKey, html);
     return new Response(html, {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
+      headers: htmlHeaders(),
     });
   }
 
@@ -579,6 +580,6 @@ export function renderExamplesPage(
 
   pageCache.set(cacheKey, html);
   return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    headers: htmlHeaders(),
   });
 }

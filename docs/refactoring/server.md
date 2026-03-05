@@ -3,7 +3,7 @@
 > Migrate the Bun HTTP server from Node.js-compatible patterns to Bun-native APIs
 > for zero-copy file serving, faster compression, reduced allocations, and cached rendering.
 >
-> **Status: ✅ All 6 phases complete**
+> **Status: ✅ All 7 phases complete**
 >
 > Implemented on branch `refactor/server`.
 
@@ -20,6 +20,7 @@
 - [Phase 4 — Eliminate redundant allocations](#phase-4--eliminate-redundant-allocations) ✅
 - [Phase 5 — Startup optimization](#phase-5--startup-optimization) ✅
 - [Phase 6 — PM2 multi-instance](#phase-6--pm2-multi-instance) ✅
+- [Phase 7 — Cloudflare CDN edge caching](#phase-7--cloudflare-cdn-edge-caching) ✅
 - [Deferred Items](#deferred-items)
 - [Per-File Impact Summary](#per-file-impact-summary)
 - [Testing & Verification](#testing--verification)
@@ -40,12 +41,14 @@ The server is a single `Bun.serve()` process running behind PM2 in fork mode. It
 ### Request Flow
 
 ```
-Request
-  → router.ts         (parse URL, match route)
-  → renderer/*.ts     (server-render HTML pages)
-     OR static.ts     (serve files from disk)
-     OR api/router.ts (JSON API responses)
-  → compression.ts    (compress response)
+Client
+  → Cloudflare CDN    (edge cache, TLS, brotli, DDoS protection)
+  → origin server     (Bun on port 3338, only on cache MISS)
+     → router.ts         (parse URL, match route)
+     → renderer/*.ts     (server-render HTML pages)
+        OR static.ts     (serve files from disk)
+        OR api/router.ts (JSON API responses)
+     → compression.ts    (compress response)
   → Response
 ```
 
@@ -115,6 +118,7 @@ The server is written as a **Node.js-compatible application that happens to run 
 | 5 | 🟠 Med | `handleRequest` is async for all routes | Promise allocation on synchronous paths | Low |
 | 6 | 🟡 Low | ~40 `execSync` git commands at startup | Slow startup (~1s vs ~100ms) | Medium |
 | 7 | 🟢 Nice | PM2 runs single instance despite `reusePort` | No multi-core utilization | Trivial |
+| 8 | 🟠 Med | No CDN — all requests hit origin directly | Global latency, origin load, no edge caching | Low |
 
 ---
 
@@ -875,6 +879,172 @@ exec_mode: "fork",  // still fork — cluster mode ignores interpreter
 
 ---
 
+## Phase 7 — Cloudflare CDN edge caching ✅
+
+Cloudflare sits in front of the Bun origin as a reverse proxy (free tier). The origin server remains unchanged — Cloudflare respects the `Cache-Control` headers we emit and caches responses at 300+ edge locations globally.
+
+### 7.1 Create centralized cache header module
+
+**New file: `src/server/cache.ts`**
+
+All Cache-Control values centralized in one module instead of scattered across renderers and static serving:
+
+```ts
+// Immutable build assets — browser and edge cache for 1 year
+export const CACHE_IMMUTABLE = "public, max-age=31536000, immutable";
+
+// Server-rendered HTML — edge caches 1h, browser always revalidates
+export const CACHE_PAGE = "public, s-maxage=3600, max-age=0, stale-while-revalidate=60";
+
+// Sitemap, robots.txt — edge and browser both cache 1h
+export const CACHE_META = "public, s-maxage=3600, max-age=3600";
+
+// API JSON — edge caches 5min, browser does not cache
+export const CACHE_API = "public, s-maxage=300, max-age=0";
+
+// No-cache — dev assets, raw source
+export const CACHE_NOCACHE = "no-cache";
+
+// Helper: standard HTML response headers
+export function htmlHeaders(): HeadersInit {
+  return {
+    "Content-Type": "text/html; charset=utf-8",
+    "Cache-Control": CACHE_PAGE,
+  };
+}
+```
+
+**Key design: `s-maxage` vs `max-age` separation.**
+
+- `s-maxage` controls the Cloudflare edge TTL (shared cache)
+- `max-age=0` means browsers always revalidate with the edge (instant, since edge is nearby)
+- `stale-while-revalidate=60` lets the edge serve a stale copy while fetching fresh in the background
+- On deploy, we purge the entire Cloudflare cache so users immediately get fresh content
+
+### 7.2 Update all renderers to use `htmlHeaders()`
+
+Every server-rendered page (homepage, docs, tutorials, examples, benchmarks) now returns:
+
+```
+Cache-Control: public, s-maxage=3600, max-age=0, stale-while-revalidate=60
+```
+
+**Before:** Most renderers returned only `Content-Type` with no `Cache-Control` at all. The homepage had `max-age=3600` but no `s-maxage`.
+
+**After:** All renderers import `htmlHeaders()` from `cache.ts`:
+
+```ts
+import { htmlHeaders } from "../cache";
+
+// In every Response constructor:
+return new Response(html, { headers: htmlHeaders() });
+```
+
+Files updated:
+- `src/server/renderers/homepage.ts` — was `max-age=3600`, now `s-maxage=3600, max-age=0`
+- `src/server/renderers/content.ts` — added `Cache-Control` (was missing)
+- `src/server/renderers/examples.ts` — added `Cache-Control` (was missing)
+- `src/server/renderers/benchmarks.ts` — added `Cache-Control` (was missing)
+
+### 7.3 Update static file serving to use shared constants
+
+`src/server/static.ts` now imports `CACHE_IMMUTABLE` and `CACHE_NOCACHE` from `cache.ts` instead of defining its own local constants. No behavioral change — just deduplication.
+
+### 7.4 Update sitemap and robots.txt
+
+`src/server/sitemap.ts` now uses `CACHE_META` from `cache.ts`:
+
+```
+Cache-Control: public, s-maxage=3600, max-age=3600
+```
+
+robots.txt was previously `max-age=86400` (1 day) — normalized to 1 hour to match sitemap and keep purge-on-deploy behavior consistent.
+
+### 7.5 Update API responses
+
+`src/api/router.ts` now includes `Cache-Control` on all JSON responses and the API docs page:
+
+- JSON responses: `public, s-maxage=300, max-age=0` (edge caches 5 min)
+- API docs HTML: same as server-rendered pages (`CACHE_PAGE`)
+
+### 7.6 Add Cloudflare cache purge to deploy workflow
+
+`.github/workflows/deploy.yml` — added a step after PM2 reload:
+
+```yaml
+- name: Purge Cloudflare cache
+  run: |
+    curl -sf -X POST \
+      "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+      -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+      -H "Content-Type: application/json" \
+      --data '{"purge_everything":true}'
+    echo "🧹 Cloudflare cache purged"
+```
+
+This ensures fresh content is served globally within seconds of a deploy. The purge runs as a separate step (not via SSH) so it executes even if the deploy step partially fails.
+
+**GitHub secrets required:**
+- `CF_ZONE_ID` — Cloudflare zone ID for vlist.dev
+- `CF_API_TOKEN` — Scoped API token with only `Zone → Cache Purge → Purge` permission on `vlist.dev`
+
+### 7.7 Cloudflare configuration
+
+Cloudflare dashboard settings (done manually, not in code):
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| **DNS** | A record proxied (orange cloud) | Enables CDN |
+| **SSL/TLS** | Full (strict) | Origin has valid cert |
+| **Browser Cache TTL** | Respect Existing Headers | Our `s-maxage`/`max-age` headers drive everything |
+| **Brotli** | Enabled (default) | Edge compresses on the fly |
+
+### 7.8 Cache behavior summary
+
+| Route | `Cache-Control` | Edge TTL | Browser TTL | Notes |
+|-------|-----------------|----------|-------------|-------|
+| `/` (homepage) | `s-maxage=3600, max-age=0, swr=60` | 1 hour | revalidate | Purged on deploy |
+| `/docs/*`, `/tutorials/*` | `s-maxage=3600, max-age=0, swr=60` | 1 hour | revalidate | Purged on deploy |
+| `/examples/*`, `/benchmarks/*` | `s-maxage=3600, max-age=0, swr=60` | 1 hour | revalidate | Purged on deploy |
+| `/dist/*` (build output) | `max-age=31536000, immutable` | 1 year | 1 year | Content-hashed filenames |
+| Fonts (`.woff2`, etc.) | `max-age=31536000, immutable` | 1 year | 1 year | Rarely change |
+| `/favicon.ico` | `max-age=31536000, immutable` | 1 year | 1 year | Never changes |
+| `/sitemap.xml`, `/robots.txt` | `s-maxage=3600, max-age=3600` | 1 hour | 1 hour | Purged on deploy |
+| `/api/*` (JSON) | `s-maxage=300, max-age=0` | 5 min | revalidate | Deterministic data |
+| `/styles/*`, raw assets | `no-cache` | bypass | revalidate | Dev assets |
+
+### 7.9 Verify
+
+```bash
+# After Cloudflare is active:
+
+# Check edge caching works (second request should be HIT)
+curl -sI https://vlist.dev/ | grep -iE "^(cf-cache-status|cache-control|cf-ray)"
+# → cf-cache-status: HIT
+# → Cache-Control: public, s-maxage=3600, max-age=0, stale-while-revalidate=60
+
+# Check immutable assets are cached
+curl -sI https://vlist.dev/favicon.ico | grep -iE "^(cf-cache-status|cache-control)"
+# → cf-cache-status: HIT
+# → Cache-Control: public, max-age=31536000, immutable
+
+# Check API responses
+curl -s https://vlist.dev/api/info -o /dev/null -w "%{http_code}" && \
+curl -sI https://vlist.dev/api/info | grep -iE "^(cf-cache-status|cache-control)"
+# → cf-cache-status: HIT (after second request)
+# → Cache-Control: public, s-maxage=300, max-age=0
+
+# Verify cache purge works
+curl -sf -X POST \
+  "https://api.cloudflare.com/client/v4/zones/<ZONE_ID>/purge_cache" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  --data '{"purge_everything":true}'
+# Next request should be cf-cache-status: MISS, then HIT
+```
+
+---
+
 ## Deferred Items
 
 | Item | Reason |
@@ -900,24 +1070,26 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 
 | File | Phases | Changes |
 |------|--------|---------|
-| `src/server/static.ts` | 1 | Replace `readFileSync` with `Bun.file()`, remove import |
+| `src/server/static.ts` | 1, 7 | Replace `readFileSync` with `Bun.file()`, remove import; import cache constants from `cache.ts` |
 | `src/server/compression.ts` | 1, 2, 4 | `Uint8Array` caches, `Bun.gzipSync()`, remove `toBodyInit`, sync/async split with `compressedResponse()` helper |
 | `src/server/router.ts` | 4 | Single `new URL()`, pass `URL` object to sub-routers, sync/async split |
-| `src/api/router.ts` | 4 | Accept pre-parsed `URL` parameter |
-| `src/server/renderers/content.ts` | 3 | Page cache `Map<string, string>` per slug |
-| `src/server/renderers/examples.ts` | 3, 4 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)` |
-| `src/server/renderers/benchmarks.ts` | 3, 4 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)` |
-| `src/server/renderers/homepage.ts` | 3 | Page cache (single cached HTML string) |
-| `src/server/sitemap.ts` | 5 | Single batched `git log`, `resolveDate()` with directory prefix support |
+| `src/api/router.ts` | 4, 7 | Accept pre-parsed `URL` parameter; add `Cache-Control` to JSON and docs responses |
+| `src/server/renderers/content.ts` | 3, 7 | Page cache `Map<string, string>` per slug; `htmlHeaders()` with edge caching |
+| `src/server/renderers/examples.ts` | 3, 4, 7 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()` |
+| `src/server/renderers/benchmarks.ts` | 3, 4, 7 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()` |
+| `src/server/renderers/homepage.ts` | 3, 7 | Page cache (single cached HTML string); `htmlHeaders()` with `s-maxage` |
+| `src/server/sitemap.ts` | 5, 7 | Single batched `git log`, `resolveDate()` with directory prefix support; `CACHE_META` from `cache.ts` |
 | `ecosystem.config.cjs` | 6 | `instances: 2` for multi-core via `SO_REUSEPORT` |
 | `.gitignore` | 6 | Add `ecosystem.local.config.cjs` |
+| `.github/workflows/deploy.yml` | 7 | Add Cloudflare cache purge step after PM2 reload |
 
 ### Files created
 
-| File | Purpose |
-|------|---------|
-| `docs/refactoring/server.md` | This plan |
-| `ecosystem.local.config.cjs` | Local PM2 config with `cwd: __dirname`, file watching, dev log paths (gitignored) |
+| File | Phase | Purpose |
+|------|-------|---------|
+| `docs/refactoring/server.md` | — | This plan |
+| `ecosystem.local.config.cjs` | 6 | Local PM2 config with `cwd: __dirname`, file watching, dev log paths (gitignored) |
+| `src/server/cache.ts` | 7 | Centralized Cache-Control constants and header helpers for origin + Cloudflare edge caching |
 
 ### Files unchanged
 
@@ -944,6 +1116,7 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 | Phase 4 | URL allocations | Single `new URL()` per request; sync return for ~90% of traffic |
 | Phase 5 | Startup time | Sitemap module: **1,289ms → 148ms** (8.7× faster); identical 410-line sitemap XML output |
 | Phase 6 | PM2 multi-instance | 2 instances, ~57MB each, zero-downtime reload confirmed |
+| Phase 7 | Cloudflare edge caching | `cf-cache-status: HIT` on all pages/assets; `s-maxage` headers verified; cache purge on deploy |
 
 ### Functional Regression Checklist
 
@@ -975,3 +1148,16 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 - [ ] Verify zero-downtime reload works in production
 - [ ] Monitor memory over 24h
 - [ ] No errors in PM2 logs
+
+### Cloudflare CDN
+
+- [x] DNS proxied through Cloudflare (orange cloud on A records)
+- [x] API token created (Cache Purge only, scoped to vlist.dev zone)
+- [x] GitHub secrets set (`CF_ZONE_ID`, `CF_API_TOKEN`)
+- [x] Deploy workflow purges cache after PM2 reload
+- [x] All response types have correct `Cache-Control` with `s-maxage`
+- [ ] Nameserver propagation complete (Cloudflare status: Active)
+- [ ] SSL/TLS set to Full (strict)
+- [ ] `cf-cache-status: HIT` confirmed on live site
+- [ ] Edge compression (brotli) confirmed
+- [ ] Global latency improvement verified
