@@ -1,5 +1,9 @@
 // src/server/router.ts
 // Main request router — orchestrates all route handlers.
+//
+// Phase 4: URL is parsed once and passed to sub-routers. Sync routes
+// (homepage, docs, tutorials, examples, benchmarks, static) return a plain
+// Response — no Promise allocation. Only the API path goes async.
 
 import { routeApi } from "../api/router";
 import {
@@ -48,7 +52,7 @@ function resolveTutorials(pathname: string): Response | null {
   return null;
 }
 
-function resolveExamples(pathname: string, url: string): Response | null {
+function resolveExamples(pathname: string, url: URL): Response | null {
   if (pathname === "/examples" || pathname === "/examples/") {
     return renderExamplesPage(null, url);
   }
@@ -59,7 +63,7 @@ function resolveExamples(pathname: string, url: string): Response | null {
   return null;
 }
 
-function resolveBenchmarks(pathname: string, url: string): Response | null {
+function resolveBenchmarks(pathname: string, url: URL): Response | null {
   if (pathname === "/benchmarks" || pathname === "/benchmarks/") {
     return renderBenchmarkPage(null, url);
   }
@@ -72,21 +76,42 @@ function resolveBenchmarks(pathname: string, url: string): Response | null {
 // Request Handler
 // =============================================================================
 
-export async function handleRequest(req: Request): Promise<Response> {
+/**
+ * Main fetch handler for Bun.serve().
+ *
+ * Sync routes are tried first — no Promise is allocated for ~90% of requests
+ * (homepage, docs, tutorials, examples, benchmarks, static files).
+ * Only the /api/* path goes through the async branch.
+ */
+export function handleRequest(req: Request): Response | Promise<Response> {
   const url = new URL(req.url);
   const pathname = decodeURIComponent(url.pathname);
   const acceptEncoding = req.headers.get("Accept-Encoding");
 
-  const response =
+  // ── Sync routes (no Promise allocation) ──
+  const syncResponse =
     routeSystem(pathname) ??
     resolveHomepage(pathname) ??
-    (await routeApi(req)) ??
-    resolveExamples(pathname, req.url) ??
+    resolveExamples(pathname, url) ??
     resolveDocs(pathname) ??
     resolveTutorials(pathname) ??
-    resolveBenchmarks(pathname, req.url) ??
-    resolveStatic(pathname) ??
-    new Response("Not Found", { status: 404 });
+    resolveBenchmarks(pathname, url) ??
+    resolveStatic(pathname);
 
+  if (syncResponse)
+    return compressResponse(syncResponse, acceptEncoding, pathname);
+
+  // ── Async path (API routes only) ──
+  return handleAsync(req, url, pathname, acceptEncoding);
+}
+
+async function handleAsync(
+  req: Request,
+  url: URL,
+  pathname: string,
+  acceptEncoding: string | null,
+): Promise<Response> {
+  const response =
+    (await routeApi(req, url)) ?? new Response("Not Found", { status: 404 });
   return compressResponse(response, acceptEncoding, pathname);
 }

@@ -382,8 +382,10 @@ const USER_BY_ID = /^\/api\/users\/(\d+)$/;
  * Route an API request.
  * Returns a Response if the path matches /api/*, or null to fall through to static serving.
  */
-export const routeApi = async (req: Request): Promise<Response | null> => {
-  const url = new URL(req.url);
+export const routeApi = async (
+  req: Request,
+  url: URL,
+): Promise<Response | null> => {
   const path = url.pathname;
 
   // Only handle /api/* paths

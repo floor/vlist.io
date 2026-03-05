@@ -37,6 +37,7 @@ const eta = new Eta({
 let templateCache: string | null = null;
 let navCache: NavItem[] | null = null;
 let versionCache: string | null = null;
+let pageCache: string | null = null;
 
 function loadTemplate(): string {
   if (!templateCache) {
@@ -77,17 +78,19 @@ function loadVersion(): string {
  * Render the homepage
  */
 export function renderHomepage(): Response {
-  const template = loadTemplate();
-  const html = eta.renderString(template, {
-    title: "VList — Virtual List for the Web",
-    description:
-      "VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more.",
-    canonicalUrl: SITE,
-    version: loadVersion(),
-    navItems: loadNavigation(),
-  });
+  if (!pageCache) {
+    const template = loadTemplate();
+    pageCache = eta.renderString(template, {
+      title: "VList — Virtual List for the Web",
+      description:
+        "VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more.",
+      canonicalUrl: SITE,
+      version: loadVersion(),
+      navItems: loadNavigation(),
+    });
+  }
 
-  return new Response(html, {
+  return new Response(pageCache, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": "public, max-age=3600",
@@ -102,4 +105,5 @@ export function clearCache(): void {
   templateCache = null;
   navCache = null;
   versionCache = null;
+  pageCache = null;
 }

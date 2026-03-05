@@ -97,6 +97,7 @@ export function createContentRenderer(config: ContentConfig) {
 
   // Cache
   let overviewCache: OverviewSection[] | null = null;
+  const pageCache = new Map<string, string>();
 
   // ===========================================================================
   // Loaders
@@ -139,6 +140,7 @@ export function createContentRenderer(config: ContentConfig) {
   function clearCache(): void {
     clearAllCaches();
     overviewCache = null;
+    pageCache.clear();
   }
 
   // ===========================================================================
@@ -574,6 +576,16 @@ export function createContentRenderer(config: ContentConfig) {
   // ===========================================================================
 
   function render(slug: string | null): Response | null {
+    const cacheKey = slug ?? "__overview__";
+
+    // Return cached page if available (content only changes on deploy/restart)
+    const cached = pageCache.get(cacheKey);
+    if (cached !== undefined) {
+      return new Response(cached, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
     // Overview page
     if (slug === null) {
       const content = buildOverviewContent();
@@ -583,6 +595,7 @@ export function createContentRenderer(config: ContentConfig) {
         defaultTitle,
         defaultDescription,
       );
+      pageCache.set(cacheKey, html);
       return new Response(html, {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
@@ -624,6 +637,7 @@ export function createContentRenderer(config: ContentConfig) {
 
     const html = assemblePage(slug, content, title, description, tocHtml);
 
+    pageCache.set(cacheKey, html);
     return new Response(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });

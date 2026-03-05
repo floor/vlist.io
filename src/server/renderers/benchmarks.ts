@@ -60,6 +60,7 @@ const VARIANT_BENCHMARKS: Record<string, Variant[]> = {
 // =============================================================================
 
 let allItemsCache: Map<string, BenchItem> | null = null;
+const pageCache = new Map<string, string>();
 
 function getAllItems(): Map<string, BenchItem> {
   if (!allItemsCache) {
@@ -77,15 +78,15 @@ function getAllItems(): Map<string, BenchItem> {
 export function clearCache(): void {
   clearAllCaches();
   allItemsCache = null;
+  pageCache.clear();
 }
 
 // =============================================================================
 // Variant Support
 // =============================================================================
 
-function parseVariant(url: string): Variant {
-  const params = new URLSearchParams(url);
-  const variant = params.get("variant");
+function parseVariant(searchParams: URLSearchParams): Variant {
+  const variant = searchParams.get("variant");
   if (
     variant === "vanilla" ||
     variant === "react" ||
@@ -290,20 +291,33 @@ export const BENCH_GROUPS = loadNavigation<BenchGroup[]>(NAV_PATH);
 
 export function renderBenchmarkPage(
   slug: string | null,
-  url?: string,
+  url?: URL,
 ): Response | null {
+  // Parse variant early so we can build the cache key
+  const variant =
+    slug !== null && url ? parseVariant(url.searchParams) : "vanilla";
+  const cacheKey = slug === null ? "__overview__" : `${slug}::${variant}`;
+
+  // Return cached page if available (content only changes on deploy/restart)
+  const cached = pageCache.get(cacheKey);
+  if (cached !== undefined) {
+    return new Response(cached, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+
   // Overview page
   if (slug === null) {
     const content = buildOverviewContent();
     const html = assemblePage(null, null, content, "overview");
+    pageCache.set(cacheKey, html);
     return new Response(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   }
 
-  // Parse variant from URL query string
-  const variant = url ? parseVariant(new URL(url).search) : "vanilla";
-  const queryString = url ? new URL(url).search : "";
+  // Parse query string for variant-aware links
+  const queryString = url ? url.search : "";
 
   // Check the slug exists in our config
   const item = getAllItems().get(slug);
@@ -329,6 +343,7 @@ export function renderBenchmarkPage(
     queryString,
   );
 
+  pageCache.set(cacheKey, html);
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });
