@@ -30,7 +30,7 @@ export let sortedContacts = [...contacts];
 
 export let list = null;
 export let currentRowHeight = DEFAULT_ROW_HEIGHT;
-export let currentPreset = "default";
+export let currentPreset = "compact";
 export let currentBorderMode = "both";
 export let sortKey = null;
 export let sortDirection = "asc";
@@ -303,8 +303,9 @@ export function createList() {
   container.innerHTML = "";
 
   const columns = getColumns();
+  const isStriped = currentBorderMode === "striped";
   const columnBorders = currentBorderMode === "both";
-  const rowBorders = currentBorderMode !== "none";
+  const rowBorders = !isStriped && currentBorderMode !== "none";
 
   const builder = vlist({
     container: "#list-container",
@@ -312,6 +313,7 @@ export function createList() {
     item: {
       height: currentRowHeight,
       template: fallbackTemplate,
+      striped: isStriped,
     },
     items: sortedContacts,
   });
