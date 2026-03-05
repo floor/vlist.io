@@ -60,6 +60,7 @@
     border-radius: 50%;
     border: 1px solid var(--border);
     background: var(--bg-card);
+    color: var(--text);
     cursor: pointer;
     display: flex;
     align-items: center;
