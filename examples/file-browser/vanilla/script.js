@@ -2,14 +2,7 @@
 // Grid view uses withGrid, list view uses withTable for resizable/sortable columns
 // Demonstrates switching between two layout modes with shared navigation
 
-import {
-  vlist,
-  withGrid,
-  withScrollbar,
-  withGroups,
-  withTable,
-  withSelection,
-} from "vlist";
+import { vlist, withGrid, withGroups, withTable, withSelection } from "vlist";
 
 // =============================================================================
 // File Type Icons
@@ -444,9 +437,7 @@ function createGridView() {
       template: gridItemTemplate,
     },
     items: sorted,
-  })
-    .use(withGrid({ columns: currentColumns, gap: currentGap }))
-    .use(withScrollbar({ autoHide: true }));
+  }).use(withGrid({ columns: currentColumns, gap: currentGap }));
 
   if (config.groupBy !== "none" && groupMap) {
     builder = builder.use(
@@ -569,7 +560,6 @@ function createListView() {
   }
 
   builder = builder.use(withSelection({ mode: "single" }));
-  builder = builder.use(withScrollbar({ autoHide: true }));
 
   list = builder.build();
 
