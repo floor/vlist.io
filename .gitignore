@@ -31,3 +31,6 @@ bun.lockb
 
 # TypeScript
 *.tsbuildinfo
+
+# Local PM2 config
+ecosystem.local.config.cjs

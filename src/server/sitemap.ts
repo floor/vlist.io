@@ -1,5 +1,8 @@
 // src/server/sitemap.ts
 // Sitemap, robots.txt, and git-based lastmod dates.
+//
+// Phase 5: Uses a single batched git command to resolve all file modification
+// dates at startup (~25ms) instead of ~40 individual execSync calls (~1.3s).
 
 import { execSync } from "child_process";
 import { ROOT, SITE } from "./config";
@@ -11,28 +14,85 @@ import {
 } from "./renderers";
 
 // =============================================================================
-// Git-based lastmod
+// Git-based lastmod (batched)
 // =============================================================================
 
+export const FALLBACK_DATE = new Date().toISOString().split("T")[0];
+
 /**
- * Get the last commit date (YYYY-MM-DD) across one or more files.
- * When multiple files are given, returns the most recent date.
- * Returns null if none of the files have git history.
+ * Run a single git command that returns the most recent commit date for every
+ * file in the repository. Output format is alternating date lines and filename
+ * lines separated by blank lines (one group per commit).
+ *
+ * Since `git log` outputs in reverse chronological order, the first occurrence
+ * of any file path gives us its most recent modification date.
+ *
+ * Returns a Map<filePath, "YYYY-MM-DD">.
  */
-export function gitLastmod(...filePaths: string[]): string | null {
+function batchGitLastmod(): Map<string, string> {
+  const result = new Map<string, string>();
   try {
-    const quoted = filePaths.map((f) => `"${f}"`).join(" ");
-    const date = execSync(`git log -1 --format=%cd --date=short -- ${quoted}`, {
-      cwd: ROOT,
-      encoding: "utf-8",
-    }).trim();
-    return date || null;
+    const output = execSync(
+      `git log --format="%cd" --date=short --name-only --diff-filter=ACMR HEAD`,
+      { cwd: ROOT, encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 },
+    );
+
+    // Parse output: alternating date lines and filename lines
+    let currentDate = "";
+    for (const line of output.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      // Date lines match YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        currentDate = trimmed;
+        continue;
+      }
+
+      // File line — only record the first (most recent) date per file
+      if (currentDate && !result.has(trimmed)) {
+        result.set(trimmed, currentDate);
+      }
+    }
   } catch {
-    return null;
+    // Git not available — all files get fallback date
   }
+
+  return result;
 }
 
-export const FALLBACK_DATE = new Date().toISOString().split("T")[0];
+/**
+ * Look up the most recent date across one or more file paths.
+ * Supports both exact file paths and directory prefixes (trailing `/`).
+ *
+ * For directory prefixes, scans all keys in the map that start with that prefix
+ * and returns the most recent date among them.
+ */
+function resolveDate(
+  allDates: Map<string, string>,
+  ...filePaths: string[]
+): string {
+  let latest = "";
+
+  for (const filePath of filePaths) {
+    if (filePath.endsWith("/")) {
+      // Directory prefix — find the most recent file under this path
+      for (const [key, date] of allDates) {
+        if (key.startsWith(filePath) && date > latest) {
+          latest = date;
+        }
+      }
+    } else {
+      // Exact file lookup
+      const date = allDates.get(filePath);
+      if (date && date > latest) {
+        latest = date;
+      }
+    }
+  }
+
+  return latest || FALLBACK_DATE;
+}
 
 // =============================================================================
 // Lastmod Map
@@ -40,23 +100,25 @@ export const FALLBACK_DATE = new Date().toISOString().split("T")[0];
 
 /**
  * Build a map of URL path → lastmod date at startup.
- * Runs ~40 git commands once — takes under a second.
+ * Runs a single git command (~25ms) instead of ~40 separate processes.
  */
 function buildLastmodMap(): Map<string, string> {
+  const allDates = batchGitLastmod();
   const map = new Map<string, string>();
 
   // Landing
-  map.set("/", gitLastmod("src/server/shells/homepage.eta") ?? FALLBACK_DATE);
+  map.set("/", resolveDate(allDates, "src/server/shells/homepage.eta"));
 
   // Docs overview → both navigation and overview cards, plus shared shell
   map.set(
     "/docs/",
-    gitLastmod(
+    resolveDate(
+      allDates,
       "docs/navigation.json",
       "docs/overview.json",
       "src/server/shells/content.html",
       "styles/content.css",
-    ) ?? FALLBACK_DATE,
+    ),
   );
 
   // Docs pages → markdown files
@@ -64,47 +126,42 @@ function buildLastmodMap(): Map<string, string> {
     for (const item of group.items) {
       if (item.slug === "") continue;
       const file = `docs/${item.slug}.md`;
-      map.set(`/docs/${item.slug}`, gitLastmod(file) ?? FALLBACK_DATE);
+      map.set(`/docs/${item.slug}`, resolveDate(allDates, file));
     }
   }
 
   // Tutorials overview → navigation config, plus shared shell
   map.set(
     "/tutorials/",
-    gitLastmod(
+    resolveDate(
+      allDates,
       "tutorials/navigation.json",
       "src/server/shells/content.html",
       "styles/content.css",
-    ) ?? FALLBACK_DATE,
+    ),
   );
 
   // Tutorials pages → markdown files
   for (const group of TUTORIAL_GROUPS) {
     for (const item of group.items) {
       const file = `tutorials/${item.slug}.md`;
-      map.set(`/tutorials/${item.slug}`, gitLastmod(file) ?? FALLBACK_DATE);
+      map.set(`/tutorials/${item.slug}`, resolveDate(allDates, file));
     }
   }
 
   // Examples overview → navigation config
-  map.set(
-    "/examples/",
-    gitLastmod("examples/navigation.json") ?? FALLBACK_DATE,
-  );
+  map.set("/examples/", resolveDate(allDates, "examples/navigation.json"));
 
-  // Examples pages → use the full directory so variants are included
+  // Examples pages → use directory prefix so all variants are included
   for (const group of EXAMPLE_GROUPS) {
     for (const item of group.items) {
-      const dir = `examples/${item.slug}`;
-      map.set(`/examples/${item.slug}`, gitLastmod(`${dir}/`) ?? FALLBACK_DATE);
+      const dir = `examples/${item.slug}/`;
+      map.set(`/examples/${item.slug}`, resolveDate(allDates, dir));
     }
   }
 
   // Benchmarks overview → navigation config
-  map.set(
-    "/benchmarks/",
-    gitLastmod("benchmarks/navigation.json") ?? FALLBACK_DATE,
-  );
+  map.set("/benchmarks/", resolveDate(allDates, "benchmarks/navigation.json"));
 
   // Benchmark pages → specific suite/comparison files per slug
   const BENCH_FILE_MAP: Record<string, string[]> = {
@@ -126,10 +183,7 @@ function buildLastmodMap(): Map<string, string> {
   for (const group of BENCH_GROUPS) {
     for (const item of group.items) {
       const files = BENCH_FILE_MAP[item.slug] ?? ["benchmarks/script.js"];
-      map.set(
-        `/benchmarks/${item.slug}`,
-        gitLastmod(...files) ?? FALLBACK_DATE,
-      );
+      map.set(`/benchmarks/${item.slug}`, resolveDate(allDates, ...files));
     }
   }
 

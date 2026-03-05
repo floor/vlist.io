@@ -61,6 +61,7 @@ const VARIANT_LABELS: Record<Variant, string> = {
 // =============================================================================
 
 let allExamplesCache: Map<string, ExampleItem> | null = null;
+const pageCache = new Map<string, string>();
 
 function getAllExamples(): Map<string, ExampleItem> {
   if (!allExamplesCache) {
@@ -78,6 +79,7 @@ function getAllExamples(): Map<string, ExampleItem> {
 export function clearCache(): void {
   clearAllCaches();
   allExamplesCache = null;
+  pageCache.clear();
 }
 
 // =============================================================================
@@ -96,9 +98,8 @@ function escapeHtml(str: string): string {
 // Variant Support
 // =============================================================================
 
-function parseVariant(url: string): Variant {
-  const params = new URL(url, "http://localhost").searchParams;
-  const variant = params.get("variant");
+function parseVariant(searchParams: URLSearchParams): Variant {
+  const variant = searchParams.get("variant");
   if (
     variant === "vanilla" ||
     variant === "react" ||
@@ -488,20 +489,33 @@ export const EXAMPLE_GROUPS = loadNavigation<ExampleGroup[]>(NAV_PATH);
 
 export function renderExamplesPage(
   slug: string | null,
-  url?: string,
+  url?: URL,
 ): Response | null {
+  // Parse variant early so we can build the cache key
+  const variant =
+    slug !== null && url ? parseVariant(url.searchParams) : "vanilla";
+  const cacheKey = slug === null ? "__overview__" : `${slug}::${variant}`;
+
+  // Return cached page if available (content only changes on deploy/restart)
+  const cached = pageCache.get(cacheKey);
+  if (cached !== undefined) {
+    return new Response(cached, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+
   // Overview page
   if (slug === null) {
     const content = buildOverviewContent();
     const html = assemblePage(null, null, content);
+    pageCache.set(cacheKey, html);
     return new Response(html, {
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   }
 
-  // Parse variant from URL query string
-  const variant = url ? parseVariant(url) : "vanilla";
-  const queryString = url ? new URL(url, "http://localhost").search : "";
+  // Variant and query string for example pages
+  const queryString = url ? url.search : "";
 
   // Example page — check it exists in our config
   const example = getAllExamples().get(slug);
@@ -563,6 +577,7 @@ export function renderExamplesPage(
     queryString,
   );
 
+  pageCache.set(cacheKey, html);
   return new Response(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });

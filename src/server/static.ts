@@ -1,7 +1,7 @@
 // src/server/static.ts
 // Static file serving: MIME types, file reading, path resolution, cache headers.
 
-import { existsSync, statSync, readFileSync } from "fs";
+import { existsSync, statSync } from "fs";
 import { join, extname, resolve } from "path";
 import { ROOT, VLIST_ROOT } from "./config";
 
@@ -96,24 +96,20 @@ export const serveFile = (
   // Serve index.html for directories
   if (stat.isDirectory()) {
     const indexPath = join(filePath, "index.html");
-    if (existsSync(indexPath)) {
-      filePath = indexPath;
-    } else {
-      return null;
-    }
+    if (!existsSync(indexPath)) return null;
+    filePath = indexPath;
   }
 
-  try {
-    const content = readFileSync(filePath);
-    return new Response(content, {
-      headers: {
-        "Content-Type": getMimeType(filePath),
-        "Cache-Control": getCacheControl(pathname),
-      },
-    });
-  } catch {
-    return null;
-  }
+  // Bun.file() is lazy — no disk read until the Response is consumed.
+  // Bun uses sendfile(2) to transfer directly from fd to socket (zero-copy).
+  const file = Bun.file(filePath);
+
+  return new Response(file, {
+    headers: {
+      "Content-Type": getMimeType(filePath),
+      "Cache-Control": getCacheControl(pathname),
+    },
+  });
 };
 
 /**

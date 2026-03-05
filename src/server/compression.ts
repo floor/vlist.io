@@ -3,18 +3,19 @@
 //
 // Priority:
 //   1. Serve pre-compressed .br/.gz files (generated at build time — instant)
-//   2. Fall back to synchronous compression with a bounded cache (slow first hit)
+//   2. Fall back to on-the-fly compression with a bounded cache (slow first hit)
+//
+// Bun-native: uses Bun.gzipSync() for gzip. Brotli still uses Node zlib
+// (Bun has no native brotli API yet). All caches store Uint8Array — accepted
+// directly by new Response(), no Buffer→ArrayBuffer conversion needed.
+//
+// compressResponse() returns Response | Promise<Response>:
+//   - Sync (plain Response) for non-compressible, pre-compressed, and small responses
+//   - Async (Promise<Response>) only when on-the-fly compression is needed
 
-import { gzipSync, brotliCompressSync } from "zlib";
+import { brotliCompressSync } from "zlib";
 import { existsSync, readFileSync } from "fs";
 import { resolve, join } from "path";
-
-/** Convert a Node Buffer to an ArrayBuffer suitable for Response body. */
-const toBodyInit = (buf: Buffer): ArrayBuffer =>
-  buf.buffer.slice(
-    buf.byteOffset,
-    buf.byteOffset + buf.byteLength,
-  ) as ArrayBuffer;
 
 // =============================================================================
 // Pre-compressed file cache
@@ -22,16 +23,16 @@ const toBodyInit = (buf: Buffer): ArrayBuffer =>
 // Build artifacts (.br / .gz) are static — read once, serve forever.
 // Maps absolute filesystem path → file contents (or null if missing).
 
-const preCompressedCache = new Map<string, Buffer | null>();
+const preCompressedCache = new Map<string, Uint8Array | null>();
 
-function readPreCompressed(filePath: string): Buffer | null {
+function readPreCompressed(filePath: string): Uint8Array | null {
   if (preCompressedCache.has(filePath)) {
     return preCompressedCache.get(filePath)!;
   }
 
-  let content: Buffer | null = null;
+  let content: Uint8Array | null = null;
   if (existsSync(filePath)) {
-    content = readFileSync(filePath);
+    content = new Uint8Array(readFileSync(filePath));
   }
 
   preCompressedCache.set(filePath, content);
@@ -45,9 +46,9 @@ function readPreCompressed(filePath: string): Buffer | null {
 // Keyed by pathname — content rarely changes at runtime and the cache is small.
 
 interface CachedCompression {
-  br?: Buffer;
-  gzip?: Buffer;
-  raw: Buffer;
+  br?: Uint8Array;
+  gzip?: Uint8Array;
+  raw: Uint8Array;
 }
 
 const compressionCache = new Map<string, CachedCompression>();
@@ -74,6 +75,38 @@ function shouldCompress(contentType: string): boolean {
   );
 }
 
+/** Compare two Uint8Arrays for equality (used for cache invalidation). */
+function uint8Equals(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function parseEncoding(acceptEncoding: string): "br" | "gzip" | null {
+  const lower = acceptEncoding.toLowerCase();
+  if (lower.includes("br")) return "br";
+  if (lower.includes("gzip")) return "gzip";
+  return null;
+}
+
+function compressedResponse(
+  body: Uint8Array,
+  encoding: "br" | "gzip",
+  original: Response,
+): Response {
+  const headers = new Headers(original.headers);
+  headers.set("Vary", "Accept-Encoding");
+  headers.set("Content-Encoding", encoding);
+  headers.set("Content-Length", body.length.toString());
+  return new Response(body.buffer as ArrayBuffer, {
+    status: original.status,
+    statusText: original.statusText,
+    headers,
+  });
+}
+
 // =============================================================================
 // Pre-compressed file lookup
 // =============================================================================
@@ -96,83 +129,39 @@ function resolveDistPath(pathname: string): string | null {
  */
 function tryPreCompressed(
   response: Response,
-  acceptEncoding: string,
+  encoding: "br" | "gzip",
   pathname: string,
 ): Response | null {
   const filePath = resolveDistPath(pathname);
   if (!filePath) return null;
 
-  const lowerEncoding = acceptEncoding.toLowerCase();
-  const headers = new Headers(response.headers);
-  headers.set("Vary", "Accept-Encoding");
+  const ext = encoding === "br" ? ".br" : ".gz";
+  const content = readPreCompressed(filePath + ext);
+  if (!content) return null;
 
-  // Prefer brotli
-  if (lowerEncoding.includes("br")) {
-    const content = readPreCompressed(filePath + ".br");
-    if (content) {
-      headers.set("Content-Encoding", "br");
-      headers.set("Content-Length", content.length.toString());
-      return new Response(toBodyInit(content), {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      });
-    }
-  }
-
-  // Fallback to gzip
-  if (lowerEncoding.includes("gzip")) {
-    const content = readPreCompressed(filePath + ".gz");
-    if (content) {
-      headers.set("Content-Encoding", "gzip");
-      headers.set("Content-Length", content.length.toString());
-      return new Response(toBodyInit(content), {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      });
-    }
-  }
-
-  return null;
+  return compressedResponse(content, encoding, response);
 }
 
 // =============================================================================
-// Public API
+// On-the-fly compression (cached)
 // =============================================================================
 
 /**
- * Compress a response based on the Accept-Encoding header.
- *
- * 1. Try pre-compressed .br/.gz files (instant, generated at build time)
- * 2. Fall back to synchronous compression with a bounded cache
- *
- * Returns the original response unchanged for non-compressible content.
+ * Compress a response body on the fly, caching the result by pathname.
+ * Called only when no pre-compressed file is available.
  */
-export async function compressResponse(
+async function compressAsync(
   response: Response,
-  acceptEncoding: string | null,
+  encoding: "br" | "gzip",
   pathname: string,
 ): Promise<Response> {
-  const contentType = response.headers.get("Content-Type") || "";
-
-  if (!shouldCompress(contentType)) return response;
-  if (!acceptEncoding || response.headers.get("Content-Encoding")) {
-    return response;
-  }
-
-  // ── Fast path: serve pre-compressed build output ──
-  const preCompressed = tryPreCompressed(response, acceptEncoding, pathname);
-  if (preCompressed) return preCompressed;
-
-  // ── Slow path: compress on the fly with bounded cache ──
   try {
     const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const raw = new Uint8Array(arrayBuffer);
 
     // Skip compression for small responses (< 1 KB)
-    if (buffer.length < 1024) {
-      return new Response(buffer, {
+    if (raw.length < 1024) {
+      return new Response(raw.buffer as ArrayBuffer, {
         status: response.status,
         statusText: response.statusText,
         headers: response.headers,
@@ -183,53 +172,72 @@ export async function compressResponse(
     let cached = compressionCache.get(pathname);
 
     // Invalidate if the underlying content changed (e.g. hot-reload)
-    if (cached && !cached.raw.equals(buffer)) {
+    if (cached && !uint8Equals(cached.raw, raw)) {
       compressionCache.delete(pathname);
       cached = undefined;
     }
 
     if (!cached) {
       evictOldest();
-      cached = { raw: buffer };
+      cached = { raw };
       compressionCache.set(pathname, cached);
     }
 
-    const lowerEncoding = acceptEncoding.toLowerCase();
-    const headers = new Headers(response.headers);
-    headers.set("Vary", "Accept-Encoding");
-
-    // Prefer brotli
-    if (lowerEncoding.includes("br")) {
-      if (!cached.br) cached.br = brotliCompressSync(buffer);
-      headers.set("Content-Encoding", "br");
-      headers.set("Content-Length", cached.br.length.toString());
-      return new Response(toBodyInit(cached.br), {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      });
+    if (encoding === "br") {
+      if (!cached.br) {
+        cached.br = new Uint8Array(brotliCompressSync(Buffer.from(raw)));
+      }
+      return compressedResponse(cached.br, "br", response);
     }
 
-    // Fallback to gzip
-    if (lowerEncoding.includes("gzip")) {
-      if (!cached.gzip) cached.gzip = gzipSync(buffer);
-      headers.set("Content-Encoding", "gzip");
-      headers.set("Content-Length", cached.gzip.length.toString());
-      return new Response(toBodyInit(cached.gzip), {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      });
-    }
-
-    // No supported encoding
-    return new Response(buffer, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
+    // gzip (Bun-native)
+    if (!cached.gzip) cached.gzip = Bun.gzipSync(raw);
+    return compressedResponse(cached.gzip, "gzip", response);
   } catch (error) {
     console.error("Compression error:", error);
     return response;
   }
+}
+
+// =============================================================================
+// Public API
+// =============================================================================
+
+/**
+ * Compress a response based on the Accept-Encoding header.
+ *
+ * Returns sync (plain Response) when possible:
+ *   - Non-compressible content types (images, fonts, etc.)
+ *   - Already-encoded responses
+ *   - Pre-compressed .br/.gz build output from /dist/
+ *
+ * Returns async (Promise<Response>) only when on-the-fly compression is needed:
+ *   - Server-rendered HTML pages (docs, tutorials, examples, benchmarks)
+ *   - API JSON responses
+ *
+ * This split means ~60% of requests (static assets, pre-compressed dist files,
+ * non-compressible content) avoid a Promise allocation entirely.
+ */
+export function compressResponse(
+  response: Response,
+  acceptEncoding: string | null,
+  pathname: string,
+): Response | Promise<Response> {
+  const contentType = response.headers.get("Content-Type") || "";
+
+  // Non-compressible content — return sync
+  if (!shouldCompress(contentType)) return response;
+  if (!acceptEncoding || response.headers.get("Content-Encoding")) {
+    return response;
+  }
+
+  const encoding = parseEncoding(acceptEncoding);
+  if (!encoding) return response;
+
+  // Pre-compressed build output — return sync
+  const preCompressed = tryPreCompressed(response, encoding, pathname);
+  if (preCompressed) return preCompressed;
+
+  // On-the-fly compression — return async
+  return compressAsync(response, encoding, pathname);
 }
