@@ -247,17 +247,18 @@ if (saved) list.restoreScroll(saved);
 
 Most features compose freely. This matrix shows the known constraints:
 
-| | Grid | Masonry | Groups | Async | Selection | Scale | Scrollbar | Page | Snapshots |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Grid** | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
-| **Masonry** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Groups** | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Async** | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Selection** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ |
-| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ |
-| **Page** | ⚠️ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ |
-| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| | Table | Grid | Masonry | Groups | Async | Selection | Scale | Scrollbar | Page | Snapshots |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Table** | — | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
+| **Grid** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
+| **Masonry** | ❌ | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ |
+| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ |
+| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ |
+| **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ |
+| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 
 | Symbol | Meaning |
 |--------|---------|
@@ -267,7 +268,9 @@ Most features compose freely. This matrix shows the known constraints:
 
 **Key constraints:**
 
-- **Grid ↔ Masonry** — Mutually exclusive layout modes
+- **Table ↔ Grid ↔ Masonry** — Mutually exclusive layout modes (each provides its own renderer)
+- **Table + Groups** — ✅ Full-width group headers in data tables, sticky headers sit below column header
+- **Grid + Groups** — ✅ Full-width group headers span the grid
 - **Masonry ↔ Groups** — Masonry doesn't support grouped layouts
 - **Masonry + reverse** — Not supported
 - **Page ↔ Scrollbar** — Page uses the native browser scrollbar; builder throws if both are active

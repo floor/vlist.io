@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No unreleased changes._
+
+---
+
+## [1.2.8] — 2026-03-05
+
+### Added
+
+- **Table + Groups compatibility** — `withGroups` now works with `withTable` for sectioned data tables with sticky group headers. Group headers render as full-width rows (no cells, `role="presentation"`, not selectable) and sticky group headers are offset below the table's column header row. The table renderer is configured in-place via `setGroupHeaderFn` — no renderer replacement needed.
+  - Table feature exposes `_replaceTableRenderer`, `_updateTableForGroups`, `_getTableHeaderHeight` hooks for groups integration
+  - Table renderer: `renderGroupHeaderRow()` for full-width group header rows with custom template
+  - Sticky header: `stickyOffset` parameter positions group header below table column header
+  - CSS: `.vlist-table-group-header` styles with z-index layering and dark mode support
+  - 22 new tests covering group header rendering, type transitions, change tracking, selection guards, and clear/destroy
+
+### Changed
+
+- **Table renderer performance** — three micro-optimizations that also benefit the non-grouped path:
+  - `getSizeCache` getter instead of captured reference (fixes stale ref after groups rebuild size cache)
+  - `TrackedRow.isGroupHeader` boolean flag replaces `classList.contains()` on hot path
+  - `lastHeight` tracking — skips `style.height` writes when height unchanged
+
+---
+
+## [1.2.7] — 2026-03-04
+
 ### Added
 
 - **Accessibility: DOM sort on scroll idle** — Screen readers traverse DOM order, not visual order. Virtual list renderers append new elements at the end for performance, causing random DOM order after scrolling. Now, when scrolling stops (idle timeout), DOM children are reordered to match logical `data-index` order. Items are `position: absolute`, so this causes zero visual change — a single lightweight reflow with no geometry impact.
@@ -14,6 +40,116 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `sortDOM()` method added to `Renderer`, `GridRenderer`, and `MasonryRenderer` interfaces
   - New `idleHandlers` array on `BuilderContext` — features register callbacks that run when scrolling becomes idle (grid and masonry register their `sortDOM()` here)
   - Fast bail-out: uses rendered Map keys (numeric sort) and `firstChild`/`nextSibling` DOM walk to detect already-sorted state — zero work when order is correct
+
+---
+
+## [1.2.6] — 2026-03-04
+
+### Fixed
+
+- **Grid & Masonry: smooth scrollToIndex** — `scrollToIndex` with `behavior: 'smooth'` now uses eased animation (`easeInOutQuad`) instead of instant scroll, matching the core list behavior
+- Grid & Masonry: cancel scroll animation on `destroy()` to prevent `rAF` callbacks on torn-down DOM
+
+---
+
+## [1.2.5] — 2026-03-02
+
+### Fixed
+
+- **Scroll: skip core wheel handler when compression is active** — `withScale` owns the scroll in compressed mode; the core wheel handler no longer interferes
+
+---
+
+## [1.2.4] — 2026-03-02
+
+### Fixed
+
+- **Async: deceleration debounce** — during momentum scroll deceleration, velocity drops below the cancel threshold but the render range still changes rapidly, causing a burst of API requests. Now defers loading until scroll stabilises (velocity < 0.5, 120ms timer, or 200ms idle), with immediate flush at scroll boundaries
+- Scroll: use actual DOM scroll limit in wheel handler instead of logical total size
+- Scroll: reset velocity to zero when wheel events hit scroll boundary
+
+---
+
+## [1.2.3] — 2026-03-02
+
+### Added
+
+- **Striped rows** — `item: { striped: true }` toggles a `.vlist-item--odd` class based on the real item index. Virtual lists recycle DOM elements out of document order so CSS `:nth-child(even/odd)` doesn't match logical position — this option fixes that with a zero-cost bitwise check
+
+### Fixed
+
+- **Accessibility: move `role=listbox`** from root element to items container (direct parent of `role=option` elements), fixing Lighthouse required-children ARIA error. Table sets `role=grid` on items container.
+- Scroll: allow horizontal scrolling in wheel handler for tables with wide columns — pass through predominantly horizontal gestures when viewport has horizontal overflow
+
+### Changed
+
+- CSS: swap `selected`/`selected-hover` colors to correct visual hierarchy
+- CSS: remove default `border-bottom` from list items
+- Table CSS: remove `last-child` `border-right` override on table column borders
+
+---
+
+## [1.2.2] — 2026-03-01
+
+### Fixed
+
+- **Table: center resize handle** on column border with pseudo-element positioning
+
+---
+
+## [1.2.1] — 2026-03-01
+
+### Added
+
+- **`withTable()` feature** — virtualized data table with columns, resize, sort, and horizontal scroll. Rows are the unit of virtualization (same as a plain list), so `withScale`, `withAsync`, `withSelection`, and all other features compose unchanged.
+  - Column definitions with `key`, `label`, `width`, `minWidth`, `maxWidth`, `sortable`, `resizable`, `align`, custom `cell` and `header` templates
+  - Sticky column header row with sort indicators and drag-to-resize handles
+  - `column:sort`, `column:resize`, `column:click` events
+  - `setSort()`, `getSort()`, `updateColumns()`, `resizeColumn()`, `getColumnWidths()` API methods
+  - Flex columns (no explicit `width`) auto-fill remaining space
+  - Dedicated CSS file: `@floor/vlist/styles/table`
+
+### Fixed
+
+- Builder: skip only `undefined` items in render loop, not falsy values
+- Table: reset inherited `vlist-item` `border-bottom` on table rows
+
+---
+
+## [1.2.0] — 2026-03-01
+
+### Added
+
+- **Keyboard accessibility** — focus-visible outlines, arrow key navigation (↑/↓/Home/End), Tab support. Selection feature adds `focusVisible` flag for keyboard-only focus outlines. `focusin` handler activates first/last-focused item on Tab.
+- **Responsive grid & masonry** — context-injected `columnWidth`, `columns`, and `gap` available in size functions. Elements resize automatically on container resize.
+
+### Changed
+
+- **`withSections` → `withGroups`** — renamed for clarity (breaking for `withSections` users, non-breaking for `withGroups`)
+- Selection: scope hover highlight and pointer cursor behind `--selectable` CSS class
+
+### Fixed
+
+- Accessibility: clear focus ring on blur and remove viewport from tab order
+- Grid: remove trailing gap at bottom of grid
+- Core: defer initial size cache build when grid/masonry will replace it
+
+---
+
+## [1.1.0] — 2026-02-27
+
+### ⚠️ Breaking Changes
+
+- **`BuiltVList` type removed** — use `VList` instead. The canonical public API type is now `VList<T>`.
+
+### Added
+
+- **`VListConfig` type** — convenience config type for framework adapters, extending `BuilderConfig` with fields like `adapter`, `loading`, `layout`, `grid`, `groups`, `selection`, `scrollbar` that adapters translate into `.use(withX())` calls automatically
+
+### Changed
+
+- Renamed `MAX_VIRTUAL_HEIGHT` → `MAX_VIRTUAL_SIZE`, `GridHeightContext` → `GridSizeContext`
+- Removed dead legacy types: `VListConfig` (old), `VListUpdateConfig`, `LoadingConfig`, `InternalState`, `RenderedItem`
 
 ---
 
@@ -245,6 +381,16 @@ Initial tracked release with core virtual list functionality:
 
 ---
 
+[1.2.8]: https://github.com/floor/vlist/compare/v1.2.7...v1.2.8
+[1.2.7]: https://github.com/floor/vlist/compare/v1.2.6...v1.2.7
+[1.2.6]: https://github.com/floor/vlist/compare/v1.2.5...v1.2.6
+[1.2.5]: https://github.com/floor/vlist/compare/v1.2.4...v1.2.5
+[1.2.4]: https://github.com/floor/vlist/compare/v1.2.3...v1.2.4
+[1.2.3]: https://github.com/floor/vlist/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/floor/vlist/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/floor/vlist/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/floor/vlist/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/floor/vlist/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/floor/vlist/compare/v0.9.9...v1.0.0
 [0.9.9]: https://github.com/floor/vlist/compare/v0.9.8...v0.9.9
 [0.9.8]: https://github.com/floor/vlist/compare/v0.9.6...v0.9.8

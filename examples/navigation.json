@@ -42,8 +42,8 @@
       {
         "slug": "file-browser",
         "name": "File Browser",
-        "desc": "Finder-like file browser with grid/list toggle and breadcrumb navigation",
-        "features": ["grid", "groups", "scrollbar"]
+        "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
+        "features": ["table", "grid", "selection", "groups", "scrollbar"]
       },
       {
         "slug": "carousel",
