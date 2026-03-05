@@ -281,6 +281,7 @@ function App() {
 
       <div className="split-layout">
         <div className="split-main">
+          <h2 className="sr-only">Items</h2>
           <div ref={containerRef} id="list-container" />
         </div>
 

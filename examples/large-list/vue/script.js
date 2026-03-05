@@ -282,6 +282,7 @@ const App = {
 
       <div class="split-layout">
         <div class="split-main">
+          <h2 class="sr-only">Items</h2>
           <div ref="containerRef" id="list-container" />
         </div>
 

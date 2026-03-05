@@ -185,6 +185,7 @@ function App() {
 
       <div className="split-layout">
         <div className="split-main split-main--full">
+          <h2 className="sr-only">Photos</h2>
           <GridContainer
             key={listKey}
             mode={mode}
