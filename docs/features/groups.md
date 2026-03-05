@@ -15,6 +15,7 @@ The groups feature:
 - ✅ **Variable heights** — Headers can have different heights than items
 - ✅ **Dynamic grouping** — Updates when data changes
 - ✅ **Works with grid** — Full-width headers in grid layouts
+- ✅ **Works with table** — Full-width group headers in data tables
 
 ### How It Works
 
@@ -43,6 +44,7 @@ The feature:
 - ✅ **Dynamic updates** — Add/remove items, groups rebuild automatically
 - ✅ **Works with variable heights** — Items and headers can have different heights
 - ✅ **Grid compatible** — Headers span full width in grid layouts
+- ✅ **Table compatible** — Group headers span full table width, no cells
 - ✅ **Keyboard navigation** — Focus management respects groups
 - ✅ **Pure TypeScript** — Zero dependencies
 
@@ -304,6 +306,63 @@ const gallery = vlist({
 └──────────┴──────────┴──────────┴───────┘
 ```
 
+## With Table Layout
+
+Groups work seamlessly with data tables. Group headers render as full-width rows without cells, and the sticky group header sits below the table's column header row:
+
+```typescript
+import { vlist, withTable, withGroups } from '@floor/vlist'
+
+const table = vlist({
+  container: '#employees',
+  items: sortedEmployees,
+  item: { height: 40, template: () => '' },
+})
+.use(withTable({
+  columns: [
+    { key: 'name',       label: 'Name',       width: 220 },
+    { key: 'email',      label: 'Email',       width: 280 },
+    { key: 'department', label: 'Department',  width: 160 },
+  ],
+  rowHeight: 40,
+  headerHeight: 44,
+}))
+.use(withGroups({
+  getGroupForIndex: (i) => sortedEmployees[i].department,
+  headerHeight: 32,
+  headerTemplate: (dept) => `<div class="group-label">${dept}</div>`,
+  sticky: true,
+}))
+.build()
+```
+
+**Result:**
+```
+┌──────────────────────────────────────────────────────┐
+│  Name           │  Email              │  Department   │  ← column header (sticky, z-index 5)
+├──────────────────────────────────────────────────────┤
+│  Engineering                                         │  ← group header (full-width, no cells)
+├──────────────────────────────────────────────────────┤
+│  Alice Anderson  │  alice@acme.com     │  Engineering  │
+│  Bob Brown       │  bob@acme.com       │  Engineering  │
+├──────────────────────────────────────────────────────┤
+│  Marketing                                           │  ← group header
+├──────────────────────────────────────────────────────┤
+│  Carol Carter    │  carol@acme.com     │  Marketing    │
+│  Dave Davis      │  dave@acme.com      │  Marketing    │
+└──────────────────────────────────────────────────────┘
+```
+
+**How it works:**
+
+- The table renderer detects group header pseudo-items via `setGroupHeaderFn`
+- Group headers render as full-width rows with a single content container (no cells)
+- Group headers use `role="presentation"` (not data rows) and are excluded from selection
+- Sticky group headers are offset by the table column header height, so they sit below it
+- Column resize updates group header width alongside data rows
+
+**Key difference from grid integration:** The grid path replaces the entire renderer. The table path configures the existing renderer in-place — because the table renderer is more complex (cells, alignment, resize), it's cheaper and safer to teach it about headers than to rebuild it.
+
 ## Data Operations
 
 ### Adding Items
@@ -439,11 +498,13 @@ As you scroll up through history, older section headers stick at the top - perfe
 | `reverse: true` + `sticky: false` | ✅ **Yes** | iMessage-style inline date headers |
 | `reverse: true` + `sticky: true` | ✅ **Yes** | Sticky header shows current section while scrolling |
 | `orientation: 'horizontal'` + groups | ✅ **Yes** | Horizontal carousels with category headers (sticky headers stick to left edge) |
+| `withTable()` + `withGroups()` | ✅ **Yes** | Grouped data tables with full-width section headers |
 
 **Choose based on your UI:**
 - `sticky: false` - iMessage, WhatsApp style (headers scroll with content)
 - `sticky: true` - Telegram style (current section header sticks at top/left for navigation)
 - `orientation: 'horizontal'` - Photo galleries, product carousels (headers stick to left edge in horizontal mode)
+- `withTable()` - Sectioned data tables (sticky group header sits below column header)
 
 ## API Reference
 
@@ -875,8 +936,9 @@ headerTemplate: (key) => {
 | **Inline headers** | ✅ Set `sticky: false` |
 | **Variable heights** | ✅ Items and headers can differ |
 | **Grid layout** | ✅ Full-width headers |
+| **Table layout** | ✅ Full-width headers, no cells |
 | **Reverse mode** | ✅ Only with `sticky: false` |
-| **Horizontal mode** | ❌ Not supported |
+| **Horizontal mode** | ✅ Sticky headers stick to left edge |
 | **Dynamic updates** | ✅ Automatic group rebuild |
 | **Keyboard navigation** | ✅ Works seamlessly |
 
@@ -885,6 +947,7 @@ headerTemplate: (key) => {
 ## Further Reading
 
 - [Grid Feature](./grid.md) — Combine groups with grid layout
+- [Table Feature](./table.md) — Combine groups with data tables
 - [Selection Feature](./selection.md) — Add selection to grouped lists
 - [Feature System](./overview.md) — How features work
 - [API Reference](/docs/api/reference) — Full API documentation

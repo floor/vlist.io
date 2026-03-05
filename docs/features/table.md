@@ -608,6 +608,50 @@ const saved = JSON.parse(localStorage.getItem('table-scroll'))
 table.restoreScroll(saved)
 ```
 
+### Table + Groups (Sectioned Data Tables)
+
+Groups work seamlessly with the table feature. Group headers render as full-width rows without cells, and sticky group headers sit below the table's column header row:
+
+```js
+const table = vlist({
+  container: '#employees',
+  items: sortedEmployees, // must be pre-sorted by group
+  item: { height: 40, template: () => '' },
+})
+.use(withTable({
+  columns: [
+    { key: 'name',       label: 'Name',       width: 220 },
+    { key: 'email',      label: 'Email',       width: 280 },
+    { key: 'department', label: 'Department',  width: 160 },
+  ],
+  rowHeight: 40,
+  headerHeight: 44,
+}))
+.use(withGroups({
+  getGroupForIndex: (i) => sortedEmployees[i].department,
+  headerHeight: 32,
+  headerTemplate: (dept) => `<div class="group-label">${dept}</div>`,
+  sticky: true,
+}))
+.build()
+```
+
+**How it works:**
+
+- Group headers are full-width rows with `role="presentation"` — no cells, not selectable
+- Sticky group headers are offset by the table column header height (positioned below it)
+- Column resize updates group header width alongside data rows
+- The table renderer is configured in-place (not replaced) — safer than the grid path because the table renderer manages cells, alignment, and resize handles
+
+**Z-index layering:**
+
+| Layer | Element | z-index |
+|-------|---------|---------|
+| Column header | `.vlist-table-header` | 5 |
+| Sticky group header | `.vlist-sticky-header` | 4 |
+| Data rows | `.vlist-table-row` | — |
+| Group header rows | `.vlist-table-group-header` | — |
+
 ## Performance
 
 ### Virtualization
@@ -623,7 +667,10 @@ The table renderer tracks each row's state:
 - **Item ID unchanged** — skip template re-evaluation entirely
 - **Selection/focus changed** — update CSS classes only (no DOM rebuild)
 - **Position changed** — update `transform: translateY()` only
+- **Height changed** — update `style.height` only
 - **Nothing changed** — zero DOM operations
+
+When groups are active, group header rows have their own fast path: only the group key (item ID) is tracked — no selection or focus state to compare.
 
 ### Element Pooling
 
@@ -651,6 +698,8 @@ When columns are resized, only the `left` and `width` CSS properties on existing
 | `.vlist-table-cell` | Data cell | Individual cell |
 | `.vlist-item--selected` | Data row | Selected row |
 | `.vlist-item--focused` | Data row | Keyboard-focused row |
+| `.vlist-table-group-header` | Group header row | Full-width row, no cells (with `withGroups`) |
+| `.vlist-table-group-header-content` | Group header content | Single content container inside group header |
 
 ### CSS Custom Properties
 
@@ -868,6 +917,7 @@ src/features/table/
 
 ## Related Documentation
 
+- [Groups](./groups.md) — Sectioned data tables with sticky group headers
 - [Grid Layout](./grid.md) — 2D grid for cards / images (different use case)
 - [Selection](./selection.md) — Row selection with keyboard navigation
 - [Scale](./scale.md) — Scroll compression for million-row tables
