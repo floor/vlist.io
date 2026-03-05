@@ -14,7 +14,6 @@ const ALLOWED_ROOTS = ["vlist", "vlist.dev"];
 
 // Patterns to ignore when listing directories
 const IGNORE_PATTERNS = [
-  "node_modules",
   "dist",
   "build",
   ".git",
@@ -163,8 +162,7 @@ export async function listDirectory(
       items,
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown error";
+    const message = error instanceof Error ? error.message : "Unknown error";
     throw new Error(`Failed to read directory: ${message}`);
   }
 }
