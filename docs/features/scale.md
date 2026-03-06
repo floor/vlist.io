@@ -396,19 +396,16 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 
 3. **Native scrollbar hidden:** Scaled mode hides the native scrollbar. Always use `withScrollbar()` when scaling is active.
 
-## Related
+## See Also
 
-- [Scrollbar Feature](./scrollbar.md) - Custom scrollbar (required for scaled mode)
-- [Grid Feature](./grid.md) - 2D grid layout with scaling support
-- [Groups Feature](./groups.md) - Grouped lists with scaling support
-- [Page Feature](./page.md) - Window scrolling with mathematical scaling
+- [Constants — `MAX_VIRTUAL_SIZE`](../api/constants.md#max_virtual_size) — 16M pixel browser limit that triggers compression
+- [Types — `CompressionState`](../api/types.md#compressionstate) — `isCompressed`, `actualSize`, `virtualSize`, `ratio`
+- [Exports — Scale](../api/exports.md#scale) — `getScaleState`, `needsScaling`, `calculateScaledVisibleRange`, and other compression utilities
+- [Scrollbar](./scrollbar.md) — Custom scrollbar (always use with scale — native scrollbar is hidden in compressed mode)
+- [Async](./async.md) — Lazy loading for large datasets that trigger compression
+- [Page](./page.md) — Cannot combine with `withScale` (requires controlled scroll container)
 
-## Live Examples
+## Examples
 
-- [Large List](/examples/large-list) — 100K–5M items with withScale (4 frameworks)
-
----
-
-**Bundle cost:** +2.2 KB gzipped  
-**Status:** Stable  
-**Since:** v1.0.0
+- [Large List](/examples/large-list) — 100K–5M items with scroll compression
+- [Velocity Loading](/examples/velocity-loading) — Async loading with scale, scrollbar, and selection combined

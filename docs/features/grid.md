@@ -754,15 +754,16 @@ const list = vlist({
 4. **Composable:** Chain multiple `.use()` calls for features
 5. **Tree-shakeable:** Only bundle what you use
 
-## Related Documentation
+## See Also
 
-- [API Reference](../api/reference.md) — Complete API — config, methods, events
-- [Selection Feature](./selection.md) — Select grid items
-- [Groups Feature](./groups.md) — Categorized grids with sticky headers
-- [Scrollbar Feature](./scrollbar.md) — Custom scrollbars
-- [Async Feature](./async.md) — Lazy data loading
+- [Types — `GridConfig`](../api/types.md#gridconfig) — Column count and gap configuration
+- [Types — `GridSizeContext`](../api/types.md#gridsizecontext) — Container width, columns, gap, and column width passed to size functions
+- [Exports — Grid](../api/exports.md#grid) — `createGridLayout`, `createGridRenderer`
+- [Masonry](./masonry.md) — Alternative layout with variable heights and shortest-lane placement
+- [Groups](./groups.md) — Full-width group headers spanning the grid
+- [Selection](./selection.md) — Select grid items with click and keyboard
 
-## Live Examples
+## Examples
 
-- [Photo Album](/examples/photo-album) — Responsive photo gallery with withGrid + withScrollbar (4 frameworks)
-- [File Browser](/examples/file-browser) — Finder-like file browser with grid/list views
+- [Photo Album](/examples/photo-album) — Responsive photo gallery toggling between grid and masonry layouts
+- [File Browser](/examples/file-browser) — Finder-like file browser with grid/list view toggle

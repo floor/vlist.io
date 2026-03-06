@@ -809,22 +809,17 @@ vlist({
 | `scrollbar: { enabled: false }` | `scrollbar: 'none'` | No scrollbar |
 | *(no equivalent)* | `scrollbar: 'native'` | Browser's native scrollbar |
 
-## Related Modules
+## See Also
 
-- [Scrollbar Internals](../internals/scrollbar.md) — Low-level `createScrollController`, `createScrollbar`, implementation details, velocity circular buffer, track/thumb interaction code
-- [Snapshots](./snapshots.md) — Scroll save/restore (`getScrollSnapshot` / `restoreScroll`)
-- [Scale](./scale.md) — Compression state for large lists
-- [Rendering](../internals/rendering.md) — Viewport state management
-- [Context](../internals/context.md) — BuilderContext holds scroll controller and wires event handlers
-- [Optimization](/tutorials/optimization) — Full list of scroll-related optimizations
-- [Styling](/tutorials/styling) — `.vlist--scrolling` class and CSS containment
+- [Types — `ScrollbarOptions`](../api/types.md#scrollbaroptions) — `autoHide`, `autoHideDelay`, `minThumbSize`, `showOnHover`, `hoverZoneWidth`, `showOnViewportEnter`
+- [Constants — Scrollbar](../api/constants.md#scrollbar) — `SCROLLBAR_AUTO_HIDE`, `SCROLLBAR_AUTO_HIDE_DELAY`, `SCROLLBAR_MIN_THUMB_SIZE`
+- [Events — `scroll:idle`](../api/events.md#scrollidle) — Fires when scrolling stops, used for auto-hide timing
+- [Scrollbar Internals](../internals/scrollbar.md) — Low-level `createScrollController`, `createScrollbar`, velocity circular buffer, track/thumb interaction
+- [Scale](./scale.md) — Scroll compression for large lists (always use custom scrollbar with scale)
+- [Page](./page.md) — Document scrolling (cannot combine with custom scrollbar)
 
-## Live Examples
+## Examples
 
-- [Photo Album](/examples/photo-album) — Grid gallery with withScrollbar + autoHide (4 frameworks)
-- [Controls](/examples/controls) — Full API exploration with custom scrollbar (4 frameworks)
-- [Large List](/examples/large-list) — 100K–5M items with compressed scrollbar (4 frameworks)
-
----
-
-*The scroll module provides seamless scrolling for lists of any size — custom scrollbar by default, native as an option, or no scrollbar at all.*
+- [Photo Album](/examples/photo-album) — Grid gallery with auto-hide scrollbar
+- [Large List](/examples/large-list) — 100K–5M items with compressed scrollbar
+- [File Browser](/examples/file-browser) — Custom scrollbar in list and grid views

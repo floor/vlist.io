@@ -442,16 +442,16 @@ function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VLis
 }
 ```
 
-## Related Modules
+## See Also
 
-- [Types](../api/types.md) — SelectionMode, SelectionState types
-- [Context](../internals/context.md) — BuilderContext wires click and keyboard handlers
-- [Reference](../api/reference.md) — Public selection API methods
+- [Types — Selection](../api/types.md#selection-types) — `SelectionConfig`, `SelectionMode`, `SelectionState`
+- [Events — `selection:change`](../api/events.md#selectionchange) — Selected IDs and item objects
+- [Exports — Selection](../api/exports.md#selection) — Pure functions for custom selection UIs
+- [Snapshots](./snapshots.md) — Selection state included in scroll snapshots automatically
 
-## Live Examples
+## Examples
 
-- [Controls](/examples/controls) — Full API exploration with selection, navigation, and scroll events (4 frameworks)
-
----
-
-*The selection module provides single, multi, and keyboard-navigated item selection via `withSelection()`.*
+- [Contact List](/examples/contact-list) — A–Z grouped contacts with single selection
+- [Data Table](/examples/data-table) — Row selection with sortable columns
+- [File Browser](/examples/file-browser) — Multi-select in list and grid views
+- [Scroll Restore](/examples/scroll-restore) — Selection persisted across navigations

@@ -915,16 +915,16 @@ src/features/table/
 └── renderer.ts   # Cell-based row rendering with pooling
 ```
 
-## Related Documentation
+## See Also
 
-- [Groups](./groups.md) — Sectioned data tables with sticky group headers
-- [Grid Layout](./grid.md) — 2D grid for cards / images (different use case)
+- [Events — `column:resize`, `column:sort`, `column:click`](../api/events.md#summary) — Table-specific events for resize, sort, and header clicks
+- [Types — `GridSizeContext`](../api/types.md#gridsizecontext) — Size context also used by table row height functions
+- [Groups](./groups.md) — Full-width group headers in data tables, sticky headers sit below column header
 - [Selection](./selection.md) — Row selection with keyboard navigation
 - [Scale](./scale.md) — Scroll compression for million-row tables
-- [Async](./async.md) — Lazy data loading with placeholders
-- [Scrollbar](./scrollbar.md) — Custom scrollbar UI
-- [Snapshots](./snapshots.md) — Save/restore scroll position
+- [Async](./async.md) — Lazy data loading with placeholder rows
 
-## Live Examples
+## Examples
 
-→ [Data Table Example](/examples/data-table) — 10K rows with resizable columns, sorting, selection, and column presets
+- [Data Table](/examples/data-table) — 10K rows with resizable columns, sorting, and selection
+- [File Browser](/examples/file-browser) — Finder-like file browser with table list view and grid toggle

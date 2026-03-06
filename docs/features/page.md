@@ -390,14 +390,12 @@ For better SEO with infinite scroll:
 
 ## See Also
 
-- **[Features Overview](./overview.md)** - All available features
-- **[Async Feature](./async.md)** - Combine for infinite scroll
-- **[Scrollbar Feature](./scrollbar.md)** - Alternative: custom scrollbar
-- **[Builder Pattern](/tutorials/builder-pattern)** - How to compose features
-- **[Examples](/examples/)** - Interactive examples
+- [Types — `ScrollConfig`](../api/types.md#scrollconfig) — `scroll.element` option for window scrolling
+- [Exports — Scrollbar / Scroll Controller](../api/exports.md#scrollbar--scroll-controller) — `createScrollController`
+- [Async](./async.md) — Combine for infinite scroll with document-level scrolling
+- [Scrollbar](./scrollbar.md) — Alternative: custom scrollbar (cannot combine with `withPage`)
+- [Scale](./scale.md) — Cannot combine with `withPage` (requires controlled scroll container)
 
----
+## Examples
 
-**Bundle cost:** +0.9 KB gzipped  
-**Priority:** 10 (runs first - modifies scroll element)  
-**Conflicts:** Cannot combine with `withScrollbar()`
+- [Window Scroll](/examples/window-scroll) — Document-level infinite scroll with `withPage` + `withAsync`

@@ -6,91 +6,16 @@
 
 | Feature | Cost | Description |
 |---|---|---|
-| `withTable()` | +5.8 KB | Data table with resizable columns, sortable headers |
-| `withGrid()` | +4.0 KB | 2D grid layout (virtualises by row) |
-| `withGroups()` | +4.6 KB | Grouped lists with sticky or inline headers |
 | `withAsync()` | +5.3 KB | Lazy loading via adapter with placeholders |
 | `withSelection()` | +2.3 KB | Single / multiple item selection with keyboard nav |
-| `withScale()` | +2.2 KB | Compress scroll space for 1M+ items |
+| `withGrid()` | +4.0 KB | 2D grid layout (virtualises by row) |
+| `withTable()` | +5.8 KB | Data table with resizable columns, sortable headers |
+| `withMasonry()` | +2.9 KB | Pinterest-style shortest-lane placement |
+| `withGroups()` | +4.6 KB | Grouped lists with sticky or inline headers |
 | `withScrollbar()` | +1.0 KB | Custom scrollbar UI with auto-hide |
 | `withPage()` | +0.9 KB | Document-level (window) scrolling |
+| `withScale()` | +2.2 KB | Compress scroll space for 1M+ items |
 | `withSnapshots()` | 0 KB | Scroll position save/restore (included in base) |
-
----
-
-## withTable() — Data Table
-
-```typescript
-import { vlist, withTable, withSelection } from '@floor/vlist';
-
-const table = vlist({
-  container: '#employees',
-  items: employees,
-  item: { height: 40, template: () => '' },
-})
-  .use(withTable({
-    columns: [
-      { key: 'name',       label: 'Name',       width: 220, sortable: true },
-      { key: 'email',      label: 'Email',      width: 280, sortable: true },
-      { key: 'department', label: 'Department',  width: 140, sortable: true },
-      { key: 'role',       label: 'Role',        width: 180 },
-    ],
-    rowHeight: 40,
-    headerHeight: 44,
-  }))
-  .use(withSelection({ mode: 'single' }))
-  .build();
-```
-
-Leverages all of vlist's core — virtualization, element pooling, size caching, scroll compression — and layers column-aware rendering on top. Rows are the unit of virtualization (same as a plain list), so `withScale`, `withAsync`, `withSelection`, and all other features compose unchanged.
-
-→ [Full docs](./table.md)
-
----
-
-## withGrid() — 2D Grid Layout
-
-```typescript
-import { vlist, withGrid } from '@floor/vlist';
-
-const gallery = vlist({
-  container: '#gallery',
-  items: photos,
-  item: {
-    height: 200,
-    template: (photo) => `<img src="${photo.url}" alt="${photo.title}" />`,
-  },
-})
-  .use(withGrid({ columns: 4, gap: 16 }))
-  .build();
-
-```
-
-→ [Full docs](./grid.md)
-
----
-
-## withGroups() — Grouped Lists
-
-```typescript
-import { vlist, withGroups } from '@floor/vlist';
-
-// Sticky headers (Telegram-style contact list)
-const contacts = vlist({
-  container: '#contacts',
-  items: sortedContacts, // must be pre-sorted by group
-  item: { height: 56, template: (c) => `<div>${c.name}</div>` },
-})
-  .use(withGroups({
-    getGroupForIndex: (i) => sortedContacts[i].lastName[0].toUpperCase(),
-    headerHeight: 36,
-    headerTemplate: (letter) => `<div class="header">${letter}</div>`,
-    sticky: true,
-  }))
-  .build();
-```
-
-→ [Full docs](./groups.md)
 
 ---
 
@@ -155,22 +80,102 @@ list.getSelectedItems();   // → [{ id: 2, ... }, { id: 5, ... }]
 
 ---
 
-## withScale() — 1M+ Items
+## withGrid() — 2D Grid Layout
 
 ```typescript
-import { vlist, withScale, withScrollbar } from '@floor/vlist';
+import { vlist, withGrid } from '@floor/vlist';
 
-const bigList = vlist({
-  container: '#list',
-  items: generateItems(2_000_000),
-  item: { height: 48, template: (item) => `<div>${item.id}</div>` },
+const gallery = vlist({
+  container: '#gallery',
+  items: photos,
+  item: {
+    height: 200,
+    template: (photo) => `<img src="${photo.url}" alt="${photo.title}" />`,
+  },
 })
-  .use(withScale())                      // auto-activates above browser limit
-  .use(withScrollbar({ autoHide: true }))
+  .use(withGrid({ columns: 4, gap: 16 }))
+  .build();
+
+```
+
+→ [Full docs](./grid.md)
+
+---
+
+## withTable() — Data Table
+
+```typescript
+import { vlist, withTable, withSelection } from '@floor/vlist';
+
+const table = vlist({
+  container: '#employees',
+  items: employees,
+  item: { height: 40, template: () => '' },
+})
+  .use(withTable({
+    columns: [
+      { key: 'name',       label: 'Name',       width: 220, sortable: true },
+      { key: 'email',      label: 'Email',      width: 280, sortable: true },
+      { key: 'department', label: 'Department',  width: 140, sortable: true },
+      { key: 'role',       label: 'Role',        width: 180 },
+    ],
+    rowHeight: 40,
+    headerHeight: 44,
+  }))
+  .use(withSelection({ mode: 'single' }))
   .build();
 ```
 
-→ [Full docs](./scale.md)
+Leverages all of vlist's core — virtualization, element pooling, size caching, scroll compression — and layers column-aware rendering on top. Rows are the unit of virtualization (same as a plain list), so `withScale`, `withAsync`, `withSelection`, and all other features compose unchanged.
+
+→ [Full docs](./table.md)
+
+---
+
+## withMasonry() — Pinterest Layout
+
+```typescript
+import { vlist, withMasonry } from '@floor/vlist';
+
+const gallery = vlist({
+  container: '#gallery',
+  items: photos,
+  item: {
+    height: (index) => photos[index].aspectRatio * 200,
+    template: (photo) => `<img src="${photo.url}" alt="${photo.title}" />`,
+  },
+})
+  .use(withMasonry({ columns: 3, gap: 12 }))
+  .build();
+```
+
+Items flow into the shortest column, creating an organic packed layout with no wasted space. Unlike grid, each item can have a different height.
+
+→ [Full docs](./masonry.md)
+
+---
+
+## withGroups() — Grouped Lists
+
+```typescript
+import { vlist, withGroups } from '@floor/vlist';
+
+// Sticky headers (Telegram-style contact list)
+const contacts = vlist({
+  container: '#contacts',
+  items: sortedContacts, // must be pre-sorted by group
+  item: { height: 56, template: (c) => `<div>${c.name}</div>` },
+})
+  .use(withGroups({
+    getGroupForIndex: (i) => sortedContacts[i].lastName[0].toUpperCase(),
+    headerHeight: 36,
+    headerTemplate: (letter) => `<div class="header">${letter}</div>`,
+    sticky: true,
+  }))
+  .build();
+```
+
+→ [Full docs](./groups.md)
 
 ---
 
@@ -218,6 +223,25 @@ const blog = vlist({
 Cannot combine with `withScrollbar()` or `orientation: 'horizontal'`.
 
 → [Full docs](./page.md)
+
+---
+
+## withScale() — 1M+ Items
+
+```typescript
+import { vlist, withScale, withScrollbar } from '@floor/vlist';
+
+const bigList = vlist({
+  container: '#list',
+  items: generateItems(2_000_000),
+  item: { height: 48, template: (item) => `<div>${item.id}</div>` },
+})
+  .use(withScale())                      // auto-activates above browser limit
+  .use(withScrollbar({ autoHide: true }))
+  .build();
+```
+
+→ [Full docs](./scale.md)
 
 ---
 

@@ -616,17 +616,17 @@ function calculateMissingRanges(
 ): Range[];
 ```
 
-## Related Modules
+## See Also
 
-- [Types](../api/types.md) — VListAdapter, VListItem interfaces
-- [Placeholders](./placeholders.md) — Placeholder configuration and styling
-- [Rendering](../internals/rendering.md) — Renderer displays items/placeholders
-- [Context](../internals/context.md) — BuilderContext wires scroll handler that triggers data loading
+- [Types — Adapter](../api/types.md#adapter-types) — `VListAdapter`, `AdapterParams`, `AdapterResponse`
+- [Events — Data](../api/events.md#data-events) — `load:start`, `load:end`, `error`
+- [Constants — Async Loading](../api/constants.md#async-loading) — `LOAD_THRESHOLD`, `LOAD_SIZE`, `PRELOAD_AHEAD`, velocity thresholds
+- [Placeholders](./placeholders.md) — Placeholder configuration, CSS styling, and per-item length profiles
+- [Scale](./scale.md) — Scroll compression for large async datasets
+- [Snapshots](./snapshots.md) — Save/restore scroll position with async `total`
 
-## Live Examples
+## Examples
 
-- [Velocity Loading](/examples/velocity-loading) — Smart loading that skips during fast scrolling
-
----
-
-*The async module enables vlist to efficiently handle datasets of any size via `withAsync()`.*
+- [Velocity Loading](/examples/velocity-loading) — Smart loading that skips during fast scrolling, preloads in scroll direction
+- [Social Feed](/examples/social-feed) — Variable-height posts with auto-measurement and async loading
+- [Window Scroll](/examples/window-scroll) — Document-level infinite scroll with `withPage` + `withAsync`

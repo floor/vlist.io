@@ -50,22 +50,7 @@
       {
         "slug": "features/overview",
         "name": "Overview",
-        "desc": "All 8 features with examples, costs, and compatibility"
-      },
-      {
-        "slug": "features/grid",
-        "name": "Grid",
-        "desc": "2D grid layout with virtualized rows"
-      },
-      {
-        "slug": "features/masonry",
-        "name": "Masonry",
-        "desc": "Pinterest-style layout with shortest-lane placement"
-      },
-      {
-        "slug": "features/sections",
-        "name": "Sections",
-        "desc": "Grouped lists with sticky or inline headers"
+        "desc": "All 10 features with examples, costs, and compatibility"
       },
       {
         "slug": "features/async",
@@ -73,19 +58,29 @@
         "desc": "Async data loading with lazy loading and placeholders"
       },
       {
-        "slug": "features/placeholders",
-        "name": "Placeholders",
-        "desc": "Realistic skeleton loading states with zero template duplication"
-      },
-      {
         "slug": "features/selection",
         "name": "Selection",
         "desc": "Single & multi-select with keyboard navigation"
       },
       {
-        "slug": "features/scale",
-        "name": "Scale",
-        "desc": "Handle 1M+ items with automatic scroll compression"
+        "slug": "features/grid",
+        "name": "Grid",
+        "desc": "2D grid layout with virtualized rows"
+      },
+      {
+        "slug": "features/table",
+        "name": "Table",
+        "desc": "Data table with resizable columns and sortable headers"
+      },
+      {
+        "slug": "features/masonry",
+        "name": "Masonry",
+        "desc": "Pinterest-style layout with shortest-lane placement"
+      },
+      {
+        "slug": "features/groups",
+        "name": "Groups",
+        "desc": "Grouped lists with sticky or inline headers"
       },
       {
         "slug": "features/scrollbar",
@@ -96,6 +91,11 @@
         "slug": "features/page",
         "name": "Page",
         "desc": "Document-level scrolling with native browser scrollbar"
+      },
+      {
+        "slug": "features/scale",
+        "name": "Scale",
+        "desc": "Handle 1M+ items with automatic scroll compression"
       },
       {
         "slug": "features/snapshots",

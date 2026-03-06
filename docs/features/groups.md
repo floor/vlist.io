@@ -944,14 +944,15 @@ headerTemplate: (key) => {
 
 **Bottom line:** Groups transform flat lists into organized sections with minimal overhead. Use sticky headers for iOS Contacts style, or inline headers for bottom-anchored UIs (chat, logs, activity feeds).
 
-## Further Reading
+## See Also
 
-- [Grid Feature](./grid.md) — Combine groups with grid layout
-- [Table Feature](./table.md) — Combine groups with data tables
-- [Selection Feature](./selection.md) — Add selection to grouped lists
-- [Feature System](./overview.md) — How features work
-- [API Reference](/docs/api/reference) — Full API documentation
+- [Types — `GroupsConfig`](../api/types.md#groupsconfig) — `getGroupForIndex`, `headerHeight`, `headerTemplate`, `sticky`
+- [Exports — Groups](../api/exports.md#groups) — `createGroupLayout`, `buildLayoutItems`, `createStickyHeader`
+- [Grid](./grid.md) — Full-width group headers spanning the grid
+- [Table](./table.md) — Full-width group headers in data tables, sticky headers below column header
+- [Selection](./selection.md) — Selection works with data indices, skipping group headers
 
-## Live Examples
+## Examples
 
-- [Contact List](/examples/contact-list) — A–Z contact list with sticky section headers
+- [Contact List](/examples/contact-list) — A–Z grouped contacts with sticky section headers and selection
+- [Messaging](/examples/messaging-app) — Reverse-mode chat with date group headers

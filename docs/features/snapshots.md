@@ -531,13 +531,12 @@ const snapshot = {
 
 ## See Also
 
-- **[Features Overview](./overview.md)** — All available features
-- **[Builder Pattern](/tutorials/builder-pattern)** — How to compose features
-- **[API Methods](/docs/api/reference)** — Complete method reference
-- **[Examples](/examples/scroll-restore/)** — Interactive example
+- [Types — `ScrollSnapshot`](../api/types.md#scrollsnapshot) — `index`, `offsetInItem`, `total`, `selectedIds`
+- [Types — `ScrollToOptions`](../api/types.md#scrolltooptions) — `align`, `behavior`, `duration`
+- [Selection](./selection.md) — Selection state included in snapshots automatically
+- [Async](./async.md) — Pass `snapshot.total` to `withAsync` to avoid loading flash on restore
 
----
+## Examples
 
-**Bundle cost:** Included in base (0 KB additional)
-**Priority:** 50 (runs last — needs all other features initialized)
-**Methods added:** `getScrollSnapshot()`, `restoreScroll()`
+- [Scroll Restore](/examples/scroll-restore) — Save and restore scroll position across navigations
+- [Velocity Loading](/examples/velocity-loading) — Snapshots combined with async loading, scale, and selection

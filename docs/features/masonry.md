@@ -798,18 +798,14 @@ vlist({
 .build()
 ```
 
-## Related Documentation
+## See Also
 
-- [Grid Feature](./grid.md) — 2D grid with aligned rows
-- [Selection Feature](./selection.md) — Select masonry items
-- [Scrollbar Feature](./scrollbar.md) — Custom scrollbars
-- [API Reference](../api/reference.md) — Complete API — config, methods, events
+- [Types — `MasonryConfig`](../api/types.md#masonryconfig) — Column count and gap configuration
+- [Exports — Masonry](../api/exports.md#masonry) — `createMasonryLayout`, `createMasonryRenderer`
+- [Grid](./grid.md) — Alternative layout with aligned rows (mutually exclusive)
+- [Selection](./selection.md) — Select masonry items with click and keyboard
+- [Scrollbar](./scrollbar.md) — Custom scrollbar with auto-hide
 
-## Live Examples
+## Examples
 
-- [Photo Album](/examples/photo-album) — Grid & masonry layouts with variable heights
-
----
-
-**Last Updated:** February 2026  
-**Version:** v1.1.0
+- [Photo Album](/examples/photo-album) — Responsive gallery toggling between grid and masonry layouts
