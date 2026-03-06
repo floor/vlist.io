@@ -708,11 +708,21 @@ sortRenderedDOM(
 ): void
 ```
 
-The function:
+The function uses a **minimal-move parallel-walk** algorithm:
 
 1. **Extracts and sorts** the rendered Map's numeric keys (no DOM attribute parsing)
-2. **Checks if already sorted** — compares elements against the DOM child list via `firstChild`/`nextSibling` traversal. If order matches, returns immediately (zero work)
-3. **Re-appends in order** — a single reflow with no geometry change
+2. **Resolves elements** in target (sorted) order
+3. **Walks in parallel** — a `cursor` tracks the current DOM child position. For each target element:
+   - If it matches the cursor → **skip** (no DOM mutation, element untouched)
+   - If it doesn't → `insertBefore(el, cursor)` to move it into place
+
+This design ensures that elements already at the correct position are **never touched by the DOM** — their `:hover` state, CSS transitions, and internal state are fully preserved.
+
+#### Why minimal-move matters
+
+The previous approach re-appended every element via `appendChild`. While `appendChild` of an existing element just moves it (no clone), browsers **re-evaluate `:hover` state** on any DOM mutation affecting an element's tree position. This caused CSS transitions to replay — for example, a photo grid's hover scale-up animation would retrigger on scroll idle, even though the cursor never left the image.
+
+The parallel-walk avoids this entirely: in the common case (scrolling appends new items at the end), all existing elements are already in order and the function performs **zero DOM mutations**.
 
 ### Wiring
 
