@@ -3,7 +3,7 @@
 > Migrate the Bun HTTP server from Node.js-compatible patterns to Bun-native APIs
 > for zero-copy file serving, faster compression, reduced allocations, and cached rendering.
 >
-> **Status: ✅ All 7 phases complete**
+> **Status: ✅ All 8 phases complete**
 >
 > Implemented on branch `refactor/server`.
 
@@ -21,6 +21,7 @@
 - [Phase 5 — Startup optimization](#phase-5--startup-optimization) ✅
 - [Phase 6 — PM2 multi-instance](#phase-6--pm2-multi-instance) ✅
 - [Phase 7 — Cloudflare CDN edge caching](#phase-7--cloudflare-cdn-edge-caching) ✅
+- [Phase 8 — Dev cache staleness fix](#phase-8--dev-cache-staleness-fix) ✅
 - [Deferred Items](#deferred-items)
 - [Per-File Impact Summary](#per-file-impact-summary)
 - [Testing & Verification](#testing--verification)
@@ -1045,6 +1046,85 @@ curl -sf -X POST \
 
 ---
 
+## Phase 8 — Dev cache staleness fix ✅
+
+During development, two layers of caching caused stale builds to be served silently — making it appear that source changes had no effect. This phase eliminates the problem entirely.
+
+### Problem
+
+**Build cache (`examples/build.ts`):** The manifest hash was computed from `vlist/src/` but the bundler resolved imports from `vlist/dist/index.js` (via `package.json` exports). Editing vlist source triggered a "rebuild" that re-bundled the **stale** dist output. The only workaround was manually running `bun run build` in vlist first — easy to forget.
+
+**Server cache (`compression.ts` + renderers):** Pre-compressed `.br`/`.gz` files and rendered HTML pages were cached in-memory forever. Even after a successful rebuild, the server kept serving old cached content until a full PM2 restart.
+
+### 8.1 Fix build cache — hash dist, auto-rebuild stale dist
+
+**`examples/build.ts`:**
+
+- Hash `vlist/dist/index.js` + CSS files (what the bundler actually imports) instead of `vlist/src/`
+- Add `isVlistDistStale()` — compares mtime of any `src/` file against `dist/index.js`
+- Add `ensureVlistDist()` — auto-runs `bun run build` in the vlist repo when dist is stale
+- Called at the start of `main()` before any example builds
+
+```ts
+// Before (wrong — hashed source, bundled dist)
+function getVlistHash(): string {
+  const vlistSrc = resolve("../vlist/src");
+  _vlistHash = existsSync(vlistSrc) ? hashFiles(vlistSrc) : "none";
+  return _vlistHash;
+}
+
+// After (correct — hashes what gets bundled)
+function getVlistHash(): string {
+  const vlistDist = resolve("../vlist/dist/index.js");
+  // hash dist/index.js + CSS files
+  ...
+}
+
+async function ensureVlistDist(): Promise<void> {
+  if (!isVlistDistStale()) return;
+  console.log("⚡ vlist/dist is stale — rebuilding...\n");
+  await $`bun run build.ts`.cwd(resolve("../vlist")).quiet().nothrow();
+}
+```
+
+### 8.2 Disable server caches in development
+
+**`src/server/config.ts`** — Added shared `IS_PROD` constant:
+
+```ts
+export const IS_PROD = process.env.NODE_ENV === "production";
+```
+
+**`src/server/compression.ts`** — Skip both caches in dev:
+
+- `preCompressedCache` (`.br`/`.gz` files): only cache reads when `IS_PROD`
+- `compressionCache` (on-the-fly compressed HTML): skip entirely when `!IS_PROD`
+
+**Renderers** — Skip `pageCache` when `!IS_PROD`:
+
+| File | Cache skipped in dev |
+|------|---------------------|
+| `renderers/examples.ts` | `pageCache` Map |
+| `renderers/benchmarks.ts` | `pageCache` Map |
+| `renderers/content.ts` | `pageCache` Map (docs + tutorials) |
+| `renderers/homepage.ts` | `pageCache` + `templateCache` |
+
+### 8.3 Production behavior unchanged
+
+`ecosystem.config.cjs` sets `NODE_ENV: "production"` — all caches remain fully active on the server. The changes only affect local development where `NODE_ENV` is unset.
+
+### 8.4 Verify
+
+| Check | Status |
+|-------|--------|
+| Edit vlist source → `bun run build:examples` auto-rebuilds dist | ✅ |
+| Examples bundle fresh dist (not stale) | ✅ |
+| Browser refresh shows changes without PM2 restart | ✅ |
+| `NODE_ENV=production` preserves all caches | ✅ |
+| `bun run typecheck` passes | ✅ |
+
+---
+
 ## Deferred Items
 
 | Item | Reason |
@@ -1071,14 +1151,17 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 | File | Phases | Changes |
 |------|--------|---------|
 | `src/server/static.ts` | 1, 7 | Replace `readFileSync` with `Bun.file()`, remove import; import cache constants from `cache.ts` |
-| `src/server/compression.ts` | 1, 2, 4 | `Uint8Array` caches, `Bun.gzipSync()`, remove `toBodyInit`, sync/async split with `compressedResponse()` helper |
+| `src/server/compression.ts` | 1, 2, 4, 8 | `Uint8Array` caches, `Bun.gzipSync()`, remove `toBodyInit`, sync/async split with `compressedResponse()` helper; skip caches in dev |
 | `src/server/router.ts` | 4 | Single `new URL()`, pass `URL` object to sub-routers, sync/async split |
 | `src/api/router.ts` | 4, 7 | Accept pre-parsed `URL` parameter; add `Cache-Control` to JSON and docs responses |
-| `src/server/renderers/content.ts` | 3, 7 | Page cache `Map<string, string>` per slug; `htmlHeaders()` with edge caching |
-| `src/server/renderers/examples.ts` | 3, 4, 7 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()` |
-| `src/server/renderers/benchmarks.ts` | 3, 4, 7 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()` |
-| `src/server/renderers/homepage.ts` | 3, 7 | Page cache (single cached HTML string); `htmlHeaders()` with `s-maxage` |
+| `src/server/config.ts` | 8 | Added `IS_PROD` constant (`NODE_ENV === "production"`) |
+| `src/server/renderers/config.ts` | 8 | Re-export `IS_PROD` alongside `SITE` |
+| `src/server/renderers/content.ts` | 3, 7, 8 | Page cache `Map<string, string>` per slug; `htmlHeaders()` with edge caching; skip page cache in dev |
+| `src/server/renderers/examples.ts` | 3, 4, 7, 8 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()`; skip page cache in dev |
+| `src/server/renderers/benchmarks.ts` | 3, 4, 7, 8 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()`; skip page cache in dev |
+| `src/server/renderers/homepage.ts` | 3, 7, 8 | Page cache (single cached HTML string); `htmlHeaders()` with `s-maxage`; skip page + template cache in dev |
 | `src/server/sitemap.ts` | 5, 7 | Single batched `git log`, `resolveDate()` with directory prefix support; `CACHE_META` from `cache.ts` |
+| `examples/build.ts` | 8 | Hash `dist/index.js` instead of `src/`; auto-detect and rebuild stale vlist dist |
 | `ecosystem.config.cjs` | 6 | `instances: 2` for multi-core via `SO_REUSEPORT` |
 | `.gitignore` | 6 | Add `ecosystem.local.config.cjs` |
 | `.github/workflows/deploy.yml` | 7 | Add Cloudflare cache purge step after PM2 reload |
@@ -1096,10 +1179,8 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 | File | Reason |
 |------|--------|
 | `server.ts` | Already optimal — minimal `Bun.serve()` setup |
-| `src/server/config.ts` | Runs once at startup, `fs` calls are appropriate |
 | `src/server/config/eta.ts` | Already has singleton Eta instance with caching |
 | `src/server/renderers/base.ts` | Shell/nav loading already cached |
-| `src/server/renderers/config.ts` | Re-export only |
 | `src/server/renderers/index.ts` | Barrel export only |
 
 ---
@@ -1117,6 +1198,7 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 | Phase 5 | Startup time | Sitemap module: **1,289ms → 148ms** (8.7× faster); identical 410-line sitemap XML output |
 | Phase 6 | PM2 multi-instance | 2 instances, ~57MB each, zero-downtime reload confirmed |
 | Phase 7 | Cloudflare edge caching | `cf-cache-status: HIT` on all pages/assets; `s-maxage` headers verified; cache purge on deploy |
+| Phase 8 | Dev cache staleness | Stale builds eliminated; auto-rebuild vlist dist; no server restart needed after rebuilds |
 
 ### Functional Regression Checklist
 
