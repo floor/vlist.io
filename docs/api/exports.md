@@ -227,6 +227,75 @@ function withMyFeature(): VListFeature {
 }
 ```
 
+### BuilderContext
+
+The internal interface that features receive during `setup()`. Provides access to core components, mutable state, and registration points for handlers, methods, and cleanup callbacks.
+
+```ts
+interface BuilderContext<T extends VListItem = VListItem> {
+  // Core components (always present)
+  readonly dom:        DOMStructure
+  readonly sizeCache:  SizeCache
+  readonly emitter:    Emitter<VListEvents<T>>
+  readonly config:     ResolvedBuilderConfig
+  readonly rawConfig:  BuilderConfig<T>
+
+  // Mutable components (replaceable by features)
+  renderer:         Renderer<T>
+  dataManager:      SimpleDataManager<T>
+  scrollController: ScrollController
+
+  // State
+  state: BuilderState
+
+  // Handler registration slots
+  afterScroll:          Array<(scrollPosition: number, direction: string) => void>
+  clickHandlers:        Array<(event: MouseEvent) => void>
+  keydownHandlers:      Array<(event: KeyboardEvent) => void>
+  resizeHandlers:       Array<(width: number, height: number) => void>
+  contentSizeHandlers:  Array<() => void>
+  destroyHandlers:      Array<() => void>
+
+  // Public method registration
+  methods: Map<string, Function>
+
+  // Component replacement
+  replaceTemplate(template: ItemTemplate<T>): void
+  replaceRenderer(renderer: Renderer<T>): void
+  replaceDataManager(dataManager: SimpleDataManager<T>): void
+  replaceScrollController(scrollController: ScrollController): void
+
+  // Helpers
+  getItemsForRange(range: Range): T[]
+  getAllLoadedItems(): T[]
+  getVirtualTotal(): number
+  getCachedCompression(): CompressionState
+  getCompressionContext(): CompressionContext
+  renderIfNeeded(): void
+  forceRender(): void
+  invalidateRendered(): void
+  getRenderFns(): { renderIfNeeded: () => void; forceRender: () => void }
+  getContainerWidth(): number
+  setVirtualTotalFn(fn: () => number): void
+  rebuildSizeCache(total?: number): void
+  setSizeConfig(config: number | ((index: number) => number)): void
+  updateContentSize(totalSize: number): void
+  updateCompressionMode(): void
+  setVisibleRangeFn(fn: VisibleRangeFn): void
+  setScrollToPosFn(fn: ScrollToIndexFn): void
+  setPositionElementFn(fn: (element: HTMLElement, index: number) => void): void
+  setRenderFns(renderIfNeeded: () => void, forceRender: () => void): void
+  setScrollFns(getTop: () => number, setTop: (pos: number) => void): void
+  setScrollTarget(target: HTMLElement | Window): void
+  getScrollTarget(): HTMLElement | Window
+  setContainerDimensions(getter: { width: () => number; height: () => number }): void
+  disableViewportResize(): void
+  disableWheelHandler(): void
+}
+```
+
+For related type definitions (`BuilderState`, `ResolvedBuilderConfig`, `VListFeature`), see [Types — Builder Types](./types.md#builder-types).
+
 ### BuilderContext hooks
 
 | Hook | Type | Description |

@@ -4,11 +4,74 @@
 
 ---
 
+## Public API
+
+The instance returned by `.build()`. Always-available methods are required properties. Feature methods are optional — they exist only when the corresponding feature is registered via `.use()`.
+
+### VList
+
+```typescript
+interface VList<T extends VListItem = VListItem> {
+  // Properties
+  readonly element: HTMLElement
+  readonly items:   readonly T[]
+  readonly total:   number
+
+  // Data methods (always available)
+  setItems:     (items: T[]) => void
+  appendItems:  (items: T[]) => void
+  prependItems: (items: T[]) => void
+  updateItem:   (id: string | number, updates: Partial<T>) => void
+  removeItem:   (id: string | number) => void
+  reload:       () => Promise<void>
+
+  // Scroll methods (always available)
+  scrollToIndex:    (index: number, alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions) => void
+  cancelScroll:     () => void
+  getScrollPosition: () => number
+
+  // Events (always available)
+  on:  <K extends keyof VListEvents<T>>(event: K, handler: EventHandler<VListEvents<T>[K]>) => Unsubscribe
+  off: <K extends keyof VListEvents<T>>(event: K, handler: EventHandler<VListEvents<T>[K]>) => void
+
+  // Lifecycle
+  destroy: () => void
+
+  // Feature methods (present only when feature is registered)
+  select?:            (...ids: Array<string | number>) => void
+  deselect?:          (...ids: Array<string | number>) => void
+  toggleSelect?:      (id: string | number) => void
+  selectAll?:         () => void
+  clearSelection?:    () => void
+  getSelected?:       () => Array<string | number>
+  getSelectedItems?:  () => T[]
+  getScrollSnapshot?: () => ScrollSnapshot
+  restoreScroll?:     (snapshot: ScrollSnapshot) => void
+
+  // Extensible — features add arbitrary methods
+  [key: string]: unknown
+}
+```
+
+**Always available:**
+- Data: `setItems`, `appendItems`, `prependItems`, `updateItem`, `removeItem`, `reload`
+- Scroll: `scrollToIndex`, `cancelScroll`, `getScrollPosition`
+- Events: `on`, `off`
+- Lifecycle: `destroy`
+
+**Added by features:**
+- `select`, `deselect`, `toggleSelect`, `selectAll`, `clearSelection`, `getSelected`, `getSelectedItems` — added by `withSelection`
+- `getScrollSnapshot`, `restoreScroll` — added by `withSnapshots`
+
+> **Note:** There is no `scrollToItem(id)` method. If you need to scroll to an item by ID, maintain your own `id → index` map and call `scrollToIndex`.
+
+---
+
 ## Item Types
 
-### VListItem
+The base constraint for all list data. The only requirement is a unique `id` — add any fields your template needs.
 
-Base interface all items must implement. The only constraint is a unique `id` — add any other fields your template needs.
+### VListItem
 
 ```typescript
 interface VListItem {
@@ -32,6 +95,8 @@ interface User extends VListItem {
 ---
 
 ## Configuration Types
+
+Configuration interfaces — from top-level `BuilderConfig` down to item sizing, scroll behavior, and scrollbar options.
 
 ### BuilderConfig
 
@@ -288,9 +353,9 @@ interface ScrollSnapshot {
 
 ## Selection Types
 
-### SelectionConfig
+Selection state and configuration, used by `withSelection()`.
 
-Selection configuration, passed to `withSelection()`.
+### SelectionConfig
 
 ```typescript
 interface SelectionConfig {
@@ -325,9 +390,9 @@ interface SelectionState {
 
 ## Adapter Types
 
-### VListAdapter
+Async data loading interfaces — define how vlist fetches, paginates, and receives remote data via `withAsync()`.
 
-Adapter for async data loading, passed to `withAsync()`.
+### VListAdapter
 
 ```typescript
 interface VListAdapter<T extends VListItem = VListItem> {
@@ -377,6 +442,8 @@ interface AdapterResponse<T extends VListItem = VListItem> {
 
 ## State Types
 
+Runtime state exposed through events and the builder context — viewport geometry, scroll position, and visible ranges.
+
 ### ViewportState
 
 The internal state of the virtual viewport. Updated on every scroll and resize.
@@ -420,9 +487,9 @@ interface Range {
 
 ## Event Types
 
-### VListEvents
+Event names and their payloads. Subscribe with `list.on(event, handler)`. See [Events](./events.md) for detailed documentation of each event.
 
-All events and their payloads. See [Events](./events.md) for detailed documentation.
+### VListEvents
 
 ```typescript
 interface VListEvents<T extends VListItem = VListItem> {
@@ -456,6 +523,8 @@ type Unsubscribe = () => void
 ---
 
 ## Feature Types
+
+Configuration interfaces for layout and behavior features — groups, grid, and masonry.
 
 ### GroupsConfig
 
@@ -511,7 +580,9 @@ interface MasonryConfig {
 
 ---
 
-## Builder & Feature Types
+## Builder Types
+
+The builder pattern types — how features are registered and how the list is materialized.
 
 ### VListBuilder
 
@@ -553,75 +624,6 @@ interface VListFeature<T extends VListItem = VListItem> {
 | `methods` | `string[]` | — | Methods this feature adds to the public API. |
 | `conflicts` | `string[]` | — | Features this feature cannot be combined with. |
 
-### BuilderContext
-
-The internal interface that features receive during `setup()`. Provides access to core components, mutable state, and registration points for handlers, methods, and cleanup callbacks.
-
-```typescript
-interface BuilderContext<T extends VListItem = VListItem> {
-  // Core components (always present)
-  readonly dom:        DOMStructure
-  readonly sizeCache:  SizeCache
-  readonly emitter:    Emitter<VListEvents<T>>
-  readonly config:     ResolvedBuilderConfig
-  readonly rawConfig:  BuilderConfig<T>
-
-  // Mutable components (replaceable by features)
-  renderer:         Renderer<T>
-  dataManager:      SimpleDataManager<T>
-  scrollController: ScrollController
-
-  // State
-  state: BuilderState
-
-  // Handler registration slots
-  afterScroll:          Array<(scrollPosition: number, direction: string) => void>
-  clickHandlers:        Array<(event: MouseEvent) => void>
-  keydownHandlers:      Array<(event: KeyboardEvent) => void>
-  resizeHandlers:       Array<(width: number, height: number) => void>
-  contentSizeHandlers:  Array<() => void>
-  destroyHandlers:      Array<() => void>
-
-  // Public method registration
-  methods: Map<string, Function>
-
-  // Component replacement
-  replaceTemplate(template: ItemTemplate<T>): void
-  replaceRenderer(renderer: Renderer<T>): void
-  replaceDataManager(dataManager: SimpleDataManager<T>): void
-  replaceScrollController(scrollController: ScrollController): void
-
-  // Helpers
-  getItemsForRange(range: Range): T[]
-  getAllLoadedItems(): T[]
-  getVirtualTotal(): number
-  getCachedCompression(): CompressionState
-  getCompressionContext(): CompressionContext
-  renderIfNeeded(): void
-  forceRender(): void
-  invalidateRendered(): void
-  getRenderFns(): { renderIfNeeded: () => void; forceRender: () => void }
-  getContainerWidth(): number
-  setVirtualTotalFn(fn: () => number): void
-  rebuildSizeCache(total?: number): void
-  setSizeConfig(config: number | ((index: number) => number)): void
-  updateContentSize(totalSize: number): void
-  updateCompressionMode(): void
-  setVisibleRangeFn(fn: VisibleRangeFn): void
-  setScrollToPosFn(fn: ScrollToIndexFn): void
-  setPositionElementFn(fn: (element: HTMLElement, index: number) => void): void
-  setRenderFns(renderIfNeeded: () => void, forceRender: () => void): void
-  setScrollFns(getTop: () => number, setTop: (pos: number) => void): void
-  setScrollTarget(target: HTMLElement | Window): void
-  getScrollTarget(): HTMLElement | Window
-  setContainerDimensions(getter: { width: () => number; height: () => number }): void
-  disableViewportResize(): void
-  disableWheelHandler(): void
-}
-```
-
-For feature authoring details, see [Exports](./exports.md).
-
 ### BuilderState
 
 Mutable state stored inside `BuilderContext`.
@@ -651,72 +653,13 @@ interface ResolvedBuilderConfig {
 }
 ```
 
----
-
-## Public API Types
-
-### VList
-
-The instance returned by `.build()`. Always-available methods are required properties. Feature methods are optional — they exist only when the corresponding feature is registered via `.use()`.
-
-```typescript
-interface VList<T extends VListItem = VListItem> {
-  // Properties
-  readonly element: HTMLElement
-  readonly items:   readonly T[]
-  readonly total:   number
-
-  // Data methods (always available)
-  setItems:     (items: T[]) => void
-  appendItems:  (items: T[]) => void
-  prependItems: (items: T[]) => void
-  updateItem:   (id: string | number, updates: Partial<T>) => void
-  removeItem:   (id: string | number) => void
-  reload:       () => Promise<void>
-
-  // Scroll methods (always available)
-  scrollToIndex:    (index: number, alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions) => void
-  cancelScroll:     () => void
-  getScrollPosition: () => number
-
-  // Events (always available)
-  on:  <K extends keyof VListEvents<T>>(event: K, handler: EventHandler<VListEvents<T>[K]>) => Unsubscribe
-  off: <K extends keyof VListEvents<T>>(event: K, handler: EventHandler<VListEvents<T>[K]>) => void
-
-  // Lifecycle
-  destroy: () => void
-
-  // Feature methods (present only when feature is registered)
-  select?:            (...ids: Array<string | number>) => void
-  deselect?:          (...ids: Array<string | number>) => void
-  toggleSelect?:      (id: string | number) => void
-  selectAll?:         () => void
-  clearSelection?:    () => void
-  getSelected?:       () => Array<string | number>
-  getSelectedItems?:  () => T[]
-  getScrollSnapshot?: () => ScrollSnapshot
-  restoreScroll?:     (snapshot: ScrollSnapshot) => void
-
-  // Extensible — features add arbitrary methods
-  [key: string]: unknown
-}
-```
-
-**Always available:**
-- Data: `setItems`, `appendItems`, `prependItems`, `updateItem`, `removeItem`, `reload`
-- Scroll: `scrollToIndex`, `cancelScroll`, `getScrollPosition`
-- Events: `on`, `off`
-- Lifecycle: `destroy`
-
-**Added by features:**
-- `select`, `deselect`, `toggleSelect`, `selectAll`, `clearSelection`, `getSelected`, `getSelectedItems` — added by `withSelection`
-- `getScrollSnapshot`, `restoreScroll` — added by `withSnapshots`
-
-> **Note:** There is no `scrollToItem(id)` method. If you need to scroll to an item by ID, maintain your own `id → index` map and call `scrollToIndex`.
+For the full `BuilderContext` interface and feature authoring guide, see [Exports — Feature Authoring](./exports.md#feature-authoring).
 
 ---
 
 ## Rendering Types
+
+Internal rendering infrastructure — size caches, DOM structure, compression, element pooling. Most users won't need these directly; they're documented for feature authors and advanced integrations.
 
 ### SizeCache
 
@@ -823,9 +766,9 @@ interface ElementPool {
 
 ## Emitter Types
 
-### Emitter
+The type-safe event emitter used internally and available as a standalone export via `createEmitter()`.
 
-Type-safe event emitter created by `createEmitter()`.
+### Emitter
 
 ```typescript
 interface Emitter<T extends EventMap> {
@@ -844,33 +787,6 @@ Base type for event maps.
 
 ```typescript
 type EventMap = Record<string, unknown>
-```
-
----
-
-## Deprecated Types
-
-### ScrollbarConfig
-
-Legacy scrollbar configuration. Use `scroll.scrollbar` in `BuilderConfig` instead.
-
-```typescript
-/** @deprecated Use ScrollConfig.scrollbar instead */
-interface ScrollbarConfig {
-  enabled?:       boolean
-  autoHide?:      boolean
-  autoHideDelay?: number
-  minThumbSize?:  number
-}
-```
-
-### GridHeightContext
-
-Renamed to `GridSizeContext`. The old name is kept as a type alias for backwards compatibility.
-
-```typescript
-/** @deprecated Use GridSizeContext instead */
-type GridHeightContext = GridSizeContext
 ```
 
 ---
@@ -949,12 +865,30 @@ const adapter: VListAdapter<Article> = {
 
 ---
 
+## Summary
+
+| Category | Types | Purpose |
+|----------|-------|---------|
+| **Public API** | `VList` | Instance methods, properties, and events |
+| **Item** | `VListItem` | Base item constraint |
+| **Configuration** | `BuilderConfig`, `VListConfig`, `ItemConfig`, `GridSizeContext`, `ItemTemplate`, `ItemState`, `ScrollConfig`, `ScrollbarOptions`, `ScrollToOptions`, `ScrollSnapshot` | All config interfaces from top-level down to scroll options |
+| **Selection** | `SelectionConfig`, `SelectionMode`, `SelectionState` | Selection mode and state |
+| **Adapter** | `VListAdapter`, `AdapterParams`, `AdapterResponse` | Async data loading |
+| **State** | `ViewportState`, `Range` | Runtime viewport geometry |
+| **Events** | `VListEvents`, `EventHandler`, `Unsubscribe` | Event names, payloads, and subscription |
+| **Features** | `GroupsConfig`, `GridConfig`, `MasonryConfig` | Feature configuration |
+| **Builder** | `VListBuilder`, `VListFeature`, `BuilderState`, `ResolvedBuilderConfig` | Builder pattern and feature interface |
+| **Rendering** | `SizeCache`, `DOMStructure`, `CompressionContext`, `CompressionState`, `Renderer`, `ElementPool` | Internal rendering infrastructure |
+| **Emitter** | `Emitter`, `EventMap` | Type-safe event emitter |
+
+---
+
 ## Related
 
 - [API Reference](./reference.md) — Config, properties, and methods
 - [Events](./events.md) — All events and payloads
 - [Constants](./constants.md) — Default values and thresholds
-- [Exports](./exports.md) — Low-level utilities and feature authoring
+- [Exports](./exports.md) — Low-level utilities, `BuilderContext`, and feature authoring
 - [Features](../features/overview.md) — All features with examples and compatibility
 
 ---
