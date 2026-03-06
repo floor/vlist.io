@@ -155,6 +155,14 @@ describe("files", () => {
     });
   });
 
+  describe("error handling", () => {
+    test("throws for non-existent directory within allowed root", async () => {
+      await expect(
+        listDirectory("vlist.dev/this-directory-does-not-exist-12345"),
+      ).rejects.toThrow("Failed to read directory");
+    });
+  });
+
   describe("security", () => {
     test("cannot access parent directories outside base", async () => {
       // These paths attempt to escape the base directory

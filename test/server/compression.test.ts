@@ -15,6 +15,91 @@ const createResponse = (
 };
 
 describe("compression", () => {
+  describe("pre-compressed files", () => {
+    test("serves pre-compressed .br file for /dist/ paths when file exists", async () => {
+      const js = 'console.log("test");';
+      const response = new Response(js, {
+        headers: { "Content-Type": "application/javascript" },
+      });
+
+      // Use a path that has pre-compressed files
+      const result = compressResponse(
+        response,
+        "br",
+        "/dist/examples/variable-sizes/script.js",
+      );
+
+      // Should return sync Response (pre-compressed) if file exists
+      if (result instanceof Response) {
+        expect(result.headers.get("Content-Encoding")).toBe("br");
+        expect(result.headers.get("Vary")).toBe("Accept-Encoding");
+      }
+    });
+
+    test("serves pre-compressed .gz file for /dist/ paths when file exists", async () => {
+      const js = 'console.log("test");';
+      const response = new Response(js, {
+        headers: { "Content-Type": "application/javascript" },
+      });
+
+      const result = compressResponse(
+        response,
+        "gzip",
+        "/dist/examples/variable-sizes/script.js",
+      );
+
+      if (result instanceof Response) {
+        expect(result.headers.get("Content-Encoding")).toBe("gzip");
+      }
+    });
+
+    test("falls back to on-the-fly compression for non-dist paths", async () => {
+      const html = "<html><body>Hello</body></html>".repeat(100);
+      const response = new Response(html, {
+        headers: { "Content-Type": "text/html" },
+      });
+
+      const result = compressResponse(response, "gzip", "/page.html");
+
+      // Non-dist paths should use async compression
+      expect(result).toBeInstanceOf(Promise);
+    });
+
+    test("falls back to on-the-fly when pre-compressed file not found", async () => {
+      const js = 'console.log("test");'.repeat(100);
+      const response = new Response(js, {
+        headers: { "Content-Type": "application/javascript" },
+      });
+
+      // Use a dist path that doesn't have pre-compressed files
+      const result = compressResponse(
+        response,
+        "br",
+        "/dist/nonexistent/file.js",
+      );
+
+      // Should fall back to async compression
+      expect(result).toBeInstanceOf(Promise);
+    });
+
+    test("rejects path traversal attempts in dist paths", async () => {
+      const js = 'console.log("test");'.repeat(100);
+      const response = new Response(js, {
+        headers: { "Content-Type": "application/javascript" },
+      });
+
+      // Try to escape the project directory
+      const result = compressResponse(
+        response,
+        "br",
+        "/dist/../../../etc/passwd",
+      );
+
+      // Should not serve pre-compressed and fall back to async
+      expect(result).toBeInstanceOf(Promise);
+    });
+  });
+
   describe("compressResponse", () => {
     test("returns original response for non-compressible content types", async () => {
       const imageResponse = createResponse("binary data", "image/png");

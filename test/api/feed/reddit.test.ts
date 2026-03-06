@@ -240,6 +240,8 @@ describe("feed/reddit", () => {
         { author: "john_doe" },
         { author: "SingleName" },
         { author: "a" },
+        { author: "" }, // empty author
+        { author: "   " }, // whitespace only
       ]);
 
       globalThis.fetch = mock(() =>
@@ -254,6 +256,8 @@ describe("feed/reddit", () => {
       expect(result.posts[0].initials).toBe("JD");
       expect(result.posts[1].initials).toBe("SI");
       expect(result.posts[2].initials).toBe("A");
+      expect(result.posts[3].initials).toBe("?"); // empty string fallback
+      expect(result.posts[4].initials).toBe("?"); // whitespace fallback
     });
 
     test("generates deterministic avatar colors", async () => {
@@ -382,6 +386,8 @@ describe("feed/reddit", () => {
         { created_utc: now - 1800 }, // 30 minutes ago
         { created_utc: now - 7200 }, // 2 hours ago
         { created_utc: now - 86400 }, // 1 day ago
+        { created_utc: now - 86400 * 45 }, // 45 days ago (~1.5 months)
+        { created_utc: now - 86400 * 400 }, // 400 days ago (~13 months)
       ]);
 
       globalThis.fetch = mock(() =>
@@ -397,6 +403,8 @@ describe("feed/reddit", () => {
       expect(result.posts[1].time).toBe("30m ago");
       expect(result.posts[2].time).toBe("2h ago");
       expect(result.posts[3].time).toBe("1d ago");
+      expect(result.posts[4].time).toBe("1mo ago");
+      expect(result.posts[5].time).toBe("1y ago");
     });
 
     test("filters out non-post items", async () => {

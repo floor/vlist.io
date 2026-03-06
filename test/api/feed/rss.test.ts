@@ -256,6 +256,32 @@ describe("feed/rss", () => {
       expect(result.posts[1].initials).toBe("SI");
     });
 
+    test("handles empty author with fallback initials", async () => {
+      const feed = `<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title></title>
+    <item>
+      <title>Post</title>
+      <link>https://example.com</link>
+      <author></author>
+    </item>
+  </channel>
+</rss>`;
+
+      globalThis.fetch = mock(() =>
+        Promise.resolve(new Response(feed)),
+      );
+
+      const result = await rssSource.fetch({
+        target: "https://example.com/feed.xml",
+        limit: 10,
+      });
+
+      // Empty author and empty feed title should result in "Unknown" -> "UN"
+      expect(result.posts[0].initials).toBe("UN");
+    });
+
     test("falls back to feed title when no author", async () => {
       const feed = createRssFeed([
         createRssItem({ title: "No Author Post" }),
@@ -401,6 +427,26 @@ describe("feed/rss", () => {
       expect(result.posts[0].text).toBe('"Hello" \'World\'');
     });
 
+    test("decodes numeric XML entities (decimal and hex)", async () => {
+      const feed = createRssFeed([
+        createRssItem({
+          title: "Heart &#60;3 and &#x2665;",
+          description: "Emoji &#128512; and hex &#x1F600;",
+        }),
+      ]);
+
+      globalThis.fetch = mock(() =>
+        Promise.resolve(new Response(feed)),
+      );
+
+      const result = await rssSource.fetch({
+        target: "https://example.com/feed.xml",
+        limit: 10,
+      });
+
+      expect(result.posts[0].title).toBe("Heart <3 and ♥");
+    });
+
     test("handles missing optional fields gracefully", async () => {
       const feed = `<?xml version="1.0"?>
 <rss version="2.0">
@@ -540,6 +586,97 @@ describe("feed/rss", () => {
       });
 
       expect(result.posts[0].image?.url).toContain("/standard/800/");
+    });
+
+    test("upgrades NYT image URLs", async () => {
+      const feed = createRssFeed([
+        createRssItem({
+          enclosure: '<enclosure url="https://static01.nytimes.com/images/photo-thumbStandard.jpg" type="image/jpeg" />',
+        }),
+      ]);
+
+      globalThis.fetch = mock(() =>
+        Promise.resolve(new Response(feed)),
+      );
+
+      const result = await rssSource.fetch({
+        target: "https://rss.nytimes.com/feed.xml",
+        limit: 10,
+      });
+
+      expect(result.posts[0].image?.url).toContain("-superJumbo");
+      expect(result.posts[0].image?.url).not.toContain("-thumbStandard");
+    });
+
+    test("upgrades Ars Technica image URLs", async () => {
+      const feed = createRssFeed([
+        createRssItem({
+          enclosure: '<enclosure url="https://cdn.arstechnica.net/wp-content/uploads/2024/640x480/image.jpg" type="image/jpeg" />',
+        }),
+      ]);
+
+      globalThis.fetch = mock(() =>
+        Promise.resolve(new Response(feed)),
+      );
+
+      const result = await rssSource.fetch({
+        target: "https://feeds.arstechnica.com/feed.xml",
+        limit: 10,
+      });
+
+      expect(result.posts[0].image?.url).not.toMatch(/\/\d+x\d+\//);
+    });
+
+    test("extracts images from media:content", async () => {
+      const feed = `<?xml version="1.0"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Media Feed</title>
+    <item>
+      <title>Post with media</title>
+      <link>https://example.com</link>
+      <media:content url="https://example.com/media-image.jpg" type="image/jpeg" />
+    </item>
+  </channel>
+</rss>`;
+
+      globalThis.fetch = mock(() =>
+        Promise.resolve(new Response(feed)),
+      );
+
+      const result = await rssSource.fetch({
+        target: "https://example.com/feed.xml",
+        limit: 10,
+      });
+
+      expect(result.posts[0].hasImage).toBe(true);
+      expect(result.posts[0].image?.url).toBe("https://example.com/media-image.jpg");
+    });
+
+    test("extracts images from media:thumbnail", async () => {
+      const feed = `<?xml version="1.0"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Thumbnail Feed</title>
+    <item>
+      <title>Post with thumbnail</title>
+      <link>https://example.com</link>
+      <media:thumbnail url="https://example.com/thumb.jpg" />
+    </item>
+  </channel>
+</rss>`;
+
+      globalThis.fetch = mock(() =>
+        Promise.resolve(new Response(feed)),
+      );
+
+      const result = await rssSource.fetch({
+        target: "https://example.com/feed.xml",
+        limit: 10,
+      });
+
+      expect(result.posts[0].hasImage).toBe(true);
+      expect(result.posts[0].image?.url).toBe("https://example.com/thumb.jpg");
     });
 
     test("returns total as posts length", async () => {
