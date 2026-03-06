@@ -25,17 +25,51 @@ list.on('item:click', handler)
 list.off('item:click', handler)
 ```
 
-For one-time events, use the emitter's `once` method (available on the internal emitter, not the public API):
+### Collecting subscriptions
+
+Store unsubscribe functions for batch cleanup:
 
 ```typescript
-emitter.once('load:end', ({ items }) => {
+const subscriptions: Unsubscribe[] = []
+
+subscriptions.push(list.on('scroll', handleScroll))
+subscriptions.push(list.on('selection:change', handleSelection))
+
+// Cleanup
+subscriptions.forEach(unsub => unsub())
+```
+
+### Error isolation
+
+Event handlers are wrapped in try-catch — one handler throwing won't break others:
+
+```typescript
+listeners[event]?.forEach((handler) => {
+  try {
+    handler(payload)
+  } catch (error) {
+    console.error(`[vlist] Error in event handler for "${event}":`, error)
+  }
+})
+```
+
+### Once (emitter only)
+
+The internal emitter exposes a `once` method for one-time subscriptions. This is available to feature authors via `BuilderContext`, not on the public `VList` API:
+
+```typescript
+ctx.emitter.once('load:end', ({ items }) => {
   console.log('First load complete:', items.length)
 })
 ```
 
+See [Exports](./exports.md#event-emitter) for the standalone `createEmitter` factory.
+
 ---
 
 ## Interaction Events
+
+User-driven events — clicks, double-clicks, and selection changes.
 
 ### item:click
 
@@ -87,6 +121,8 @@ list.on('selection:change', ({ selected, items }) => {
 ---
 
 ## Scroll Events
+
+Scroll position, velocity, and visible range updates — fired on every scroll frame.
 
 ### scroll
 
@@ -140,9 +176,11 @@ list.on('range:change', ({ range }) => {
 
 ## Data Events
 
+Async loading lifecycle — request start, completion, and errors. Only emitted when `withAsync` is active.
+
 ### load:start
 
-Fired when an async data load begins. Only emitted when `withAsync` is active.
+Fired when an async data load begins.
 
 ```typescript
 list.on('load:start', ({ offset, limit }) => {
@@ -190,6 +228,8 @@ list.on('error', ({ error, context }) => {
 
 ## Lifecycle Events
 
+Container-level events — resize detection and future lifecycle hooks.
+
 ### resize
 
 Fired when the list container is resized (detected via `ResizeObserver`).
@@ -209,64 +249,20 @@ This event fires regardless of scroll orientation. Both dimensions are always pr
 
 ---
 
-## Complete Event Map
+## Summary
 
-```typescript
-interface VListEvents<T extends VListItem = VListItem> {
-  'item:click':        { item: T; index: number; event: MouseEvent }
-  'item:dblclick':     { item: T; index: number; event: MouseEvent }
-  'selection:change':  { selected: Array<string | number>; items: T[] }
-  'scroll':            { scrollPosition: number; direction: 'up' | 'down' }
-  'velocity:change':   { velocity: number; reliable: boolean }
-  'range:change':      { range: Range }
-  'load:start':        { offset: number; limit: number }
-  'load:end':          { items: T[]; total?: number; offset?: number }
-  'error':             { error: Error; context: string }
-  'resize':            { height: number; width: number }
-}
-```
-
----
-
-## Emitter Implementation
-
-### Error Isolation
-
-Event handlers are wrapped in try-catch to prevent one handler from breaking others:
-
-```typescript
-listeners[event]?.forEach((handler) => {
-  try {
-    handler(payload);
-  } catch (error) {
-    console.error(`[vlist] Error in event handler for "${event}":`, error);
-  }
-});
-```
-
-### Memory Management
-
-Listeners are stored in `Set`s for O(1) add/remove. The `on()` method returns an unsubscribe function, enabling clean cleanup:
-
-```typescript
-const subscriptions: Unsubscribe[] = []
-
-subscriptions.push(list.on('scroll', handleScroll))
-subscriptions.push(list.on('selection:change', handleSelection))
-
-// Cleanup
-subscriptions.forEach(unsub => unsub())
-```
-
-### createEmitter
-
-The low-level emitter factory, exported for feature authors:
-
-```typescript
-function createEmitter<T extends EventMap>(): Emitter<T>
-```
-
-Returns an object with `on`, `off`, `emit`, `once`, `clear`, and `listenerCount` methods. See [Types](./types.md#emitter) for the full interface.
+| Event | Category | Requires | Payload |
+|-------|----------|----------|---------|
+| `item:click` | Interaction | — | `{ item, index, event }` |
+| `item:dblclick` | Interaction | — | `{ item, index, event }` |
+| `selection:change` | Interaction | `withSelection` | `{ selected, items }` |
+| `scroll` | Scroll | — | `{ scrollPosition, direction }` |
+| `velocity:change` | Scroll | — | `{ velocity, reliable }` |
+| `range:change` | Scroll | — | `{ range }` |
+| `load:start` | Data | `withAsync` | `{ offset, limit }` |
+| `load:end` | Data | `withAsync` | `{ items, total?, offset? }` |
+| `error` | Data | `withAsync` | `{ error, context }` |
+| `resize` | Lifecycle | — | `{ height, width }` |
 
 ---
 
@@ -274,9 +270,9 @@ Returns an object with `on`, `off`, `emit`, `once`, `clear`, and `listenerCount`
 
 - [Types](./types.md#event-types) — `VListEvents`, `EventHandler`, `Unsubscribe`
 - [API Reference](./reference.md#on) — `on` and `off` method signatures
-- [Constants](./constants.md#scroll--velocity-tracking) — `VELOCITY_SAMPLE_COUNT`, `MIN_RELIABLE_SAMPLES`, `STALE_GAP_MS`
-- [Exports](./exports.md) — `createEmitter` for feature authoring
+- [Constants](./constants.md#velocity) — `VELOCITY_SAMPLE_COUNT`, `MIN_RELIABLE_SAMPLES`, `STALE_GAP_MS`
+- [Exports](./exports.md#event-emitter) — `createEmitter` for feature authoring
 
 ---
 
-*The event system provides clean decoupling between vlist internals and consumer code.*
+*All events are type-safe — TypeScript infers the payload type from the event name.*
