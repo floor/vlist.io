@@ -14,6 +14,7 @@
     --bg-sidebar: #101014;
     --bg-card: #141418;
     --bg-card-hover: #1a1a1f;
+    --surface-container: #18181e;
     --border: #1e1e25;
     --border-hover: #2e2e38;
     --accent: #4354a5;
@@ -98,6 +99,7 @@
     --bg-sidebar: #f5f5f8;
     --bg-card: #f0f0f5;
     --bg-card-hover: #e8e8f0;
+    --surface-container: #e8e8f0;
     --border: #dcdce5;
     --border-hover: #c0c0d0;
     --accent: #4a5cd8;

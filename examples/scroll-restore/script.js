@@ -115,7 +115,7 @@ function createList(snapshot) {
 
   // Footer updates
   list.on("scroll", stats.scheduleUpdate);
-  list.on("range:change", stats.scheduleUpdate);
+  list.on("range:change", ({ range }) => stats.onRange(range));
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
   list.on("selection:change", updateContext);
 

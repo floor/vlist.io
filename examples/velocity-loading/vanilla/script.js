@@ -182,6 +182,7 @@ const delayValueEl = document.getElementById("delay-value");
 const btnStart = document.getElementById("btn-start");
 const btnMiddle = document.getElementById("btn-middle");
 const btnEnd = document.getElementById("btn-end");
+const btnRandom = document.getElementById("btn-random");
 const btnReload = document.getElementById("btn-reload");
 const btnResetStats = document.getElementById("btn-reset-stats");
 
@@ -203,6 +204,10 @@ function scheduleSaveSnapshot() {
 list.on("scroll", () => {
   stats.scheduleUpdate();
   scheduleSaveSnapshot();
+});
+
+list.on("range:change", ({ range }) => {
+  stats.onRange(range);
 });
 
 list.on("velocity:change", ({ velocity }) => {
@@ -239,11 +244,11 @@ if (isRestoringSnapshot) {
 function updateDataSourceButtons() {
   const useRealApi = getUseRealApi();
   if (useRealApi) {
-    btnSimulated.classList.remove("button--active");
-    btnLiveApi.classList.add("button--active");
+    btnSimulated.classList.remove("ui-segmented__btn--active");
+    btnLiveApi.classList.add("ui-segmented__btn--active");
   } else {
-    btnSimulated.classList.add("button--active");
-    btnLiveApi.classList.remove("button--active");
+    btnSimulated.classList.add("ui-segmented__btn--active");
+    btnLiveApi.classList.remove("ui-segmented__btn--active");
   }
 }
 
@@ -294,6 +299,14 @@ btnMiddle.addEventListener("click", () => {
 btnEnd.addEventListener("click", () => {
   list.scrollToIndex(TOTAL_ITEMS - 1, {
     align: "end",
+    behavior: "smooth",
+  });
+});
+
+btnRandom.addEventListener("click", () => {
+  const index = Math.floor(Math.random() * TOTAL_ITEMS);
+  list.scrollToIndex(index, {
+    align: "center",
     behavior: "smooth",
   });
 });

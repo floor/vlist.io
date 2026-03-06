@@ -51,6 +51,8 @@
                     <label class="ui-label" for="scroll-index"
                         >Scroll to index</label
                     >
+                </div>
+                <div class="ui-row">
                     <div class="ui-input-group">
                         <input
                             type="number"
@@ -84,25 +86,44 @@
                 </div>
 
                 <div class="ui-row">
-                    <label class="ui-label">Quick jump</label>
                     <div class="ui-btn-group">
-                        <button id="btn-first" class="ui-btn">First</button>
-                        <button id="btn-middle" class="ui-btn">Middle</button>
-                        <button id="btn-last" class="ui-btn">Last</button>
-                        <button id="btn-random" class="ui-btn">Random</button>
+                        <button
+                            id="btn-first"
+                            class="ui-btn ui-btn--icon"
+                            title="First item"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-middle"
+                            class="ui-btn ui-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-last"
+                            class="ui-btn ui-btn--icon"
+                            title="Last item"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button
+                            id="btn-random"
+                            class="ui-btn ui-btn--icon"
+                            title="Random item"
+                        >
+                            <i class="icon icon--shuffle"></i>
+                        </button>
                     </div>
                 </div>
 
                 <div class="ui-row">
                     <label class="ui-label">Smooth scroll</label>
-                    <div class="ui-btn-group">
-                        <button id="btn-smooth-top" class="ui-btn">
-                            ↑ Top
-                        </button>
-                        <button id="btn-smooth-bottom" class="ui-btn">
-                            ↓ Bottom
-                        </button>
-                    </div>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="smooth-toggle" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
                 </div>
             </section>
 

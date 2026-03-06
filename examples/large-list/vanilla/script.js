@@ -144,7 +144,7 @@ function createList(sizeKey) {
 
   list.on("range:change", ({ range }) => {
     rangeEl.textContent = `${range.start.toLocaleString()} – ${range.end.toLocaleString()}`;
-    stats.scheduleUpdate();
+    stats.onRange(range);
   });
 
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
@@ -197,21 +197,27 @@ sizeButtons.addEventListener("click", (e) => {
 // Navigation controls
 // =============================================================================
 
+const smoothToggle = document.getElementById("smooth-toggle");
+
+/** Build scrollToIndex options respecting the smooth toggle */
+const scrollOpts = (align) =>
+  smoothToggle.checked ? { align, behavior: "smooth", duration: 800 } : align;
+
 document.getElementById("btn-first").addEventListener("click", () => {
-  list.scrollToIndex(0, "start");
+  list.scrollToIndex(0, scrollOpts("start"));
 });
 
 document.getElementById("btn-middle").addEventListener("click", () => {
-  list.scrollToIndex(Math.floor(SIZES[currentSize] / 2), "center");
+  list.scrollToIndex(Math.floor(SIZES[currentSize] / 2), scrollOpts("center"));
 });
 
 document.getElementById("btn-last").addEventListener("click", () => {
-  list.scrollToIndex(SIZES[currentSize] - 1, "end");
+  list.scrollToIndex(SIZES[currentSize] - 1, scrollOpts("end"));
 });
 
 document.getElementById("btn-random").addEventListener("click", () => {
   const idx = Math.floor(Math.random() * SIZES[currentSize]);
-  list.scrollToIndex(idx, "center");
+  list.scrollToIndex(idx, scrollOpts("center"));
   document.getElementById("scroll-index").value = idx;
 });
 
@@ -219,7 +225,10 @@ document.getElementById("btn-go").addEventListener("click", () => {
   const idx = parseInt(document.getElementById("scroll-index").value, 10);
   if (Number.isNaN(idx)) return;
   const align = document.getElementById("scroll-align").value;
-  list.scrollToIndex(Math.max(0, Math.min(idx, SIZES[currentSize] - 1)), align);
+  list.scrollToIndex(
+    Math.max(0, Math.min(idx, SIZES[currentSize] - 1)),
+    scrollOpts(align),
+  );
 });
 
 document.getElementById("scroll-index").addEventListener("keydown", (e) => {
@@ -227,18 +236,6 @@ document.getElementById("scroll-index").addEventListener("keydown", (e) => {
     e.preventDefault();
     document.getElementById("btn-go").click();
   }
-});
-
-document.getElementById("btn-smooth-top").addEventListener("click", () => {
-  list.scrollToIndex(0, { align: "start", behavior: "smooth", duration: 800 });
-});
-
-document.getElementById("btn-smooth-bottom").addEventListener("click", () => {
-  list.scrollToIndex(SIZES[currentSize] - 1, {
-    align: "end",
-    behavior: "smooth",
-    duration: 800,
-  });
 });
 
 // =============================================================================

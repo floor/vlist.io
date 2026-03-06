@@ -214,7 +214,7 @@ export function createList() {
   list = builder.build();
 
   list.on("scroll", stats.scheduleUpdate);
-  list.on("range:change", stats.scheduleUpdate);
+  list.on("range:change", ({ range }) => stats.onRange(range));
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
 
   // Wire selection events only when the feature is active
