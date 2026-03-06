@@ -7,12 +7,14 @@ import { createRoot } from "react-dom/client";
 import { useVList, useVListEvent } from "vlist-react";
 import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
+import { createFooterUpdater } from "../../footer.js";
 
 // =============================================================================
 // Stats (module-level — shared across remounts)
 // =============================================================================
 
 let statsInstance: ReturnType<typeof createStats> | null = null;
+let footerUpdater: (() => void) | null = null;
 
 // =============================================================================
 // Grid Container — keyed component that remounts on config change
@@ -53,9 +55,9 @@ function GridContainer({
   useEffect(() => {
     if (!statsInstance) {
       statsInstance = createStats({
-        getList: () => instanceRef.current,
+        getScrollPosition: () => instanceRef.current?.getScrollPosition() ?? 0,
         getTotal: () => ITEM_COUNT,
-        getItemHeight: () => {
+        getItemSize: () => {
           const el = document.getElementById("grid-container");
           if (!el) return 200;
           const innerWidth = el.clientWidth - 2;
@@ -64,22 +66,33 @@ function GridContainer({
             ? Math.round(colW * 1.05)
             : Math.round(colW * ASPECT_RATIO);
         },
-        container: "#grid-container",
+        getColumns: () => columns,
+        getContainerSize: () => {
+          const el = document.getElementById("grid-container");
+          if (!el) return 0;
+          return orientation === "horizontal"
+            ? el.clientWidth
+            : el.clientHeight;
+        },
       });
     }
-    statsInstance.update();
+    if (!footerUpdater) {
+      footerUpdater = createFooterUpdater(statsInstance);
+    }
+    footerUpdater();
   }, []);
 
   useVListEvent(instanceRef, "scroll", () => {
-    statsInstance?.scheduleUpdate();
+    footerUpdater?.();
   });
 
-  useVListEvent(instanceRef, "range:change", ({ range }) => {
-    statsInstance?.scheduleUpdate();
+  useVListEvent(instanceRef, "range:change", () => {
+    footerUpdater?.();
   });
 
   useVListEvent(instanceRef, "velocity:change", ({ velocity }) => {
     statsInstance?.onVelocity(velocity);
+    footerUpdater?.();
   });
 
   useVListEvent(instanceRef, "item:click", ({ item }) => {

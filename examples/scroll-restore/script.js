@@ -3,6 +3,7 @@
 
 import { vlist, withSelection, withSnapshots } from "vlist";
 import { createStats } from "../stats.js";
+import { createFooterUpdater } from "../footer.js";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -65,11 +66,14 @@ const ftSelectedEl = document.getElementById("ft-selected");
 // ---------------------------------------------------------------------------
 
 const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => TOTAL_ITEMS,
-  getItemHeight: () => ITEM_HEIGHT,
-  container: "#list-container",
+  getItemSize: () => ITEM_HEIGHT,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // ---------------------------------------------------------------------------
 // List management
@@ -114,12 +118,15 @@ function createList(snapshot) {
     .build();
 
   // Footer updates
-  list.on("scroll", stats.scheduleUpdate);
-  list.on("range:change", ({ range }) => stats.onRange(range));
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("scroll", updateFooter);
+  list.on("range:change", updateFooter);
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
   list.on("selection:change", updateContext);
 
-  stats.update();
+  updateFooter();
   updateContext();
 
   // Live snapshot preview (throttled)

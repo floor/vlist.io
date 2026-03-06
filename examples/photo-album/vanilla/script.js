@@ -4,6 +4,7 @@
 
 import { vlist, withGrid, withMasonry, withScrollbar } from "vlist";
 import { createStats } from "../../stats.js";
+import { createFooterUpdater } from "../../footer.js";
 import {
   ITEM_COUNT,
   ASPECT_RATIO,
@@ -34,11 +35,20 @@ function getEffectiveItemHeight() {
 }
 
 export const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => ITEM_COUNT,
-  getItemHeight: () => getEffectiveItemHeight(),
-  container: "#grid-container",
+  getItemSize: () => getEffectiveItemHeight(),
+  getColumns: () => currentColumns,
+  getContainerSize: () => {
+    const el = document.querySelector("#grid-container");
+    if (!el) return 0;
+    return currentOrientation === "horizontal"
+      ? el.clientWidth
+      : el.clientHeight;
+  },
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // Create / Recreate
@@ -66,13 +76,16 @@ function createView() {
   }
 
   // Wire events
-  list.on("scroll", stats.scheduleUpdate);
+  list.on("scroll", updateFooter);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex =
       currentMode === "grid" ? range.start * currentColumns : range.start;
-    stats.scheduleUpdate();
+    updateFooter();
   });
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   list.on("item:click", ({ item }) => {
     showDetail(item);
@@ -83,7 +96,7 @@ function createView() {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  stats.update();
+  updateFooter();
   updateContext();
 }
 

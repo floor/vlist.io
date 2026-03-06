@@ -5,6 +5,7 @@
 import { vlist, withTable, withSelection } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
+import { createFooterUpdater } from "../footer.js";
 import { initControls } from "./controls.js";
 
 // =============================================================================
@@ -281,11 +282,14 @@ const fallbackTemplate = () => "";
 // =============================================================================
 
 export const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => sortedContacts.length,
-  getItemHeight: () => currentRowHeight,
-  container: "#list-container",
+  getItemSize: () => currentRowHeight,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // Create / Recreate list
@@ -336,12 +340,15 @@ export function createList() {
   list = builder.build();
 
   // Wire events
-  list.on("scroll", stats.scheduleUpdate);
+  list.on("scroll", updateFooter);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex = range.start;
-    stats.onRange(range);
+    updateFooter();
   });
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   // Sort event — consumer handles actual sorting
   list.on("column:sort", ({ key, direction }) => {
@@ -367,7 +374,7 @@ export function createList() {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  stats.update();
+  updateFooter();
   updateContext();
 }
 

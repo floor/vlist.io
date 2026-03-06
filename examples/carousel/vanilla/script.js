@@ -5,6 +5,7 @@
 import { vlist } from "vlist";
 import { items, buildConfig, getDetailHtml, ASPECT_RATIO } from "../shared.js";
 import { createStats } from "../../stats.js";
+import { createFooterUpdater } from "../../footer.js";
 
 // Scale factor: maps height 200–500 → 0–1
 const MIN_HEIGHT = 200;
@@ -52,11 +53,14 @@ function getCurrentWidth() {
 }
 
 const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => items.length,
-  getItemHeight: () => getCurrentWidth() + currentGap,
-  container: "#list-container",
+  getItemSize: () => getCurrentWidth() + currentGap,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientWidth ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // Footer — right side (contextual)
@@ -89,15 +93,18 @@ function createList() {
     ...buildConfig(variableWidth, currentHeight, currentGap),
   }).build();
 
-  list.on("range:change", ({ range }) => stats.onRange(range));
-  list.on("scroll", stats.scheduleUpdate);
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("scroll", updateFooter);
+  list.on("range:change", updateFooter);
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   list.on("item:click", ({ item, index }) => {
     showDetail(item, index);
   });
 
-  stats.update();
+  updateFooter();
   updateContext();
 }
 

@@ -7,6 +7,7 @@
 import { vlist, withSelection } from "vlist";
 import { makeUsers } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
+import { createFooterUpdater } from "../footer.js";
 import "./controls.js";
 
 // =============================================================================
@@ -47,11 +48,14 @@ export const itemTemplate = (user, index) => `
 // =============================================================================
 
 export const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => TOTAL,
-  getItemHeight: () => ITEM_HEIGHT,
-  container: "#list-container",
+  getItemSize: () => ITEM_HEIGHT,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // ARIA Inspector — reads live attribute values from the vlist root element
@@ -213,9 +217,12 @@ export function createList() {
 
   list = builder.build();
 
-  list.on("scroll", stats.scheduleUpdate);
-  list.on("range:change", ({ range }) => stats.onRange(range));
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("scroll", updateFooter);
+  list.on("range:change", updateFooter);
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   // Wire selection events only when the feature is active
   if (selectionMode !== "none") {
@@ -245,7 +252,7 @@ export function createList() {
 
   updateInspector();
   updateSelectionUi();
-  stats.update();
+  updateFooter();
   updateContext();
   updateSelectionCount([]);
 }
