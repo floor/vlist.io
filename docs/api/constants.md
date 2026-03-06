@@ -4,7 +4,7 @@
 
 ---
 
-## Virtual Scrolling
+## Core
 
 ### OVERSCAN
 
@@ -28,7 +28,9 @@ All generated CSS classes use this prefix: `vlist`, `vlist-viewport`, `vlist-ite
 
 ---
 
-## Data Loading
+## Async Loading
+
+These constants control the data loading strategy used by `withAsync` — thresholds, batch sizes, and velocity-aware preloading. All are configurable via the `loading` option on `withAsync`.
 
 ### LOAD_THRESHOLD
 
@@ -56,11 +58,15 @@ Default load size for data manager operations.
 const LOAD_SIZE = 50;
 ```
 
----
+### PRELOAD_AHEAD
 
-## Velocity-Based Loading
+Number of items to preload ahead of the scroll direction.
 
-These constants control the velocity-based loading strategy used by `withAsync`. All three are configurable via the `loading` option on `withAsync`.
+```typescript
+const PRELOAD_AHEAD = 50;
+```
+
+Only applies when velocity is between `PRELOAD_VELOCITY_THRESHOLD` and `LOAD_VELOCITY_THRESHOLD`. Higher values help slow APIs; lower values suit heavy templates.
 
 ### LOAD_VELOCITY_THRESHOLD
 
@@ -82,19 +88,9 @@ const PRELOAD_VELOCITY_THRESHOLD = 2;
 
 At medium scroll speeds (between this and `LOAD_VELOCITY_THRESHOLD`), extra items are preloaded ahead of the scroll direction to reduce visible placeholder flicker.
 
-### PRELOAD_AHEAD
-
-Number of items to preload ahead of the scroll direction.
-
-```typescript
-const PRELOAD_AHEAD = 50;
-```
-
-Only applies when velocity is between `PRELOAD_VELOCITY_THRESHOLD` and `LOAD_VELOCITY_THRESHOLD`. Higher values help slow APIs; lower values suit heavy templates.
-
 ---
 
-## Compression (Large Lists)
+## Scale
 
 ### MAX_VIRTUAL_SIZE
 
@@ -105,6 +101,32 @@ const MAX_VIRTUAL_SIZE = 16_000_000;  // 16M pixels
 ```
 
 Browsers have a maximum element size limit (~16.7M pixels). When total content size exceeds this, vlist switches to compressed mode with remapped scroll math. See [Scale](../features/scale.md) for details.
+
+---
+
+## Scrolling
+
+### SCROLL_IDLE_TIMEOUT
+
+Default timeout for scroll idle detection in milliseconds.
+
+```typescript
+const SCROLL_IDLE_TIMEOUT = 150;
+```
+
+Determines when scrolling has "stopped" for scrollbar auto-hide, idle callbacks, post-scroll cleanup, and re-enabling CSS transitions (removing `.vlist--scrolling` class).
+
+This value is configurable via the `scroll.idleTimeout` option on `BuilderConfig`. See [Optimization](/tutorials/optimization#configuration-options) for tuning tips.
+
+### WHEEL_SENSITIVITY
+
+Default wheel sensitivity multiplier.
+
+```typescript
+const WHEEL_SENSITIVITY = 1;
+```
+
+Allows adjusting scroll speed in compressed mode.
 
 ---
 
@@ -135,6 +157,75 @@ const SCROLLBAR_MIN_THUMB_SIZE = 30;
 ```
 
 Ensures the thumb is always large enough to click and drag, even for very large lists.
+
+---
+
+## Sparse Storage
+
+### CHUNK_SIZE
+
+Default number of items per storage chunk.
+
+```typescript
+const CHUNK_SIZE = 100;
+```
+
+### MAX_CACHED_ITEMS
+
+Default maximum items to keep in memory.
+
+```typescript
+const MAX_CACHED_ITEMS = 10_000;
+```
+
+### EVICTION_BUFFER
+
+Extra items to keep around the visible range during eviction.
+
+```typescript
+const EVICTION_BUFFER = 500;
+```
+
+---
+
+## Velocity
+
+vlist has **two independent velocity trackers** with different constants:
+
+| Tracker | Location | Samples | Min Reliable | Purpose |
+|---------|----------|---------|--------------|---------|
+| **Builder** | `builder/velocity.ts` | 5 | 2 | Emits `velocity:change` events, drives async loading decisions |
+| **ScrollController** | `features/scrollbar/controller.ts` | 8 | 3 | Controls scrollbar thumb behavior and scroll idle detection |
+
+The builder tracker is tuned for responsiveness (fewer samples, faster reliable signal). The scrollbar tracker is tuned for stability (more samples, smoother velocity readings).
+
+### VELOCITY_SAMPLE_COUNT
+
+Number of samples in the builder velocity tracker's circular buffer.
+
+```typescript
+const VELOCITY_SAMPLE_COUNT = 5;
+```
+
+### MIN_RELIABLE_SAMPLES
+
+Minimum samples needed before the builder velocity tracker readings are considered reliable.
+
+```typescript
+const MIN_RELIABLE_SAMPLES = 2;
+```
+
+The `velocity:change` event includes a `reliable` flag that is `true` when `sampleCount >= MIN_RELIABLE_SAMPLES`.
+
+### STALE_GAP_MS
+
+Maximum time gap (ms) between samples before the buffer is considered stale.
+
+```typescript
+const STALE_GAP_MS = 100;
+```
+
+After a pause longer than 100ms, previous samples no longer represent the current scroll gesture. The velocity tracker resets its buffer and starts measuring fresh. Set below the idle timeout (150ms) so stale detection triggers before idle.
 
 ---
 
@@ -178,99 +269,6 @@ Ensures placeholder IDs don't collide with real item IDs.
 
 ---
 
-## Sparse Storage
-
-### CHUNK_SIZE
-
-Default number of items per storage chunk.
-
-```typescript
-const CHUNK_SIZE = 100;
-```
-
-### MAX_CACHED_ITEMS
-
-Default maximum items to keep in memory.
-
-```typescript
-const MAX_CACHED_ITEMS = 10_000;
-```
-
-### EVICTION_BUFFER
-
-Extra items to keep around the visible range during eviction.
-
-```typescript
-const EVICTION_BUFFER = 500;
-```
-
----
-
-## Scroll & Velocity Tracking
-
-vlist has **two independent velocity trackers** with different constants:
-
-| Tracker | Location | Samples | Min Reliable | Purpose |
-|---------|----------|---------|--------------|---------|
-| **Builder** | `builder/velocity.ts` | 5 | 2 | Emits `velocity:change` events, drives async loading decisions |
-| **ScrollController** | `features/scrollbar/controller.ts` | 8 | 3 | Controls scrollbar thumb behavior and scroll idle detection |
-
-The builder tracker is tuned for responsiveness (fewer samples, faster reliable signal). The scrollbar tracker is tuned for stability (more samples, smoother velocity readings).
-
-### Builder Velocity Constants
-
-#### VELOCITY_SAMPLE_COUNT
-
-Number of samples in the builder velocity tracker's circular buffer.
-
-```typescript
-const VELOCITY_SAMPLE_COUNT = 5;
-```
-
-#### MIN_RELIABLE_SAMPLES
-
-Minimum samples needed before the builder velocity tracker readings are considered reliable.
-
-```typescript
-const MIN_RELIABLE_SAMPLES = 2;
-```
-
-The `velocity:change` event includes a `reliable` flag that is `true` when `sampleCount >= MIN_RELIABLE_SAMPLES`.
-
-#### STALE_GAP_MS
-
-Maximum time gap (ms) between samples before the buffer is considered stale.
-
-```typescript
-const STALE_GAP_MS = 100;
-```
-
-After a pause longer than 100ms, previous samples no longer represent the current scroll gesture. The velocity tracker resets its buffer and starts measuring fresh. Set below the idle timeout (150ms) so stale detection triggers before idle.
-
-### SCROLL_IDLE_TIMEOUT
-
-Default timeout for scroll idle detection in milliseconds.
-
-```typescript
-const SCROLL_IDLE_TIMEOUT = 150;
-```
-
-Determines when scrolling has "stopped" for scrollbar auto-hide, idle callbacks, post-scroll cleanup, and re-enabling CSS transitions (removing `.vlist--scrolling` class).
-
-This value is configurable via the `scroll.idleTimeout` option on `BuilderConfig`. See [Optimization](/tutorials/optimization#configuration-options) for tuning tips.
-
-### WHEEL_SENSITIVITY
-
-Default wheel sensitivity multiplier.
-
-```typescript
-const WHEEL_SENSITIVITY = 1;
-```
-
-Allows adjusting scroll speed in compressed mode.
-
----
-
 ## Overriding Defaults
 
 Most constants have corresponding config options:
@@ -299,15 +297,14 @@ const list = vlist({
 
 | Category | Constants | Purpose |
 |----------|-----------|---------|
-| **Virtual Scrolling** | `OVERSCAN`, `CLASS_PREFIX` | Core rendering behavior |
-| **Data Loading** | `LOAD_THRESHOLD`, `INITIAL_LOAD_SIZE`, `LOAD_SIZE` | Async data loading |
-| **Velocity Loading** | `LOAD_VELOCITY_THRESHOLD`, `PRELOAD_VELOCITY_THRESHOLD`, `PRELOAD_AHEAD` | Velocity-based load strategy |
-| **Compression** | `MAX_VIRTUAL_SIZE` | Large list handling |
+| **Core** | `OVERSCAN`, `CLASS_PREFIX` | Rendering behavior and CSS prefix |
+| **Async Loading** | `LOAD_THRESHOLD`, `INITIAL_LOAD_SIZE`, `LOAD_SIZE`, `PRELOAD_AHEAD`, `LOAD_VELOCITY_THRESHOLD`, `PRELOAD_VELOCITY_THRESHOLD` | Data loading and velocity strategy |
+| **Scale** | `MAX_VIRTUAL_SIZE` | Large list compression |
+| **Scrolling** | `SCROLL_IDLE_TIMEOUT`, `WHEEL_SENSITIVITY` | Scroll behavior |
 | **Scrollbar** | `SCROLLBAR_AUTO_HIDE`, `SCROLLBAR_AUTO_HIDE_DELAY`, `SCROLLBAR_MIN_THUMB_SIZE` | Custom scrollbar |
-| **Placeholder** | `MASK_CHARACTER`, `MAX_SAMPLE_SIZE`, `PLACEHOLDER_FLAG`, `PLACEHOLDER_ID_PREFIX` | Loading state display |
 | **Sparse Storage** | `CHUNK_SIZE`, `MAX_CACHED_ITEMS`, `EVICTION_BUFFER` | Memory management |
-| **Scroll** | `SCROLL_IDLE_TIMEOUT`, `WHEEL_SENSITIVITY` | Scroll behavior |
-| **Builder Velocity** | `VELOCITY_SAMPLE_COUNT`, `MIN_RELIABLE_SAMPLES`, `STALE_GAP_MS` | Scroll momentum tracking |
+| **Velocity** | `VELOCITY_SAMPLE_COUNT`, `MIN_RELIABLE_SAMPLES`, `STALE_GAP_MS` | Scroll momentum tracking |
+| **Placeholder** | `MASK_CHARACTER`, `MAX_SAMPLE_SIZE`, `PLACEHOLDER_FLAG`, `PLACEHOLDER_ID_PREFIX` | Loading state display |
 
 ---
 
