@@ -503,6 +503,8 @@ interface VListEvents<T extends VListItem = VListItem> {
   'load:end':          { items: T[]; total?: number; offset?: number }
   'error':             { error: Error; context: string }
   'resize':            { height: number; width: number }
+  'scroll:idle':       { scrollPosition: number }
+  'destroy':           undefined
 }
 ```
 

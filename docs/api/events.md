@@ -122,7 +122,7 @@ list.on('selection:change', ({ selected, items }) => {
 
 ## Scroll Events
 
-Scroll position, velocity, and visible range updates — fired on every scroll frame.
+Scroll position, velocity, visible range, and idle detection.
 
 ### scroll
 
@@ -171,6 +171,26 @@ list.on('range:change', ({ range }) => {
 | Field | Type | Description |
 |-------|------|-------------|
 | `range` | `Range` | The new visible range (`{ start, end }`). |
+
+### scroll:idle
+
+Fired when scrolling stops — after the idle timeout elapses (`SCROLL_IDLE_TIMEOUT`, default 150ms). This is the moment vlist reorders DOM for accessibility, flushes deferred measurements, and resets velocity to zero.
+
+```typescript
+list.on('scroll:idle', ({ scrollPosition }) => {
+  console.log(`Scrolling stopped at ${scrollPosition}px`)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `scrollPosition` | `number` | Final scroll offset when idle was detected. |
+
+Use cases:
+- **Deferred rendering** — swap lightweight placeholders for expensive content after scrolling stops
+- **Analytics** — track what the user actually stopped to look at
+- **Lazy image loading** — only load high-res images when the user pauses
+- **Save scroll position** — snapshot on idle rather than every frame
 
 ---
 
@@ -228,7 +248,7 @@ list.on('error', ({ error, context }) => {
 
 ## Lifecycle Events
 
-Container-level events — resize detection and future lifecycle hooks.
+Container-level events — resize, destroy, and instance lifecycle.
 
 ### resize
 
@@ -247,6 +267,22 @@ list.on('resize', ({ height, width }) => {
 
 This event fires regardless of scroll orientation. Both dimensions are always provided.
 
+### destroy
+
+Fired just before the instance is torn down. This is the last event emitted — all DOM cleanup, feature teardown, and handler removal have already happened, but the emitter is still active. After this event, the emitter is cleared.
+
+```typescript
+list.on('destroy', () => {
+  console.log('List destroyed — cleaning up external resources')
+})
+```
+
+No payload — the event signals teardown is imminent.
+
+Use cases:
+- **External cleanup** — tear down intersection observers, analytics trackers, or external state tied to the list
+- **Coordination** — notify other parts of your app that the list no longer exists
+
 ---
 
 ## Summary
@@ -259,10 +295,12 @@ This event fires regardless of scroll orientation. Both dimensions are always pr
 | `scroll` | Scroll | — | `{ scrollPosition, direction }` |
 | `velocity:change` | Scroll | — | `{ velocity, reliable }` |
 | `range:change` | Scroll | — | `{ range }` |
+| `scroll:idle` | Scroll | — | `{ scrollPosition }` |
 | `load:start` | Data | `withAsync` | `{ offset, limit }` |
 | `load:end` | Data | `withAsync` | `{ items, total?, offset? }` |
 | `error` | Data | `withAsync` | `{ error, context }` |
 | `resize` | Lifecycle | — | `{ height, width }` |
+| `destroy` | Lifecycle | — | — |
 
 ---
 
