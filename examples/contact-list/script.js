@@ -122,7 +122,7 @@ export function createList() {
   list.on("scroll", stats.scheduleUpdate);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex = range.start;
-    stats.scheduleUpdate();
+    stats.onRange(range);
   });
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
 

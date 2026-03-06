@@ -436,7 +436,7 @@ function createList() {
   // Wire up events
   list.on("scroll", stats.scheduleUpdate);
   list.on("range:change", ({ range }) => {
-    stats.scheduleUpdate();
+    stats.onRange(range);
     preloadIfNeeded(range.end);
   });
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
@@ -650,10 +650,7 @@ function updateSourceSections() {
     "ui-section--hidden",
     currentSource !== "reddit",
   );
-  sectionRssEl.classList.toggle(
-    "ui-section--hidden",
-    currentSource !== "rss",
-  );
+  sectionRssEl.classList.toggle("ui-section--hidden", currentSource !== "rss");
 }
 
 function updateLayoutToggle() {

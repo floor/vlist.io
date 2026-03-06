@@ -89,7 +89,7 @@ function createList() {
     ...buildConfig(variableWidth, currentHeight, currentGap),
   }).build();
 
-  list.on("range:change", stats.scheduleUpdate);
+  list.on("range:change", ({ range }) => stats.onRange(range));
   list.on("scroll", stats.scheduleUpdate);
   list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
 

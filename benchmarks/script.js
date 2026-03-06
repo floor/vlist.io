@@ -604,9 +604,13 @@ const handleSuiteRunClick = async (suiteId) => {
       },
 
       onComplete: () => {
-        setSuiteState(suiteId, "done");
-        updateSuiteStatus(suiteId, "Final results");
-        hideViewport(suiteId);
+        setProgress(suiteId, 1);
+        requestAnimationFrame(() => {
+          setProgress(suiteId, 0);
+          setSuiteState(suiteId, "done");
+          updateSuiteStatus(suiteId, "Final results");
+          hideViewport(suiteId);
+        });
       },
     });
   } catch (err) {
@@ -620,9 +624,6 @@ const handleSuiteRunClick = async (suiteId) => {
   isRunning = false;
   abortController = null;
   setRunningState(false);
-
-  // Fade out progress bar after a moment
-  setTimeout(() => setProgress(suiteId, 0), 1500);
 };
 
 // =============================================================================

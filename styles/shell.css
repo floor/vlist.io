@@ -409,6 +409,16 @@ body {
     line-height: 1.6;
 }
 
+.overview__tagline a {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.overview__tagline a:hover {
+    text-decoration-thickness: 2px;
+}
+
 .overview__section {
     margin-bottom: 32px;
 }

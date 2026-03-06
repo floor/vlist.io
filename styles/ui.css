@@ -423,13 +423,16 @@
 }
 
 .ui-segmented__btn:hover {
-    background: var(--accent);
-    color: white;
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .ui-segmented__btn--active {
     background: var(--accent);
     color: white;
+}
+
+.ui-segmented__btn--active:hover {
+    background: var(--accent);
 }
 
 .ui-segmented__btn--disabled,

@@ -127,16 +127,14 @@
 }
 
 .stat-card {
-    padding: 4px;
-    background: var(--surface-container);
-    border-radius: 12px;
     text-align: center;
+    padding: 7px 9px;
 }
 
 .stat-card__value {
     font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text);
 }
 
 .stat-card__value--loading {
@@ -154,26 +152,18 @@
     letter-spacing: 0.5px;
 }
 
-.ui-section__title {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
 .velocity-display {
     display: flex;
     align-items: baseline;
     justify-content: center;
     gap: 4px;
     margin-bottom: 4px;
-    padding: 4px;
-    background: var(--surface-container);
-    border-radius: 12px;
-    transition: background 0.2s ease;
+    padding: 7px 9px;
 }
 
 .velocity-display--fast {
     background: color-mix(in srgb, #fa709a 10%, transparent);
+    border-color: color-mix(in srgb, #fa709a 20%, var(--border));
 }
 
 .velocity-display__value {
@@ -263,45 +253,6 @@
 .velocity-status--skipped {
     background: color-mix(in srgb, #fa709a 10%, transparent);
     color: var(--color-error, #d63c6f);
-}
-
-/* ============================================================================
-   Button Group Enhancement
-   ============================================================================ */
-
-.ui-btn-group {
-    display: flex;
-    gap: 8px;
-    background: var(--surface-container);
-    padding: 4px;
-    border-radius: 12px;
-}
-
-.ui-btn-group .ui-btn {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-    font-weight: 500;
-    align-items: center;
-    justify-content: center;
-}
-
-.ui-btn-group .ui-btn:hover {
-    background: var(--surface-container-high);
-    color: var(--text-primary);
-}
-
-.ui-btn-group .ui-btn--active {
-    background: var(--surface-container-highest);
-    color: var(--text-primary);
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.ui-btn-group .ui-btn--active:hover {
-    background: var(--surface-container-highest);
 }
 
 /* ============================================================================

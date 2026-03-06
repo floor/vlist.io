@@ -19,11 +19,11 @@
             <section class="ui-section">
                 <h3 class="ui-title">Loading Stats</h3>
                 <div class="stats-grid">
-                    <div class="stat-card">
+                    <div class="ui-card ui-card--compact stat-card">
                         <div id="load-requests" class="stat-card__value">0</div>
                         <div class="stat-card__label">Requests</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="ui-card ui-card--compact stat-card">
                         <div id="loaded-count" class="stat-card__value">0</div>
                         <div class="stat-card__label">Loaded</div>
                     </div>
@@ -32,8 +32,8 @@
 
             <!-- Velocity Display -->
             <section class="ui-section">
-                <h3 class="ui-section__title">Scroll Velocity</h3>
-                <div class="velocity-display">
+                <h3 class="ui-title">Scroll Velocity</h3>
+                <div class="ui-card ui-card--compact velocity-display">
                     <span id="velocity-value" class="velocity-display__value"
                         >0.0</span
                     >
@@ -59,9 +59,16 @@
             <!-- Data Source -->
             <section class="ui-section">
                 <h3 class="ui-title">Data Source</h3>
-                <div class="button-group">
-                    <button id="btn-simulated">🧪 Simulated</button>
-                    <button id="btn-live-api">⚡ Live API</button>
+                <div class="ui-segmented">
+                    <button id="btn-simulated" class="ui-segmented__btn">
+                        🧪 Simulated
+                    </button>
+                    <button
+                        id="btn-live-api"
+                        class="ui-segmented__btn ui-segmented__btn--active"
+                    >
+                        ⚡ Live API
+                    </button>
                 </div>
             </section>
 
@@ -87,10 +94,37 @@
             <!-- Navigation -->
             <section class="ui-section">
                 <h3 class="ui-title">Navigation</h3>
-                <div class="ui-btn-group">
-                    <button id="btn-start" class="ui-btn">Start</button>
-                    <button id="btn-middle" class="ui-btn">Middle</button>
-                    <button id="btn-end" class="ui-btn">End</button>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
+                        <button
+                            id="btn-start"
+                            class="ui-btn ui-btn--icon"
+                            title="First item"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-middle"
+                            class="ui-btn ui-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-end"
+                            class="ui-btn ui-btn--icon"
+                            title="Last item"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button
+                            id="btn-random"
+                            class="ui-btn ui-btn--icon"
+                            title="Random item"
+                        >
+                            <i class="icon icon--shuffle"></i>
+                        </button>
+                    </div>
                 </div>
             </section>
 
