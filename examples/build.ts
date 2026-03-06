@@ -13,7 +13,6 @@ import { join, resolve } from "path";
 import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 import { createHash } from "crypto";
 import { transformSync } from "@babel/core";
-import { $ } from "bun";
 
 const isWatch = process.argv.includes("--watch");
 const isForce = process.argv.includes("--force");
@@ -241,13 +240,19 @@ function getVlistHash(): string {
   return _vlistHash;
 }
 
-/** Check if vlist/dist is stale compared to vlist/src.
- *  Returns true if any src file is newer than dist/index.js. */
+/** Minimum valid size for @floor/vlist dist bundle (bytes).
+ *  The real bundle is 100+ KB. A corrupted re-export stub is ~1.5 KB. */
+const MIN_VALID_DIST_SIZE = 10_240;
+
+/** Check if @floor/vlist dist is missing, corrupted, or stale. */
 function isVlistDistStale(): boolean {
   const distFile = resolve("../vlist/dist/index.js");
   if (!existsSync(distFile)) return true;
 
-  const distMtime = statSync(distFile).mtimeMs;
+  const distStat = statSync(distFile);
+  if (distStat.size < MIN_VALID_DIST_SIZE) return true;
+
+  const distMtime = distStat.mtimeMs;
   const srcDir = resolve("../vlist/src");
   if (!existsSync(srcDir)) return false;
 
@@ -268,23 +273,40 @@ function isVlistDistStale(): boolean {
   return checkDir(srcDir);
 }
 
-/** Auto-rebuild vlist/dist if source is newer. */
-async function ensureVlistDist(): Promise<void> {
+/**
+ * Ensure @floor/vlist dist is up-to-date before building examples.
+ *
+ * Auto-rebuilding from this process is not possible because of how Bun
+ * handles the `"imports"` field in vlist.dev's package.json. The map
+ * `"vlist" → "@floor/vlist"` is inherited by any subprocess launched via
+ * `bun run`, `$`, or even `Bun.spawn`. When the subprocess runs
+ * `Bun.build()` on vlist/src, Bun resolves internal imports through
+ * that map — which points back to the symlinked dist/index.js — creating
+ * a circular reference that produces a ~1.5 KB re-export stub instead of
+ * the full 100+ KB bundle.
+ *
+ * The only reliable fix: detect staleness and tell the developer to run
+ * `bun run build` from inside the vlist directory (where there is no
+ * import map). It takes <1 second.
+ */
+function ensureVlistDist(): void {
   if (!isVlistDistStale()) return;
 
-  console.log("⚡ vlist/dist is stale — rebuilding...\n");
-  const start = performance.now();
-  const result = await $`bun run build.ts`
-    .cwd(resolve("../vlist"))
-    .quiet()
-    .nothrow();
-  if (result.exitCode !== 0) {
-    console.error("❌ vlist build failed:\n");
-    console.error(result.stderr.toString());
-    process.exit(1);
-  }
-  const time = (performance.now() - start).toFixed(0);
-  console.log(`✅ vlist rebuilt in ${time}ms\n`);
+  const distFile = resolve("../vlist/dist/index.js");
+  const missing = !existsSync(distFile);
+  const corrupt = !missing && statSync(distFile).size < MIN_VALID_DIST_SIZE;
+
+  console.error("");
+  console.error(
+    "  ❌  @floor/vlist dist is " +
+      (missing ? "missing" : corrupt ? "corrupted" : "stale"),
+  );
+  console.error("");
+  console.error("  Run this first:");
+  console.error("");
+  console.error("    cd ../vlist && bun run build");
+  console.error("");
+  process.exit(1);
 }
 
 function computeExampleHash(name: string): string {
@@ -644,8 +666,8 @@ function buildSharedCss(): void {
 async function main() {
   const totalStart = performance.now();
 
-  // Auto-rebuild vlist/dist if src is newer (prevents stale bundle bugs)
-  await ensureVlistDist();
+  // Fail fast if @floor/vlist dist is missing, corrupted, or stale
+  ensureVlistDist();
 
   // Force mode: clean everything
   const distExamplesDir = join("dist", EXAMPLES_DIR);
