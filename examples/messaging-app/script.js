@@ -10,6 +10,7 @@ import {
   CHAT_COLORS,
 } from "../../src/data/messages.js";
 import { createStats } from "../stats.js";
+import { createFooterUpdater } from "../footer.js";
 import "./controls.js";
 
 // =============================================================================
@@ -178,11 +179,14 @@ const getMeasureWidth = () => {
 // =============================================================================
 
 export const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => currentItems.length,
-  getItemHeight: () => MSG_HEIGHT,
-  container: "#list-container",
+  getItemSize: () => MSG_HEIGHT,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // DOM references
@@ -282,18 +286,21 @@ export function createList() {
   list = builder.build();
 
   // Wire events
-  list.on("scroll", stats.scheduleUpdate);
+  list.on("scroll", updateFooter);
   list.on("range:change", ({ range }) => {
     currentRange = range;
     firstVisibleIndex = range.start;
-    stats.scheduleUpdate();
+    updateFooter();
 
     // Hide notification when user scrolls to bottom
     if (isAtBottom() && unreadCount > 0) {
       hideNewMessages();
     }
   });
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   // Restore scroll position
   if (firstVisibleIndex > 0) {
@@ -301,7 +308,7 @@ export function createList() {
   }
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
-  stats.update();
+  updateFooter();
   updateContext();
 }
 
@@ -346,7 +353,7 @@ const sendMessage = () => {
   });
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
-  stats.update();
+  updateFooter();
 };
 
 sendBtn.addEventListener("click", sendMessage);
@@ -403,7 +410,7 @@ const generateRandomMessage = () => {
   }
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
-  stats.update();
+  updateFooter();
 
   scheduleNextMessage();
 };

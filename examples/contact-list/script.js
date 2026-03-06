@@ -5,6 +5,7 @@
 import { vlist, withGroups, withSelection } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
+import { createFooterUpdater } from "../footer.js";
 import { initLetterGrid } from "./controls.js";
 
 // =============================================================================
@@ -73,11 +74,14 @@ const renderGroupHeader = (group) => `
 // =============================================================================
 
 export const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => contacts.length,
-  getItemHeight: () => ITEM_HEIGHT,
-  container: "#list-container",
+  getItemSize: () => ITEM_HEIGHT,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // Create / Recreate list
@@ -119,12 +123,15 @@ export function createList() {
 
   list = builder.build();
 
-  list.on("scroll", stats.scheduleUpdate);
+  list.on("scroll", updateFooter);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex = range.start;
-    stats.onRange(range);
+    updateFooter();
   });
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   list.on("selection:change", ({ selected, items }) => {
     if (items.length > 0) {
@@ -139,7 +146,7 @@ export function createList() {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  stats.update();
+  updateFooter();
   updateContext();
 }
 

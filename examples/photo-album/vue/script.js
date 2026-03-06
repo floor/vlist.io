@@ -6,6 +6,7 @@ import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useVList, useVListEvent } from "vlist-vue";
 import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
+import { createFooterUpdater } from "../../footer.js";
 
 // =============================================================================
 // Item config helpers
@@ -49,6 +50,7 @@ function getItemConfig(mode, orientation) {
 // =============================================================================
 
 let statsInstance = null;
+let footerUpdater = null;
 
 // =============================================================================
 // App
@@ -120,9 +122,9 @@ const App = {
           // Stats
           if (!statsInstance) {
             statsInstance = createStats({
-              getList: () => instance.value,
+              getScrollPosition: () => instance.value?.getScrollPosition() ?? 0,
               getTotal: () => ITEM_COUNT,
-              getItemHeight: () => {
+              getItemSize: () => {
                 const el = containerRef.value;
                 if (!el) return 200;
                 const innerWidth = el.clientWidth - 2;
@@ -133,21 +135,33 @@ const App = {
                   ? Math.round(colW * 1.05)
                   : Math.round(colW * ASPECT_RATIO);
               },
-              container: "#grid-container",
+              getColumns: () => columns.value,
+              getContainerSize: () => {
+                const el = containerRef.value;
+                if (!el) return 0;
+                return orientation.value === "horizontal"
+                  ? el.clientWidth
+                  : el.clientHeight;
+              },
             });
           }
 
+          if (!footerUpdater) {
+            footerUpdater = createFooterUpdater(statsInstance);
+          }
+
           // Events
-          inst.on("scroll", () => statsInstance?.scheduleUpdate());
-          inst.on("range:change", () => statsInstance?.scheduleUpdate());
-          inst.on("velocity:change", ({ velocity }) =>
-            statsInstance?.onVelocity(velocity),
-          );
+          inst.on("scroll", () => footerUpdater());
+          inst.on("range:change", () => footerUpdater());
+          inst.on("velocity:change", ({ velocity }) => {
+            statsInstance.onVelocity(velocity);
+            footerUpdater();
+          });
           inst.on("item:click", ({ item }) => {
             selectedPhoto.value = item;
           });
 
-          statsInstance.update();
+          footerUpdater();
           updateFooterContext();
         },
       );

@@ -4,6 +4,7 @@
 
 import { vlist, withScale, withScrollbar } from "vlist";
 import { createStats } from "../../stats.js";
+import { createFooterUpdater } from "../../footer.js";
 
 // =============================================================================
 // Constants
@@ -88,11 +89,14 @@ const ftModeStatEl = document.getElementById("ft-mode-stat");
 // =============================================================================
 
 const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => SIZES[currentSize],
-  getItemHeight: () => ITEM_HEIGHT,
-  container: "#list-container",
+  getItemSize: () => ITEM_HEIGHT,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // State
@@ -139,18 +143,21 @@ function createList(sizeKey) {
   list.on("scroll", ({ scrollTop, direction }) => {
     scrollPosEl.textContent = `${Math.round(scrollTop).toLocaleString()}px`;
     scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
-    stats.scheduleUpdate();
+    updateFooter();
   });
 
   list.on("range:change", ({ range }) => {
     rangeEl.textContent = `${range.start.toLocaleString()} – ${range.end.toLocaleString()}`;
-    stats.onRange(range);
+    updateFooter();
   });
 
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   // Update footer
-  stats.update();
+  updateFooter();
   updateContext(count);
 }
 

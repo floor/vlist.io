@@ -23,6 +23,7 @@ import {
   formatLoadedCount,
 } from "../shared.js";
 import { createStats } from "../../stats.js";
+import { createFooterUpdater } from "../../footer.js";
 
 // Storage key for snapshots
 const STORAGE_KEY = "vlist-velocity-loading-snapshot";
@@ -158,11 +159,14 @@ const list = vlist({
 // =============================================================================
 
 const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => TOTAL_ITEMS,
-  getItemHeight: () => ITEM_HEIGHT,
-  container: "#list-container",
+  getItemSize: () => ITEM_HEIGHT,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // Get DOM references
 loadRequestsEl = document.getElementById("load-requests");
@@ -202,17 +206,18 @@ function scheduleSaveSnapshot() {
 
 // Event bindings
 list.on("scroll", () => {
-  stats.scheduleUpdate();
+  updateFooter();
   scheduleSaveSnapshot();
 });
 
-list.on("range:change", ({ range }) => {
-  stats.onRange(range);
+list.on("range:change", () => {
+  updateFooter();
 });
 
 list.on("velocity:change", ({ velocity }) => {
   currentVelocity = velocity;
   stats.onVelocity(velocity);
+  updateFooter();
   updateControls();
 });
 
@@ -332,4 +337,4 @@ btnResetStats.addEventListener("click", () => {
 updateDataSourceButtons();
 updateControls();
 updateContext();
-stats.update();
+updateFooter();

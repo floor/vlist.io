@@ -8,6 +8,7 @@
 
 import { vlist } from "vlist";
 import { createStats } from "../stats.js";
+import { createFooterUpdater } from "../footer.js";
 
 // =============================================================================
 // Reddit feed — fetcher + state
@@ -354,11 +355,14 @@ const ftSourceEl = document.getElementById("ft-source");
 // =============================================================================
 
 const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => getActiveItems().length,
-  getItemHeight: () => ESTIMATED_SIZE,
-  container: "#list-container",
+  getItemSize: () => ESTIMATED_SIZE,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // State — two independent axes
@@ -434,12 +438,15 @@ function createList() {
   }
 
   // Wire up events
-  list.on("scroll", stats.scheduleUpdate);
+  list.on("scroll", updateFooter);
   list.on("range:change", ({ range }) => {
-    stats.onRange(range);
+    updateFooter();
     preloadIfNeeded(range.end);
   });
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   list.on("item:click", ({ item, event }) => {
     // Only open URL if the click was on the "Open" link itself
@@ -459,7 +466,7 @@ function createList() {
     loadRssItems();
   }
 
-  stats.update();
+  updateFooter();
   updatePanelInfo(initTime, uniqueSizes);
 }
 
@@ -511,7 +518,7 @@ async function loadNextFeedPage({ skipRateLimit = false } = {}) {
       }
 
       list.setItems(feedState.posts);
-      stats.update();
+      updateFooter();
       updatePanelInfo(0, uniqueSizes);
     }
 
@@ -592,7 +599,7 @@ async function loadRssItems() {
       }
 
       list.setItems(rssState.posts);
-      stats.update();
+      updateFooter();
       updatePanelInfo(0, uniqueSizes);
     }
 

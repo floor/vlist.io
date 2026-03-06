@@ -6,6 +6,7 @@
 
 import { vlist } from "vlist";
 import { createStats } from "../stats.js";
+import { createFooterUpdater } from "../footer.js";
 import { initModeToggle } from "./controls.js";
 import { getAllPosts } from "../../src/api/posts.js";
 
@@ -113,11 +114,14 @@ const ftEstimateEl = document.getElementById("ft-estimate");
 // =============================================================================
 
 export const stats = createStats({
-  getList: () => list,
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => items.length,
-  getItemHeight: () => ESTIMATED_POST_HEIGHT,
-  container: "#list-container",
+  getItemSize: () => ESTIMATED_POST_HEIGHT,
+  getContainerSize: () =>
+    document.querySelector("#list-container")?.clientHeight ?? 0,
 });
+
+const updateFooter = createFooterUpdater(stats);
 
 // =============================================================================
 // Create / Recreate list — called when mode changes
@@ -170,19 +174,22 @@ export function createList() {
   }
 
   // Wire stats events
-  list.on("scroll", stats.scheduleUpdate);
+  list.on("scroll", updateFooter);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex = range.start;
-    stats.onRange(range);
+    updateFooter();
   });
-  list.on("velocity:change", ({ velocity }) => stats.onVelocity(velocity));
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateFooter();
+  });
 
   // Restore scroll position
   if (firstVisibleIndex > 0) {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  stats.update();
+  updateFooter();
   updatePanelInfo(initTime, uniqueSizes);
 }
 
