@@ -14,6 +14,8 @@
     "build:examples:watch": "bun run examples/build.ts --watch",
     "build:bench": "bun run benchmarks/build.ts",
     "build:bench:watch": "bun run benchmarks/build.ts --watch",
+    "test": "bun test test/",
+    "test:watch": "bun test --watch test/",
     "typecheck": "tsc --noEmit",
     "deploy": "gh workflow run deploy.yml --ref main -R floor/vlist.dev && echo 'Deploy triggered'"
   },
