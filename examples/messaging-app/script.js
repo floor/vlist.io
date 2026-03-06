@@ -10,7 +10,7 @@ import {
   CHAT_COLORS,
 } from "../../src/data/messages.js";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 import "./controls.js";
 
 // =============================================================================
@@ -186,7 +186,7 @@ export const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // DOM references
@@ -286,11 +286,11 @@ export function createList() {
   list = builder.build();
 
   // Wire events
-  list.on("scroll", updateFooter);
+  list.on("scroll", updateInfo);
   list.on("range:change", ({ range }) => {
     currentRange = range;
     firstVisibleIndex = range.start;
-    updateFooter();
+    updateInfo();
 
     // Hide notification when user scrolls to bottom
     if (isAtBottom() && unreadCount > 0) {
@@ -299,7 +299,7 @@ export function createList() {
   });
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   // Restore scroll position
@@ -308,7 +308,7 @@ export function createList() {
   }
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
-  updateFooter();
+  updateInfo();
   updateContext();
 }
 
@@ -353,7 +353,7 @@ const sendMessage = () => {
   });
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
-  updateFooter();
+  updateInfo();
 };
 
 sendBtn.addEventListener("click", sendMessage);
@@ -410,7 +410,7 @@ const generateRandomMessage = () => {
   }
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
-  updateFooter();
+  updateInfo();
 
   scheduleNextMessage();
 };
@@ -425,10 +425,10 @@ const scheduleNextMessage = () => {
 // Footer — right side (contextual)
 // =============================================================================
 
-const ftHeaders = document.getElementById("ft-headers");
+const infoHeaders = document.getElementById("info-headers");
 
 export function updateContext() {
-  ftHeaders.textContent = currentHeaderMode;
+  infoHeaders.textContent = currentHeaderMode;
 }
 
 // =============================================================================

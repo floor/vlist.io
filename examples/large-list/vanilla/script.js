@@ -4,7 +4,7 @@
 
 import { vlist, withScale, withScrollbar } from "vlist";
 import { createStats } from "../../stats.js";
-import { createFooterUpdater } from "../../footer.js";
+import { createInfoUpdater } from "../../info.js";
 
 // =============================================================================
 // Constants
@@ -78,14 +78,14 @@ const scrollDirEl = document.getElementById("scroll-direction");
 const rangeEl = document.getElementById("visible-range");
 const sizeButtons = document.getElementById("size-buttons");
 
-// Footer right-side elements
-const ftVirtualizedEl = document.getElementById("ft-virtualized");
-const ftScaleEl = document.getElementById("ft-scale");
-const ftModeEl = document.getElementById("ft-mode");
-const ftModeStatEl = document.getElementById("ft-mode-stat");
+// Info bar right-side elements
+const infoVirtualizedEl = document.getElementById("info-virtualized");
+const infoScaleEl = document.getElementById("info-scale");
+const infoModeEl = document.getElementById("info-mode");
+const infoModeStatEl = document.getElementById("info-mode-stat");
 
 // =============================================================================
-// Shared footer stats (left side — progress, velocity, items)
+// Shared info bar stats (left side — progress, velocity, items)
 // =============================================================================
 
 const stats = createStats({
@@ -96,7 +96,7 @@ const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // State
@@ -143,26 +143,26 @@ function createList(sizeKey) {
   list.on("scroll", ({ scrollTop, direction }) => {
     scrollPosEl.textContent = `${Math.round(scrollTop).toLocaleString()}px`;
     scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
-    updateFooter();
+    updateInfo();
   });
 
   list.on("range:change", ({ range }) => {
     rangeEl.textContent = `${range.start.toLocaleString()} – ${range.end.toLocaleString()}`;
-    updateFooter();
+    updateInfo();
   });
 
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
-  // Update footer
-  updateFooter();
+  // Update info bar
+  updateInfo();
   updateContext(count);
 }
 
 // =============================================================================
-// Footer right side — context (virtualized %, scale mode)
+// Info bar right side — context (virtualized %, scale mode)
 // =============================================================================
 
 function updateContext(count) {
@@ -173,10 +173,10 @@ function updateContext(count) {
   const domNodes = document.querySelectorAll(".vlist-item").length;
   const virtualized = ((1 - domNodes / count) * 100).toFixed(2);
 
-  ftVirtualizedEl.textContent = `${virtualized}%`;
-  ftScaleEl.textContent = `${ratio}×`;
-  ftModeEl.textContent = isScaled ? "SCALED" : "NATIVE";
-  ftModeStatEl.className = `example-footer__stat ${isScaled ? "example-footer__stat--warn" : "example-footer__stat--ok"}`;
+  infoVirtualizedEl.textContent = `${virtualized}%`;
+  infoScaleEl.textContent = `${ratio}×`;
+  infoModeEl.textContent = isScaled ? "SCALED" : "NATIVE";
+  infoModeStatEl.className = `example-info__stat ${isScaled ? "example-info__stat--warn" : "example-info__stat--ok"}`;
 }
 
 // =============================================================================

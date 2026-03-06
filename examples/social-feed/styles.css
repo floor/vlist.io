@@ -37,7 +37,7 @@ h1 .ui-badge {
     min-height: 0;
 }
 
-.container > .example-footer {
+.container > .example-info {
     flex: none;
     margin-bottom: 64px;
 }

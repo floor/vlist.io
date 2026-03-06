@@ -3,7 +3,7 @@
 
 import { vlist, withSelection, withSnapshots } from "vlist";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -58,8 +58,8 @@ const savedSnapshotCodeEl = document.getElementById("saved-snapshot-code");
 const navigateAwayBtn = document.getElementById("navigate-away");
 const goBackBtn = document.getElementById("go-back");
 
-// Footer right-side element
-const ftSelectedEl = document.getElementById("ft-selected");
+// Info bar right-side element
+const infoSelectedEl = document.getElementById("info-selected");
 
 // ---------------------------------------------------------------------------
 // Shared footer stats (left side — progress, velocity, items)
@@ -73,7 +73,7 @@ const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // ---------------------------------------------------------------------------
 // List management
@@ -117,16 +117,16 @@ function createList(snapshot) {
     .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
     .build();
 
-  // Footer updates
-  list.on("scroll", updateFooter);
-  list.on("range:change", updateFooter);
+  // Info bar updates
+  list.on("scroll", updateInfo);
+  list.on("range:change", updateInfo);
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
   list.on("selection:change", updateContext);
 
-  updateFooter();
+  updateInfo();
   updateContext();
 
   // Live snapshot preview (throttled)
@@ -165,8 +165,8 @@ function destroyList() {
 // ---------------------------------------------------------------------------
 
 function updateContext() {
-  if (!list || !ftSelectedEl) return;
-  ftSelectedEl.textContent = list.getSelected().length;
+  if (!list || !infoSelectedEl) return;
+  infoSelectedEl.textContent = list.getSelected().length;
 }
 
 // ---------------------------------------------------------------------------

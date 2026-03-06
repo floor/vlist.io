@@ -3,7 +3,7 @@
 
 import { vlist } from "vlist";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 import "./controls.js";
 
 // =============================================================================
@@ -81,7 +81,7 @@ export const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // Create / Recreate list
@@ -119,18 +119,18 @@ export function createList() {
 
   list = builder.build();
 
-  list.on("scroll", updateFooter);
-  list.on("range:change", updateFooter);
+  list.on("scroll", updateInfo);
+  list.on("range:change", updateInfo);
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   list.on("item:click", ({ index }) => {
     goTo(index);
   });
 
-  updateFooter();
+  updateInfo();
   updateContext();
 
   // Restore current index (instant — no animation after rebuild)
@@ -156,7 +156,7 @@ export function goTo(index, instant = false) {
 
   updateCurrentInfo();
   updateDots();
-  updateFooter();
+  updateInfo();
 }
 
 // =============================================================================
@@ -218,12 +218,12 @@ document.addEventListener("keydown", (e) => {
 // Footer — right side (contextual)
 // =============================================================================
 
-const ftOrientation = document.getElementById("ft-orientation");
-const ftWrap = document.getElementById("ft-wrap");
+const infoOrientation = document.getElementById("info-orientation");
+const infoWrap = document.getElementById("info-wrap");
 
 export function updateContext() {
-  ftOrientation.textContent = currentOrientation;
-  ftWrap.textContent = currentWrap ? "on" : "off";
+  infoOrientation.textContent = currentOrientation;
+  infoWrap.textContent = currentWrap ? "on" : "off";
 }
 
 // =============================================================================

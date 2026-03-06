@@ -1,11 +1,11 @@
 // Carousel — Vanilla JavaScript
 // Horizontal scrolling with toggle between fixed and variable item widths.
-// Uses split-layout + panel + shared footer stats (same pattern as basic).
+// Uses split-layout + panel + shared info bar stats (same pattern as basic).
 
 import { vlist } from "vlist";
 import { items, buildConfig, getDetailHtml, ASPECT_RATIO } from "../shared.js";
 import { createStats } from "../../stats.js";
-import { createFooterUpdater } from "../../footer.js";
+import { createInfoUpdater } from "../../info.js";
 
 // Scale factor: maps height 200–500 → 0–1
 const MIN_HEIGHT = 200;
@@ -38,14 +38,14 @@ const detailEl = document.getElementById("card-detail");
 const listContainerEl = document.getElementById("list-container");
 
 // =============================================================================
-// DOM references — footer right side
+// DOM references — info bar right side
 // =============================================================================
 
-const ftWidth = document.getElementById("ft-width");
-const ftMode = document.getElementById("ft-mode");
+const infoWidth = document.getElementById("info-width");
+const infoMode = document.getElementById("info-mode");
 
 // =============================================================================
-// Stats — shared footer (progress, velocity, visible/total)
+// Stats — shared info bar (progress, velocity, visible/total)
 // =============================================================================
 
 function getCurrentWidth() {
@@ -60,16 +60,16 @@ const stats = createStats({
     document.querySelector("#list-container")?.clientWidth ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
-// Footer — right side (contextual)
+// Info bar — right side (contextual)
 // =============================================================================
 
 function updateContext() {
   const w = getCurrentWidth();
-  if (ftWidth) ftWidth.textContent = variableWidth ? "var" : w;
-  if (ftMode) ftMode.textContent = variableWidth ? "variable" : "fixed";
+  if (infoWidth) infoWidth.textContent = variableWidth ? "var" : w;
+  if (infoMode) infoMode.textContent = variableWidth ? "variable" : "fixed";
 }
 
 // =============================================================================
@@ -93,18 +93,18 @@ function createList() {
     ...buildConfig(variableWidth, currentHeight, currentGap),
   }).build();
 
-  list.on("scroll", updateFooter);
-  list.on("range:change", updateFooter);
+  list.on("scroll", updateInfo);
+  list.on("range:change", updateInfo);
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   list.on("item:click", ({ item, index }) => {
     showDetail(item, index);
   });
 
-  updateFooter();
+  updateInfo();
   updateContext();
 }
 

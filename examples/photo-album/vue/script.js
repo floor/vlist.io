@@ -6,7 +6,7 @@ import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useVList, useVListEvent } from "vlist-vue";
 import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
-import { createFooterUpdater } from "../../footer.js";
+import { createInfoUpdater } from "../../info.js";
 
 // =============================================================================
 // Item config helpers
@@ -50,7 +50,7 @@ function getItemConfig(mode, orientation) {
 // =============================================================================
 
 let statsInstance = null;
-let footerUpdater = null;
+let infoUpdater = null;
 
 // =============================================================================
 // App
@@ -146,23 +146,23 @@ const App = {
             });
           }
 
-          if (!footerUpdater) {
-            footerUpdater = createFooterUpdater(statsInstance);
+          if (!infoUpdater) {
+            infoUpdater = createInfoUpdater(statsInstance);
           }
 
           // Events
-          inst.on("scroll", () => footerUpdater());
-          inst.on("range:change", () => footerUpdater());
+          inst.on("scroll", () => infoUpdater());
+          inst.on("range:change", () => infoUpdater());
           inst.on("velocity:change", ({ velocity }) => {
             statsInstance.onVelocity(velocity);
-            footerUpdater();
+            infoUpdater();
           });
           inst.on("item:click", ({ item }) => {
             selectedPhoto.value = item;
           });
 
-          footerUpdater();
-          updateFooterContext();
+          infoUpdater();
+          updateInfoContext();
         },
       );
     }
@@ -177,11 +177,11 @@ const App = {
       }
     }
 
-    function updateFooterContext() {
-      const ftMode = document.getElementById("ft-mode");
-      const ftOrientation = document.getElementById("ft-orientation");
-      if (ftMode) ftMode.textContent = mode.value;
-      if (ftOrientation) ftOrientation.textContent = orientation.value;
+    function updateInfoContext() {
+      const infoMode = document.getElementById("info-mode");
+      const infoOrientation = document.getElementById("info-orientation");
+      if (infoMode) infoMode.textContent = mode.value;
+      if (infoOrientation) infoOrientation.textContent = orientation.value;
     }
 
     // Recreate on config change
@@ -332,31 +332,31 @@ const App = {
         </aside>
       </div>
 
-      <footer class="example-footer" id="example-footer">
-        <div class="example-footer__left">
-          <span class="example-footer__stat">
-            <strong id="ft-progress">0%</strong>
+      <div class="example-info" id="example-info">
+        <div class="example-info__left">
+          <span class="example-info__stat">
+            <strong id="info-progress">0%</strong>
           </span>
-          <span class="example-footer__stat">
-            <span id="ft-velocity">0.00</span> /
-            <strong id="ft-velocity-avg">0.00</strong>
-            <span class="example-footer__unit">px/ms</span>
+          <span class="example-info__stat">
+            <span id="info-velocity">0.00</span> /
+            <strong id="info-velocity-avg">0.00</strong>
+            <span class="example-info__unit">px/ms</span>
           </span>
-          <span class="example-footer__stat">
-            <span id="ft-dom">0</span> /
-            <strong id="ft-total">0</strong>
-            <span class="example-footer__unit">items</span>
-          </span>
-        </div>
-        <div class="example-footer__right">
-          <span class="example-footer__stat">
-            <strong id="ft-mode">grid</strong>
-          </span>
-          <span class="example-footer__stat">
-            <strong id="ft-orientation">vertical</strong>
+          <span class="example-info__stat">
+            <span id="info-dom">0</span> /
+            <strong id="info-total">0</strong>
+            <span class="example-info__unit">items</span>
           </span>
         </div>
-      </footer>
+        <div class="example-info__right">
+          <span class="example-info__stat">
+            <strong id="info-mode">grid</strong>
+          </span>
+          <span class="example-info__stat">
+            <strong id="info-orientation">vertical</strong>
+          </span>
+        </div>
+      </div>
     </div>
   `,
 };

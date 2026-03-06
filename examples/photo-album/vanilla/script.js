@@ -4,7 +4,7 @@
 
 import { vlist, withGrid, withMasonry, withScrollbar } from "vlist";
 import { createStats } from "../../stats.js";
-import { createFooterUpdater } from "../../footer.js";
+import { createInfoUpdater } from "../../info.js";
 import {
   ITEM_COUNT,
   ASPECT_RATIO,
@@ -21,7 +21,7 @@ import {
 import "../controls.js";
 
 // =============================================================================
-// Stats — shared footer (progress, velocity, visible/total)
+// Stats — shared info bar (progress, velocity, visible/total)
 // =============================================================================
 
 function getEffectiveItemHeight() {
@@ -48,7 +48,7 @@ export const stats = createStats({
   },
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // Create / Recreate
@@ -76,15 +76,15 @@ function createView() {
   }
 
   // Wire events
-  list.on("scroll", updateFooter);
+  list.on("scroll", updateInfo);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex =
       currentMode === "grid" ? range.start * currentColumns : range.start;
-    updateFooter();
+    updateInfo();
   });
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   list.on("item:click", ({ item }) => {
@@ -96,7 +96,7 @@ function createView() {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  updateFooter();
+  updateInfo();
   updateContext();
 }
 
@@ -193,15 +193,15 @@ function showDetail(item) {
 }
 
 // =============================================================================
-// Footer — right side (contextual)
+// Info bar — right side (contextual)
 // =============================================================================
 
-const ftMode = document.getElementById("ft-mode");
-const ftOrientation = document.getElementById("ft-orientation");
+const infoMode = document.getElementById("info-mode");
+const infoOrientation = document.getElementById("info-orientation");
 
 function updateContext() {
-  ftMode.textContent = currentMode;
-  ftOrientation.textContent = currentOrientation;
+  infoMode.textContent = currentMode;
+  infoOrientation.textContent = currentOrientation;
 }
 
 // =============================================================================

@@ -166,10 +166,10 @@ html[data-theme-mode="dark"] {
 }
 
 /* ============================================================================
-   Example Footer — universal stats bar below split-layout
+   Example Info — universal stats bar below split-layout
    ============================================================================ */
 
-.example-footer {
+.example-info {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -187,33 +187,33 @@ html[data-theme-mode="dark"] {
     overflow-x: auto;
 }
 
-.example-footer__left,
-.example-footer__right {
+.example-info__left,
+.example-info__right {
     display: flex;
     align-items: center;
     gap: 20px;
 }
 
-.example-footer__left {
+.example-info__left {
     flex-shrink: 0;
 }
 
-.example-footer__right {
+.example-info__right {
     color: var(--text-dim);
 }
 
-.example-footer__stat {
+.example-info__stat {
     display: inline-flex;
     align-items: baseline;
     gap: 3px;
 }
 
-.example-footer__stat strong {
+.example-info__stat strong {
     color: var(--text);
     font-weight: 600;
 }
 
-.example-footer__unit {
+.example-info__unit {
     color: var(--text-dim);
     margin-left: 1px;
 }
@@ -279,24 +279,24 @@ html[data-theme] .vlist-viewport {
         font-size: 14px;
     }
 
-    .example-footer {
+    .example-info {
         font-size: 12px;
         gap: 12px;
         padding: 6px 12px;
     }
 
-    .example-footer__left,
-    .example-footer__right {
+    .example-info__left,
+    .example-info__right {
         gap: 14px;
     }
 }
 
 /* ============================================================================
-   Responsive: split layout stacking — example-footer wrap
+   Responsive: split layout stacking — example-info wrap
    ============================================================================ */
 
 @media (max-width: 820px) {
-    .example-footer {
+    .example-info {
         flex-wrap: wrap;
     }
 }

@@ -23,7 +23,7 @@ import {
   formatLoadedCount,
 } from "../shared.js";
 import { createStats } from "../../stats.js";
-import { createFooterUpdater } from "../../footer.js";
+import { createInfoUpdater } from "../../info.js";
 
 // Storage key for snapshots
 const STORAGE_KEY = "vlist-velocity-loading-snapshot";
@@ -51,8 +51,8 @@ let isRestoringSnapshot = !!snapshot;
 let loadRequestsEl, loadedCountEl;
 let velocityValueEl, velocityFillEl, velocityStatusEl;
 
-// Footer right-side elements
-let ftRequestsEl, ftLoadedEl;
+// Info bar right-side elements
+let infoRequestsEl, infoLoadedEl;
 
 let prevState = {
   loadRequests: -1,
@@ -109,8 +109,8 @@ function updateControls() {
 
 // Update footer right side (requests + loaded)
 function updateContext() {
-  if (ftRequestsEl) ftRequestsEl.textContent = loadRequests;
-  if (ftLoadedEl) ftLoadedEl.textContent = formatLoadedCount(loadedCount);
+  if (infoRequestsEl) infoRequestsEl.textContent = loadRequests;
+  if (infoLoadedEl) infoLoadedEl.textContent = formatLoadedCount(loadedCount);
 }
 
 // Build list — snapshot restoration happens automatically via withSnapshots({ restore })
@@ -166,7 +166,7 @@ const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // Get DOM references
 loadRequestsEl = document.getElementById("load-requests");
@@ -175,9 +175,9 @@ velocityValueEl = document.getElementById("velocity-value");
 velocityFillEl = document.getElementById("velocity-fill");
 velocityStatusEl = document.getElementById("velocity-status");
 
-// Footer right-side refs
-ftRequestsEl = document.getElementById("ft-requests");
-ftLoadedEl = document.getElementById("ft-loaded");
+// Info bar right-side refs
+infoRequestsEl = document.getElementById("info-requests");
+infoLoadedEl = document.getElementById("info-loaded");
 
 const btnSimulated = document.getElementById("btn-simulated");
 const btnLiveApi = document.getElementById("btn-live-api");
@@ -206,18 +206,18 @@ function scheduleSaveSnapshot() {
 
 // Event bindings
 list.on("scroll", () => {
-  updateFooter();
+  updateInfo();
   scheduleSaveSnapshot();
 });
 
 list.on("range:change", () => {
-  updateFooter();
+  updateInfo();
 });
 
 list.on("velocity:change", ({ velocity }) => {
   currentVelocity = velocity;
   stats.onVelocity(velocity);
-  updateFooter();
+  updateInfo();
   updateControls();
 });
 
@@ -337,4 +337,4 @@ btnResetStats.addEventListener("click", () => {
 updateDataSourceButtons();
 updateControls();
 updateContext();
-updateFooter();
+updateInfo();

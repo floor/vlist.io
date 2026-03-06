@@ -7,7 +7,7 @@
 import { vlist, withSelection } from "vlist";
 import { makeUsers } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 import "./controls.js";
 
 // =============================================================================
@@ -44,7 +44,7 @@ export const itemTemplate = (user, index) => `
 `;
 
 // =============================================================================
-// Stats — shared footer (progress, velocity, visible/total)
+// Stats — shared info bar (progress, velocity, visible/total)
 // =============================================================================
 
 export const stats = createStats({
@@ -55,7 +55,7 @@ export const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // ARIA Inspector — reads live attribute values from the vlist root element
@@ -217,11 +217,11 @@ export function createList() {
 
   list = builder.build();
 
-  list.on("scroll", updateFooter);
-  list.on("range:change", updateFooter);
+  list.on("scroll", updateInfo);
+  list.on("range:change", updateInfo);
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   // Wire selection events only when the feature is active
@@ -252,18 +252,18 @@ export function createList() {
 
   updateInspector();
   updateSelectionUi();
-  updateFooter();
+  updateInfo();
   updateContext();
   updateSelectionCount([]);
 }
 
 // =============================================================================
-// Footer — right side (contextual)
+// Info bar — right side (contextual)
 // =============================================================================
 
-const ftFocused = document.getElementById("ft-focused");
-const ftPosinset = document.getElementById("ft-posinset");
-const ftSelection = document.getElementById("ft-selection");
+const infoFocused = document.getElementById("info-focused");
+const infoPosinset = document.getElementById("info-posinset");
+const infoSelection = document.getElementById("info-selection");
 
 export function updateContext() {
   const container = document.getElementById("list-container");
@@ -273,18 +273,18 @@ export function updateContext() {
   const activeId = root.getAttribute("aria-activedescendant");
   if (activeId) {
     const el = root.querySelector(`#${CSS.escape(activeId)}`);
-    ftFocused.textContent = activeId;
-    ftPosinset.textContent = el?.getAttribute("aria-posinset") ?? "—";
+    infoFocused.textContent = activeId;
+    infoPosinset.textContent = el?.getAttribute("aria-posinset") ?? "—";
   } else {
-    ftFocused.textContent = "—";
-    ftPosinset.textContent = "—";
+    infoFocused.textContent = "—";
+    infoPosinset.textContent = "—";
   }
 }
 
 function updateSelectionCount(selected) {
-  if (!ftSelection) return;
+  if (!infoSelection) return;
   const count = Array.isArray(selected) ? selected.length : 0;
-  ftSelection.textContent = String(count);
+  infoSelection.textContent = String(count);
 }
 
 // =============================================================================

@@ -2,11 +2,11 @@
 // Demonstrates both approaches to variable-height items:
 //   A · Pre-measure all items via hidden DOM element (size function)
 //   B · Auto-size via estimatedHeight + ResizeObserver
-// Uses split-layout pattern with side panel, mode toggle, and footer stats.
+// Uses split-layout pattern with side panel, mode toggle, and info bar stats.
 
 import { vlist } from "vlist";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 import { initModeToggle } from "./controls.js";
 import { getAllPosts } from "../../src/api/posts.js";
 
@@ -105,9 +105,9 @@ const infoStrategyEl = document.getElementById("info-strategy");
 const infoInitEl = document.getElementById("info-init");
 const infoUniqueEl = document.getElementById("info-unique");
 
-// Footer right side
-const ftModeEl = document.getElementById("ft-mode");
-const ftEstimateEl = document.getElementById("ft-estimate");
+// Info bar right side
+const infoModeEl = document.getElementById("info-mode");
+const infoEstimateEl = document.getElementById("info-estimate");
 
 // =============================================================================
 // Stats — shared footer (progress, velocity, visible/total)
@@ -121,7 +121,7 @@ export const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // Create / Recreate list — called when mode changes
@@ -174,14 +174,14 @@ export function createList() {
   }
 
   // Wire stats events
-  list.on("scroll", updateFooter);
+  list.on("scroll", updateInfo);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex = range.start;
-    updateFooter();
+    updateInfo();
   });
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   // Restore scroll position
@@ -189,7 +189,7 @@ export function createList() {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  updateFooter();
+  updateInfo();
   updatePanelInfo(initTime, uniqueSizes);
 }
 
@@ -200,9 +200,9 @@ export function createList() {
 function updatePanelInfo(initTime, uniqueSizes) {
   const modeLabel = currentMode === "a" ? "Mode A" : "Mode B";
 
-  if (ftModeEl) ftModeEl.textContent = modeLabel;
-  if (ftEstimateEl) {
-    ftEstimateEl.textContent =
+  if (infoModeEl) infoModeEl.textContent = modeLabel;
+  if (infoEstimateEl) {
+    infoEstimateEl.textContent =
       currentMode === "a" ? "pre-measured" : `${ESTIMATED_POST_HEIGHT}px`;
   }
 

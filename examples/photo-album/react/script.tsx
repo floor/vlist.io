@@ -7,14 +7,14 @@ import { createRoot } from "react-dom/client";
 import { useVList, useVListEvent } from "vlist-react";
 import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
-import { createFooterUpdater } from "../../footer.js";
+import { createInfoUpdater } from "../../info.js";
 
 // =============================================================================
 // Stats (module-level — shared across remounts)
 // =============================================================================
 
 let statsInstance: ReturnType<typeof createStats> | null = null;
-let footerUpdater: (() => void) | null = null;
+let infoUpdater: (() => void) | null = null;
 
 // =============================================================================
 // Grid Container — keyed component that remounts on config change
@@ -76,23 +76,23 @@ function GridContainer({
         },
       });
     }
-    if (!footerUpdater) {
-      footerUpdater = createFooterUpdater(statsInstance);
+    if (!infoUpdater) {
+      infoUpdater = createInfoUpdater(statsInstance);
     }
-    footerUpdater();
+    infoUpdater();
   }, []);
 
   useVListEvent(instanceRef, "scroll", () => {
-    footerUpdater?.();
+    infoUpdater?.();
   });
 
   useVListEvent(instanceRef, "range:change", () => {
-    footerUpdater?.();
+    infoUpdater?.();
   });
 
   useVListEvent(instanceRef, "velocity:change", ({ velocity }) => {
     statsInstance?.onVelocity(velocity);
-    footerUpdater?.();
+    infoUpdater?.();
   });
 
   useVListEvent(instanceRef, "item:click", ({ item }) => {
@@ -160,12 +160,12 @@ function App() {
   // Key forces full remount when layout config changes
   const listKey = `${mode}-${orientation}-${columns}-${gap}`;
 
-  // Update footer context
+  // Update info bar context
   useEffect(() => {
-    const ftMode = document.getElementById("ft-mode");
-    const ftOrientation = document.getElementById("ft-orientation");
-    if (ftMode) ftMode.textContent = mode;
-    if (ftOrientation) ftOrientation.textContent = orientation;
+    const infoMode = document.getElementById("info-mode");
+    const infoOrientation = document.getElementById("info-orientation");
+    if (infoMode) infoMode.textContent = mode;
+    if (infoOrientation) infoOrientation.textContent = orientation;
   }, [mode, orientation]);
 
   const scrollTo = useCallback((target: "first" | "middle" | "last") => {
@@ -335,30 +335,30 @@ function App() {
         </aside>
       </div>
 
-      <footer className="example-footer" id="example-footer">
-        <div className="example-footer__left">
-          <span className="example-footer__stat">
-            <strong id="ft-progress">0%</strong>
+      <div className="example-info" id="example-info">
+        <div className="example-info__left">
+          <span className="example-info__stat">
+            <strong id="info-progress">0%</strong>
           </span>
-          <span className="example-footer__stat">
-            <span id="ft-velocity">0.00</span> /{" "}
-            <strong id="ft-velocity-avg">0.00</strong>
-            <span className="example-footer__unit">px/ms</span>
+          <span className="example-info__stat">
+            <span id="info-velocity">0.00</span> /{" "}
+            <strong id="info-velocity-avg">0.00</strong>
+            <span className="example-info__unit">px/ms</span>
           </span>
-          <span className="example-footer__stat">
-            <span id="ft-dom">0</span> / <strong id="ft-total">0</strong>
-            <span className="example-footer__unit">items</span>
-          </span>
-        </div>
-        <div className="example-footer__right">
-          <span className="example-footer__stat">
-            <strong id="ft-mode">grid</strong>
-          </span>
-          <span className="example-footer__stat">
-            <strong id="ft-orientation">vertical</strong>
+          <span className="example-info__stat">
+            <span id="info-dom">0</span> / <strong id="info-total">0</strong>
+            <span className="example-info__unit">items</span>
           </span>
         </div>
-      </footer>
+        <div className="example-info__right">
+          <span className="example-info__stat">
+            <strong id="info-mode">grid</strong>
+          </span>
+          <span className="example-info__stat">
+            <strong id="info-orientation">vertical</strong>
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

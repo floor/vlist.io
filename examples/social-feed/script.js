@@ -8,7 +8,7 @@
 
 import { vlist } from "vlist";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 
 // =============================================================================
 // Reddit feed — fetcher + state
@@ -347,8 +347,8 @@ const infoUniqueEl = document.getElementById("info-unique");
 const feedNameEl = document.getElementById("feed-name");
 const containerEl = document.getElementById("list-container");
 const modeBadgeEl = document.getElementById("mode-badge");
-const ftModeEl = document.getElementById("ft-mode");
-const ftSourceEl = document.getElementById("ft-source");
+const infoModeEl = document.getElementById("info-mode");
+const infoSourceEl = document.getElementById("info-source");
 
 // =============================================================================
 // Stats (footer left — progress, velocity, items)
@@ -362,7 +362,7 @@ const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // State — two independent axes
@@ -438,14 +438,14 @@ function createList() {
   }
 
   // Wire up events
-  list.on("scroll", updateFooter);
+  list.on("scroll", updateInfo);
   list.on("range:change", ({ range }) => {
-    updateFooter();
+    updateInfo();
     preloadIfNeeded(range.end);
   });
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   list.on("item:click", ({ item, event }) => {
@@ -466,7 +466,7 @@ function createList() {
     loadRssItems();
   }
 
-  updateFooter();
+  updateInfo();
   updatePanelInfo(initTime, uniqueSizes);
 }
 
@@ -518,7 +518,7 @@ async function loadNextFeedPage({ skipRateLimit = false } = {}) {
       }
 
       list.setItems(feedState.posts);
-      updateFooter();
+      updateInfo();
       updatePanelInfo(0, uniqueSizes);
     }
 
@@ -599,7 +599,7 @@ async function loadRssItems() {
       }
 
       list.setItems(rssState.posts);
-      updateFooter();
+      updateInfo();
       updatePanelInfo(0, uniqueSizes);
     }
 
@@ -638,8 +638,8 @@ function updatePanelInfo(initTime, uniqueSizes) {
   const sourceLabel = currentSource === "reddit" ? "Reddit" : "RSS";
 
   modeBadgeEl.textContent = modeLabel;
-  ftModeEl.textContent = modeLabel;
-  ftSourceEl.textContent = sourceLabel;
+  infoModeEl.textContent = modeLabel;
+  infoSourceEl.textContent = sourceLabel;
 
   infoStrategyEl.textContent =
     currentMode === "a" ? "size: (index) => px" : "estimatedSize";
@@ -856,10 +856,10 @@ modeToggleEl.querySelectorAll("button").forEach((b) => {
 // Restore layout toggle UI
 updateLayoutToggle();
 
-// Update badge / footer to match restored state
+// Update badge / info bar to match restored state
 modeBadgeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";
-ftModeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";
-ftSourceEl.textContent = currentSource === "reddit" ? "Reddit" : "RSS";
+infoModeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";
+infoSourceEl.textContent = currentSource === "reddit" ? "Reddit" : "RSS";
 
 updateSourceSections();
 updateFeedName();

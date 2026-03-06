@@ -148,33 +148,33 @@ A 4-column grid with 900 items and 5 visible rows reports `20 / 900`, not `5 / 9
 
 Samples outside the 0.1–50 range are stored as current but excluded from the average to filter noise (idle drift and unrealistic spikes).
 
-## Example Footer Integration
+## Example Info Bar Integration
 
-The `vlist.dev` examples pair `createStats` with a thin DOM layer in `examples/footer.js`:
+The `vlist.dev` examples pair `createStats` with a thin DOM layer in `examples/info.js`:
 
 ```
 stats.js   → re-exports createStats from vlist (convenience path)
-footer.js  → renderFooter(state) + createFooterUpdater(stats)
-script.js  → wires events, owns the RAF loop via createFooterUpdater
+info.js    → renderInfo(state) + createInfoUpdater(stats)
+script.js  → wires events, owns the RAF loop via createInfoUpdater
 ```
 
-`createFooterUpdater(stats)` returns a RAF-batched function that coalesces multiple calls per frame into a single `renderFooter(stats.getState())`.
+`createInfoUpdater(stats)` returns a RAF-batched function that coalesces multiple calls per frame into a single `renderInfo(stats.getState())`.
 
 ```javascript
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 
 const stats = createStats({ /* config */ });
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
-list.on("scroll", updateFooter);
-list.on("range:change", updateFooter);
+list.on("scroll", updateInfo);
+list.on("range:change", updateInfo);
 list.on("velocity:change", ({ velocity }) => {
   stats.onVelocity(velocity);
-  updateFooter();
+  updateInfo();
 });
 
-updateFooter(); // initial render
+updateInfo(); // initial render
 ```
 
 ## Design Decisions

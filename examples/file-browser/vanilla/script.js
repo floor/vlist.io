@@ -611,7 +611,7 @@ async function navigateTo(path, addToHistory = true) {
   await createBrowser(currentView);
   updateBreadcrumb();
   updateNavigationState();
-  updateFooter();
+  updateInfo();
 }
 
 function handleItemClick(item, index) {
@@ -676,15 +676,15 @@ function updateNavigationState() {
 }
 
 // =============================================================================
-// Footer Stats
+// Info Bar Stats
 // =============================================================================
 
-const ftItems = document.getElementById("ft-items");
-const ftPath = document.getElementById("ft-path");
+const infoItems = document.getElementById("info-items");
+const infoPath = document.getElementById("info-path");
 
-function updateFooter() {
-  if (ftItems) ftItems.textContent = String(items.length);
-  if (ftPath) ftPath.textContent = currentPath ? `/${currentPath}` : "/";
+function updateInfo() {
+  if (infoItems) infoItems.textContent = String(items.length);
+  if (infoPath) infoPath.textContent = currentPath ? `/${currentPath}` : "/";
 }
 
 // =============================================================================

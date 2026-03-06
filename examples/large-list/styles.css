@@ -14,11 +14,11 @@
    Footer stat modifiers
    ============================================================================ */
 
-.example-footer__stat--ok strong {
+.example-info__stat--ok strong {
     color: #51cf66;
 }
 
-.example-footer__stat--warn strong {
+.example-info__stat--warn strong {
     color: #ff6b6b;
 }
 

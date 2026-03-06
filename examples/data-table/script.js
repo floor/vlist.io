@@ -5,7 +5,7 @@
 import { vlist, withTable, withSelection } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
 
 // =============================================================================
@@ -278,7 +278,7 @@ export function applySort(key, direction) {
 const fallbackTemplate = () => "";
 
 // =============================================================================
-// Stats — shared footer (progress, velocity, visible/total)
+// Stats — shared info bar (progress, velocity, visible/total)
 // =============================================================================
 
 export const stats = createStats({
@@ -289,7 +289,7 @@ export const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // Create / Recreate list
@@ -340,14 +340,14 @@ export function createList() {
   list = builder.build();
 
   // Wire events
-  list.on("scroll", updateFooter);
+  list.on("scroll", updateInfo);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex = range.start;
-    updateFooter();
+    updateInfo();
   });
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   // Sort event — consumer handles actual sorting
@@ -374,7 +374,7 @@ export function createList() {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  updateFooter();
+  updateInfo();
   updateContext();
 }
 
@@ -436,16 +436,16 @@ function updateSortDetail() {
 }
 
 // =============================================================================
-// Footer — right side (contextual)
+// Info bar — right side (contextual)
 // =============================================================================
 
-const ftColumns = document.getElementById("ft-columns");
-const ftSort = document.getElementById("ft-sort");
+const infoColumns = document.getElementById("info-columns");
+const infoSort = document.getElementById("info-sort");
 
 export function updateContext() {
-  if (ftColumns) ftColumns.textContent = getColumns().length;
-  if (ftSort) {
-    ftSort.textContent =
+  if (infoColumns) infoColumns.textContent = getColumns().length;
+  if (infoSort) {
+    infoSort.textContent =
       sortKey !== null ? `${sortKey} ${sortDirection}` : "none";
   }
 }

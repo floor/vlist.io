@@ -5,7 +5,7 @@
 import { vlist, withGroups, withSelection } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
-import { createFooterUpdater } from "../footer.js";
+import { createInfoUpdater } from "../info.js";
 import { initLetterGrid } from "./controls.js";
 
 // =============================================================================
@@ -70,7 +70,7 @@ const renderGroupHeader = (group) => `
 `;
 
 // =============================================================================
-// Stats — shared footer (progress, velocity, visible/total)
+// Stats — shared info bar (progress, velocity, visible/total)
 // =============================================================================
 
 export const stats = createStats({
@@ -81,7 +81,7 @@ export const stats = createStats({
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
 
-const updateFooter = createFooterUpdater(stats);
+const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
 // Create / Recreate list
@@ -123,14 +123,14 @@ export function createList() {
 
   list = builder.build();
 
-  list.on("scroll", updateFooter);
+  list.on("scroll", updateInfo);
   list.on("range:change", ({ range }) => {
     firstVisibleIndex = range.start;
-    updateFooter();
+    updateInfo();
   });
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
-    updateFooter();
+    updateInfo();
   });
 
   list.on("selection:change", ({ selected, items }) => {
@@ -146,7 +146,7 @@ export function createList() {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
 
-  updateFooter();
+  updateInfo();
   updateContext();
 }
 
@@ -181,15 +181,15 @@ function clearContactDetail() {
 }
 
 // =============================================================================
-// Footer — right side (contextual)
+// Info bar — right side (contextual)
 // =============================================================================
 
-const ftGroups = document.getElementById("ft-groups");
-const ftHeaders = document.getElementById("ft-headers");
+const infoGroups = document.getElementById("info-groups");
+const infoHeaders = document.getElementById("info-headers");
 
 export function updateContext() {
-  ftGroups.textContent = sortedGroups.length;
-  ftHeaders.textContent = currentHeaderMode;
+  infoGroups.textContent = sortedGroups.length;
+  infoHeaders.textContent = currentHeaderMode;
 }
 
 // =============================================================================
