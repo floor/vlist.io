@@ -8,7 +8,7 @@ import { STRESS_LEVELS, formatItemCount } from "./runner.js";
 import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
 
 const ITEM_COUNTS = [10_000, 100_000, 1_000_000];
-const DEFAULT_ITEM_COUNT = ITEM_COUNTS[0];
+const INITIAL_ITEM_COUNT = ITEM_COUNTS[0];
 
 // =============================================================================
 // Helpers
@@ -49,7 +49,7 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
         <div class="ui-segmented" id="bench-sizes">
           ${ITEM_COUNTS.map(
             (count) =>
-              `<button class="ui-segmented__btn${count === DEFAULT_ITEM_COUNT ? " ui-segmented__btn--active" : ""}" data-count="${count}">${formatItemCount(count)}</button>`,
+              `<button class="ui-segmented__btn${count === INITIAL_ITEM_COUNT ? " ui-segmented__btn--active" : ""}" data-count="${count}">${formatItemCount(count)}</button>`,
           ).join("")}
         </div>
         ${

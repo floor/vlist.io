@@ -3,18 +3,13 @@
 
 import { render } from "solid-js/web";
 import { createVList } from "vlist-solidjs";
-import {
-  DEFAULT_COUNT,
-  ITEM_HEIGHT,
-  makeItems,
-  itemTemplate,
-} from "../shared.js";
+import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
 // App Component
 // =============================================================================
 
-const items = makeItems(DEFAULT_COUNT);
+const items = makeItems(COUNT);
 
 function App() {
   const { setRef } = createVList(() => ({

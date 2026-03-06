@@ -385,7 +385,7 @@ chat.prependItems(olderMessages);
 - **Initial scroll to bottom** — After first render (or after initial adapter load), calls `scrollToIndex(total - 1, 'end')`
 - **appendItems auto-scroll** — Checks `isAtBottom()` before appending; if true, scrolls to new bottom after append
 - **prependItems scroll preservation** — Records `scrollTop` and `totalHeight` before prepend, then adjusts `scrollTop += (newHeight - oldHeight)` so the same content stays visible
-- **Adapter load at top** — Scroll handler checks `scrollTop < LOAD_MORE_THRESHOLD` instead of `distanceFromBottom < LOAD_MORE_THRESHOLD`
+- **Adapter load at top** — Scroll handler checks `scrollTop < LOAD_THRESHOLD` instead of `distanceFromBottom < LOAD_THRESHOLD`
 - **Validation** — Cannot be combined with `groups` or `grid` layout (throws at creation time)
 - Works with both fixed and variable `(index) => number` heights
 - All existing features (selection, events, scroll save/restore, compression) work unchanged

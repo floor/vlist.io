@@ -1177,7 +1177,7 @@ If patterns 9–11 are re-attempted for the builder core inlined renderer:
 
 **Sections feature:**
 - Pattern 12: Binary search in sticky header `update()` — O(log g) instead of O(g) per scroll frame
-- Pattern 3 (DRY): Removed ~80 lines of duplicated `resolveScrollArgs`, `createSmoothScroll`, `easeInOutQuad`, `DEFAULT_SMOOTH_DURATION`; now imported from `builder/scroll.ts`
+- Pattern 3 (DRY): Removed ~80 lines of duplicated `resolveScrollArgs`, `createSmoothScroll`, `easeInOutQuad`, `SMOOTH_DURATION`; now imported from `builder/scroll.ts`
 - Fixed bug: module-level `smoothScrollAnimationId` was shared state; now per-instance inside `createSmoothScroll` closure
 - Array mutations: `push()`/`unshift()` instead of spread for `appendItems`/`prependItems`
 - Size: 12,747 → 12,722 min (−25), 5,071 → 5,075 gz (+4) — roughly flat (deleted code offset by import)

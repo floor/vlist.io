@@ -5,7 +5,7 @@
 // Constants
 // =============================================================================
 
-export const DEFAULT_COUNT = 100_000;
+export const COUNT = 100_000;
 export const ITEM_HEIGHT = 64;
 
 // =============================================================================
@@ -59,7 +59,7 @@ const buildDates = (count) => {
   return dates;
 };
 
-let ORDER_DATES = buildDates(DEFAULT_COUNT);
+let ORDER_DATES = buildDates(COUNT);
 
 const ensureDates = (count) => {
   if (count > ORDER_DATES.length) ORDER_DATES = buildDates(count);

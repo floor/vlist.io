@@ -71,7 +71,7 @@ This is a global change — all docs pages now support two-level TOC navigation.
 ### features/overview.md
 
 - Removed two `update()` calls that referenced a non-existent method
-- Fixed `cancelThreshold` default from 15 to 5 (matches source constant `CANCEL_LOAD_VELOCITY_THRESHOLD = 5`)
+- Fixed `cancelThreshold` default from 15 to 5 (matches source constant `LOAD_VELOCITY_THRESHOLD = 5`)
 
 ### features/async.md
 
@@ -92,7 +92,7 @@ This is a global change — all docs pages now support two-level TOC navigation.
 |--------|--------|
 | `MAX_VIRTUAL_HEIGHT` → `MAX_VIRTUAL_SIZE` | Renamed constant across all source files. Old name kept as deprecated alias for backwards compatibility. |
 | `GridHeightContext` → `GridSizeContext` | Renamed type across all source files. Old name kept as deprecated type alias. |
-| `CANCEL_LOAD_VELOCITY_THRESHOLD` comment | Fixed stale "Default: 25" → "Default: 5" in constants.ts |
+| `LOAD_VELOCITY_THRESHOLD` comment | Fixed stale "Default: 25" → "Default: 5" in constants.ts |
 | `DataFeatureConfig.cancelThreshold` JSDoc | Fixed stale "Default: 25" → "Default: 5" in async/feature.ts |
 | Axis-neutral comments in `rendering/scale.ts` | "height" → "size" in module doc, `CompressionState` field docs, and `getCompressionState` logic |
 | Axis-neutral comments in `rendering/viewport.ts` | "capped at MAX_VIRTUAL_HEIGHT" → "capped at MAX_VIRTUAL_SIZE" |
@@ -134,10 +134,10 @@ All changes pass TypeScript compilation and 2,268 tests (0 failures).
 |--------|--------|
 | `VELOCITY_SAMPLE_COUNT` | Fixed 8 → 5 (builder tracker). Documented two independent velocity trackers. |
 | `MIN_RELIABLE_SAMPLES` | Fixed 3 → 2 (builder tracker) |
-| `DEFAULT_MASK_CHARACTER` | Fixed '█' → 'x' |
-| `DEFAULT_CANCEL_THRESHOLD` | Renamed to `CANCEL_LOAD_VELOCITY_THRESHOLD`, fixed value 25 → 5 |
+| `MASK_CHARACTER` | Fixed '█' → 'x' |
+| `DEFAULT_CANCEL_THRESHOLD` | Renamed to `LOAD_VELOCITY_THRESHOLD`, fixed value 25 → 5 |
 | `DEFAULT_PRELOAD_THRESHOLD` | Renamed to `PRELOAD_VELOCITY_THRESHOLD` |
-| `DEFAULT_PRELOAD_AHEAD` | Renamed to `PRELOAD_ITEMS_AHEAD` |
+| `DEFAULT_PRELOAD_AHEAD` | Renamed to `PRELOAD_AHEAD` |
 | `MAX_VIRTUAL_HEIGHT` | Replaced with `MAX_VIRTUAL_SIZE`, old name documented as deprecated alias |
 | Velocity section | Added table explaining two independent velocity trackers (builder vs scrollbar controller) with different constants |
 | Structure | Flat H2/H3, removed verbose "Purpose" paragraphs, tightened descriptions |
@@ -343,7 +343,7 @@ Also fixed: broken link `[optimization.md]/tutorials/optimization)` → `[Optimi
 
 | Fix | Detail |
 |-----|--------|
-| `cancelThreshold: 15` → `5` | Combining with Async Loading example (matches source `CANCEL_LOAD_VELOCITY_THRESHOLD = 5`) |
+| `cancelThreshold: 15` → `5` | Combining with Async Loading example (matches source `LOAD_VELOCITY_THRESHOLD = 5`) |
 | `./README.md` → `./overview.md` | See Also link (no `README.md` exists in `features/`) |
 
 ### features/snapshots.md

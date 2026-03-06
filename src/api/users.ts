@@ -641,7 +641,7 @@ export interface User {
 // Configuration
 // =============================================================================
 
-export const DEFAULT_TOTAL = 1_000_000;
+export const TOTAL = 1_000_000;
 export const MAX_LIMIT = 200;
 
 // =============================================================================
@@ -697,7 +697,7 @@ export const generateUser = (index: number): User => {
 export const getUsers = (
   offset: number,
   limit: number,
-  total: number = DEFAULT_TOTAL,
+  total: number = TOTAL,
 ): { items: User[]; total: number; hasMore: boolean } => {
   const clamped = Math.min(limit, MAX_LIMIT);
   const start = Math.max(0, offset);
@@ -719,10 +719,7 @@ export const getUsers = (
  * Get a single user by ID (1-based).
  * Returns null if out of range.
  */
-export const getUserById = (
-  id: number,
-  total: number = DEFAULT_TOTAL,
-): User | null => {
+export const getUserById = (id: number, total: number = TOTAL): User | null => {
   if (id < 1 || id > total) return null;
   return generateUser(id);
 };

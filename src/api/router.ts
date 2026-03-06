@@ -2,10 +2,10 @@
 // API router for vlist.dev — handles /api/* routes with CORS support
 
 import { CACHE_API, CACHE_API_DOCS } from "../server/cache";
-import { getUsers, getUserById, DEFAULT_TOTAL, MAX_LIMIT } from "./users";
+import { getUsers, getUserById, TOTAL, MAX_LIMIT } from "./users";
 import {
   getPosts,
-  DEFAULT_TOTAL as POSTS_DEFAULT_TOTAL,
+  TOTAL as POSTS_TOTAL,
   MAX_LIMIT as POSTS_MAX_LIMIT,
 } from "./posts";
 import { getRecipes, getRecipeById } from "./recipes";
@@ -102,7 +102,7 @@ const handleGetUsers = async (url: URL): Promise<Response> => {
   const offset = intParam(url, "offset", 0, 0, 10_000_000);
   const limit = intParam(url, "limit", 50, 1, MAX_LIMIT);
   const delay = intParam(url, "delay", 0, 0, 5000);
-  const total = intParam(url, "total", DEFAULT_TOTAL, 1, 10_000_000);
+  const total = intParam(url, "total", TOTAL, 1, 10_000_000);
 
   await sleep(delay);
 
@@ -125,7 +125,7 @@ const handleGetUsers = async (url: URL): Promise<Response> => {
  */
 const handleGetUser = async (url: URL, id: number): Promise<Response> => {
   const delay = intParam(url, "delay", 0, 0, 5000);
-  const total = intParam(url, "total", DEFAULT_TOTAL, 1, 10_000_000);
+  const total = intParam(url, "total", TOTAL, 1, 10_000_000);
 
   await sleep(delay);
 
@@ -179,7 +179,7 @@ const handleGetPosts = async (url: URL): Promise<Response> => {
   const offset = intParam(url, "offset", 0, 0, 100_000);
   const limit = intParam(url, "limit", 50, 1, POSTS_MAX_LIMIT);
   const delay = intParam(url, "delay", 0, 0, 5000);
-  const total = intParam(url, "total", POSTS_DEFAULT_TOTAL, 1, 100_000);
+  const total = intParam(url, "total", POSTS_TOTAL, 1, 100_000);
 
   await sleep(delay);
 
@@ -284,7 +284,7 @@ const handleInfo = (): Response =>
           delay: { type: "number", default: 0, min: 0, max: 5000, unit: "ms" },
           total: {
             type: "number",
-            default: POSTS_DEFAULT_TOTAL,
+            default: POSTS_TOTAL,
             min: 1,
             max: 100_000,
           },
@@ -323,7 +323,7 @@ const handleInfo = (): Response =>
           delay: { type: "number", default: 0, min: 0, max: 5000, unit: "ms" },
           total: {
             type: "number",
-            default: DEFAULT_TOTAL,
+            default: TOTAL,
             min: 1,
             max: 10_000_000,
           },
@@ -336,7 +336,7 @@ const handleInfo = (): Response =>
           delay: { type: "number", default: 0, min: 0, max: 5000, unit: "ms" },
           total: {
             type: "number",
-            default: DEFAULT_TOTAL,
+            default: TOTAL,
             min: 1,
             max: 10_000_000,
           },
@@ -370,7 +370,7 @@ const handleInfo = (): Response =>
       },
     },
     defaults: {
-      total: DEFAULT_TOTAL,
+      total: TOTAL,
       limit: 50,
       maxLimit: MAX_LIMIT,
     },

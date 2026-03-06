@@ -2,18 +2,13 @@
 // Demonstrates core vlist with 100,000 items.
 
 import { vlist } from "vlist-svelte";
-import {
-  DEFAULT_COUNT,
-  ITEM_HEIGHT,
-  makeItems,
-  itemTemplate,
-} from "../shared.js";
+import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
 // Create list
 // =============================================================================
 
-const items = makeItems(DEFAULT_COUNT);
+const items = makeItems(COUNT);
 
 vlist(document.getElementById("list-container"), {
   config: {

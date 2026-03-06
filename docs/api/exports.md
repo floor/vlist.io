@@ -67,7 +67,7 @@ import {
 
 `MAX_VIRTUAL_SIZE` is 16,000,000 px — the safe limit below the browser's maximum element size. The compression ratio is computed from the actual total size reported by the `SizeCache` — fixed, variable, and measured sizes all compress correctly.
 
-> `MAX_VIRTUAL_HEIGHT` is still exported as a deprecated alias.
+
 
 ---
 

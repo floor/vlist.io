@@ -12,7 +12,7 @@ import { initControls } from "./controls.js";
 // =============================================================================
 
 export const TOTAL_ROWS = 10_000;
-export const DEFAULT_ROW_HEIGHT = 36;
+export const ROW_HEIGHT = 36;
 export const HEADER_HEIGHT = 36;
 
 // =============================================================================
@@ -29,7 +29,7 @@ export let sortedContacts = [...contacts];
 // =============================================================================
 
 export let list = null;
-export let currentRowHeight = DEFAULT_ROW_HEIGHT;
+export let currentRowHeight = ROW_HEIGHT;
 export let currentPreset = "compact";
 export let currentBorderMode = "both";
 export let sortKey = null;

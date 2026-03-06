@@ -341,10 +341,10 @@ function countRealItems<T extends VListItem>(items: (T | undefined)[]): number;
 
 ```typescript
 /** Default mask character — 'x' for realistic text width */
-const DEFAULT_MASK_CHARACTER = 'x';
+const MASK_CHARACTER = 'x';
 
 /** Maximum items to sample for profiles (default: 20) */
-const DEFAULT_MAX_SAMPLE_SIZE = 20;
+const MAX_SAMPLE_SIZE = 20;
 
 /** Internal flag on placeholder items */
 const PLACEHOLDER_FLAG = '_isPlaceholder';

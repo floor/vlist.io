@@ -5,7 +5,7 @@
 // Constants
 // =============================================================================
 
-export const CANCEL_LOAD_VELOCITY_THRESHOLD = 15; // px/ms
+export const LOAD_VELOCITY_THRESHOLD = 15; // px/ms
 export const TOTAL_ITEMS = 1000000;
 export const API_BASE = "http://localhost:3338";
 export const ITEM_HEIGHT = 72;

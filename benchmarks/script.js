@@ -144,7 +144,7 @@ import {
 // Constants
 // =============================================================================
 
-const DEFAULT_ITEM_COUNT = 10_000;
+const INITIAL_ITEM_COUNT = 10_000;
 
 // Convert features data from JSON to array format for backward compatibility
 const FEATURE_LIBS = FEATURES_DATA.libraries;
@@ -154,7 +154,7 @@ const FEATURE_DATA = FEATURES_DATA.features.map((f) => [f.name, ...f.support]);
 // Shared State
 // =============================================================================
 
-let selectedItemCount = DEFAULT_ITEM_COUNT;
+let selectedItemCount = INITIAL_ITEM_COUNT;
 let selectedStressMs = 0;
 let selectedScrollSpeed = SCROLL_SPEEDS[0].pxPerSec;
 let isRunning = false;

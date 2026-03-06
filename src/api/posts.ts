@@ -111,7 +111,7 @@ export interface Post {
 // Configuration
 // =============================================================================
 
-export const DEFAULT_TOTAL = 5000;
+export const TOTAL = 5000;
 export const MAX_LIMIT = 200;
 
 // =============================================================================
@@ -155,7 +155,7 @@ export const generatePost = (index: number, total: number): Post => {
 export const getPosts = (
   offset: number,
   limit: number,
-  total: number = DEFAULT_TOTAL,
+  total: number = TOTAL,
 ): { items: Post[]; total: number; hasMore: boolean } => {
   const clamped = Math.min(limit, MAX_LIMIT);
   const start = Math.max(0, offset);
@@ -177,7 +177,7 @@ export const getPosts = (
  * Generate all posts at once (for client-side examples).
  * Use getPosts() for paginated API usage instead.
  */
-export const getAllPosts = (total: number = DEFAULT_TOTAL): Post[] => {
+export const getAllPosts = (total: number = TOTAL): Post[] => {
   const items: Post[] = [];
   for (let i = 0; i < total; i++) {
     items.push(generatePost(i, total));

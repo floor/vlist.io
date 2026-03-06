@@ -4,7 +4,7 @@ import {
   generatePost,
   getPosts,
   getAllPosts,
-  DEFAULT_TOTAL,
+  TOTAL,
   MAX_LIMIT,
   type Post,
 } from "../../src/api/posts";
@@ -75,7 +75,9 @@ describe("posts", () => {
 
     test("avatarUrl is a pravatar.cc URL", () => {
       const post = generatePost(0, 100);
-      expect(post.avatarUrl).toMatch(/^https:\/\/i\.pravatar\.cc\/72\?img=\d+$/);
+      expect(post.avatarUrl).toMatch(
+        /^https:\/\/i\.pravatar\.cc\/72\?img=\d+$/,
+      );
     });
 
     test("engagement numbers are within expected ranges", () => {
@@ -124,7 +126,7 @@ describe("posts", () => {
 
     test("returns correct total", () => {
       const result = getPosts(0, 10);
-      expect(result.total).toBe(DEFAULT_TOTAL);
+      expect(result.total).toBe(TOTAL);
 
       const customTotal = getPosts(0, 10, 1000);
       expect(customTotal.total).toBe(1000);
@@ -158,9 +160,9 @@ describe("posts", () => {
       expect(posts.length).toBe(50);
     });
 
-    test("uses DEFAULT_TOTAL when no argument provided", () => {
+    test("uses TOTAL when no argument provided", () => {
       const posts = getAllPosts();
-      expect(posts.length).toBe(DEFAULT_TOTAL);
+      expect(posts.length).toBe(TOTAL);
     });
 
     test("posts are in order", () => {
@@ -182,8 +184,8 @@ describe("posts", () => {
   });
 
   describe("constants", () => {
-    test("DEFAULT_TOTAL is 5000", () => {
-      expect(DEFAULT_TOTAL).toBe(5000);
+    test("TOTAL is 5000", () => {
+      expect(TOTAL).toBe(5000);
     });
 
     test("MAX_LIMIT is 200", () => {

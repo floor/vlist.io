@@ -10,7 +10,7 @@ import {
   withSnapshots,
 } from "vlist";
 import {
-  CANCEL_LOAD_VELOCITY_THRESHOLD,
+  LOAD_VELOCITY_THRESHOLD,
   TOTAL_ITEMS,
   ITEM_HEIGHT,
   fetchItems,
@@ -66,7 +66,7 @@ function updateControls() {
   if (!velocityValueEl) return; // DOM not ready
 
   const velocityPercent = Math.min(100, (currentVelocity / 30) * 100);
-  const isAboveThreshold = currentVelocity > CANCEL_LOAD_VELOCITY_THRESHOLD;
+  const isAboveThreshold = currentVelocity > LOAD_VELOCITY_THRESHOLD;
 
   if (prevState.loadRequests !== loadRequests) {
     loadRequestsEl.textContent = loadRequests;
@@ -144,7 +144,7 @@ const list = vlist({
         chunkSize: 25,
       },
       loading: {
-        cancelThreshold: CANCEL_LOAD_VELOCITY_THRESHOLD,
+        cancelThreshold: LOAD_VELOCITY_THRESHOLD,
       },
     }),
   )

@@ -3,18 +3,13 @@
 
 import { createRoot } from "react-dom/client";
 import { useVList } from "vlist-react";
-import {
-  DEFAULT_COUNT,
-  ITEM_HEIGHT,
-  makeItems,
-  itemTemplate,
-} from "../shared.js";
+import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
 // App Component
 // =============================================================================
 
-const items = makeItems(DEFAULT_COUNT);
+const items = makeItems(COUNT);
 
 function App() {
   const { containerRef } = useVList({

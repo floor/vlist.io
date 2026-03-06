@@ -4,7 +4,7 @@ import {
   generateUser,
   getUsers,
   getUserById,
-  DEFAULT_TOTAL,
+  TOTAL,
   MAX_LIMIT,
   type User,
 } from "../../src/api/users";
@@ -113,7 +113,7 @@ describe("users", () => {
 
     test("returns correct total", () => {
       const result = getUsers(0, 10);
-      expect(result.total).toBe(DEFAULT_TOTAL);
+      expect(result.total).toBe(TOTAL);
 
       const customTotal = getUsers(0, 10, 5000);
       expect(customTotal.total).toBe(5000);
@@ -164,7 +164,7 @@ describe("users", () => {
     });
 
     test("returns null for ID greater than total", () => {
-      expect(getUserById(DEFAULT_TOTAL + 1)).toBeNull();
+      expect(getUserById(TOTAL + 1)).toBeNull();
       expect(getUserById(101, 100)).toBeNull();
     });
 
@@ -181,8 +181,8 @@ describe("users", () => {
   });
 
   describe("constants", () => {
-    test("DEFAULT_TOTAL is 1 million", () => {
-      expect(DEFAULT_TOTAL).toBe(1_000_000);
+    test("TOTAL is 1 million", () => {
+      expect(TOTAL).toBe(1_000_000);
     });
 
     test("MAX_LIMIT is 200", () => {

@@ -523,9 +523,6 @@ interface CompressionState {
 ```typescript
 // Maximum virtual size along the main axis (16M pixels)
 const MAX_VIRTUAL_SIZE = 16_000_000;
-
-// Deprecated alias — use MAX_VIRTUAL_SIZE
-const MAX_VIRTUAL_HEIGHT = MAX_VIRTUAL_SIZE;
 ```
 
 #### Compressed Range Calculations

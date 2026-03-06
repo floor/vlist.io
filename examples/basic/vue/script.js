@@ -3,18 +3,13 @@
 
 import { createApp, ref, watch, onUnmounted } from "vue";
 import { vlist } from "vlist";
-import {
-  DEFAULT_COUNT,
-  ITEM_HEIGHT,
-  makeItems,
-  itemTemplate,
-} from "../shared.js";
+import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
 // App Component
 // =============================================================================
 
-const items = makeItems(DEFAULT_COUNT);
+const items = makeItems(COUNT);
 
 const App = {
   setup() {

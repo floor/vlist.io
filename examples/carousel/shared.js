@@ -6,7 +6,7 @@
 // =============================================================================
 
 export const ITEM_COUNT = 10_000;
-export const DEFAULT_HEIGHT = 240;
+export const CARD_HEIGHT = 240;
 export const ASPECT_RATIO = 260 / 320; // width / height ≈ 0.8125
 
 // Color palette for cards
@@ -121,7 +121,7 @@ export function getTemplate(variableWidth) {
 
 // Build vlist config for the given mode, height, and gap.
 // Gap is added to item dimensions so vlist spaces items correctly.
-export function buildConfig(variableWidth, height = DEFAULT_HEIGHT, gap = 0) {
+export function buildConfig(variableWidth, height = CARD_HEIGHT, gap = 0) {
   const cardWidth = Math.round(height * ASPECT_RATIO);
   return {
     orientation: "horizontal",

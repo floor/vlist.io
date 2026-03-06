@@ -77,7 +77,7 @@ Pure functions with zero dependencies on `materialize()` closure state. Extracte
 | `builder/dom.ts` | `DOMStructure`, `resolveContainer`, `createDOMStructure` | 86 |
 | `builder/pool.ts` | `createElementPool` | 32 |
 | `builder/range.ts` | `calcVisibleRange`, `applyOverscan`, `calcScrollToPosition` | 80 |
-| `builder/scroll.ts` | `easeInOutQuad`, `resolveScrollArgs`, `DEFAULT_SMOOTH_DURATION` | 54 |
+| `builder/scroll.ts` | `easeInOutQuad`, `resolveScrollArgs`, `SMOOTH_DURATION` | 54 |
 
 For HeightCache and Emitter, the inlined copies in `core.ts` were simplified duplicates of modules that already existed in `rendering/heights.ts` and `events/emitter.ts`. Both are functionally equivalent, so the inlined copies were deleted and replaced with imports from the existing modules. This deduplication actually made the bundle **smaller** since the rendering and events modules were already pulled into the bundle by features.
 

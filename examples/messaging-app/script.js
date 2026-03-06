@@ -18,7 +18,7 @@ import "./controls.js";
 
 const TOTAL_MESSAGES = 5000;
 const DATE_HEADER_HEIGHT = 28;
-const DEFAULT_MSG_HEIGHT = 56;
+const MSG_HEIGHT = 56;
 
 const SELF_USER = { name: "You", color: "#667eea", initials: "YO" };
 
@@ -180,7 +180,7 @@ const getMeasureWidth = () => {
 export const stats = createStats({
   getList: () => list,
   getTotal: () => currentItems.length,
-  getItemHeight: () => DEFAULT_MSG_HEIGHT,
+  getItemHeight: () => MSG_HEIGHT,
   container: "#list-container",
 });
 
@@ -254,7 +254,7 @@ export function createList() {
     item: {
       height: (index) => {
         const item = currentItems[index];
-        return (item && item.height) || DEFAULT_MSG_HEIGHT;
+        return (item && item.height) || MSG_HEIGHT;
       },
       template: (item) => {
         const el = document.createElement("div");
@@ -330,7 +330,7 @@ const sendMessage = () => {
     initials: SELF_USER.initials,
     isSelf: true,
     time,
-    height: DEFAULT_MSG_HEIGHT,
+    height: MSG_HEIGHT,
     dateSection: DATE_LABELS.length - 1,
   };
 
@@ -382,7 +382,7 @@ const generateRandomMessage = () => {
     initials: user.initials,
     isSelf: false,
     time,
-    height: DEFAULT_MSG_HEIGHT,
+    height: MSG_HEIGHT,
     dateSection: DATE_LABELS.length - 1,
   };
 
