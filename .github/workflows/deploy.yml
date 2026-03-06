@@ -38,11 +38,13 @@ jobs:
 
             echo "📦 Deploying vlist.dev..."
 
-            # Pull latest vlist (used by file browser API)
+            # Pull latest vlist (used by file browser API + staleness check)
             VLIST_DIR="/home/floor/vlist"
             cd $VLIST_DIR
             git fetch origin staging
             git reset --hard origin/staging
+            bun install --frozen-lockfile
+            bun run build
 
             # Pull latest vlist.dev
             cd $APP_DIR
