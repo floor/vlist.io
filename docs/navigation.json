@@ -135,6 +135,11 @@
         "slug": "internals/measurement",
         "name": "Measurement",
         "desc": "Item Auto-Size Measurement"
+      },
+      {
+        "slug": "internals/stats",
+        "name": "Stats Module",
+        "desc": "Pure computation module for scroll statistics"
       }
     ]
   },
