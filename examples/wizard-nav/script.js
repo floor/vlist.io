@@ -142,17 +142,18 @@ export function createList() {
 // =============================================================================
 
 export function goTo(index, instant = false) {
-  if (currentWrap) {
-    currentIndex = ((index % TOTAL) + TOTAL) % TOTAL;
-  } else {
-    currentIndex = Math.max(0, Math.min(index, TOTAL - 1));
-  }
-
-  list.scrollToIndex(currentIndex, {
+  // scroll.wrap handles modulo internally — pass the raw index
+  list.scrollToIndex(index, {
     align: "start",
     behavior: instant ? "auto" : "smooth",
     duration: instant ? 0 : 350,
   });
+
+  // Resolve index for UI (dots, recipe info panel)
+  currentIndex =
+    currentWrap && TOTAL > 0
+      ? ((index % TOTAL) + TOTAL) % TOTAL
+      : Math.max(0, Math.min(index, TOTAL - 1));
 
   updateCurrentInfo();
   updateDots();
