@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No unreleased changes._
+### Added
+
+- **Item gap** — New `item.gap` property adds consistent spacing between items along the main axis. The gap is baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element height, so items are positioned with precise spacing and no CSS hacks. Works with fixed sizes, variable sizes, and auto-measured sizes (Mode B). The trailing gap after the last item is automatically removed. Ignored when grid or masonry is active (they manage their own gap). ([`b81ac49`])
+- **Content padding** — New top-level `padding` property adds inset space around the list content, following CSS shorthand convention:
+  - `number` — equal padding on all four sides
+  - `[vertical, horizontal]` — top/bottom and left/right
+  - `[top, right, bottom, left]` — per-side (CSS order)
+
+  Applied as CSS `padding` + `border-box` on `.vlist-content`, so it works identically for list, grid, and masonry layouts with zero positioning overhead. Grid and masonry automatically subtract cross-axis padding from the container width so columns/lanes size correctly. `scrollToIndex` accounts for padding so the last item scrolls fully into view including end padding. ([`e8ee865`])
 
 ---
 

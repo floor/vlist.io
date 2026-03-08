@@ -111,6 +111,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
   classPrefix?: string
   ariaLabel?:   string
   orientation?: 'vertical' | 'horizontal'
+  padding?:     number | [number, number] | [number, number, number, number]
   reverse?:     boolean
   scroll?:      ScrollConfig
 }
@@ -125,6 +126,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 | `classPrefix` | `string` | `'vlist'` | CSS class prefix for all internal elements. |
 | `ariaLabel` | `string` | — | Sets `aria-label` on the root listbox element. |
 | `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. |
+| `padding` | `number \| [number, number] \| [number, number, number, number]` | `0` | Padding around the list content. Works like CSS `padding` — adds inset space between the viewport edge and items. Follows CSS shorthand: `number` (all sides), `[v, h]` (vertical/horizontal), or `[top, right, bottom, left]`. Applied as CSS padding on `.vlist-content` with `border-box`. Works with list, grid, and masonry. Grid/masonry automatically subtract cross-axis padding from the container width for column calculations. |
 | `reverse` | `boolean` | `false` | Bottom-anchored mode — list starts scrolled to the bottom. |
 | `scroll` | `ScrollConfig` | — | Fine-grained scroll behavior options. |
 
@@ -169,6 +171,8 @@ interface ItemConfig<T extends VListItem = VListItem> {
   width?:           number | ((index: number) => number)
   estimatedHeight?: number
   estimatedWidth?:  number
+  gap?:             number
+  striped?:         boolean
   template:         ItemTemplate<T>
 }
 ```
@@ -179,6 +183,8 @@ interface ItemConfig<T extends VListItem = VListItem> {
 | `width` | `number \| (index) => number` | — | Item size for horizontal lists (`orientation: 'horizontal'`). Ignored in vertical mode. |
 | `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Items are rendered at this size, measured via `ResizeObserver`, and the real size is cached. Ignored if `height` is also set. |
 | `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Ignored if `width` is also set. |
+| `gap` | `number` | `0` | Gap between items in pixels along the main axis. Baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element size, so items are positioned with precise spacing. The trailing gap after the last item is automatically removed. Works with fixed sizes, variable sizes, and auto-measurement (Mode B). Ignored when `withGrid` or `withMasonry` is active — those features manage their own gap. |
+| `striped` | `boolean` | `false` | Adds `.vlist-item--even` / `.vlist-item--odd` classes for zebra-stripe styling. |
 | `template` | `ItemTemplate<T>` | — | **Required.** Render function for each visible item. |
 
 **Mode A — Known sizes.** Use when you can derive size from data alone. Zero measurement overhead.

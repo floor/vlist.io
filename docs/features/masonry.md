@@ -646,9 +646,27 @@ template: (item) => `
 `
 ```
 
-### 4. Consider Container Padding
+### 4. Consider Content Padding
 
-Container padding affects column width calculations:
+Use the top-level `padding` config to add inset space around the masonry layout:
+
+```ts
+const gallery = vlist({
+  container: '#gallery',
+  padding: 16,           // 16px on all sides
+  items: photos,
+  item: {
+    height: (i) => photos[i].aspectRatio * 200,
+    template: renderPhoto,
+  },
+})
+  .use(withMasonry({ columns: 3, gap: 12 }))
+  .build()
+```
+
+Cross-axis padding (left/right in vertical mode) is automatically subtracted from the container width so columns size correctly. Main-axis padding (top/bottom) is added to the scrollable area so `scrollToIndex` reaches the true edges. The CSS shorthand convention is supported: `number` (all sides), `[v, h]` (vertical/horizontal), or `[top, right, bottom, left]`.
+
+Alternatively, you can use CSS padding on the container element — the masonry layout accounts for this if you use `box-sizing: border-box`:
 
 ```css
 #gallery {
@@ -657,7 +675,7 @@ Container padding affects column width calculations:
 }
 ```
 
-The masonry layout automatically accounts for this if you use `box-sizing: border-box`.
+The `padding` config is preferred because it integrates with scroll calculations and works consistently across list, grid, and masonry layouts.
 
 ### 5. Handle Data Changes
 

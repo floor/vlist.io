@@ -105,6 +105,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
   items?:       T[]
   overscan?:    number
   orientation?: 'vertical' | 'horizontal'
+  padding?:     number | [number, number] | [number, number, number, number]
   reverse?:     boolean
   classPrefix?: string
   ariaLabel?:   string
@@ -119,6 +120,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 | `items` | `T[]` | `[]` | Static items array. Omit when using `withAsync`. |
 | `overscan` | `number` | `3` | Extra items rendered outside the viewport in each direction. Higher values reduce blank flashes during fast scrolling at the cost of more DOM nodes. |
 | `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. Use `'horizontal'` for carousels or timelines. |
+| `padding` | `number \| [number, number] \| [number, number, number, number]` | `0` | Padding around the list content. Works like CSS `padding` — adds inset space between the viewport edge and items. Follows CSS shorthand: `number` (all sides), `[v, h]` (vertical/horizontal), or `[top, right, bottom, left]`. Works with list, grid, and masonry layouts. See [Gap & Padding](#gap--padding). |
 | `reverse` | `boolean` | `false` | Reverse mode — list starts scrolled to the bottom. `appendItems` auto-scrolls if already at bottom; `prependItems` preserves scroll position. Useful for any bottom-anchored content: chat, logs, activity feeds, timelines. |
 | `classPrefix` | `string` | `'vlist'` | CSS class prefix for all internal elements. |
 | `ariaLabel` | `string` | — | Sets `aria-label` on the root listbox element. |
@@ -136,6 +138,8 @@ interface ItemConfig<T extends VListItem = VListItem> {
   width?:           number | ((index: number) => number)
   estimatedHeight?: number
   estimatedWidth?:  number
+  gap?:             number
+  striped?:         boolean
   template:         ItemTemplate<T>
 }
 ```
@@ -146,6 +150,8 @@ interface ItemConfig<T extends VListItem = VListItem> {
 | `width` | `number \| (index) => number` | — | Item size in pixels along the main axis for horizontal lists (`orientation: 'horizontal'`). Same semantics as `height`. Ignored in vertical mode. |
 | `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Items are rendered at this size, then measured via `ResizeObserver`, and the real size is cached. Use for content whose size can't be predicted from data. Ignored if `height` is also set. |
 | `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Ignored if `width` is also set. |
+| `gap` | `number` | `0` | Gap between items in pixels along the main axis. Adds consistent spacing between items without CSS margin hacks. Ignored when `withGrid` or `withMasonry` is active (those features manage their own gap). See [Gap & Padding](#gap--padding). |
+| `striped` | `boolean` | `false` | Adds `.vlist-item--even` / `.vlist-item--odd` classes for zebra-stripe styling. |
 | `template` | `ItemTemplate<T>` | — | **Required.** Render function for each visible item. |
 
 #### Sizing modes
@@ -483,6 +489,110 @@ useEffect(() => {
   const list = vlist({ ... }).build()
   return () => list.destroy()
 }, [])
+```
+
+---
+
+## Gap & Padding
+
+vlist provides two complementary spacing options: **gap** (between items) and **padding** (around the list content).
+
+### Item Gap
+
+The `item.gap` property adds consistent spacing between items along the scroll axis. The gap is baked into the size cache — each slot occupies `itemSize + gap` pixels — and subtracted from the DOM element's size, so items are visually separated without CSS margin hacks.
+
+```ts
+const list = vlist({
+  container: '#list',
+  items: data,
+  item: {
+    height: 48,
+    gap: 8,     // 8px between each item
+    template: (item) => `<div>${item.name}</div>`,
+  },
+}).build()
+```
+
+**How it works:**
+
+- Each slot in the size cache = `itemSize + gap`
+- The trailing gap (after the last item) is automatically removed
+- DOM elements are sized to the item size only (gap is spacing, not part of the element)
+- Works with fixed sizes, variable sizes, and auto-measurement (Mode B)
+- Ignored when `withGrid` or `withMasonry` is active — those features manage their own `gap` via their config
+
+**Single item or empty list:** No gap is visible. The trailing-gap correction ensures single items report their true size.
+
+### Content Padding
+
+The top-level `padding` property adds inset space between the viewport edge and the items, exactly like CSS `padding`. It follows the CSS shorthand convention:
+
+```ts
+// All sides equal
+const list = vlist({
+  container: '#list',
+  padding: 16,
+  items: data,
+  item: { height: 48, template: renderRow },
+}).build()
+
+// Vertical / horizontal
+const list = vlist({
+  container: '#list',
+  padding: [16, 12],  // 16px top/bottom, 12px left/right
+  items: data,
+  item: { height: 48, template: renderRow },
+}).build()
+
+// Per-side (CSS order: top, right, bottom, left)
+const list = vlist({
+  container: '#list',
+  padding: [16, 12, 20, 8],
+  items: data,
+  item: { height: 48, template: renderRow },
+}).build()
+```
+
+**How it works:**
+
+- Applied as CSS `padding` + `box-sizing: border-box` on the `.vlist-content` element
+- Zero positioning overhead — items keep their normal `translateY` offsets; CSS padding handles the visual inset
+- Main-axis padding (top/bottom in vertical mode) is added to the content size so `scrollToIndex` reaches the true edges
+- Cross-axis padding (left/right in vertical mode) is subtracted from the container width for grid and masonry column calculations
+- Works identically for list, grid, and masonry layouts
+- No-op when padding is `0` — zero overhead
+
+### Combining Gap and Padding
+
+Gap and padding compose naturally:
+
+```ts
+const list = vlist({
+  container: '#list',
+  padding: [24, 16],   // 24px top/bottom, 16px left/right
+  items: data,
+  item: {
+    height: 48,
+    gap: 8,             // 8px between items
+    template: renderRow,
+  },
+}).build()
+```
+
+For grid and masonry layouts, use the feature's own `gap` config instead of `item.gap`:
+
+```ts
+const gallery = vlist({
+  container: '#gallery',
+  padding: 16,          // inset around the entire grid
+  items: photos,
+  item: {
+    height: 200,
+    template: renderPhoto,
+  },
+})
+  .use(withGrid({ columns: 4, gap: 8 }))  // 8px between grid cells
+  .build()
 ```
 
 ---

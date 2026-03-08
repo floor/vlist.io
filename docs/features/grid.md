@@ -606,18 +606,32 @@ height: (_index, { columnWidth }) => Math.round(columnWidth * 0.75) // 4:3
 height: 200 // Fixed height — will not adapt
 ```
 
-### 2. Consider Container Padding
+### 2. Use Content Padding
 
-Container padding affects column width calculations:
+Use the top-level `padding` config to add inset space around the grid. The grid automatically subtracts cross-axis padding (left/right in vertical mode) from the container width so columns size correctly:
 
-```css
-#gallery {
-  padding: 16px;
-  box-sizing: border-box; /* Important! */
-}
+```js
+const gallery = vlist({
+  container: '#gallery',
+  padding: 16,           // 16px inset on all sides
+  items: photos,
+  item: {
+    height: 200,
+    template: renderPhoto,
+  },
+})
+  .use(withGrid({ columns: 4, gap: 8 }))
+  .build()
 ```
 
-The grid automatically accounts for this if you use `box-sizing: border-box`.
+This is preferred over CSS padding on the container element because vlist handles the column width calculation and scroll range automatically. You can also use the CSS shorthand variants:
+
+```js
+padding: [16, 12]             // 16px top/bottom, 12px left/right
+padding: [16, 12, 20, 8]     // top, right, bottom, left
+```
+
+See [Gap & Padding](../api/reference.md#gap--padding) for full details.
 
 ### 3. Use `loading="lazy"` for Images
 

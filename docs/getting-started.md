@@ -63,6 +63,18 @@ item: {
 
 The function receives the **index** (not the item) so you can look up any data. Heights are cached via a prefix-sum array for O(1) offset lookups and O(log n) binary search for reverse lookups.
 
+### Item gap
+
+```typescript
+item: {
+  height: 48,
+  gap: 8,       // 8px between each item
+  template: (item) => `<div>${item.name}</div>`,
+}
+```
+
+The `gap` property adds consistent spacing between items along the main axis. It's baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element height — no CSS margin hacks needed. The trailing gap after the last item is automatically removed. Works with fixed sizes, variable sizes, and auto-measurement (Mode B). Ignored when `withGrid` or `withMasonry` is active (they manage their own gap).
+
 ### Template function
 
 ```typescript
@@ -99,15 +111,44 @@ interface BuilderConfig<T> {
   item: {
     height: number | ((index: number) => number);  // Required for vertical
     width?: number | ((index: number) => number);  // Required for horizontal
+    gap?: number;                       // Spacing between items (default: 0)
     template: (item: T, index: number, state: ItemState) => string | HTMLElement;
   };
   items?: T[];                          // Static items (omit when using withAsync)
   overscan?: number;                    // Extra items rendered outside viewport (default: 3)
   orientation?: 'vertical' | 'horizontal'; // Default: 'vertical'
+  padding?: number | [number, number] | [number, number, number, number]; // Content inset (default: 0)
   reverse?: boolean;                    // Bottom-anchored content (default: false)
   classPrefix?: string;                 // CSS class prefix (default: 'vlist')
   ariaLabel?: string;                   // Accessible label for the list element
 }
+```
+
+---
+
+## Content Padding
+
+The top-level `padding` property adds inset space between the viewport edge and the items, exactly like CSS `padding`. It follows the CSS shorthand convention:
+
+```typescript
+padding: 16                   // 16px all sides
+padding: [16, 12]             // 16px top/bottom, 12px left/right
+padding: [16, 12, 20, 8]     // top, right, bottom, left
+```
+
+Applied as CSS `padding` + `border-box` on `.vlist-content`, so it works identically for list, grid, and masonry layouts with zero positioning overhead. Grid and masonry automatically subtract cross-axis padding from the container width so columns/lanes size correctly. `scrollToIndex` accounts for padding so the last item scrolls fully into view.
+
+```typescript
+const list = vlist({
+  container: '#list',
+  padding: [24, 16],       // 24px top/bottom, 16px left/right
+  items: data,
+  item: {
+    height: 48,
+    gap: 8,                // combine with gap for full spacing control
+    template: (item) => `<div>${item.name}</div>`,
+  },
+}).build()
 ```
 
 ---
@@ -319,6 +360,7 @@ Always call `destroy()` when unmounting (SPA route changes, component teardown).
 
 | I want to… | Go to |
 |---|---|
+| Add spacing between items or padding around the list | [Gap & Padding](/docs/api/reference#gap--padding) |
 | Use React, Vue, Svelte, or SolidJS | [Framework Adapters](/docs/frameworks) |
 | Add a grid layout | [Grid Feature](/docs/features/grid) |
 | Group items with headers | [Groups Feature](/docs/features/groups) |
