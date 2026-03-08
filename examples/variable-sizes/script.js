@@ -70,7 +70,8 @@ const measureSizes = (itemList, container) => {
   const measurer = document.createElement("div");
   measurer.style.cssText =
     "position:absolute;top:0;left:0;visibility:hidden;pointer-events:none;" +
-    `width:${container.offsetWidth}px;`;
+    `width:${container.offsetWidth}px;` +
+    "padding:0 20px;box-sizing:border-box;";
   document.body.appendChild(measurer);
 
   const cache = new Map();
@@ -153,6 +154,7 @@ export function createList() {
       items,
       item: {
         height: (index) => items[index]?.size ?? ESTIMATED_POST_HEIGHT,
+        gap: 12,
         template: renderItem,
       },
     }).build();
@@ -166,6 +168,7 @@ export function createList() {
       items,
       item: {
         estimatedHeight: ESTIMATED_POST_HEIGHT,
+        gap: 12,
         template: renderItem,
       },
     }).build();

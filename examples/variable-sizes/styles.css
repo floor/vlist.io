@@ -23,9 +23,8 @@
 }
 
 #list-container .vlist-item {
-    padding: 0;
+    padding: 0 20px;
     display: flex;
-    margin: 10px 20px;
     background-color: transparent;
 }
 
@@ -41,7 +40,6 @@
     background: #ffffff;
     border-radius: 12px;
     width: 100%;
-    height: calc(100% - 12px);
     box-sizing: border-box;
 }
 
