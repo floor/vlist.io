@@ -244,7 +244,7 @@ body {
     text-decoration: none;
     padding: 5px 20px;
     transition: all 0.1s;
-    border-right: 2px solid transparent;
+    /*border-right: 2px solid transparent;*/
 }
 
 .sidebar__link:hover {
@@ -600,7 +600,7 @@ html[data-theme-mode] .badge {
 
 @media (min-width: 1200px) {
     .overview {
-        max-width: 880px;
+        max-width: 980px;
     }
 }
 
