@@ -11,6 +11,26 @@ _No unreleased changes._
 
 ---
 
+## [1.3.2] — 2026-03-08
+
+### Fixed
+
+- **Wheel handler event consistency** — The wheel handler now delegates to `onScrollFrame` instead of reimplementing scroll logic inline. This fixes two bugs:
+  - `afterScroll` hooks were not called during wheel scrolling — features relying on post-scroll callbacks missed wheel events entirely
+  - `velocity:change` events were not emitted during wheel scrolling — features listening to velocity got no updates
+  - Scroll events no longer double-fire (the native `scroll` event triggered by programmatic `scrollTop` assignment is now guarded against re-entry)
+
+### Changed
+
+- **Builder core decomposition** — Internal refactor of `builder/core.ts` with no public API changes:
+  - Extracted Mode B measurement subsystem to `builder/measurement.ts` (200 lines) — ResizeObserver, scroll correction, content size deferral, stayAtEnd
+  - Extracted public API assembly to `builder/api.ts` (308 lines) — data wrappers, scroll methods, event subscription, destroy teardown
+  - Deduplicated idle timeout handler (`onScrollIdle` + `scheduleIdle`), click/dblclick traversal (`findClickTarget`), and scroll-end pinning (`stayAtEnd`)
+  - `core.ts` reduced from 1,513 → 1,097 lines (−28%)
+  - Base bundle: 23.6 KB minified (−0.5 KB), 8.8 KB gzipped (+0.1 KB)
+
+---
+
 ## [1.2.8] — 2026-03-05
 
 ### Added
