@@ -955,4 +955,4 @@ headerTemplate: (key) => {
 ## Examples
 
 - [Contact List](/examples/contact-list) — A–Z grouped contacts with sticky section headers and selection
-- [Messaging](/examples/messaging-app) — Reverse-mode chat with date group headers
+- [Messaging](/examples/messaging) — Reverse-mode chat with date group headers

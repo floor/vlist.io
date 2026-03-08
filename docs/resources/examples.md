@@ -66,7 +66,7 @@ examples/
 │   └── chat/
 │
 └── (advanced examples)
-    ├── messaging-app/
+    ├── messaging/
     ├── variable-heights/
     ├── scroll-restore/
     ├── window-scroll/

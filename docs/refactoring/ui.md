@@ -870,7 +870,7 @@ Verify every example page renders identically after the extraction:
 - [ ] contact-list
 - [ ] social-feed
 - [ ] variable-heights
-- [ ] messaging-app
+- [ ] messaging
 - [ ] scroll-restore
 - [ ] velocity-loading
 - [ ] window-scroll

@@ -8,7 +8,7 @@ Companion to `documentation.md` (docs, phases 1–7) and `tutorials.md` (tutoria
 
 Tutorials teach by building. Examples *are* the built thing, running live. Docs are the reference you consult while building. The three sections form a triangle — if any side is weak, the others lose credibility.
 
-The examples are the strongest of the three today. Code quality is high, the build system is solid, and several examples are genuinely impressive (messaging-app, velocity-loading, file-browser). But coverage is uneven, organization is inconsistent, and several features have zero or minimal representation.
+The examples are the strongest of the three today. Code quality is high, the build system is solid, and several examples are genuinely impressive (messaging, velocity-loading, file-browser). But coverage is uneven, organization is inconsistent, and several features have zero or minimal representation.
 
 **Goal:** Make vlist's examples the best of any virtual scrolling library. Every feature has a showcase. Every tutorial points to a live example. Every example is polished, consistent, and teaches something by existing.
 
@@ -32,7 +32,7 @@ The examples are the strongest of the three today. Code quality is high, the bui
 | `contact-list` | Sections | Vanilla only | 🟢 | ~460 |
 | `scroll-restore` | Snapshots, selection | Vanilla only | 🟢 | ~240 |
 | `window-scroll` | Page, async | Vanilla only | 🟢 | ~150 |
-| `messaging-app` | Reverse, sections | Vanilla only | 🟢 | ~400 |
+| `messaging` | Reverse, sections | Vanilla only | 🟢 | ~400 |
 | `auto-size` | estimatedHeight (Mode B) | Vanilla only | 🟢 | ~260 |
 | `variable-heights` | height function (Mode A) | Vanilla only | 🟢 | ~340 |
 | `wizard-nav` | scroll.wheel: false, selection | Vanilla only | 🟢 | ~330 |
@@ -61,7 +61,7 @@ All example scripts use `import { vlist } from "vlist"` (bare specifier). This i
 1. **Code quality is high.** Examples are well-commented, use clean patterns, data generation is realistic (Picsum photos, chat messages from JSON, contact lists with real names).
 2. **Build system is excellent.** Auto-discovery, parallel builds, framework dedupe, size reporting — nothing to change here.
 3. **Feature coverage for core use cases exists.** Grid, async, scale, reverse, sections, snapshots, page scroll, horizontal — all represented.
-4. **Several examples are genuinely impressive.** `messaging-app` is a full chat app with auto-messages, DOM measurement, date headers, event logging. `velocity-loading` has real-time velocity visualization, API delay slider, snapshot persistence. `file-browser` has grid/list toggle, breadcrumb navigation, real filesystem API.
+4. **Several examples are genuinely impressive.** `messaging` is a full chat app with auto-messages, DOM measurement, date headers, event logging. `velocity-loading` has real-time velocity visualization, API delay slider, snapshot persistence. `file-browser` has grid/list toggle, breadcrumb navigation, real filesystem API.
 5. **Multi-framework examples exist where they matter.** `basic`, `controls`, `photo-album`, `large-list`, `horizontal/basic` all have Vanilla + React + Vue + Svelte variants.
 
 ### What's wrong
@@ -94,7 +94,7 @@ The Masonry section exists in `navigation.json` but is **missing from `index.htm
 | **Placeholders** | *(none)* | Placeholder system is documented but never shown |
 | **Snapshots (standalone)** | `scroll-restore` | Works well |
 | **Horizontal** | `basic` + `variable-width` | variable-width not in nav |
-| **Reverse** | `messaging-app` | Good but complex — no simple reverse example |
+| **Reverse** | `messaging` | Good but complex — no simple reverse example |
 | **Mode B (auto-size)** | `auto-size` | Good |
 | **Combined features** | `file-browser` (grid+sections), `velocity-loading` (async+scale+scrollbar+snapshots+selection) | Good |
 
@@ -110,7 +110,7 @@ Examples use three different directory patterns:
 
 ```
 # Pattern A: flat (single JS file)
-examples/messaging-app/script.js
+examples/messaging/script.js
 examples/contact-list/script.js
 
 # Pattern B: name/variant (multi-framework with shared.js)
@@ -133,7 +133,7 @@ The group "Other Features" contains `scroll-restore` and `window-scroll` — two
 
 #### 5. "Advanced Examples" mixes difficulty with feature type
 
-`auto-size`, `variable-heights`, `messaging-app`, and `wizard-nav` are grouped by perceived difficulty rather than by feature. A reader looking for "how to use reverse mode" has to scan "Advanced Examples" to find `messaging-app`. A reader looking for "variable item sizes" has to know the difference between "Auto-Size Measurement" and "Variable Heights."
+`auto-size`, `variable-heights`, `messaging`, and `wizard-nav` are grouped by perceived difficulty rather than by feature. A reader looking for "how to use reverse mode" has to scan "Advanced Examples" to find `messaging`. A reader looking for "variable item sizes" has to know the difference between "Auto-Size Measurement" and "Variable Heights."
 
 #### 6. index.html is hand-maintained
 
@@ -159,7 +159,7 @@ Almost everything belongs in Essentials. These are the real things developers bu
 Essentials
   basic-list             [core]                                          — exists
   photo-album            [grid] [masonry] [scrollbar]                    — exists (merge grid + masonry with toggle)
-  messaging-app          [reverse] [sections]                            — exists (renamed from reverse-chat ✅)
+  messaging          [reverse] [sections]                            — exists (renamed from reverse-chat ✅)
   contact-list           [sections] [selection]                          — exists (renamed from sticky-headers ✅)
   wizard                 [scroll.wheel] [selection]                      — exists (rename from wizard-nav)
   feed                   [estimatedHeight] [async]                       — exists (rewrite auto-size with X API data)
@@ -206,7 +206,7 @@ Chips use the builder function name or config option — what the developer actu
 | Rewrite `auto-size` → "Feed" | Modify | Social feed with X API data instead of synthetic auto-size demo |
 | Archive `controls` | Archive | API exploration replaced by individual Essentials examples that demo APIs in context |
 | Archive `variable-heights` | Archive | Replaced by Feed example |
-| Move everything into Essentials | Nav | `messaging-app` → Messaging, `contact-list` → Contact List, `wizard-nav` → Wizard, `file-browser` → File Browser, `window-scroll` → Window Scroll, `auto-size` → Feed |
+| Move everything into Essentials | Nav | `messaging` → Messaging, `contact-list` → Contact List, `wizard-nav` → Wizard, `file-browser` → File Browser, `window-scroll` → Window Scroll, `auto-size` → Feed |
 
 ### What doesn't change
 
@@ -227,7 +227,7 @@ Each tutorial should point to one or more live examples. The mapping:
 | Your First List | `/examples/basic` | — | ✅ Exists |
 | Photo Gallery | `/examples/photo-album` | `file-browser` | ✅ Exists (adding masonry toggle) |
 | Contact List | `/examples/contact-list` | — | ✅ Exists |
-| Chat Interface | `/examples/messaging-app` | — | ✅ Exists |
+| Chat Interface | `/examples/messaging` | — | ✅ Exists |
 | Infinite Feed | `/examples/auto-size` (→ Feed) | `velocity-loading`, `window-scroll` | 🟡 Rewrite needed (X API) |
 | Large Dataset | `/examples/large-list` | `velocity-loading` | ✅ Exists |
 | Styling | No dedicated example | — | ❌ (tutorial is self-contained) |
@@ -272,7 +272,7 @@ Add a split layout with aside panel to explore the core API interactively:
 
 #### 3. Messaging — Header controls
 
-Enhance the existing messaging-app with section header controls:
+Enhance the existing messaging with section header controls:
 - **Headers toggle**: On ↔ Off — rebuild with or without `withGroups()`
 - **Sticky toggle**: Sticky (Telegram style) ↔ Inline (iMessage style) — `sticky: true/false`
 - **Header style** selector: Date labels, sender name, or custom grouping function
@@ -328,7 +328,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 |----------------|-------------|-------|
 | `basic/` | `basic/` | Now multi-framework (vanilla/react/vue/svelte) ✅ |
 | `photo-album/` | `photo-album/` | Already flat ✅ |
-| `messaging-app/` | `messaging-app/` | Already renamed ✅ |
+| `messaging/` | `messaging/` | Already renamed ✅ |
 | `contact-list/` | `contact-list/` | Already flat ✅ |
 | `wizard-nav/` | `wizard/` | — |
 | `auto-size/` | `feed/` | Rewritten with X API |
@@ -360,7 +360,7 @@ Flatten the directory structure to match the navigation. Directories named by wh
 | `/examples/groups/sticky-headers` | `/examples/contact-list` ✅ |
 | `/examples/data/velocity-loading` | `/examples/velocity-loading` ✅ |
 | `/examples/data/large-list` | `/examples/large-list` ✅ |
-| `/examples/reverse-chat` | `/examples/messaging-app` ✅ |
+| `/examples/reverse-chat` | `/examples/messaging` ✅ |
 | `/examples/horizontal/basic` | `/examples/carousel` |
 | `/examples/auto-size` | `/examples/feed` |
 | `/examples/wizard-nav` | `/examples/wizard` |
@@ -526,7 +526,7 @@ Rewrote `examples/navigation.json` from feature-based categories to use-case gro
 | Other Features | window-scroll | Essentials → "Window Scroll" | — |
 | Advanced Examples | auto-size | Essentials → "Feed" | Will rewrite with X API data |
 | Advanced Examples | variable-heights | **Archived** | Replaced by Feed |
-| Advanced Examples | messaging-app | Essentials → "Messaging" | Renamed ✅ |
+| Advanced Examples | messaging | Essentials → "Messaging" | Renamed ✅ |
 | Advanced Examples | wizard-nav | Essentials → "Wizard" | — |
 
 Every entry now has a `features` array:
@@ -675,7 +675,7 @@ All variants share `shared.js` (constants, `makeUser`/`makeUsers` re-exports, `i
 - `examples/grid/file-browser/` → `examples/file-browser/` ✅ (emptied `grid/`, deleted)
 - `examples/masonry/photo-album/` → deleted ✅ (merged into `photo-album`)
 - `examples/groups/sticky-headers/` → `examples/contact-list/` ✅ (emptied `groups/`, deleted)
-- `examples/reverse-chat/` → `examples/messaging-app/` ✅
+- `examples/reverse-chat/` → `examples/messaging/` ✅
 - `examples/data/velocity-loading/` → `examples/velocity-loading/` ✅
 - `examples/data/large-list/` → `examples/large-list/` ✅ (emptied `data/`, deleted)
 - All `*/javascript/` variant dirs → `*/vanilla/` ✅ (8 examples + 4 benchmarks)

@@ -432,7 +432,7 @@ list.<span class="fn">setItems</span>(
                         <span class="example-item__desc">Dynamic sizing — automatically measures each item's height</span>
                         <span class="example-item__arrow">→</span>
                     </a>
-                    <a href="/examples/messaging-app" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
+                    <a href="/examples/messaging" class="ui-card ui-card--interactive ui-card--compact ui-card--sm example-item">
                         <span class="example-item__name">Messaging App</span>
                         <span class="example-item__desc">Chat UI — reverse mode, prepend history, auto-scroll</span>
                         <span class="example-item__arrow">→</span>
