@@ -6,6 +6,27 @@
 
 ---
 
+## Import Path
+
+All low-level exports live under `@floor/vlist/internals` — a separate entry
+point from the public API. This keeps IDE autocomplete clean and makes the
+boundary between stable API and implementation details explicit.
+
+```ts
+// Public API — stable
+import { vlist, withGrid, withSelection } from '@floor/vlist'
+
+// Internals — advanced, use at your own risk
+import { createSizeCache, calculateScrollToIndex } from '@floor/vlist/internals'
+```
+
+> **Migration from ≤ 1.3.x:** These symbols were previously exported from
+> `@floor/vlist` directly. Update your imports to `@floor/vlist/internals`.
+> The public entry point now only exports `vlist`, the `with*` features,
+> and types.
+
+---
+
 ## Rendering
 
 ```ts
@@ -23,7 +44,7 @@ import {
   isInRange,
   getRangeCount,
   diffRanges,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
 ```
 
 | Export | Description |
@@ -62,7 +83,7 @@ import {
   calculateScaledItemPosition,
   calculateScaledScrollToIndex,
   calculateIndexFromScrollPosition,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
 ```
 
 `MAX_VIRTUAL_SIZE` is 16,000,000 px — the safe limit below the browser's maximum element size. The compression ratio is computed from the actual total size reported by the `SizeCache` — fixed, variable, and measured sizes all compress correctly.
@@ -86,7 +107,7 @@ import {
   isSelected,
   getSelectedIds,
   getSelectedItems,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
 ```
 
 ---
@@ -102,7 +123,7 @@ import {
   createGroupedSizeFn,
   createStickyHeader,
   isGroupHeader,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
 ```
 
 ---
@@ -115,7 +136,7 @@ Layout and rendering utilities for 2D grid layouts.
 import {
   createGridLayout,
   createGridRenderer,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
 ```
 
 ---
@@ -128,7 +149,21 @@ Layout and rendering utilities for Pinterest-style masonry layouts.
 import {
   createMasonryLayout,
   createMasonryRenderer,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
+```
+
+---
+
+## Table
+
+Layout, header, and rendering utilities for data tables.
+
+```ts
+import {
+  createTableLayout,
+  createTableHeader,
+  createTableRenderer,
+} from '@floor/vlist/internals'
 ```
 
 ---
@@ -146,7 +181,7 @@ import {
   filterPlaceholders,
   mergeRanges,
   calculateMissingRanges,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
 ```
 
 ---
@@ -156,7 +191,7 @@ import {
 Standalone type-safe event emitter — the same one used internally by vlist.
 
 ```ts
-import { createEmitter } from '@floor/vlist'
+import { createEmitter } from '@floor/vlist/internals'
 
 const emitter = createEmitter<VListEvents>()
 emitter.on('item:click', handler)
@@ -178,17 +213,30 @@ import {
   createScrollController,
   createScrollbar,
   rafThrottle,
-} from '@floor/vlist'
+} from '@floor/vlist/internals'
+```
+
+---
+
+## Stats
+
+Scroll statistics tracker — velocity, progress, visible item count.
+
+```ts
+import { createStats } from '@floor/vlist/internals'
 ```
 
 ---
 
 ## Feature Authoring
 
-Create your own features by implementing the `VListFeature` interface:
+Create your own features by implementing the `VListFeature` interface.
+Feature types are part of the public API — only the low-level utilities
+they compose come from internals.
 
 ```ts
 import type { VListFeature, BuilderContext } from '@floor/vlist'
+import { createEmitter, createSizeCache } from '@floor/vlist/internals'
 
 function withMyFeature(): VListFeature {
   return {

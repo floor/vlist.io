@@ -9,7 +9,7 @@ import {
   statSync,
   watch,
 } from "fs";
-import { join, resolve } from "path";
+import { join, resolve, dirname } from "path";
 import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 import { createHash } from "crypto";
 import { transformSync } from "@babel/core";
@@ -95,17 +95,22 @@ const solidBrowserPlugin: import("bun").BunPlugin = {
 const frameworkDedupePlugin: import("bun").BunPlugin = {
   name: "dedupe-frameworks",
   setup(build) {
-    // vlist — resolve bare imports via package.json imports map
-    // "vlist" → "@floor/vlist"
-    build.onResolve({ filter: /^vlist$/ }, (args) => {
-      try {
-        const resolved = require.resolve("@floor/vlist", {
-          paths: [PROJECT_ROOT],
-        });
-        return { path: resolved };
-      } catch {
-        return undefined;
-      }
+    // Resolve vlist dist directory once — used for all "vlist" and "vlist/*" imports
+    const vlistDist = dirname(
+      require.resolve("@floor/vlist", { paths: [PROJECT_ROOT] }),
+    );
+
+    // vlist — resolve bare "vlist" and JS subpaths like "vlist/internals"
+    // "vlist"           → dist/index.js
+    // "vlist/internals" → dist/internals.js
+    // Other subpaths (e.g. "vlist/styles") fall through to default resolution.
+    const VLIST_JS_ENTRIES: Record<string, string> = {
+      vlist: "index.js",
+      "vlist/internals": "internals.js",
+    };
+    build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
+      const entry = VLIST_JS_ENTRIES[args.path];
+      if (entry) return { path: join(vlistDist, entry) };
     });
 
     // vlist adapters — resolve to separate packages
