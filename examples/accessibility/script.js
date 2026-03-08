@@ -208,6 +208,9 @@ export function createList() {
       template: itemTemplate,
     },
     items: users,
+    scroll: {
+      wrap: true,
+    },
   });
 
   // Only add selection feature when mode is not "none"
