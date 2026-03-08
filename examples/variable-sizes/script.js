@@ -155,6 +155,7 @@ export function createList() {
       item: {
         height: (index) => items[index]?.size ?? ESTIMATED_POST_HEIGHT,
         gap: 12,
+        padding: 12,
         template: renderItem,
       },
     }).build();
@@ -169,6 +170,7 @@ export function createList() {
       item: {
         estimatedHeight: ESTIMATED_POST_HEIGHT,
         gap: 12,
+        padding: 12,
         template: renderItem,
       },
     }).build();
