@@ -172,10 +172,9 @@ html[data-theme-mode="dark"] {
 .example-info {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
+    gap: 50px;
     padding: 8px 16px;
-    margin-top: 8px;
+    margin-top: 16px;
     border-radius: var(--radius);
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -187,6 +186,15 @@ html[data-theme-mode="dark"] {
     overflow-x: auto;
 }
 
+.example-info #info-progress {
+    width: 40px;
+}
+
+.example-info #info-velocity-avg,
+.example-info #info-velocity {
+    width: 40px;
+}
+
 .example-info__left,
 .example-info__right {
     display: flex;
@@ -195,14 +203,18 @@ html[data-theme-mode="dark"] {
 }
 
 .example-info__left {
+    flex: 1;
     flex-shrink: 0;
 }
 
 .example-info__right {
+    flex: none;
+    width: 284px;
     color: var(--text-dim);
 }
 
 .example-info__stat {
+    flex: none;
     display: inline-flex;
     align-items: baseline;
     gap: 3px;
@@ -211,6 +223,16 @@ html[data-theme-mode="dark"] {
 .example-info__stat strong {
     color: var(--text);
     font-weight: 600;
+}
+.example-info__stat:nth-child(2) {
+    opacity: 0.5;
+}
+
+.example-info__stat:last-child {
+    flex: 1;
+    text-align: right;
+    align-items: right;
+    justify-content: right;
 }
 
 .example-info__unit {
