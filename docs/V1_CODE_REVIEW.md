@@ -67,11 +67,12 @@ vlist v1.3.0 is in **excellent shape** — zero test failures across 2,719 tests
 
 ---
 
-### 1. Core Architecture — `core.ts` Decomposition
+### ~~1. Core Architecture — `core.ts` Decomposition~~ ✅ COMPLETED
 
 **Priority:** 🟡 Medium
 **Impact:** Maintainability, onboarding, feature development velocity
 **Effort:** Large (multi-session refactor)
+**Resolution:** Extracted `measurement.ts` and `api.ts`, deduplicated idle/click/stayAtEnd helpers, simplified wheel handler. `core.ts` reduced from 1,513 → 1,097 lines (−28%). Base bundle −0.5 KB minified. See [builder-core-decomposition.md](refactoring/builder-core-decomposition.md).
 
 #### Problem
 
