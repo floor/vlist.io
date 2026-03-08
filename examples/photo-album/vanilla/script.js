@@ -20,6 +20,8 @@ import {
 } from "../shared.js";
 import "../controls.js";
 
+const PADDING = 0;
+
 // =============================================================================
 // Stats — shared info bar (progress, velocity, visible/total)
 // =============================================================================
@@ -111,6 +113,7 @@ function createGridView(container, orientation, columns, gap) {
 
     setList(
       vlist({
+        padding: PADDING,
         container: "#grid-container",
         ariaLabel: "Photo gallery",
         orientation,
@@ -129,6 +132,7 @@ function createGridView(container, orientation, columns, gap) {
   } else {
     setList(
       vlist({
+        padding: PADDING,
         container: "#grid-container",
         ariaLabel: "Photo gallery",
         orientation,
@@ -152,6 +156,7 @@ function createMasonryView(container, orientation, columns, gap) {
       container: "#grid-container",
       ariaLabel: "Photo gallery",
       orientation,
+      padding: PADDING,
       item: {
         height: (_index, ctx) =>
           ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
