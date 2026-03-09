@@ -124,7 +124,7 @@ function compressedResponse(
 
 /**
  * Resolve a URL pathname to a filesystem path for pre-compressed files.
- * Matches any path that contains a /dist/ segment (e.g. /dist/*, /benchmarks/dist/*).
+ * Matches any path that contains a /dist/ segment (e.g. /dist/*, /dist/benchmarks/*).
  */
 function resolveDistPath(pathname: string): string | null {
   if (!/\/dist\//.test(pathname)) return null;

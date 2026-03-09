@@ -163,7 +163,7 @@ injected into the page.
 `src/server/renderers/benchmarks.ts` renders benchmark pages.
 Interactive suites load their JavaScript client-side via `{{EXTRA_BODY}}`.
 The variant switcher (JS / React / Vue / Svelte) is server-rendered;
-the actual benchmark UI is built by `benchmarks/dist/script.js` at runtime.
+the actual benchmark UI is built by `dist/benchmarks/script.js` at runtime.
 
 ---
 
@@ -208,7 +208,7 @@ per-section hardcoded `class="active"`.
 | Placeholder | Content |
 |---|---|
 | `{{PAGE}}` | Benchmark slug added as `data-page` on `<main>` (used by script.js) |
-| `{{EXTRA_BODY}}` | `<script>` tag for `benchmarks/dist/script.js` (suite pages only) |
+| `{{EXTRA_BODY}}` | `<script>` tag for `dist/benchmarks/script.js` (suite pages only) |
 
 ---
 

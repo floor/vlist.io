@@ -127,7 +127,7 @@ const html = renderTemplate('base.html', {
   PAGE_ATTR: 'benchmark-suite',
   EXTRA_STYLES: `
     <link rel="stylesheet" href="/dist/vlist.css" />
-    <link rel="stylesheet" href="/benchmarks/dist/styles.css" />
+    <link rel="stylesheet" href="/dist/benchmarks/styles.css" />
   `,
   EXTRA_BODY: '<script type="module" src="/benchmarks/suite.js"></script>',
   

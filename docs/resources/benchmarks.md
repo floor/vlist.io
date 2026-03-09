@@ -658,7 +658,7 @@ bun run build:bench        # One-shot build
 bun run build:bench:watch  # Watch mode
 ```
 
-Output goes to `benchmarks/dist/`:
+Output goes to `dist/benchmarks/`:
 - `script.js` — All 16 suite variants bundled (1,129 KB → 352 KB gzip)
 - `runner.js` — Shared benchmark utilities
 - `styles.css` — Minified CSS

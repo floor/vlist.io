@@ -16,6 +16,7 @@ import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 
 const isWatch = process.argv.includes("--watch");
 const BENCHMARKS_DIR = "./benchmarks";
+const OUT_DIR = "./dist/benchmarks";
 
 const PROJECT_ROOT = "./";
 
@@ -119,7 +120,7 @@ function discoverSuites(): string[] {
 
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    if (entry.name === "dist" || entry.name === "suites") continue;
+    if (entry.name === "suites") continue;
 
     const benchDir = join(BENCHMARKS_DIR, entry.name);
     const variants = readdirSync(benchDir, { withFileTypes: true });
@@ -141,7 +142,7 @@ async function build(): Promise<void> {
   const start = performance.now();
   const entrypoint = join(BENCHMARKS_DIR, "script.js");
   const runnerPath = join(BENCHMARKS_DIR, "runner.js");
-  const outdir = join(BENCHMARKS_DIR, "dist");
+  const outdir = OUT_DIR;
 
   if (!existsSync(entrypoint)) {
     console.error("❌ benchmarks/script.js not found");

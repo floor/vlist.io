@@ -189,7 +189,7 @@ function assemblePage(
   const title = item ? `VList — ${item.name} Benchmark` : "VList — Benchmarks";
   const description = item ? `VList ${item.name.toLowerCase()} benchmark — ${item.desc}` : "...";
   const sidebar = buildSidebar(slug, variant);
-  const extraBody = page !== "overview" ? `<script type="module" src="/benchmarks/dist/script.js"></script>` : "";
+  const extraBody = page !== "overview" ? `<script type="module" src="/dist/benchmarks/script.js"></script>` : "";
   const url = slug ? `${SITE}/benchmarks/${slug}${queryString || ""}` : `${SITE}/benchmarks/`;
 
   return (
@@ -231,9 +231,9 @@ function assemblePage(
     CONTENT: content,
     
     // Styles & scripts
-    EXTRA_STYLES: '<link rel="stylesheet" href="/dist/vlist.css" />\n    <link rel="stylesheet" href="/benchmarks/dist/styles.css" />',
+    EXTRA_STYLES: '<link rel="stylesheet" href="/dist/vlist.css" />\n    <link rel="stylesheet" href="/dist/benchmarks/styles.css" />',
     EXTRA_HEAD: '',
-    EXTRA_BODY: page !== "overview" ? '<script type="module" src="/benchmarks/dist/script.js"></script>' : '',
+    EXTRA_BODY: page !== "overview" ? '<script type="module" src="/dist/benchmarks/script.js"></script>' : '',
     MAIN_CLASS: '',
     
     // SEO metadata

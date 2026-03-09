@@ -4,7 +4,7 @@
 import { existsSync, statSync } from "fs";
 import { join, extname, resolve } from "path";
 import { ROOT, VLIST_ROOT } from "./config";
-import { CACHE_IMMUTABLE, CACHE_NOCACHE } from "./cache";
+import { CACHE_IMMUTABLE, CACHE_STATIC, CACHE_NOCACHE } from "./cache";
 
 // =============================================================================
 // MIME Types
@@ -42,14 +42,16 @@ export const getMimeType = (filePath: string): string => {
 /**
  * Determine the Cache-Control header for a given URL pathname.
  *
- * Immutable (long cache):
- *   - /dist/*            — bundled JS/CSS build output
- *   - /benchmarks/dist/* — benchmark build output
+ * Immutable (1 year, hashed filenames):
+ *   - /dist/*            — bundled JS/CSS build output (examples, benchmarks, vlist)
  *   - Fonts (.woff, .woff2, .ttf)
  *   - /favicon.ico
  *
+ * Static (7 days, non-hashed but deploy-only):
+ *   - /styles/*          — shared CSS (shell, ui, content, syntax, tokens)
+ *
  * No-cache (revalidate every time):
- *   - Everything else (raw CSS, HTML, markdown, source .ts/.js, images)
+ *   - Everything else (HTML, markdown, source .ts/.js, images)
  */
 function getCacheControl(pathname: string): string {
   // Build output directories (contain pre-compressed .br/.gz siblings)
@@ -63,6 +65,9 @@ function getCacheControl(pathname: string): string {
 
   // Favicon
   if (pathname === "/favicon.ico") return CACHE_IMMUTABLE;
+
+  // Non-hashed static assets that only change on deploy
+  if (pathname.startsWith("/styles/")) return CACHE_STATIC;
 
   return CACHE_NOCACHE;
 }
@@ -149,14 +154,20 @@ export const serveFromPackage = (
  * Map a URL pathname to the correct file source.
  *
  * Priority:
- *   1. /dist/examples/* → project root dist/examples/ (examples build output)
- *   2. /dist/*          → vlist package dist/
- *   3. /docs/*.md       → raw markdown files
- *   4. /*               → project root (landing, static assets, styles)
+ *   1. /dist/examples/*    → project root dist/examples/ (examples build output)
+ *   2. /dist/benchmarks/*  → project root dist/benchmarks/ (benchmarks build output)
+ *   3. /dist/*             → vlist package dist/
+ *   4. /docs/*.md          → raw markdown files
+ *   5. /*                  → project root (landing, static assets, styles)
  */
 export const resolveStatic = (pathname: string): Response | null => {
   // /dist/examples/* → project root dist/examples directory
   if (pathname.startsWith("/dist/examples/")) {
+    return serveStatic(pathname);
+  }
+
+  // /dist/benchmarks/* → project root dist/benchmarks directory
+  if (pathname.startsWith("/dist/benchmarks/")) {
     return serveStatic(pathname);
   }
 

@@ -24,12 +24,23 @@
 export const CACHE_IMMUTABLE = "public, max-age=31536000, immutable";
 
 /**
+ * Static assets without content hashes — CSS in /styles/, benchmark dist, etc.
+ * These only change on deploy, but filenames don't include hashes so we can't
+ * use `immutable`. Browser caches for 7 days; edge caches for 7 days.
+ * On deploy, Cloudflare cache is purged so edge serves fresh immediately.
+ * The 7-day browser TTL is a tradeoff: repeat visitors get fast loads,
+ * and content updates propagate within a week at worst.
+ */
+export const CACHE_STATIC = "public, max-age=604800, s-maxage=604800";
+
+/**
  * Server-rendered HTML pages (docs, tutorials, examples, benchmarks, homepage).
  * Edge caches for 1 hour; browser always revalidates.
  * On deploy, we purge the Cloudflare cache so users get fresh content immediately.
  * Between deploys, the edge serves cached responses globally — no origin hit.
  */
-export const CACHE_PAGE = "public, s-maxage=3600, max-age=0, stale-while-revalidate=60";
+export const CACHE_PAGE =
+  "public, s-maxage=3600, max-age=0, stale-while-revalidate=60";
 
 /**
  * Sitemap and robots.txt — changes only on deploy.

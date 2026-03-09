@@ -237,7 +237,7 @@ function assemblePage(
   // Only load the benchmark script on interactive pages (not overview)
   const extraBody =
     page !== "overview"
-      ? `<script type="module" src="/benchmarks/dist/script.js"></script>`
+      ? `<script type="module" src="/dist/benchmarks/script.js"></script>`
       : "";
 
   const url = slug
@@ -257,7 +257,7 @@ function assemblePage(
 
     // Styles & scripts
     EXTRA_STYLES:
-      '<link rel="stylesheet" href="/dist/vlist.css" />\n    <link rel="stylesheet" href="/benchmarks/dist/styles.css" />',
+      '<link rel="stylesheet" href="/dist/vlist.css" />\n    <link rel="stylesheet" href="/dist/benchmarks/styles.css" />',
     EXTRA_HEAD: "",
     EXTRA_BODY: extraBody,
     MAIN_CLASS: "",
