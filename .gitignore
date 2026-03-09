@@ -38,3 +38,4 @@ ecosystem.local.config.cjs
 
 # SQLite databases
 *.db
+data/

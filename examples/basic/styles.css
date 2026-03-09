@@ -16,6 +16,7 @@
 
 [data-theme-mode="light"] .vlist-item--odd {
     background: rgba(0, 0, 0, 0.04);
+    border-radius: 4px;
 }
 
 .item__row {

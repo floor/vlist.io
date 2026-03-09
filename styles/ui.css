@@ -221,6 +221,7 @@
     outline: none;
     transition: border-color 0.15s;
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .ui-input::-webkit-inner-spin-button,

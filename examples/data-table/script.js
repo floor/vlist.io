@@ -282,8 +282,8 @@ export async function applySort(key, direction) {
   sortDirection = direction || "asc";
 
   if (key === null) {
-    sortKey = "population";
-    sortDirection = "desc";
+    sortKey = "id";
+    sortDirection = "asc";
   }
 
   loadedCount = 0;

@@ -435,7 +435,7 @@ async function createBrowser(view = "list") {
   if (view === "grid") {
     createGridView();
   } else {
-    createListView();
+    createTableList();
   }
 
   updateNavigationState();
@@ -516,7 +516,7 @@ function createGridView() {
 // List View (withTable + withSelection)
 // =============================================================================
 
-function createListView() {
+function createTableList() {
   const rowHeight = 28;
   const headerHeight = 28;
 
@@ -553,6 +553,7 @@ function createListView() {
   let builder = vlist({
     container: "#browser-container",
     ariaLabel: "File browser",
+    padding: [2, 6],
     item: {
       height: rowHeight,
       striped: "odd",

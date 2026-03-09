@@ -14,6 +14,7 @@ const list = vlist({
   container: "#list-container",
   ariaLabel: "Orders",
   items,
+  padding: 8,
   item: {
     height: ITEM_HEIGHT,
     striped: true,

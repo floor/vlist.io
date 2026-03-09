@@ -336,6 +336,14 @@ html[data-theme] .vlist-viewport {
     .ui-chips {
         display: none;
     }
+    [id$="-container"] .vlist {
+        border: none;
+        border-radius: 0;
+    }
+
+    .sticky-bar {
+        bottom: 0;
+    }
 
     .container {
         display: flex;

@@ -8,7 +8,7 @@
 //   GET /api/cities/countries — distinct country codes
 //   GET /api/cities/stats    — aggregate statistics
 
-import { Database } from "bun:sqlite";
+import { Database, type SQLQueryBindings } from "bun:sqlite";
 import { resolve } from "path";
 import { existsSync } from "fs";
 
@@ -104,9 +104,9 @@ interface QueryOptions extends QueryFilters {
  * Build WHERE clause and params from filters.
  * Returns [clause, params] — clause includes leading WHERE if non-empty.
  */
-function buildWhere(filters: QueryFilters): [string, unknown[]] {
+function buildWhere(filters: QueryFilters): [string, SQLQueryBindings[]] {
   const conditions: string[] = [];
-  const params: unknown[] = [];
+  const params: SQLQueryBindings[] = [];
 
   if (filters.search) {
     conditions.push("name LIKE ?");
@@ -290,9 +290,7 @@ export function getStats(): CitiesStatsResponse {
     .all() as { name: string; country_code: string; population: number }[];
 
   const popRange = database
-    .query(
-      "SELECT MIN(population) as min, MAX(population) as max FROM cities",
-    )
+    .query("SELECT MIN(population) as min, MAX(population) as max FROM cities")
     .get() as { min: number; max: number };
 
   return {
