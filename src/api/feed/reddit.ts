@@ -247,16 +247,30 @@ const fetchReddit = async (params: FeedParams): Promise<FeedResponse> => {
   url.searchParams.set("raw_json", "1"); // avoid HTML-encoded ampersands
   if (after) url.searchParams.set("after", after);
 
-  const res = await fetch(url.toString(), {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "application/json",
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch (err: unknown) {
+    const reason =
+      err instanceof DOMException && err.name === "TimeoutError"
+        ? "request timed out after 10s"
+        : err instanceof Error
+          ? err.message
+          : "unknown network error";
+    throw new Error(`Reddit fetch failed (${subreddit}): ${reason}`);
+  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`Reddit API error ${res.status}: ${text.slice(0, 120)}`);
+    throw new Error(
+      `Reddit API ${res.status} (${subreddit}): ${text.slice(0, 200)}`,
+    );
   }
 
   const listing = (await res.json()) as RedditListing;
