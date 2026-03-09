@@ -75,7 +75,7 @@ let list = null;
 let navigationHistory = [""];
 let historyIndex = 0;
 let selectedIndex = -1;
-let currentArrangeBy = "name";
+let currentArrangeBy = "none";
 
 // Table sort state
 let sortKey = null;
@@ -144,24 +144,51 @@ function getDateGroup(item) {
   return "Older";
 }
 
+function getNameGroup(item) {
+  const first = item.name.charAt(0).toUpperCase();
+  if (/[A-Z]/.test(first)) return first;
+  if (/[0-9]/.test(first)) return "#";
+  return "•";
+}
+
+function getSizeGroup(item) {
+  if (item.type === "directory") return "—";
+  const size = item.size || 0;
+  if (size === 0) return "Zero Bytes";
+  if (size < 1024) return "Up to 1 KB";
+  if (size < 100 * 1024) return "1 KB to 100 KB";
+  if (size < 1024 * 1024) return "100 KB to 1 MB";
+  if (size < 100 * 1024 * 1024) return "1 MB to 100 MB";
+  return "100 MB or Greater";
+}
+
 // =============================================================================
 // Arrangement / Sorting
 // =============================================================================
 
 function getArrangementConfig(arrangeBy) {
   switch (arrangeBy) {
-    case "name":
+    case "none":
       return {
         groupBy: "none",
+        getGroupKey: null,
         sortFn: (a, b) => {
           if (a.type === "directory" && b.type !== "directory") return -1;
           if (a.type !== "directory" && b.type === "directory") return 1;
           return a.name.localeCompare(b.name, undefined, { numeric: true });
         },
       };
+    case "name":
+      return {
+        groupBy: "none",
+        getGroupKey: null,
+        sortFn: (a, b) =>
+          a.name.localeCompare(b.name, undefined, { numeric: true }),
+      };
     case "kind":
       return {
         groupBy: "kind",
+        getGroupKey: getFileKind,
         sortFn: (a, b) => {
           const kindA = getFileKind(a);
           const kindB = getFileKind(b);
@@ -172,6 +199,7 @@ function getArrangementConfig(arrangeBy) {
     case "date-modified":
       return {
         groupBy: "date",
+        getGroupKey: getDateGroup,
         sortFn: (a, b) => {
           const groupA = getDateGroup(a);
           const groupB = getDateGroup(b);
@@ -191,18 +219,33 @@ function getArrangementConfig(arrangeBy) {
           return dateB - dateA;
         },
       };
-    case "size":
+    case "size": {
+      const sizeGroupOrder = [
+        "—",
+        "Zero Bytes",
+        "Up to 1 KB",
+        "1 KB to 100 KB",
+        "100 KB to 1 MB",
+        "1 MB to 100 MB",
+        "100 MB or Greater",
+      ];
       return {
-        groupBy: "none",
+        groupBy: "size",
+        getGroupKey: getSizeGroup,
         sortFn: (a, b) => {
-          if (a.type === "directory" && b.type !== "directory") return -1;
-          if (a.type !== "directory" && b.type === "directory") return 1;
+          const groupA = getSizeGroup(a);
+          const groupB = getSizeGroup(b);
+          const orderA = sizeGroupOrder.indexOf(groupA);
+          const orderB = sizeGroupOrder.indexOf(groupB);
+          if (orderA !== orderB) return orderA - orderB;
           return (b.size || 0) - (a.size || 0);
         },
       };
+    }
     default:
       return {
         groupBy: "none",
+        getGroupKey: null,
         sortFn: (a, b) => a.name.localeCompare(b.name),
       };
   }
@@ -214,16 +257,12 @@ function getArrangementConfig(arrangeBy) {
 
 /**
  * Sort items by a column key and direction.
- * Always keeps directories first, then applies the column sort.
+ * Files and folders are interleaved (like macOS Finder column sort).
  */
 function sortByColumn(data, key, direction) {
   const dir = direction === "desc" ? -1 : 1;
 
   return [...data].sort((a, b) => {
-    // Directories always first
-    if (a.type === "directory" && b.type !== "directory") return -1;
-    if (a.type !== "directory" && b.type === "directory") return 1;
-
     let aVal, bVal;
 
     switch (key) {
@@ -418,12 +457,11 @@ function createGridView() {
 
   // Create group map if grouping is enabled
   let groupMap = null;
-  if (config.groupBy !== "none") {
+  if (config.groupBy !== "none" && config.getGroupKey) {
     groupMap = new Map();
     const groupCounts = {};
     sorted.forEach((item, index) => {
-      const groupKey =
-        config.groupBy === "date" ? getDateGroup(item) : getFileKind(item);
+      const groupKey = config.getGroupKey(item);
       groupMap.set(index, groupKey);
       groupCounts[groupKey] = (groupCounts[groupKey] || 0) + 1;
     });
@@ -439,7 +477,7 @@ function createGridView() {
     items: sorted,
   }).use(withGrid({ columns: currentColumns, gap: currentGap }));
 
-  if (config.groupBy !== "none" && groupMap) {
+  if (groupMap) {
     builder = builder.use(
       withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
@@ -502,12 +540,11 @@ function createListView() {
 
   // Build group map if grouping is enabled
   let groupMap = null;
-  if (hasGroups) {
+  if (hasGroups && config.getGroupKey) {
     groupMap = new Map();
     const groupCounts = {};
     sortedItems.forEach((item, index) => {
-      const groupKey =
-        config.groupBy === "date" ? getDateGroup(item) : getFileKind(item);
+      const groupKey = config.getGroupKey(item);
       groupMap.set(index, groupKey);
       groupCounts[groupKey] = (groupCounts[groupKey] || 0) + 1;
     });
@@ -518,7 +555,7 @@ function createListView() {
     ariaLabel: "File browser",
     item: {
       height: rowHeight,
-      striped: true,
+      striped: "odd",
       template: tableRowTemplate,
     },
     items: sortedItems,
@@ -537,7 +574,7 @@ function createListView() {
     }),
   );
 
-  if (hasGroups && groupMap) {
+  if (groupMap) {
     builder = builder.use(
       withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
@@ -554,7 +591,7 @@ function createListView() {
             </div>
           `;
         },
-        sticky: true,
+        sticky: false,
       }),
     );
   }
@@ -732,20 +769,43 @@ const sortDetailEl = document.getElementById("sort-detail");
 function updateSortDetail() {
   if (!sortDetailEl) return;
 
-  if (sortKey === null) {
-    sortDetailEl.innerHTML = `
-      <span class="ui-detail__empty">Click a column header to sort</span>
+  let html = "";
+
+  // Show arrangement info if active
+  if (currentArrangeBy !== "none") {
+    const arrangeLabels = {
+      name: "Name",
+      kind: "Kind",
+      "date-modified": "Date Modified",
+      size: "Size",
+    };
+    const arrangeLabel = arrangeLabels[currentArrangeBy] || currentArrangeBy;
+    html += `
+      <div class="sort-info">
+        <span class="sort-info__label">Arranged by</span>
+        <span class="sort-info__key">${arrangeLabel}</span>
+      </div>
     `;
-  } else {
+  }
+
+  // Show column sort info if active
+  if (sortKey !== null) {
     const arrow = sortDirection === "asc" ? "▲" : "▼";
     const label = sortDirection === "asc" ? "Ascending" : "Descending";
-    sortDetailEl.innerHTML = `
+    html += `
       <div class="sort-info">
+        <span class="sort-info__label">Sorted by</span>
         <span class="sort-info__key">${sortKey}</span>
         <span class="sort-info__dir">${arrow} ${label}</span>
       </div>
     `;
   }
+
+  if (!html) {
+    html = `<span class="ui-detail__empty">Click a column header to sort</span>`;
+  }
+
+  sortDetailEl.innerHTML = html;
 }
 
 // =============================================================================
@@ -781,22 +841,11 @@ function updateSortDetail() {
     .getElementById("arrange-by-select")
     .addEventListener("change", (e) => {
       currentArrangeBy = e.target.value;
-      // In list view, map arrange-by to column sort
-      if (currentView === "list") {
-        const keyMap = {
-          name: "name",
-          kind: "kind",
-          "date-modified": "modified",
-          size: "size",
-        };
-        const key = keyMap[currentArrangeBy] || "name";
-        applyColumnSort(key, "asc");
-        if (list && list.setSort) {
-          list.setSort(sortKey, sortDirection);
-        }
-      } else {
-        createBrowser(currentView);
-      }
+      // Arrange-by controls grouping, not column sort.
+      // Reset column sort when changing arrangement, then rebuild.
+      sortKey = null;
+      sortDirection = "asc";
+      createBrowser(currentView);
     });
 
   // Toolbar navigation

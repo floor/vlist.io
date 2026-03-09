@@ -348,6 +348,20 @@
     transition: all 0.2s ease;
 }
 
+/* Group headers in table/list layout — smaller, tighter */
+.vlist--table .group-header {
+    padding: 8px 12px 8px 24px;
+}
+
+.vlist--table .group-header__label {
+    font-size: 11px;
+    text-transform: initial;
+}
+
+.vlist--table .group-header__count {
+    font-size: 10px;
+}
+
 /* Group headers in grid layout */
 .vlist--grid .group-header {
     background: rgba(255, 255, 255, 0.03);
