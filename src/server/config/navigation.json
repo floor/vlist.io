@@ -1,16 +1,17 @@
 [
   {
-    "label": "Documentation",
-    "href": "/docs/",
-    "external": false,
-    "key": "docs"
-  },
-  {
     "label": "Examples",
     "href": "/examples/",
     "external": false,
     "key": "examples"
   },
+  {
+    "label": "Documentation",
+    "href": "/docs/",
+    "external": false,
+    "key": "docs"
+  },
+
   {
     "label": "Tutorials",
     "href": "/tutorials/",

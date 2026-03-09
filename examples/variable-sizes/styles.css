@@ -9,7 +9,7 @@
    ============================================================================ */
 
 #list-container {
-    height: 1000px;
+    height: 600px;
     background: var(--vlist-bg);
     border-radius: 2px;
 }
