@@ -60,10 +60,10 @@ const App = {
         .build();
 
       // Track scroll events
-      instance.value.on("scroll", ({ scrollTop, direction }) => {
+      instance.value.on("scroll", ({ scrollPosition, direction }) => {
         viewport.value = {
           ...viewport.value,
-          scrollPos: Math.round(scrollTop),
+          scrollPos: Math.round(scrollPosition),
           direction: direction === "up" ? "↑ up" : "↓ down",
         };
       });
