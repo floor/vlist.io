@@ -11,6 +11,10 @@
 
 ## Table of Contents
 
+> **Note:** Phases 1–8 were completed in commit `5b6fb15`. Phase 9 was completed
+> in commit `e05597f` after profiling revealed that on-the-fly brotli compression
+> and eagerly-loaded highlight.js were the main remaining bottlenecks.
+
 - [Architecture Context](#architecture-context)
 - [Current State](#current-state)
 - [Issue Inventory](#issue-inventory)
@@ -1125,6 +1129,178 @@ export const IS_PROD = process.env.NODE_ENV === "production";
 
 ---
 
+## Phase 9 — Edge-aware compression, inline SVGs, lazy highlight.js ✅
+
+After enabling the Cloudflare Cache Rule (Phase 7), profiling revealed that the origin server was still spending 20–40ms per response on `brotliCompressSync` — CPU time wasted since Cloudflare re-compresses at the edge anyway. Additionally, example pages eagerly loaded ~60KB of highlight.js scripts that were only needed when clicking the "Source" tab, and 14 SVG icons triggered individual HTTP requests of 60ms each.
+
+### 9.1 Skip on-the-fly compression in production
+
+**Problem:** Every HTML/CSS/API response went through `brotliCompressSync` (Node zlib) or `Bun.gzipSync()` at the origin, costing 20–40ms per response. Since Cloudflare compresses at the edge and caches the result, this CPU work was redundant.
+
+**Solution:** `compression.ts` now has an edge-aware strategy:
+
+- **Production (behind Cloudflare):** Origin sends responses uncompressed. Cloudflare applies brotli/gzip at the edge and caches the result globally. Pre-compressed `/dist/` files (build output with `.br`/`.gz` siblings) are still served directly — zero CPU cost.
+- **Development (no CDN):** Uses gzip only via `Bun.gzipSync()` (~1ms) instead of `brotliCompressSync` (~20–40ms). Results are cached with auto-invalidation when file content changes (hot-reload still works).
+
+```ts
+// Production: skip on-the-fly compression entirely
+if (IS_PROD) return response;
+
+// Development: gzip only (Bun-native, fast)
+return devCompressGzip(response, pathname);
+```
+
+The `brotliCompressSync` import from `zlib` was removed entirely — no longer needed.
+
+**Impact:**
+- Origin TTFB: **20–40ms → ~1–2ms** per response (production)
+- Dev CSS/HTML: **20–78ms → 3–9ms** (gzip instead of brotli, with caching)
+
+### 9.2 Inline SVG icons as data URIs
+
+**Problem:** 14 SVG icons (185–841 bytes each) were referenced via `url("/examples/icons/*.svg")` in `styles/ui.css`, triggering separate HTTP requests. Each took ~60ms in production due to network round-trips.
+
+**Solution:** All `mask-image` URLs replaced with inline `data:image/svg+xml` data URIs:
+
+```css
+/* Before — separate HTTP request */
+.icon--up {
+    mask-image: url("/examples/icons/up.svg");
+}
+
+/* After — inline, zero network cost */
+.icon--up {
+    mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" .../>');
+}
+```
+
+Icons inlined: `up`, `down`, `center`, `add`, `remove`, `trash`, `shuffle`, `back`, `forward`, `search`, `sort`, `filter`, `send`, `settings`.
+
+**Impact:** 14 fewer HTTP requests. Icon load time: **60ms → 0ms** (parsed from CSS cache).
+
+### 9.3 Lazy-load highlight.js on source tab click
+
+**Problem:** Example pages eagerly loaded 5 scripts from jsdelivr CDN at page load:
+
+| Script | Size | Load time |
+|--------|------|-----------|
+| `highlight.min.js` | 44.6 kB | 429ms |
+| `typescript.min.js` | 4.0 kB | 428ms |
+| `bash.min.js` | 2.4 kB | 428ms |
+| `css.min.js` | 5.1 kB | 428ms |
+| `scss.min.js` | 5.6 kB | 428ms |
+
+These scripts are only needed when the user clicks the "Source" tab to view code — most users never do.
+
+**Solution:** Added `LAZY_SYNTAX_HIGHLIGHTING` flag to `TemplateData`. When true, a lightweight loader function (`window.__loadHljs`) is injected instead of eager `<script>` tags. On first source tab click, the loader dynamically creates script elements, loads highlight.js core + language modules, then calls `hljs.highlightElement()` on each code block.
+
+```ts
+// src/server/config/eta.ts — new flag
+interface TemplateData {
+  HAS_SYNTAX_HIGHLIGHTING: boolean;
+  LAZY_SYNTAX_HIGHLIGHTING: boolean;  // NEW
+  // ...
+}
+
+// examples.ts — lazy (source tabs, code hidden by default)
+LAZY_SYNTAX_HIGHLIGHTING: true,
+
+// content.ts — eager (docs/tutorials, code blocks visible on render)
+LAZY_SYNTAX_HIGHLIGHTING: false,
+```
+
+Template logic in `base.html`:
+- `HAS_SYNTAX_HIGHLIGHTING && !LAZY_SYNTAX_HIGHLIGHTING` → eager `<script src="...">` tags (docs, tutorials)
+- `LAZY_SYNTAX_HIGHLIGHTING` → inline `__loadHljs()` loader function
+- Source tab `openTab()` calls `highlightSource()` which triggers `__loadHljs()` on first click
+
+**Impact:** Example pages load **0 scripts** instead of 5 (~60KB). Scripts load on-demand only when "Source" tab is clicked. Docs/tutorials unchanged — still eager.
+
+### 9.4 Cloudflare Cache Rule
+
+**Problem:** Cloudflare's default behavior marks HTML responses as `cf-cache-status: DYNAMIC` — they pass through to origin on every request regardless of `s-maxage` headers. Only static file extensions (`.js`, `.css`, `.png`) are cached by default.
+
+**Solution:** Added a **Cache Rule** in Cloudflare Dashboard:
+
+| Setting | Value |
+|---------|-------|
+| **Rule name** | Cache HTML pages |
+| **Match** | Hostname equals `vlist.dev` (or all incoming requests) |
+| **Cache eligibility** | Eligible for cache |
+| **Edge TTL** | Use cache-control header if present |
+| **Browser TTL** | Use cache-control header if present |
+
+This tells Cloudflare to respect the `s-maxage=3600` headers already set in Phase 7.
+
+**Verification:**
+
+```bash
+# Before rule: DYNAMIC (never cached)
+curl -sI https://vlist.dev/examples | grep cf-cache-status
+# → cf-cache-status: DYNAMIC
+
+# After rule: first hit MISS, second hit HIT
+curl -sI https://vlist.dev/examples | grep cf-cache-status
+# → cf-cache-status: MISS
+curl -sI https://vlist.dev/examples | grep cf-cache-status
+# → cf-cache-status: HIT
+```
+
+### 9.5 Measured results
+
+**Global TTFB (KeyCDN Performance Test on `/examples`):**
+
+| Location | Before (no edge cache) | After (edge HIT) | Speedup |
+|----------|------------------------|-------------------|---------|
+| Amsterdam | 134ms | **81ms** | 1.7× |
+| London | 104ms | **69ms** | 1.5× |
+| New York | 361ms | **84ms** | 4.3× |
+| San Francisco | 630ms | **71ms** | 8.9× |
+| Singapore | 700ms | **50ms** | 14× |
+| Sydney | 1.11s | **54ms** | 20× |
+
+**Lighthouse (localhost, `/examples/data-table`):**
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Performance | 97 | **100** |
+| FCP | 1.0s | **0.4s** |
+| LCP | 1.0s | **0.4s** |
+| TBT | 0ms | 0ms |
+| CLS | 0 | 0 |
+
+### 9.6 Verify
+
+```bash
+# Check Cloudflare caches HTML (not DYNAMIC)
+curl -sI https://vlist.dev/examples | grep cf-cache-status
+# → cf-cache-status: HIT (after first request warms cache)
+
+# Check origin is NOT compressing (no Content-Encoding from origin)
+# Cloudflare adds it at the edge
+curl -sI https://vlist.dev/examples | grep -iE 'content-encoding|cf-cache'
+# → content-encoding: br (from Cloudflare, not origin)
+# → cf-cache-status: HIT
+
+# Verify example pages don't eagerly load highlight.js
+curl -s https://vlist.dev/examples/data-table | grep '<script src.*highlight'
+# → (no output — correct, scripts are lazy-loaded)
+
+# Verify docs pages still eagerly load highlight.js
+curl -s https://vlist.dev/docs/getting-started | grep '<script src.*highlight'
+# → <script src="https://cdn.jsdelivr.net/...highlight.min.js"></script>
+
+# Verify SVG icons are inlined (no /examples/icons/ requests)
+curl -s https://vlist.dev/styles/ui.css | grep -c 'data:image/svg+xml'
+# → 28 (14 icons × 2 for -webkit-mask-image + mask-image)
+
+# Run tests
+bun test test/
+# → 233 pass, 0 fail
+```
+
+---
+
 ## Deferred Items
 
 | Item | Reason |
@@ -1132,15 +1308,23 @@ export const IS_PROD = process.env.NODE_ENV === "production";
 | Replace `existsSync`/`statSync` with `Bun.file().exists()` | `Bun.file().exists()` is async — would require restructuring the sync render pipeline. Not worth the complexity for startup-only and cached paths. Revisit if Bun adds sync existence check. |
 | Replace `Eta` with Bun's built-in HTML templating | Bun doesn't have a built-in template engine. Eta with `cache: true` is already fast. No action needed. |
 | Replace `marked` with a faster markdown parser | `marked` is well-tested and feature-rich. With Phase 3 caching, parse time becomes irrelevant (one-time cost per slug). |
-| Native brotli compression | Bun does not have `Bun.brotliCompressSync()` yet. Keep using `zlib.brotliCompressSync` until Bun adds it. |
 | Auto-detect MIME types via `Bun.file().type` | Our manual `MIME_TYPES` map gives us explicit control over `charset=utf-8` and edge cases (`.map` → JSON). Keep it. |
-| Pre-compress `/styles/*.css` at build time | Compressible static files (`shell.css`, `content.css`) lose `Bun.file()` zero-copy on first hit because `compressAsync` consumes the body to compress it. Cached after first hit. Would need a build step to generate `.br`/`.gz` siblings for ~3 CSS files — not worth the complexity. |
 
-## Known Tradeoff
+## Known Tradeoffs
 
-Compressible static files served from `/styles/` (CSS), `/api/` (HTML docs page), and raw `.svg` images don't have pre-compressed `.br`/`.gz` siblings. On the **first request** after a server restart, `compressAsync` reads the `Bun.file()`-backed Response body into memory to compress it — defeating the zero-copy `sendfile()` path. After that first hit, the compressed result is cached in the `compressionCache` and served directly.
+### Origin sends uncompressed in production
 
-This only affects ~3 CSS files and a handful of other compressible static assets. The files are small (largest is `shell.css` at 19KB). The one-time cost is negligible. Pre-compressing them at build time would fix it but adds build complexity for minimal gain.
+In production, the origin server does **not** compress HTML/CSS/API responses. Cloudflare handles compression at the edge and caches the result. This means:
+
+- ✅ Origin TTFB is ~1–2ms instead of 20–40ms
+- ✅ No CPU wasted on compression the edge will redo anyway
+- ⚠️ If Cloudflare is bypassed (direct origin access), responses are uncompressed
+
+Pre-compressed `/dist/` files (build output) are still served directly with brotli/gzip — these are static and have `.br`/`.gz` siblings generated at build time.
+
+### Bangalore Cloudflare PoP
+
+The Bangalore Cloudflare PoP consistently shows ~1s TTFB even after cache warming. This appears to be a Cloudflare routing issue where the Bangalore PoP proxies through a larger data center rather than serving from local cache. This affects free/pro tier plans and cannot be resolved from our side.
 
 ---
 
@@ -1151,16 +1335,19 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 | File | Phases | Changes |
 |------|--------|---------|
 | `src/server/static.ts` | 1, 7 | Replace `readFileSync` with `Bun.file()`, remove import; import cache constants from `cache.ts` |
-| `src/server/compression.ts` | 1, 2, 4, 8 | `Uint8Array` caches, `Bun.gzipSync()`, remove `toBodyInit`, sync/async split with `compressedResponse()` helper; skip caches in dev |
+| `src/server/compression.ts` | 1, 2, 4, 8, 9 | `Uint8Array` caches, `Bun.gzipSync()`, remove `toBodyInit`, sync/async split; skip compression in prod (Cloudflare handles it); dev uses gzip only; removed `brotliCompressSync` import |
 | `src/server/router.ts` | 4 | Single `new URL()`, pass `URL` object to sub-routers, sync/async split |
 | `src/api/router.ts` | 4, 7 | Accept pre-parsed `URL` parameter; add `Cache-Control` to JSON and docs responses |
 | `src/server/config.ts` | 8 | Added `IS_PROD` constant (`NODE_ENV === "production"`) |
+| `src/server/config/eta.ts` | 9 | Added `LAZY_SYNTAX_HIGHLIGHTING` boolean to `TemplateData` interface |
 | `src/server/renderers/config.ts` | 8 | Re-export `IS_PROD` alongside `SITE` |
-| `src/server/renderers/content.ts` | 3, 7, 8 | Page cache `Map<string, string>` per slug; `htmlHeaders()` with edge caching; skip page cache in dev |
-| `src/server/renderers/examples.ts` | 3, 4, 7, 8 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()`; skip page cache in dev |
-| `src/server/renderers/benchmarks.ts` | 3, 4, 7, 8 | Page cache per `slug::variant`, accept `URL` object, `parseVariant(URLSearchParams)`; `htmlHeaders()`; skip page cache in dev |
+| `src/server/renderers/content.ts` | 3, 7, 8, 9 | Page cache per slug; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: false` |
+| `src/server/renderers/examples.ts` | 3, 4, 7, 8, 9 | Page cache per `slug::variant`, accept `URL` object; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: true` |
+| `src/server/renderers/benchmarks.ts` | 3, 4, 7, 8, 9 | Page cache per `slug::variant`, accept `URL` object; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: false` |
 | `src/server/renderers/homepage.ts` | 3, 7, 8 | Page cache (single cached HTML string); `htmlHeaders()` with `s-maxage`; skip page + template cache in dev |
+| `src/server/shells/base.html` | 9 | Lazy highlight.js loader (`__loadHljs`); `highlightSource()` called on first source tab open; conditional eager vs lazy loading |
 | `src/server/sitemap.ts` | 5, 7 | Single batched `git log`, `resolveDate()` with directory prefix support; `CACHE_META` from `cache.ts` |
+| `styles/ui.css` | 9 | 14 SVG icon `mask-image` URLs replaced with inline `data:image/svg+xml` data URIs |
 | `examples/build.ts` | 8 | Hash `dist/index.js` instead of `src/`; auto-detect and rebuild stale vlist dist |
 | `ecosystem.config.cjs` | 6 | `instances: 2` for multi-core via `SO_REUSEPORT` |
 | `.gitignore` | 6 | Add `ecosystem.local.config.cjs` |
@@ -1179,7 +1366,6 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 | File | Reason |
 |------|--------|
 | `server.ts` | Already optimal — minimal `Bun.serve()` setup |
-| `src/server/config/eta.ts` | Already has singleton Eta instance with caching |
 | `src/server/renderers/base.ts` | Shell/nav loading already cached |
 | `src/server/renderers/index.ts` | Barrel export only |
 
@@ -1199,6 +1385,7 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 | Phase 6 | PM2 multi-instance | 2 instances, ~57MB each, zero-downtime reload confirmed |
 | Phase 7 | Cloudflare edge caching | `cf-cache-status: HIT` on all pages/assets; `s-maxage` headers verified; cache purge on deploy |
 | Phase 8 | Dev cache staleness | Stale builds eliminated; auto-rebuild vlist dist; no server restart needed after rebuilds |
+| Phase 9 | Edge-aware compression | Origin TTFB: **20–40ms → ~1–2ms**; global TTFB: **700ms–1.1s → 50–84ms**; Lighthouse: **97 → 100**; FCP: **1.0s → 0.4s** |
 
 ### Functional Regression Checklist
 
@@ -1238,8 +1425,21 @@ This only affects ~3 CSS files and a handful of other compressible static assets
 - [x] GitHub secrets set (`CF_ZONE_ID`, `CF_API_TOKEN`)
 - [x] Deploy workflow purges cache after PM2 reload
 - [x] All response types have correct `Cache-Control` with `s-maxage`
-- [ ] Nameserver propagation complete (Cloudflare status: Active)
-- [ ] SSL/TLS set to Full (strict)
-- [ ] `cf-cache-status: HIT` confirmed on live site
-- [ ] Edge compression (brotli) confirmed
-- [ ] Global latency improvement verified
+- [x] Nameserver propagation complete (Cloudflare status: Active)
+- [x] SSL/TLS set to Full (strict)
+- [x] `cf-cache-status: HIT` confirmed on live site
+- [x] Edge compression (brotli) confirmed
+- [x] Global latency improvement verified (50–84ms TTFB across 6/7 PoPs)
+- [x] Cache Rule created: "Cache HTML pages" — hostname equals `vlist.dev`, eligible for cache, respect origin headers
+
+### Phase 9 — Edge-aware compression
+
+- [x] Origin skips on-the-fly compression in production (Cloudflare handles it)
+- [x] Dev mode uses gzip only (`Bun.gzipSync`, ~1ms) instead of brotli (~20–40ms)
+- [x] `brotliCompressSync` import removed from `compression.ts`
+- [x] 14 SVG icons inlined as data URIs in `styles/ui.css`
+- [x] highlight.js lazy-loaded on source tab click for example pages
+- [x] Docs/tutorials still eagerly load highlight.js (code blocks visible on render)
+- [x] `LAZY_SYNTAX_HIGHLIGHTING` flag added to `TemplateData`
+- [x] Lighthouse 100 Performance confirmed on `/examples/data-table`
+- [x] All 233 tests pass (including updated compression, router, and feed tests)
