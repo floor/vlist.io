@@ -49,6 +49,7 @@ export interface TemplateData {
   HAS_IMPORTMAP: boolean;
   HAS_TOC: boolean;
   HAS_SYNTAX_HIGHLIGHTING: boolean;
+  LAZY_SYNTAX_HIGHLIGHTING: boolean;
   HAS_ACTIVE_NAV: boolean;
   HAS_SOURCE_TABS: boolean;
   PAGE_ATTR: string | null;

@@ -1,19 +1,27 @@
 // src/server/compression.ts
-// Response compression with pre-compressed file support and an LRU fallback.
+// Response compression — pre-compressed files and edge-aware strategy.
 //
-// Priority:
-//   1. Serve pre-compressed .br/.gz files (generated at build time — instant)
-//   2. Fall back to on-the-fly compression with a bounded cache (slow first hit)
+// Architecture:
 //
-// Bun-native: uses Bun.gzipSync() for gzip. Brotli still uses Node zlib
-// (Bun has no native brotli API yet). All caches store Uint8Array — accepted
-// directly by new Response(), no Buffer→ArrayBuffer conversion needed.
+//   Production (behind Cloudflare):
+//     1. Pre-compressed .br/.gz files from /dist/ → served directly (zero CPU)
+//     2. Everything else → sent uncompressed to Cloudflare, which compresses
+//        at the edge and caches the result globally. This avoids wasting
+//        origin CPU on brotli/gzip for content that Cloudflare will re-compress
+//        anyway. Origin TTFB drops from ~20-40ms to ~1-2ms per response.
+//
+//   Development (no CDN):
+//     1. Pre-compressed .br/.gz files from /dist/ → served directly
+//     2. Everything else → gzip on the fly via Bun.gzipSync() (~1ms).
+//        Brotli is skipped entirely — brotliCompressSync costs 20-40ms per
+//        response and there's no edge cache to amortize it.
+//     3. Compression results are cached by pathname with auto-invalidation
+//        when file content changes, so hot-reload works correctly.
 //
 // compressResponse() returns Response | Promise<Response>:
-//   - Sync (plain Response) for non-compressible, pre-compressed, and small responses
-//   - Async (Promise<Response>) only when on-the-fly compression is needed
+//   - Sync (plain Response) for non-compressible, pre-compressed, and prod passthrough
+//   - Async (Promise<Response>) only for dev on-the-fly gzip compression
 
-import { brotliCompressSync } from "zlib";
 import { existsSync, readFileSync } from "fs";
 import { resolve, join } from "path";
 import { IS_PROD } from "./config";
@@ -43,15 +51,14 @@ function readPreCompressed(filePath: string): Uint8Array | null {
 }
 
 // =============================================================================
-// Slow-path compression cache
+// Dev-only compression cache
 // =============================================================================
-// For dynamic responses (HTML pages) that don't have pre-compressed siblings.
-// Keyed by pathname — content rarely changes at runtime and the cache is small.
-// In development, this cache is skipped entirely.
+// For dynamic responses (HTML pages, CSS) that don't have pre-compressed siblings.
+// Keyed by pathname — content rarely changes unless files are edited.
+// Only used in development; production delegates compression to Cloudflare.
 
 interface CachedCompression {
-  br?: Uint8Array;
-  gzip?: Uint8Array;
+  gzip: Uint8Array;
   raw: Uint8Array;
 }
 
@@ -147,16 +154,15 @@ function tryPreCompressed(
 }
 
 // =============================================================================
-// On-the-fly compression (cached)
+// Dev-only on-the-fly gzip compression (cached)
 // =============================================================================
 
 /**
- * Compress a response body on the fly, caching the result by pathname.
- * Called only when no pre-compressed file is available.
+ * Compress a response body with gzip on the fly, caching the result by pathname.
+ * Only called in development — production skips this entirely.
  */
-async function compressAsync(
+async function devCompressGzip(
   response: Response,
-  encoding: "br" | "gzip",
   pathname: string,
 ): Promise<Response> {
   try {
@@ -172,19 +178,9 @@ async function compressAsync(
       });
     }
 
-    // In dev, compress on the fly without caching to avoid stale responses
-    if (!IS_PROD) {
-      const body =
-        encoding === "br"
-          ? new Uint8Array(brotliCompressSync(Buffer.from(raw)))
-          : Bun.gzipSync(raw);
-      return compressedResponse(body, encoding, response);
-    }
-
-    // Production: cache by pathname — content is stable for server-rendered pages
     let cached = compressionCache.get(pathname);
 
-    // Invalidate if the underlying content changed
+    // Invalidate if the underlying content changed (handles hot-reload)
     if (cached && !uint8Equals(cached.raw, raw)) {
       compressionCache.delete(pathname);
       cached = undefined;
@@ -192,19 +188,11 @@ async function compressAsync(
 
     if (!cached) {
       evictOldest();
-      cached = { raw };
+      const gzip = Bun.gzipSync(raw);
+      cached = { raw, gzip };
       compressionCache.set(pathname, cached);
     }
 
-    if (encoding === "br") {
-      if (!cached.br) {
-        cached.br = new Uint8Array(brotliCompressSync(Buffer.from(raw)));
-      }
-      return compressedResponse(cached.br, "br", response);
-    }
-
-    // gzip (Bun-native)
-    if (!cached.gzip) cached.gzip = Bun.gzipSync(raw);
     return compressedResponse(cached.gzip, "gzip", response);
   } catch (error) {
     console.error("Compression error:", error);
@@ -219,17 +207,18 @@ async function compressAsync(
 /**
  * Compress a response based on the Accept-Encoding header.
  *
- * Returns sync (plain Response) when possible:
- *   - Non-compressible content types (images, fonts, etc.)
- *   - Already-encoded responses
- *   - Pre-compressed .br/.gz build output from /dist/
+ * Production (behind Cloudflare):
+ *   - Pre-compressed /dist/ files → served directly (sync, zero CPU)
+ *   - Everything else → returned uncompressed. Cloudflare compresses at the
+ *     edge with brotli/gzip and caches the result globally. This keeps origin
+ *     TTFB at ~1-2ms instead of 20-40ms for brotli.
  *
- * Returns async (Promise<Response>) only when on-the-fly compression is needed:
- *   - Server-rendered HTML pages (docs, tutorials, examples, benchmarks)
- *   - API JSON responses
+ * Development (no CDN):
+ *   - Pre-compressed /dist/ files → served directly (sync)
+ *   - Everything else → gzip via Bun.gzipSync() with LRU cache (async, ~1ms)
  *
- * This split means ~60% of requests (static assets, pre-compressed dist files,
- * non-compressible content) avoid a Promise allocation entirely.
+ * Returns sync (plain Response) for ~90% of production requests.
+ * Returns async (Promise<Response>) only for dev gzip compression.
  */
 export function compressResponse(
   response: Response,
@@ -238,7 +227,7 @@ export function compressResponse(
 ): Response | Promise<Response> {
   const contentType = response.headers.get("Content-Type") || "";
 
-  // Non-compressible content — return sync
+  // Non-compressible content (images, fonts, etc.) — return as-is
   if (!shouldCompress(contentType)) return response;
   if (!acceptEncoding || response.headers.get("Content-Encoding")) {
     return response;
@@ -247,10 +236,22 @@ export function compressResponse(
   const encoding = parseEncoding(acceptEncoding);
   if (!encoding) return response;
 
-  // Pre-compressed build output — return sync
+  // Pre-compressed build output (.br/.gz siblings) — return sync, zero CPU
   const preCompressed = tryPreCompressed(response, encoding, pathname);
   if (preCompressed) return preCompressed;
 
-  // On-the-fly compression — return async
-  return compressAsync(response, encoding, pathname);
+  // ── Production: skip on-the-fly compression ──
+  // Cloudflare compresses at the edge and caches the result. Doing it here
+  // would waste 20-40ms of origin CPU per cold request for no benefit.
+  if (IS_PROD) return response;
+
+  // ── Development: gzip on the fly (Bun-native, ~1ms) ──
+  // No CDN in front, so we need to compress for the browser.
+  // Brotli is skipped — too slow without an edge cache to amortize it.
+  if (encoding === "gzip" || encoding === "br") {
+    // Use gzip for both — Bun.gzipSync is fast, brotliCompressSync is not
+    return devCompressGzip(response, pathname);
+  }
+
+  return response;
 }

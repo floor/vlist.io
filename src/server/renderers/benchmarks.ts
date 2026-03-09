@@ -272,6 +272,7 @@ function assemblePage(
     HAS_IMPORTMAP: true,
     HAS_TOC: false,
     HAS_SYNTAX_HIGHLIGHTING: false,
+    LAZY_SYNTAX_HIGHLIGHTING: false,
     HAS_ACTIVE_NAV: false,
     HAS_SOURCE_TABS: false,
     PAGE_ATTR: page,

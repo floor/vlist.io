@@ -508,6 +508,7 @@ function assemblePage(
     HAS_IMPORTMAP: false,
     HAS_TOC: false,
     HAS_SYNTAX_HIGHLIGHTING: true,
+    LAZY_SYNTAX_HIGHLIGHTING: true,
     HAS_ACTIVE_NAV: false,
     HAS_SOURCE_TABS: true,
     PAGE_ATTR: null,

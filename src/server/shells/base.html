@@ -203,8 +203,8 @@
 
         <%~ it.EXTRA_BODY %>
 
-        <% if (it.HAS_SYNTAX_HIGHLIGHTING) { %>
-        <!-- ─── Syntax highlighting (client-side) ────────── -->
+        <% if (it.HAS_SYNTAX_HIGHLIGHTING && !it.LAZY_SYNTAX_HIGHLIGHTING) { %>
+        <!-- ─── Syntax highlighting (eager — docs/tutorials with visible code blocks) ── -->
 
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/typescript.min.js"></script>
@@ -213,6 +213,39 @@
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/scss.min.js"></script>
         <script>
             hljs.highlightAll();
+        </script>
+        <% } %>
+
+        <% if (it.LAZY_SYNTAX_HIGHLIGHTING) { %>
+        <!-- ─── Syntax highlighting (lazy — loaded on first source tab click) ── -->
+
+        <script>
+            (function () {
+                var loaded = false;
+                var CDN = "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/";
+                var langs = ["typescript", "bash", "css", "scss"];
+
+                function loadHljs(cb) {
+                    if (loaded) { cb(); return; }
+                    loaded = true;
+                    var core = document.createElement("script");
+                    core.src = CDN + "highlight.min.js";
+                    core.onload = function () {
+                        var remaining = langs.length;
+                        langs.forEach(function (lang) {
+                            var s = document.createElement("script");
+                            s.src = CDN + "languages/" + lang + ".min.js";
+                            s.onload = function () {
+                                if (--remaining === 0) cb();
+                            };
+                            document.head.appendChild(s);
+                        });
+                    };
+                    document.head.appendChild(core);
+                }
+
+                window.__loadHljs = loadHljs;
+            })();
         </script>
         <% } %>
 
@@ -358,7 +391,24 @@
                 var panels = source.querySelectorAll(".source__panel");
                 var toggle = document.getElementById("source-toggle");
                 var activeTab = null;
+                var highlighted = false;
                 var sourceHeader = source.querySelector(".source__header");
+
+                function highlightSource() {
+                    if (highlighted) return;
+                    highlighted = true;
+                    if (window.__loadHljs) {
+                        window.__loadHljs(function () {
+                            source.querySelectorAll("pre code").forEach(function (block) {
+                                hljs.highlightElement(block);
+                            });
+                        });
+                    } else if (window.hljs) {
+                        source.querySelectorAll("pre code").forEach(function (block) {
+                            hljs.highlightElement(block);
+                        });
+                    }
+                }
 
                 // Block wheel events on the source header
                 sourceHeader.addEventListener(
@@ -391,6 +441,7 @@
                 });
 
                 function openTab(id) {
+                    highlightSource();
                     updateSourceHeight();
                     tabs.forEach(function (t) {
                         t.classList.remove("source__tab--active");
