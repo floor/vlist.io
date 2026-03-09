@@ -272,6 +272,17 @@ export function renderRobots(): Response {
   const txt = `User-agent: *
 Allow: /
 
+# AI scrapers and crawlers
+User-agent: Amazonbot
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: CCBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: GPTBot
+User-agent: meta-externalagent
+Disallow: /
+
 Sitemap: ${SITE}/sitemap.xml
 `;
 
