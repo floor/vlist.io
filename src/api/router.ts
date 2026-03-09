@@ -12,6 +12,16 @@ import { getRecipes, getRecipeById } from "./recipes";
 import { listDirectory, getFilesBrowserInfo } from "./files";
 import { fetchFeed, feedSourceIds, REDDIT_PRESETS } from "./feed/index";
 import type { FeedSourceId } from "./feed/index";
+import {
+  getCities,
+  getCityById,
+  getCountries,
+  getContinents,
+  getStats as getCitiesStats,
+  parseQueryOptions as parseCitiesParams,
+  MAX_LIMIT as CITIES_MAX_LIMIT,
+  DEFAULT_LIMIT as CITIES_DEFAULT_LIMIT,
+} from "./cities";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -260,6 +270,104 @@ const handleGetRecipe = (_url: URL, id: number): Response => {
   return json(recipe);
 };
 
+// =============================================================================
+// Cities (SQLite-backed)
+// =============================================================================
+
+/**
+ * GET /api/cities?offset=0&limit=50&sort=population&direction=desc&search=&country=&continent=&minPop=&maxPop=&delay=0
+ *
+ * Query params:
+ *   offset    — start index (default: 0)
+ *   limit     — page size (default: 50, min: 1, max: 200)
+ *   sort      — column to sort by (default: "population")
+ *   direction — "asc" or "desc" (default: "desc")
+ *   search    — case-insensitive name search
+ *   country   — ISO country code(s), comma-separated (e.g. "FR,DE,US")
+ *   continent — continent name (e.g. "Europe")
+ *   minPop    — minimum population filter
+ *   maxPop    — maximum population filter
+ *   delay     — simulated latency in ms (default: 0, max: 5000)
+ *
+ * Response: { items: City[], total: number, hasMore: boolean }
+ */
+const handleGetCities = async (url: URL): Promise<Response> => {
+  const params = parseCitiesParams(url);
+  await sleep(params.delay);
+
+  try {
+    const result = getCities(params);
+    return json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/cities/:id
+ *
+ * Path params:
+ *   id — city ID (1-based)
+ *
+ * Response: City | { error: string }
+ */
+const handleGetCity = (_url: URL, id: number): Response => {
+  try {
+    const city = getCityById(id);
+    if (!city) return error("City not found", 404);
+    return json(city);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/cities/countries
+ *
+ * Returns distinct country codes with city counts.
+ * Response: Array<{ code: string, count: number }>
+ */
+const handleGetCountries = (): Response => {
+  try {
+    return json(getCountries());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/cities/continents
+ *
+ * Returns distinct continents with city counts.
+ * Response: Array<{ continent: string, count: number }>
+ */
+const handleGetContinents = (): Response => {
+  try {
+    return json(getContinents());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/cities/stats
+ *
+ * Aggregate statistics about the cities dataset.
+ * Response: CitiesStatsResponse
+ */
+const handleGetCitiesStats = (): Response => {
+  try {
+    return json(getCitiesStats());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
 /**
  * GET /api/info
  *
@@ -368,6 +476,75 @@ const handleInfo = (): Response =>
       "GET /api/info": {
         description: "This endpoint — API metadata",
       },
+      "GET /api/cities": {
+        description: "Paginated city list (SQLite-backed, 33K real cities)",
+        params: {
+          offset: { type: "number", default: 0, min: 0, max: 1_000_000 },
+          limit: {
+            type: "number",
+            default: CITIES_DEFAULT_LIMIT,
+            min: 1,
+            max: CITIES_MAX_LIMIT,
+          },
+          sort: {
+            type: "string",
+            default: "population",
+            enum: [
+              "id",
+              "name",
+              "country_code",
+              "population",
+              "lat",
+              "lng",
+              "continent",
+            ],
+          },
+          direction: { type: "string", default: "desc", enum: ["asc", "desc"] },
+          search: {
+            type: "string",
+            default: "",
+            description: "Case-insensitive name search",
+          },
+          country: {
+            type: "string",
+            default: "",
+            description: "ISO country code(s), comma-separated",
+          },
+          continent: {
+            type: "string",
+            default: "",
+            description: "Continent name filter",
+          },
+          minPop: {
+            type: "number",
+            default: 0,
+            description: "Minimum population",
+          },
+          maxPop: {
+            type: "number",
+            default: 0,
+            description: "Maximum population",
+          },
+          delay: { type: "number", default: 0, min: 0, max: 5000, unit: "ms" },
+        },
+        response: "{ items: City[], total: number, hasMore: boolean }",
+      },
+      "GET /api/cities/:id": {
+        description: "Single city by ID",
+        response: "City | { error: string }",
+      },
+      "GET /api/cities/countries": {
+        description: "Distinct country codes with city counts",
+        response: "Array<{ code: string, count: number }>",
+      },
+      "GET /api/cities/continents": {
+        description: "Distinct continents with city counts",
+        response: "Array<{ continent: string, count: number }>",
+      },
+      "GET /api/cities/stats": {
+        description: "Aggregate statistics about the cities dataset",
+        response: "CitiesStatsResponse",
+      },
     },
     defaults: {
       total: TOTAL,
@@ -463,6 +640,33 @@ export const routeApi = async (
   // GET /api/files
   if (path === "/api/files" || path === "/api/files/") {
     return handleGetFiles(url);
+  }
+
+  // GET /api/cities/countries
+  if (path === "/api/cities/countries") {
+    return handleGetCountries();
+  }
+
+  // GET /api/cities/continents
+  if (path === "/api/cities/continents") {
+    return handleGetContinents();
+  }
+
+  // GET /api/cities/stats
+  if (path === "/api/cities/stats") {
+    return handleGetCitiesStats();
+  }
+
+  // GET /api/cities/:id
+  const cityMatch = path.match(/^\/api\/cities\/(\d+)$/);
+  if (cityMatch) {
+    const id = parseInt(cityMatch[1], 10);
+    return handleGetCity(url, id);
+  }
+
+  // GET /api/cities
+  if (path === "/api/cities" || path === "/api/cities/") {
+    return handleGetCities(url);
   }
 
   return error("Not found", 404);

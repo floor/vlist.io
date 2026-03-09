@@ -1,7 +1,7 @@
 // Data Table — Panel controls
 // Wires column preset toggle, row height slider, border mode,
-// and navigation buttons.
-// Imports state and functions from script.js.
+// navigation buttons, search input, and continent filter.
+// All filters trigger server-side re-fetch via /api/cities.
 
 import * as app from "./script.js";
 
@@ -48,7 +48,7 @@ if (rowHeightSlider) {
 }
 
 // =============================================================================
-// Border Mode — Rows ↔ Both ↔ None (rebuilds list)
+// Border Mode — Rows + Cols ↔ Rows ↔ Striped (rebuilds list)
 // =============================================================================
 
 const borderModeEl = document.getElementById("border-mode");
@@ -63,13 +63,81 @@ if (borderModeEl) {
     app.setCurrentBorderMode(mode);
 
     borderModeEl.querySelectorAll("button").forEach((b) => {
-      b.classList.toggle(
-        "ui-segmented__btn--active",
-        b.dataset.mode === mode,
-      );
+      b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
     });
 
     app.createList();
+  });
+}
+
+// =============================================================================
+// Search — debounced text input, triggers server-side search
+// =============================================================================
+
+const searchInput = document.getElementById("search-input");
+let searchTimeout = null;
+
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      app.setSearchQuery(e.target.value.trim());
+      app.applyFilters();
+    }, 250);
+  });
+
+  // Clear on Escape
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      searchInput.value = "";
+      app.setSearchQuery("");
+      app.applyFilters();
+    }
+  });
+}
+
+// =============================================================================
+// Continent Filter — dropdown, triggers server-side filter
+// =============================================================================
+
+const continentSelect = document.getElementById("filter-continent");
+
+if (continentSelect) {
+  // Populate options from /api/cities/continents
+  fetch("/api/cities/continents")
+    .then((r) => r.json())
+    .then((continents) => {
+      continentSelect.innerHTML = '<option value="">All continents</option>';
+      for (const c of continents) {
+        const opt = document.createElement("option");
+        opt.value = c.continent;
+        opt.textContent = `${c.continent} (${c.count.toLocaleString()})`;
+        continentSelect.appendChild(opt);
+      }
+    })
+    .catch(() => {
+      // Fallback — static list
+      const fallback = [
+        "Africa",
+        "Americas",
+        "Asia",
+        "Europe",
+        "Oceania",
+        "Indian Ocean",
+        "Antarctica",
+      ];
+      continentSelect.innerHTML = '<option value="">All continents</option>';
+      for (const name of fallback) {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        continentSelect.appendChild(opt);
+      }
+    });
+
+  continentSelect.addEventListener("change", () => {
+    app.setFilterContinent(continentSelect.value);
+    app.applyFilters();
   });
 }
 
@@ -90,7 +158,7 @@ if (btnFirst) {
 
 if (btnMiddle) {
   btnMiddle.addEventListener("click", () => {
-    app.list?.scrollToIndex(Math.floor(app.sortedContacts.length / 2), {
+    app.list?.scrollToIndex(Math.floor(app.totalCities / 2), {
       align: "center",
       behavior: "smooth",
       duration: 500,
@@ -100,7 +168,7 @@ if (btnMiddle) {
 
 if (btnLast) {
   btnLast.addEventListener("click", () => {
-    app.list?.scrollToIndex(app.sortedContacts.length - 1, {
+    app.list?.scrollToIndex(Math.max(0, app.totalCities - 1), {
       align: "end",
       behavior: "smooth",
       duration: 500,
@@ -110,7 +178,7 @@ if (btnLast) {
 
 if (btnRandom) {
   btnRandom.addEventListener("click", () => {
-    const idx = Math.floor(Math.random() * app.sortedContacts.length);
+    const idx = Math.floor(Math.random() * app.totalCities);
     app.list?.scrollToIndex(idx, {
       align: "center",
       behavior: "smooth",

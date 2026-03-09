@@ -35,3 +35,6 @@ bun.lockb
 
 # Local PM2 config
 ecosystem.local.config.cjs
+
+# SQLite databases
+*.db

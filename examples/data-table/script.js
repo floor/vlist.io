@@ -1,9 +1,9 @@
-// Data Table — Virtualized table with resizable columns, sorting, and selection
-// Demonstrates withTable plugin with column presets, sort toggle,
-// and withSelection for click-to-select with detail panel
+// Data Table — Virtualized table with server-side sorting, filtering, and search
+// Demonstrates withTable + withAsync backed by a real SQLite database (33K cities).
+// All sorting and filtering happens server-side via /api/cities.
+// Data loads lazily in chunks as the user scrolls — not all at once.
 
-import { vlist, withTable, withSelection } from "vlist";
-import { makeContacts } from "../../src/data/people.js";
+import { vlist, withTable, withSelection, withAsync } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -12,122 +12,194 @@ import { initControls } from "./controls.js";
 // Constants
 // =============================================================================
 
-export const TOTAL_ROWS = 10_000;
 export const ROW_HEIGHT = 36;
 export const HEADER_HEIGHT = 36;
-
-// =============================================================================
-// Data
-// =============================================================================
-
-export const contacts = makeContacts(TOTAL_ROWS);
-
-// Keep a mutable reference for sorting
-export let sortedContacts = [...contacts];
+export const CHUNK_SIZE = 100;
+const API_BASE =
+  typeof location !== "undefined" ? location.origin : "http://localhost:3338";
 
 // =============================================================================
 // State — exported so controls.js can read/write
 // =============================================================================
 
 export let list = null;
+export let totalCities = 0;
 export let currentRowHeight = ROW_HEIGHT;
-export let currentPreset = "compact";
+export let currentPreset = "default";
 export let currentBorderMode = "both";
-export let sortKey = null;
-export let sortDirection = "asc";
+export let sortKey = "population";
+export let sortDirection = "desc";
+export let searchQuery = "";
+export let filterContinent = "";
+export let loadRequests = 0;
+export let loadedCount = 0;
 
 export function setCurrentRowHeight(v) {
   currentRowHeight = v;
 }
-
 export function setCurrentPreset(v) {
   currentPreset = v;
 }
-
 export function setCurrentBorderMode(v) {
   currentBorderMode = v;
 }
+export function setSearchQuery(v) {
+  searchQuery = v;
+}
+export function setFilterContinent(v) {
+  filterContinent = v;
+}
+
+// =============================================================================
+// Adapter — fetches cities from the SQLite-backed API
+// =============================================================================
+
+/**
+ * Build query params from the current filter/sort state.
+ * Called by the adapter on every read so sorting/filtering
+ * is always handled server-side.
+ */
+function buildParams(offset, limit) {
+  const params = new URLSearchParams({
+    offset: String(offset),
+    limit: String(limit),
+    sort: sortKey || "population",
+    direction: sortDirection || "desc",
+  });
+
+  if (searchQuery) params.set("search", searchQuery);
+  if (filterContinent) params.set("continent", filterContinent);
+
+  return params;
+}
+
+const citiesAdapter = {
+  read: async ({ offset, limit }) => {
+    loadRequests++;
+    updateContext();
+
+    const params = buildParams(offset, limit);
+    const res = await fetch(`${API_BASE}/api/cities?${params}`);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+
+    totalCities = data.total;
+    loadedCount += data.items.length;
+    updateContext();
+
+    return {
+      items: data.items,
+      total: data.total,
+      hasMore: data.hasMore,
+    };
+  },
+};
 
 // =============================================================================
 // Column Presets
 // =============================================================================
 
-/** Status badge cell renderer */
-const statusCell = (item) => {
-  const active = item.id % 3 !== 0;
-  const label = active ? "Active" : "Inactive";
-  const cls = active ? "ui-badge--success" : "ui-badge--error";
-  return `<span class="ui-badge ui-badge--pill ${cls}">${label}</span>`;
+/** Population cell — formatted with locale separators */
+const populationCell = (item) => {
+  const pop = item.population;
+  if (pop == null) return "";
+  if (pop >= 1_000_000) {
+    return `<span class="table-pop table-pop--mega">${(pop / 1_000_000).toFixed(1)}M</span>`;
+  }
+  if (pop >= 100_000) {
+    return `<span class="table-pop table-pop--large">${(pop / 1_000).toFixed(0)}K</span>`;
+  }
+  return `<span class="table-pop">${pop.toLocaleString()}</span>`;
 };
 
-/** Avatar + name cell renderer */
-const nameCell = (item) => `
-  <div class="table-name">
-    <div class="table-avatar" style="background:${item.color};color:${item.textColor}">${item.initials}</div>
-    <span class="table-name__text">${item.firstName} ${item.lastName}</span>
-  </div>
-`;
+/** Continent badge */
+const CONTINENT_COLORS = {
+  Africa: "#f4511e",
+  Americas: "#7cb342",
+  Asia: "#e53935",
+  Europe: "#1e88e5",
+  Oceania: "#00acc1",
+  "Indian Ocean": "#8e24aa",
+  Antarctica: "#546e7a",
+};
+
+const continentCell = (item) => {
+  const name = item.continent;
+  if (!name) return "";
+  const color = CONTINENT_COLORS[name] || "#757575";
+  return `<span class="ui-badge ui-badge--pill" style="background:${color};color:#fff">${name}</span>`;
+};
+
+/** City name cell with country code badge */
+const nameCell = (item) => {
+  const cc = item.country_code || "";
+  const name = item.name || "";
+  return `
+    <div class="table-name">
+      <span class="table-cc">${cc}</span>
+      <span class="table-name__text">${name}</span>
+    </div>
+  `;
+};
 
 const COLUMN_PRESETS = {
   default: [
     {
       key: "name",
-      label: "Name",
+      label: "City",
       width: 220,
       minWidth: 140,
       sortable: true,
       cell: nameCell,
     },
     {
-      key: "email",
-      label: "Email",
-      width: 260,
-      minWidth: 140,
-      sortable: true,
-    },
-    {
-      key: "department",
-      label: "Department",
-      width: 140,
-      minWidth: 90,
-      sortable: true,
-    },
-    {
-      key: "role",
-      label: "Role",
-      width: 180,
-      minWidth: 100,
-      sortable: true,
-    },
-    {
-      key: "status",
-      label: "Status",
+      key: "country_code",
+      label: "Country",
       width: 100,
-      minWidth: 80,
+      minWidth: 70,
       align: "center",
       sortable: true,
-      cell: statusCell,
+    },
+    {
+      key: "population",
+      label: "Population",
+      width: 140,
+      minWidth: 100,
+      align: "right",
+      sortable: true,
+      cell: populationCell,
+    },
+    {
+      key: "continent",
+      label: "Continent",
+      width: 130,
+      minWidth: 100,
+      sortable: true,
+      cell: continentCell,
     },
   ],
 
   compact: [
     {
       key: "name",
-      label: "Name",
+      label: "City",
       width: 200,
       minWidth: 120,
       sortable: true,
       cell: nameCell,
     },
     {
-      key: "email",
-      label: "Email",
-      minWidth: 140,
+      key: "population",
+      label: "Pop.",
+      width: 120,
+      minWidth: 80,
+      align: "right",
       sortable: true,
+      cell: populationCell,
     },
     {
-      key: "department",
-      label: "Dept",
+      key: "continent",
+      label: "Continent",
       width: 120,
       minWidth: 80,
       sortable: true,
@@ -147,68 +219,52 @@ const COLUMN_PRESETS = {
     },
     {
       key: "name",
-      label: "Name",
+      label: "City",
       width: 200,
       minWidth: 140,
       sortable: true,
       cell: nameCell,
     },
     {
-      key: "email",
-      label: "Email",
-      width: 240,
-      minWidth: 140,
-      sortable: true,
-    },
-    {
-      key: "company",
-      label: "Company",
-      width: 160,
-      minWidth: 100,
-      sortable: true,
-    },
-    {
-      key: "department",
-      label: "Department",
-      width: 130,
-      minWidth: 90,
-      sortable: true,
-    },
-    {
-      key: "role",
-      label: "Role",
-      width: 170,
-      minWidth: 100,
-      sortable: true,
-    },
-    {
-      key: "city",
-      label: "City",
-      width: 120,
-      minWidth: 80,
-      sortable: true,
-    },
-    {
-      key: "country",
+      key: "country_code",
       label: "Country",
-      width: 130,
-      minWidth: 80,
-      sortable: true,
-    },
-    {
-      key: "phone",
-      label: "Phone",
-      width: 140,
-      minWidth: 110,
-    },
-    {
-      key: "status",
-      label: "Status",
       width: 100,
-      minWidth: 80,
+      minWidth: 70,
       align: "center",
       sortable: true,
-      cell: statusCell,
+    },
+    {
+      key: "population",
+      label: "Population",
+      width: 140,
+      minWidth: 100,
+      align: "right",
+      sortable: true,
+      cell: populationCell,
+    },
+    {
+      key: "continent",
+      label: "Continent",
+      width: 130,
+      minWidth: 100,
+      sortable: true,
+      cell: continentCell,
+    },
+    {
+      key: "lat",
+      label: "Lat",
+      width: 90,
+      minWidth: 70,
+      align: "right",
+      sortable: true,
+    },
+    {
+      key: "lng",
+      label: "Lng",
+      width: 90,
+      minWidth: 70,
+      align: "right",
+      sortable: true,
     },
   ],
 };
@@ -218,57 +274,43 @@ export function getColumns() {
 }
 
 // =============================================================================
-// Sorting
+// Sorting — server-side via reload
 // =============================================================================
 
-/**
- * Sort contacts by a given key and direction.
- * Returns a new sorted array (does not mutate the original).
- */
-function sortContacts(key, direction) {
-  const dir = direction === "desc" ? -1 : 1;
-
-  return [...contacts].sort((a, b) => {
-    let aVal, bVal;
-
-    if (key === "name") {
-      aVal = a.lastName + a.firstName;
-      bVal = b.lastName + b.firstName;
-    } else if (key === "status") {
-      aVal = a.id % 3 !== 0 ? "Active" : "Inactive";
-      bVal = b.id % 3 !== 0 ? "Active" : "Inactive";
-    } else {
-      aVal = a[key];
-      bVal = b[key];
-    }
-
-    if (aVal == null) return 1;
-    if (bVal == null) return -1;
-
-    if (typeof aVal === "number" && typeof bVal === "number") {
-      return (aVal - bVal) * dir;
-    }
-
-    return String(aVal).localeCompare(String(bVal)) * dir;
-  });
-}
-
-export function applySort(key, direction) {
+export async function applySort(key, direction) {
   sortKey = key;
   sortDirection = direction || "asc";
 
   if (key === null) {
-    sortedContacts = [...contacts];
-  } else {
-    sortedContacts = sortContacts(key, direction);
+    sortKey = "population";
+    sortDirection = "desc";
   }
 
+  loadedCount = 0;
   if (list) {
-    list.setItems(sortedContacts);
+    await list.reload();
   }
 
   updateContext();
   updateSortDetail();
+}
+
+// =============================================================================
+// Apply filters — triggers reload with new server-side params
+// =============================================================================
+
+let filterDebounce = null;
+
+export async function applyFilters() {
+  clearTimeout(filterDebounce);
+  filterDebounce = setTimeout(async () => {
+    loadedCount = 0;
+    if (list) {
+      await list.reload();
+    }
+    updateContext();
+    updateSortDetail();
+  }, 150);
 }
 
 // =============================================================================
@@ -283,7 +325,7 @@ const fallbackTemplate = () => "";
 
 export const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
-  getTotal: () => sortedContacts.length,
+  getTotal: () => totalCities,
   getItemSize: () => currentRowHeight,
   getContainerSize: () =>
     document.querySelector("#list-container")?.clientHeight ?? 0,
@@ -306,6 +348,10 @@ export function createList() {
   const container = document.getElementById("list-container");
   container.innerHTML = "";
 
+  // Reset load stats on recreate
+  loadRequests = 0;
+  loadedCount = 0;
+
   const columns = getColumns();
   const isStriped = currentBorderMode === "striped";
   const columnBorders = currentBorderMode === "both";
@@ -313,14 +359,30 @@ export function createList() {
 
   const builder = vlist({
     container: "#list-container",
-    ariaLabel: "Employee data table",
+    ariaLabel: "World cities data table",
     item: {
       height: currentRowHeight,
       template: fallbackTemplate,
       striped: isStriped,
     },
-    items: sortedContacts,
   });
+
+  // Async adapter — lazy chunk-based loading from /api/cities
+  builder.use(
+    withAsync({
+      adapter: citiesAdapter,
+      autoLoad: true,
+      storage: {
+        chunkSize: CHUNK_SIZE,
+        maxCachedItems: 10000,
+      },
+      loading: {
+        cancelThreshold: 8,
+        preloadThreshold: 2,
+        preloadAhead: 50,
+      },
+    }),
+  );
 
   builder.use(
     withTable({
@@ -350,12 +412,12 @@ export function createList() {
     updateInfo();
   });
 
-  // Sort event — consumer handles actual sorting
-  list.on("column:sort", ({ key, direction }) => {
-    applySort(direction === null ? null : key, direction);
+  // Sort event — server-side sorting via reload
+  list.on("column:sort", async ({ key, direction }) => {
+    await applySort(direction === null ? null : key, direction);
 
     // Update the visual indicator on the header
-    if (list.setSort) {
+    if (list && list.setSort) {
       list.setSort(sortKey, sortDirection);
     }
   });
@@ -363,13 +425,20 @@ export function createList() {
   // Selection event — show detail panel
   list.on("selection:change", ({ selected, items }) => {
     if (items.length > 0) {
-      showRowDetail(items[0]);
+      showCityDetail(items[0]);
     } else {
-      clearRowDetail();
+      clearCityDetail();
     }
   });
 
-  // Restore scroll position
+  // Track loaded items
+  list.on("load:end", ({ items, total }) => {
+    totalCities = total;
+    updateInfo();
+    updateContext();
+  });
+
+  // Restore scroll position if recreating (e.g. after column preset change)
   if (firstVisibleIndex > 0) {
     list.scrollToIndex(firstVisibleIndex, "start");
   }
@@ -379,31 +448,42 @@ export function createList() {
 }
 
 // =============================================================================
-// Row detail (panel) — shows selected row
+// City detail (panel) — shows selected city
 // =============================================================================
 
 const detailEl = document.getElementById("row-detail");
 
-function showRowDetail(contact) {
+function showCityDetail(city) {
   if (!detailEl) return;
+
+  // Guard against placeholder items
+  if (!city || !city.name || String(city.id).startsWith("__placeholder")) {
+    return;
+  }
+
+  const popStr = city.population.toLocaleString();
+  const lat = city.lat >= 0 ? `${city.lat}°N` : `${Math.abs(city.lat)}°S`;
+  const lng = city.lng >= 0 ? `${city.lng}°E` : `${Math.abs(city.lng)}°W`;
+  const color = CONTINENT_COLORS[city.continent] || "#757575";
+
   detailEl.innerHTML = `
     <div class="ui-detail__header">
-      <div class="table-detail__avatar" style="background:${contact.color};color:${contact.textColor}">${contact.initials}</div>
+      <div class="table-detail__cc">${city.country_code}</div>
       <div>
-        <div class="ui-detail__name">${contact.firstName} ${contact.lastName}</div>
-        <div class="table-detail__role">${contact.role}</div>
+        <div class="ui-detail__name">${city.name}</div>
+        <div class="table-detail__role">${city.continent}</div>
       </div>
     </div>
     <div class="ui-detail__meta">
-      <span>${contact.department} · ${contact.company}</span>
-      <span>${contact.email}</span>
-      <span>${contact.phone}</span>
-      <span>${contact.city}, ${contact.country}</span>
+      <span>Population: <strong>${popStr}</strong></span>
+      <span>Country: ${city.country_code}</span>
+      <span>Coordinates: ${lat}, ${lng}</span>
+      <span class="ui-badge ui-badge--pill" style="background:${color};color:#fff;display:inline-block;margin-top:4px">${city.continent}</span>
     </div>
   `;
 }
 
-function clearRowDetail() {
+function clearCityDetail() {
   if (!detailEl) return;
   detailEl.innerHTML = `
     <span class="ui-detail__empty">Click a row to see details</span>
@@ -447,6 +527,24 @@ export function updateContext() {
   if (infoSort) {
     infoSort.textContent =
       sortKey !== null ? `${sortKey} ${sortDirection}` : "none";
+  }
+
+  // Update result count
+  const infoResults = document.getElementById("info-results");
+  if (infoResults) {
+    infoResults.textContent = totalCities.toLocaleString();
+  }
+
+  // Update loaded count
+  const infoLoaded = document.getElementById("info-loaded");
+  if (infoLoaded) {
+    infoLoaded.textContent = loadedCount.toLocaleString();
+  }
+
+  // Update request count
+  const infoRequests = document.getElementById("info-requests");
+  if (infoRequests) {
+    infoRequests.textContent = loadRequests;
   }
 }
 
