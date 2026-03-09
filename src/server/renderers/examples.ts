@@ -491,9 +491,7 @@ function assemblePage(
     CONTENT: content,
 
     // Styles & scripts
-    EXTRA_STYLES:
-      '<link rel="stylesheet" href="/styles/ui.css" />' +
-      '<link rel="stylesheet" href="/dist/examples/styles.css" />',
+    EXTRA_STYLES: '<link rel="stylesheet" href="/dist/examples/styles.css" />',
     EXTRA_HEAD: buildExtraHead(slug, example, variant),
     EXTRA_BODY: buildExtraBody(slug, example, variant),
     MAIN_CLASS: "",

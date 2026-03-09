@@ -64,11 +64,18 @@
         </script>
         <% } %>
 
+        <!-- Critical CSS inlined to eliminate render-blocking request -->
+        <style><%~ it.TOKENS_CSS %></style>
+
         <!-- Common styles -->
-        <link rel="stylesheet" href="/styles/tokens.css" />
         <link rel="stylesheet" href="/styles/shell.css" />
         <link rel="stylesheet" href="/styles/ui.css" />
-        <link rel="stylesheet" href="/styles/syntax.css" />
+
+        <!-- Syntax highlighting — deferred (not needed for first paint) -->
+        <% if (it.HAS_SYNTAX_HIGHLIGHTING) { %>
+        <link rel="stylesheet" href="/styles/syntax.css" media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="/styles/syntax.css" /></noscript>
+        <% } %>
 
         <!-- Page-specific styles -->
         <%~ it.EXTRA_STYLES %>
