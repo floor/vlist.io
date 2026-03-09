@@ -369,7 +369,7 @@ const updateInfo = createInfoUpdater(stats);
 // =============================================================================
 
 const prefs = loadPrefs();
-let currentSource = prefs.source === "rss" ? "rss" : "reddit";
+let currentSource = prefs.source === "reddit" ? "reddit" : "rss";
 let currentMode = prefs.mode || "a";
 let currentLayout = prefs.layout || "card";
 let list = null;
