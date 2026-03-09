@@ -6,6 +6,19 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 // =============================================================================
+// Critical CSS (inlined into every page to eliminate render-blocking request)
+// =============================================================================
+
+/**
+ * tokens.css is pure CSS custom properties (~4 KB) that every component depends
+ * on. Inlining it removes one render-blocking request and ensures variables are
+ * available before any other stylesheet is parsed.
+ *
+ * Read once at startup — the file never changes at runtime.
+ */
+const TOKENS_CSS = readFileSync(resolve("styles/tokens.css"), "utf-8");
+
+// =============================================================================
 // Types
 // =============================================================================
 
@@ -115,5 +128,5 @@ const eta = new Eta({
  * @returns Rendered HTML string
  */
 export function render(template: string, data: TemplateData): string {
-  return eta.renderString(template, data);
+  return eta.renderString(template, { ...data, TOKENS_CSS });
 }
