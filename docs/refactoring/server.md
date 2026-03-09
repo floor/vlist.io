@@ -3,7 +3,7 @@
 > Migrate the Bun HTTP server from Node.js-compatible patterns to Bun-native APIs
 > for zero-copy file serving, faster compression, reduced allocations, and cached rendering.
 >
-> **Status: ✅ All 8 phases complete**
+> **Status: ✅ All 10 phases complete**
 >
 > Implemented on branch `refactor/server`.
 
@@ -13,7 +13,9 @@
 
 > **Note:** Phases 1–8 were completed in commit `5b6fb15`. Phase 9 was completed
 > in commit `e05597f` after profiling revealed that on-the-fly brotli compression
-> and eagerly-loaded highlight.js were the main remaining bottlenecks.
+> and eagerly-loaded highlight.js were the main remaining bottlenecks. Phase 10
+> was completed on 10 March 2026 — SEO fix, build output consolidation, and
+> render-blocking CSS reduction.
 
 - [Architecture Context](#architecture-context)
 - [Current State](#current-state)
@@ -26,6 +28,8 @@
 - [Phase 6 — PM2 multi-instance](#phase-6--pm2-multi-instance) ✅
 - [Phase 7 — Cloudflare CDN edge caching](#phase-7--cloudflare-cdn-edge-caching) ✅
 - [Phase 8 — Dev cache staleness fix](#phase-8--dev-cache-staleness-fix) ✅
+- [Phase 9 — Edge-aware compression, inline SVGs, lazy highlight.js](#phase-9--edge-aware-compression-inline-svgs-lazy-highlightjs) ✅
+- [Phase 10 — SEO, build consolidation, CSS performance](#phase-10--seo-build-consolidation-css-performance) ✅
 - [Deferred Items](#deferred-items)
 - [Per-File Impact Summary](#per-file-impact-summary)
 - [Testing & Verification](#testing--verification)
@@ -1301,6 +1305,131 @@ bun test test/
 
 ---
 
+## Phase 10 — SEO, build consolidation, CSS performance ✅
+
+> **Date:** 10 March 2026
+
+Three independent improvements: fix Lighthouse SEO regression caused by Cloudflare's
+managed `robots.txt` injection, consolidate all build output under `/dist/`, and reduce
+render-blocking CSS requests.
+
+### 10.1 Fix robots.txt (SEO 92 → 100)
+
+Cloudflare's "AI Crawl Control" feature was prepending a managed block to our origin
+`robots.txt`, including the non-standard `Content-Signal: search=yes, ai-train=no`
+directive. Lighthouse flagged this as invalid syntax, dropping SEO from 100 to 92.
+
+**Fix:**
+1. Disabled **Cloudflare managed robots.txt** (Dashboard → AI Crawl Control → toggle off)
+2. Added AI bot blocking rules directly to `renderRobots()` in `src/server/sitemap.ts`
+
+```
+User-agent: Amazonbot
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: CCBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: GPTBot
+User-agent: meta-externalagent
+Disallow: /
+```
+
+The "Block AI bots" WAF rule (returns 403 at the network level) remains enabled —
+`robots.txt` is advisory, the WAF rule is enforcement.
+
+### 10.2 Consolidate build output under `/dist/`
+
+Previously benchmark build output lived at `benchmarks/dist/`, separate from the
+main `dist/` directory. Moved to `dist/benchmarks/` for consistency with `dist/examples/`.
+
+**Files changed:**
+
+| File | Change |
+|------|--------|
+| `benchmarks/build.ts` | Output dir: `benchmarks/dist` → `dist/benchmarks` |
+| `src/server/renderers/benchmarks.ts` | Asset URLs: `/benchmarks/dist/` → `/dist/benchmarks/` |
+| `src/server/static.ts` | Added `/dist/benchmarks/*` route (served from project root, like `/dist/examples/*`) |
+| `src/server/compression.ts` | Updated comment |
+| `.gitignore` | Removed `benchmarks/dist/` (already covered by `dist/`) |
+
+All build artifacts now live under `/dist/`:
+- `/dist/*.js`, `/dist/*.css` — vlist library
+- `/dist/examples/` — example build output
+- `/dist/benchmarks/` — benchmark build output
+
+### 10.3 Add `CACHE_STATIC` tier for non-hashed assets
+
+Created a new cache tier in `src/server/cache.ts` for assets that only change on
+deploy but don't have content hashes in their filenames (e.g. `/styles/*.css`):
+
+```
+CACHE_IMMUTABLE  → 1 year, immutable   (hashed: /dist/*)
+CACHE_STATIC     → 7 days              (non-hashed: /styles/*)
+CACHE_PAGE       → edge 1h, browser 0  (HTML pages)
+CACHE_META       → 1 hour              (sitemap, robots.txt)
+CACHE_API        → edge 5min, browser 0 (JSON)
+```
+
+Previously `/styles/*.css` files got `no-cache` from origin and relied on Cloudflare
+to override with a 7-day TTL (causing duplicate `Cache-Control` headers). Now the
+origin sends proper headers.
+
+### 10.4 Reduce render-blocking CSS requests
+
+Three changes to the CSS loading strategy in `src/server/shells/base.html`:
+
+| Change | Impact |
+|--------|--------|
+| **Inline `tokens.css`** (~4 KB) as `<style>` tag | Eliminates 1 render-blocking request; CSS custom properties available immediately |
+| **Defer `syntax.css`** with `media="print" onload` | Code highlighting not needed for first paint; loads async |
+| **Skip `syntax.css`** on pages without code | Benchmark pages set `HAS_SYNTAX_HIGHLIGHTING: false` — no request at all |
+| **Remove duplicate `ui.css`** on examples pages | Was loaded in both `base.html` and `EXTRA_STYLES` |
+
+**Implementation:**
+- `src/server/config/eta.ts`: reads `tokens.css` once at startup, injects as `TOKENS_CSS`
+  into every `render()` call automatically
+- `src/server/shells/base.html`: `<style><%~ it.TOKENS_CSS %></style>` replaces the
+  `<link>` tag; `syntax.css` wrapped in `<% if (it.HAS_SYNTAX_HIGHLIGHTING) { %>` with
+  `media="print" onload="this.media='all'"` defer pattern
+- `src/server/renderers/examples.ts`: removed duplicate `ui.css` from `EXTRA_STYLES`
+
+**Result:** Lighthouse "Render blocking requests" estimated savings dropped from
+170ms → 80ms (remaining CSS is legitimately needed for layout).
+
+### 10.5 Verify
+
+```bash
+# Verify robots.txt is clean (no Content-Signal)
+curl -s https://vlist.dev/robots.txt
+# → User-agent: * / Allow: / / AI bot rules / Sitemap
+
+# Verify Lighthouse SEO
+# → 100
+
+# Verify benchmark build output path
+ls dist/benchmarks/
+# → script.js, runner.js, styles.css (+ .br/.gz siblings)
+
+# Verify tokens.css is inlined
+curl -s https://vlist.dev/examples/basic | grep '<style>.*--text:'
+# → <style>/* tokens.css ... :root { --text: ...
+
+# Verify syntax.css is deferred on examples
+curl -s https://vlist.dev/examples/basic | grep 'syntax.css'
+# → media="print" onload="this.media='all'"
+
+# Verify syntax.css absent on benchmarks
+curl -s https://vlist.dev/benchmarks/render | grep 'syntax.css'
+# → (no output)
+
+# Verify no duplicate ui.css on examples
+curl -s https://vlist.dev/examples/basic | grep -c 'ui.css'
+# → 1
+```
+
+---
+
 ## Deferred Items
 
 | Item | Reason |
@@ -1334,23 +1463,25 @@ The Bangalore Cloudflare PoP consistently shows ~1s TTFB even after cache warmin
 
 | File | Phases | Changes |
 |------|--------|---------|
-| `src/server/static.ts` | 1, 7 | Replace `readFileSync` with `Bun.file()`, remove import; import cache constants from `cache.ts` |
-| `src/server/compression.ts` | 1, 2, 4, 8, 9 | `Uint8Array` caches, `Bun.gzipSync()`, remove `toBodyInit`, sync/async split; skip compression in prod (Cloudflare handles it); dev uses gzip only; removed `brotliCompressSync` import |
+| `src/server/static.ts` | 1, 7, 10 | Replace `readFileSync` with `Bun.file()`, remove import; import cache constants from `cache.ts`; add `/dist/benchmarks/*` route; add `CACHE_STATIC` for `/styles/*` |
+| `src/server/compression.ts` | 1, 2, 4, 8, 9, 10 | `Uint8Array` caches, `Bun.gzipSync()`, remove `toBodyInit`, sync/async split; skip compression in prod (Cloudflare handles it); dev uses gzip only; removed `brotliCompressSync` import; updated comment for `/dist/benchmarks/` |
 | `src/server/router.ts` | 4 | Single `new URL()`, pass `URL` object to sub-routers, sync/async split |
 | `src/api/router.ts` | 4, 7 | Accept pre-parsed `URL` parameter; add `Cache-Control` to JSON and docs responses |
 | `src/server/config.ts` | 8 | Added `IS_PROD` constant (`NODE_ENV === "production"`) |
-| `src/server/config/eta.ts` | 9 | Added `LAZY_SYNTAX_HIGHLIGHTING` boolean to `TemplateData` interface |
+| `src/server/config/eta.ts` | 9, 10 | Added `LAZY_SYNTAX_HIGHLIGHTING` boolean to `TemplateData` interface; inline `tokens.css` at startup, auto-inject `TOKENS_CSS` into every `render()` call |
+| `src/server/cache.ts` | 7, 10 | Centralized Cache-Control constants; added `CACHE_STATIC` tier (7-day browser+edge TTL for non-hashed deploy-only assets) |
 | `src/server/renderers/config.ts` | 8 | Re-export `IS_PROD` alongside `SITE` |
 | `src/server/renderers/content.ts` | 3, 7, 8, 9 | Page cache per slug; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: false` |
-| `src/server/renderers/examples.ts` | 3, 4, 7, 8, 9 | Page cache per `slug::variant`, accept `URL` object; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: true` |
-| `src/server/renderers/benchmarks.ts` | 3, 4, 7, 8, 9 | Page cache per `slug::variant`, accept `URL` object; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: false` |
+| `src/server/renderers/examples.ts` | 3, 4, 7, 8, 9, 10 | Page cache per `slug::variant`, accept `URL` object; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: true`; removed duplicate `ui.css` from `EXTRA_STYLES` |
+| `src/server/renderers/benchmarks.ts` | 3, 4, 7, 8, 9, 10 | Page cache per `slug::variant`, accept `URL` object; `htmlHeaders()`; skip page cache in dev; `LAZY_SYNTAX_HIGHLIGHTING: false`; asset URLs `/benchmarks/dist/` → `/dist/benchmarks/` |
 | `src/server/renderers/homepage.ts` | 3, 7, 8 | Page cache (single cached HTML string); `htmlHeaders()` with `s-maxage`; skip page + template cache in dev |
-| `src/server/shells/base.html` | 9 | Lazy highlight.js loader (`__loadHljs`); `highlightSource()` called on first source tab open; conditional eager vs lazy loading |
-| `src/server/sitemap.ts` | 5, 7 | Single batched `git log`, `resolveDate()` with directory prefix support; `CACHE_META` from `cache.ts` |
+| `src/server/shells/base.html` | 9, 10 | Lazy highlight.js loader (`__loadHljs`); `highlightSource()` called on first source tab open; conditional eager vs lazy loading; inline `tokens.css` as `<style>`, defer `syntax.css` with `media="print"`, conditionally skip `syntax.css` |
+| `src/server/sitemap.ts` | 5, 7, 10 | Single batched `git log`, `resolveDate()` with directory prefix support; `CACHE_META` from `cache.ts`; AI bot blocking rules in `renderRobots()` |
 | `styles/ui.css` | 9 | 14 SVG icon `mask-image` URLs replaced with inline `data:image/svg+xml` data URIs |
+| `benchmarks/build.ts` | 10 | Output dir: `benchmarks/dist` → `dist/benchmarks` |
 | `examples/build.ts` | 8 | Hash `dist/index.js` instead of `src/`; auto-detect and rebuild stale vlist dist |
 | `ecosystem.config.cjs` | 6 | `instances: 2` for multi-core via `SO_REUSEPORT` |
-| `.gitignore` | 6 | Add `ecosystem.local.config.cjs` |
+| `.gitignore` | 6, 10 | Add `ecosystem.local.config.cjs`; remove `benchmarks/dist/` (covered by `dist/`) |
 | `.github/workflows/deploy.yml` | 7 | Add Cloudflare cache purge step after PM2 reload |
 
 ### Files created
@@ -1443,3 +1574,17 @@ The Bangalore Cloudflare PoP consistently shows ~1s TTFB even after cache warmin
 - [x] `LAZY_SYNTAX_HIGHLIGHTING` flag added to `TemplateData`
 - [x] Lighthouse 100 Performance confirmed on `/examples/data-table`
 - [x] All 233 tests pass (including updated compression, router, and feed tests)
+
+### Phase 10 — SEO, build consolidation, CSS performance (10 March 2026)
+
+- [x] Cloudflare managed robots.txt disabled; AI bot rules added to origin `renderRobots()`
+- [x] Lighthouse SEO back to 100 (was 92 due to invalid `Content-Signal` directive)
+- [x] Benchmark build output moved from `benchmarks/dist/` to `dist/benchmarks/`
+- [x] `/dist/benchmarks/*` route added to static file resolver
+- [x] `CACHE_STATIC` tier added (7-day TTL for `/styles/*.css`)
+- [x] `tokens.css` inlined into `<style>` tag (eliminates 1 render-blocking request)
+- [x] `syntax.css` deferred with `media="print" onload` pattern
+- [x] `syntax.css` skipped entirely on benchmark pages (`HAS_SYNTAX_HIGHLIGHTING: false`)
+- [x] Duplicate `ui.css` removed from examples `EXTRA_STYLES`
+- [x] Render-blocking CSS savings: 170ms → 80ms estimated
+- [x] Lighthouse 100 across Performance, Accessibility, Best Practices, SEO
