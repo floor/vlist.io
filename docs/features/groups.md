@@ -363,6 +363,84 @@ const table = vlist({
 
 **Key difference from grid integration:** The grid path replaces the entire renderer. The table path configures the existing renderer in-place — because the table renderer is more complex (cells, alignment, resize), it's cheaper and safer to teach it about headers than to rebuild it.
 
+## Striped Rows with Groups
+
+When using `item.striped` with grouped lists, group header pseudo-items can break the alternating row pattern. The `striped` option accepts string modes that control how the even/odd index is calculated relative to group headers.
+
+### Modes
+
+| Value | Behavior |
+|-------|----------|
+| `true` | All items count, including group headers. Headers shift the stripe pattern. |
+| `"data"` | Group headers are excluded from the count. The stripe index is continuous across groups — a group ending on an odd row means the next group starts on even. |
+| `"even"` | Counter resets to 0 after each group header. The first data row in every group is always **even** (non-striped). This matches **macOS Finder** behavior. |
+| `"odd"` | Counter resets after each group header. The first data row in every group is always **odd** (striped). |
+
+Without `withGroups`, all string modes behave identically to `true` — the stripe index function defaults to the identity.
+
+### Example: macOS Finder Style
+
+```typescript
+const list = vlist({
+  container: '#file-list',
+  items: files,
+  item: {
+    height: 28,
+    striped: 'even',   // ← reset per group, first row always even
+    template: renderFileRow,
+  },
+})
+  .use(withTable({ columns, rowHeight: 28, headerHeight: 28 }))
+  .use(withGroups({
+    getGroupForIndex: (i) => getFileKind(files[i]),
+    headerHeight: 32,
+    headerTemplate: (key) => `<div class="group-header">${key}</div>`,
+  }))
+  .build();
+```
+
+With `"even"`, each group's rows start fresh:
+
+```
+── Folders ──────────────────────────
+  Documents        even  (no stripe)
+  Downloads        odd   (striped)
+  Pictures         even  (no stripe)
+── JavaScript ───────────────────────
+  index.js         even  (no stripe)  ← reset
+  utils.js         odd   (striped)
+── TypeScript ───────────────────────
+  types.ts         even  (no stripe)  ← reset
+```
+
+With `"data"`, the count would continue across groups:
+
+```
+── Folders ──────────────────────────
+  Documents        0  even
+  Downloads        1  odd
+  Pictures         2  even
+── JavaScript ───────────────────────
+  index.js         3  odd    ← continues
+  utils.js         4  even
+── TypeScript ───────────────────────
+  types.ts         5  odd    ← continues
+```
+
+### CSS
+
+The stripe class is `.vlist-item--odd`. Style it with:
+
+```css
+.vlist-item--odd {
+  background: rgba(0, 0, 0, 0.03);
+}
+```
+
+### Performance
+
+All string modes use a precomputed `Int32Array` stripe map built once when the group layout is created (and rebuilt on `setItems`/`appendItems`/etc.). The per-item cost on the scroll hot path is a single array lookup — same O(1) as the `true` mode's bitwise check.
+
 ## Data Operations
 
 ### Adding Items

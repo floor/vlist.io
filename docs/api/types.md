@@ -172,7 +172,7 @@ interface ItemConfig<T extends VListItem = VListItem> {
   estimatedHeight?: number
   estimatedWidth?:  number
   gap?:             number
-  striped?:         boolean
+  striped?:         boolean | "data" | "even" | "odd"
   template:         ItemTemplate<T>
 }
 ```
@@ -184,7 +184,7 @@ interface ItemConfig<T extends VListItem = VListItem> {
 | `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Items are rendered at this size, measured via `ResizeObserver`, and the real size is cached. Ignored if `height` is also set. |
 | `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Ignored if `width` is also set. |
 | `gap` | `number` | `0` | Gap between items in pixels along the main axis. Baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element size, so items are positioned with precise spacing. The trailing gap after the last item is automatically removed. Works with fixed sizes, variable sizes, and auto-measurement (Mode B). Ignored when `withGrid` or `withMasonry` is active — those features manage their own gap. |
-| `striped` | `boolean` | `false` | Adds `.vlist-item--even` / `.vlist-item--odd` classes for zebra-stripe styling. |
+| `striped` | `boolean \| "data" \| "even" \| "odd"` | `false` | Toggles `.vlist-item--odd` class for zebra-stripe styling. `true` counts all items (including group headers). `"data"` excludes group headers from the count (continuous across groups). `"even"` resets the counter after each group header — first data row is always even/non-striped (macOS Finder behavior). `"odd"` same reset but first data row is odd/striped. Without `withGroups`, all string modes behave like `true`. See [Groups — Striped Rows](../features/groups.md#striped-rows-with-groups). |
 | `template` | `ItemTemplate<T>` | — | **Required.** Render function for each visible item. |
 
 **Mode A — Known sizes.** Use when you can derive size from data alone. Zero measurement overhead.

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Group-aware striped rows** — `item.striped` now accepts `"data"`, `"even"`, and `"odd"` in addition to `boolean`. When combined with `withGroups`, these modes control how group headers affect the even/odd stripe pattern:
+  - `"data"` — headers are excluded from the count; stripe index is continuous across groups
+  - `"even"` — counter resets after each header; first data row is always even (non-striped) — matches macOS Finder
+  - `"odd"` — counter resets after each header; first data row is always odd (striped)
+
+  Implemented via a precomputed `Int32Array` stripe map built by the groups feature. The per-item cost on the scroll hot path is a single array lookup. Without `withGroups`, all string modes behave like `true`. See [Groups — Striped Rows](features/groups.md#striped-rows-with-groups).
+
 - **Item gap** — New `item.gap` property adds consistent spacing between items along the main axis. The gap is baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element height, so items are positioned with precise spacing and no CSS hacks. Works with fixed sizes, variable sizes, and auto-measured sizes (Mode B). The trailing gap after the last item is automatically removed. Ignored when grid or masonry is active (they manage their own gap). ([`b81ac49`])
 - **Content padding** — New top-level `padding` property adds inset space around the list content, following CSS shorthand convention:
   - `number` — equal padding on all four sides
