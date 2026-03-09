@@ -176,13 +176,16 @@ describe("compression", () => {
       expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
     });
 
-    test("prefers brotli over gzip when both supported", async () => {
+    test("uses gzip when both br and gzip supported (dev mode — brotli skipped)", async () => {
       const html = "<html><body>Hello World</body></html>".repeat(100);
       const response = createResponse(html, "text/html");
       const result = compressResponse(response, "br, gzip", "/page.html");
 
       const compressed = await result;
-      expect(compressed.headers.get("Content-Encoding")).toBe("br");
+      // In dev/test (non-production), on-the-fly compression uses gzip only.
+      // Brotli is too slow (~20-40ms) without an edge cache to amortize it.
+      // In production, Cloudflare handles compression at the edge instead.
+      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
     });
 
     test("uses gzip when brotli not supported", async () => {
@@ -236,7 +239,6 @@ describe("compression", () => {
     test("handles Accept-Encoding with quality values", async () => {
       const html = "<html><body>Hello</body></html>".repeat(100);
       const response = createResponse(html, "text/html");
-      // br comes first, even with quality values, the code just checks includes()
       const result = compressResponse(
         response,
         "gzip;q=1.0, br;q=0.8",
@@ -244,8 +246,9 @@ describe("compression", () => {
       );
 
       const compressed = await result;
-      // Implementation uses includes() check, so br will match first
-      expect(compressed.headers.get("Content-Encoding")).toBe("br");
+      // In dev/test, on-the-fly compression always uses gzip (Bun-native, fast).
+      // In production, origin skips compression entirely — Cloudflare handles it.
+      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
     });
   });
 

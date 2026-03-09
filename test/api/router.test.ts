@@ -334,9 +334,13 @@ describe("router", () => {
       };
 
       globalThis.fetch = (() =>
-        Promise.resolve(new Response(JSON.stringify(mockRedditResponse)))) as typeof fetch;
+        Promise.resolve(
+          new Response(JSON.stringify(mockRedditResponse)),
+        )) as typeof fetch;
 
-      const { req, url } = createRequest("/api/feed?source=reddit&target=worldnews&limit=10");
+      const { req, url } = createRequest(
+        "/api/feed?source=reddit&target=worldnews&limit=10",
+      );
       const result = await routeApi(req, url);
 
       expect(result).not.toBeNull();
@@ -353,7 +357,9 @@ describe("router", () => {
     });
 
     test("returns error for invalid source", async () => {
-      const { req, url } = createRequest("/api/feed?source=invalid&target=test");
+      const { req, url } = createRequest(
+        "/api/feed?source=invalid&target=test",
+      );
       const result = await routeApi(req, url);
 
       expect(result?.status).toBe(400);
@@ -362,14 +368,18 @@ describe("router", () => {
       expect(body.error).toContain("Unknown source");
     });
 
-    test("returns 502 on feed fetch failure", async () => {
+    test("returns 503 on feed fetch failure", async () => {
       globalThis.fetch = (() =>
-        Promise.resolve(new Response("Not Found", { status: 404 }))) as typeof fetch;
+        Promise.resolve(
+          new Response("Not Found", { status: 404 }),
+        )) as typeof fetch;
 
-      const { req, url } = createRequest("/api/feed?source=reddit&target=nonexistent");
+      const { req, url } = createRequest(
+        "/api/feed?source=reddit&target=nonexistent",
+      );
       const result = await routeApi(req, url);
 
-      expect(result?.status).toBe(502);
+      expect(result?.status).toBe(503);
 
       const body = (await parseJson(result!)) as { error: string };
       expect(body.error).toContain("Feed fetch failed");

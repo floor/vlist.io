@@ -3,7 +3,9 @@ import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import { redditSource, REDDIT_PRESETS } from "../../../src/api/feed/reddit";
 
 // Mock Reddit API response
-const createMockRedditResponse = (posts: Array<Partial<MockRedditPost>> = []) => {
+const createMockRedditResponse = (
+  posts: Array<Partial<MockRedditPost>> = [],
+) => {
   const children = posts.map((post, i) => ({
     kind: "t3",
     data: {
@@ -191,7 +193,7 @@ describe("feed/reddit", () => {
 
       await expect(
         redditSource.fetch({ target: "nonexistent", limit: 10 }),
-      ).rejects.toThrow("Reddit API error 404");
+      ).rejects.toThrow("Reddit API 404 (nonexistent)");
     });
 
     test("normalises post data correctly", async () => {
@@ -289,10 +291,22 @@ describe("feed/reddit", () => {
           preview: {
             images: [
               {
-                source: { url: "https://i.redd.it/full.jpg", width: 1200, height: 800 },
+                source: {
+                  url: "https://i.redd.it/full.jpg",
+                  width: 1200,
+                  height: 800,
+                },
                 resolutions: [
-                  { url: "https://i.redd.it/small.jpg", width: 320, height: 213 },
-                  { url: "https://i.redd.it/medium.jpg", width: 640, height: 427 },
+                  {
+                    url: "https://i.redd.it/small.jpg",
+                    width: 320,
+                    height: 213,
+                  },
+                  {
+                    url: "https://i.redd.it/medium.jpg",
+                    width: 640,
+                    height: 427,
+                  },
                 ],
               },
             ],
@@ -412,7 +426,24 @@ describe("feed/reddit", () => {
         data: {
           after: null,
           children: [
-            { kind: "t3", data: { id: "post1", name: "t3_post1", title: "Real Post", selftext: "", author: "user", subreddit: "test", score: 10, num_comments: 1, created_utc: Date.now() / 1000, url: "", permalink: "/r/test/1", is_self: false, link_flair_text: null } },
+            {
+              kind: "t3",
+              data: {
+                id: "post1",
+                name: "t3_post1",
+                title: "Real Post",
+                selftext: "",
+                author: "user",
+                subreddit: "test",
+                score: 10,
+                num_comments: 1,
+                created_utc: Date.now() / 1000,
+                url: "",
+                permalink: "/r/test/1",
+                is_self: false,
+                link_flair_text: null,
+              },
+            },
             { kind: "t1", data: { id: "comment1" } }, // Comment, should be filtered
           ],
           dist: 2,
