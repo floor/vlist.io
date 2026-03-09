@@ -199,8 +199,8 @@ function showItemDetail(item, index) {
 // Viewport tracking
 // =============================================================================
 
-function updateScrollInfo(scrollTop, direction) {
-  scrollPositionEl.textContent = `${Math.round(scrollTop)}px`;
+function updateScrollInfo(scrollPosition, direction) {
+  scrollPositionEl.textContent = `${Math.round(scrollPosition)}px`;
   scrollDirectionEl.textContent = direction === "up" ? "↑ up" : "↓ down";
 }
 
@@ -215,8 +215,8 @@ function updateVisibleRange(range) {
 // =============================================================================
 
 function bindListEvents() {
-  list.on("scroll", ({ scrollTop, direction }) => {
-    updateScrollInfo(scrollTop, direction);
+  list.on("scroll", ({ scrollPosition, direction }) => {
+    updateScrollInfo(scrollPosition, direction);
     updateStats();
   });
 

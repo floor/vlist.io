@@ -140,8 +140,8 @@ function createList(sizeKey) {
   list = builder.build();
 
   // Bind events
-  list.on("scroll", ({ scrollTop, direction }) => {
-    scrollPosEl.textContent = `${Math.round(scrollTop).toLocaleString()}px`;
+  list.on("scroll", ({ scrollPosition, direction }) => {
+    scrollPosEl.textContent = `${Math.round(scrollPosition).toLocaleString()}px`;
     scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
     updateInfo();
   });

@@ -108,8 +108,8 @@ function createList(mode) {
 function bindListEvents() {
   if (!listInstance) return;
 
-  onVListEvent(listInstance, "scroll", ({ scrollTop, direction }) => {
-    scrollPositionEl.textContent = `${Math.round(scrollTop)}px`;
+  onVListEvent(listInstance, "scroll", ({ scrollPosition, direction }) => {
+    scrollPositionEl.textContent = `${Math.round(scrollPosition)}px`;
     scrollDirectionEl.textContent = direction === "up" ? "↑ up" : "↓ down";
     updateStats();
   });

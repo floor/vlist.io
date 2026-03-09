@@ -178,8 +178,8 @@ function createList(sizeKey) {
       listInstance = inst;
 
       // Bind events
-      onVListEvent(listInstance, "scroll", ({ scrollTop, direction }) => {
-        scrollPosEl.textContent = `${Math.round(scrollTop).toLocaleString()}px`;
+      onVListEvent(listInstance, "scroll", ({ scrollPosition, direction }) => {
+        scrollPosEl.textContent = `${Math.round(scrollPosition).toLocaleString()}px`;
         scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
         scheduleStatsUpdate();
       });
