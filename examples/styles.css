@@ -322,3 +322,168 @@ html[data-theme] .vlist-viewport {
         flex-wrap: wrap;
     }
 }
+
+/* ============================================================================
+   Responsive: mobile fullscreen example mode
+   On small screens, the list fills the viewport and the side panel is hidden
+   behind a settings toggle button for an immersive scroll experience.
+   ============================================================================ */
+
+@media (max-width: 720px) {
+    /* Hide description, source tabs, and feature chips on mobile */
+    .container .description,
+    .source,
+    .ui-chips {
+        display: none;
+    }
+
+    /* Compact header */
+    .container header {
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .container h1 {
+        margin: 0;
+    }
+
+    /* Hide panel by default */
+    .split-panel {
+        display: none;
+        position: fixed;
+        inset: 0;
+        top: var(--header-height);
+        z-index: 90;
+        width: 100%;
+        border-radius: 0;
+        border: none;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .split-panel.split-panel--open {
+        display: flex;
+    }
+
+    /* Panel overlay */
+    .split-panel-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        top: var(--header-height);
+        z-index: 89;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .split-panel-overlay--visible {
+        display: block;
+    }
+
+    /* List fills available space */
+    .split-layout {
+        flex-direction: column;
+    }
+
+    .split-main {
+        padding: 0;
+        background: transparent;
+        border-radius: 0;
+    }
+
+    .split-main [id$="-container"] {
+        width: 100%;
+        height: calc(100vh - var(--header-height) - 80px);
+        height: calc(100dvh - var(--header-height) - 80px);
+        margin: 0;
+    }
+
+    .split-main--full [id$="-container"] {
+        height: calc(100vh - var(--header-height) - 80px);
+        height: calc(100dvh - var(--header-height) - 80px);
+    }
+
+    /* Hide example-info on mobile to maximize list space */
+    .example-info {
+        display: none;
+    }
+
+    /* Settings toggle button */
+    .mobile-settings-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-card);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .mobile-settings-btn::before {
+        content: "";
+        display: block;
+        width: 20px;
+        height: 20px;
+        background: var(--text-muted);
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z'/%3E%3C/svg%3E");
+        -webkit-mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+    }
+
+    .mobile-settings-btn:hover::before {
+        background: var(--text);
+    }
+
+    .mobile-settings-btn:hover {
+        border-color: var(--border-hover);
+    }
+
+    /* Close button inside panel */
+    .mobile-panel-close {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 12px 16px;
+        background: var(--bg-card);
+        border: none;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .mobile-panel-close::before {
+        content: "";
+        display: block;
+        width: 20px;
+        height: 20px;
+        background: var(--text-muted);
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E");
+        -webkit-mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+    }
+
+    .mobile-panel-close:hover::before {
+        background: var(--text);
+    }
+}
+
+/* Hide mobile-only controls on desktop */
+@media (min-width: 721px) {
+    .mobile-settings-btn,
+    .mobile-panel-close {
+        display: none;
+    }
+}

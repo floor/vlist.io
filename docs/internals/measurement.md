@@ -1,29 +1,120 @@
-# Auto-Size Measurement (Mode B)
+# Item Size Measurement
 
-> How vlist measures item sizes after render, caches the results, and corrects scroll position — without visual jumps.
+> How vlist handles item sizes — from consumer-provided constants to automatic DOM measurement with scroll correction.
 
-## The Problem
+> **Axis-neutral.** This document uses `height` and vertical scrolling in examples, but everything applies equally to horizontal scrolling with `width`. vlist's size system is fully axis-neutral — `SizeCache` stores plain numbers, never knowing if they represent heights or widths. The config uses `height`/`estimatedHeight` for vertical and `width`/`estimatedWidth` for horizontal; the rest of the pipeline is identical. See [Orientation](./orientation.md).
 
-Mode A requires sizes upfront: `item.height: 48` or `item.height: (i) => sizes[i]`. This covers most use cases — contact lists, data tables, file browsers — where size is known from the data.
+## Two Approaches to Item Sizing
 
-But some content can't be measured before render: variable-length user text, images with unknown aspect ratios, mixed-media feeds. The consumer doesn't know how tall each item will be until the browser lays it out.
+vlist supports three size configurations that fall into two categories based on **who is responsible for knowing the size**:
 
-Mode B solves this:
+### Known Sizes (consumer-provided)
+
+The consumer provides exact sizes upfront. vlist trusts the numbers and does no measurement. This is the default and covers most use cases — contact lists, data tables, file browsers — where size is known from the data.
+
+**Fixed size** — every item is the same size:
 
 ```typescript
+// Vertical (default)
+item: { height: 48, template: renderRow }
+
+// Horizontal
+item: { width: 120, template: renderCard }
+```
+
+**Variable size** — each item has a different size, known from the data:
+
+```typescript
+// Vertical (default)
+item: { height: (index) => items[index].computedHeight, template: renderRow }
+
+// Horizontal
+item: { width: (index) => items[index].computedWidth, template: renderCard }
+```
+
+In both cases, the consumer is fully responsible for the accuracy of the sizes. Vlist uses them to build prefix sums, compute scroll positions, and position elements — all math, no DOM measurement.
+
+### Dynamic Sizes (vlist-measured)
+
+The consumer provides an **estimate** and vlist measures actual sizes internally via `ResizeObserver` in the real DOM layout context:
+
+```typescript
+// Vertical (default) — estimate height, vlist measures blockSize
 item: {
   estimatedHeight: 120,
   template: renderPost,
 }
+
+// Horizontal — estimate width, vlist measures inlineSize
+item: {
+  estimatedWidth: 200,
+  template: renderCard,
+}
 ```
 
-vlist renders items using the estimate for initial layout, measures actual DOM size via `ResizeObserver`, caches the real size, and corrects scroll position so the user sees no jump.
+Vlist renders items using the estimate for initial layout, measures actual DOM size after render, caches the real size, and corrects scroll position so the user sees no jump.
 
-## Architecture Overview
+**Works for both orientations.** The entire measurement pipeline is axis-neutral: `MeasuredSizeCache` stores plain numbers (it never knows if they're heights or widths), the ResizeObserver reads `borderBoxSize[0].blockSize` for vertical or `inlineSize` for horizontal, and scroll correction uses `scrollTop`/`scrollHeight` or `scrollLeft`/`scrollWidth` depending on orientation. See [Orientation](./orientation.md).
 
-Mode B extends — not replaces — the existing `SizeCache` abstraction. The key insight is that **a measured item becomes a known item**. Once measured, it behaves identically to Mode A. The new work is:
+**Use this when sizes depend on rendered content** — variable-length user text, images with unknown aspect ratios, mixed-media feeds. The consumer doesn't know how tall each item will be until the browser lays it out.
 
-1. **MeasuredSizeCache** — A new `SizeCache` implementation that tracks measured vs estimated items
+### Key Distinction
+
+| | Known Sizes | Dynamic Sizes |
+|---|---|---|
+| **Config** | `item.height` or `item.width` | `item.estimatedHeight` or `item.estimatedWidth` |
+| **Who measures** | Consumer (before init) | vlist (after render, via ResizeObserver) |
+| **Accuracy** | Pixel-perfect from the start | Estimates initially, exact after measurement |
+| **Layout context** | N/A — sizes are just numbers | Real DOM — correct width, padding, fonts |
+| **Orientation** | Both (height for vertical, width for horizontal) | Both (blockSize for vertical, inlineSize for horizontal) |
+| **Use case** | Data-derived sizes, fixed layouts | Content-derived sizes, dynamic text/media |
+
+**If you find yourself pre-measuring items in a hidden DOM element to feed into `item.height`, you almost certainly want `estimatedHeight` instead.** Pre-measuring outside vlist requires replicating the exact layout context (width, padding, scrollbar presence) — which is fragile and error-prone. Dynamic sizes measure items inside the real list, at their actual rendered width.
+
+### Precedence
+
+If both `height` and `estimatedHeight` are set, `height` wins (known sizes). The estimate is silently ignored. This means switching from dynamic to known sizes is a single config change.
+
+---
+
+## Known Sizes: How They Work
+
+Known sizes are straightforward. The builder reads the config and creates the appropriate `SizeCache`:
+
+```typescript
+// Fixed: O(1) everything — simple multiplication
+if (typeof size === 'number') → createFixedSizeCache(size, total)
+
+// Variable: O(1) offset, O(log n) index-at-offset — prefix-sum array
+if (typeof size === 'function') → createVariableSizeCache(sizeFn, total)
+```
+
+Once created, the `SizeCache` provides:
+
+- `getOffset(index)` — pixel position of item `index` along the main axis
+- `getSize(index)` — size of a specific item
+- `indexAtOffset(offset)` — which item is at a scroll position (binary search for variable)
+- `getTotalSize()` — total content size
+
+All downstream code (viewport calculations, compression, features) only sees this interface. They never know whether sizes are fixed, variable, or dynamic.
+
+### SizeCache Implementations
+
+| Implementation | Config | Complexity | Source |
+|----------------|--------|------------|--------|
+| **Fixed** | `height: 48` | O(1) everything | `sizes.ts` |
+| **Variable** | `height: (i) => fn(i)` | O(1) offset, O(log n) search | `sizes.ts` |
+| **Measured** | `estimatedHeight: 120` | Same as Variable + Map lookup | `measured.ts` |
+
+The measured implementation is detailed in the next section.
+
+---
+
+## Dynamic Sizes: Architecture
+
+Dynamic sizes extend — not replace — the existing `SizeCache` abstraction. The key insight is that **a measured item becomes a known item**. Once measured, it behaves identically to a variable-size item in a known-size list. The new work is:
+
+1. **MeasuredSizeCache** — A `SizeCache` implementation that tracks measured vs estimated items
 2. **ResizeObserver wiring** — Observe rendered items, record measurements on callback
 3. **Scroll correction** — Adjust `scrollTop` when above-viewport items change size
 4. **Content size deferral** — Defer content height updates during scrolling for scrollbar stability
@@ -53,9 +144,9 @@ Mode B extends — not replaces — the existing `SizeCache` abstraction. The ke
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-## MeasuredSizeCache
+### MeasuredSizeCache
 
-### Interface
+#### Interface
 
 ```typescript
 interface MeasuredSizeCache extends SizeCache {
@@ -73,9 +164,9 @@ interface MeasuredSizeCache extends SizeCache {
 }
 ```
 
-### How It Works
+#### Internal Structure
 
-Internally, `MeasuredSizeCache` maintains:
+`MeasuredSizeCache` maintains:
 
 - A `Map<number, number>` of measured sizes, keyed by item index
 - A fallback estimated size for unmeasured items
@@ -90,30 +181,9 @@ const sizeFn = (index: number): number => {
 };
 ```
 
-This means all existing viewport, compression, and range calculations work unchanged — they only see a `SizeCache` with variable sizes. The `MeasuredSizeCache` is a drop-in replacement.
+All existing viewport, compression, and range calculations work unchanged — they only see a `SizeCache` with variable sizes. The `MeasuredSizeCache` is a drop-in replacement.
 
-### Three SizeCache Implementations
-
-| Implementation | Config | Complexity | Source |
-|----------------|--------|------------|--------|
-| **Fixed** | `height: 48` | O(1) everything | `sizes.ts` |
-| **Variable** | `height: (i) => fn(i)` | O(1) offset, O(log n) search | `sizes.ts` |
-| **Measured** | `estimatedHeight: 120` | Same as Variable + Map lookup | `measured.ts` |
-
-The factory in `builder/core.ts` picks the right one:
-
-```typescript
-if (explicitSize != null) {
-  // Mode A: known sizes
-  sizeCache = createSizeCache(explicitSize, initialTotal);
-} else if (estimatedSize != null) {
-  // Mode B: estimated + measured
-  sizeCache = createMeasuredSizeCache(estimatedSize, initialTotal);
-  measurementEnabled = true;
-}
-```
-
-### Rebuild Semantics
+#### Rebuild Semantics
 
 When `rebuild(newTotal)` is called:
 
@@ -124,9 +194,9 @@ When `rebuild(newTotal)` is called:
 
 This means measured data survives `appendItems`, `prependItems`, and `setItems` — measurements are only lost when the item at that index no longer exists.
 
-## ResizeObserver Wiring
+### ResizeObserver Wiring
 
-### Element Lifecycle
+#### Element Lifecycle
 
 When `measurementEnabled` is true, each newly rendered item follows this lifecycle:
 
@@ -155,7 +225,7 @@ When `measurementEnabled` is true, each newly rendered item follows this lifecyc
    → measured size stays in cache permanently
 ```
 
-### Why Unconstrained Rendering
+#### Why Unconstrained Rendering
 
 Unmeasured items are rendered **without** an explicit height:
 
@@ -173,7 +243,9 @@ if (shouldConstrainSize) {
 
 This lets the browser lay out the element at its natural content height, which is what `ResizeObserver` then measures. After measurement, the explicit height is set to lock the element at its measured size — preventing further reflows.
 
-### Why Not getBoundingClientRect
+This is why dynamic sizes produce correct results where consumer-side pre-measurement is fragile: the item is measured **inside the real list DOM**, at the actual width determined by the viewport, content div padding, and scrollbar presence. No guesswork.
+
+#### Why Not getBoundingClientRect
 
 `ResizeObserver` was chosen over `getBoundingClientRect()` because:
 
@@ -182,11 +254,11 @@ This lets the browser lay out the element at its natural content height, which i
 - **Handles async content** — If an image loads or a font swaps after initial render, `ResizeObserver` catches the size change. `getBoundingClientRect()` would miss it.
 - **One measurement per item** — After recording the size, we `unobserve()` the element. No ongoing cost.
 
-## Scroll Correction (Direction C)
+### Scroll Correction (Direction C)
 
-This is the hardest part of Mode B. When a measured size differs from the estimate, all items below shift. If the changed item is **above the viewport**, the user would see content jump unless `scrollTop` is corrected.
+This is the hardest part of dynamic sizes. When a measured size differs from the estimate, all items below shift. If the changed item is **above the viewport**, the user would see content jump unless `scrollTop` is corrected.
 
-### The Problem with Deferred Correction
+#### The Problem with Deferred Correction
 
 Earlier implementations deferred scroll correction to scroll idle (150ms after the last scroll event). This caused a visible "jump" because:
 
@@ -194,7 +266,7 @@ Earlier implementations deferred scroll correction to scroll idle (150ms after t
 - The entire accumulated delta was applied in one discrete `scrollTop` change
 - The user perceived a sudden viewport shift after a period of stability
 
-### Direction C: Immediate Per-Batch Correction
+#### Immediate Per-Batch Correction
 
 The solution is to apply scroll correction **immediately** in every `ResizeObserver` callback, even during active scrolling:
 
@@ -210,7 +282,7 @@ ResizeObserver callback:
   5. Reposition items with corrected offsets
 ```
 
-### Why This Works
+#### Why This Works
 
 Per-batch corrections are invisible during scrolling because:
 
@@ -218,7 +290,7 @@ Per-batch corrections are invisible during scrolling because:
 2. **Masked by scroll motion** — The user's own input creates continuous viewport movement that absorbs small `scrollTop` adjustments.
 3. **No accumulation** — By applying immediately, there's never a large accumulated delta waiting to be flushed.
 
-### What Is Still Deferred
+#### What Is Still Deferred
 
 **Content size updates** (`updateContentSize()`) are deferred during scrolling. Changing the content div's height while the user drags the scrollbar thumb would cause the thumb proportions to shift under their finger — a jarring experience. On scroll idle, `flushMeasurements()` applies the deferred content size update.
 
@@ -232,7 +304,7 @@ On scroll idle (150ms after last scroll event):
   ✅ Stick-to-bottom check → applied if user was at bottom
 ```
 
-## Stick-to-Bottom
+### Stick-to-Bottom
 
 When the user scrolls to the very bottom (e.g., via scrollbar drag), measured items near the bottom are often larger than the estimate. This increases the total content size. But since content size is deferred during scrolling, the browser clamps `scrollTop` to the old maximum.
 
@@ -259,26 +331,28 @@ if (wasAtBottom) {
 
 The same logic applies in the `ResizeObserver` callback when not scrolling (measurements arrive while idle).
 
+---
+
 ## Config Resolution
 
-The builder detects Mode A vs Mode B from the config:
+The builder detects known vs dynamic sizes from the config:
 
 ```typescript
 const mainAxisValue = isHorizontal ? config.item.width : config.item.height;
 const estimatedSize = isHorizontal ? config.item.estimatedWidth : config.item.estimatedHeight;
 
-// Mode A: explicit sizes (existing behavior)
+// Known sizes: explicit value (existing behavior)
 if (mainAxisValue != null) → createSizeCache(mainAxisValue, total)
 
-// Mode B: estimated + measured
+// Dynamic sizes: estimated + measured
 if (estimatedSize != null) → createMeasuredSizeCache(estimatedSize, total)
 
 // Neither → throw error
 ```
 
-**Precedence:** If both `height` and `estimatedHeight` are set, `height` wins (Mode A). The estimate is silently ignored. This means upgrading from Mode B to Mode A is a single config change.
-
 **Horizontal:** `estimatedWidth` works identically to `estimatedHeight` — the axis-neutral `SizeCache` abstraction handles both. See [Orientation](./orientation.md).
+
+---
 
 ## Integration with Existing Systems
 
@@ -288,11 +362,13 @@ Compression reads `sizeCache.getTotalSize()` to compute the ratio. As measuremen
 
 ### Features
 
-All features (`withScale`, `withGroups`, `withGrid`, `withAsync`, `withSelection`, `withSnapshots`, `withScrollbar`) interact with `SizeCache` through the `BuilderContext`. Since `MeasuredSizeCache` implements the same `SizeCache` interface, **no feature code needed changes** for Mode B.
+All features (`withScale`, `withGroups`, `withGrid`, `withAsync`, `withSelection`, `withSnapshots`, `withScrollbar`) interact with `SizeCache` through the `BuilderContext`. Since `MeasuredSizeCache` implements the same `SizeCache` interface, **no feature code needed changes** for dynamic sizes.
 
 ### Reverse Mode
 
 In reverse mode, scroll correction logic inverts: changes **below** the viewport need adjustment instead of above. The `isReverse` flag is already handled by the builder's scroll correction code.
+
+---
 
 ## Performance
 
@@ -306,22 +382,25 @@ In reverse mode, scroll correction logic inverts: changes **below** the viewport
 
 Measurements only happen for **newly rendered items** (typically 10–20 per scroll stop), not on every frame. The `ResizeObserver` is disconnected after first measurement per item — no ongoing cost.
 
+---
+
 ## Source Files
 
 | File | Role |
 |------|------|
-| `src/rendering/measured.ts` | `MeasuredSizeCache` implementation |
-| `src/rendering/sizes.ts` | `SizeCache` interface (unchanged) |
+| `src/rendering/sizes.ts` | `SizeCache` interface, fixed and variable implementations |
+| `src/rendering/measured.ts` | `MeasuredSizeCache` implementation (dynamic sizes) |
 | `src/builder/core.ts` | Config resolution, ResizeObserver wiring, scroll correction |
+| `src/builder/measurement.ts` | Measurement subsystem: observer, flush, stayAtEnd |
 | `src/types.ts` | `estimatedHeight` / `estimatedWidth` on `ItemConfig` |
-| `test/rendering/measured.test.ts` | 57 unit tests for the cache |
+| `test/rendering/measured.test.ts` | 57 unit tests for the measured cache |
 
 ## Related Documentation
 
 - [Orientation](./orientation.md) — Axis-neutral SizeCache architecture (Fixed, Variable, and Measured implementations)
 - [Rendering](./rendering.md) — DOM rendering, element pooling, viewport calculations
-- [Auto-Size Measurement Prompt](../issues/auto-size-measurement.md) — Original implementation prompt with investigation history
+- [Dynamic Size: scrollToIndex](../issues/dynamic-size-scroll-to-bottom.md) — Open issue with `scrollToIndex` in dynamic size mode
 
 ---
 
-*Mode B is an extension of Mode A, not a replacement. The SizeCache abstraction ensures all downstream code works unchanged.*
+*Dynamic sizes extend known sizes, not replace them. The `SizeCache` abstraction ensures all downstream code works unchanged regardless of how sizes are determined.*

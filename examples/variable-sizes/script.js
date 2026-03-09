@@ -4,7 +4,7 @@
 //   B · Auto-size via estimatedHeight + ResizeObserver
 // Uses split-layout pattern with side panel, mode toggle, and info bar stats.
 
-import { vlist } from "vlist";
+import { vlist /* withScrollbar */ } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initModeToggle } from "./controls.js";
@@ -16,6 +16,7 @@ import { getAllPosts } from "../../src/api/posts.js";
 
 const TOTAL_POSTS = 5000;
 const ESTIMATED_POST_HEIGHT = 200;
+const VLIST_PADDING = 12; // must match padding: passed to vlist()
 
 // =============================================================================
 // Data — generated from API module (deterministic, same every time)
@@ -23,7 +24,7 @@ const ESTIMATED_POST_HEIGHT = 200;
 
 export const items = getAllPosts(TOTAL_POSTS);
 export let list = null;
-export let currentMode = "b"; // "a" | "b"
+export let currentMode = "a"; // "a" | "b"
 
 export function setCurrentMode(v) {
   currentMode = v;
@@ -66,12 +67,16 @@ const renderItem = (item) => renderPostHTML(item);
  * measurement. For 5 000 items with ~12 unique body texts this means
  * ~12 actual DOM measurements instead of 5 000.
  */
-const measureSizes = (itemList, container) => {
+const measureSizes = (itemList, container, vlistPadding = 0) => {
+  // Items render inside the vlist content div which applies vlistPadding on all
+  // sides (border-box). The cross-axis (left + right) padding narrows each item,
+  // so the measurer must use that exact inner width — otherwise text wraps at a
+  // different point and measured heights diverge from actual rendered heights.
+  const innerWidth = container.offsetWidth - vlistPadding * 2;
   const measurer = document.createElement("div");
   measurer.style.cssText =
     "position:absolute;top:0;left:0;visibility:hidden;pointer-events:none;" +
-    `width:${container.offsetWidth}px;` +
-    "padding:0 20px;box-sizing:border-box;";
+    `width:${innerWidth}px;box-sizing:border-box;`;
   document.body.appendChild(measurer);
 
   const cache = new Map();
@@ -144,7 +149,7 @@ export function createList() {
     // Mode A: pre-measure all items, then use size function
     const start = performance.now();
     if (items.length > 0) {
-      uniqueSizes = measureSizes(items, containerEl);
+      uniqueSizes = measureSizes(items, containerEl, VLIST_PADDING);
     }
     initTime = performance.now() - start;
 
@@ -152,13 +157,16 @@ export function createList() {
       container: containerEl,
       ariaLabel: "Social feed",
       items,
+      padding: VLIST_PADDING,
+
       item: {
         height: (index) => items[index]?.size ?? ESTIMATED_POST_HEIGHT,
         gap: 12,
-        padding: 12,
         template: renderItem,
       },
-    }).build();
+    })
+      // .use(withScrollbar())
+      .build();
   } else {
     // Mode B: estimated size, auto-measured by ResizeObserver
     const start = performance.now();
@@ -166,14 +174,17 @@ export function createList() {
     list = vlist({
       container: containerEl,
       ariaLabel: "Social feed",
+      padding: VLIST_PADDING,
       items,
       item: {
         estimatedHeight: ESTIMATED_POST_HEIGHT,
         gap: 12,
-        padding: 12,
+
         template: renderItem,
       },
-    }).build();
+    })
+      // .use(withScrollbar())
+      .build();
 
     initTime = performance.now() - start;
   }

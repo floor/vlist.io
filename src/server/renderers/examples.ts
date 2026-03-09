@@ -415,7 +415,45 @@ function buildExtraBody(
     ? `/dist/examples/${slug}/${variant}/script.js`
     : `/dist/examples/${slug}/script.js`;
 
-  return `<script type="module" src="${scriptPath}"></script>`;
+  // Mobile settings toggle — injects gear button + close button + overlay + toggle logic
+  const mobileSettings = `<script>
+(function() {
+  var header = document.querySelector('.container header');
+  var panel = document.querySelector('.split-panel');
+  if (!header || !panel) return;
+
+  // Settings button (gear icon)
+  var btn = document.createElement('button');
+  btn.className = 'mobile-settings-btn';
+  btn.setAttribute('aria-label', 'Toggle settings');
+  header.appendChild(btn);
+
+  // Close button inside panel
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'mobile-panel-close';
+  closeBtn.setAttribute('aria-label', 'Close settings');
+  panel.insertBefore(closeBtn, panel.firstChild);
+
+  // Overlay
+  var overlay = document.createElement('div');
+  overlay.className = 'split-panel-overlay';
+  panel.parentNode.insertBefore(overlay, panel);
+
+  function open() {
+    panel.classList.add('split-panel--open');
+    overlay.classList.add('split-panel-overlay--visible');
+  }
+  function close() {
+    panel.classList.remove('split-panel--open');
+    overlay.classList.remove('split-panel-overlay--visible');
+  }
+  btn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+})();
+</script>`;
+
+  return `<script type="module" src="${scriptPath}"></script>\n${mobileSettings}`;
 }
 
 // =============================================================================
