@@ -181,6 +181,14 @@
     color: #c8cedc;
 }
 
+.md pre code [class^="hljs-"] {
+    transition: color 0.15s ease;
+}
+
+.md pre code .hljs-comment {
+    font-style: italic;
+}
+
 [data-theme-mode="light"] .md pre code {
     color: #374151;
 }
