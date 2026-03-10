@@ -35,7 +35,7 @@ export function setCurrentMode(v) {
 // =============================================================================
 
 const renderPostHTML = (item) => `
-  <article class="post-card">
+  <article class="ui-card ui-card--lg post-card">
     <div class="post-card__header">
       <img class="post-card__avatar" src="${item.avatarUrl}" alt="${item.user}" loading="lazy" />
       <div class="post-card__meta">

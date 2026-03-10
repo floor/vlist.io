@@ -189,6 +189,12 @@ h1 .ui-badge {
     display: block;
     object-fit: cover;
     object-position: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.post__image--real img.post__image--loaded {
+    opacity: 1;
 }
 
 /* ==========================================================================
@@ -410,6 +416,12 @@ h1 .ui-badge {
     display: block;
     object-fit: cover;
     object-position: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.rpost__thumb img.rpost__thumb--loaded {
+    opacity: 1;
 }
 
 .rpost__thumb--broken img {
