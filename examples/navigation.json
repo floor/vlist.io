@@ -97,12 +97,6 @@
         "name": "Scroll Restore",
         "desc": "Save and restore scroll position across navigations",
         "features": ["snapshots", "selection"]
-      },
-      {
-        "slug": "track-list",
-        "name": "Track List",
-        "desc": "Delete Add async",
-        "features": ["snapshots", "selection", "async"]
       }
     ]
   }
