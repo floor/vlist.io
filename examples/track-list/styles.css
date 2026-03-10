@@ -1,0 +1,150 @@
+/* Track List — Music playlist styles using design tokens */
+
+/* ============================================================================
+   List Container
+   ============================================================================ */
+
+#list-container {
+    height: 600px;
+    overflow: hidden;
+}
+
+/* ============================================================================
+   Track Item Styles
+   ============================================================================ */
+
+.vlist-item {
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.2s ease;
+}
+
+.vlist-item:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.vlist-item.vlist-item--selected {
+    background-color: var(--badge-error-bg);
+}
+
+.vlist-item.vlist-item--selected:hover {
+    background-color: var(--badge-error-bg);
+    opacity: 0.8;
+}
+
+.item-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 16px;
+    height: 100%;
+}
+
+/* Album artwork */
+.item-artwork {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-xs);
+    background: var(--accent);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 18px;
+    box-shadow: 0 2px 4px var(--overlay-bg);
+}
+
+/* Track details */
+.item-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.item-title {
+    font-weight: 500;
+    font-size: var(--fs-base);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.item-artist {
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.item-meta {
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-separator {
+    color: var(--text-dim);
+}
+
+.item-year,
+.item-country,
+.item-duration {
+    color: var(--text-dim);
+}
+
+/* Duration (right side) */
+.item-duration-main {
+    font-size: var(--fs-ui);
+    color: var(--text-muted);
+    min-width: 50px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Three-dot menu */
+.item-menu {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.vlist-item:hover .item-menu {
+    opacity: 1;
+}
+
+.item-menu:hover {
+    color: var(--text);
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 820px) {
+    #list-container {
+        height: 400px;
+    }
+
+    .item-artwork {
+        width: 40px;
+        height: 40px;
+    }
+
+    .item-meta {
+        display: none;
+    }
+}

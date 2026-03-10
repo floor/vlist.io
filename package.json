@@ -29,6 +29,7 @@
     "@types/react-dom": "^19.2.3",
     "eta": "^4.5.1",
     "marked": "^17.0.1",
+    "mongodb": "^7.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-window": "1.8.10",

@@ -22,6 +22,21 @@ import {
   MAX_LIMIT as CITIES_MAX_LIMIT,
   DEFAULT_LIMIT as CITIES_DEFAULT_LIMIT,
 } from "./cities";
+import {
+  getTracks,
+  getTrackById,
+  createTrack,
+  updateTrack,
+  deleteTrack,
+  getCountries as getTrackCountries,
+  getDecades,
+  getCategories,
+  getStats as getTracksStats,
+  parseQueryOptions as parseTracksParams,
+  MAX_LIMIT as TRACKS_MAX_LIMIT,
+  DEFAULT_LIMIT as TRACKS_DEFAULT_LIMIT,
+} from "./tracks";
+import type { TrackInput } from "./tracks";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -50,7 +65,7 @@ const serveApiDocs = (): Response | null => {
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
   "Access-Control-Max-Age": "86400",
 };
@@ -356,12 +371,197 @@ const handleGetContinents = (): Response => {
 /**
  * GET /api/cities/stats
  *
- * Aggregate statistics about the cities dataset.
- * Response: CitiesStatsResponse
+ * Returns aggregate statistics.
  */
 const handleGetCitiesStats = (): Response => {
   try {
     return json(getCitiesStats());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+// =============================================================================
+// Tracks (SQLite-backed with CRUD)
+// =============================================================================
+
+/**
+ * GET /api/tracks?offset=0&limit=50&sort=id&direction=desc&search=&country=&decade=&category=&artist=&minYear=&maxYear=&approved=&delay=0
+ *
+ * Query params:
+ *   offset    — start index (default: 0)
+ *   limit     — page size (default: 50, min: 1, max: 200)
+ *   sort      — column to sort by (default: "id")
+ *   direction — "asc" or "desc" (default: "desc")
+ *   search    — case-insensitive title/artist search
+ *   country   — country code filter
+ *   decade    — decade filter (e.g. 1960, 1970)
+ *   category  — category filter
+ *   artist    — artist name filter (partial match)
+ *   minYear   — minimum year filter
+ *   maxYear   — maximum year filter
+ *   approved  — approval status filter (true/false)
+ *   delay     — simulated latency in ms (default: 0, max: 5000)
+ *
+ * Response: { items: Track[], total: number, hasMore: boolean }
+ */
+const handleGetTracks = async (url: URL, delay: number): Promise<Response> => {
+  const params = parseTracksParams(url);
+  await sleep(delay);
+
+  try {
+    const result = getTracks(params);
+    return json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/tracks/:id
+ *
+ * Path params:
+ *   id — track ID (1-based)
+ *
+ * Response: Track | { error: string }
+ */
+const handleGetTrack = (_url: URL, id: number): Response => {
+  try {
+    const track = getTrackById(id);
+    if (!track) return error("Track not found", 404);
+    return json(track);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * POST /api/tracks
+ *
+ * Body: TrackInput (JSON)
+ *
+ * Response: Track | { error: string }
+ */
+const handleCreateTrack = async (req: Request): Promise<Response> => {
+  try {
+    const body = (await req.json()) as TrackInput;
+
+    // Validate required fields
+    if (!body.title || !body.artist) {
+      return error("Title and artist are required", 400);
+    }
+
+    const track = createTrack(body);
+    return json(track, 201);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Invalid JSON";
+    return error(message, 400);
+  }
+};
+
+/**
+ * PUT /api/tracks/:id
+ *
+ * Path params:
+ *   id — track ID
+ *
+ * Body: Partial<TrackInput> (JSON)
+ *
+ * Response: Track | { error: string }
+ */
+const handleUpdateTrack = async (
+  req: Request,
+  id: number,
+): Promise<Response> => {
+  try {
+    const body = (await req.json()) as Partial<TrackInput>;
+
+    const track = updateTrack(id, body);
+    if (!track) return error("Track not found", 404);
+
+    return json(track);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Invalid JSON";
+    return error(message, 400);
+  }
+};
+
+/**
+ * DELETE /api/tracks/:id
+ *
+ * Path params:
+ *   id — track ID
+ *
+ * Response: { success: true } | { error: string }
+ */
+const handleDeleteTrack = (id: number): Response => {
+  try {
+    const deleted = deleteTrack(id);
+    if (!deleted) return error("Track not found", 404);
+
+    return json({ success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/tracks/countries
+ *
+ * Returns distinct country codes with track counts.
+ * Response: Array<{ code: string, count: number }>
+ */
+const handleGetTrackCountries = (): Response => {
+  try {
+    return json(getTrackCountries());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/tracks/decades
+ *
+ * Returns distinct decades with track counts.
+ * Response: Array<{ decade: number, count: number }>
+ */
+const handleGetDecades = (): Response => {
+  try {
+    return json(getDecades());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/tracks/categories
+ *
+ * Returns distinct categories with track counts.
+ * Response: Array<{ category: string, count: number }>
+ */
+const handleGetTrackCategories = (): Response => {
+  try {
+    return json(getCategories());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
+ * GET /api/tracks/stats
+ *
+ * Returns aggregate statistics.
+ */
+const handleGetTracksStats = (): Response => {
+  try {
+    return json(getTracksStats());
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -578,8 +778,16 @@ export const routeApi = async (
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  // Only allow GET
-  if (req.method !== "GET") {
+  // Allow GET, POST, PUT, DELETE for tracks API
+  const isMutationMethod =
+    req.method === "POST" || req.method === "PUT" || req.method === "DELETE";
+  const isTracksPath = path.startsWith("/api/tracks");
+
+  if (!isTracksPath && req.method !== "GET") {
+    return error("Method not allowed", 405);
+  }
+
+  if (isMutationMethod && !isTracksPath) {
     return error("Method not allowed", 405);
   }
 
@@ -667,6 +875,54 @@ export const routeApi = async (
   // GET /api/cities
   if (path === "/api/cities" || path === "/api/cities/") {
     return handleGetCities(url);
+  }
+
+  // GET /api/tracks/countries
+  if (path === "/api/tracks/countries") {
+    return handleGetTrackCountries();
+  }
+
+  // GET /api/tracks/decades
+  if (path === "/api/tracks/decades") {
+    return handleGetDecades();
+  }
+
+  // GET /api/tracks/categories
+  if (path === "/api/tracks/categories") {
+    return handleGetTrackCategories();
+  }
+
+  // GET /api/tracks/stats
+  if (path === "/api/tracks/stats") {
+    return handleGetTracksStats();
+  }
+
+  // GET /api/tracks/:id
+  // PUT /api/tracks/:id
+  // DELETE /api/tracks/:id
+  const trackMatch = path.match(/^\/api\/tracks\/(\d+)$/);
+  if (trackMatch) {
+    const id = parseInt(trackMatch[1], 10);
+    const delay = intParam(url, "delay", 0, 0, 5000);
+
+    if (req.method === "GET") {
+      return handleGetTrack(url, id);
+    } else if (req.method === "PUT") {
+      return handleUpdateTrack(req, id);
+    } else if (req.method === "DELETE") {
+      return handleDeleteTrack(id);
+    }
+  }
+
+  // GET /api/tracks
+  // POST /api/tracks
+  if (path === "/api/tracks" || path === "/api/tracks/") {
+    if (req.method === "GET") {
+      const delay = intParam(url, "delay", 0, 0, 5000);
+      return handleGetTracks(url, delay);
+    } else if (req.method === "POST") {
+      return handleCreateTrack(req);
+    }
   }
 
   return error("Not found", 404);
