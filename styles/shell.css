@@ -605,6 +605,7 @@ html[data-theme-mode] .badge {
 @media (min-width: 1200px) {
     .overview {
         max-width: 980px;
+        width: 980px;
     }
 }
 
