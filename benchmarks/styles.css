@@ -701,8 +701,8 @@ html[data-theme] .vlist-item {
 
 @media (min-width: 1200px) {
     .bench-page {
-        max-width: 880px;
-        width: 880px;
+        max-width: 980px;
+        width: 980px;
     }
 }
 
