@@ -122,7 +122,7 @@ const renderImageReal = (image) => {
   if (image.url) {
     return `
       <div class="post__image post__image--real">
-        <img src="${image.url}" alt="${image.alt ?? ""}" loading="lazy" onerror="this.parentElement.style.display='none'">
+        <img src="${image.url}" alt="${image.alt ?? ""}" loading="lazy" decoding="async" data-t="${performance.now()}" onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('post__image--loaded')" onerror="this.style.transition='none';this.classList.add('post__image--loaded');this.parentElement.style.display='none'">
       </div>
     `;
   }
@@ -216,7 +216,7 @@ const renderRedditPost = (post, { measure = false } = {}) => {
     ? renderThumbnailSlot(post.image)
     : post.image?.url
       ? `<a class="rpost__thumb" href="${post.url || "#"}" target="_blank" rel="noopener">
-          <img src="${post.image.url}" alt="${post.image.alt ?? ""}" loading="lazy" onerror="this.parentElement.classList.add('rpost__thumb--broken')">
+          <img src="${post.image.url}" alt="${post.image.alt ?? ""}" loading="lazy" decoding="async" data-t="${performance.now()}" onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('rpost__thumb--loaded')" onerror="this.style.transition='none';this.classList.add('rpost__thumb--loaded');this.parentElement.classList.add('rpost__thumb--broken')">
         </a>`
       : "";
 
