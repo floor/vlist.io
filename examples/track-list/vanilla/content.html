@@ -1,0 +1,96 @@
+<div class="container">
+    <header>
+        <h1>Track List</h1>
+        <p class="description">
+            SQLite-backed music database with CRUD operations
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <h2 class="sr-only">Tracks</h2>
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Selection -->
+            <section class="ui-section">
+                <h3 class="ui-title">Selection</h3>
+
+                <div class="ui-row">
+                    <label class="ui-label">Mode</label>
+                    <div class="ui-segmented" id="selection-mode">
+                        <button class="ui-segmented__btn" data-value="none">
+                            none
+                        </button>
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="single"
+                        >
+                            single
+                        </button>
+                        <button class="ui-segmented__btn" data-value="multiple">
+                            multiple
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Actions</label>
+                    <div class="ui-btn-group">
+                        <button id="btn-select-all" class="ui-btn">
+                            Select all
+                        </button>
+                        <button id="btn-clear" class="ui-btn">Clear</button>
+                    </div>
+                </div>
+
+                <div class="ui-row">
+                    <span class="ui-label">Selected</span>
+                    <span class="ui-value" id="selection-count">0 tracks</span>
+                </div>
+            </section>
+
+            <!-- CRUD Operations -->
+            <section class="ui-section">
+                <h3 class="ui-title">Operations</h3>
+
+                <div class="ui-row">
+                    <button id="btn-add-track" class="ui-btn ui-btn--primary">
+                        Add Track
+                    </button>
+                </div>
+
+                <div class="ui-row">
+                    <button
+                        id="btn-delete-selected"
+                        class="ui-btn ui-btn--danger"
+                    >
+                        Delete Selected
+                    </button>
+                </div>
+
+                <div class="ui-row">
+                    <button id="btn-refresh" class="ui-btn">Refresh</button>
+                </div>
+            </section>
+
+            <!-- Track Detail -->
+            <section class="ui-section">
+                <h3 class="ui-title">Track Details</h3>
+                <div class="ui-detail" id="track-detail">
+                    <span class="ui-detail__empty"
+                        >Click a track to see details</span
+                    >
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <footer>
+        <p>
+            Live data from SQLite database. Only visible tracks are rendered.
+            Try CRUD operations! ✨
+        </p>
+    </footer>
+</div>
