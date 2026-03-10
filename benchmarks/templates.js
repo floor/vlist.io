@@ -316,7 +316,10 @@ export function buildPerformanceComparisonHTML(performanceData) {
 
       return `
       <tr>
-        <td class="${libClass}">${escapeHtml(row.lib)}</td>
+        <td class="${libClass}">
+          ${escapeHtml(row.lib)}
+          ${row.version ? `<span style="opacity: 0.6; font-size: 0.9em; margin-left: 0.5em;">${escapeHtml(row.version)}</span>` : ""}
+        </td>
         <td class="${renderClass}">${row.renderTime} ms</td>
         <td class="${memoryClass}">${row.memory} MB</td>
         <td>${row.scrollFPS} fps</td>

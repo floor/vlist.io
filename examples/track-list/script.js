@@ -9,7 +9,7 @@ import {
   calculateMemorySaved,
   formatDuration,
   escapeHtml,
-} from "../shared.js";
+} from "./shared.js";
 
 // =============================================================================
 // Constants
@@ -89,9 +89,6 @@ const selectionCountEl = document.getElementById("selection-count");
 const btnAddTrack = document.getElementById("btn-add-track");
 const btnDeleteSelected = document.getElementById("btn-delete-selected");
 const btnRefresh = document.getElementById("btn-refresh");
-
-// Detail
-const trackDetailEl = document.getElementById("track-detail");
 
 // =============================================================================
 // Create List
@@ -215,30 +212,22 @@ btnAddTrack.addEventListener("click", async () => {
 });
 
 btnDeleteSelected.addEventListener("click", async () => {
-  const selected = list.getSelection();
+  const selected = list.getSelected();
   if (selected.length === 0) {
     alert("No tracks selected");
     return;
   }
 
-  if (
-    !confirm(`Are you sure you want to delete ${selected.length} track(s)?`)
-  ) {
-    return;
-  }
-
-  const items = list.getItems(selected);
+  const items = list.getSelectedItems();
   const promises = items.map((track) =>
     fetch(`${API_BASE}/${track.id}`, { method: "DELETE" }),
   );
 
-  const results = await Promise.all(promises);
-  const successCount = results.filter((r) => r.ok).length;
+  await Promise.all(promises);
 
-  alert(`Deleted ${successCount} of ${selected.length} track(s)`);
+  // Remove each item from the list
+  items.forEach((track) => list.removeItem(track.id));
 
-  loadedCount = 0;
-  await list.reload();
   list.clearSelection();
 });
 
@@ -248,127 +237,12 @@ btnRefresh.addEventListener("click", async () => {
 });
 
 // =============================================================================
-// Track Detail
-// =============================================================================
-
-function showTrackDetail(track, index) {
-  // Guard against placeholder items
-  if (!track || !track.title || String(track.id).startsWith("__placeholder")) {
-    return;
-  }
-
-  const duration = track.duration ? formatDuration(track.duration) : "Unknown";
-  const year = track.year || "Unknown";
-  const country = track.country || "Unknown";
-  const decade = track.decade ? `${track.decade}s` : "Unknown";
-  const category = track.category || "Unknown";
-  const approved = track.approved ? "Yes" : "No";
-
-  trackDetailEl.innerHTML = `
-    <div class="ui-detail__header">
-      <div>
-        <div class="ui-detail__title">${escapeHtml(track.title)}</div>
-        <div class="ui-detail__artist">${escapeHtml(track.artist)}</div>
-      </div>
-    </div>
-    <div class="ui-detail__meta">
-      <div><strong>ID:</strong> ${track.id}</div>
-      <div><strong>Index:</strong> ${index}</div>
-      <div><strong>Year:</strong> ${year}</div>
-      <div><strong>Country:</strong> ${country}</div>
-      <div><strong>Decade:</strong> ${decade}</div>
-      <div><strong>Duration:</strong> ${duration}</div>
-      <div><strong>Category:</strong> ${category}</div>
-      <div><strong>Approved:</strong> ${approved}</div>
-    </div>
-    <div class="ui-detail__actions">
-      <button class="ui-btn ui-btn--sm" data-action="edit" data-id="${track.id}">
-        Edit
-      </button>
-      <button class="ui-btn ui-btn--sm ui-btn--danger" data-action="delete" data-id="${track.id}">
-        Delete
-      </button>
-    </div>
-  `;
-
-  trackDetailEl
-    .querySelector('[data-action="edit"]')
-    .addEventListener("click", () => handleEditTrack(track));
-
-  trackDetailEl
-    .querySelector('[data-action="delete"]')
-    .addEventListener("click", () => handleDeleteTrack(track));
-}
-
-async function handleEditTrack(track) {
-  const title = prompt("Track title:", track.title);
-  if (title === null) return;
-
-  const artist = prompt("Artist name:", track.artist);
-  if (artist === null) return;
-
-  const year = prompt("Year:", track.year || "");
-  const country = prompt("Country code:", track.country || "");
-
-  const updates = {
-    title: title || track.title,
-    artist: artist || track.artist,
-    year: year ? parseInt(year, 10) : null,
-    country: country || null,
-  };
-
-  try {
-    const response = await fetch(`${API_BASE}/${track.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
-    });
-
-    if (!response.ok) throw new Error("Failed to update track");
-
-    alert("Track updated!");
-    loadedCount = 0;
-    await list.reload();
-  } catch (error) {
-    alert("Failed to update track: " + error.message);
-  }
-}
-
-async function handleDeleteTrack(track) {
-  if (!confirm(`Delete "${track.title}"?`)) return;
-
-  try {
-    const response = await fetch(`${API_BASE}/${track.id}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) throw new Error("Failed to delete track");
-
-    alert("Track deleted!");
-    loadedCount = 0;
-    await list.reload();
-    trackDetailEl.innerHTML =
-      '<span class="ui-detail__empty">Click a track to see details</span>';
-  } catch (error) {
-    alert("Failed to delete track: " + error.message);
-  }
-}
-
-// =============================================================================
 // Event Bindings
 // =============================================================================
 
 function bindListEvents() {
-  list.on("selection:change", ({ selected, items }) => {
+  list.on("selection:change", ({ selected }) => {
     updateSelectionCount(selected);
-    if (items.length > 0) {
-      const index = selected[0];
-      showTrackDetail(items[0], index);
-    }
-  });
-
-  list.on("item:click", ({ item, index }) => {
-    showTrackDetail(item, index);
   });
 
   list.on("load:end", ({ items, total }) => {

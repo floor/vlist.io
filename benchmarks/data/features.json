@@ -51,7 +51,7 @@
     },
     {
       "name": "Auto-height measurement",
-      "support": ["❌", "✅", "❌", "✅"]
+      "support": ["✅", "✅", "❌", "✅"]
     },
     {
       "name": "Horizontal scrolling",

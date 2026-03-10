@@ -224,7 +224,7 @@
         <% } %>
 
         <% if (it.LAZY_SYNTAX_HIGHLIGHTING) { %>
-        <!-- ─── Syntax highlighting (lazy — loaded on first source tab click) ── -->
+        <!-- ─── Syntax highlighting (lazy — loaded on demand or DOMContentLoaded) ── -->
 
         <script>
             (function () {
@@ -252,6 +252,13 @@
                 }
 
                 window.__loadHljs = loadHljs;
+
+                <% if (!it.HAS_SOURCE_TABS) { %>
+                /* Content pages: auto-highlight all code blocks after first paint */
+                document.addEventListener("DOMContentLoaded", function () {
+                    loadHljs(function () { hljs.highlightAll(); });
+                });
+                <% } %>
             })();
         </script>
         <% } %>

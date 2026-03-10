@@ -561,7 +561,7 @@ export function createContentRenderer(config: ContentConfig) {
       HAS_IMPORTMAP: false,
       HAS_TOC: !!toc,
       HAS_SYNTAX_HIGHLIGHTING: true,
-      LAZY_SYNTAX_HIGHLIGHTING: false,
+      LAZY_SYNTAX_HIGHLIGHTING: true,
       HAS_ACTIVE_NAV: false,
       HAS_SOURCE_TABS: false,
       PAGE_ATTR: null,
