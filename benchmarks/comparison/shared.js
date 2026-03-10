@@ -185,6 +185,32 @@ export const populateRealisticDOMChildren = (el, index) => {
   el.appendChild(meta);
 };
 
+/**
+ * Generate realistic item HTML as a string (for Clusterize.js).
+ * Faster than creating DOM elements and serializing with outerHTML.
+ *
+ * @param {number} index - Item index
+ * @returns {string} HTML string
+ */
+export const generateRealisticItemHTML = (index) => {
+  const n = ITEM_NAMES[index % ITEM_NAMES.length];
+  const n2 = ITEM_NAMES[(index + 3) % ITEM_NAMES.length];
+  const badge = ITEM_BADGES[index % ITEM_BADGES.length];
+  const time = `${(index % 59) + 1}m`;
+
+  return `<div class="bench-item" style="height: 48px;">
+  <div class="bench-item__avatar">${n[0]}${n2[0]}</div>
+  <div class="bench-item__content">
+    <div class="bench-item__title">${n} — Item ${index}</div>
+    <div class="bench-item__sub">Lorem ipsum dolor sit amet</div>
+  </div>
+  <div class="bench-item__meta">
+    <span class="bench-item__badge">${badge}</span>
+    <span class="bench-item__time">${time}</span>
+  </div>
+</div>`;
+};
+
 // =============================================================================
 // Helper: Find scrollable viewport
 // =============================================================================

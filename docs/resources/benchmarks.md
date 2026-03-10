@@ -245,12 +245,13 @@ The comparison benchmarks (`benchmarks/comparison/`) run vlist head-to-head agai
 | **[Legend List](https://github.com/LegendApp/legend-list)** v3.0.0-beta.40 | React (+ React Native) | `LegendList` component with item recycling, v3 React DOM entry point | `legend-list.js` |
 | **[vue-virtual-scroller](https://github.com/Akryum/vue-virtual-scroller)** v2.0.0-beta.8 | Vue 3 | `<RecycleScroller>` component with DOM recycling | `vue-virtual-scroller.js` |
 | **[TanStack Virtual (SolidJS)](https://tanstack.com/virtual)** v3.13.18 | SolidJS | `createVirtualizer` with fine-grained reactivity | `solidjs.js` |
+| **[Clusterize.js](https://github.com/NeXTs/Clusterize.js)** v0.18.1 | Vanilla JS | DOM virtualization requiring all row HTML upfront | `clusterize.js` |
 
 **Why these libraries?** Selection criteria:
 - **Popularity** — High npm download counts and community adoption
 - **Quality** — Production-ready, actively maintained
-- **Diversity** — Different ecosystems (React, Vue, SolidJS, React Native)
-- **Approach** — Different architectural styles (headless, component-based, zero-config, cross-platform)
+- **Diversity** — Different ecosystems (React, Vue, SolidJS, Vanilla JS)
+- **Approach** — Different architectural styles (headless, component-based, zero-config, HTML string-based)
 
 ### Measurement Methodology
 
@@ -394,8 +395,9 @@ Based on standard hardware (M1 Mac, Chrome). Scroll FPS and P95 are averages acr
 | TanStack Virtual | ~11.2 ms | ~0.97 MB | ~117.9 fps | ~12 ms |
 | Legend List | ~25.1 ms | ~3.64 MB | ~109.9 fps | ~17.8 ms |
 | vue-virtual-scroller | ~13.4 ms | ~11.0 MB | ~120.5 fps | ~10.4 ms |
+| Clusterize.js | ~93.3 ms | ~0.09 MB | ~120.5 fps | ~9.3 ms |
 
-**Key insight:** Multi-speed scroll profiling reveals real performance differences that were hidden when both libraries capped at the display refresh rate at a single speed. vlist consistently uses **10–60× less memory** while maintaining equal or better render and scroll performance across all speed levels.
+**Key insight:** Multi-speed scroll profiling reveals real performance differences that were hidden when both libraries capped at the display refresh rate at a single speed. vlist consistently uses **10–60× less memory** while maintaining equal or better render and scroll performance across all speed levels. Note: Clusterize.js has significantly slower initial render due to requiring all row HTML upfront, but achieves excellent scroll performance and very low memory usage.
 
 ### Known Limitations
 
@@ -473,6 +475,7 @@ The `shared.js` utilities handle all measurement infrastructure — you only nee
 | `benchmarks/comparison/legend-list.js` | Legend List v3.0.0-beta.40 (React DOM, `@legendapp/list/react`) comparison suite |
 | `benchmarks/comparison/vue-virtual-scroller.js` | vue-virtual-scroller v2.0.0-beta.8 comparison suite |
 | `benchmarks/comparison/solidjs.js` | TanStack Virtual v3.13.18 (SolidJS) comparison suite |
+| `benchmarks/comparison/clusterize.js` | Clusterize.js v0.18.1 (Vanilla JS) comparison suite |
 
 ---
 

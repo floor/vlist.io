@@ -27,6 +27,7 @@
     "@tanstack/solid-virtual": "^3.13.18",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "clusterize.js": "^0.18.1",
     "eta": "^4.5.1",
     "marked": "^17.0.1",
     "mongodb": "^7.1.0",

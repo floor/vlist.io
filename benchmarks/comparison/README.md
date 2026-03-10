@@ -16,6 +16,9 @@ Head-to-head performance comparisons between **vlist** and popular virtualizatio
 ### SolidJS Ecosystem
 - **[TanStack Virtual (SolidJS)](./solidjs.js)** — `createVirtualizer` with fine-grained reactivity
 
+### Vanilla JS Ecosystem
+- **[Clusterize.js](./clusterize.js)** — Lightweight DOM virtualization library requiring all row HTML upfront
+
 ## What Each Comparison Tests
 
 All comparisons measure the same 4 metrics:
@@ -76,7 +79,8 @@ comparison/
 ├── virtua.js                    # vs Virtua (React)
 ├── legend-list.js               # vs Legend List (React DOM)
 ├── vue-virtual-scroller.js      # vs vue-virtual-scroller (Vue 3)
-└── solidjs.js                   # vs TanStack Virtual (SolidJS)
+├── solidjs.js                   # vs TanStack Virtual (SolidJS)
+└── clusterize.js                # vs Clusterize.js (Vanilla JS)
 ```
 
 ## Shared Utilities
@@ -242,6 +246,7 @@ open http://localhost:3338/benchmarks/comparisons
 - `/benchmarks/vue-virtual-scroller` — vs vue-virtual-scroller
 - `/benchmarks/solidjs` — vs TanStack Virtual (SolidJS)
 - `/benchmarks/legend-list` — vs Legend List
+- `/benchmarks/clusterize` — vs Clusterize.js
 
 ## Requirements
 
@@ -260,8 +265,9 @@ Based on standard hardware (M1 Mac, Chrome):
 | TanStack Virtual | ~9.1 ms | ~2.26 MB | 120.5 | ~9.1 ms |
 | Virtua | ~17.2 ms | ~14.3 MB | 120.5 | ~9.0 ms |
 | vue-virtual-scroller | ~13.4 ms | ~11.0 MB | 120.5 | ~10.4 ms |
+| Clusterize.js | ~93.3 ms | ~0.09 MB | 120.5 | ~9.3 ms |
 
-**Key insight:** vlist consistently uses 10–60× less memory while maintaining equal or better performance.
+**Key insight:** vlist consistently uses 10–60× less memory while maintaining equal or better performance. Note: Clusterize.js has slower initial render due to requiring all row HTML upfront, but achieves excellent scroll performance and low memory usage.
 
 ## Why These Libraries?
 

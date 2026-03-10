@@ -66,6 +66,12 @@
         "name": "vue-virtual-scroller",
         "icon": "",
         "desc": "Head-to-head performance: vlist vs vue-virtual-scroller"
+      },
+      {
+        "slug": "clusterize",
+        "name": "Clusterize.js",
+        "icon": "",
+        "desc": "Head-to-head performance: vlist vs Clusterize.js"
       }
     ]
   },
