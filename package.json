@@ -8,7 +8,8 @@
     "vlist/*": "@floor/vlist/*"
   },
   "scripts": {
-    "dev": "bun run build:exmaples && bun run build:bench && bun run --watch server.ts",
+    "dev": "bun run build:examples && bun run build:bench && bun run --watch server.ts",
+    "dev:full": "bun run build:examples && bun run build:bench && bun run build:examples:watch & bun run build:bench:watch & bun run --watch server.ts",
     "start": "bun run server.ts",
     "build:examples": "bun run examples/build.ts",
     "build:examples:watch": "bun run examples/build.ts --watch",
