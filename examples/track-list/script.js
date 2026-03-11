@@ -217,17 +217,8 @@ async function deleteSelected() {
 
   const items = list.getSelectedItems();
 
-  // DEBUG
-  console.log(`[delete] selected IDs:`, selected);
-  console.log(
-    `[delete] selected items:`,
-    items.map((t) => ({ id: t.id, title: t.title })),
-  );
-
   // Capture the resolved index of the first selected item BEFORE deletion.
   // After removal, whatever item shifts into this index is the "next" one.
-  const selectedIds = items.map((t) => t.id);
-  console.log(`[delete] selected item ids for index lookup:`, selectedIds);
 
   const promises = items.map((track) =>
     fetch(`${API_BASE}/${track.id}`, { method: "DELETE" }),
@@ -247,18 +238,13 @@ async function deleteSelected() {
       const container = list.element;
       const el = container?.querySelector(`[data-id="${track.id}"]`);
       const index = el ? parseInt(el.dataset.index, 10) : -1;
-      console.log(`[delete] id=${track.id} → DOM index=${index}`);
       return { track, index };
     })
     .filter((e) => e.index >= 0)
     .sort((a, b) => b.index - a.index); // highest index first
 
   deleteOrder.forEach(({ track, index }) => {
-    console.log(
-      `[delete] calling removeItem(${track.id}) — title="${track.title}", index=${index}`,
-    );
     const result = list.removeItem(track.id);
-    console.log(`[delete] removeItem(${track.id}) returned ${result}`);
     if (result && index < lowestDeletedIndex) {
       lowestDeletedIndex = index;
     }
@@ -275,29 +261,17 @@ async function deleteSelected() {
     // After deletion, the item that was below shifted into this index.
     // Clamp to total-1 in case we deleted the last item.
     const targetIndex = Math.min(lowestDeletedIndex, list.total - 1);
-    console.log(
-      `[auto-select] lowestDeletedIndex=${lowestDeletedIndex}, targetIndex=${targetIndex}, total=${list.total}`,
-    );
 
     requestAnimationFrame(() => {
       // Find the item now rendered at targetIndex by querying the DOM
       const container = list.element;
       const el = container?.querySelector(`[data-index="${targetIndex}"]`);
       const id = el?.dataset.id;
-      console.log(
-        `[auto-select] DOM element at index ${targetIndex}: id=${id}`,
-      );
 
       if (id && !id.startsWith("__placeholder_")) {
         const numId = Number(id);
         const selectId = Number.isFinite(numId) ? numId : id;
         list.select(selectId);
-        console.log(
-          `[auto-select] selected id=${selectId}, getSelected():`,
-          list.getSelected(),
-        );
-      } else {
-        console.log(`[auto-select] no valid item at index ${targetIndex}`);
       }
     });
   }

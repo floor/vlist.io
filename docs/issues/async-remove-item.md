@@ -1,167 +1,252 @@
-# Async: `removeItem` leaves holes in sparse storage
+# Async: `removeItem` — sparse storage shift, re-render & gap refill
 
-> Deleting an item via `removeItem(id)` in async mode (with `withAsync`) does not actually remove the item from the visible list. Instead, it creates a gap in the sparse storage that renders as a placeholder, and the last item in the list silently disappears.
+> Fixed. Deleting items via `removeItem(id)` in async mode now correctly shifts sparse storage, forces a DOM re-render, and refills chunk-boundary gaps via a debounced adapter fetch.
 
-**Status:** Open  
-**Affects:** `src/features/async/manager.ts`, `src/features/async/sparse.ts`  
+**Status:** ✅ Resolved  
+**Commits:** `7da9deb` (initial shift implementation), follow-up (optimize + re-render + gap refill)  
+**Affects:** `src/builder/api.ts`, `src/features/async/manager.ts`, `src/features/async/sparse.ts`, `src/features/selection/feature.ts`  
 **Example:** `examples/track-list` → select a track → Delete Selected
 
 ---
 
-## The Problem
+## Original Problem
 
-When using `withAsync` (adapter-backed sparse storage), calling `list.removeItem(trackId)` produces broken visual results:
+When using `withAsync` (adapter-backed sparse storage), calling `list.removeItem(trackId)` produced broken visual results:
 
-1. The deleted item's slot shows a **placeholder** (masked text like `xxxxxxxxx`)
-2. The list total decreases by 1, but items don't shift — so the **last item disappears**
-3. The `idToIndex` map becomes stale for all items after the deleted one
-4. Subsequent operations (selection, update) on shifted items may target wrong indices
+1. The deleted item's slot showed a **placeholder** (masked text like `xxxxxxxxx`)
+2. The list total decreased by 1, but items didn't shift — so the **last item disappeared**
+3. The `idToIndex` map became stale for all items after the deleted one
+4. Consecutive deletions accumulated placeholder items at the tail of the visible area
 
-### Visual symptom
+### Visual symptom (before fix)
 
 Before deletion: `[A, B, C, D, E]` (total=5)  
-After deleting B: `[A, placeholder, C, D]` (total=4) — B's slot is now a hole, E is gone
+After deleting B: `[A, placeholder, C, D]` (total=4) — B's slot was a hole, E was gone
 
 ### Expected behavior
 
 After deleting B: `[A, C, D, E]` (total=4) — items shift down, no placeholders
 
-## Root Cause
+---
 
-The async `DataManager.removeItem()` in `manager.ts` (L459–478):
+## Three Problems & Their Fixes
+
+### Problem 1: Sparse storage didn't shift items
+
+`storage.delete(index)` only set the slot to `undefined` (punching a hole) without shifting subsequent items down. The total was decremented, so the last item fell off the end.
+
+**Fix in `sparse.ts` — `deleteItem()`:**
+
+Rewrote the shift algorithm to be **O(cachedItems)** instead of O(totalItems). The old implementation iterated from the deleted index to `totalItems - 1` — for a 300K-item list with ~50 cached items, that was ~300K iterations mostly hitting empty slots.
+
+The new algorithm:
+
+1. Collect all loaded items at indices > deleted index by scanning only loaded chunks
+2. Clear the deleted item and all collected items from their current positions
+3. Re-insert each collected item at `(originalIndex - 1)`
+4. Decrement `totalItems`
 
 ```js
-const removeItem = (id) => {
-  const index = idToIndex.get(id);
-  storage.delete(index);        // ← sets slot to undefined (creates hole)
-  removeFromIdIndex(id);
-  storage.setTotal(total - 1);  // ← shrinks total, cutting off last item
-  notifyStateChange();
-};
+// Collect loaded items from affected chunks only — O(cachedItems)
+const sortedChunkKeys = Array.from(chunks.keys())
+  .filter(k => k >= deletedChunkIdx)
+  .sort((a, b) => a - b);
+
+const shifted = [];
+for (const ci of sortedChunkKeys) {
+  const c = chunks.get(ci);
+  const base = ci * chunkSize;
+  for (let s = 0; s < chunkSize; s++) {
+    if (c.items[s] === undefined) continue;
+    const itemIndex = base + s;
+    if (itemIndex <= index) continue;
+    shifted.push({ oldIndex: itemIndex, item: c.items[s] });
+  }
+}
+
+// Clear all, then re-insert at (oldIndex - 1)
+// ... (handles chunk.count, cachedItemCount, chunk cleanup)
 ```
 
-The comment in the source says it all:
+This correctly handles:
+- Shifts within a single chunk
+- Shifts across chunk boundaries (item moves from chunk N slot 0 → chunk N-1 last slot)
+- Holes in the middle of loaded ranges (holes shift down too)
+- Multiple sequential deletions
 
-> *"In a true sparse array, items don't shift, but the total decreases."*
+**Fix in `manager.ts` — `removeItem()`:**
 
-This is the fundamental bug. `storage.delete(index)` only sets the slot at `index` to `undefined` — it does **not** shift subsequent items down. But the total is decremented, so:
-
-- Index `index` is now a hole → `getItem(index)` returns `undefined` → placeholder generated
-- The last item (at old index `total-1`) is now at index `total` (beyond new total) → dropped
-
-### Why the SimpleDataManager works fine
-
-The non-async `SimpleDataManager` in `builder/data.ts` uses `items.splice(index, 1)` which **actually shifts** all subsequent array elements. The sparse storage can't do this natively because items are distributed across independent chunks.
-
-### Cascade of stale state
-
-After deletion without shifting:
-
-1. **`idToIndex` map is stale** — items after the deleted one are still mapped to their old indices, but conceptually should have shifted down by 1
-2. **Loaded range tracking is wrong** — chunks report ranges as loaded even though there's now a hole
-3. **Subsequent adapter loads may overwrite** — if the scroll triggers a load for the range containing the hole, the adapter returns data at the original server-side offsets which no longer align with the sparse storage indices
-
-## Solution: Shift items in sparse storage (Approach A)
-
-### Design
-
-Fix `deleteItem` in `SparseStorage` to **shift items down** after removing the target slot. The current behavior (punch a hole, don't shift) has no other callers — `deleteItem` is only used by `DataManager.removeItem()`, and leaving a hole is never the desired outcome. No new method needed; just fix the existing one.
-
-`SparseStorage.deleteItem(index)`:
-
-1. Remove the item at `index`
-2. Shift all loaded items at indices > `index` down by 1
-3. Decrease `totalItems` by 1
-
-`DataManager.removeItem(id)`:
-
-1. Call `storage.deleteItem(index)` (now shifts correctly)
-2. Rebuild the `idToIndex` map (all indices after the deleted one changed)
-3. Invalidate cached chunk load states for affected ranges
-
-### Implementation in SparseStorage
-
-Fix `deleteItem` to shift across chunk boundaries. Algorithm:
-
-```
-For each index from (deletedIndex) to (totalItems - 2):
-  item = storage.get(index + 1)
-  if item exists:
-    storage.set(index, item)
-  else:
-    clear slot at index (was shifted into from a hole)
-totalItems--
-```
-
-**Optimization:** Only iterate through chunks that actually have loaded data above the deleted index. Skip entirely empty chunks. For most real-world deletion patterns (deleting a few visible items), this touches at most 2–3 chunks.
-
-### Implementation in DataManager
+Cleaned up to rely on the new `storage.delete()` behavior:
 
 ```js
 const removeItem = (id) => {
   const index = idToIndex.get(id);
   if (index === undefined) return false;
 
-  storage.delete(index);       // now shifts items down internally
-  rebuildIdIndex();            // indices changed, rebuild from scratch
-  notifyStateChange();         // triggers sizeCache rebuild + re-render
+  const deleted = storage.delete(index);  // shifts items internally
+  if (!deleted) return false;
+
+  rebuildIdIndex();      // all indices after deleted one changed
+  activeLoads.clear();   // stale range keys after shift
+  notifyStateChange();   // triggers sizeCache rebuild + re-render
   return true;
 };
 ```
 
-### Why not a logical index translation layer? (Approach B — rejected)
+### Problem 2: DOM not updated when render range unchanged
 
-An alternative would be to maintain a list of deleted indices and translate between logical and physical indices on every access. This was considered and rejected because:
+After deletion, `notifyStateChange()` triggers the feature-level `onStateChange` callback, which calls `ctx.renderIfNeeded()`. But `renderIfNeeded` has an optimization: it bails when `renderRange.start === lastRenderRange.start && renderRange.end === lastRenderRange.end`. After deleting a visible item, the range indices (e.g. 0–15) often stay the same — but the *items at those indices* have shifted. The DOM showed stale data.
 
-- It complicates every operation: `getItem`, `getItemsInRange`, `loadRange`, `ensureRange`, adapter offset calculation
-- The adapter returns items at server-side offsets — translating between logical/physical for every load response adds significant complexity
-- The performance cost of shifting a few chunks on deletion is negligible compared to the ongoing cost of index translation on every scroll frame
+**Fix in `api.ts` — `removeItem()`:**
+
+Call `ctx.forceRender()` after a successful removal. This invalidates the cached render range, forcing a full DOM reconciliation that picks up the shifted items:
+
+```js
+const removeItem = (id) => {
+  const result = ctx.dataManager.removeItem(id);
+  if (result) {
+    emitter.emit("data:change", { type: "remove", id });
+    ctx.forceRender();
+    // ... ensureRange (see below)
+  }
+  return result;
+};
+```
+
+### Problem 3: Chunk-boundary gaps never refilled
+
+When deletion shifts items across chunk boundaries, the last slot(s) of the loaded range become empty. For example, with `chunkSize=25` and items 0–24 loaded: deleting index 5 shifts items 6–24 to 5–23, but index 24 needs the item from index 25 which lives in an unloaded chunk. Index 24 becomes a gap rendered as a placeholder.
+
+The loading pipeline only triggers `ensureRange` on scroll events (`afterScroll`). Without scrolling after deletion, gaps persist forever. Each consecutive deletion lost one more item at the tail.
+
+**Fix in `api.ts` — debounced `ensureRange`:**
+
+After removal, schedule `ensureRange` for the current render range via `queueMicrotask`. The microtask coalesces multiple synchronous deletions (e.g. deleting 5 items in a `forEach` loop) into a single adapter fetch:
+
+```js
+let ensureRangePending = false;
+
+const removeItem = (id) => {
+  const result = ctx.dataManager.removeItem(id);
+  if (result) {
+    emitter.emit("data:change", { type: "remove", id });
+    ctx.forceRender();
+
+    if (!ensureRangePending) {
+      const dm = ctx.dataManager;
+      if (typeof dm.ensureRange === "function") {
+        ensureRangePending = true;
+        queueMicrotask(() => {
+          ensureRangePending = false;
+          const { start, end } = ctx.state.viewportState.renderRange;
+          if (end >= start) {
+            dm.ensureRange(start, end).catch(() => {});
+          }
+        });
+      }
+    }
+  }
+  return result;
+};
+```
+
+Why debounce: each `removeItem` call internally does `activeLoads.clear()`, which orphans any in-flight `ensureRange` request. Without debouncing, deleting 5 items fires 5 overlapping requests where each nukes the previous. The microtask fires once after the synchronous deletion loop completes, reading the final render range.
+
+---
+
+## Additional Cleanup
+
+### Selection feature (`selection/feature.ts`)
+
+- `rebuildIdIndex()` — removed unused `reason` parameter, removed placeholder warning log
+- `data:change` handler — removed debug logs
+- `getSelectedItems()` — simplified to single expression
+
+### Debug log removal
+
+Removed all `console.log` statements added during development from:
+- `manager.ts` — `removeItem` (7 log statements)
+- `sparse.ts` — `deleteItem` (7 log statements + snapshot dump loop)
+- `selection/feature.ts` — `rebuildIdIndex`, `data:change`, `getSelectedItems` (8 log statements)
+- `examples/track-list/script.js` — `deleteSelected` (10 log statements)
+
+Bundle size impact: 99.9 KB → 98.0 KB (−1.9 KB minified).
+
+---
+
+## Design Decisions
+
+### Why shift in storage, not a logical index translation layer?
+
+An alternative (Approach B) would maintain a list of deleted indices and translate between logical/physical indices on every access. Rejected because:
+
+- Complicates every operation: `getItem`, `getItemsInRange`, `loadRange`, `ensureRange`, adapter offset calculation
+- The adapter returns items at server-side offsets — translation on every load response adds significant complexity
+- The performance cost of shifting cached chunks on deletion is negligible (O(cachedItems), typically 50–2000)
 - The common case is deleting a small number of items, not bulk deletion of thousands
 
-### Edge cases to handle
+### Why `forceRender` instead of fixing `renderIfNeeded`?
 
-1. **Deleting while a load is in flight** — the in-flight response will arrive with offsets that are now wrong. Need to either cancel the load or adjust offsets on arrival
-2. **Deleting multiple items** — each successive deletion shifts indices; batch deletion from the consumer side should process from highest index to lowest to avoid double-shifting
-3. **Deleting an item that's not in the viewport** — should still work correctly since we shift the storage, not the DOM
-4. **`activeLoads` map** — range keys in the deduplication map become stale after a shift; clear them on removal
-5. **Eviction** — evicted (unloaded) ranges after the deleted index are conceptually shifted too, but since they're empty slots, only `totalItems` matters
+`renderIfNeeded` correctly optimizes the hot path (scroll-triggered re-renders) by comparing range bounds. Making it also compare item identity would add overhead to every scroll frame. Since `removeItem` is a rare, explicit mutation, a targeted `forceRender` call is the right trade-off.
 
-### Rendering
+### Why debounce `ensureRange` but not `forceRender`?
 
-The feature-level `onStateChange` callback already calls `sizeCache.rebuild()`, `updateContentSize()`, and `renderIfNeeded()`. Once the storage is correct (items shifted, total decremented), the rendering pipeline will:
+`forceRender` is synchronous DOM work — each call ensures the DOM reflects the current storage state. Debouncing it could break code that reads the DOM between deletions. `ensureRange` is an async network request — firing multiple overlapping requests is wasteful and the last one always wins anyway.
 
-1. Recompute content height (1 item shorter)
-2. Re-query `getItemsInRange()` for the visible range → gets correct shifted items
-3. Re-render the visible DOM nodes with the correct data
+---
 
-No changes needed in the rendering pipeline.
+## Edge Cases Handled
 
-## Test Plan
+1. **Deleting while a load is in flight** — `activeLoads.clear()` in `removeItem` invalidates stale range keys. Orphaned in-flight responses may write stale data, but the debounced `ensureRange` fires afterward with correct offsets and overwrites.
+2. **Deleting multiple items** — the track-list example processes from highest index to lowest to avoid double-shifting. The debounced `ensureRange` fires once after all deletions.
+3. **Deleting an item not in the viewport** — works correctly since we shift storage, not DOM.
+4. **Chunk-boundary gaps** — the debounced `ensureRange` detects gaps via `isRangeLoaded` and fetches missing items.
+5. **Eviction** — evicted (unloaded) ranges after the deleted index are conceptually shifted too, but since they're empty slots, only `totalItems` matters.
 
-### Unit tests (SparseStorage)
+---
 
-- `deleteItem` middle → items after it shift down, total decreases
-- `deleteItem` first → all items shift down
-- `deleteItem` last → no shift needed, just total decreases
-- `deleteItem` across chunk boundary → items shift correctly between chunks
-- `deleteItem` when chunks after deleted index are empty → total decreases, no crash
-- Multiple sequential `deleteItem` calls → each shifts correctly
+## Test Coverage
 
-### Unit tests (DataManager)
+All 2801 existing tests pass, including:
 
-- `removeItem(id)` → item removed, total decreased, `getItemById` returns undefined
-- `removeItem(id)` → items after deleted one are accessible at `index - 1`
-- `removeItem(id)` → `idToIndex` is correct for all remaining items
-- `removeItem(nonExistentId)` → returns false, no side effects
-- Remove + `getItemsInRange` → no placeholders in previously-loaded range
+### SparseStorage `delete` tests (`test/features/async/sparse.test.ts`)
 
-### Integration tests (withAsync feature)
+- ✅ Delete existing item
+- ✅ Delete returns false for negative, out-of-bounds, unloaded, empty slot
+- ✅ Shift items after deleted index down by 1
+- ✅ Shift when deleting from the middle
+- ✅ No shift when deleting the last item
+- ✅ Shift across chunk boundaries (chunkSize=3)
+- ✅ Handle holes during shift (gaps preserved, shifted down)
+- ✅ Multiple sequential deletions
+- ✅ Decrement total with unloaded items after deleted index
 
-- Delete visible item → list re-renders without placeholders
-- Delete item → total count updates in UI
-- Delete item → subsequent selection works on correct items
-- Delete multiple items → all removed correctly
-- Delete item then scroll → no stale data or crashes
+### DataManager `removeItem` tests (`test/features/async/manager.test.ts`)
+
+- ✅ Remove by ID, total decreased, item no longer accessible
+- ✅ Items after deleted one accessible at index - 1
+- ✅ `idToIndex` correct for all remaining items
+- ✅ Returns false for non-existent ID
+
+### Integration tests (`test/integration/features.test.ts`)
+
+- ✅ `removeItem` with selection cleanup
+- ✅ Scrollbar content size updates on item removal
+
+### Performance (`test/integration/performance.test.ts`)
+
+- ✅ `removeItem` in under 5ms for 10K list
+
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/features/async/sparse.ts` | Rewrote `deleteItem` shift: O(cachedItems) instead of O(totalItems) |
+| `src/features/async/manager.ts` | Cleaned up `removeItem`, removed debug logs |
+| `src/builder/api.ts` | Added `forceRender()` + debounced `ensureRange()` after removal |
+| `src/features/selection/feature.ts` | Cleaned up `rebuildIdIndex`, removed debug logs |
 
 ## Related
 
