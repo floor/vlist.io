@@ -102,10 +102,10 @@
     --surface-container: #e8e8f0;
     --border: #dcdce5;
     --border-hover: #c0c0d0;
-    --accent: #047aed;
+    --accent: #4a5cd8;
     --accent-dim: rgba(74, 92, 216, 0.08);
     --accent-glow: rgba(74, 92, 216, 0.04);
-    --accent-text: #047aed;
+    --accent-text: #4a5cd8;
 
     /* Colors: Semantic */
     --green: #16a34a;
