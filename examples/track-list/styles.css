@@ -58,6 +58,13 @@
     object-fit: cover;
     display: block;
     border-radius: var(--radius-xs);
+    background: var(--vlist-placeholder-bg);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.item-cover.item-cover--loaded {
+    opacity: 1;
 }
 
 /* Initials fallback (list mode) */
@@ -67,7 +74,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--accent);
+    background: var(--vlist-placeholder-bg);
     color: var(--text);
     font-weight: 600;
     font-size: 13px;
@@ -157,6 +164,15 @@
    Grid Mode — Card Layout
    ============================================================================ */
 
+.vlist-grid-item.vlist-item--selected {
+    background-color: transparent !important;
+}
+
+.vlist-grid-item.vlist-item--selected .grid-card {
+    border: 1px solid var(--accent);
+    background-color: var(--badge-error-bg);
+}
+
 .grid-card {
     display: flex;
     flex-direction: column;
@@ -195,6 +211,12 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.grid-cover.grid-cover--loaded {
+    opacity: 1;
 }
 
 /* Initials fallback (grid mode) */
