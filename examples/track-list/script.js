@@ -211,24 +211,108 @@ btnAddTrack.addEventListener("click", async () => {
   }
 });
 
-btnDeleteSelected.addEventListener("click", async () => {
+async function deleteSelected() {
   const selected = list.getSelected();
-  if (selected.length === 0) {
-    alert("No tracks selected");
-    return;
-  }
+  if (selected.length === 0) return;
 
   const items = list.getSelectedItems();
+
+  // DEBUG
+  console.log(`[delete] selected IDs:`, selected);
+  console.log(
+    `[delete] selected items:`,
+    items.map((t) => ({ id: t.id, title: t.title })),
+  );
+
+  // Capture the resolved index of the first selected item BEFORE deletion.
+  // After removal, whatever item shifts into this index is the "next" one.
+  const selectedIds = items.map((t) => t.id);
+  console.log(`[delete] selected item ids for index lookup:`, selectedIds);
+
   const promises = items.map((track) =>
     fetch(`${API_BASE}/${track.id}`, { method: "DELETE" }),
   );
 
   await Promise.all(promises);
 
-  // Remove each item from the list
-  items.forEach((track) => list.removeItem(track.id));
+  // Remove each item from the list, tracking the lowest index for auto-select.
+  // We delete from highest index to lowest so earlier deletions don't shift
+  // the indices of later ones.
+  let lowestDeletedIndex = Infinity;
+
+  // Build id→index map before any deletion
+  const deleteOrder = items
+    .map((track) => {
+      // Peek at the element in the DOM to find its data-index
+      const container = list.element;
+      const el = container?.querySelector(`[data-id="${track.id}"]`);
+      const index = el ? parseInt(el.dataset.index, 10) : -1;
+      console.log(`[delete] id=${track.id} → DOM index=${index}`);
+      return { track, index };
+    })
+    .filter((e) => e.index >= 0)
+    .sort((a, b) => b.index - a.index); // highest index first
+
+  deleteOrder.forEach(({ track, index }) => {
+    console.log(
+      `[delete] calling removeItem(${track.id}) — title="${track.title}", index=${index}`,
+    );
+    const result = list.removeItem(track.id);
+    console.log(`[delete] removeItem(${track.id}) returned ${result}`);
+    if (result && index < lowestDeletedIndex) {
+      lowestDeletedIndex = index;
+    }
+  });
 
   list.clearSelection();
+
+  // Auto-select the item that is now at the deleted position
+  if (
+    list.total > 0 &&
+    currentSelectionMode !== "none" &&
+    lowestDeletedIndex < Infinity
+  ) {
+    // After deletion, the item that was below shifted into this index.
+    // Clamp to total-1 in case we deleted the last item.
+    const targetIndex = Math.min(lowestDeletedIndex, list.total - 1);
+    console.log(
+      `[auto-select] lowestDeletedIndex=${lowestDeletedIndex}, targetIndex=${targetIndex}, total=${list.total}`,
+    );
+
+    requestAnimationFrame(() => {
+      // Find the item now rendered at targetIndex by querying the DOM
+      const container = list.element;
+      const el = container?.querySelector(`[data-index="${targetIndex}"]`);
+      const id = el?.dataset.id;
+      console.log(
+        `[auto-select] DOM element at index ${targetIndex}: id=${id}`,
+      );
+
+      if (id && !id.startsWith("__placeholder_")) {
+        const numId = Number(id);
+        const selectId = Number.isFinite(numId) ? numId : id;
+        list.select(selectId);
+        console.log(
+          `[auto-select] selected id=${selectId}, getSelected():`,
+          list.getSelected(),
+        );
+      } else {
+        console.log(`[auto-select] no valid item at index ${targetIndex}`);
+      }
+    });
+  }
+}
+
+btnDeleteSelected.addEventListener("click", deleteSelected);
+
+// Keyboard shortcut: Delete/Backspace to delete selected item
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Delete" || e.key === "Backspace") {
+    // Don't trigger if user is typing in an input
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    e.preventDefault();
+    deleteSelected();
+  }
 });
 
 btnRefresh.addEventListener("click", async () => {
