@@ -12,6 +12,18 @@
 //   public       → response is cacheable by shared caches (CDN)
 //   immutable    → content never changes (hashed filenames, fonts)
 //   stale-while-revalidate → serve stale while fetching fresh in background
+//
+// In development (NODE_ENV !== "production"), ALL cache headers are set to
+// "no-cache, no-store" so the browser always fetches fresh from the origin.
+
+import { IS_PROD } from "./config";
+
+// =============================================================================
+// Development override
+// =============================================================================
+
+/** In dev, every response bypasses browser and proxy caches entirely. */
+const DEV_NOCACHE = "no-cache, no-store";
 
 // =============================================================================
 // Cache-Control values
@@ -21,7 +33,9 @@
  * Immutable assets — build output with content hashes, fonts, favicon.
  * Browser and edge both cache for 1 year. Never revalidated.
  */
-export const CACHE_IMMUTABLE = "public, max-age=31536000, immutable";
+export const CACHE_IMMUTABLE = IS_PROD
+  ? "public, max-age=31536000, immutable"
+  : DEV_NOCACHE;
 
 /**
  * Static assets without content hashes — CSS in /styles/, benchmark dist, etc.
@@ -31,7 +45,9 @@ export const CACHE_IMMUTABLE = "public, max-age=31536000, immutable";
  * The 7-day browser TTL is a tradeoff: repeat visitors get fast loads,
  * and content updates propagate within a week at worst.
  */
-export const CACHE_STATIC = "public, max-age=604800, s-maxage=604800";
+export const CACHE_STATIC = IS_PROD
+  ? "public, max-age=604800, s-maxage=604800"
+  : DEV_NOCACHE;
 
 /**
  * Server-rendered HTML pages (docs, tutorials, examples, benchmarks, homepage).
@@ -39,21 +55,26 @@ export const CACHE_STATIC = "public, max-age=604800, s-maxage=604800";
  * On deploy, we purge the Cloudflare cache so users get fresh content immediately.
  * Between deploys, the edge serves cached responses globally — no origin hit.
  */
-export const CACHE_PAGE =
-  "public, s-maxage=3600, max-age=0, stale-while-revalidate=60";
+export const CACHE_PAGE = IS_PROD
+  ? "public, s-maxage=3600, max-age=0, stale-while-revalidate=60"
+  : DEV_NOCACHE;
 
 /**
  * Sitemap and robots.txt — changes only on deploy.
  * Edge caches for 1 hour; browser caches for 1 hour.
  */
-export const CACHE_META = "public, s-maxage=3600, max-age=3600";
+export const CACHE_META = IS_PROD
+  ? "public, s-maxage=3600, max-age=3600"
+  : DEV_NOCACHE;
 
 /**
  * API JSON responses — deterministic data that doesn't change at runtime,
  * but we keep edge TTL short to avoid stale data if endpoints evolve.
  * Edge caches for 5 minutes; browser does not cache.
  */
-export const CACHE_API = "public, s-maxage=300, max-age=0";
+export const CACHE_API = IS_PROD
+  ? "public, s-maxage=300, max-age=0"
+  : DEV_NOCACHE;
 
 /**
  * API docs HTML page — static file read at startup.
