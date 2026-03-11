@@ -87,9 +87,12 @@ try {
           country: 1,
           year: 1,
           decade: 1,
-          category: 1,
-          duration: 1,
-          approved: 1,
+          mood: 1,
+          length: 1,
+          uuid: 1,
+          image_v: 1,
+          "ext.cover": 1,
+          "cover.color": 1,
         },
       },
     ])
@@ -131,7 +134,8 @@ db.run(`
     decade        INTEGER,
     category      TEXT,
     duration      INTEGER,
-    approved      INTEGER DEFAULT 0,
+    cover_url     TEXT,
+    cover_color   TEXT,
     created_at    TEXT    DEFAULT CURRENT_TIMESTAMP
   )
 `);
@@ -142,9 +146,18 @@ db.run(`
 
 console.log("  💾 Inserting tracks into SQLite...");
 
+const COVER_BASE = "https://asset.radiooooo.com/cover";
+
+function buildCoverUrl(track: any): string | null {
+  if (!track.uuid || !track.country || !track.decade) return null;
+  const ext = track.ext?.cover || "jpg";
+  const vSuffix = track.image_v ? `_${track.image_v}` : "";
+  return `${COVER_BASE}/${track.country}/${track.decade}/thumb/${track.uuid}${vSuffix}.${ext}`;
+}
+
 const insert = db.prepare(`
-  INSERT INTO tracks (mongo_id, title, artist, country, year, decade, category, duration, approved)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO tracks (mongo_id, title, artist, country, year, decade, category, duration, cover_url, cover_color)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
 const insertStart = performance.now();
@@ -160,9 +173,10 @@ const insertBatch = db.transaction((tracks: any[]) => {
       track.country || null,
       track.year || null,
       track.decade || null,
-      track.category || null,
-      track.duration || null,
-      track.approved ? 1 : 0,
+      track.mood || null,
+      track.length || null,
+      buildCoverUrl(track),
+      track.cover?.color || null,
     );
     inserted++;
 
@@ -195,7 +209,6 @@ db.run("CREATE INDEX idx_tracks_country  ON tracks (country)");
 db.run("CREATE INDEX idx_tracks_year     ON tracks (year DESC)");
 db.run("CREATE INDEX idx_tracks_decade   ON tracks (decade)");
 db.run("CREATE INDEX idx_tracks_category ON tracks (category)");
-db.run("CREATE INDEX idx_tracks_approved ON tracks (approved)");
 
 const indexTime = performance.now() - indexStart;
 console.log(`  ✅ Indexes created in ${indexTime.toFixed(0)}ms\n`);

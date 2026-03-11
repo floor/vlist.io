@@ -1,5 +1,5 @@
 // Shared data and utilities for track-list example
-// This file provides track-specific templates and utilities
+// This file provides track-specific templates and utilities for list, grid, and table modes
 
 // =============================================================================
 // API Configuration
@@ -11,19 +11,31 @@ export const API_BASE = "/api/tracks";
 // Templates
 // =============================================================================
 
-// Track item template
-export const trackTemplate = (track, index) => {
-  const duration = track.duration ? formatDuration(track.duration) : "—";
-  const artistInfo = `${escapeHtml(track.artist)}${track.country ? ` – ${track.country}` : ""}`;
-
-  // Generate initials for artwork placeholder
+// Cover artwork helper — returns <img> if cover_url exists, initials fallback
+function coverArt(track, cls) {
   const initials = track.title
     ? track.title.substring(0, 2).toUpperCase()
     : "♪";
+  const bg = track.cover_color
+    ? ` style="background-color:${track.cover_color}"`
+    : "";
+  if (track.cover_url) {
+    return `<img class="${cls}"${bg} src="${track.cover_url}" alt="" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'${cls} ${cls}--fallback',textContent:'${initials}'}))"/>`;
+  }
+  return `<span class="${cls} ${cls}--fallback"${bg}>${initials}</span>`;
+}
+
+// Track item template — list mode (row with artwork, title, artist, duration)
+export const trackTemplate = (track, index) => {
+  const duration =
+    track.duration && Number.isFinite(track.duration)
+      ? formatDuration(track.duration)
+      : "";
+  const artistInfo = `${escapeHtml(track.artist)}${track.country ? ` – ${track.country}` : ""}`;
 
   return `
     <div class="item-content">
-      <div class="item-artwork">${initials}</div>
+      <div class="item-artwork">${coverArt(track, "item-cover")}</div>
       <div class="item-details">
         <div class="item-title">${escapeHtml(track.title)}</div>
         <div class="item-artist">${artistInfo}</div>
@@ -33,6 +45,84 @@ export const trackTemplate = (track, index) => {
     </div>
   `;
 };
+
+// Track item template — grid mode (card with large artwork, title, artist)
+export const trackGridTemplate = (track, index) => {
+  const duration =
+    track.duration && Number.isFinite(track.duration)
+      ? formatDuration(track.duration)
+      : "";
+  const year = track.year || "";
+
+  return `
+    <div class="grid-card">
+      <div class="grid-card__artwork">${coverArt(track, "grid-cover")}</div>
+      <div class="grid-card__body">
+        <div class="grid-card__title">${escapeHtml(track.title)}</div>
+        <div class="grid-card__artist">${escapeHtml(track.artist)}</div>
+        <div class="grid-card__meta">
+          ${track.country ? `<span>${track.country}</span>` : ""}
+          ${year ? `<span>${year}</span>` : ""}
+          ${duration ? `<span>${duration}</span>` : ""}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// Track table — column definitions for withTable
+export const trackTableColumns = [
+  {
+    key: "title",
+    label: "Title",
+    width: 280,
+    minWidth: 120,
+    sortable: true,
+    cell: (track) =>
+      `<span class="table-cell--title">${escapeHtml(track.title)}</span>`,
+  },
+  {
+    key: "artist",
+    label: "Artist",
+    width: 200,
+    minWidth: 100,
+    sortable: true,
+    cell: (track) => escapeHtml(track.artist),
+  },
+  {
+    key: "country",
+    label: "Country",
+    width: 80,
+    minWidth: 60,
+    sortable: true,
+    align: "center",
+    cell: (track) => track.country || "",
+  },
+  {
+    key: "year",
+    label: "Year",
+    width: 70,
+    minWidth: 50,
+    sortable: true,
+    align: "center",
+    cell: (track) => (track.year ? String(track.year) : ""),
+  },
+  {
+    key: "duration",
+    label: "Duration",
+    width: 80,
+    minWidth: 60,
+    sortable: true,
+    align: "right",
+    cell: (track) =>
+      track.duration && Number.isFinite(track.duration)
+        ? formatDuration(track.duration)
+        : "",
+  },
+];
+
+// Fallback template for table mode (withTable uses cell renderers)
+export const trackTableRowTemplate = () => "";
 
 // =============================================================================
 // SVG Icons

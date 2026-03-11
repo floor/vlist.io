@@ -13,6 +13,29 @@
         </div>
 
         <aside class="split-panel">
+            <!-- Layout -->
+            <section class="ui-section">
+                <h3 class="ui-title">Layout</h3>
+
+                <div class="ui-row">
+                    <label class="ui-label">Mode</label>
+                    <div class="ui-segmented" id="layout-mode">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-mode="list"
+                        >
+                            List
+                        </button>
+                        <button class="ui-segmented__btn" data-mode="grid">
+                            Grid
+                        </button>
+                        <button class="ui-segmented__btn" data-mode="table">
+                            Table
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- Selection -->
             <section class="ui-section">
                 <h3 class="ui-title">Selection</h3>
@@ -69,18 +92,30 @@
                         Delete Selected
                     </button>
                 </div>
-
-                <div class="ui-row">
-                    <button id="btn-refresh" class="ui-btn">Refresh</button>
-                </div>
             </section>
         </aside>
     </div>
 
-    <footer>
-        <p>
-            Live data from SQLite database. Only visible tracks are rendered.
-            Try CRUD operations! ✨
-        </p>
-    </footer>
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">items</span>
+            </span>
+        </div>
+        <div class="example-info__right">
+            <span class="example-info__stat">
+                <strong id="info-mode">list</strong>
+            </span>
+        </div>
+    </div>
 </div>

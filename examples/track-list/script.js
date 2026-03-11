@@ -1,12 +1,17 @@
 // Track List - Pure Vanilla JavaScript with Async Loading
 // Demonstrates vlist with lazy-loaded SQLite data, fetching tracks in chunks of 25
+// Layout mode toggle: List ↔ Grid ↔ Table
 
-import { vlist, withSelection, withAsync } from "vlist";
+import { vlist, withSelection, withAsync, withGrid, withTable } from "vlist";
+import { createStats } from "../stats.js";
+import { createInfoUpdater } from "../info.js";
 import {
   API_BASE,
   trackTemplate,
+  trackGridTemplate,
+  trackTableColumns,
+  trackTableRowTemplate,
   formatSelectionCount,
-  calculateMemorySaved,
   formatDuration,
   escapeHtml,
 } from "./shared.js";
@@ -16,7 +21,11 @@ import {
 // =============================================================================
 
 const CHUNK_SIZE = 25;
-const ITEM_HEIGHT = 80;
+const ITEM_HEIGHT = 56;
+const GRID_COLUMNS = 4;
+const GRID_GAP = 8;
+const TABLE_ROW_HEIGHT = 36;
+const TABLE_HEADER_HEIGHT = 36;
 
 // =============================================================================
 // State
@@ -25,6 +34,7 @@ const ITEM_HEIGHT = 80;
 let list = null;
 let totalTracks = 0;
 let currentSelectionMode = "single";
+let currentLayoutMode = "list";
 let loadRequests = 0;
 let loadedCount = 0;
 
@@ -32,7 +42,6 @@ let currentFilters = {
   search: "",
   country: "",
   decade: "",
-  approved: "",
 };
 
 // =============================================================================
@@ -50,7 +59,6 @@ function buildParams(offset, limit) {
   if (currentFilters.search) params.set("search", currentFilters.search);
   if (currentFilters.country) params.set("country", currentFilters.country);
   if (currentFilters.decade) params.set("decade", currentFilters.decade);
-  if (currentFilters.approved) params.set("approved", currentFilters.approved);
 
   return params;
 }
@@ -76,8 +84,41 @@ const tracksAdapter = {
 };
 
 // =============================================================================
+// Stats — info bar (progress, velocity, visible/total)
+// =============================================================================
+
+function getEffectiveItemHeight() {
+  if (currentLayoutMode === "table") return TABLE_ROW_HEIGHT;
+  if (currentLayoutMode === "grid") {
+    const container = document.getElementById("list-container");
+    if (!container) return 200;
+    const innerWidth = container.clientWidth - 2;
+    const colWidth =
+      (innerWidth - (GRID_COLUMNS - 1) * GRID_GAP) / GRID_COLUMNS;
+    return Math.round(colWidth * 1.3);
+  }
+  return ITEM_HEIGHT;
+}
+
+const stats = createStats({
+  getScrollPosition: () => list?.getScrollPosition() ?? 0,
+  getTotal: () => totalTracks,
+  getItemSize: () => getEffectiveItemHeight(),
+  getColumns: () => (currentLayoutMode === "grid" ? GRID_COLUMNS : 1),
+  getContainerSize: () => {
+    const el = document.getElementById("list-container");
+    return el ? el.clientHeight : 0;
+  },
+});
+
+const updateInfo = createInfoUpdater(stats);
+
+// =============================================================================
 // DOM References
 // =============================================================================
+
+// Layout
+const layoutModeEl = document.getElementById("layout-mode");
 
 // Selection
 const selectionModeEl = document.getElementById("selection-mode");
@@ -88,13 +129,32 @@ const selectionCountEl = document.getElementById("selection-count");
 // Actions
 const btnAddTrack = document.getElementById("btn-add-track");
 const btnDeleteSelected = document.getElementById("btn-delete-selected");
-const btnRefresh = document.getElementById("btn-refresh");
 
 // =============================================================================
-// Create List
+// Async plugin config (shared across all modes)
 // =============================================================================
 
-function createList(mode) {
+function getAsyncConfig() {
+  return {
+    adapter: tracksAdapter,
+    autoLoad: true,
+    storage: {
+      chunkSize: CHUNK_SIZE,
+      maxCachedItems: 2000,
+    },
+    loading: {
+      cancelThreshold: 8,
+      preloadThreshold: 2,
+      preloadAhead: 25,
+    },
+  };
+}
+
+// =============================================================================
+// Create List — dispatches to the correct view builder
+// =============================================================================
+
+function createList(selectionMode) {
   if (list) {
     list.destroy();
   }
@@ -102,6 +162,27 @@ function createList(mode) {
   loadRequests = 0;
   loadedCount = 0;
 
+  const container = document.getElementById("list-container");
+  container.innerHTML = "";
+
+  if (currentLayoutMode === "grid") {
+    createGridView(selectionMode);
+  } else if (currentLayoutMode === "table") {
+    createTableView(selectionMode);
+  } else {
+    createListView(selectionMode);
+  }
+
+  bindListEvents();
+  updateInfo();
+  updateContext();
+}
+
+// =============================================================================
+// List View (default — vertical list with 80px rows)
+// =============================================================================
+
+function createListView(selectionMode) {
   const builder = vlist({
     container: "#list-container",
     ariaLabel: "Track list",
@@ -111,27 +192,115 @@ function createList(mode) {
     },
   });
 
-  builder.use(
-    withAsync({
-      adapter: tracksAdapter,
-      autoLoad: true,
-      storage: {
-        chunkSize: CHUNK_SIZE,
-        maxCachedItems: 2000,
-      },
-      loading: {
-        cancelThreshold: 8,
-        preloadThreshold: 2,
-        preloadAhead: 25,
-      },
-    }),
-  );
-
-  builder.use(withSelection({ mode }));
+  builder.use(withAsync(getAsyncConfig()));
+  builder.use(withSelection({ mode: selectionMode }));
 
   list = builder.build();
-  bindListEvents();
 }
+
+// =============================================================================
+// Grid View (withGrid — card layout)
+// =============================================================================
+
+function createGridView(selectionMode) {
+  const container = document.getElementById("list-container");
+  const innerWidth = container.clientWidth - 2;
+  const colWidth = (innerWidth - (GRID_COLUMNS - 1) * GRID_GAP) / GRID_COLUMNS;
+  const cardHeight = Math.round(colWidth * 1.3);
+
+  const builder = vlist({
+    container: "#list-container",
+    ariaLabel: "Track list",
+    item: {
+      height: (_index, ctx) =>
+        ctx ? Math.round(ctx.columnWidth * 1.3) : cardHeight,
+      template: trackGridTemplate,
+    },
+  });
+
+  builder.use(withAsync(getAsyncConfig()));
+  builder.use(withGrid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
+  builder.use(withSelection({ mode: selectionMode }));
+
+  list = builder.build();
+}
+
+// =============================================================================
+// Table View (withTable — columns with header)
+// =============================================================================
+
+function createTableView(selectionMode) {
+  const builder = vlist({
+    container: "#list-container",
+    ariaLabel: "Track list",
+    item: {
+      height: TABLE_ROW_HEIGHT,
+      striped: "odd",
+      template: trackTableRowTemplate,
+    },
+  });
+
+  builder.use(withAsync(getAsyncConfig()));
+  builder.use(
+    withTable({
+      columns: trackTableColumns,
+      rowHeight: TABLE_ROW_HEIGHT,
+      headerHeight: TABLE_HEADER_HEIGHT,
+      resizable: true,
+      columnBorders: false,
+      rowBorders: false,
+      minColumnWidth: 50,
+    }),
+  );
+  builder.use(withSelection({ mode: selectionMode }));
+
+  list = builder.build();
+}
+
+// =============================================================================
+// Layout Mode — List ↔ Grid ↔ Table
+// =============================================================================
+
+function setLayoutMode(mode) {
+  if (mode === currentLayoutMode) return;
+  currentLayoutMode = mode;
+
+  layoutModeEl.querySelectorAll(".ui-segmented__btn").forEach((btn) => {
+    btn.classList.toggle(
+      "ui-segmented__btn--active",
+      btn.dataset.mode === mode,
+    );
+  });
+
+  // Toggle container class for mode-specific styling
+  const container = document.getElementById("list-container");
+  container.classList.remove("mode-list", "mode-grid", "mode-table");
+  container.classList.add(`mode-${mode}`);
+
+  // Grid/table need more width — add split-main--full
+  const splitMain = container.closest(".split-main");
+  if (splitMain) {
+    splitMain.classList.toggle("split-main--full", mode !== "list");
+  }
+
+  createList(currentSelectionMode);
+  updateSelectionCount([]);
+}
+
+// =============================================================================
+// Info bar — right side (contextual)
+// =============================================================================
+
+const infoMode = document.getElementById("info-mode");
+
+function updateContext() {
+  if (infoMode) infoMode.textContent = currentLayoutMode;
+}
+
+layoutModeEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-mode]");
+  if (btn) setLayoutMode(btn.dataset.mode);
+});
 
 // =============================================================================
 // Selection
@@ -191,7 +360,6 @@ btnAddTrack.addEventListener("click", async () => {
     artist,
     year: year ? parseInt(year, 10) : null,
     country: country || null,
-    approved: false,
   };
 
   try {
@@ -217,9 +385,7 @@ async function deleteSelected() {
 
   const items = list.getSelectedItems();
 
-  // Capture the resolved index of the first selected item BEFORE deletion.
-  // After removal, whatever item shifts into this index is the "next" one.
-
+  // Delete from server
   const promises = items.map((track) =>
     fetch(`${API_BASE}/${track.id}`, { method: "DELETE" }),
   );
@@ -234,7 +400,6 @@ async function deleteSelected() {
   // Build id→index map before any deletion
   const deleteOrder = items
     .map((track) => {
-      // Peek at the element in the DOM to find its data-index
       const container = list.element;
       const el = container?.querySelector(`[data-id="${track.id}"]`);
       const index = el ? parseInt(el.dataset.index, 10) : -1;
@@ -258,12 +423,9 @@ async function deleteSelected() {
     currentSelectionMode !== "none" &&
     lowestDeletedIndex < Infinity
   ) {
-    // After deletion, the item that was below shifted into this index.
-    // Clamp to total-1 in case we deleted the last item.
     const targetIndex = Math.min(lowestDeletedIndex, list.total - 1);
 
     requestAnimationFrame(() => {
-      // Find the item now rendered at targetIndex by querying the DOM
       const container = list.element;
       const el = container?.querySelector(`[data-index="${targetIndex}"]`);
       const id = el?.dataset.id;
@@ -289,11 +451,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-btnRefresh.addEventListener("click", async () => {
-  loadedCount = 0;
-  await list.reload();
-});
-
 // =============================================================================
 // Event Bindings
 // =============================================================================
@@ -305,6 +462,16 @@ function bindListEvents() {
 
   list.on("load:end", ({ items, total }) => {
     totalTracks = total;
+    updateInfo();
+  });
+
+  list.on("scroll", updateInfo);
+
+  list.on("range:change", updateInfo);
+
+  list.on("velocity:change", ({ velocity }) => {
+    stats.onVelocity(velocity);
+    updateInfo();
   });
 }
 

@@ -102,7 +102,7 @@
         "slug": "track-list",
         "name": "Track List",
         "desc": "",
-        "features": ["async", "selection"]
+        "features": ["async", "selection", "table", "grid"]
       }
     ]
   }

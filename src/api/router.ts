@@ -387,7 +387,7 @@ const handleGetCitiesStats = (): Response => {
 // =============================================================================
 
 /**
- * GET /api/tracks?offset=0&limit=50&sort=id&direction=desc&search=&country=&decade=&category=&artist=&minYear=&maxYear=&approved=&delay=0
+ * GET /api/tracks?offset=0&limit=50&sort=id&direction=desc&search=&country=&decade=&category=&artist=&minYear=&maxYear=&delay=0
  *
  * Query params:
  *   offset    — start index (default: 0)
@@ -401,7 +401,6 @@ const handleGetCitiesStats = (): Response => {
  *   artist    — artist name filter (partial match)
  *   minYear   — minimum year filter
  *   maxYear   — maximum year filter
- *   approved  — approval status filter (true/false)
  *   delay     — simulated latency in ms (default: 0, max: 5000)
  *
  * Response: { items: Track[], total: number, hasMore: boolean }

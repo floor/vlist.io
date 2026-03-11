@@ -53,7 +53,8 @@ export interface Track {
   decade: number | null;
   category: string | null;
   duration: number | null;
-  approved: number;
+  cover_url: string | null;
+  cover_color: string | null;
   created_at: string;
 }
 
@@ -65,7 +66,6 @@ export interface TrackInput {
   decade?: number | null;
   category?: string | null;
   duration?: number | null;
-  approved?: boolean;
 }
 
 export interface TracksResponse {
@@ -80,7 +80,6 @@ export interface TracksStatsResponse {
   decades: { decade: number; count: number }[];
   categories: { category: string; count: number }[];
   topArtists: { artist: string; count: number }[];
-  approved: number;
   yearRange: { min: number | null; max: number | null };
 }
 
@@ -100,7 +99,6 @@ const SORTABLE_COLUMNS = new Set([
   "decade",
   "category",
   "duration",
-  "approved",
   "created_at",
 ]);
 
@@ -118,7 +116,6 @@ interface QueryFilters {
   artist?: string;
   minYear?: number;
   maxYear?: number;
-  approved?: boolean;
 }
 
 interface QueryOptions extends QueryFilters {
@@ -171,11 +168,6 @@ function buildWhere(filters: QueryFilters): [string, SQLQueryBindings[]] {
     params.push(filters.maxYear);
   }
 
-  if (filters.approved != null) {
-    conditions.push("approved = ?");
-    params.push(filters.approved ? 1 : 0);
-  }
-
   const clause =
     conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";
   return [clause, params];
@@ -200,7 +192,6 @@ function buildWhere(filters: QueryFilters): [string, SQLQueryBindings[]] {
  *   artist    — filter by artist name (partial match)
  *   minYear   — minimum year
  *   maxYear   — maximum year
- *   approved  — filter by approval status (true/false)
  */
 export function getTracks(options: QueryOptions): TracksResponse {
   const database = getDb();
@@ -229,7 +220,7 @@ export function getTracks(options: QueryOptions): TracksResponse {
 
   const items = database
     .query(
-      `SELECT id, mongo_id, title, artist, country, year, decade, category, duration, approved, created_at
+      `SELECT id, mongo_id, title, artist, country, year, decade, category, duration, cover_url, cover_color, created_at
        FROM tracks${whereClause}
        ORDER BY ${sort}${collate} ${direction.toUpperCase()}
        LIMIT ? OFFSET ?`,
@@ -250,7 +241,7 @@ export function getTrackById(id: number): Track | null {
   const database = getDb();
   const track = database
     .query(
-      `SELECT id, mongo_id, title, artist, country, year, decade, category, duration, approved, created_at
+      `SELECT id, mongo_id, title, artist, country, year, decade, category, duration, cover_url, cover_color, created_at
        FROM tracks WHERE id = ?`,
     )
     .get(id) as Track | null;
@@ -272,8 +263,8 @@ export function createTrack(input: TrackInput): Track {
 
   const result = database
     .prepare(
-      `INSERT INTO tracks (mongo_id, title, artist, country, year, decade, category, duration, approved)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tracks (mongo_id, title, artist, country, year, decade, category, duration)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       mongo_id,
@@ -284,7 +275,6 @@ export function createTrack(input: TrackInput): Track {
       input.decade ?? null,
       input.category ?? null,
       input.duration ?? null,
-      input.approved ? 1 : 0,
     );
 
   const insertedId = Number(result.lastInsertRowid);
@@ -349,11 +339,6 @@ export function updateTrack(
     updates.push("duration = ?");
     params.push(input.duration);
   }
-  if (input.approved !== undefined) {
-    updates.push("approved = ?");
-    params.push(input.approved ? 1 : 0);
-  }
-
   if (updates.length === 0) {
     // No fields to update
     return existing;
@@ -464,12 +449,6 @@ export function getStats(): TracksStatsResponse {
       .get() as { count: number }
   ).count;
 
-  const approved = (
-    database
-      .query("SELECT COUNT(*) as count FROM tracks WHERE approved = 1")
-      .get() as { count: number }
-  ).count;
-
   const decades = database
     .query(
       `SELECT decade, COUNT(*) as count
@@ -513,7 +492,6 @@ export function getStats(): TracksStatsResponse {
     decades,
     categories,
     topArtists,
-    approved,
     yearRange,
   };
 }
@@ -540,12 +518,6 @@ export function parseQueryOptions(url: URL): QueryOptions & { delay: number } {
     return Math.max(min, Math.min(max, n));
   };
 
-  const boolParam = (name: string): boolean | undefined => {
-    const raw = url.searchParams.get(name);
-    if (raw === null) return undefined;
-    return raw === "true" || raw === "1";
-  };
-
   return {
     offset: intParam("offset", 0, 0, 1_000_000),
     limit: intParam("limit", DEFAULT_LIMIT, 1, MAX_LIMIT),
@@ -558,7 +530,6 @@ export function parseQueryOptions(url: URL): QueryOptions & { delay: number } {
     artist: url.searchParams.get("artist") ?? undefined,
     minYear: intParam("minYear", 0, 1900, 2100) || undefined,
     maxYear: intParam("maxYear", 0, 1900, 2100) || undefined,
-    approved: boolParam("approved"),
     delay: intParam("delay", 0, 0, 5000),
   };
 }

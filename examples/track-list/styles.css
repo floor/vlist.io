@@ -9,6 +9,10 @@
     overflow: hidden;
 }
 
+.ui-segmented {
+    flex: none;
+}
+
 /* ============================================================================
    Track Item Styles
    ============================================================================ */
@@ -16,10 +20,6 @@
 .vlist-item {
     border-bottom: 1px solid var(--border);
     transition: background-color 0.2s ease;
-}
-
-.vlist-item:hover {
-    background-color: var(--sidebar-hover);
 }
 
 .vlist-item.vlist-item--selected {
@@ -34,53 +34,73 @@
 .item-content {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 8px 16px;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 12px;
     height: 100%;
+    overflow: hidden;
 }
 
-/* Album artwork */
+/* Album artwork container */
 .item-artwork {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius-xs);
-    background: var(--accent);
-    flex-shrink: 0;
+    flex: 0 0 36px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Cover image (list mode) */
+.item-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: var(--radius-xs);
+}
+
+/* Initials fallback (list mode) */
+.item-cover--fallback {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: var(--accent);
     color: var(--text);
     font-weight: 600;
-    font-size: 18px;
-    box-shadow: 0 2px 4px var(--overlay-bg);
+    font-size: 13px;
+    border-radius: var(--radius-xs);
 }
 
 /* Track details */
 .item-details {
-    flex: 1;
+    flex: 1 1 0%;
     min-width: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 }
 
 .item-title {
     font-weight: 500;
-    font-size: var(--fs-base);
+    font-size: var(--fs-sm);
     color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.4;
+    line-height: 1.3;
 }
 
 .item-artist {
-    font-size: var(--fs-sm);
+    font-size: var(--fs-xs);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.4;
+    line-height: 1.3;
 }
 
 .item-meta {
@@ -106,20 +126,23 @@
 
 /* Duration (right side) */
 .item-duration-main {
-    font-size: var(--fs-ui);
-    color: var(--text-muted);
-    min-width: 50px;
+    flex: 0 0 auto;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
     text-align: right;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 /* Three-dot menu */
 .item-menu {
+    flex: 0 0 auto;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s ease;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 4px;
+    padding: 2px;
+    font-size: var(--fs-xs);
 }
 
 .vlist-item:hover .item-menu {
@@ -128,6 +151,178 @@
 
 .item-menu:hover {
     color: var(--text);
+}
+
+/* ============================================================================
+   Grid Mode — Card Layout
+   ============================================================================ */
+
+.grid-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: border-color 0.2s ease;
+}
+
+.grid-card:hover {
+    border-color: var(--text-muted);
+}
+
+.vlist-item--selected .grid-card {
+    border-color: var(--badge-error-bg);
+    box-shadow: 0 0 0 1px var(--badge-error-bg);
+}
+
+.grid-card__artwork {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+}
+
+/* Cover image (grid mode) */
+.grid-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Initials fallback (grid mode) */
+.grid-cover--fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 1px;
+}
+
+.grid-card__body {
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-top: 1px solid var(--border);
+}
+
+.grid-card__title {
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.grid-card__artist {
+    font-size: var(--fs-xs);
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.grid-card__meta {
+    display: flex;
+    gap: 6px;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
+/* Grid mode: remove list-style borders on items */
+.mode-grid .vlist-item {
+    border-bottom: none;
+}
+
+/* ============================================================================
+   Table Mode — Column Cells
+   ============================================================================ */
+
+.table-cell--title {
+    font-weight: 500;
+}
+
+/* Table mode: tighter selection highlight */
+.mode-table .vlist-item.vlist-item--selected {
+    background-color: var(--badge-error-bg);
+}
+
+/* ============================================================================
+   Placeholder skeleton — driven by .vlist-item--placeholder on the wrapper.
+   The template is identical for real and placeholder items; mask characters
+   (x) set the natural width, CSS hides them and shows skeleton blocks.
+   ============================================================================ */
+
+/* List mode placeholders */
+.vlist-item--placeholder .item-cover--fallback {
+    color: transparent;
+}
+
+.vlist-item--placeholder .item-title {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: fit-content;
+    line-height: 1.1;
+    margin-bottom: 1px;
+}
+
+.vlist-item--placeholder .item-artist {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: fit-content;
+    line-height: 1;
+}
+
+.vlist-item--placeholder .item-duration-main {
+    color: transparent;
+}
+
+.vlist-item--placeholder .item-menu {
+    visibility: hidden;
+}
+
+/* Grid mode placeholders */
+.vlist-item--placeholder .grid-cover--fallback {
+    color: transparent;
+}
+
+.vlist-item--placeholder .grid-card__title {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: fit-content;
+    line-height: 1.1;
+    margin-bottom: 1px;
+}
+
+.vlist-item--placeholder .grid-card__artist {
+    color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: fit-content;
+    line-height: 1;
+}
+
+.vlist-item--placeholder .grid-card__meta {
+    visibility: hidden;
 }
 
 /* ============================================================================
@@ -140,8 +335,13 @@
     }
 
     .item-artwork {
-        width: 40px;
-        height: 40px;
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+    }
+
+    .item-cover--fallback {
+        font-size: 11px;
     }
 
     .item-meta {
