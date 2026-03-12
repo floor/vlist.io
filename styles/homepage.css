@@ -188,6 +188,14 @@
     line-height: 1.5;
 }
 
+.ui-card--xl .feature__name {
+    font-size: var(--fs-xl);
+}
+
+.ui-card--xl .feature__desc {
+    font-size: var(--fs-md);
+}
+
 /* ============================================================
    Navigation Cards
    ============================================================ */
@@ -292,7 +300,7 @@
 
 .code pre {
     font-family: var(--font-mono);
-    font-size: var(--fs-md);
+    font-size: var(--fs-ui);
     line-height: 1.7;
     color: var(--text-muted);
 }
@@ -301,6 +309,69 @@
 
 [data-theme-mode="light"] .code pre {
     color: var(--text-muted);
+}
+
+/* ============================================================
+   Quick Start — code + live demo side-by-side
+   ============================================================ */
+
+.quickstart {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.quickstart__code {
+    margin: 0;
+    min-width: 0;
+}
+
+.quickstart__demo {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-card);
+    height: 480px;
+}
+
+.quickstart__demo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bg-card);
+}
+
+.quickstart__demo-label {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.quickstart__demo-list {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.quickstart__demo-list .vlist {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--vlist-bg);
+    color: var(--vlist-text);
+    color-scheme: light;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+}
+.quickstart__demo-list .vlist .qs-user {
+    width: 100%;
 }
 
 /* ============================================================
@@ -340,6 +411,14 @@ footer a:hover {
 /* ─── Tablet ─────────────────────────────────────── */
 
 @media (max-width: 800px) {
+    .quickstart {
+        grid-template-columns: 1fr;
+    }
+
+    .quickstart__demo {
+        height: 400px;
+    }
+
     .section .overview__grid {
         grid-template-columns: 1fr 1fr;
     }
