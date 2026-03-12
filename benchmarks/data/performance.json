@@ -20,6 +20,16 @@
     "self": false
   },
   {
+    "lib": "react-virtuoso",
+    "version": "4.18.3",
+    "renderTime": "8.5",
+    "memory": "0.71",
+    "scrollFPS": "120.5",
+    "p95Frame": "10.2",
+    "ecosystem": "React",
+    "self": false
+  },
+  {
     "lib": "TanStack Virtual",
     "version": "3.13.18",
     "renderTime": "9.3",

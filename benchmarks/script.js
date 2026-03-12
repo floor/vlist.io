@@ -47,6 +47,7 @@ import "./suites/scrollto/svelte/suite.js";
 
 // Comparison suites
 import "./comparison/react-window.js";
+import "./comparison/react-virtuoso.js";
 import "./comparison/tanstack-virtual.js";
 import "./comparison/virtua.js";
 import "./comparison/vue-virtual-scroller.js";

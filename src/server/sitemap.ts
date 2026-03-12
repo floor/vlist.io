@@ -171,6 +171,7 @@ function buildLastmodMap(): Map<string, string> {
     memory: ["benchmarks/suites/memory/"],
     scrollto: ["benchmarks/suites/scrollto/"],
     "react-window": ["benchmarks/comparison/react-window.js"],
+    "react-virtuoso": ["benchmarks/comparison/react-virtuoso.js"],
     "tanstack-virtual": ["benchmarks/comparison/tanstack-virtual.js"],
     virtua: ["benchmarks/comparison/virtua.js"],
     "vue-virtual-scroller": ["benchmarks/comparison/vue-virtual-scroller.js"],

@@ -38,6 +38,12 @@
         "desc": "Head-to-head performance: vlist vs react-window"
       },
       {
+        "slug": "react-virtuoso",
+        "name": "react-virtuoso",
+        "icon": "",
+        "desc": "Head-to-head performance: vlist vs react-virtuoso"
+      },
+      {
         "slug": "tanstack-virtual",
         "name": "TanStack Virtual",
         "icon": "",

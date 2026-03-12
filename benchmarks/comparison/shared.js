@@ -466,8 +466,8 @@ export const benchmarkVList = async (
 ) => {
   onStatus("Testing vlist - preparing...");
 
-  // Generate minimal items array (just indices, very fast)
-  const items = Array.from({ length: itemCount }, (_, i) => i);
+  // Generate minimal items array with id property (required by vlist dev check)
+  const items = Array.from({ length: itemCount }, (_, i) => ({ id: i }));
 
   // ── Phase 1: TIMING ────────────────────────────────────────────────────
   // Measure render time across multiple iterations using performance.mark/measure.

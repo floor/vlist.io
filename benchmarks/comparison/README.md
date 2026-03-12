@@ -6,6 +6,7 @@ Head-to-head performance comparisons between **vlist** and popular virtualizatio
 
 ### React Ecosystem
 - **[react-window](./react-window.js)** — Brian Vaughn's minimalist library, component-based with fixed/variable size lists
+- **[react-virtuoso](./react-virtuoso.js)** — Feature-rich React virtualization (~16 KB gzip) with auto-height measurement, grouped lists, reverse mode, and table support
 - **[TanStack Virtual](./tanstack-virtual.js)** — Headless virtualization hook (`useVirtualizer`) for React
 - **[Virtua](./virtua.js)** — Zero-config `<VList>` component (~3 kB per component)
 - **[Legend List](./legend-list.js)** — High-performance list with dedicated React DOM entry point (`@legendapp/list/react`), item recycling, and bidirectional infinite scroll
@@ -75,6 +76,7 @@ comparison/
 │   ├── calculateComparisonMetrics()
 │   └── runComparison()
 ├── react-window.js              # vs react-window
+├── react-virtuoso.js            # vs react-virtuoso
 ├── tanstack-virtual.js          # vs TanStack Virtual (React)
 ├── virtua.js                    # vs Virtua (React)
 ├── legend-list.js               # vs Legend List (React DOM)
@@ -241,6 +243,7 @@ open http://localhost:3338/benchmarks/comparisons
 - `/benchmarks/comparisons` — Overview and methodology
 - `/benchmarks/performance-comparison` — Results table
 - `/benchmarks/react-window` — vs react-window
+- `/benchmarks/react-virtuoso` — vs react-virtuoso
 - `/benchmarks/tanstack-virtual` — vs TanStack Virtual
 - `/benchmarks/virtua` — vs Virtua
 - `/benchmarks/vue-virtual-scroller` — vs vue-virtual-scroller
