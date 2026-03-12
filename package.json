@@ -15,6 +15,7 @@
     "build:examples:watch": "bun run examples/build.ts --watch",
     "build:bench": "bun run benchmarks/build.ts",
     "build:bench:watch": "bun run benchmarks/build.ts --watch",
+    "seed:benchmarks": "bun run scripts/seed-benchmarks.ts",
     "test": "bun test test/",
     "test:watch": "bun test --watch test/",
     "test:coverage": "NODE_ENV=production bun test --coverage test/",

@@ -682,6 +682,12 @@ html[data-theme] .bench-metric,
 html[data-theme] .bench-bundle,
 html[data-theme] .bench-features,
 html[data-theme] .bench-viewport,
+html[data-theme] .bench-history__stat,
+html[data-theme] .bench-history__filters,
+html[data-theme] .bench-history__select,
+html[data-theme] .bench-history__table,
+html[data-theme] .bench-history__empty,
+html[data-theme] .bench-history__bar,
 html[data-theme] .vlist,
 html[data-theme] .vlist-item,
 html[data-theme] .vlist-grid-item,
@@ -874,4 +880,325 @@ html[data-theme] .vlist-item {
 
 .page-footer-note a {
     color: var(--primary);
+}
+
+/* ============================================================================
+   History Page
+   ============================================================================ */
+
+.bench-history {
+    max-width: 860px;
+}
+
+/* ─── Summary Grid ─────────────────────────────────────────────── */
+
+.bench-history__summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.bench-history__stat {
+    text-align: center;
+    padding: 16px 8px;
+    background: var(--surface, #f9fafb);
+    border-radius: 8px;
+    border: 1px solid var(--border, #e5e7eb);
+}
+
+.bench-history__stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums;
+}
+
+.bench-history__stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ─── Filters ──────────────────────────────────────────────────── */
+
+.bench-history__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    margin: 24px 0;
+    padding: 16px;
+    background: var(--surface, #f9fafb);
+    border-radius: 8px;
+    border: 1px solid var(--border, #e5e7eb);
+}
+
+.bench-history__filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.bench-history__filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bench-history__select {
+    appearance: none;
+    background: var(--bg, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 6px;
+    padding: 7px 32px 7px 10px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    min-width: 160px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    transition: border-color 0.15s;
+}
+
+.bench-history__select:hover {
+    border-color: var(--text-muted);
+}
+
+.bench-history__select:focus {
+    outline: none;
+    border-color: var(--accent, #3b82f6);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+/* ─── Section Cards ────────────────────────────────────────────── */
+
+.bench-history__stats-card,
+.bench-history__chart-card,
+.bench-history__browsers-card,
+.bench-history__versions-card {
+    margin-bottom: 20px;
+}
+
+.bench-history__section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px;
+}
+
+.bench-history__section-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+}
+
+/* ─── Stats Table ──────────────────────────────────────────────── */
+
+.bench-history__table-wrapper {
+    overflow-x: auto;
+    margin: 0 -4px;
+}
+
+.bench-history__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.bench-history__table th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border, #e5e7eb);
+    white-space: nowrap;
+}
+
+.bench-history__table td {
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.bench-history__table tbody tr:hover {
+    background: var(--surface-hover, rgba(0, 0, 0, 0.02));
+}
+
+.bench-history__table--compact {
+    font-size: 13px;
+}
+
+.bench-history__version-cell {
+    font-weight: 600;
+    color: var(--accent, #3b82f6);
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+    font-size: 12px;
+}
+
+.bench-history__value-cell {
+    font-weight: 600;
+}
+
+.bench-history__count-cell {
+    color: var(--text-muted);
+}
+
+/* ─── Chart ────────────────────────────────────────────────────── */
+
+.bench-history__metric-select-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.bench-history__chart-container {
+    width: 100%;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bench-history__svg {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+}
+
+.bench-history__svg text {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+}
+
+.bench-history__svg circle {
+    cursor: pointer;
+    transition: r 0.15s;
+}
+
+.bench-history__svg circle:hover {
+    r: 6;
+}
+
+/* ─── Browser Bar ──────────────────────────────────────────────── */
+
+.bench-history__bar-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.bench-history__bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--accent, #3b82f6);
+    min-width: 2px;
+    transition: width 0.3s ease;
+}
+
+.bench-history__bar-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+/* ─── Loading / Empty / Error ──────────────────────────────────── */
+
+.bench-history__loading {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.bench-history__empty {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+    background: var(--surface, #f9fafb);
+    border-radius: 8px;
+    border: 1px dashed var(--border, #e5e7eb);
+}
+
+.bench-history__error {
+    text-align: center;
+    padding: 32px 16px;
+    color: #ef4444;
+    font-size: 14px;
+    background: rgba(239, 68, 68, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ─── History Responsive ───────────────────────────────────────── */
+
+@media (max-width: 720px) {
+    .bench-history__summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .bench-history__stat-value {
+        font-size: 20px;
+    }
+
+    .bench-history__filters {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .bench-history__select {
+        min-width: 100%;
+    }
+
+    .bench-history__table {
+        font-size: 12px;
+    }
+
+    .bench-history__table th,
+    .bench-history__table td {
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .bench-history__summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ─── Dark Mode Adjustments ────────────────────────────────────── */
+
+[data-theme-mode="dark"] .bench-history__stat {
+    background: var(--surface, #1f2937);
+}
+
+[data-theme-mode="dark"] .bench-history__filters {
+    background: var(--surface, #1f2937);
+}
+
+[data-theme-mode="dark"] .bench-history__select {
+    background-color: var(--bg, #111827);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+[data-theme-mode="dark"] .bench-history__empty {
+    background: var(--surface, #1f2937);
+}
+
+[data-theme-mode="dark"] .bench-history__table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
 }

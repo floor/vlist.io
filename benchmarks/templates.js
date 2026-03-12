@@ -7,6 +7,8 @@ import vlistPackage from "@floor/vlist/package.json";
 import { STRESS_LEVELS, formatItemCount } from "./runner.js";
 import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
 
+const HISTORY_ITEM_COUNTS = [10_000, 100_000, 1_000_000];
+
 const ITEM_COUNTS = [10_000, 100_000, 1_000_000];
 const INITIAL_ITEM_COUNT = ITEM_COUNTS[0];
 
@@ -302,6 +304,116 @@ export function buildComparisonsOverviewHTML() {
 // =============================================================================
 // Performance Comparison Page Template
 // =============================================================================
+
+// =============================================================================
+// History Page Template
+// =============================================================================
+
+export function buildHistoryPageHTML() {
+  const version = vlistPackage.version;
+
+  return `
+    <div class="bench-page bench-history">
+      <header class="bench-header">
+        <h1 class="bench-header__title">📈 Comparison History</h1>
+        <p class="bench-header__desc">
+          Crowdsourced comparison results collected from all visitors.
+          Every time someone runs a library comparison (react-window, virtua, TanStack, etc.)
+          on this site, the result is stored and aggregated here — giving
+          statistically meaningful data across hardware, browsers, and vlist versions.
+        </p>
+      </header>
+
+      <!-- Summary Card -->
+      <div class="ui-card ui-card--xl bench-history__summary" id="history-summary">
+        <div class="bench-history__loading">Loading summary…</div>
+      </div>
+
+      <!-- Filters -->
+      <div class="bench-history__filters" id="history-filters">
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Library</label>
+          <select class="bench-history__select" id="history-suite">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Item Count</label>
+          <div class="ui-segmented" id="history-item-count">
+            ${HISTORY_ITEM_COUNTS.map(
+              (count, i) =>
+                `<button class="ui-segmented__btn${i === 0 ? " ui-segmented__btn--active" : ""}" data-count="${count}">${formatItemCount(count)}</button>`,
+            ).join("")}
+          </div>
+        </div>
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Version</label>
+          <select class="bench-history__select" id="history-version">
+            <option value="">All versions</option>
+          </select>
+        </div>
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Days</label>
+          <select class="bench-history__select" id="history-days">
+            <option value="7">7 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="90">90 days</option>
+            <option value="365">1 year</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Stats Table -->
+      <div class="ui-card ui-card--xl bench-history__stats-card" id="history-stats">
+        <h2 class="bench-history__section-title">Aggregated Metrics</h2>
+        <p class="bench-history__section-desc">Statistical summary across all submissions for the selected filters.</p>
+        <div id="history-stats-content">
+          <div class="bench-history__loading">Select a suite to view stats…</div>
+        </div>
+      </div>
+
+      <!-- Chart Area -->
+      <div class="ui-card ui-card--xl bench-history__chart-card" id="history-chart-card">
+        <h2 class="bench-history__section-title">Trend Over Time</h2>
+        <p class="bench-history__section-desc">Daily aggregated median with p5–p95 range band.</p>
+        <div class="bench-history__metric-select-row">
+          <label class="bench-history__filter-label">Metric</label>
+          <select class="bench-history__select" id="history-metric">
+            <option value="">Select suite first</option>
+          </select>
+        </div>
+        <div class="bench-history__chart-container" id="history-chart">
+          <div class="bench-history__loading">Select a suite and metric…</div>
+        </div>
+      </div>
+
+      <!-- Browsers Card -->
+      <div class="ui-card ui-card--xl bench-history__browsers-card" id="history-browsers">
+        <h2 class="bench-history__section-title">Browser Breakdown</h2>
+        <p class="bench-history__section-desc">Distribution of submissions by browser.</p>
+        <div id="history-browsers-content">
+          <div class="bench-history__loading">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Versions Card -->
+      <div class="ui-card ui-card--xl bench-history__versions-card" id="history-versions">
+        <h2 class="bench-history__section-title">Version History</h2>
+        <p class="bench-history__section-desc">All vlist versions with benchmark data.</p>
+        <div id="history-versions-content">
+          <div class="bench-history__loading">Loading…</div>
+        </div>
+      </div>
+
+      <footer class="bench-footer">
+        <p>
+          Data is crowdsourced from all visitors — results represent real-world hardware diversity.
+          <br>Current version: <strong>vlist ${escapeHtml(version)}</strong>
+        </p>
+      </footer>
+    </div>
+  `;
+}
 
 export function buildPerformanceComparisonHTML(performanceData) {
   const rows = performanceData

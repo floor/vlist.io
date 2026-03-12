@@ -101,6 +101,12 @@
         "name": "Performance Comparison",
         "icon": "",
         "desc": "Head-to-head performance metrics across all libraries"
+      },
+      {
+        "slug": "history",
+        "name": "Comparison History",
+        "icon": "📈",
+        "desc": "Crowdsourced library comparison results over time, by version and browser"
       }
     ]
   }

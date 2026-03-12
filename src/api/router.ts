@@ -1,6 +1,7 @@
 // src/api/router.ts
 // API router for vlist.dev — handles /api/* routes with CORS support
 
+import { routeBenchmarks } from "./benchmarks";
 import { CACHE_API, CACHE_API_DOCS } from "../server/cache";
 import { getUsers, getUserById, TOTAL, MAX_LIMIT } from "./users";
 import {
@@ -775,6 +776,12 @@ export const routeApi = async (
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
+  // Benchmarks API (supports GET + POST, has its own method handling)
+  if (path.startsWith("/api/benchmarks")) {
+    const benchResponse = await routeBenchmarks(req, url);
+    if (benchResponse) return benchResponse;
   }
 
   // Allow GET, POST, PUT, DELETE for tracks API

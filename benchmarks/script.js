@@ -13,11 +13,61 @@ import {
   buildPerformanceComparisonHTML,
 } from "./templates.js";
 
+import { buildHistoryPage } from "./history.js";
+
 // Import data files
 import BUNDLE_DATA from "./data/bundle.json";
 import PERFORMANCE_DATA from "./data/performance.json";
 import FEATURES_DATA from "./data/features.json";
 import vlistPackage from "@floor/vlist/package.json";
+
+// =============================================================================
+// Persistence — crowdsourced benchmark storage
+// =============================================================================
+
+/**
+ * POST a benchmark result to /api/benchmarks for long-term storage.
+ * Fire-and-forget: failures are logged but never block the UI.
+ *
+ * @param {import('./runner.js').BenchmarkResult} result
+ * @param {object} [extra] - Additional config (stressMs, scrollSpeed)
+ */
+const persistResult = (result, extra = {}) => {
+  if (!result.success) return; // don't store failures
+
+  const payload = {
+    version: vlistPackage.version,
+    suiteId: result.suiteId,
+    itemCount: result.itemCount,
+    metrics: result.metrics.map((m) => ({
+      label: m.label,
+      value: m.value,
+      unit: m.unit,
+      better: m.better,
+      rating: m.rating ?? null,
+    })),
+    duration: result.duration,
+    success: result.success,
+    error: result.error ?? undefined,
+    stressMs: extra.stressMs ?? 0,
+    scrollSpeed: extra.scrollSpeed ?? 0,
+
+    // Environment
+    userAgent: navigator.userAgent,
+    hardwareConcurrency: navigator.hardwareConcurrency || null,
+    deviceMemory: navigator.deviceMemory || null,
+    screenWidth: screen.width,
+    screenHeight: screen.height,
+  };
+
+  fetch("/api/benchmarks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => {
+    // Silent — persistence is best-effort
+  });
+};
 
 // Import suites (side-effect: each calls defineSuite())
 // All benchmark suites - variants imported statically
@@ -634,6 +684,10 @@ const handleSuiteRunClick = async (suiteId) => {
 
 const storeResult = (result) => {
   results[result.suiteId] = result;
+  persistResult(result, {
+    stressMs: selectedStressMs,
+    scrollSpeed: selectedScrollSpeed,
+  });
 };
 
 const setRunningState = (running) => {
@@ -769,6 +823,8 @@ if (root) {
     buildComparisonsOverviewPage(root);
   } else if (page === "performance-comparison") {
     buildPerformanceComparisonPage(root);
+  } else if (page === "history") {
+    buildHistoryPage(root);
   } else {
     // Suite page (render, scroll, memory, scrollto)
     const variants = detectVariants(page);
