@@ -2,7 +2,7 @@
 
 > How vlist is built, what makes it unique, and where it stands against competitors.
 
-*Current version: 1.1.0*
+*Current version: 1.4.0*
 
 ---
 
@@ -50,7 +50,7 @@ src/
 
 ### Zero-Allocation Hot Path
 
-The scroll handler, render loop, and visible range calculation allocate nothing. Reusable position objects, circular buffer velocity tracking, and RAF throttling keep the hot path clean.
+The scroll handler, render loop, and visible range calculation allocate nothing. Reusable position objects, circular buffer velocity tracking, and RAF throttling keep the hot path clean. Dev-mode diagnostics (template warnings, zero-height guards, duplicate ID detection) are compiled out via `process.env.NODE_ENV` guards and verified by DCE checks in CI.
 
 ### Prefix-Sum Size Cache
 
@@ -86,7 +86,7 @@ Variable sizes use an O(1) offset lookup via prefix-sum array with O(log n) bina
 
 | Library | Core (gzipped) | Full (gzipped) |
 |---------|---------------|----------------|
-| **@floor/vlist** | **~3.0 KB** | ~24.5 KB |
+| **@floor/vlist** | **~8.2 KB** | ~32.5 KB |
 | @tanstack/virtual | ~5.5 KB | — |
 | react-virtuoso | ~15 KB | — |
 
@@ -168,17 +168,30 @@ vlist was developed over 4 weeks against a 14-item roadmap spanning four phases:
 
 All 14 items shipped. Several features exceeded the original scope: SolidJS adapter (not in roadmap), builder pattern architecture (refactored from monolithic API), velocity-based infinite scroll, wrap navigation, masonry layout, and 13 interactive examples.
 
+### v1.0 Code Review — All 14 Items Complete ✅
+
+A comprehensive [code review](../archive/V1_CODE_REVIEW.md) at v1.0.1 identified 14 enhancement areas across architecture, correctness, documentation, DX, and competitive positioning. All 14 were addressed across four sprints (v1.1.0 → v1.4.0):
+
+| Sprint | Items | Highlights |
+|--------|-------|------------|
+| **1 — Quick Wins** | #2, #4, #5, #6 | VList/BuiltVList alignment, UA sniffing → `pointer: coarse`, CONTRIBUTING rewrite, GitHub Actions CI |
+| **2 — Trust & Verification** | #3, #8, #9, #11 | Bundle size measurement script, CSS `:root` defaults, memory leak audit (50+ tests), tree-shaking verification (11 scenarios) |
+| **3 — Architecture** | #1, #12, #13 | `core.ts` decomposition (1,513 → 8 modules), feature conflict matrix, ARIA compliance (live region, focus recovery, grid roles) |
+| **4 — Polish** | #7, #10, #14 | Dev-mode diagnostics (DCE-verified), rendering edge case hardening, shared test helpers, DOM snapshot tests |
+
+**Final health:** 2,822 tests / 37,978 assertions, 96.3% function coverage / 98.7% line coverage (85% min enforced in CI), all 11 tree-shaking scenarios verified, zero runtime dependencies.
+
 ---
 
 ## Related Documentation
 
 - [Bundle Size](./bundle-size.md) — Detailed bundle analysis and tree-shaking
 - [Benchmarks](./benchmarks.md) — Live performance suites
-- [Testing](./testing.md) — Test suite coverage
+- [Testing](./testing.md) — Test suite and coverage (2,822 tests)
 - [Structure](../internals/structure.md) — Complete source code map
 - [Context](../internals/context.md) — BuilderContext and feature system
 - [Measurement](../internals/measurement.md) — Auto-size measurement internals
 
 ---
 
-*@floor/vlist v1.1.0 — zero dependencies, composable features, best-in-class performance.*
+*@floor/vlist v1.4.0 — zero dependencies, composable features, best-in-class performance.*

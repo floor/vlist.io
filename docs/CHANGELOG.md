@@ -5,16 +5,99 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.7] — 2026-03-12
 
 ### Added
 
+- **Dev-mode diagnostics** — Development-only warnings for common mistakes, compiled out in production builds (DCE-verified, 0 KB overhead):
+  - `setItems()`: warn on non-array argument, missing `id` field, duplicate IDs
+  - `scrollToIndex()`: warn on out-of-range index
+  - `updateItem()` / `removeItem()`: warn when target item not found
+  - Template: warn on falsy/empty return with item index context
+  - All guards use inline `process.env.NODE_ENV` checks for dead code elimination
+- **ARIA live region** — `aria-live="polite"` element announces visible range changes to screen readers
+- **Focus recovery** — `removeItem()` moves focus to the nearest remaining item when the focused item is removed
+- **Feature conflict declarations** — `withGrid` and `withMasonry` now declare mutual exclusivity (`conflicts` array), validated at build time
+- **Tree-shaking verification** — 11 scenarios integrated into `measure-size.ts`, verified in CI
+- **Coverage threshold enforcement** — `check-coverage.ts` script enforces 85% minimum, integrated into CI pipeline
+- **Shared test helpers** — `test/helpers/` with reusable DOM setup (`MockResizeObserver`), factory utilities (`createTestItems`, `createContainer`), and timer helpers (`flushMicrotasks`, `flushTimers`, `flushRAF`)
+- **DOM snapshot tests** — 11 structural snapshot tests across 6 configurations (base, grid, groups, masonry, table, selection)
+
+### Fixed
+
+- **Rendering: cancel scroll on data change** — `setItems()` now calls `cancelScroll()` before updating data, preventing stale smooth-scroll animations from fighting new content
+- **Rendering: zero-height guard** — `coreRenderIfNeeded()` skips render when `containerSize <= 0`, preventing division-by-zero in range calculations
+
+### Changed
+
+- **CSS `:root` defaults** — Custom property defaults moved from `[data-theme-mode="light"]` to `:root`, reducing CSS by ~0.7 KB and removing the dependency on a data attribute for base styling
+
+### Performance
+
+- Base bundle: 100.4 KB minified (33.3 KB gzipped) — full build with all features
+- Base (tree-shaken): 27.4 KB minified (10.3 KB gzipped)
+- 2,822 tests / 37,978 assertions — all passing
+- **V1 Code Review — all 14 items complete** ✅
+
+---
+
+## [1.3.6] — 2026-03-11
+
+### Fixed
+
+- **Async `removeItem`** — Shift sparse storage after removal, force render, and debounced gap refill to prevent stale placeholders
+- **Async grid range** — Convert row-space `renderRange` to item indices when grid is active, fixing items not loading in grid+async combos
+- **Async pending range** — Use live render range in `loadPendingRange` instead of stale saved coordinates
+- **Types** — Widen `removeItem` signature to `string | number` across all data managers
+
+### Added
+
+- **Table placeholder styling** — Skeleton loading styles for table rows when used with `withAsync`
+
+### Performance
+
+- Base bundle: 98.3 KB minified (32.5 KB gzipped)
+
+---
+
+## [1.3.5] — 2026-03-09
+
+### Fixed
+
+- **Table padding** — Account for cross-axis padding in column width resolution
+- **Async placeholder analysis** — Eagerly analyze placeholder structure on first `setItems` with adapter
+
+### Performance
+
+- Base bundle: 96.7 KB minified (31.9 KB gzipped)
+
+---
+
+## [1.3.4] — 2026-03-09
+
+### Added
+
+- **Dark mode** — Consolidated dark mode support with `prefers-color-scheme`, `.dark` class, and `color-scheme` property
 - **Group-aware striped rows** — `item.striped` now accepts `"data"`, `"even"`, and `"odd"` in addition to `boolean`. When combined with `withGroups`, these modes control how group headers affect the even/odd stripe pattern:
   - `"data"` — headers are excluded from the count; stripe index is continuous across groups
   - `"even"` — counter resets after each header; first data row is always even (non-striped) — matches macOS Finder
   - `"odd"` — counter resets after each header; first data row is always odd (striped)
 
   Implemented via a precomputed `Int32Array` stripe map built by the groups feature. The per-item cost on the scroll hot path is a single array lookup. Without `withGroups`, all string modes behave like `true`. See [Groups — Striped Rows](features/groups.md#striped-rows-with-groups).
+
+### Changed
+
+- **Exports cleanup** — Cleaned up public export surface
+
+### Performance
+
+- Base bundle: 96.6 KB minified (31.8 KB gzipped)
+
+---
+
+## [1.3.3] — 2026-03-08
+
+### Added
 
 - **Item gap** — New `item.gap` property adds consistent spacing between items along the main axis. The gap is baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element height, so items are positioned with precise spacing and no CSS hacks. Works with fixed sizes, variable sizes, and auto-measured sizes (Mode B). The trailing gap after the last item is automatically removed. Ignored when grid or masonry is active (they manage their own gap). ([`b81ac49`])
 - **Content padding** — New top-level `padding` property adds inset space around the list content, following CSS shorthand convention:
@@ -23,6 +106,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `[top, right, bottom, left]` — per-side (CSS order)
 
   Applied as CSS `padding` + `border-box` on `.vlist-content`, so it works identically for list, grid, and masonry layouts with zero positioning overhead. Grid and masonry automatically subtract cross-axis padding from the container width so columns/lanes size correctly. `scrollToIndex` accounts for padding so the last item scrolls fully into view including end padding. ([`e8ee865`])
+
+### Changed
+
+- **Scroll-to-position** — Moved padding-aware scroll logic into `calcScrollToPosition`
+
+### Performance
+
+- Base bundle: 24.7 KB minified (9.3 KB gzipped)
 
 ---
 
@@ -43,6 +134,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Deduplicated idle timeout handler (`onScrollIdle` + `scheduleIdle`), click/dblclick traversal (`findClickTarget`), and scroll-end pinning (`stayAtEnd`)
   - `core.ts` reduced from 1,513 → 1,097 lines (−28%)
   - Base bundle: 23.6 KB minified (−0.5 KB), 8.8 KB gzipped (+0.1 KB)
+
+---
+
+## [1.3.1] — 2026-03-07
+
+### Fixed
+
+- **Grid phantom row** — Remove `visibleEnd++` phantom row, use exclusive viewport boundary
+- **Grid DOM cleanup** — Reduce `RELEASE_GRACE` from 2 to 1 to halve lingering DOM elements during scroll
+- **Grid constants** — Import `OVERSCAN`/`CLASS_PREFIX`/`SCROLL_IDLE_TIMEOUT` from shared constants
+- **Table phantom row** — Remove `visibleEnd++` phantom row, use exclusive viewport boundary
+- **Table grace period** — Remove `RELEASE_GRACE` entirely — table rows carry N cells, no grace needed
+- **Masonry cleanup** — Reduce `RELEASE_GRACE` from 2 to 1
+- **Masonry overscan** — Extract overscan pixel multiplier into `OVERSCAN` constant
+
+### Changed
+
+- Remove redundant `?? 3` overscan fallbacks in grid, table, masonry features
+
+---
+
+## [1.3.0] — 2026-03-06
+
+### Fixed
+
+- **Mobile detection** — Replace UA sniffing with `pointer:coarse` capability detection
+- **Table test types** — Add missing `TestItem` generic to `withTable` call in sort test
+
+### Changed
+
+- **CONTRIBUTING.md** — Complete rewrite to match v1.x builder/feature architecture
+- **CI/CD** — Add GitHub Actions workflow (typecheck, test, build, bundle size)
+- **Test coverage** — Improved to 97% functions / 99.13% lines (+450 tests, 2,719 total)
+
+---
+
+## [1.2.9] — 2026-03-06
+
+### Fixed
+
+- **Table ARIA** — Resolve `required-children` violations (`role="presentation"` on header scroll container)
+- **Table tabindex** — Remove `tabindex` from viewport so `role="none"` is not ignored by browsers
+- **Table row count** — Add `aria-rowcount` on grid, updated dynamically in render loop
+- **Selection live region** — Move live region outside `role="grid"` (only `row`/`rowgroup` children allowed)
+
+### Added
+
+- **Table striped rows** — Add striped row style with dedicated `--vlist-bg-striped` variable
+- 14 new tests for table renderer striped rows and updated ARIA tests
 
 ---
 
@@ -416,6 +556,15 @@ Initial tracked release with core virtual list functionality:
 
 ---
 
+[1.3.7]: https://github.com/floor/vlist/compare/v1.3.6...v1.3.7
+[1.3.6]: https://github.com/floor/vlist/compare/v1.3.5...v1.3.6
+[1.3.5]: https://github.com/floor/vlist/compare/v1.3.4...v1.3.5
+[1.3.4]: https://github.com/floor/vlist/compare/v1.3.3...v1.3.4
+[1.3.3]: https://github.com/floor/vlist/compare/v1.3.2...v1.3.3
+[1.3.2]: https://github.com/floor/vlist/compare/v1.3.1...v1.3.2
+[1.3.1]: https://github.com/floor/vlist/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/floor/vlist/compare/v1.2.9...v1.3.0
+[1.2.9]: https://github.com/floor/vlist/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/floor/vlist/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/floor/vlist/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/floor/vlist/compare/v1.2.5...v1.2.6
