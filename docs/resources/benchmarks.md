@@ -5,6 +5,8 @@ The benchmark page (`/benchmarks/`) runs two categories of live performance suit
 1. **Framework variant suites** — Test vlist itself across JS, React, SolidJS, Vue, and Svelte
 2. **Library comparison suites** — Compare vlist against other virtual list libraries (TanStack Virtual, react-window, Virtua, vue-virtual-scroller)
 
+> **📈 Crowdsourced History** — Every comparison run is automatically persisted to a SQLite database and aggregated on the [Comparison History](/benchmarks/history) page. Results accumulate across all visitors, providing statistically meaningful data across hardware, browsers, and vlist versions.
+
 **URL:** `/benchmarks/` (served by vlist.dev)
 
 All framework variant benchmarks are available in **five variants**:
@@ -17,6 +19,29 @@ All framework variant benchmarks are available in **five variants**:
 This allows direct comparison of vlist performance across different framework integrations.
 
 ## Quick Reference
+
+### Pages
+
+| URL | Purpose |
+|-----|---------|
+| `/benchmarks/` | Overview — list of all suite and comparison pages |
+| `/benchmarks/render` | Initial render suite (variant switcher) |
+| `/benchmarks/scroll` | Scroll FPS suite (variant switcher) |
+| `/benchmarks/memory` | Memory suite (variant switcher) |
+| `/benchmarks/scrollto` | ScrollTo latency suite (variant switcher) |
+| `/benchmarks/react-window` | vs react-window |
+| `/benchmarks/react-virtuoso` | vs react-virtuoso |
+| `/benchmarks/tanstack-virtual` | vs TanStack Virtual |
+| `/benchmarks/virtua` | vs Virtua |
+| `/benchmarks/vue-virtual-scroller` | vs vue-virtual-scroller |
+| `/benchmarks/solidjs` | vs TanStack Virtual (SolidJS) |
+| `/benchmarks/legend-list` | vs Legend List |
+| `/benchmarks/clusterize` | vs Clusterize.js |
+| `/benchmarks/performance-comparison` | Static results table |
+| `/benchmarks/bundle` | Bundle size comparison |
+| `/benchmarks/features` | Feature coverage matrix |
+| `/benchmarks/history` | **Crowdsourced comparison history** |
+
 
 ### Framework Variant Suites
 
@@ -574,6 +599,8 @@ Thresholds adapt to context. For example, at 1M items the render time thresholds
 3. Click **Run All** or individual suite **Run** buttons
 4. Results appear in real-time as each suite completes
 
+> **Results are automatically saved.** Every completed comparison run is persisted to the crowdsourced database — no extra steps required.
+
 ### Tips for Accurate Results
 
 - **Close other tabs** — background work affects frame timing
@@ -587,6 +614,77 @@ Thresholds adapt to context. For example, at 1M items the render time thresholds
 
 ---
 
+## Crowdsourced History
+
+Every time a visitor completes a **library comparison** benchmark (react-window, virtua, TanStack, etc.), the result is automatically POSTed to `/api/benchmarks` and stored in a SQLite database. This is fire-and-forget — it never blocks the UI and failures are silently ignored.
+
+The [Comparison History](/benchmarks/history) page aggregates all submissions across visitors, providing:
+- Statistical aggregation (median, mean, p5, p95, stddev) across many hardware profiles
+- Time-series charts showing metric trends as vlist versions evolve
+- Browser breakdown (Chrome vs Firefox vs Safari vs Edge)
+- Per-version run counts and first/last seen dates
+
+### Table Routing
+
+The database uses **two separate table pairs** to keep suite and comparison data fully isolated:
+
+| Suite Type | Tables | Suite ID examples |
+|------------|--------|-------------------|
+| Library comparisons | `comparison_runs` + `comparison_metrics` | `react-window`, `virtua`, `tanstack-virtual` |
+| vlist suites | `benchmark_runs` + `benchmark_metrics` | `render-vanilla`, `scroll-react`, `memory-vue` |
+
+The server auto-routes each POST to the correct tables based on the `suiteId`. Both pairs have identical column structure.
+
+### What's Stored Per Run
+
+| Field | Source |
+|-------|--------|
+| `version` | vlist `package.json` version |
+| `suite_id` | Benchmark suite ID (e.g. `react-window`) |
+| `item_count` | 10K / 100K / 1M |
+| `metrics` | All measured values (label, value, unit, better, rating) |
+| `user_agent` | `navigator.userAgent` |
+| `hardware_concurrency` | CPU core count |
+| `device_memory` | RAM in GB (where available) |
+| `screen_width` / `screen_height` | Display resolution |
+| `stress_ms` / `scroll_speed` | Active stress/speed config |
+
+### API Endpoints
+
+All GET endpoints default to `?type=comparison` (comparison tables). Pass `?type=suite` to query vlist suite tables.
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/benchmarks` | Store a result — auto-routes to correct tables |
+| `GET /api/benchmarks/summary` | High-level overview (run counts, unique versions, browsers) |
+| `GET /api/benchmarks/stats?suiteId=react-window&itemCount=10000` | Aggregated metrics per version |
+| `GET /api/benchmarks/history?suiteId=react-window&metric=vlist+Render&days=30` | Daily time-series for charting |
+| `GET /api/benchmarks/versions` | All known vlist versions with run counts |
+| `GET /api/benchmarks/suites` | All known suite IDs with run counts |
+| `GET /api/benchmarks/browsers` | Browser breakdown |
+
+### Database Setup
+
+```bash
+# Create the database (run once per environment)
+bun run seed:benchmarks
+
+# Recreate from scratch — drops all data
+bun run seed:benchmarks -- --force
+```
+
+The database file (`data/benchmarks.db`) is `.gitignored` — each environment creates its own.
+
+### History Page
+
+The `/benchmarks/history` page is entirely client-side rendered. On load it:
+1. Fetches summary, suites, versions, and browsers in parallel
+2. Auto-selects the first available comparison suite
+3. Populates filter controls (Library, Item Count, Version, Days)
+4. Renders an aggregated stats table and SVG trend chart (median line + p5–p95 band)
+
+---
+
 ## Source Files
 
 ### Structure
@@ -596,53 +694,75 @@ Benchmarks use a variant-based directory structure for framework suites, plus a 
 ```
 benchmarks/
 ├── runner.js                  # Benchmark engine — registry, timing, memory utilities
+├── script.js                  # Dashboard UI, routing, persistResult()
+├── history.js                 # Crowdsourced history page — fetches API, renders chart
+├── templates.js               # HTML templates for all benchmark pages
+├── styles.css                 # Benchmark page styles
+├── build.ts                   # Bun build script with framework deduplication
+├── navigation.json            # Sidebar navigation config
 ├── suites/
 │   ├── render/
-│   │   ├── javascript/suite.js   # Pure vlist API
-│   │   ├── react/suite.js         # useVList hook
-│   │   ├── solidjs/suite.js       # useVList hook (fine-grained)
-│   │   ├── vue/suite.js           # useVList composable
-│   │   └── svelte/suite.js        # vlist action
+│   │   ├── vanilla/suite.js   # Pure vlist API
+│   │   ├── react/suite.js     # useVList hook
+│   │   ├── solidjs/suite.js   # useVList hook (fine-grained)
+│   │   ├── vue/suite.js       # useVList composable
+│   │   └── svelte/suite.js    # vlist action
 │   ├── scroll/
-│   │   ├── javascript/suite.js
+│   │   ├── vanilla/suite.js
 │   │   ├── react/suite.js
 │   │   ├── solidjs/suite.js
 │   │   ├── vue/suite.js
 │   │   └── svelte/suite.js
 │   ├── memory/
-│   │   ├── javascript/suite.js
+│   │   ├── vanilla/suite.js
 │   │   ├── react/suite.js
 │   │   ├── solidjs/suite.js
 │   │   ├── vue/suite.js
 │   │   └── svelte/suite.js
 │   └── scrollto/
-│       ├── javascript/suite.js
+│       ├── vanilla/suite.js
 │       ├── react/suite.js
 │       ├── solidjs/suite.js
 │       ├── vue/suite.js
 │       └── svelte/suite.js
-└── comparison/
-    ├── shared.js              # Shared comparison infrastructure
-    ├── tanstack-virtual.js    # vs TanStack Virtual (React)
-    ├── react-window.js        # vs react-window
-    ├── virtua.js              # vs Virtua (React)
-    ├── vue-virtual-scroller.js # vs vue-virtual-scroller
-    └── solidjs.js             # vs TanStack Virtual (SolidJS)
+├── comparison/
+│   ├── shared.js              # Shared comparison infrastructure (~1000 lines)
+│   ├── react-window.js        # vs react-window
+│   ├── react-virtuoso.js      # vs react-virtuoso
+│   ├── tanstack-virtual.js    # vs TanStack Virtual (React)
+│   ├── virtua.js              # vs Virtua
+│   ├── vue-virtual-scroller.js# vs vue-virtual-scroller
+│   ├── solidjs.js             # vs TanStack Virtual (SolidJS)
+│   ├── legend-list.js         # vs Legend List
+│   └── clusterize.js          # vs Clusterize.js
+└── data/
+    ├── bundle.json            # Static bundle size data
+    ├── performance.json       # Static performance results table
+    └── features.json          # Feature comparison matrix
+```
+
+**Server-side:**
+```
+src/api/benchmarks.ts          # REST API for crowdsourced storage
+scripts/seed-benchmarks.ts     # Creates data/benchmarks.db (run once)
+data/benchmarks.db             # SQLite database (gitignored, created by seed script)
 ```
 
 ### Key Files
 
 | File | Purpose |
 |------|---------|
-| `benchmarks/script.js` | Dashboard UI, variant switcher, result rendering |
+| `benchmarks/script.js` | Dashboard UI, variant switcher, result rendering, `persistResult()` |
 | `benchmarks/runner.js` | Benchmark engine — suite registry, execution, timing & memory utilities |
+| `benchmarks/history.js` | Crowdsourced history page — API fetching, stats table, SVG chart |
+| `benchmarks/templates.js` | HTML templates for all benchmark pages including history |
 | `benchmarks/suites/{name}/{variant}/suite.js` | Individual benchmark suite implementations (20 total) |
 | `benchmarks/comparison/shared.js` | Comparison infrastructure — isolated 3-phase measurement |
-| `benchmarks/comparison/*.js` | Library comparison suite definitions (5 total) |
-| `benchmarks/renderer.ts` | Server-side rendering for benchmark pages (SSR variant switcher) |
-| `benchmarks/styles.css` | Benchmark page styles |
-| `benchmarks/build.ts` | Bun build script with framework deduplication feature |
-| `styles/shell.css` | Shared styles including variant switcher component |
+| `benchmarks/comparison/*.js` | Library comparison suite definitions (8 total) |
+| `benchmarks/styles.css` | Benchmark page styles including history page |
+| `benchmarks/build.ts` | Bun build script with framework deduplication |
+| `src/api/benchmarks.ts` | REST API — stores results, serves aggregated queries |
+| `scripts/seed-benchmarks.ts` | Creates `data/benchmarks.db` with all 4 tables + indexes |
 
 ### Runner Utilities
 

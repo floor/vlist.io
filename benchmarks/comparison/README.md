@@ -2,6 +2,8 @@
 
 Head-to-head performance comparisons between **vlist** and popular virtualization libraries. All benchmarks run live in your browser with identical test conditions.
 
+> **📈 Crowdsourced History** — Every comparison run is automatically stored in a SQLite database and aggregated on the [Comparison History](/benchmarks/history) page. Results are collected from all visitors, giving statistically meaningful data across hardware, browsers, and vlist versions.
+
 ## Available Comparisons
 
 ### React Ecosystem
@@ -203,6 +205,64 @@ open http://localhost:3338/benchmarks/new-library
 
 The `shared.js` utilities handle all measurement infrastructure — you only need to implement `createComponent` and `destroyComponent`.
 
+## Crowdsourced History
+
+All comparison results are automatically persisted to a SQLite database (`data/benchmarks.db`) for long-term tracking. This happens transparently — every time a visitor runs a comparison, the result is POSTed to `/api/benchmarks` (fire-and-forget, never blocks the UI).
+
+### How It Works
+
+1. User runs a comparison (e.g., react-window) on any device/browser
+2. Client POSTs the result to `/api/benchmarks` with environment metadata
+3. Server auto-routes to `comparison_runs` + `comparison_metrics` tables (suite results go to separate `benchmark_*` tables)
+4. The [Comparison History](/benchmarks/history) page aggregates all submissions
+
+### What's Stored
+
+| Field | Source |
+|-------|--------|
+| vlist version | `package.json` |
+| Suite ID | e.g., `react-window`, `virtua` |
+| All metrics | Render time, memory, FPS, P95, diffs |
+| User agent | `navigator.userAgent` |
+| Hardware | CPU cores, device memory, screen size |
+| Stress/scroll config | `stressMs`, `scrollSpeed` |
+
+### API Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /api/benchmarks` | Store a result (auto-routed by suite ID) |
+| `GET /api/benchmarks/summary` | High-level overview |
+| `GET /api/benchmarks/stats?suiteId=react-window` | Aggregated stats |
+| `GET /api/benchmarks/history?suiteId=react-window&metric=vlist+Render` | Time-series data |
+| `GET /api/benchmarks/versions` | All known vlist versions |
+| `GET /api/benchmarks/browsers` | Browser breakdown |
+| `GET /api/benchmarks/suites` | All known suite IDs |
+
+All GET endpoints default to `?type=comparison`. Use `?type=suite` for vlist suite data.
+
+### Database Setup
+
+```bash
+# Create the database (run once)
+bun run seed:benchmarks
+
+# Recreate from scratch
+bun run seed:benchmarks -- --force
+```
+
+### Table Structure
+
+```
+comparison_runs      — one row per comparison execution
+comparison_metrics   — one row per metric per run
+
+benchmark_runs       — one row per vlist suite execution
+benchmark_metrics    — one row per metric per run
+```
+
+Both pairs have identical columns. They are separate so queries on comparison data never scan suite rows and vice versa.
+
 ## Updating Performance Results
 
 When benchmark results change (new vlist version, hardware upgrade, etc.):
@@ -225,6 +285,8 @@ Example:
 }
 ```
 
+> **Note:** The static `performance.json` file is still maintained manually for the Performance Comparison table. Over time, the crowdsourced data from the history page may replace it.
+
 ## Running Locally
 
 ```bash
@@ -242,6 +304,7 @@ open http://localhost:3338/benchmarks/comparisons
 ### Available URLs
 - `/benchmarks/comparisons` — Overview and methodology
 - `/benchmarks/performance-comparison` — Results table
+- `/benchmarks/history` — Crowdsourced comparison history
 - `/benchmarks/react-window` — vs react-window
 - `/benchmarks/react-virtuoso` — vs react-virtuoso
 - `/benchmarks/tanstack-virtual` — vs TanStack Virtual

@@ -1,8 +1,55 @@
 # Benchmark Data Files
 
-This directory contains static data for benchmark comparison pages. Data is separated from code for easier maintenance and updates.
+This directory contains static data for benchmark comparison pages and the SQLite database for crowdsourced results. Data is separated from code for easier maintenance and updates.
 
 ## Files
+
+### `benchmarks.db`
+SQLite database for crowdsourced benchmark results. Created by the seed script and populated automatically as visitors run benchmarks on the site.
+
+**Two separate table pairs:**
+
+| Tables | Purpose | Populated by |
+|--------|---------|--------------|
+| `comparison_runs` + `comparison_metrics` | Library comparison results (react-window, virtua, etc.) | Running any comparison benchmark |
+| `benchmark_runs` + `benchmark_metrics` | vlist suite results (render, scroll, memory, scrollto) | Running any vlist suite benchmark |
+
+Both pairs have identical column structure — they are separate so queries never cross-contaminate.
+
+**Runs table columns:**
+- `id`, `created_at` — identity
+- `version`, `suite_id`, `item_count` — what was tested
+- `user_agent`, `hardware_concurrency`, `device_memory`, `screen_width`, `screen_height` — environment
+- `duration_ms`, `success`, `error` — run metadata
+- `stress_ms`, `scroll_speed` — config
+
+**Metrics table columns:**
+- `run_id` — FK to the runs table
+- `label`, `value`, `unit`, `better`, `rating` — metric data
+
+**Setup:**
+```bash
+# Create the database (run once)
+bun run seed:benchmarks
+
+# Recreate from scratch (drops existing data)
+bun run seed:benchmarks -- --force
+```
+
+**API endpoints** (default to comparison tables, use `?type=suite` for suite tables):
+- `POST /api/benchmarks` — auto-routes to correct tables by suite ID
+- `GET /api/benchmarks/summary` — high-level overview
+- `GET /api/benchmarks/stats` — aggregated stats with filters
+- `GET /api/benchmarks/history` — time-series data for charts
+- `GET /api/benchmarks/versions` — all known versions
+- `GET /api/benchmarks/suites` — all known suite IDs
+- `GET /api/benchmarks/browsers` — browser breakdown
+
+**Used in:** `/benchmarks/history` (Comparison History page)
+
+**Note:** This file is `.gitignored` — each environment creates its own via the seed script.
+
+---
 
 ### `bundle.json`
 Bundle size data for library comparison.
@@ -124,10 +171,11 @@ open http://localhost:3338/benchmarks/react-window
 
 ## Notes
 
-- **All data is verified** - No estimates or guesses
-- **Reproducible** - Anyone can verify these numbers
-- **Static** - Updated manually, not auto-generated
-- **Versioned** - Changes tracked in git history
-- **Documented** - Each value has a clear source
+- **Static files are verified** — No estimates or guesses
+- **Reproducible** — Anyone can verify these numbers
+- **JSON files are static** — Updated manually, not auto-generated
+- **benchmarks.db is dynamic** — Populated automatically by visitor benchmark runs
+- **Versioned** — JSON changes tracked in git history; DB is gitignored (recreated per environment)
+- **Documented** — Each value has a clear source
 
 For questions or updates, see `benchmarks/comparison/README.md`
