@@ -5,7 +5,7 @@
 *Review date: February 27, 2026*
 *Reviewed version: @floor/vlist 1.0.1 (303 commits, 25 days)*
 *Reviewer context: 10+ years TypeScript, extensive virtual scrolling experience*
-*Last updated: June 2025 — v1.3.6, 10 of 14 items completed*
+*Last updated: June 2025 — v1.4.0, all 14 items completed* ✅
 
 ---
 
@@ -36,16 +36,16 @@
 
 ## ✅ All 14 Items Complete
 
-**Status as of June 2025:** All 14 enhancement areas have been addressed. See the progress log at the bottom for version-by-version details.
+**Status as of Mars 2026:** All 14 enhancement areas have been addressed. See the progress log at the bottom for version-by-version details.
 
 ## Executive Summary
 
-vlist v1.3.6 is in **excellent shape** — zero test failures across 2,807 tests, clean typecheck, zero runtime dependencies, and a well-designed builder/feature architecture. The items below are not defects; they are opportunities to move from **very good** to **best-in-class** in terms of maintainability, developer experience, and competitive confidence.
+vlist v1.4.0 is in **excellent shape** — zero test failures across 2,822 tests, clean typecheck, zero runtime dependencies, and a well-designed builder/feature architecture. The items below were not defects; they were opportunities to move from **very good** to **best-in-class** in terms of maintainability, developer experience, and competitive confidence.
 
-**14 enhancement areas identified (10 completed):**
+**All 14 enhancement areas completed:** ✅
 - 🔴 **3 high priority** — risk or correctness impact (3 ✅ done)
-- 🟡 **6 medium priority** — DX, trust, or maintainability (5 ✅ done)
-- 🟢 **5 lower priority** — polish and future-proofing (2 ✅ done)
+- 🟡 **6 medium priority** — DX, trust, or maintainability (6 ✅ done)
+- 🟢 **5 lower priority** — polish and future-proofing (5 ✅ done)
 
 ---
 
@@ -54,7 +54,7 @@ vlist v1.3.6 is in **excellent shape** — zero test failures across 2,807 tests
 | Metric | Value | Grade |
 |--------|-------|-------|
 | Source code | ~18,000 lines / 53 files | — |
-| Tests | 2,807 passing / 37,780 assertions | ✅ A+ |
+| Tests | 2,822 passing / 37,978 assertions | ✅ A+ |
 | Coverage | 96.3% functions / 98.7% lines (85% min threshold enforced) | ✅ A+ |
 | Type safety | Strict + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` | ✅ A+ |
 | Build | 20ms, clean | ✅ A+ |
@@ -691,10 +691,10 @@ Quick reference for files, sorted by priority.
 
 ## Related Documentation
 
-- [Dependency Analysis](./DEPENDENCY_ANALYSIS.md) — Module coupling metrics
-- [Madge Report](./MADGE_ANALYTICS_REPORT.md) — Full dependency graph analysis
+- [Dependency Analysis](./analysis/DEPENDENCY_ANALYSIS.md) — Module coupling metrics
+- [Madge Report](./analysis/MADGE_ANALYTICS_REPORT.md) — Full dependency graph analysis
 - [Roadmap](../resources/roadmap.md) — Feature completion tracking
-- [Known Issues](../resources/known-issues.md) — Current limitations
+- [Known Issues](./known-issues.md) — Current limitations
 - [Architecture](../internals/structure.md) — Source code map
 
 ---

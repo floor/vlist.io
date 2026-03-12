@@ -85,6 +85,7 @@ Version history and migration guides:
 |----------|-------------|
 | **[v0.9.0 Migration Guide](./refactoring/v0.9.0-migration-guide.md)** | Breaking changes and migration from v0.8.2 to v0.9.0 |
 | **[Height → Size Refactoring](./refactoring/height-to-size-refactoring.md)** | Complete dimension-agnostic refactoring details |
+| **[V1 Code Review](./archive/V1_CODE_REVIEW.md)** | ✅ Completed — 14 enhancement areas across architecture, testing, DX, and accessibility |
 
 ## 🎯 Find What You Need
 
@@ -144,13 +145,13 @@ For **learning content**, see [/tutorials](/tutorials):
 
 | Configuration | Gzipped | Features Used |
 |---------------|---------|--------------|
-| Base only | 7.7 KB | None |
-| + Selection | 10.0 KB | `withSelection()` |
-| + Grid | 11.7 KB | `withGrid()` + `withScrollbar()` |
-| + Groups | 12.3 KB | `withGroups()` |
-| + Async | 13.5 KB | `withAsync()` + `withPage()` |
-| + Scale | 9.9 KB | `withScale()` + `withScrollbar()` |
-| All features | ~16 KB | Everything |
+| Base only | 10.3 KB | None |
+| + Selection | 12.1 KB | `withSelection()` |
+| + Grid | 14.3 KB | `withGrid()` + `withScrollbar()` |
+| + Groups | 14.6 KB | `withGroups()` |
+| + Async | 14.6 KB | `withAsync()` + `withPage()` |
+| + Scale | 12.9 KB | `withScale()` + `withScrollbar()` |
+| All features | ~33 KB | Everything |
 
 **Traditional virtual lists:** 20–23 KB minimum (all features bundled)
 

@@ -10,21 +10,21 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 2,268 |
-| Passing tests | 2,268 (100%) ✅ |
-| Total assertions | 36,595 |
-| Test files | 45 |
-| Coverage | 94.29% lines, 93.14% functions |
+| Total tests | 2,822 |
+| Passing tests | 2,822 (100%) ✅ |
+| Total assertions | 37,978 |
+| Test files | 48 |
+| Coverage | 98.7% lines, 96.3% functions (85% min threshold enforced) |
+| CI | GitHub Actions — typecheck, test, coverage, build, size + tree-shaking |
 | Runtime | ~18s |
 
-**Phase 1 (Critical Gaps) ✅ COMPLETE:**
-- Added 75 new tests across 3 files (boundary, recovery, async integration)
-- Focused on boundary conditions, error recovery, and async robustness
-
-**Phase 2 (Robustness) ✅ COMPLETE:**
-- Added 184 new tests across 3 files (integration, memory, performance)
-- Cross-feature integration scenarios, memory leak detection, performance benchmarks
-- Coverage improved: lines 94.03% → 94.29%, functions 92.95% → 93.14%
+**V1 Code Review ✅ ALL 14 ITEMS COMPLETE:**
+All 14 enhancement areas from the [V1 Code Review](../archive/V1_CODE_REVIEW.md) have been addressed across four sprints. Key test infrastructure improvements:
+- Phase 1: 75 new tests (boundary conditions, error recovery, async integration)
+- Phase 2: 184 new tests (cross-feature integration, memory leak detection, performance benchmarks)
+- Phase 3: Shared test helpers (`test/helpers/`), DOM snapshot tests (11 tests across 6 configurations)
+- Coverage threshold enforcement in CI (85% minimum)
+- Coverage improved: lines 94.03% → 98.7%, functions 92.95% → 96.3%
 
 ## Quick Start
 
@@ -66,18 +66,22 @@ Tests mirror the source directory layout for easy navigation:
 
 ```
 test/
+├── helpers/                         # Shared test utilities
+│   ├── dom.ts                      # JSDOM setup, MockResizeObserver
+│   ├── factory.ts                  # TestItem, createTestItems, createContainer
+│   └── timers.ts                   # flushMicrotasks, flushTimers, flushRAF
 ├── builder/                         # Builder system (src/builder/)
-│   ├── boundary.test.ts            # Edge cases: empty lists, extreme sizes, invalid values (Phase 1)
+│   ├── boundary.test.ts            # Edge cases: empty lists, extreme sizes, invalid values
 │   ├── context.test.ts             # Context creation & wiring
-│   ├── core.test.ts                # Builder core (TODO)
-│   ├── data.test.ts                # Data handling (TODO)
-│   ├── dom.test.ts                 # DOM operations (TODO)
+│   ├── core.test.ts                # Builder core
+│   ├── data.test.ts                # Data handling
+│   ├── dom.test.ts                 # DOM operations
 │   ├── index.test.ts               # Composable builder, features, integration
 │   ├── materialize.test.ts         # DOM materialization & rendering
 │   ├── measured.test.ts            # Measured heights
 │   ├── pool.test.ts                # Element pool (DOM recycling)
 │   ├── range.test.ts               # Range calculations
-│   ├── recovery.test.ts            # Error handling: invalid config, adapter errors, state corruption (Phase 1)
+│   ├── recovery.test.ts            # Error handling: invalid config, adapter errors, state corruption
 │   ├── scroll.test.ts              # Scroll handling
 │   └── velocity.test.ts            # Scroll velocity tracking
 ├── events/                          # Event system (src/events/)
@@ -85,7 +89,7 @@ test/
 ├── features/                        # Feature tests (src/features/)
 │   ├── async/                      # Async data loading
 │   │   ├── feature.test.ts         # withAsync feature integration
-│   │   ├── integration.test.ts     # Async loading states, race conditions, memory (Phase 1)
+│   │   ├── integration.test.ts     # Async loading states, race conditions, memory
 │   │   ├── manager.test.ts         # Data manager (coordinator)
 │   │   ├── placeholder.test.ts     # Placeholder generation
 │   │   └── sparse.test.ts          # Sparse chunk storage
@@ -94,24 +98,24 @@ test/
 │   │   ├── layout.test.ts          # Grid layout math
 │   │   └── renderer.test.ts        # Grid rendering
 │   ├── page/                       # Pagination
-│   │   └── feature.test.ts         # withPage feature (TODO)
+│   │   └── feature.test.ts         # withPage feature
 │   ├── scale/                      # Touch scroll & compression
 │   │   └── feature.test.ts         # withScale touch handling
 │   ├── scrollbar/                  # Custom scrollbar
 │   │   ├── controller.test.ts      # Scroll controller (all modes)
-│   │   ├── feature.test.ts         # withScrollbar feature (TODO)
+│   │   ├── feature.test.ts         # withScrollbar feature
 │   │   └── scrollbar.test.ts       # Custom scrollbar UI
 │   ├── groups/                     # Groups & sticky headers
-│   │   ├── feature.test.ts         # withGroups feature (TODO)
+│   │   ├── feature.test.ts         # withGroups feature
 │   │   ├── layout.test.ts          # Group layout
-│   │   └── sticky.test.ts          # Sticky headers (TODO)
+│   │   └── sticky.test.ts          # Sticky headers
 │   ├── selection/                  # Item selection
-│   │   ├── feature.test.ts         # withSelection feature (TODO)
+│   │   ├── feature.test.ts         # withSelection feature
 │   │   ├── index.test.ts           # Selection state management
-│   │   └── state.test.ts           # Selection state (TODO)
+│   │   └── state.test.ts           # Selection state
 │   └── snapshots/                  # Scroll snapshots
 │       └── feature.test.ts         # withSnapshots save/restore
-├── integration/                     # Cross-cutting integration tests (Phase 2)
+├── integration/                     # Cross-cutting integration tests
 │   ├── features.test.ts            # Cross-feature interactions, dblclick, wrap mode, conflicts
 │   ├── memory.test.ts              # Memory leak detection, DOM cleanup, create/destroy cycles
 │   └── performance.test.ts         # Performance benchmarks, timing bounds, virtualization
@@ -120,6 +124,7 @@ test/
     ├── renderer.test.ts             # DOM renderer & element pool
     ├── scale.test.ts                # Height compression (1M+ items)
     ├── sizes.test.ts                # Size cache
+    ├── snapshots.test.ts            # DOM structure snapshots (11 tests across 6 configurations)
     └── viewport.test.ts             # Viewport calculation
 ```
 
@@ -128,8 +133,9 @@ test/
 - ✅ Easy to find tests: `src/features/grid/` → `test/features/grid/`
 - ✅ Clear separation: builder, features, rendering, events
 - ✅ Scalable as new features are added
-- ✅ TODO stubs for modules awaiting comprehensive tests
+- ✅ Shared test helpers in `test/helpers/` (DOM, factory, timers)
 - ✅ Integration tests for cross-feature scenarios, memory, and performance
+- ✅ DOM snapshot tests for structural verification
 
 ## Test Inventory
 
@@ -228,7 +234,7 @@ Phase 2 tests verify that features work correctly together, resources are proper
 - **Memory Leak Detection (47 tests):** DOM cleanup verification, create/destroy cycles with DOM node counting, event listener leak detection, ResizeObserver disconnect tracking, timer cleanup, element pool cleanup, double-destroy safety across all features, large dataset cleanup (100K–1M items)
 - **Performance Benchmarks (50 tests):** Timing bounds for initialization (10K–1M items), render cycles, data operations, destroy, scrollToIndex, selection, snapshots, compression transitions, feature overhead comparison, virtualization correctness
 
-**Combined Impact:** Added 259 tests across 6 files, coverage at 94.29% lines / 93.14% functions. All 2,107 tests passing.
+**Combined Impact:** Added 259+ tests across 6 files. All 2,822 tests passing with 37,978 assertions. Coverage: 98.7% lines / 96.3% functions (85% minimum enforced in CI).
 
 Several modules are primarily tested through integration tests in `builder/index.test.ts` (233 tests, 531 assertions). Their dedicated test files contain smoke tests + documentation noting indirect coverage:
 
@@ -243,10 +249,9 @@ Feature integration tests wire their respective modules into the builder context
 
 The `page/feature.test.ts` tests are limited by JSDOM's inability to support `getBoundingClientRect()`, `window.scrollTo()`, and real layout calculations. They verify everything testable without a real browser: DOM style changes, context method delegation, handler registration, and cleanup.
 
-**Next Steps (Phase 3 - Optional):**
-- Phase 3: Cross-browser compatibility scenarios, real browser E2E tests
+**V1 Code Review — All 14 Items Complete ✅**
 
-**Note:** Phase 1 + 2 coverage is sufficient for production use. Remaining gaps are primarily in window mode (requires real browser), touch momentum physics, and defensive error paths.
+All enhancement areas from the [V1 Code Review](../archive/V1_CODE_REVIEW.md) have been addressed. The test infrastructure now includes shared helpers (`test/helpers/`), DOM snapshot tests (11 tests across 6 configurations), coverage threshold enforcement in CI, and dev-mode diagnostic verification. Remaining uncovered lines are primarily in window mode (requires real browser), touch momentum physics, and defensive error paths.
 
 ## Coverage
 
@@ -277,9 +282,9 @@ The lcov report is written to `coverage/lcov.info`.
 
 ### Coverage Summary
 
-**Overall: 94.29% lines, 93.14% functions** (2,107 tests)
+**Overall: 98.7% lines, 96.3% functions** (2,822 tests / 37,978 assertions)
 
-After Phase 2: Added 184 new tests focused on cross-feature integration, memory leak detection, and performance benchmarks. Coverage improved from 94.03% → 94.29% lines, 92.95% → 93.14% functions. Notable improvements: `builder/core.ts` +3.4%, `async/feature.ts` +7%.
+After the V1 Code Review (all 14 items complete): core.ts decomposed into smaller modules (measurement.ts, api.ts, dom.ts, scroll.ts, velocity.ts, data.ts, range.ts, context.ts), shared test helpers extracted to `test/helpers/`, DOM snapshot tests added, and coverage threshold enforcement (85% minimum) integrated into CI. Coverage improved from 94.03% → 98.7% lines, 92.95% → 96.3% functions.
 
 | Category | Lines | Functions | Notes |
 |----------|------:|----------:|-------|
@@ -696,6 +701,7 @@ bun test --test-name-pattern="grid"
 
 | Source Directory | Test Directory | Files |
 |-----------------|---------------|------:|
+| *(shared)* | `test/helpers/` | 3 |
 | `src/builder/` | `test/builder/` | 13 |
 | `src/events/` | `test/events/` | 1 |
 | `src/features/async/` | `test/features/async/` | 5 |
@@ -706,9 +712,9 @@ bun test --test-name-pattern="grid"
 | `src/features/sections/` | `test/features/sections/` | 3 |
 | `src/features/selection/` | `test/features/selection/` | 3 |
 | `src/features/snapshots/` | `test/features/snapshots/` | 1 |
-| `src/rendering/` | `test/rendering/` | 5 |
+| `src/rendering/` | `test/rendering/` | 6 |
 | *(cross-cutting)* | `test/integration/` | 3 |
-| **Total** | | **42** |
+| **Total** | | **46** |
 
 ---
 

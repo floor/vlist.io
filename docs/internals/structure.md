@@ -26,11 +26,13 @@ The builder system provides the core API and feature architecture.
 src/builder/
 ├── index.ts           # Builder exports
 ├── types.ts           # Builder types (VListFeature, BuilderContext, etc.)
-├── core.ts            # vlist() factory and materialize()
+├── core.ts            # vlist() factory — scroll loop, feature wiring, lifecycle
+├── api.ts             # Public API assembly — data wrappers, scroll methods, destroy
+├── measurement.ts     # Mode B measurement — ResizeObserver, scroll correction, stayAtEnd
 ├── context.ts         # BuilderContext creation
-├── materialize.ts  # Internal materialization context
+├── materialize.ts     # Internal materialization context
 ├── data.ts            # Simple data manager
-├── dom.ts             # DOM structure creation
+├── dom.ts             # DOM structure creation (includes ARIA live region)
 ├── pool.ts            # Element pooling
 ├── range.ts           # Range utilities
 ├── scroll.ts          # Base scroll controller
@@ -42,6 +44,8 @@ src/builder/
 - `VListBuilder` - Chainable builder interface
 - `BuilderContext` - Feature context interface
 - `VListFeature` - Feature interface
+
+**Decomposition (v1.3.2+):** The original monolithic `core.ts` (1,513 lines) was decomposed into `core.ts` (~1,097 lines), `api.ts` (~370 lines), and `measurement.ts` (~200 lines). See [V1 Code Review](../archive/V1_CODE_REVIEW.md) item #1 for details.
 
 ## Events System
 
@@ -112,6 +116,37 @@ src/features/page/
 **Key exports:**
 - `withPage()` - Feature function
 
+### Masonry Feature
+
+Pinterest-style shortest-lane layout.
+
+```
+src/features/masonry/
+├── index.ts           # Module exports
+├── feature.ts         # withMasonry() feature
+├── layout.ts          # Masonry layout calculations
+└── types.ts           # Masonry types
+```
+
+**Key exports:**
+- `withMasonry()` - Feature function
+
+### Table Feature
+
+Data table with resizable columns and sortable headers.
+
+```
+src/features/table/
+├── index.ts           # Module exports
+├── feature.ts         # withTable() feature
+├── layout.ts          # Table layout calculations
+├── renderer.ts        # Table renderer
+└── types.ts           # Table types
+```
+
+**Key exports:**
+- `withTable()` - Feature function
+
 ### Scale Feature
 
 Handles 1M+ items with scroll space scaling.
@@ -150,7 +185,7 @@ src/features/scrollbar/
 - `createScrollbar()` - Scrollbar component factory
 - `rafThrottle()` - RAF throttle utility
 
-### Sections Feature
+### Groups Feature
 
 Grouped lists with sticky or inline headers.
 
@@ -171,7 +206,7 @@ src/features/groups/
 - `createStickyHeader()` - Sticky header manager
 - `isGroupHeader()` - Type guard (aliased as `isSectionHeader`)
 
-**Note:** Internally uses "group" terminology, but exports are aliased to "section" for public API.
+**Note:** Internally uses "group" terminology. The public API uses `withGroups()`.
 
 ### Selection Feature
 
@@ -214,7 +249,7 @@ src/rendering/
 ├── sizes.ts           # Size cache (prefix-sum array, dimension-agnostic)
 ├── measured.ts        # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts        # DOM renderer
-├── sort.ts            # Shared DOM sort utility for accessibility (scroll idle)
+├── sort.ts            # Shared DOM sort utility for accessibility (reorders DOM on scroll idle)
 ├── scale.ts           # Scaling calculations for 1M+ items
 └── viewport.ts        # Viewport state management
 ```
@@ -387,6 +422,21 @@ builder/ → features/* ❌ (builder is feature-agnostic)
 rendering/ → builder/ ❌ (rendering is pure)
 ```
 
+### Feature Conflict Declarations
+
+Features that are mutually exclusive declare a `conflicts` array:
+
+```typescript
+// features/grid/feature.ts
+return {
+  name: 'grid',
+  conflicts: ['masonry', 'table'],
+  // ...
+}
+```
+
+The builder validates conflicts at build time and throws if incompatible features are combined. See [V1 Code Review](../archive/V1_CODE_REVIEW.md) item #12 for the full compatibility matrix.
+
 ## Tree-Shaking
 
 The codebase is structured for optimal tree-shaking:
@@ -400,27 +450,38 @@ The codebase is structured for optimal tree-shaking:
 
 ## Testing
 
-Tests mirror the source structure:
+Tests mirror the source structure (2,822 tests / 37,978 assertions):
 
 ```
 test/
-├── builder/
-├── features/
-│   ├── async/
-│   ├── grid/
-│   ├── scale/
-│   └── ...
-└── rendering/
+├── builder/           # Builder system tests (boundary, recovery, core, data, etc.)
+├── events/            # Event emitter tests
+├── features/          # Feature-specific tests
+│   ├── async/         # Async loading, integration, sparse storage
+│   ├── grid/          # Grid layout, rendering
+│   ├── groups/        # Groups, sticky headers
+│   ├── page/          # Page scrolling
+│   ├── scale/         # Scale / compression
+│   ├── scrollbar/     # Custom scrollbar, controller
+│   ├── selection/     # Selection state, keyboard nav
+│   └── snapshots/     # Scroll save/restore
+├── helpers/           # Shared test helpers (dom, factory, timers)
+├── integration/       # Cross-feature, memory, performance tests
+└── rendering/         # Renderer, sizes, viewport, scale, snapshots
 ```
+
+Coverage: 96.3% functions / 98.7% lines (85% minimum threshold enforced in CI).
 
 ## Related Documentation
 
 - [Builder Pattern](/tutorials/builder-pattern) - How features work
 - [Feature System](../internals/context.md) - BuilderContext internals
 - [Rendering](../internals/rendering.md) - Rendering internals
+- [V1 Code Review](../archive/V1_CODE_REVIEW.md) - Architecture improvements and enhancement log
+- [Testing](../resources/testing.md) - Test suite, coverage, and patterns
 
 ---
 
-**Last Updated:** February 2026  
-**Version:** v1.1.0  
+**Last Updated:** June 2025  
+**Version:** v1.4.0  
 **Accuracy:** Verified against actual source code

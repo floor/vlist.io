@@ -6,7 +6,7 @@
 **Date**: 8 March 2026  
 **Version**: 1.3.1  
 **Impact**: Maintainability refactor — no public API changes, no breaking changes  
-**Origin**: [V1 Code Review §1 — Core Architecture](../V1_CODE_REVIEW.md#1-core-architecture--corets-decomposition)
+**Origin**: [V1 Code Review §1 — Core Architecture](../archive/V1_CODE_REVIEW.md#1-core-architecture--corets-decomposition)
 
 ## Table of Contents
 
