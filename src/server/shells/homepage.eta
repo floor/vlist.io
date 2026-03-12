@@ -181,18 +181,22 @@
                         GitHub
                     </a>
                 </div>
-            </section>
-        </div>
-        <div class="container">
-            <!-- ========================================================
+
+                <!-- ========================================================
                  Install
                  ======================================================== -->
 
-            <div class="install">
-                <div class="install__cmd">
-                    <span>npm install @floor/vlist</span>
+                <div class="install">
+                    <div class="install__cmd">
+                        <span>npm install @floor/vlist</span>
+                    </div>
                 </div>
-            </div>
+
+
+            </section>
+        </div>
+        <div class="container">
+
 
             <!-- ========================================================
                  Performance Highlights

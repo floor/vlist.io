@@ -208,7 +208,7 @@
     color: var(--text);
     padding: 8px 12px;
     border-bottom: 2px solid var(--border);
-    font-size: var(--fs-base);
+    font-size: var(--fs-2xs);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
