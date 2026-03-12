@@ -205,7 +205,7 @@
 
             <section class="section">
                 <h2 class="section__title">Try It</h2>
-                <p class="section__desc">10 lines of code, 100,000 items. Scroll the live list on the right.</p>
+                <p class="section__desc">16 lines of code, 100,000 items. Scroll the live list on the right.</p>
                 <div class="quickstart">
                     <div class="quickstart__code ui-card code">
                         <pre><%~ it.quickstartCode %></pre>
