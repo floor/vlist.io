@@ -204,7 +204,8 @@
                  ======================================================== -->
 
             <section class="section">
-                <h2 class="section__title">Quick Start</h2>
+                <h2 class="section__title">Try It</h2>
+                <p class="section__desc">10 lines of code, 100,000 items. Scroll the live list on the right.</p>
                 <div class="quickstart">
                     <div class="quickstart__code ui-card code">
                         <pre><%~ it.quickstartCode %></pre>
@@ -223,10 +224,8 @@
                  ======================================================== -->
 
             <section class="section">
-                <h2 class="section__title">Performance That Matters</h2>
-                <p style="max-width: 720px; margin: 0 auto 32px; font-size: 16px; line-height: 1.6; color: var(--text-muted); text-align: center;">
-                    Verified benchmarks show VList's exceptional efficiency. All tests run live in your browser.
-                </p>
+                <h2 class="section__title">Less Weight, More Speed</h2>
+                <p class="section__desc">Verified benchmarks show VList's exceptional efficiency. All tests run live in your browser.</p>
                 <div class="features">
                     <div class="ui-card ui-card--xl feature">
                         <div class="feature__name">Constant Memory</div>
@@ -260,6 +259,7 @@
 
             <section class="section">
                 <h2 class="section__title">What's Inside</h2>
+                <p class="section__desc">Every feature is tree-shakeable — import only what you need.</p>
                 <div class="features">
                     <div class="ui-card feature">
                         <span class="feature__icon">⚡</span>
@@ -339,7 +339,8 @@
                  ======================================================== -->
 
             <section class="section">
-                <h2 class="section__title">Examples (<%= it.exampleGroups.reduce(function(sum, g) { return sum + g.items.length; }, 0) %>)</h2>
+                <h2 class="section__title">Showcase with Source</h2>
+                <p class="section__desc">Interactive examples with full source code. Run them, read them, copy them.</p>
                 <% it.exampleGroups.forEach(function(group) { %>
                 <div class="overview__section">
                     <div class="overview__section-title"><%= group.label %></div>
@@ -363,8 +364,8 @@
                  ======================================================== -->
 
             <section class="section">
-                <h2 class="section__title">Explore</h2>
-
+                <h2 class="section__title">Learn More</h2>
+                <p class="section__desc">Docs, tutorials, and benchmarks to get the most out of VList.</p>
                 <div class="nav-grid">
                     <a href="/examples/" class="ui-card ui-card--interactive nav-card">
                         <div class="nav-card__title">Examples</div>
