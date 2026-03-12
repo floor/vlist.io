@@ -681,7 +681,42 @@ The `/benchmarks/history` page is entirely client-side rendered. On load it:
 1. Fetches summary, suites, versions, and browsers in parallel
 2. Auto-selects the first available comparison suite
 3. Populates filter controls (Library, Item Count, Version, Days)
-4. Renders an aggregated stats table and SVG trend chart (median line + p5–p95 band)
+4. Renders results cards, SVG trend chart, browser/version breakdowns, and a contribute CTA
+
+#### Results Card Layout
+
+The history page presents crowdsourced data using the **same metric card layout** as live benchmark results (the "Final results" card you see after running a comparison). Each metric shows the crowdsourced **median** value with:
+
+- **Color-coded ratings** — green (good), yellow (ok), red (bad) matching the live benchmark rating logic
+- **Contextual meta notes** on difference rows — "vlist is faster", "vlist uses less", "vlist is smoother"
+- **Friendly library names** — e.g. "TanStack Virtual" instead of `tanstack-virtual`, "Clusterize.js" instead of `clusterize`
+- **Formatted values** — appropriate precision per unit (ms: 1 decimal, MB: 2 decimals, fps: 1 decimal, %: 1 decimal)
+
+This replaces the previous dense stats table (version/metric/median/mean/p5/p95/min/max/stddev/samples columns) with a much more readable format that matches the visual language visitors already know from running benchmarks.
+
+#### Confidence Badge
+
+Each version section displays a confidence indicator based on sample count:
+
+| Badge | Sample Count | Meaning |
+|-------|-------------|---------|
+| 🟢 High confidence | ≥ 20 runs | Statistically meaningful |
+| 🟡 Moderate confidence | 5–19 runs | Reasonable estimate |
+| ⚪ Low confidence | < 5 runs | Early data, run more benchmarks! |
+
+The badge shows the exact run count (e.g. "Low confidence · 2 runs") and helps visitors understand how much data backs the displayed medians.
+
+#### Collapsible Detailed Stats
+
+The full statistical breakdown (mean, p5, p95, min, max, stddev) is still accessible via a **"Show detailed stats ▸"** toggle below each results card. Hidden by default to keep the view clean, it expands with a fade-in animation to reveal the compact stats table for users who want the full picture.
+
+#### Contribute CTA
+
+A call-to-action section at the bottom of the page encourages visitors to run benchmarks:
+- Headline: "Help improve these results"
+- Description explaining that more data = more confidence
+- Pill-style links (⚔️ react-window, ⚔️ Virtua, etc.) to each comparison benchmark page
+- Links are generated from all known comparison suite IDs
 
 ---
 
@@ -754,7 +789,7 @@ data/benchmarks.db             # SQLite database (gitignored, created by seed sc
 |------|---------|
 | `benchmarks/script.js` | Dashboard UI, variant switcher, result rendering, `persistResult()` |
 | `benchmarks/runner.js` | Benchmark engine — suite registry, execution, timing & memory utilities |
-| `benchmarks/history.js` | Crowdsourced history page — API fetching, stats table, SVG chart |
+| `benchmarks/history.js` | Crowdsourced history page — API fetching, results cards, confidence badges, detail toggles, SVG chart, CTA |
 | `benchmarks/templates.js` | HTML templates for all benchmark pages including history |
 | `benchmarks/suites/{name}/{variant}/suite.js` | Individual benchmark suite implementations (20 total) |
 | `benchmarks/comparison/shared.js` | Comparison infrastructure — isolated 3-phase measurement |

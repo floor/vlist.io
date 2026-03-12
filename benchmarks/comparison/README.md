@@ -216,6 +216,25 @@ All comparison results are automatically persisted to a SQLite database (`data/b
 3. Server auto-routes to `comparison_runs` + `comparison_metrics` tables (suite results go to separate `benchmark_*` tables)
 4. The [Comparison History](/benchmarks/history) page aggregates all submissions
 
+### History Page Layout
+
+The history page presents crowdsourced data in a format that mirrors the live benchmark results:
+
+**Results Card** — Replaces the old stats table with the same metric card layout used after a live benchmark run. Each metric shows the crowdsourced **median** value with color-coded ratings (green/yellow/red) and contextual notes like "vlist is faster" or "vlist uses less". Metrics are grouped naturally: Render → Memory → Scroll → Frame Time.
+
+**Confidence Badge** — Each version section displays a confidence indicator based on sample count:
+- 🟢 **High confidence** — ≥ 20 runs
+- 🟡 **Moderate confidence** — 5–19 runs
+- ⚪ **Low confidence** — < 5 runs
+
+This helps visitors understand how much data backs the displayed medians.
+
+**Collapsible Details** — The full statistical breakdown (mean, p5, p95, min, max, stddev) is accessible via a "Show detailed stats ▸" toggle below each results card, hidden by default to keep the view clean.
+
+**Trend Chart** — SVG time-series chart with daily aggregated median line and p5–p95 range band, filterable by metric, days, and version.
+
+**Contribute CTA** — A call-to-action section at the bottom with links to all comparison benchmark pages, encouraging visitors to run benchmarks and grow the dataset.
+
 ### What's Stored
 
 | Field | Source |

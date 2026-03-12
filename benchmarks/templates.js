@@ -363,12 +363,12 @@ export function buildHistoryPageHTML() {
         </div>
       </div>
 
-      <!-- Stats Table -->
+      <!-- Results Card -->
       <div class="ui-card ui-card--xl bench-history__stats-card" id="history-stats">
-        <h2 class="bench-history__section-title">Aggregated Metrics</h2>
-        <p class="bench-history__section-desc">Statistical summary across all submissions for the selected filters.</p>
+        <h2 class="bench-history__section-title">Results</h2>
+        <p class="bench-history__section-desc">Crowdsourced median values across all submissions for the selected filters.</p>
         <div id="history-stats-content">
-          <div class="bench-history__loading">Select a suite to view stats…</div>
+          <div class="bench-history__loading">Select a suite to view results…</div>
         </div>
       </div>
 
@@ -403,6 +403,16 @@ export function buildHistoryPageHTML() {
         <div id="history-versions-content">
           <div class="bench-history__loading">Loading…</div>
         </div>
+      </div>
+
+      <!-- Contribute CTA -->
+      <div class="bench-history__cta" id="history-cta">
+        <h2 class="bench-history__cta-title">Help improve these results</h2>
+        <p class="bench-history__cta-desc">
+          Every benchmark run is automatically stored and aggregated here.
+          More data = more confidence. Run a comparison to contribute!
+        </p>
+        <div class="bench-history__cta-links" id="history-cta-links"></div>
       </div>
 
       <footer class="bench-footer">

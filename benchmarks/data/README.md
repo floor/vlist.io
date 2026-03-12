@@ -47,6 +47,8 @@ bun run seed:benchmarks -- --force
 
 **Used in:** `/benchmarks/history` (Comparison History page)
 
+**History page UI:** The history page presents crowdsourced data using the same metric card layout as live benchmark results — each metric shows the **median** value with color-coded ratings and contextual notes (e.g. "vlist is faster"). A confidence badge indicates data reliability (🟢 ≥20 runs, 🟡 5–19, ⚪ <5). Full statistical details (mean, p5, p95, stddev) are available via a collapsible "Show detailed stats" toggle. A contribute CTA at the bottom links to all comparison benchmarks.
+
 **Note:** This file is `.gitignored` — each environment creates its own via the seed script.
 
 ---

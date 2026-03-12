@@ -1202,3 +1202,202 @@ html[data-theme] .vlist-item {
 [data-theme-mode="dark"] .bench-history__table tbody tr:hover {
     background: rgba(255, 255, 255, 0.03);
 }
+
+/* ─── Results Card (metric card layout) ────────────────────────── */
+
+.bench-history__results-section {
+    margin-bottom: 24px;
+}
+
+.bench-history__results-section:last-child {
+    margin-bottom: 0;
+}
+
+.bench-history__results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 12px;
+}
+
+.bench-history__results-version {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.bench-history__confidence {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.2px;
+}
+
+.bench-history__confidence--good {
+    color: #43e97b;
+    background: rgba(67, 233, 123, 0.1);
+}
+
+.bench-history__confidence--ok {
+    color: #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.bench-history__confidence--low {
+    color: var(--text-muted);
+    background: var(--surface, #f3f4f6);
+}
+
+.bench-history__results-section .bench-metrics {
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* ─── Details Toggle ───────────────────────────────────────────── */
+
+.bench-history__details-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.bench-history__details-toggle:hover {
+    color: var(--text);
+}
+
+.bench-history__details-toggle-icon {
+    font-size: 10px;
+    transition: transform 0.15s;
+}
+
+.bench-history__details[hidden] {
+    display: none;
+}
+
+.bench-history__details {
+    margin-top: 8px;
+    animation: bench-history-fade-in 0.15s ease;
+}
+
+@keyframes bench-history-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Contribute CTA ───────────────────────────────────────────── */
+
+.bench-history__cta {
+    text-align: center;
+    padding: 28px 24px;
+    margin-bottom: 20px;
+    background: var(--surface, #f9fafb);
+    border-radius: 10px;
+    border: 1px dashed var(--border, #e5e7eb);
+}
+
+.bench-history__cta-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 6px;
+}
+
+.bench-history__cta-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+}
+
+.bench-history__cta-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.bench-history__cta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent, #3b82f6);
+    background: var(--bg, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 6px;
+    text-decoration: none;
+    transition:
+        border-color 0.15s,
+        background 0.15s;
+}
+
+.bench-history__cta-link:hover {
+    border-color: var(--accent, #3b82f6);
+    background: rgba(59, 130, 246, 0.04);
+}
+
+/* ─── Dark mode: new components ────────────────────────────────── */
+
+[data-theme-mode="dark"] .bench-history__confidence--low {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme-mode="dark"] .bench-history__cta {
+    background: var(--surface, #1f2937);
+    border-color: var(--border, #374151);
+}
+
+[data-theme-mode="dark"] .bench-history__cta-link {
+    background: var(--bg, #111827);
+    border-color: var(--border, #374151);
+}
+
+[data-theme-mode="dark"] .bench-history__cta-link:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* ─── Responsive: new components ───────────────────────────────── */
+
+@media (max-width: 720px) {
+    .bench-history__results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .bench-history__cta {
+        padding: 20px 16px;
+    }
+
+    .bench-history__cta-links {
+        gap: 6px;
+    }
+
+    .bench-history__cta-link {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}

@@ -6,6 +6,17 @@
 
 import { buildHistoryPageHTML } from "./templates.js";
 import { formatItemCount } from "./runner.js";
+import {
+  SUITE_DISPLAY_NAMES,
+  deriveRating,
+  deriveMeta,
+  confidenceLabel,
+  formatMetricValue,
+  niceScale,
+  niceDateTicks,
+  formatTickValue,
+  round,
+} from "./history-utils.js";
 
 // =============================================================================
 // Constants
@@ -67,6 +78,7 @@ export function buildHistoryPage(root) {
       populateVersionSelect(versionsData);
       renderBrowsers(browsersData);
       renderVersions(versionsData);
+      renderCTALinks(suitesData);
 
       // Wire up interactive controls
       wireFilters();
@@ -278,33 +290,102 @@ function renderStatsTable(statsItems) {
     return;
   }
 
-  // Build rows — group by version, show all metrics
-  const rows = [];
+  const sections = [];
+
   for (const stat of statsItems) {
-    for (const m of stat.metrics) {
-      rows.push(`
-        <tr>
-          <td class="bench-history__version-cell">${escapeHtml(stat.version)}</td>
-          <td>${escapeHtml(m.label)}</td>
-          <td class="bench-history__value-cell">${m.median} ${escapeHtml(m.unit)}</td>
-          <td>${m.mean} ${escapeHtml(m.unit)}</td>
-          <td>${m.p5}</td>
-          <td>${m.p95}</td>
-          <td>${m.min}</td>
-          <td>${m.max}</td>
-          <td>${m.stddev}</td>
-          <td class="bench-history__count-cell">${m.sampleCount}</td>
-        </tr>
-      `);
-    }
+    // Total sample count (use first metric's count as representative)
+    const totalSamples =
+      stat.metrics.length > 0 ? stat.metrics[0].sampleCount : 0;
+    const confidence = confidenceLabel(totalSamples);
+
+    // Build metric cards — same format as live benchmark results
+    const metricCards = stat.metrics
+      .map((m) => {
+        const rating = deriveRating(m.label, m.better, m.median);
+        const ratingClass = rating ? ` bench-metric--${rating}` : "";
+        const meta = deriveMeta(m.label, m.better, m.median, currentSuiteId);
+        const metaHtml = meta
+          ? `<span class="bench-metric__meta">${escapeHtml(meta)}</span>`
+          : "";
+
+        // Format the display value
+        const displayValue = formatMetricValue(m.median, m.unit);
+
+        return `
+        <div class="bench-metric${ratingClass}">
+          <span class="bench-metric__label">${escapeHtml(m.label)}${metaHtml}</span>
+          <span class="bench-metric__value">
+            ${displayValue}
+            ${m.unit ? `<span class="bench-metric__unit">${escapeHtml(m.unit)}</span>` : ""}
+          </span>
+        </div>
+      `;
+      })
+      .join("");
+
+    sections.push(`
+      <div class="bench-history__results-section">
+        <div class="bench-history__results-header">
+          <span class="bench-history__results-version">${escapeHtml(stat.version)}</span>
+          <span class="bench-history__confidence bench-history__confidence--${confidence.cls}" title="${totalSamples} run${totalSamples !== 1 ? "s" : ""}">
+            ${confidence.text} · ${totalSamples} run${totalSamples !== 1 ? "s" : ""}
+          </span>
+        </div>
+        <div class="bench-metrics">
+          ${metricCards}
+        </div>
+        <button class="bench-history__details-toggle" aria-expanded="false">
+          <span class="bench-history__details-toggle-text">Show detailed stats</span>
+          <span class="bench-history__details-toggle-icon">▸</span>
+        </button>
+        <div class="bench-history__details" hidden>
+          ${renderDetailsTable(stat)}
+        </div>
+      </div>
+    `);
   }
 
-  el.innerHTML = `
+  el.innerHTML = sections.join("");
+
+  // Wire up detail toggles
+  el.querySelectorAll(".bench-history__details-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const details = btn.nextElementSibling;
+      const expanded = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", String(!expanded));
+      btn.querySelector(".bench-history__details-toggle-text").textContent =
+        expanded ? "Show detailed stats" : "Hide detailed stats";
+      btn.querySelector(".bench-history__details-toggle-icon").textContent =
+        expanded ? "▸" : "▾";
+      details.hidden = expanded;
+    });
+  });
+}
+
+/** Build the collapsible detailed stats table */
+function renderDetailsTable(stat) {
+  const rows = stat.metrics
+    .map(
+      (m) => `
+    <tr>
+      <td>${escapeHtml(m.label)}</td>
+      <td class="bench-history__value-cell">${m.median}</td>
+      <td>${m.mean}</td>
+      <td>${m.p5}</td>
+      <td>${m.p95}</td>
+      <td>${m.min}</td>
+      <td>${m.max}</td>
+      <td>${m.stddev}</td>
+    </tr>
+  `,
+    )
+    .join("");
+
+  return `
     <div class="bench-history__table-wrapper">
-      <table class="bench-history__table">
+      <table class="bench-history__table bench-history__table--compact">
         <thead>
           <tr>
-            <th>Version</th>
             <th>Metric</th>
             <th>Median</th>
             <th>Mean</th>
@@ -313,10 +394,9 @@ function renderStatsTable(statsItems) {
             <th>Min</th>
             <th>Max</th>
             <th>StdDev</th>
-            <th>Samples</th>
           </tr>
         </thead>
-        <tbody>${rows.join("")}</tbody>
+        <tbody>${rows}</tbody>
       </table>
     </div>
   `;
@@ -605,6 +685,26 @@ function populateMetricSelect(metrics) {
 // Helper Renderers
 // =============================================================================
 
+function renderCTALinks(suites) {
+  const el = document.getElementById("history-cta-links");
+  if (!el) return;
+
+  // Show links for all known comparison suites (even if no data yet)
+  const knownSuites = Object.keys(SUITE_DISPLAY_NAMES);
+  const suiteIds =
+    suites.length > 0 ? suites.map((s) => s.suiteId) : knownSuites;
+
+  // Merge: show all known + any from data that aren't in the known list
+  const allIds = [...new Set([...knownSuites, ...suiteIds])];
+
+  el.innerHTML = allIds
+    .map((id) => {
+      const name = SUITE_DISPLAY_NAMES[id] || id;
+      return `<a href="/benchmarks/${escapeHtml(id)}" class="bench-history__cta-link">⚔️ ${escapeHtml(name)}</a>`;
+    })
+    .join("");
+}
+
 function renderEmpty(elementId, message) {
   const el = document.getElementById(elementId);
   if (el)
@@ -620,51 +720,6 @@ function renderError(elementId, message) {
 // =============================================================================
 // Chart Helpers
 // =============================================================================
-
-/** Generate nice tick values for a numeric axis */
-function niceScale(min, max, targetTicks) {
-  const range = max - min;
-  if (range <= 0) return [min];
-
-  const roughStep = range / targetTicks;
-  const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
-  const residual = roughStep / magnitude;
-
-  let niceStep;
-  if (residual <= 1.5) niceStep = magnitude;
-  else if (residual <= 3) niceStep = 2 * magnitude;
-  else if (residual <= 7) niceStep = 5 * magnitude;
-  else niceStep = 10 * magnitude;
-
-  const niceMin = Math.floor(min / niceStep) * niceStep;
-  const niceMax = Math.ceil(max / niceStep) * niceStep;
-
-  const ticks = [];
-  for (let v = niceMin; v <= niceMax + niceStep * 0.01; v += niceStep) {
-    ticks.push(round(v, 4));
-  }
-  return ticks;
-}
-
-/** Generate evenly-spaced date ticks between two timestamps */
-function niceDateTicks(minMs, maxMs, count) {
-  const range = maxMs - minMs;
-  if (range <= 0) return [minMs];
-
-  const step = range / (count - 1);
-  const ticks = [];
-  for (let i = 0; i < count; i++) {
-    ticks.push(Math.round(minMs + step * i));
-  }
-  return ticks;
-}
-
-/** Format a tick value — remove trailing zeros */
-function formatTickValue(v) {
-  if (v >= 1000) return (v / 1000).toFixed(v % 1000 === 0 ? 0 : 1) + "k";
-  if (Number.isInteger(v)) return String(v);
-  return v.toFixed(2).replace(/\.?0+$/, "");
-}
 
 /** Format a date as "Jan 5" or "Jan 5 '24" */
 function formatDateShort(d) {
@@ -686,11 +741,6 @@ function formatDateShort(d) {
   const sameYear = d.getUTCFullYear() === now.getFullYear();
   const label = `${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
   return sameYear ? label : `${label} '${String(d.getUTCFullYear()).slice(2)}`;
-}
-
-function round(v, decimals) {
-  const f = Math.pow(10, decimals);
-  return Math.round(v * f) / f;
 }
 
 function escapeHtml(str) {
