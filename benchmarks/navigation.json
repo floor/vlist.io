@@ -85,24 +85,6 @@
     "label": "Results",
     "items": [
       {
-        "slug": "bundle",
-        "name": "Bundle Size",
-        "icon": "",
-        "desc": "Minified and gzipped sizes across virtual list libraries"
-      },
-      {
-        "slug": "features",
-        "name": "Features",
-        "icon": "",
-        "desc": "Feature coverage across popular virtual list libraries"
-      },
-      {
-        "slug": "performance-comparison",
-        "name": "Performance Comparison",
-        "icon": "",
-        "desc": "Head-to-head performance metrics across all libraries"
-      },
-      {
         "slug": "history",
         "name": "Comparison History",
         "icon": "📈",
