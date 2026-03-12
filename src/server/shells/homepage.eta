@@ -259,7 +259,7 @@
                  ======================================================== -->
 
             <section class="section">
-                <h2 class="section__title">Features</h2>
+                <h2 class="section__title">What's Inside</h2>
                 <div class="features">
                     <div class="ui-card feature">
                         <span class="feature__icon">⚡</span>
@@ -312,9 +312,9 @@
                     </div>
                     <div class="ui-card feature">
                         <span class="feature__icon">🔲</span>
-                        <div class="feature__name">Grid Layout</div>
+                        <div class="feature__name">Grid, Table &amp; Masonry</div>
                         <div class="feature__desc">
-                            Virtualized 2D grid in vertical or horizontal orientation
+                            Virtualized 2D grid, data table, and masonry layouts — all orientations
                         </div>
                     </div>
                     <div class="ui-card feature">
