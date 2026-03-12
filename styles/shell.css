@@ -229,11 +229,11 @@ body {
 }
 
 .sidebar__label {
-    font-size: var(--fs-sm);
+    font-size: var(--fs-base);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: var(--text-dim);
+    color: var(--accent-text);
     padding: 0 20px;
     margin-bottom: 6px;
 }
