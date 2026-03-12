@@ -45,6 +45,29 @@ const eta = new Eta({
 });
 
 // =============================================================================
+// Quick Start Code Block (preserved outside Eta to avoid rmWhitespace stripping)
+// =============================================================================
+
+const QUICKSTART_CODE = `<span class="kw">import</span> { <span class="fn">vlist</span> } <span class="kw">from</span> <span class="str">"@floor/vlist"</span>
+
+<span class="kw">const</span> list <span class="op">=</span> <span class="fn">vlist</span>({
+  <span class="prop">container</span><span class="par">:</span> <span class="str">"#list"</span>,
+  <span class="prop">item</span><span class="par">:</span> {
+    <span class="prop">height</span><span class="par">:</span> <span class="num">56</span>,
+    <span class="prop">template</span><span class="par">:</span> (item) <span class="op">=&gt;</span> <span class="str">\`
+      &lt;div class="user"&gt;
+        &lt;span class="avatar"&gt;\${</span>item.<span class="prop">avatar</span><span class="str">}&lt;/span&gt;
+        &lt;div&gt;
+          &lt;b&gt;\${</span>item.<span class="prop">firstName</span><span class="str">} \${</span>item.<span class="prop">lastName</span><span class="str">}&lt;/b&gt;
+          &lt;small&gt;\${</span>item.<span class="prop">role</span><span class="str">} · \${</span>item.<span class="prop">company</span><span class="str">}&lt;/small&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;\`</span>
+  }
+}).<span class="fn">build</span>()
+
+list.<span class="fn">setItems</span>(<span class="fn">generateUsers</span>(<span class="num">100_000</span>))`;
+
+// =============================================================================
 // Template & Navigation Loading
 // =============================================================================
 
@@ -157,6 +180,7 @@ export function renderHomepage(): Response {
       bundleSize: loadBundleSize(),
       navItems: loadNavigation(),
       exampleGroups: loadExampleGroups(),
+      quickstartCode: QUICKSTART_CODE,
     });
   }
 

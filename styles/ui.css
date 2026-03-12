@@ -44,8 +44,12 @@
 .ui-card--lg {
     border-radius: 12px;
 }
+
+/* -- Size variants ---------------------------------------------------------- */
+
 .ui-card--xl {
     border-radius: 16px;
+    padding: 28px 32px;
 }
 
 /* -- Padding variants ------------------------------------------------------- */
