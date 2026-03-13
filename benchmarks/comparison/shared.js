@@ -15,6 +15,7 @@ import {
   tryGC,
   measureDuration,
   measureMemoryDelta,
+  getHeapUsed,
   burnCpu,
   bytesToMB,
   round,
@@ -227,25 +228,51 @@ export const findViewport = (container) => {
   const vp = container.querySelector(".vlist-viewport");
   if (vp) return vp;
 
+  // Helper: does this element's computed style indicate scrollability?
+  // Firefox can report the `overflow` shorthand differently from Chrome
+  // (e.g. "" or "hidden auto") so we check both the shorthand and the
+  // per-axis longhand properties.
+  const isScrollable = (style) => {
+    const vals = ["auto", "scroll"];
+    if (vals.includes(style.overflowY)) return true;
+    if (vals.includes(style.overflowX)) return true;
+    // Shorthand — Chrome returns "auto", Firefox may return "hidden auto"
+    const ov = style.overflow;
+    if (vals.includes(ov)) return true;
+    if (ov && ov.split(" ").some((v) => vals.includes(v))) return true;
+    return false;
+  };
+
   // Depth-first search for any descendant with overflow scrolling
   const walk = (el) => {
     for (const child of el.children) {
       const style = getComputedStyle(child);
-      if (
-        style.overflow === "auto" ||
-        style.overflow === "scroll" ||
-        style.overflowY === "auto" ||
-        style.overflowY === "scroll"
-      ) {
-        return child;
-      }
+      if (isScrollable(style)) return child;
       const found = walk(child);
       if (found) return found;
     }
     return null;
   };
 
-  return walk(container) || container.firstElementChild;
+  const found = walk(container);
+  if (found) return found;
+
+  // Last resort: find the deepest element whose scrollHeight exceeds its
+  // clientHeight — the library rendered content but the CSS overflow value
+  // wasn't detected (e.g. set via a framework stylesheet Firefox applies
+  // differently). This catches react-window, Virtua, etc.
+  const walkScrollable = (el) => {
+    for (const child of el.children) {
+      if (child.scrollHeight > child.clientHeight + 1) {
+        // Prefer a deeper match (the actual viewport, not just a wrapper)
+        const deeper = walkScrollable(child);
+        return deeper || child;
+      }
+    }
+    return null;
+  };
+
+  return walkScrollable(container) || container.firstElementChild;
 };
 
 // =============================================================================
@@ -275,6 +302,18 @@ export const measureScrollPerformance = async (
   stressMs = 0,
   speedPxPerSec = 6000,
 ) => {
+  // Guard: if the viewport element is null/undefined (e.g. library failed to
+  // mount, or findViewport() couldn't locate a scrollable container on this
+  // browser), return zero metrics instead of crashing.
+  if (!viewport) {
+    return {
+      medianFPS: 0,
+      medianFrameTime: 0,
+      p95FrameTime: 0,
+      totalFrames: 0,
+    };
+  }
+
   const maxScroll = viewport.scrollHeight - viewport.clientHeight;
 
   return new Promise((resolve) => {
@@ -406,31 +445,46 @@ const measureMemoryWithRetries = async ({
   const validDeltas = [];
   let instance = null;
 
-  for (let i = 0; i < attempts; i++) {
-    // Destroy previous attempt's instance before retrying
-    if (instance) {
-      await destroyFn(instance);
-      instance = null;
+  // Check if the memory API is available. On Firefox (and any browser without
+  // performance.memory) measureMemoryDelta returns null immediately — *before*
+  // calling the create callback. That means the component is never mounted,
+  // leaving `instance` null and Phase 3 (scroll) with an empty container.
+  const hasMemoryAPI = getHeapUsed() !== null;
+
+  if (hasMemoryAPI) {
+    for (let i = 0; i < attempts; i++) {
+      // Destroy previous attempt's instance before retrying
+      if (instance) {
+        await destroyFn(instance);
+        instance = null;
+      }
+      container.innerHTML = "";
+
+      onStatus(
+        attempts > 1
+          ? `Testing ${label} - measuring memory (${i + 1}/${attempts})...`
+          : `Testing ${label} - measuring memory...`,
+      );
+
+      let inst;
+      const delta = await measureMemoryDelta(async () => {
+        inst = await createFn();
+        await waitFrames(3);
+      });
+
+      instance = inst;
+
+      if (delta !== null) {
+        validDeltas.push(delta);
+      }
     }
+  } else {
+    // No memory API — skip measurement but still create the component
+    // so Phase 3 (scroll) has a mounted instance to work with.
+    onStatus(`Testing ${label} - measuring memory (not available)...`);
     container.innerHTML = "";
-
-    onStatus(
-      attempts > 1
-        ? `Testing ${label} - measuring memory (${i + 1}/${attempts})...`
-        : `Testing ${label} - measuring memory...`,
-    );
-
-    let inst;
-    const delta = await measureMemoryDelta(async () => {
-      inst = await createFn();
-      await waitFrames(3);
-    });
-
-    instance = inst;
-
-    if (delta !== null) {
-      validDeltas.push(delta);
-    }
+    instance = await createFn();
+    await waitFrames(3);
   }
 
   const memoryUsed =
@@ -543,6 +597,12 @@ export const benchmarkVList = async (
 
   const viewport = findViewport(container);
   const scrollResults = [];
+
+  if (!viewport) {
+    console.warn(
+      "[benchmarkVList] No scrollable viewport found — scroll metrics will be zero",
+    );
+  }
 
   for (const speed of COMPARISON_SCROLL_SPEEDS) {
     const stressLabel = stressMs > 0 ? ` (stress ${stressMs}ms)` : "";
@@ -661,6 +721,12 @@ export const benchmarkLibrary = async (config) => {
   // Tests at all COMPARISON_SCROLL_SPEEDS to expose performance cliffs.
 
   const viewport = findViewport(container);
+
+  if (!viewport) {
+    console.warn(
+      `[benchmarkLibrary] No scrollable viewport found for ${libraryName} — scroll metrics will be zero`,
+    );
+  }
 
   // Scroll nudge: some libraries (e.g. Virtua) keep items visibility:hidden
   // until a scroll event triggers their internal measurement/layout pass.

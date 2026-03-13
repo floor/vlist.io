@@ -38,7 +38,12 @@ const loadReactLibraries = async () => {
     if (!React) {
       React = await import("react");
       const ReactDOMClient = await import("react-dom/client");
-      ReactDOM = ReactDOMClient;
+      // Bun's bundler double-wraps CJS modules via __toESM. On some browsers
+      // (Firefox) the getter-based proxy loses `createRoot`. Fall back to
+      // `.default` which holds the original CJS exports object.
+      ReactDOM = ReactDOMClient.createRoot
+        ? ReactDOMClient
+        : (ReactDOMClient.default ?? ReactDOMClient);
 
       // Import react-virtuoso from local node_modules (via import map)
       const reactVirtuoso = await import("react-virtuoso");
@@ -109,7 +114,7 @@ const benchmarkReactVirtuoso = async (
       return root;
     },
     destroyComponent: async (root) => {
-      root.unmount();
+      if (root && typeof root.unmount === "function") root.unmount();
     },
   });
 };

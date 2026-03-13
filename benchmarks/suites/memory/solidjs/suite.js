@@ -7,10 +7,9 @@
 //
 // The delta between (2) and (3) reveals memory leaks.
 // Chrome-only (requires performance.memory API).
-//
-// Uses the core vlist library directly (no SolidJS runtime in benchmarks).
 
-import { vlist } from "vlist";
+import { createRoot, createSignal } from "solid-js";
+import { createVList } from "vlist-solidjs";
 import {
   defineSuite,
   generateItems,
@@ -142,17 +141,36 @@ defineSuite({
     // ── Step 2: Create vlist and measure after render ────────────────────
     onStatus("Creating list...");
 
-    const instance = vlist({
-      container,
-      items,
-      item: {
-        height: ITEM_HEIGHT,
-        template: benchmarkTemplate,
-      },
-    }).build();
+    // createRoot establishes a proper reactive ownership scope so that
+    // createVList's onMount, onCleanup, and createEffect calls are correctly
+    // owned and will be disposed when dispose() is called. Using render()
+    // with a raw-element callback skips ownership wiring and triggers Solid's
+    // "computations created outside a createRoot" warnings.
+    let dispose;
+    createRoot((d) => {
+      dispose = d;
 
-    // Let the render settle and GC stabilize
+      const [config] = createSignal({
+        items,
+        item: {
+          height: ITEM_HEIGHT,
+          template: benchmarkTemplate,
+        },
+      });
+
+      const { setRef } = createVList(config);
+
+      const el = document.createElement("div");
+      el.style.cssText = "height:100%;width:100%;";
+      container.appendChild(el);
+      setRef(el);
+    });
+
+    // Let the render settle — Solid's onMount is microtask-queued, so give
+    // it extra frames before measuring to ensure the vlist instance has fully
+    // initialised and painted its first set of rows.
     await waitFrames(SETTLE_FRAMES);
+    await waitFrames(5); // extra buffer for Solid's onMount + vlist first paint
     await tryGC();
     await waitFrames(SETTLE_FRAMES);
 
@@ -162,8 +180,9 @@ defineSuite({
     const viewport = findViewport(container);
 
     if (!viewport) {
-      instance.destroy();
+      dispose();
       container.innerHTML = "";
+      // eslint-disable-next-line no-unused-expressions
       throw new Error("Could not find vlist viewport element");
     }
 
@@ -181,7 +200,9 @@ defineSuite({
     const afterScroll = getHeapUsed();
 
     // ── Clean up ─────────────────────────────────────────────────────────
-    instance.destroy();
+    // dispose() unmounts the Solid tree and triggers createVList's onCleanup
+    // which calls instance.destroy() internally.
+    dispose();
     container.innerHTML = "";
     await tryGC();
 
@@ -195,11 +216,11 @@ defineSuite({
     const totalMB = bytesToMB(totalDelta);
     const afterRenderMB = bytesToMB(afterRender);
 
-    // Thresholds similar to JavaScript (strict - no framework overhead)
+    // Thresholds similar to Svelte (action-based, minimal framework overhead)
     const scrollLeakGood = itemCount <= 100_000 ? 1 : 3;
     const scrollLeakOk = itemCount <= 100_000 ? 5 : 10;
 
-    // Render heap thresholds (MB) - similar to vanilla JavaScript
+    // Render heap thresholds (MB)
     const renderGood = itemCount <= 10_000 ? 5 : itemCount <= 100_000 ? 15 : 80;
     const renderOk = itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 40 : 200;
 
