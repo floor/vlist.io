@@ -26,18 +26,43 @@ import { existsSync } from "fs";
 // Database Connection (singleton)
 // =============================================================================
 
-const DB_PATH = resolve(import.meta.dir, "../../data/benchmarks.db");
+let dbPath = resolve(import.meta.dir, "../../data/benchmarks.db");
 
 let db: Database | null = null;
 
+/**
+ * Override the database path (for test isolation).
+ * Must be called before any API function that touches the DB.
+ */
+export function setDbPath(path: string): void {
+  dbPath = path;
+  // Close existing connection so getDb() reopens at the new path
+  if (db) {
+    db.close();
+    db = null;
+  }
+}
+
+/**
+ * Close the current DB connection and reset the singleton.
+ * Useful for test cleanup (afterAll).
+ */
+export function resetDb(): void {
+  if (db) {
+    db.close();
+    db = null;
+  }
+  dbPath = resolve(import.meta.dir, "../../data/benchmarks.db");
+}
+
 function getDb(): Database {
   if (!db) {
-    if (!existsSync(DB_PATH)) {
+    if (!existsSync(dbPath)) {
       throw new Error(
         "benchmarks.db not found. Run: bun run scripts/seed-benchmarks.ts",
       );
     }
-    db = new Database(DB_PATH);
+    db = new Database(dbPath);
     db.run("PRAGMA journal_mode = WAL");
     db.run("PRAGMA cache_size = -4000"); // 4 MB cache
     db.run("PRAGMA foreign_keys = ON");

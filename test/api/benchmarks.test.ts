@@ -1,11 +1,11 @@
 // test/api/benchmarks.test.ts
 //
 // Integration tests for the benchmarks API (src/api/benchmarks.ts).
-// Uses a real SQLite database (created fresh per test run via the seed script)
-// so we exercise the full stack: HTTP routing → validation → SQLite queries.
+// Uses an ISOLATED test database (benchmarks.test.db) so test data never
+// pollutes the real crowdsourced benchmarks.db used in production.
 
-import { describe, test, expect, beforeAll } from "bun:test";
-import { routeBenchmarks } from "../../src/api/benchmarks";
+import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { routeBenchmarks, setDbPath, resetDb } from "../../src/api/benchmarks";
 import { existsSync, unlinkSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
 import { Database } from "bun:sqlite";
@@ -14,7 +14,7 @@ import { Database } from "bun:sqlite";
 // Helpers
 // =============================================================================
 
-const DB_PATH = resolve(import.meta.dir, "../../data/benchmarks.db");
+const DB_PATH = resolve(import.meta.dir, "../../data/benchmarks.test.db");
 
 /** Create a GET request for the given path */
 const get = (path: string): { req: Request; url: URL } => {
@@ -143,7 +143,8 @@ const validComparisonPayload = (overrides: Record<string, unknown> = {}) => ({
       rating: "info",
     },
   ],
-  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0.0.0",
+  userAgent:
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   hardwareConcurrency: 10,
   deviceMemory: 16,
   screenWidth: 1920,
@@ -169,7 +170,8 @@ const validSuitePayload = (overrides: Record<string, unknown> = {}) => ({
       rating: "good",
     },
   ],
-  userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120.0.0.0",
+  userAgent:
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   hardwareConcurrency: 10,
   ...overrides,
 });
@@ -283,7 +285,21 @@ function ensureTestDatabase(): void {
 // =============================================================================
 
 beforeAll(() => {
+  // Delete any leftover test DB so we start fresh every run
+  if (existsSync(DB_PATH)) unlinkSync(DB_PATH);
+
   ensureTestDatabase();
+
+  // Point the API module at the isolated test database
+  setDbPath(DB_PATH);
+});
+
+afterAll(() => {
+  // Reset the API module back to the default production DB path
+  resetDb();
+
+  // Clean up the test database file
+  if (existsSync(DB_PATH)) unlinkSync(DB_PATH);
 });
 
 describe("benchmarks API", () => {
