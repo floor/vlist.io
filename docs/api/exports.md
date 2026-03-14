@@ -221,9 +221,11 @@ import {
 ## Stats
 
 Scroll statistics tracker — velocity, progress, visible item count.
+Exported from the public API so consumers do not need to reach into internals.
 
 ```ts
-import { createStats } from '@floor/vlist/internals'
+import { createStats } from '@floor/vlist'
+import type { Stats, StatsConfig, StatsState } from '@floor/vlist'
 ```
 
 ---
