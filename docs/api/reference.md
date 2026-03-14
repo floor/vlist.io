@@ -373,6 +373,38 @@ removeItem(id: string | number): void
 
 ---
 
+### getItemAt
+
+Return the item at a given index, or `undefined` if the slot is not yet loaded (async mode) or the index is out of range.
+
+```ts
+getItemAt(index: number): T | undefined
+```
+
+```ts
+const item = list.getItemAt(42)
+if (item) console.log(item.name)
+```
+
+> In async mode this only returns items that are already in the internal sparse storage. Unloaded slots return `undefined`.
+
+---
+
+### getIndexById
+
+Return the index of the item with the given ID, or `-1` if not found. When `withAsync` is active this is an O(1) lookup via an internal `id → index` map. Without `withAsync` it returns `-1` (sync mode has no ID index).
+
+```ts
+getIndexById(id: string | number): number
+```
+
+```ts
+const idx = list.getIndexById(42)
+if (idx >= 0) list.scrollToIndex(idx)
+```
+
+---
+
 ### reload
 
 Clear all loaded data and re-fetch from the beginning. When used with `withAsync`, triggers a fresh adapter call. Returns a promise that resolves when the initial page is loaded.
@@ -412,7 +444,11 @@ list.scrollToIndex(500, { align: 'center', behavior: 'smooth', duration: 400 })
 
 When `scroll.wrap` is `true`, indices past the last item wrap to the beginning and negative indices wrap from the end.
 
-> **Note:** There is no `scrollToItem(id)` method. If you need to scroll to an item by ID, maintain your own `id → index` map and call `scrollToIndex`.
+> **Tip:** To scroll to an item by ID, use `getIndexById` and pass the result to `scrollToIndex`:
+> ```ts
+> const idx = list.getIndexById(myId)
+> if (idx >= 0) list.scrollToIndex(idx)
+> ```
 
 ---
 
