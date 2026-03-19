@@ -228,12 +228,34 @@ list.on('scroll', () => {
 
 ### Tab Switching
 
+For **synchronous lists** (no `withAsync`), you can use `restoreScroll()` directly:
+
 ```typescript
 const lists = { recent: null, popular: null, saved: null };
 const snapshots = { recent: null, popular: null, saved: null };
 
 function switchTab(tabName) {
-  // Save current tab's scroll
+  const currentTab = getCurrentTab();
+  if (lists[currentTab]) {
+    snapshots[currentTab] = lists[currentTab].getScrollSnapshot();
+  }
+
+  setCurrentTab(tabName);
+
+  if (lists[tabName] && snapshots[tabName]) {
+    lists[tabName].restoreScroll(snapshots[tabName]);
+  }
+}
+```
+
+For tabs with **async data** (using `withAsync()`), prefer `reload({ snapshot })` — it resets the data source, seeds the total from the snapshot, skips the initial page load, and restores scroll position in one call:
+
+```typescript
+const lists = { recent: null, popular: null, saved: null };
+const snapshots = { recent: null, popular: null, saved: null };
+
+async function switchTab(tabName) {
+  // Save current tab's snapshot
   const currentTab = getCurrentTab();
   if (lists[currentTab]) {
     snapshots[currentTab] = lists[currentTab].getScrollSnapshot();
@@ -242,10 +264,11 @@ function switchTab(tabName) {
   // Switch to new tab
   setCurrentTab(tabName);
 
-  // Restore new tab's scroll
-  if (lists[tabName] && snapshots[tabName]) {
-    lists[tabName].restoreScroll(snapshots[tabName]);
-  }
+  // Reload with snapshot — handles everything
+  await lists[tabName].reload(
+    snapshots[tabName] ? { snapshot: snapshots[tabName] } : undefined
+  );
+  // vlist: resets data → seeds total → skips page 1 → restores scroll → loads target page
 }
 ```
 
@@ -353,6 +376,8 @@ No need to save or restore selection separately — it's all in the snapshot.
 
 When using `withAsync()`, pass the snapshot's `total` to avoid a loading flash:
 
+**List creation** — pass the snapshot to both features:
+
 ```typescript
 import { vlist, withAsync, withSnapshots } from '@floor/vlist';
 
@@ -368,6 +393,31 @@ const list = vlist({ ... })
   .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
   .build();
 ```
+
+**Runtime reload** — pass the snapshot to `reload()` directly:
+
+For SPAs where the list already exists (e.g., switching categories or data sources), pass the snapshot to `reload()` instead of recreating the list:
+
+```typescript
+// Save snapshot before switching away
+const snapshot = list.getScrollSnapshot();
+sessionStorage.setItem('current-tab', JSON.stringify(snapshot));
+
+// Switch data source and restore position in one call
+const saved = sessionStorage.getItem('other-tab');
+const otherSnapshot = saved ? JSON.parse(saved) : undefined;
+await list.reload(otherSnapshot ? { snapshot: otherSnapshot } : undefined);
+// vlist: resets data → skips page 1 → restores scroll → loads target page
+```
+
+When a snapshot with meaningful data (`total > 0` AND `index > 0`) is passed to `reload()`, it automatically:
+
+1. Seeds the total from the snapshot (so the virtual height is correct)
+2. Skips `loadInitial()` (no wasted page 1 fetch)
+3. Restores scroll position to the snapshot's index
+4. Loads the page containing that index
+
+No manual coordination between `withAsync` and `withSnapshots` is needed.
 
 ### With Filters/Sorting
 
@@ -513,7 +563,15 @@ const snapshot = {
 
 **Problem:** With `withAsync()`, the total hasn't been set yet when restoring.
 
-**Solution:** Pass the snapshot's `total` to `withAsync()`:
+**Solution A — Use `reload({ snapshot })` (recommended for runtime reloads):**
+
+`reload({ snapshot })` handles this automatically — it seeds the total from the snapshot before restoring, so you don't need to coordinate anything:
+```typescript
+await list.reload({ snapshot: savedSnapshot });
+// Total is set from snapshot.total → restoreScroll works immediately
+```
+
+**Solution B — Pass total at creation time (for initial list setup):**
 ```typescript
 .use(withAsync({
   adapter,
@@ -532,9 +590,10 @@ const snapshot = {
 ## See Also
 
 - [Types — `ScrollSnapshot`](../api/types.md#scrollsnapshot) — `index`, `offsetInItem`, `total`, `selectedIds`
+- [Types — `ReloadOptions`](../api/types.md#reloadoptions) — `snapshot` option for `reload()`
 - [Types — `ScrollToOptions`](../api/types.md#scrolltooptions) — `align`, `behavior`, `duration`
 - [Selection](./selection.md) — Selection state included in snapshots automatically
-- [Async](./async.md) — Pass `snapshot.total` to `withAsync` to avoid loading flash on restore
+- [Async](./async.md) — Pass `snapshot.total` to `withAsync` to avoid loading flash on restore, or use `reload({ snapshot })` at runtime
 
 ## Examples
 

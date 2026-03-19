@@ -23,7 +23,7 @@ interface VList<T extends VListItem = VListItem> {
   prependItems: (items: T[]) => void
   updateItem:   (id: string | number, updates: Partial<T>) => void
   removeItem:   (id: string | number) => void
-  reload:       () => Promise<void>
+  reload:       (options?: ReloadOptions) => Promise<void>
 
   // Scroll methods (always available)
   scrollToIndex:    (index: number, alignOrOptions?: 'start' | 'center' | 'end' | ScrollToOptions) => void
@@ -62,6 +62,7 @@ interface VList<T extends VListItem = VListItem> {
 **Added by features:**
 - `select`, `deselect`, `toggleSelect`, `selectAll`, `clearSelection`, `getSelected`, `getSelectedItems` — added by `withSelection`
 - `getScrollSnapshot`, `restoreScroll` — added by `withSnapshots`
+- `reload(options?)` — enhanced by `withAsync` (accepts `ReloadOptions` with `snapshot` for automatic scroll restore)
 
 > **Note:** There is no `scrollToItem(id)` method. If you need to scroll to an item by ID, maintain your own `id → index` map and call `scrollToIndex`.
 
@@ -159,7 +160,7 @@ interface VListConfig<T extends VListItem = VListItem>
 | `scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` | Top-level scrollbar shorthand. |
 | `scroll.scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | `withScrollbar()` | Same as top-level `scrollbar`, nested under `scroll`. |
 
-Each adapter defines its own config type as `Omit<VListConfig<T>, 'container'>` — the full config without `container`, since the adapter handles container binding. See [Framework Adapters](../frameworks.md) for per-framework details.
+Each adapter defines its own config type as `Omit<VListConfig<T>, 'container'>` — the full config without `container`, since the adapter handles container binding. See [Framework Adapters](./adapters.md) for per-framework details.
 
 ### ItemConfig
 
@@ -354,6 +355,22 @@ interface ScrollSnapshot {
 | `offsetInItem` | `number` | Pixel offset within the first visible item. |
 | `total` | `number` | Total item count at snapshot time (used by restore to set sizeCache). |
 | `selectedIds` | `Array<string \| number>` | Selected item IDs (optional convenience). |
+
+### ReloadOptions
+
+Options for the `reload()` method. Exported from `@floor/vlist`.
+
+```typescript
+interface ReloadOptions {
+  skipInitialLoad?: boolean
+  snapshot?:        ScrollSnapshot
+}
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `skipInitialLoad` | `boolean` | Skip the initial page-1 load after resetting state. When `true`, `reload()` clears data and DOM but does not call `loadInitial()`. Automatically set when `snapshot` has meaningful data. |
+| `snapshot` | `ScrollSnapshot` | Snapshot to restore after reset. When provided with `total > 0` and `index > 0`, `reload()` skips `loadInitial()` and calls `restoreScroll(snapshot)` automatically. |
 
 ---
 

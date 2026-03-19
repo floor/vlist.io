@@ -155,6 +155,11 @@ const list = vlist({ /* ... */ })
 
 // Later, after setting filters/state:
 list.reload()  // Now load data
+
+// Or reload with a saved snapshot (skips initial load automatically):
+const saved = sessionStorage.getItem('my-list');
+const snapshot = saved ? JSON.parse(saved) : undefined;
+await list.reload({ snapshot })
 ```
 
 ### Custom Chunk Size
@@ -169,6 +174,56 @@ const list = vlist({ /* ... */ })
 }))
 .build()
 ```
+
+### Deferred Loading with Snapshot Restore
+
+A common SPA pattern: save scroll position when leaving a view, restore it when returning.
+
+```typescript
+// Save snapshot before navigating away
+const snapshot = list.getScrollSnapshot();
+sessionStorage.setItem('category-A', JSON.stringify(snapshot));
+
+// Later, switch to category B — restore its snapshot if available
+const saved = sessionStorage.getItem('category-B');
+const categoryBSnapshot = saved ? JSON.parse(saved) : undefined;
+await list.reload(categoryBSnapshot ? { snapshot: categoryBSnapshot } : undefined);
+```
+
+When `snapshot` has meaningful data (`total > 0` and `index > 0`), `reload()` automatically skips the initial page-1 load and calls `restoreScroll(snapshot)` to jump directly to the saved position. If the snapshot is empty or at the top, it falls back to a normal reload.
+
+### Snapshot-Aware Reload
+
+The `reload()` method accepts a `ReloadOptions` object:
+
+```typescript
+interface ReloadOptions {
+  skipInitialLoad?: boolean;  // Skip the page-1 load after reset
+  snapshot?: ScrollSnapshot;  // Restore scroll position after reset
+}
+```
+
+Passing a `snapshot` replaces what used to require manual coordination:
+
+**Before** (manual):
+```typescript
+const hasRestorable = snapshot && snapshot.total > 0 && snapshot.index > 0;
+await list.reload(hasRestorable ? { skipInitialLoad: true } : undefined);
+if (hasRestorable && list.restoreScroll) {
+  list.restoreScroll(snapshot);
+}
+```
+
+**After** (vlist handles it):
+```typescript
+await list.reload({ snapshot });
+// vlist automatically: skips loadInitial, calls restoreScroll
+```
+
+When a snapshot with meaningful data is provided, `reload()`:
+1. Resets state (clears data, invalidates DOM)
+2. Skips `loadInitial()` — no wasted page-1 request
+3. Calls `restoreScroll(snapshot)` — bootstraps total, sets scroll position, loads the target page
 
 ### Placeholder Detection in Templates
 
@@ -619,6 +674,7 @@ function calculateMissingRanges(
 ## See Also
 
 - [Types — Adapter](../api/types.md#adapter-types) — `VListAdapter`, `AdapterParams`, `AdapterResponse`
+- [Types — ReloadOptions](../api/types.md#reloadoptions) — `ReloadOptions`, `ScrollSnapshot`
 - [Events — Data](../api/events.md#data-events) — `load:start`, `load:end`, `error`
 - [Constants — Async Loading](../api/constants.md#async-loading) — `LOAD_THRESHOLD`, `LOAD_SIZE`, `PRELOAD_AHEAD`, velocity thresholds
 - [Placeholders](./placeholders.md) — Placeholder configuration, CSS styling, and per-item length profiles

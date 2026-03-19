@@ -407,11 +407,28 @@ if (idx >= 0) list.scrollToIndex(idx)
 
 ### reload
 
-Clear all loaded data and re-fetch from the beginning. When used with `withAsync`, triggers a fresh adapter call. Returns a promise that resolves when the initial page is loaded.
+Clear all loaded data and re-fetch from the beginning. When used with `withAsync`, triggers a fresh adapter call. Returns a promise that resolves when the initial page is loaded (or when `restoreScroll` is scheduled, if a snapshot is provided).
 
 ```ts
-reload(): Promise<void>
+reload(options?: ReloadOptions): Promise<void>
 ```
+
+**Options:**
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `skipInitialLoad` | `boolean` | `false` | Skip the page-1 fetch after resetting state. The caller handles loading. |
+| `snapshot` | `ScrollSnapshot` | — | Snapshot to restore after reset. Automatically skips `loadInitial()` and calls `restoreScroll()` when the snapshot has meaningful data (`total > 0` and `index > 0`). |
+
+**Example — reload with snapshot restore:**
+```ts
+const snapshot = list.getScrollSnapshot();
+// ... switch data source ...
+await list.reload({ snapshot });
+// vlist: resets state → skips page-1 → restores scroll + loads target page
+```
+
+Without a snapshot, `reload()` behaves as before — resets data and loads page 1.
 
 ---
 
