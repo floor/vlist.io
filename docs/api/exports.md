@@ -230,6 +230,19 @@ import type { Stats, StatsConfig, StatsState } from '@floor/vlist'
 
 ---
 
+## Reload Options
+
+Options accepted by `reload()` for snapshot-aware reloading.
+Exported from the public API alongside the other configuration types.
+
+```ts
+import type { ReloadOptions, ScrollSnapshot } from '@floor/vlist'
+```
+
+See [Types — ReloadOptions](./types.md#reloadoptions) for the full interface.
+
+---
+
 ## Feature Authoring
 
 Create your own features by implementing the `VListFeature` interface.
@@ -237,7 +250,7 @@ Feature types are part of the public API — only the low-level utilities
 they compose come from internals.
 
 ```ts
-import type { VListFeature, BuilderContext } from '@floor/vlist'
+import type { VListFeature, BuilderContext, ReloadOptions } from '@floor/vlist'
 import { createEmitter, createSizeCache } from '@floor/vlist/internals'
 
 function withMyFeature(): VListFeature {
