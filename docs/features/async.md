@@ -457,7 +457,7 @@ interface DataManager<T extends VListItem> {
   // Data operations
   setTotal: (total: number) => void;
   setItems: (items: T[], offset?: number, total?: number) => void;
-  updateItem: (id: string | number, updates: Partial<T>) => boolean;
+  updateItem: (index: number, updates: Partial<T>) => boolean;
   removeItem: (id: string | number) => boolean;
   
   // Loading

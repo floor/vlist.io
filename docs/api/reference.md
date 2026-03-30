@@ -351,14 +351,19 @@ prependItems(items: T[]): void
 
 ### updateItem
 
-Patch a single item by ID. Only the provided fields are merged; the item's position in the list is unchanged.
+Patch a single item at a given index. Only the provided fields are merged; the item's position in the list is unchanged. The template is re-applied immediately so DOM reflects the new data (e.g. updated cover image, renamed field) — including in grid and table view modes. Selection and focus state are preserved.
 
 ```ts
-updateItem(id: string | number, updates: Partial<T>): void
+updateItem(index: number, updates: Partial<T>): void
 ```
 
 ```ts
-list.updateItem(42, { name: 'Renamed', unread: false })
+// Update the item at index 5
+list.updateItem(5, { name: 'Renamed', unread: false })
+
+// To update by ID, resolve the index first
+const idx = list.getIndexById(42)
+if (idx >= 0) list.updateItem(idx, { name: 'Renamed' })
 ```
 
 ---
