@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.8] — 2026-03-13
+
+### Fixed
+
+- **`updateItem` re-applies template** — `updateItem()` now forces a template re-application after updating the data manager. Previously, the scroll-driven render loops (core, grid, table) skipped re-templating when the item id hadn't changed, so in-place data changes (e.g. updated cover image, renamed field) were silently ignored in the DOM
+- **`updateItem` preserves selection** — Selection and focus state are now correctly read from the `withSelection` feature's internal state instead of the stale initial refs
+- **Async `updateItem` signature** — The async data manager's `updateItem` now accepts an index (matching the `SimpleDataManager` interface) instead of an id. The previous id-based signature silently failed for all async lists because the builder API always passes an index
+
+### Changed
+
+- **`updateItem` public API** — `updateItem(id, updates)` is now `updateItem(index, updates)`. Use `getIndexById(id)` to resolve an id to an index first. This aligns the public API with the internal data manager interface
+- **Renderer `updateItem` always re-templates** — Grid and table renderer `updateItem` methods no longer skip re-templating when the item id is unchanged. The id-based skip optimization now only applies in the scroll-driven `render()` path
+- **`_updateRenderedItem` internal method** — Core registers a default `_updateRenderedItem` method for list mode. Grid and table features override it with their own renderer's `updateItem`. This provides a unified path for the builder API to re-apply templates across all view modes
+
+### Performance
+
+- **Cached method getters** — `_updateRenderedItem`, `_getSelectedIds`, and `_getFocusedIndex` are resolved lazily on first `updateItem` call and cached, avoiding three `Map.get()` lookups per call
+- Base bundle: 104.4 KB minified (34.5 KB gzipped)
+- 2,852 tests / 38,035 assertions — all passing
+
 ## [1.3.7] — 2026-03-12
 
 ### Added
@@ -556,6 +576,7 @@ Initial tracked release with core virtual list functionality:
 
 ---
 
+[1.3.8]: https://github.com/floor/vlist/compare/v1.3.7...v1.3.8
 [1.3.7]: https://github.com/floor/vlist/compare/v1.3.6...v1.3.7
 [1.3.6]: https://github.com/floor/vlist/compare/v1.3.5...v1.3.6
 [1.3.5]: https://github.com/floor/vlist/compare/v1.3.4...v1.3.5

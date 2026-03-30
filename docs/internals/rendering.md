@@ -160,6 +160,12 @@ These are applied via the `.vlist-items` and `.vlist-item` CSS classes respectiv
 
 Item static styles (`position: absolute; top: 0; left: 0; right: 0`) are defined purely in the `.vlist-item` CSS class rather than set via JavaScript `style.cssText`. Only the dynamic `height` property is set via JS. This eliminates per-element CSS string parsing during rendering.
 
+### Change Tracking (id-based skip in `render()`)
+
+During the scroll-driven `render()` path, the renderer tracks which item id is assigned to each pooled DOM element. When `render()` is called and an element already holds the same item id, the template is **not** re-applied — only position, selection, and focus classes are updated. This avoids expensive innerHTML/template work during fast scrolling when the visible items haven't actually changed.
+
+**This optimisation applies only to the `render()` scroll path.** The explicit `updateItem()` API always re-applies the template unconditionally, because the caller is signalling that the item's content has changed (e.g. after an inline edit or an external data update). If you need to refresh a single row, call `updateItem()` — it will never skip re-templating, regardless of whether the item id matches.
+
 ### Reusable ItemState
 
 The `ItemState` object passed to templates is reused to reduce GC pressure:
@@ -302,6 +308,10 @@ interface Renderer<T extends VListItem> {
   ) => void;
   updatePositions: (compressionCtx: CompressionContext) => void;
   updateItem: (index: number, item: T, isSelected: boolean, isFocused: boolean) => void;
+    // Always re-applies the template — no id-based skip.
+    // Use this for explicit, targeted item updates (e.g. after editing a row).
+    // Contrast with render(), which uses change tracking to skip
+    // re-templating when the item id is unchanged (see Rendering Optimizations).
   updateItemClasses: (index: number, isSelected: boolean, isFocused: boolean) => void;
   getElement: (index: number) => HTMLElement | undefined;
   sortDOM: () => void;     // Reorder DOM children for accessibility (scroll idle)
