@@ -524,7 +524,7 @@ interface VListEvents<T extends VListItem = VListItem> {
   'range:change':      { range: Range }
   'load:start':        { offset: number; limit: number }
   'load:end':          { items: T[]; total?: number; offset?: number }
-  'error':             { error: Error; context: string }
+  'error':             { error: Error; context: string; viewport?: ErrorViewportSnapshot }
   'resize':            { height: number; width: number }
   'scroll:idle':       { scrollPosition: number }
   'destroy':           undefined
@@ -544,6 +544,23 @@ Returned by `on()`. Call it to remove the subscription.
 ```typescript
 type Unsubscribe = () => void
 ```
+
+### ErrorViewportSnapshot
+
+Viewport state snapshot attached to error events for debugging. Present on template and feature setup errors. Absent on destroy errors (viewport already torn down).
+
+```typescript
+interface ErrorViewportSnapshot {
+  scrollPosition: number
+  containerSize: number
+  visibleRange: { start: number; end: number }
+  renderRange: { start: number; end: number }
+  totalItems: number
+  isCompressed: boolean
+}
+```
+
+See [Events — error](./events.md#error) for context strings and usage examples.
 
 ---
 

@@ -144,7 +144,7 @@ test/
 | File | Tests | What it covers |
 |------|------:|----------------|
 | `builder/boundary.test.ts` | 27 | Empty lists (0 items), single item lists, extreme datasets (100k-1M items), extreme dimensions (1px-10000px items), zero-dimension containers, invalid values (negative/NaN/0), rapid data mutations, viewport resizing edge cases |
-| `builder/recovery.test.ts` | 26 | Invalid configuration handling, adapter errors (sync/async/malformed), ResizeObserver requirements, state corruption recovery, event handler errors, memory leak prevention, multiple destroy calls safety |
+| `builder/recovery.test.ts` | 32 | Invalid configuration handling, adapter errors (sync/async/malformed), ResizeObserver requirements, state corruption recovery, event handler errors, memory leak prevention, multiple destroy calls safety |
 | `features/async/integration.test.ts` | 22 | Loading state transitions (aria-busy), error recovery and graceful degradation, race conditions with rapid scroll, memory leak detection, placeholder→content transitions, concurrent request handling, edge cases with async |
 
 **Phase 1 Results:** ✅ **75 new tests, all passing (100%)**
@@ -175,7 +175,7 @@ Phase 2 tests verify that features work correctly together, resources are proper
 | `builder/velocity.test.ts` | 30 | 70 | Velocity tracker — sample collection, stale gap detection, momentum calculation, smoothing |
 | `builder/scroll.test.ts` | 28 | 62 | Scroll handling — scroll event processing, position tracking, direction detection |
 | `builder/boundary.test.ts` | 27 | 26 | Edge cases — empty lists (0 items), single item lists, extreme datasets (100k-1M items), extreme dimensions (1px-10000px), zero-dimension containers, invalid values (negative/NaN/0), rapid data mutations *(Phase 1)* |
-| `builder/recovery.test.ts` | 26 | 26 | Error handling — invalid config, adapter errors (sync/async/malformed), ResizeObserver requirements, state corruption recovery, event handler errors, memory leak prevention, multiple destroy safety *(Phase 1)* |
+| `builder/recovery.test.ts` | 32 | 61 | Error handling — invalid config, adapter errors (sync/async/malformed), ResizeObserver requirements, state corruption recovery, event handler errors, memory leak prevention, multiple destroy safety *(Phase 1)* |
 | `builder/pool.test.ts` | 23 | 41 | Element pool — DOM element recycling, acquire/release, pool limits |
 | `builder/dom.test.ts` | 10 | 16 | resolveContainer (string selector, HTMLElement, error message), createDOMStructure (nesting, classes, ARIA, horizontal mode) |
 | `builder/core.test.ts` | 3 | 5 | Smoke tests — vlist() export, builder shape, use() chaining (fully covered by `index.test.ts`) |

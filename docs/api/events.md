@@ -196,7 +196,7 @@ Use cases:
 
 ## Data Events
 
-Async loading lifecycle — request start, completion, and errors. Only emitted when `withAsync` is active.
+Async loading lifecycle — request start and completion. Only emitted when `withAsync` is active.
 
 ### load:start
 
@@ -229,20 +229,79 @@ list.on('load:end', ({ items, total, offset }) => {
 | `total` | `number` | Total item count (if reported by the adapter). |
 | `offset` | `number` | Starting offset of the completed request. |
 
+---
+
+## Error Events
+
+Contextual error reporting — template failures, feature setup errors, and destroy errors. Always available (no feature required).
+
 ### error
 
-Fired when an error occurs during data loading or event handling.
+Fired when a recoverable error occurs. The list continues operating after emitting this event — template errors render blank elements, feature setup errors skip the broken feature, and destroy errors don't prevent cleanup of remaining handlers.
 
 ```typescript
-list.on('error', ({ error, context }) => {
-  console.error(`Error in ${context}:`, error.message)
+list.on('error', ({ error, context, viewport }) => {
+  console.error(`[${context}] ${error.message}`)
+  if (viewport) {
+    console.log('Viewport state:', viewport)
+  }
 })
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `error` | `Error` | The error object. |
-| `context` | `string` | Where the error occurred (e.g. `'loadMore'`, `'adapter.read'`). |
+| `context` | `string` | Where the error occurred — see table below. |
+| `viewport` | `ErrorViewportSnapshot?` | Viewport state at the time of the error. Present for template and feature setup errors. Absent for destroy errors (viewport already torn down). |
+
+#### Context strings
+
+| Context | When it fires |
+|---------|--------------|
+| `template(index=N, id=X)` | A template function threw during render. The item renders as a blank element. |
+| `feature.setup(featureName)` | A feature's `setup()` method threw. Remaining features continue initialization. |
+| `destroy` | A destroy handler or `feature.destroy()` threw. Remaining cleanup continues. |
+| `adapter.read` | An async adapter's `read()` method threw or rejected (requires `withAsync`). |
+| `loadMore` | A `loadMore` operation failed (requires `withAsync`). |
+
+#### ErrorViewportSnapshot
+
+When present, the `viewport` field contains a frozen snapshot of the list's state at the moment the error occurred:
+
+```typescript
+interface ErrorViewportSnapshot {
+  scrollPosition: number
+  containerSize: number
+  visibleRange: { start: number; end: number }
+  renderRange: { start: number; end: number }
+  totalItems: number
+  isCompressed: boolean
+}
+```
+
+#### Usage: monitoring template errors in production
+
+```typescript
+list.on('error', ({ error, context, viewport }) => {
+  // Send to your error tracking service
+  myErrorTracker.report({
+    message: error.message,
+    stack: error.stack,
+    tags: { context },
+    extra: viewport ?? {},
+  })
+})
+```
+
+#### Usage: detecting broken features during development
+
+```typescript
+list.on('error', ({ error, context }) => {
+  if (context.startsWith('feature.setup')) {
+    console.warn('Feature failed to initialize — the list will work without it:', error)
+  }
+})
+```
 
 ---
 
@@ -298,7 +357,7 @@ Use cases:
 | `scroll:idle` | Scroll | — | `{ scrollPosition }` |
 | `load:start` | Data | `withAsync` | `{ offset, limit }` |
 | `load:end` | Data | `withAsync` | `{ items, total?, offset? }` |
-| `error` | Data | `withAsync` | `{ error, context }` |
+| `error` | Error | — | `{ error, context, viewport? }` |
 | `resize` | Lifecycle | — | `{ height, width }` |
 | `destroy` | Lifecycle | — | — |
 

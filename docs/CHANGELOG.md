@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.9] — 2026-03-14
+
+### Added
+
+- **Contextual error reporting** — The `error` event now fires for template failures, feature setup errors, and destroy handler errors (not just async adapter errors). Each error payload includes an optional `ErrorViewportSnapshot` with scroll position, visible/render range, total items, and compression state at the moment of failure
+- **Template error resilience** — Template functions that throw during render no longer crash the render loop. The failing item renders as a blank element, an `error` event is emitted with full viewport context, and remaining items continue rendering normally
+- **Feature setup resilience** — A feature whose `setup()` throws no longer prevents subsequent features from initializing. The broken feature is skipped, an `error` event is emitted, and the list operates without it
+- **Destroy handler resilience** — A destroy handler that throws no longer prevents cleanup of subsequent handlers or `feature.destroy()` calls. All errors are collected and emitted as `error` events before the emitter is cleared
+
+### Changed
+
+- **`error` event promoted to core** — Previously only emitted by `withAsync` for adapter errors. Now emitted by the core builder for template, feature setup, and destroy errors. The `context` string identifies the source (e.g. `template(index=3, id=42)`, `feature.setup(withGrid)`, `destroy`)
+- **`error` event payload extended** — New optional `viewport?: ErrorViewportSnapshot` field provides a frozen snapshot of scroll position, container size, visible/render ranges, total items, and compression state. Present for template and setup errors; absent for destroy errors (viewport already torn down)
+
+### Performance
+
+- Bundle size unchanged: 105.8 KB minified (34.9 KB gzipped)
+- 2,858 tests / 38,067 assertions — all passing
+
 ## [1.3.8] — 2026-03-13
 
 ### Fixed
