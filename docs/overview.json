@@ -8,7 +8,7 @@
         "desc": "Install, configure, and build your first virtual list"
       },
       {
-        "slug": "frameworks",
+        "slug": "api/adapters",
         "name": "Framework Adapters",
         "desc": "React, Vue, Svelte, and SolidJS integration"
       }

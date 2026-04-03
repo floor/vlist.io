@@ -361,7 +361,7 @@ Always call `destroy()` when unmounting (SPA route changes, component teardown).
 | I want to… | Go to |
 |---|---|
 | Add spacing between items or padding around the list | [Gap & Padding](/docs/api/reference#gap--padding) |
-| Use React, Vue, Svelte, or SolidJS | [Framework Adapters](/docs/frameworks) |
+| Use React, Vue, Svelte, or SolidJS | [Framework Adapters](/docs/api/adapters) |
 | Add a grid layout | [Grid Feature](/docs/features/grid) |
 | Group items with headers | [Groups Feature](/docs/features/groups) |
 | Load data from an API | [Async Feature](/docs/features/async) |

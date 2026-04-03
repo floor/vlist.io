@@ -37,7 +37,7 @@
         "desc": "Low-level utilities and feature authoring"
       },
       {
-        "slug": "frameworks",
+        "slug": "api/adapters",
         "name": "Adapters",
         "desc": "React, Vue, Svelte, and SolidJS integration"
       }
