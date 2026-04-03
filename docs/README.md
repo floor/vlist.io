@@ -8,7 +8,7 @@
 
 - **[Tutorials](/tutorials)** - Step-by-step learning guides
 - **[Quick Start](/tutorials/quick-start)** - Get started in 5 minutes
-- **[Framework Adapters](./frameworks.md)** - React, Vue, Svelte, and SolidJS integration
+- **[Framework Adapters](./api/adapters.md)** - React, Vue, Svelte, and SolidJS integration
 - **[API Reference](./api/reference.md)** - Complete API documentation
 
 ## 📚 Documentation Structure
@@ -26,7 +26,7 @@ This documentation now focuses on **reference material** only.
 
 | Adapter | Package | Description |
 |--------|---------|-------------|
-| **[Framework Adapters](./frameworks.md)** | – | React, Vue, Svelte, and SolidJS integration |
+| **[Framework Adapters](./api/adapters.md)** | – | React, Vue, Svelte, and SolidJS integration |
 
 ### Features
 
@@ -93,7 +93,7 @@ Version history and migration guides:
 → [Tutorials](/tutorials)
 
 **Use React, Vue, Svelte, or SolidJS**
-→ [Framework Adapters](./frameworks.md)
+→ [Framework Adapters](./api/adapters.md)
 
 **API Reference**
 → [Complete API](./api/reference.md)
