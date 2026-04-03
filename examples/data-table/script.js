@@ -25,7 +25,7 @@ const API_BASE =
 export let list = null;
 export let totalCities = 0;
 export let currentRowHeight = ROW_HEIGHT;
-export let currentPreset = "default";
+export let currentPreset = "full";
 export let currentBorderMode = "both";
 export let sortKey = "population";
 export let sortDirection = "desc";
@@ -191,7 +191,7 @@ const COLUMN_PRESETS = {
     {
       key: "population",
       label: "Pop.",
-      width: 120,
+      width: 100,
       minWidth: 80,
       align: "right",
       sortable: true,
@@ -253,7 +253,7 @@ const COLUMN_PRESETS = {
     {
       key: "lat",
       label: "Lat",
-      width: 90,
+      width: 74,
       minWidth: 70,
       align: "right",
       sortable: true,
@@ -261,7 +261,7 @@ const COLUMN_PRESETS = {
     {
       key: "lng",
       label: "Lng",
-      width: 90,
+      width: 74,
       minWidth: 70,
       align: "right",
       sortable: true,
