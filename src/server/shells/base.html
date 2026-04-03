@@ -218,7 +218,9 @@
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/bash.min.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
         <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/scss.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/xml.min.js"></script>
         <script>
+            hljs.registerAliases(["vue", "svelte", "astro"], { languageName: "xml" });
             hljs.highlightAll();
         </script>
         <% } %>
@@ -230,7 +232,7 @@
             (function () {
                 var loaded = false;
                 var CDN = "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/";
-                var langs = ["typescript", "bash", "css", "scss"];
+                var langs = ["typescript", "bash", "css", "scss", "xml"];
 
                 function loadHljs(cb) {
                     if (loaded) { cb(); return; }
@@ -256,7 +258,10 @@
                 <% if (!it.HAS_SOURCE_TABS) { %>
                 /* Content pages: auto-highlight all code blocks after first paint */
                 document.addEventListener("DOMContentLoaded", function () {
-                    loadHljs(function () { hljs.highlightAll(); });
+                    loadHljs(function () {
+                        hljs.registerAliases(["vue", "svelte", "astro"], { languageName: "xml" });
+                        hljs.highlightAll();
+                    });
                 });
                 <% } %>
             })();
