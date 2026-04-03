@@ -2,7 +2,15 @@
 // Demonstrates vlist with lazy-loaded SQLite data, fetching tracks in chunks of 25
 // Layout mode toggle: List ↔ Grid ↔ Table
 
-import { vlist, withSelection, withAsync, withGrid, withTable } from "vlist";
+import {
+  vlist,
+  withSelection,
+  withAsync,
+  withGrid,
+  withTable,
+  withScrollbar,
+  withScale,
+} from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import {
@@ -35,6 +43,8 @@ let list = null;
 let totalTracks = 0;
 let currentSelectionMode = "single";
 let currentLayoutMode = "list";
+let currentScrollbarEnabled = false;
+let currentScaleEnabled = false;
 let loadRequests = 0;
 let loadedCount = 0;
 
@@ -119,6 +129,8 @@ const updateInfo = createInfoUpdater(stats);
 
 // Layout
 const layoutModeEl = document.getElementById("layout-mode");
+const scrollbarToggle = document.getElementById("scrollbar-toggle");
+const scaleToggle = document.getElementById("scale-toggle");
 
 // Selection
 const selectionModeEl = document.getElementById("selection-mode");
@@ -179,6 +191,35 @@ function createList(selectionMode) {
 }
 
 // =============================================================================
+// Apply scrollbar feature to builder if enabled
+// =============================================================================
+
+function applyScrollbar(builder) {
+  if (currentScrollbarEnabled) {
+    builder.use(
+      withScrollbar({
+        autoHide: true,
+        autoHideDelay: 1000,
+        showOnHover: true,
+        showOnViewportEnter: true,
+      }),
+    );
+  }
+  return builder;
+}
+
+// =============================================================================
+// Apply scale feature to builder if enabled
+// =============================================================================
+
+function applyScale(builder) {
+  if (currentScaleEnabled) {
+    builder.use(withScale({ force: true }));
+  }
+  return builder;
+}
+
+// =============================================================================
 // List View (default — vertical list with 80px rows)
 // =============================================================================
 
@@ -193,6 +234,8 @@ function createListView(selectionMode) {
   });
 
   builder.use(withAsync(getAsyncConfig()));
+  applyScale(builder);
+  applyScrollbar(builder);
   builder.use(withSelection({ mode: selectionMode }));
 
   list = builder.build();
@@ -220,6 +263,38 @@ function createGridView(selectionMode) {
 
   builder.use(withAsync(getAsyncConfig()));
   builder.use(withGrid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
+  applyScale(builder);
+  applyScrollbar(builder);
+  builder.use(withSelection({ mode: selectionMode }));
+
+  list = builder.build();
+}
+
+function createTableView(selectionMode) {
+  const builder = vlist({
+    container: "#list-container",
+    ariaLabel: "Track list",
+    item: {
+      height: TABLE_ROW_HEIGHT,
+      striped: "odd",
+      template: trackTableRowTemplate,
+    },
+  });
+
+  builder.use(withAsync(getAsyncConfig()));
+  builder.use(
+    withTable({
+      columns: trackTableColumns,
+      rowHeight: TABLE_ROW_HEIGHT,
+      headerHeight: TABLE_HEADER_HEIGHT,
+      resizable: true,
+      columnBorders: false,
+      rowBorders: false,
+      minColumnWidth: 50,
+    }),
+  );
+  applyScale(builder);
+  applyScrollbar(builder);
   builder.use(withSelection({ mode: selectionMode }));
 
   list = builder.build();
@@ -300,6 +375,24 @@ function updateContext() {
 layoutModeEl.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-mode]");
   if (btn) setLayoutMode(btn.dataset.mode);
+});
+
+// =============================================================================
+// Scrollbar Toggle
+// =============================================================================
+
+scrollbarToggle.addEventListener("change", (e) => {
+  currentScrollbarEnabled = e.target.checked;
+  createList(currentSelectionMode);
+});
+
+// =============================================================================
+// Scale Toggle
+// =============================================================================
+
+scaleToggle.addEventListener("change", (e) => {
+  currentScaleEnabled = e.target.checked;
+  createList(currentSelectionMode);
 });
 
 // =============================================================================
