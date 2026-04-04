@@ -157,8 +157,8 @@ For **learning content**, see [/tutorials](/tutorials):
 
 ## 🔗 External Links
 
-- **Interactive Examples:** [vlist.dev/examples](https://vlist.dev/examples)
-- **Live Benchmarks:** [vlist.dev/benchmarks](https://vlist.dev/benchmarks)
+- **Interactive Examples:** [vlist.io/examples](https://vlist.io/examples)
+- **Live Benchmarks:** [vlist.io/benchmarks](https://vlist.io/benchmarks)
 - **GitHub Repository:** [github.com/floor/vlist](https://github.com/floor/vlist)
 - **NPM Package:** [@floor/vlist](https://www.npmjs.com/package/@floor/vlist)
 

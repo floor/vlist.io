@@ -211,7 +211,7 @@ if (saved) {
 - `vlist/src/features/snapshots/feature.ts` - `restoreScroll()` implementation
 - `vlist/src/features/async/feature.ts` - `withAsync` setup, passes `initialTotal`
 - `vlist/src/features/async/manager.ts` - Sets initial total, calls `notifyStateChange()`
-- `vlist.dev/examples/data/velocity-loading/` - Example demonstrating the issue
+- `vlist.io/examples/data/velocity-loading/` - Example demonstrating the issue
 
 ### Key Functions
 - `restoreScroll(snapshot)` - Calculates and sets scroll position

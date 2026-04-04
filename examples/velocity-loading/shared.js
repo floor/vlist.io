@@ -29,7 +29,7 @@ export const setUseRealApi = (value) => {
 export const getUseRealApi = () => useRealApi;
 
 // =============================================================================
-// Real API — fetches from vlist.dev backend
+// Real API — fetches from vlist.io backend
 // =============================================================================
 
 const fetchFromApi = async (offset, limit) => {

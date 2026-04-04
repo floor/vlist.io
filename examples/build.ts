@@ -32,9 +32,9 @@ const BUILD_OPTIONS = {
 // Framework dedupe plugin
 // =============================================================================
 // When vlist is linked (symlink), its node_modules/{react,vue} are separate
-// copies from vlist.dev/node_modules/. Framework hooks/reactivity crash if two
+// copies from vlist.io/node_modules/. Framework hooks/reactivity crash if two
 // copies coexist. This plugin forces all framework imports to resolve from
-// vlist.dev's node_modules, guaranteeing a single instance in the bundle.
+// vlist.io's node_modules, guaranteeing a single instance in the bundle.
 //
 // Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
 // string `template` options work at runtime without .vue SFC compilation.
@@ -282,7 +282,7 @@ function isVlistDistStale(): boolean {
  * Ensure @floor/vlist dist is up-to-date before building examples.
  *
  * Auto-rebuilding from this process is not possible because of how Bun
- * handles the `"imports"` field in vlist.dev's package.json. The map
+ * handles the `"imports"` field in vlist.io's package.json. The map
  * `"vlist" → "@floor/vlist"` is inherited by any subprocess launched via
  * `bun run`, `$`, or even `Bun.spawn`. When the subprocess runs
  * `Bun.build()` on vlist/src, Bun resolves internal imports through

@@ -189,7 +189,7 @@ const list = vlist({
 
 ## Next Steps
 
-1. **Update vlist.dev examples** - Branch `refactor/builder-only-api` ready
+1. **Update vlist.io examples** - Branch `refactor/builder-only-api` ready
 2. **Update package.json exports** - Remove old entry points
 3. **Update README.md** - Document new API
 4. **Publish beta version** - Get community feedback

@@ -3,13 +3,13 @@
 **Date:** January 2026  
 **Branches:**
 - `vlist` → `refactor/module-organization` ✅ Pushed
-- `vlist.dev` → `refactor/builder-only-api` ✅ Pushed
+- `vlist.io` → `refactor/builder-only-api` ✅ Pushed
 
 ---
 
 ## Overview
 
-Successfully refactored VList library from dual-entry (monolithic + builder) to **builder-only** architecture with clearer module naming, and updated vlist.dev examples to use the new API.
+Successfully refactored VList library from dual-entry (monolithic + builder) to **builder-only** architecture with clearer module naming, and updated vlist.io examples to use the new API.
 
 ## Part 1: VList Library Refactoring
 
@@ -300,9 +300,9 @@ const list = vlist({
 ### Immediate (Before Merge)
 
 1. ✅ Push both branches (DONE)
-2. Update remaining vlist.dev examples (React/Vue)
+2. Update remaining vlist.io examples (React/Vue)
 3. Test all examples in browser
-4. Update vlist.dev documentation
+4. Update vlist.io documentation
 
 ### Short Term (This Week)
 
@@ -343,6 +343,6 @@ The library is now positioned for long-term success with a clean architecture, c
 
 **Branches:**
 - VList: https://github.com/floor/vlist/tree/refactor/module-organization
-- VList.dev: https://github.com/floor/vlist.dev/tree/refactor/builder-only-api
+- VList.dev: https://github.com/floor/vlist.io/tree/refactor/builder-only-api
 
 **Status:** ✅ Ready for review and testing

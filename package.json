@@ -1,7 +1,7 @@
 {
-  "name": "vlist.dev",
+  "name": "vlist.io",
   "version": "0.2.0",
-  "description": "vlist.dev — documentation, examples, and benchamrks for the vlist library",
+  "description": "vlist.io — documentation, examples, and benchamrks for the vlist library",
   "type": "module",
   "imports": {
     "vlist": "@floor/vlist",
@@ -20,7 +20,7 @@
     "test:watch": "bun test --watch test/",
     "test:coverage": "NODE_ENV=production bun test --coverage test/",
     "typecheck": "tsc --noEmit",
-    "deploy": "gh workflow run deploy.yml --ref main -R floor/vlist.dev && echo 'Deploy triggered'"
+    "deploy": "gh workflow run deploy.yml --ref main -R floor/vlist.io && echo 'Deploy triggered'"
   },
   "dependencies": {
     "@floor/vlist": "file:../vlist",

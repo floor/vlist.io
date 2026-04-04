@@ -300,7 +300,7 @@ list.on('item:click', ({ item, index }) => {
 
 ## Examples
 
-See these interactive examples at [vlist.dev/examples](/examples/):
+See these interactive examples at [vlist.io/examples](/examples/):
 
 - **[Window Scroll](/examples/window-scroll/)** - Infinite scroll with page-level scrolling
 

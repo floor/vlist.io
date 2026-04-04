@@ -1,4 +1,4 @@
-// PM2 Ecosystem Configuration — vlist.dev
+// PM2 Ecosystem Configuration — vlist.io
 // https://pm2.keymetrics.io/docs/usage/application-declaration/
 //
 // NOTE: fork mode is required because PM2 cluster mode ignores the
@@ -15,10 +15,10 @@
 module.exports = {
   apps: [
     {
-      name: "vlist.dev",
+      name: "vlist.io",
       script: "server.ts",
       interpreter: "bun",
-      cwd: "/home/floor/vlist.dev",
+      cwd: "/home/floor/vlist.io",
       env: {
         NODE_ENV: "production",
         PORT: 3338,
@@ -32,8 +32,8 @@ module.exports = {
       restart_delay: 1000,
       max_memory_restart: "256M",
       log_date_format: "YYYY-MM-DD HH:mm:ss",
-      error_file: "/home/admin/.pm2/logs/vlist.dev-error.log",
-      out_file: "/home/admin/.pm2/logs/vlist.dev-out.log",
+      error_file: "/home/admin/.pm2/logs/vlist.io-error.log",
+      out_file: "/home/admin/.pm2/logs/vlist.io-out.log",
       merge_logs: true,
     },
   ],

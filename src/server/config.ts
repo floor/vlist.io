@@ -9,7 +9,7 @@ export const IS_PROD = process.env.NODE_ENV === "production";
 
 export const PORT = parseInt(process.env.PORT || "3338", 10);
 export const ROOT = resolve(".");
-export const SITE = "https://vlist.dev";
+export const SITE = "https://vlist.io";
 
 // =============================================================================
 // Package Resolution

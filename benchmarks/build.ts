@@ -29,9 +29,9 @@ const BUILD_OPTIONS = {
 // Framework dedupe plugin
 // =============================================================================
 // When vlist is linked (symlink), its node_modules/{react,vue} are separate
-// copies from vlist.dev/node_modules/. Framework hooks/reactivity crash if two
+// copies from vlist.io/node_modules/. Framework hooks/reactivity crash if two
 // copies coexist. This plugin forces all framework imports to resolve from
-// vlist.dev's node_modules, guaranteeing a single instance in the bundle.
+// vlist.io's node_modules, guaranteeing a single instance in the bundle.
 //
 // Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
 // string `template` options work at runtime without .vue SFC compilation.

@@ -18,7 +18,7 @@ This document establishes baseline memory measurements **before** implementing t
 - **Browser:** Chrome with `--enable-precise-memory-info` flag
 - **Machine:** MacBook Pro (actual system)
 - **vlist Build:** staging branch (72.3 KB minified, 23.7 KB gzipped)
-- **Benchmark Suite:** `vlist.dev/benchmarks/`
+- **Benchmark Suite:** `vlist.io/benchmarks/`
 
 ---
 
@@ -140,7 +140,7 @@ For 100,000 items:
 
 **Test Date:** February 2026
 **Status:** ✅ **EXCEPTIONAL SUCCESS** - 99% memory reduction achieved!
-**Benchmark:** Memory Optimization Impact (vlist.dev/benchmarks/memory-optimization-comparison)
+**Benchmark:** Memory Optimization Impact (vlist.io/benchmarks/memory-optimization-comparison)
 
 #### 10K Items Test
 
@@ -303,7 +303,7 @@ if (!idToIndex) {
 ### Option 1: Web UI (Recommended)
 
 ```bash
-cd vlist.dev
+cd vlist.io
 bun run dev
 # Open http://localhost:3000/benchmarks
 # Run "Memory (JavaScript)" - baseline measurements

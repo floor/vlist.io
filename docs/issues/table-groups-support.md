@@ -378,5 +378,5 @@ interaction with the table column header adds an extra layer.
 - `vlist/src/features/table/feature.ts` L95-600 — Table feature implementation
 - `vlist/src/features/table/renderer.ts` L330-400 — Row rendering logic to extend
 - `vlist/src/styles/vlist-table.css` — Table CSS to extend
-- `vlist.dev/examples/file-browser/` — Primary use case for this feature
-- `vlist.dev/examples/data-table/` — Secondary use case (departmental grouping)
+- `vlist.io/examples/file-browser/` — Primary use case for this feature
+- `vlist.io/examples/data-table/` — Secondary use case (departmental grouping)

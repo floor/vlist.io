@@ -381,7 +381,7 @@ setItems: (newItems: T[]) => {
 
 **Benchmark:** Memory Optimization Impact  
 **URL:** http://localhost:3338/benchmarks/memory-optimization-comparison  
-**Location:** `vlist.dev/benchmarks/comparison/memory-optimization.js`
+**Location:** `vlist.io/benchmarks/comparison/memory-optimization.js`
 
 **Test procedure:**
 1. Measure baseline memory (old implementation)

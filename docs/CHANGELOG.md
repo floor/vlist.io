@@ -409,7 +409,7 @@ The first stable release of vlist — a lightweight, high-performance virtual li
 
 ### Changed
 
-- **Comprehensive performance optimization** across the entire rendering pipeline, applying a [13-pattern optimization playbook](https://vlist.dev/docs/refactoring/feature-optimization-playbook):
+- **Comprehensive performance optimization** across the entire rendering pipeline, applying a [13-pattern optimization playbook](https://vlist.io/docs/refactoring/feature-optimization-playbook):
   - **Grid:** flattened interfaces, removed dead methods, DRY data-manager interception, early exit on unchanged scroll, pooled hot-path arrays, reused sets across frames, cached closures, in-place state mutation, DocumentFragment batch insertion, release grace period, change tracking, binary search for visibility
   - **Masonry:** same optimization patterns applied — flattened types, removed dead code, optimized scroll hot path, fixed boundary thrashing
   - **Core renderer:** grace period for DOM element release, change tracking to skip unnecessary updates, lazy DocumentFragment creation
@@ -509,7 +509,7 @@ The first stable release of vlist — a lightweight, high-performance virtual li
 - **`direction` → `orientation`** — renamed for semantic clarity
 - **`HeightCache` → `SizeCache`** — all height-specific APIs renamed to dimension-agnostic equivalents
 - **`scrollTop` → `scrollPosition`** — in `ViewportState` and scroll events
-- See [Migration Guide](https://vlist.dev/docs/refactoring/v0.9.0-migration-guide.md)
+- See [Migration Guide](https://vlist.io/docs/refactoring/v0.9.0-migration-guide.md)
 
 ### Added
 

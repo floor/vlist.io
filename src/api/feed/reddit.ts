@@ -21,7 +21,7 @@ import type {
 // =============================================================================
 
 const BASE_URL = "https://www.reddit.com";
-const USER_AGENT = "vlist.dev/1.0 (https://vlist.dev; demo feed reader)";
+const USER_AGENT = "vlist.io/1.0 (https://vlist.io; demo feed reader)";
 const SORT = "hot";
 const MAX_LIMIT = 100;
 
@@ -43,7 +43,7 @@ export const REDDIT_PRESETS = [
 // Avatar colour — deterministic from author name
 // =============================================================================
 
-// Palette chosen to match the existing vlist.dev design tokens
+// Palette chosen to match the existing vlist.io design tokens
 const AVATAR_COLORS = [
   "#e53935",
   "#d81b60",

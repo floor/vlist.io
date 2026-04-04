@@ -7,7 +7,7 @@ const createRequest = (
   path: string,
   method: string = "GET",
 ): { req: Request; url: URL } => {
-  const url = new URL(`https://vlist.dev${path}`);
+  const url = new URL(`https://vlist.io${path}`);
   const req = new Request(url.toString(), { method });
   return { req, url };
 };
@@ -215,7 +215,7 @@ describe("router", () => {
 
   describe("GET /api/files", () => {
     test("returns directory listing", async () => {
-      const { req, url } = createRequest("/api/files?path=vlist.dev");
+      const { req, url } = createRequest("/api/files?path=vlist.io");
       const result = await routeApi(req, url);
 
       expect(result).not.toBeNull();
@@ -225,7 +225,7 @@ describe("router", () => {
         path: string;
         items: unknown[];
       };
-      expect(body.path).toBe("vlist.dev");
+      expect(body.path).toBe("vlist.io");
       expect(Array.isArray(body.items)).toBe(true);
     });
 
@@ -250,7 +250,7 @@ describe("router", () => {
         allowedRoots: string[];
       };
       expect(body.allowedRoots).toContain("vlist");
-      expect(body.allowedRoots).toContain("vlist.dev");
+      expect(body.allowedRoots).toContain("vlist.io");
     });
   });
 
@@ -267,7 +267,7 @@ describe("router", () => {
         version: string;
         endpoints: Record<string, unknown>;
       };
-      expect(body.name).toBe("vlist.dev API");
+      expect(body.name).toBe("vlist.io API");
       expect(body.version).toBeDefined();
       expect(body.endpoints).toBeDefined();
     });

@@ -2,13 +2,13 @@
 
 ## Context
 
-Three audit logs in `vlist.dev/docs/refactoring/` track all work:
+Three audit logs in `vlist.io/docs/refactoring/` track all work:
 
 - **`documentation.md`** — Docs refactoring, phases 1–7 complete. The 11 principles at the bottom govern all decisions.
 - **`tutorials.md`** — Tutorial refactoring plan. Audit done, 6 phases planned, 0 executed.
 - **`examples.md`** — Examples refactoring. Phase 1 complete, Phase 2 in progress (1/7 done).
 
-Source lives in `vlist/`, adapter source in `vlist-react/`, `vlist-vue/`, `vlist-svelte/`, `vlist-solidjs/`. Docs in `vlist.dev/docs/`, tutorials in `vlist.dev/tutorials/`, examples in `vlist.dev/examples/`.
+Source lives in `vlist/`, adapter source in `vlist-react/`, `vlist-vue/`, `vlist-svelte/`, `vlist-solidjs/`. Docs in `vlist.io/docs/`, tutorials in `vlist.io/tutorials/`, examples in `vlist.io/examples/`.
 
 ## What's done
 

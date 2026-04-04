@@ -1,5 +1,5 @@
 // src/api/files.ts
-// File browser API — serves filesystem data for vlist and vlist.dev projects
+// File browser API — serves filesystem data for vlist and vlist.io projects
 
 import { readdir, stat } from "fs/promises";
 import { join, resolve, relative, extname, basename } from "path";
@@ -8,9 +8,9 @@ import { join, resolve, relative, extname, basename } from "path";
 // Configuration
 // =============================================================================
 
-// Base directory to browse (parent of vlist.dev, should contain vlist and vlist.dev)
+// Base directory to browse (parent of vlist.io, should contain vlist and vlist.io)
 const BASE_DIR = resolve(import.meta.dir, "../../..");
-const ALLOWED_ROOTS = ["vlist", "vlist.dev"];
+const ALLOWED_ROOTS = ["vlist", "vlist.io"];
 
 // Patterns to ignore when listing directories
 const IGNORE_PATTERNS = [
@@ -175,6 +175,6 @@ export function getFilesBrowserInfo() {
     baseDir: BASE_DIR,
     allowedRoots: ALLOWED_ROOTS,
     ignorePatterns: IGNORE_PATTERNS,
-    description: "Browse vlist and vlist.dev project files",
+    description: "Browse vlist and vlist.io project files",
   };
 }

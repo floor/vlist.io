@@ -538,4 +538,4 @@ const list = vlist({
 ✅ Clear, intuitive naming (scale, async, sections, page)  
 ✅ All tests passing  
 ✅ Build successful  
-✅ Ready for vlist.dev examples update
+✅ Ready for vlist.io examples update
