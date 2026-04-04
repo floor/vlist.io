@@ -18,7 +18,7 @@ const DB_PATH = resolve(import.meta.dir, "../../data/benchmarks.test.db");
 
 /** Create a GET request for the given path */
 const get = (path: string): { req: Request; url: URL } => {
-  const url = new URL(`https://vlist.dev${path}`);
+  const url = new URL(`https://vlist.io${path}`);
   const req = new Request(url.toString(), { method: "GET" });
   return { req, url };
 };
@@ -33,7 +33,7 @@ const post = (
   body: unknown,
   headers?: Record<string, string>,
 ): { req: Request; url: URL } => {
-  const url = new URL(`https://vlist.dev${path}`);
+  const url = new URL(`https://vlist.io${path}`);
   const req = new Request(url.toString(), {
     method: "POST",
     headers: {
@@ -321,7 +321,7 @@ describe("benchmarks API", () => {
     });
 
     test("rejects non-GET/POST methods with 405", async () => {
-      const url = new URL("https://vlist.dev/api/benchmarks/stats");
+      const url = new URL("https://vlist.io/api/benchmarks/stats");
       const req = new Request(url.toString(), { method: "DELETE" });
       const result = await routeBenchmarks(req, url);
 
@@ -436,7 +436,7 @@ describe("benchmarks API", () => {
 
   describe("POST /api/benchmarks — validation", () => {
     test("rejects invalid JSON body", async () => {
-      const url = new URL("https://vlist.dev/api/benchmarks");
+      const url = new URL("https://vlist.io/api/benchmarks");
       const req = new Request(url.toString(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -98,7 +98,7 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
           ·
           <a href="/examples/">Examples</a>
           ·
-          <a href="/">vlist.dev</a>
+          <a href="/">vlist.io</a>
         </p>
       </footer>
     </div>
@@ -294,7 +294,7 @@ export function buildComparisonsOverviewHTML() {
 
         <p class="page-footer-note">
           Select a comparison from the sidebar to run the benchmarks yourself. Source code available in
-          <a href="https://github.com/floor/vlist.dev/tree/main/benchmarks/comparison" target="_blank">benchmarks/comparison/</a>
+          <a href="https://github.com/floor/vlist.io/tree/main/benchmarks/comparison" target="_blank">benchmarks/comparison/</a>
         </p>
       </div>
     </div>

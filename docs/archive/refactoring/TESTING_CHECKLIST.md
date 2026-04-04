@@ -28,7 +28,7 @@ We've made memory optimization the default by removing config flags entirely:
 - [x] **Unit tests pass:** `bun test` → 1181 pass, 0 fail
 - [x] **Build succeeds:** `bun run build` → 71.6 KB minified
 - [x] **No TypeScript errors:** Build completes without errors
-- [ ] **Benchmarks build:** `bun run build:bench` (in vlist.dev)
+- [ ] **Benchmarks build:** `bun run build:bench` (in vlist.io)
 
 ### 🔬 Phase 2: Memory Benchmarks
 
@@ -127,7 +127,7 @@ Test with features to ensure they still work:
 
 ### 🎨 Phase 6: Integration Testing
 
-**Test in vlist.dev sandbox:**
+**Test in vlist.io sandbox:**
 
 Navigate to: http://localhost:3338/sandbox
 

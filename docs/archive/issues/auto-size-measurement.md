@@ -558,7 +558,7 @@ If Direction C proves insufficient in edge cases, **Direction D** (dynamic estim
 | Exports | `src/rendering/index.ts`, `src/index.ts` | ✅ Complete |
 | Unit tests | `test/rendering/measured.test.ts` | ✅ 57 tests passing |
 | Integration tests | `test/builder/measured.test.ts` | ❌ Not yet written |
-| Example | `vlist.dev/examples/auto-size/` | ✅ Complete (social feed) |
+| Example | `vlist.io/examples/auto-size/` | ✅ Complete (social feed) |
 | All existing tests | | ✅ 1,635 tests passing |
 
 ---

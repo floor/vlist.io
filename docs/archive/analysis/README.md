@@ -151,7 +151,7 @@ madge --image deps-rendering.svg --extensions ts src/rendering/
 madge --json --extensions ts src/ > deps-analysis.json
 
 # Move to docs
-mv deps-*.svg deps-*.json ~/Code/floor/vlist.dev/docs/analysis/
+mv deps-*.svg deps-*.json ~/Code/floor/vlist.io/docs/analysis/
 ```
 
 Or use the npm scripts defined in package.json:

@@ -1,8 +1,8 @@
-# vlist.dev
+# vlist.io
 
 Documentation, examples, and benchmarks site for the [vlist](https://github.com/floor/vlist) virtual list library.
 
-**Live:** [https://vlist.dev](https://vlist.dev)
+**Live:** [https://vlist.io](https://vlist.io)
 
 ## Recent Updates
 
@@ -66,7 +66,7 @@ Many examples include **multi-framework implementations** (JavaScript, React, Vu
 ```
 ~/Code/floor/
 ├── vlist/          # The library itself
-└── vlist.dev/      # This repo
+└── vlist.io/      # This repo
 ```
 
 **Install and link:**
@@ -105,7 +105,7 @@ This builds the examples and benchmarks, then starts the Bun server with `--watc
 ## Project Structure
 
 ```
-vlist.dev/
+vlist.io/
 ├── src/
 │   └── api/                # API routes (user data endpoint)
 │       ├── router.ts
@@ -146,7 +146,7 @@ vlist.dev/
 │   ├── groups.md           # Groups feature details
 │   └── ...                 # More guides
 ├── nginx/                  # nginx vhost config
-│   └── vlist.dev.conf
+│   └── vlist.io.conf
 ├── scripts/
 │   └── setup-server.sh     # One-time server provisioning
 ├── .github/

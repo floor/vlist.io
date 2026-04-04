@@ -5,7 +5,7 @@ A Finder-like file browser built with **vlist** using the `withGrid` plugin. Thi
 ## Features
 
 - 🗂️ **Dual View Modes**: Switch between grid and list views
-- 📁 **Real File System**: Browse vlist and vlist.dev projects via backend API
+- 📁 **Real File System**: Browse vlist and vlist.io projects via backend API
 - 🎨 **File Type Icons**: Visual differentiation with emoji icons and colors
 - 🧭 **Breadcrumb Navigation**: Easy path navigation with clickable breadcrumbs
 - ⚡ **Virtualized Rendering**: Only visible items are rendered (DOM efficiency)
@@ -22,22 +22,22 @@ A Finder-like file browser built with **vlist** using the `withGrid` plugin. Thi
 - **Dynamic Templates**: Different item templates for grid vs list
 - **Event Handling**: Click to select, double-click to navigate folders
 
-### Backend (Integrated in vlist.dev)
+### Backend (Integrated in vlist.io)
 
-- **RESTful API**: `/api/files?path=<path>` endpoint integrated in vlist.dev server
-- **Security**: Restricts browsing to `vlist` and `vlist.dev` directories only
+- **RESTful API**: `/api/files?path=<path>` endpoint integrated in vlist.io server
+- **Security**: Restricts browsing to `vlist` and `vlist.io` directories only
 - **File Metadata**: Returns name, type, size, modified date, extension
 - **Auto-sorting**: Directories first, then alphabetically
 - **Location**: `src/api/files.ts` and integrated in `src/api/router.ts`
 
 ## Setup
 
-### 1. Start the vlist.dev Development Server
+### 1. Start the vlist.io Development Server
 
-The file browser API is integrated into the main vlist.dev server. No separate backend needed!
+The file browser API is integrated into the main vlist.io server. No separate backend needed!
 
 ```bash
-# From vlist.dev root
+# From vlist.io root
 npm run dev
 ```
 
@@ -48,7 +48,7 @@ Then navigate to the file browser example in your browser.
 Edit `src/api/files.ts` to change which directories can be browsed:
 
 ```javascript
-const ALLOWED_ROOTS = ["vlist", "vlist.dev"];
+const ALLOWED_ROOTS = ["vlist", "vlist.io"];
 ```
 
 ## API Endpoints
@@ -91,9 +91,9 @@ File browser configuration and metadata.
 ```json
 {
   "baseDir": "/Users/yourname/Code/floor",
-  "allowedRoots": ["vlist", "vlist.dev"],
+  "allowedRoots": ["vlist", "vlist.io"],
   "ignorePatterns": ["node_modules", "dist", "build", ".git", "..."],
-  "description": "Browse vlist and vlist.dev project files"
+  "description": "Browse vlist and vlist.io project files"
 }
 ```
 
@@ -135,7 +135,7 @@ File browser configuration and metadata.
 - Uses Node.js `fs/promises` API (Bun-compatible)
 - Returns file type, size, modified date, extension
 - Auto-filters `.git`, `node_modules`, `dist`, etc.
-- Integrated with vlist.dev router (`src/api/router.ts`)
+- Integrated with vlist.io router (`src/api/router.ts`)
 
 ## Customization
 
@@ -259,7 +259,7 @@ The current implementation:
 
 ### Files not loading
 
-1. Check the vlist.dev server is running (`npm run dev`)
+1. Check the vlist.io server is running (`npm run dev`)
 2. Check browser console for CORS or network errors
 3. Verify the path exists and is within allowed roots
 4. Check terminal for API errors

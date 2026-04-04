@@ -1,6 +1,6 @@
-# vlist.dev — CSS Refactoring Plan
+# vlist.io — CSS Refactoring Plan
 
-> Comprehensive audit and enhancement plan for all stylesheets in the vlist.dev project.
+> Comprehensive audit and enhancement plan for all stylesheets in the vlist.io project.
 >
 > **Status: ✅ All 6 phases complete** — implemented on branch `refactor/css-cleanup`.
 

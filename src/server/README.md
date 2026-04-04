@@ -1,8 +1,8 @@
 # Server Architecture
 
-> How vlist.dev renders pages server-side: renderers, shells, navigation, and styles.
+> How vlist.io renders pages server-side: renderers, shells, navigation, and styles.
 
-vlist.dev is a Bun HTTP server with no framework. Every page is assembled at request
+vlist.io is a Bun HTTP server with no framework. Every page is assembled at request
 time from HTML shell templates, navigation data, and content — then served as a
 complete HTML response.
 

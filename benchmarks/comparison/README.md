@@ -309,7 +309,7 @@ Example:
 ## Running Locally
 
 ```bash
-# From vlist.dev root
+# From vlist.io root
 bun install
 bun run benchmarks/build.ts
 

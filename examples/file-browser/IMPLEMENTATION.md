@@ -27,7 +27,7 @@ A Finder-like file browser built with **vlist** using the `withGrid` plugin. Thi
 
 - **Endpoint**: `/api/files?path=<path>` - List directory contents
 - **Info Endpoint**: `/api/files/info` - Configuration and allowed roots
-- **Security**: Path validation prevents directory traversal, restricts to `vlist` and `vlist.dev` only
+- **Security**: Path validation prevents directory traversal, restricts to `vlist` and `vlist.io` only
 - **Filtering**: Auto-filters `.git`, `node_modules`, `dist`, hidden files, etc.
 - **Sorting**: Directories first, then alphabetically by name
 
@@ -208,12 +208,12 @@ const IGNORE_PATTERNS = [
 
 ## Usage
 
-### Start vlist.dev Server
+### Start vlist.io Server
 
 The API is integrated, no separate backend needed:
 
 ```bash
-cd vlist.dev
+cd vlist.io
 bun run dev
 ```
 
@@ -224,7 +224,7 @@ Navigate to the file-browser example in the examples.
 Edit `src/api/files.ts`:
 
 ```typescript
-const ALLOWED_ROOTS = ["vlist", "vlist.dev"];
+const ALLOWED_ROOTS = ["vlist", "vlist.io"];
 ```
 
 Add/remove directories as needed.
@@ -289,9 +289,9 @@ Get configuration.
 ```json
 {
   "baseDir": "/Users/yourname/Code/floor",
-  "allowedRoots": ["vlist", "vlist.dev"],
+  "allowedRoots": ["vlist", "vlist.io"],
   "ignorePatterns": ["node_modules", "dist", ".git", "..."],
-  "description": "Browse vlist and vlist.dev project files"
+  "description": "Browse vlist and vlist.io project files"
 }
 ```
 

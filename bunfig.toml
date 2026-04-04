@@ -1,4 +1,4 @@
-# Bun configuration for vlist.dev
+# Bun configuration for vlist.io
 
 [install]
 # Ensure React is deduplicated across all packages

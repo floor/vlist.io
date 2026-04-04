@@ -809,7 +809,7 @@ All four adapter READMEs (`vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-sol
 - SolidJS: install order was `vlist-solidjs @floor/vlist` → `@floor/vlist vlist-solidjs`
 - SolidJS: added missing `import '@floor/vlist/styles'` and container height
 - All: added `@floor/vlist/styles` import where missing
-- All: link text points to `vlist.dev/docs/frameworks#<framework>` instead of generic `vlist.dev`
+- All: link text points to `vlist.io/docs/frameworks#<framework>` instead of generic `vlist.io`
 
 ### Tutorials audit
 
