@@ -1,4 +1,4 @@
-# vlist.dev — Server Optimization Plan
+# vlist.io — Server Optimization Plan
 
 > Migrate the Bun HTTP server from Node.js-compatible patterns to Bun-native APIs
 > for zero-copy file serving, faster compression, reduced allocations, and cached rendering.
@@ -877,7 +877,7 @@ exec_mode: "fork",  // still fork — cluster mode ignores interpreter
 - [x] All requests return 200 across both instances
 - [x] All route types work: homepage, docs, examples, benchmarks, API, sitemap, static files
 - [ ] `pm2 list` shows 2 healthy instances (verify on production deploy)
-- [ ] `pm2 reload vlist.dev` performs zero-downtime restart (verify on production deploy)
+- [ ] `pm2 reload vlist.io` performs zero-downtime restart (verify on production deploy)
 - [ ] Memory stays within bounds (verify on production deploy)
 
 **Implementation notes:**
@@ -994,8 +994,8 @@ robots.txt was previously `max-age=86400` (1 day) — normalized to 1 hour to ma
 This ensures fresh content is served globally within seconds of a deploy. The purge runs as a separate step (not via SSH) so it executes even if the deploy step partially fails.
 
 **GitHub secrets required:**
-- `CF_ZONE_ID` — Cloudflare zone ID for vlist.dev
-- `CF_API_TOKEN` — Scoped API token with only `Zone → Cache Purge → Purge` permission on `vlist.dev`
+- `CF_ZONE_ID` — Cloudflare zone ID for vlist.io
+- `CF_API_TOKEN` — Scoped API token with only `Zone → Cache Purge → Purge` permission on `vlist.io`
 
 ### 7.7 Cloudflare configuration
 
@@ -1028,18 +1028,18 @@ Cloudflare dashboard settings (done manually, not in code):
 # After Cloudflare is active:
 
 # Check edge caching works (second request should be HIT)
-curl -sI https://vlist.dev/ | grep -iE "^(cf-cache-status|cache-control|cf-ray)"
+curl -sI https://vlist.io/ | grep -iE "^(cf-cache-status|cache-control|cf-ray)"
 # → cf-cache-status: HIT
 # → Cache-Control: public, s-maxage=3600, max-age=0, stale-while-revalidate=60
 
 # Check immutable assets are cached
-curl -sI https://vlist.dev/favicon.ico | grep -iE "^(cf-cache-status|cache-control)"
+curl -sI https://vlist.io/favicon.ico | grep -iE "^(cf-cache-status|cache-control)"
 # → cf-cache-status: HIT
 # → Cache-Control: public, max-age=31536000, immutable
 
 # Check API responses
-curl -s https://vlist.dev/api/info -o /dev/null -w "%{http_code}" && \
-curl -sI https://vlist.dev/api/info | grep -iE "^(cf-cache-status|cache-control)"
+curl -s https://vlist.io/api/info -o /dev/null -w "%{http_code}" && \
+curl -sI https://vlist.io/api/info | grep -iE "^(cf-cache-status|cache-control)"
 # → cf-cache-status: HIT (after second request)
 # → Cache-Control: public, s-maxage=300, max-age=0
 
@@ -1229,7 +1229,7 @@ Template logic in `base.html`:
 | Setting | Value |
 |---------|-------|
 | **Rule name** | Cache HTML pages |
-| **Match** | Hostname equals `vlist.dev` (or all incoming requests) |
+| **Match** | Hostname equals `vlist.io` (or all incoming requests) |
 | **Cache eligibility** | Eligible for cache |
 | **Edge TTL** | Use cache-control header if present |
 | **Browser TTL** | Use cache-control header if present |
@@ -1240,13 +1240,13 @@ This tells Cloudflare to respect the `s-maxage=3600` headers already set in Phas
 
 ```bash
 # Before rule: DYNAMIC (never cached)
-curl -sI https://vlist.dev/examples | grep cf-cache-status
+curl -sI https://vlist.io/examples | grep cf-cache-status
 # → cf-cache-status: DYNAMIC
 
 # After rule: first hit MISS, second hit HIT
-curl -sI https://vlist.dev/examples | grep cf-cache-status
+curl -sI https://vlist.io/examples | grep cf-cache-status
 # → cf-cache-status: MISS
-curl -sI https://vlist.dev/examples | grep cf-cache-status
+curl -sI https://vlist.io/examples | grep cf-cache-status
 # → cf-cache-status: HIT
 ```
 
@@ -1277,25 +1277,25 @@ curl -sI https://vlist.dev/examples | grep cf-cache-status
 
 ```bash
 # Check Cloudflare caches HTML (not DYNAMIC)
-curl -sI https://vlist.dev/examples | grep cf-cache-status
+curl -sI https://vlist.io/examples | grep cf-cache-status
 # → cf-cache-status: HIT (after first request warms cache)
 
 # Check origin is NOT compressing (no Content-Encoding from origin)
 # Cloudflare adds it at the edge
-curl -sI https://vlist.dev/examples | grep -iE 'content-encoding|cf-cache'
+curl -sI https://vlist.io/examples | grep -iE 'content-encoding|cf-cache'
 # → content-encoding: br (from Cloudflare, not origin)
 # → cf-cache-status: HIT
 
 # Verify example pages don't eagerly load highlight.js
-curl -s https://vlist.dev/examples/data-table | grep '<script src.*highlight'
+curl -s https://vlist.io/examples/data-table | grep '<script src.*highlight'
 # → (no output — correct, scripts are lazy-loaded)
 
 # Verify docs pages still eagerly load highlight.js
-curl -s https://vlist.dev/docs/getting-started | grep '<script src.*highlight'
+curl -s https://vlist.io/docs/getting-started | grep '<script src.*highlight'
 # → <script src="https://cdn.jsdelivr.net/...highlight.min.js"></script>
 
 # Verify SVG icons are inlined (no /examples/icons/ requests)
-curl -s https://vlist.dev/styles/ui.css | grep -c 'data:image/svg+xml'
+curl -s https://vlist.io/styles/ui.css | grep -c 'data:image/svg+xml'
 # → 28 (14 icons × 2 for -webkit-mask-image + mask-image)
 
 # Run tests
@@ -1401,7 +1401,7 @@ Three changes to the CSS loading strategy in `src/server/shells/base.html`:
 
 ```bash
 # Verify robots.txt is clean (no Content-Signal)
-curl -s https://vlist.dev/robots.txt
+curl -s https://vlist.io/robots.txt
 # → User-agent: * / Allow: / / AI bot rules / Sitemap
 
 # Verify Lighthouse SEO
@@ -1412,19 +1412,19 @@ ls dist/benchmarks/
 # → script.js, runner.js, styles.css (+ .br/.gz siblings)
 
 # Verify tokens.css is inlined
-curl -s https://vlist.dev/examples/basic | grep '<style>.*--text:'
+curl -s https://vlist.io/examples/basic | grep '<style>.*--text:'
 # → <style>/* tokens.css ... :root { --text: ...
 
 # Verify syntax.css is deferred on examples
-curl -s https://vlist.dev/examples/basic | grep 'syntax.css'
+curl -s https://vlist.io/examples/basic | grep 'syntax.css'
 # → media="print" onload="this.media='all'"
 
 # Verify syntax.css absent on benchmarks
-curl -s https://vlist.dev/benchmarks/render | grep 'syntax.css'
+curl -s https://vlist.io/benchmarks/render | grep 'syntax.css'
 # → (no output)
 
 # Verify no duplicate ui.css on examples
-curl -s https://vlist.dev/examples/basic | grep -c 'ui.css'
+curl -s https://vlist.io/examples/basic | grep -c 'ui.css'
 # → 1
 ```
 
@@ -1538,7 +1538,7 @@ The Bangalore Cloudflare PoP consistently shows ~1s TTFB even after cache warmin
 
 - [x] `pm2 start ecosystem.local.config.cjs` launches 2 instances
 - [x] File watching triggers auto-restart on source, content, and build output changes
-- [x] `pm2 reload vlist.dev` performs zero-downtime restart
+- [x] `pm2 reload vlist.io` performs zero-downtime restart
 - [x] `process.send("ready")` fires after startup
 - [x] Memory: ~57–64MB per instance, well within 256MB limit
 
@@ -1552,7 +1552,7 @@ The Bangalore Cloudflare PoP consistently shows ~1s TTFB even after cache warmin
 ### Cloudflare CDN
 
 - [x] DNS proxied through Cloudflare (orange cloud on A records)
-- [x] API token created (Cache Purge only, scoped to vlist.dev zone)
+- [x] API token created (Cache Purge only, scoped to vlist.io zone)
 - [x] GitHub secrets set (`CF_ZONE_ID`, `CF_API_TOKEN`)
 - [x] Deploy workflow purges cache after PM2 reload
 - [x] All response types have correct `Cache-Control` with `s-maxage`
@@ -1561,7 +1561,7 @@ The Bangalore Cloudflare PoP consistently shows ~1s TTFB even after cache warmin
 - [x] `cf-cache-status: HIT` confirmed on live site
 - [x] Edge compression (brotli) confirmed
 - [x] Global latency improvement verified (50–84ms TTFB across 6/7 PoPs)
-- [x] Cache Rule created: "Cache HTML pages" — hostname equals `vlist.dev`, eligible for cache, respect origin headers
+- [x] Cache Rule created: "Cache HTML pages" — hostname equals `vlist.io`, eligible for cache, respect origin headers
 
 ### Phase 9 — Edge-aware compression
 

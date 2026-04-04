@@ -96,7 +96,7 @@ If your framework doesn't have an adapter yet, you can integrate vlist in an aft
 npm install @floor/vlist
 ```
 
-Docs and 14+ interactive examples at [vlist.dev](https://vlist.dev).
+Docs and 14+ interactive examples at [vlist.io](https://vlist.io).
 
 ---
 

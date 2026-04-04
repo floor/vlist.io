@@ -150,7 +150,7 @@ Samples outside the 0.1–50 range are stored as current but excluded from the a
 
 ## Example Info Bar Integration
 
-The `vlist.dev` examples pair `createStats` with a thin DOM layer in `examples/info.js`:
+The `vlist.io` examples pair `createStats` with a thin DOM layer in `examples/info.js`:
 
 ```
 stats.js   → re-exports createStats from vlist (convenience path)

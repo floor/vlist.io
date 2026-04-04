@@ -7,7 +7,7 @@ The benchmark page (`/benchmarks/`) runs two categories of live performance suit
 
 > **📈 Crowdsourced History** — Every comparison run is automatically persisted to a SQLite database and aggregated on the [Comparison History](/benchmarks/history) page. Results accumulate across all visitors, providing statistically meaningful data across hardware, browsers, and vlist versions.
 
-**URL:** `/benchmarks/` (served by vlist.dev)
+**URL:** `/benchmarks/` (served by vlist.io)
 
 All framework variant benchmarks are available in **five variants**:
 - **JavaScript** — Pure `vlist()` API (baseline)
@@ -827,7 +827,7 @@ Output goes to `dist/benchmarks/`:
 
 ### Framework Deduplication
 
-The build uses a **Bun feature** to ensure React and Vue are deduplicated when vlist is linked (symlinked during development). Without this feature, Bun would bundle React from both `vlist.dev/node_modules` and `vlist/node_modules`, causing "Invalid hook call" errors.
+The build uses a **Bun feature** to ensure React and Vue are deduplicated when vlist is linked (symlinked during development). Without this feature, Bun would bundle React from both `vlist.io/node_modules` and `vlist/node_modules`, causing "Invalid hook call" errors.
 
 **Feature configuration** (`benchmarks/build.ts`):
 - Forces all `react` and `react-dom` imports to resolve from project root

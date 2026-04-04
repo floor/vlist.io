@@ -417,4 +417,4 @@ All modern bundlers support ES modules tree-shaking.
 
 ---
 
-**Interactive Examples:** [vlist.dev/examples](https://vlist.dev/examples) - See bundle sizes in action
+**Interactive Examples:** [vlist.io/examples](https://vlist.io/examples) - See bundle sizes in action

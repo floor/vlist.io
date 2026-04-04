@@ -11,7 +11,7 @@
 Chrome should already be open with the test page. If not:
 
 ```bash
-cd vlist.dev
+cd vlist.io
 ./run-memory-test.sh
 ```
 

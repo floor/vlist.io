@@ -1,5 +1,5 @@
 // src/api/router.ts
-// API router for vlist.dev — handles /api/* routes with CORS support
+// API router for vlist.io — handles /api/* routes with CORS support
 
 import { routeBenchmarks } from "./benchmarks";
 import { CACHE_API, CACHE_API_DOCS } from "../server/cache";
@@ -575,7 +575,7 @@ const handleGetTracksStats = (): Response => {
  */
 const handleInfo = (): Response =>
   json({
-    name: "vlist.dev API",
+    name: "vlist.io API",
     version: "0.1.0",
     description: "Deterministic user data API for vlist demos",
     endpoints: {

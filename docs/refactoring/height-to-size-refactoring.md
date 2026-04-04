@@ -716,7 +716,7 @@ TypeScript makes migration **trivial** - the compiler finds all breaking changes
 
 This refactoring enables clear, semantic horizontal scrolling:
 
-- **Example**: `vlist.dev/examples/horizontal/variable-width/`
+- **Example**: `vlist.io/examples/horizontal/variable-width/`
 - **Features**: 1,000 items with dynamic widths (120-340px)
 - **Implementation**: Clean, understandable code
 - **Performance**: Perfect (120 FPS, O(1) lookups)
@@ -759,7 +759,7 @@ This was more than a simple rename - it was a **complete semantic overhaul** tha
 ### Validation
 
 Real-world horizontal variable-width example proves the refactoring:
-- **Example**: `vlist.dev/examples/horizontal/variable-width/`
+- **Example**: `vlist.io/examples/horizontal/variable-width/`
 - **Items**: 1,000 with dynamic widths (120-340px)
 - **Performance**: 120 FPS, perfect positioning
 - **Code**: Clear, semantic, self-documenting

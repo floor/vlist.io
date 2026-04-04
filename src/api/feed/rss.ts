@@ -18,7 +18,7 @@ import type {
 // Constants
 // =============================================================================
 
-const USER_AGENT = "vlist.dev/1.0 (https://vlist.dev; demo feed reader)";
+const USER_AGENT = "vlist.io/1.0 (https://vlist.io; demo feed reader)";
 const MAX_LIMIT = 100;
 const FETCH_TIMEOUT_MS = 10_000;
 

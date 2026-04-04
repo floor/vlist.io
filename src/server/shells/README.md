@@ -69,7 +69,7 @@ The new unified shell combines all features from the legacy shells:
 const html = renderTemplate('base.html', {
   TITLE: 'Getting Started - VList',
   DESCRIPTION: 'Learn how to use VList virtual scrolling',
-  URL: 'https://vlist.dev/docs/getting-started',
+  URL: 'https://vlist.io/docs/getting-started',
   SECTION: 'Docs',
   SECTION_LINK: '/docs/',
   SIDEBAR: renderSidebar(),
@@ -96,7 +96,7 @@ const html = renderTemplate('base.html', {
 const html = renderTemplate('base.html', {
   TITLE: 'Velocity Loading - VList Examples',
   DESCRIPTION: 'Smart data loading example',
-  URL: 'https://vlist.dev/examples/velocity-loading',
+  URL: 'https://vlist.io/examples/velocity-loading',
   SECTION: 'Examples',
   SECTION_LINK: '/examples/',
   SIDEBAR: renderSidebar(),
@@ -120,7 +120,7 @@ const html = renderTemplate('base.html', {
 const html = renderTemplate('base.html', {
   TITLE: 'VList Benchmarks',
   DESCRIPTION: 'Performance benchmarks for VList',
-  URL: 'https://vlist.dev/benchmarks/',
+  URL: 'https://vlist.io/benchmarks/',
   SECTION: 'Benchmarks',
   SIDEBAR: renderSidebar(),
   CONTENT: renderBenchmark(content),

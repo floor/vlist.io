@@ -18,7 +18,7 @@ We implemented two memory optimization flags in vlist to reduce memory usage:
 - ✅ Performance verified: 9.7ms render, 120.5 FPS (100K items)
 - ✅ All 1184 tests passing
 - ✅ Baseline measured: 3.7-4.3 MB (100K items, default config)
-- ✅ Optimization benchmark created: `vlist.dev/benchmarks/comparison/memory-optimization.js`
+- ✅ Optimization benchmark created: `vlist.io/benchmarks/comparison/memory-optimization.js`
 - ✅ **Tests completed with outstanding results!**
 
 **Test Results - EXCEPTIONAL SUCCESS:**
@@ -123,12 +123,12 @@ enableItemById: false // Minimal overhead
 - `vlist/src/builder/materialize.ts` - Data proxy with warnings
 
 **Benchmarks:**
-- `vlist.dev/benchmarks/comparison/memory-optimization.js` - Main test
-- `vlist.dev/benchmarks/memory/javascript/suite.js` - Baseline
+- `vlist.io/benchmarks/comparison/memory-optimization.js` - Main test
+- `vlist.io/benchmarks/memory/javascript/suite.js` - Baseline
 
 **Documentation:**
-- `vlist.dev/docs/refactoring/memory-baseline-measurements.md` - Results
-- `vlist.dev/docs/refactoring/memory-performance-roadmap.md` - Plan
+- `vlist.io/docs/refactoring/memory-baseline-measurements.md` - Results
+- `vlist.io/docs/refactoring/memory-performance-roadmap.md` - Plan
 
 ---
 

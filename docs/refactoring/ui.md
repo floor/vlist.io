@@ -1,4 +1,4 @@
-# vlist.dev — UI Components Extraction Plan
+# vlist.io — UI Components Extraction Plan
 
 > Extract reusable UI primitives from `examples/styles.css` into `styles/ui.css`,
 > rename the `panel-*` prefix to generic `ui-*` names, add a shared card surface
@@ -344,7 +344,7 @@ base.html
 New file with the following sections, using `ui-*` class names:
 
 ```
-/* styles/ui.css — Reusable UI components for vlist.dev
+/* styles/ui.css — Reusable UI components for vlist.io
 
    Split layout, sections, form controls, buttons, segmented toggles,
    detail cards, stats bar, controls bar, chips, source viewer, icons.

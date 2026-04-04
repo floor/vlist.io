@@ -1,5 +1,5 @@
 // server.ts
-// vlist.dev — Entry point. Starts the Bun HTTP server.
+// vlist.io — Entry point. Starts the Bun HTTP server.
 //
 // Serves:
 //   /                             → Landing page
@@ -26,7 +26,7 @@ const packages = [
 ];
 
 console.log(`
-  🚀  vlist.dev server
+  🚀  vlist.io server
 
   Local:       http://localhost:${PORT}
   Docs:        http://localhost:${PORT}/docs

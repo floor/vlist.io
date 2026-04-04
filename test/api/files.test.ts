@@ -13,10 +13,10 @@ describe("files", () => {
       expect(info).toHaveProperty("description");
     });
 
-    test("allowedRoots contains vlist and vlist.dev", () => {
+    test("allowedRoots contains vlist and vlist.io", () => {
       const info = getFilesBrowserInfo();
       expect(info.allowedRoots).toContain("vlist");
-      expect(info.allowedRoots).toContain("vlist.dev");
+      expect(info.allowedRoots).toContain("vlist.io");
     });
 
     test("ignorePatterns contains common patterns", () => {
@@ -47,9 +47,9 @@ describe("files", () => {
       const result = await listDirectory("");
       const names = result.items.map((item) => item.name);
 
-      // Should only contain allowed roots (vlist, vlist.dev)
+      // Should only contain allowed roots (vlist, vlist.io)
       for (const name of names) {
-        expect(["vlist", "vlist.dev"]).toContain(name);
+        expect(["vlist", "vlist.io"]).toContain(name);
       }
     });
 
@@ -66,10 +66,10 @@ describe("files", () => {
       }
     });
 
-    test("can list vlist.dev directory", async () => {
-      const result = await listDirectory("vlist.dev");
+    test("can list vlist.io directory", async () => {
+      const result = await listDirectory("vlist.io");
 
-      expect(result.path).toBe("vlist.dev");
+      expect(result.path).toBe("vlist.io");
       expect(result.items.length).toBeGreaterThan(0);
 
       // Should find common files
@@ -79,7 +79,7 @@ describe("files", () => {
     });
 
     test("directories are sorted before files", async () => {
-      const result = await listDirectory("vlist.dev");
+      const result = await listDirectory("vlist.io");
 
       const types = result.items.map((item) => item.type);
       const lastDirIndex = types.lastIndexOf("directory");
@@ -91,7 +91,7 @@ describe("files", () => {
     });
 
     test("hidden files are filtered out", async () => {
-      const result = await listDirectory("vlist.dev");
+      const result = await listDirectory("vlist.io");
       const names = result.items.map((item) => item.name);
 
       for (const name of names) {
@@ -101,7 +101,7 @@ describe("files", () => {
 
     test("throws for directory traversal attempts", async () => {
       await expect(listDirectory("../")).rejects.toThrow("Access denied");
-      await expect(listDirectory("vlist.dev/../../")).rejects.toThrow(
+      await expect(listDirectory("vlist.io/../../")).rejects.toThrow(
         "Access denied",
       );
       await expect(listDirectory("../../etc/passwd")).rejects.toThrow(
@@ -119,7 +119,7 @@ describe("files", () => {
     });
 
     test("modified is an ISO date string", async () => {
-      const result = await listDirectory("vlist.dev");
+      const result = await listDirectory("vlist.io");
 
       for (const item of result.items) {
         expect(item.modified).toMatch(
@@ -130,7 +130,7 @@ describe("files", () => {
     });
 
     test("file extension is extracted correctly", async () => {
-      const result = await listDirectory("vlist.dev");
+      const result = await listDirectory("vlist.io");
 
       const jsonFile = result.items.find((item) => item.name === "package.json");
       if (jsonFile) {
@@ -146,7 +146,7 @@ describe("files", () => {
     });
 
     test("size is a non-negative number", async () => {
-      const result = await listDirectory("vlist.dev");
+      const result = await listDirectory("vlist.io");
 
       for (const item of result.items) {
         expect(typeof item.size).toBe("number");
@@ -158,7 +158,7 @@ describe("files", () => {
   describe("error handling", () => {
     test("throws for non-existent directory within allowed root", async () => {
       await expect(
-        listDirectory("vlist.dev/this-directory-does-not-exist-12345"),
+        listDirectory("vlist.io/this-directory-does-not-exist-12345"),
       ).rejects.toThrow("Failed to read directory");
     });
   });
@@ -171,8 +171,8 @@ describe("files", () => {
         "../",
         "../..",
         "../../",
-        "vlist.dev/../..",
-        "vlist.dev/../../etc",
+        "vlist.io/../..",
+        "vlist.io/../../etc",
       ];
 
       for (const path of traversalPaths) {
@@ -180,10 +180,10 @@ describe("files", () => {
       }
     });
 
-    test("vlist.dev/.. resolves to root which is allowed", async () => {
+    test("vlist.io/.. resolves to root which is allowed", async () => {
       // This resolves to the base directory itself, which is allowed
-      const result = await listDirectory("vlist.dev/..");
-      expect(result.path).toBe("vlist.dev/..");
+      const result = await listDirectory("vlist.io/..");
+      expect(result.path).toBe("vlist.io/..");
     });
 
     test("cannot access system directories", async () => {

@@ -75,7 +75,7 @@ All changes help Google:
 
 1. **Test Structured Data**
    ```bash
-   curl https://vlist.dev/ | grep -A 20 "application/ld+json"
+   curl https://vlist.io/ | grep -A 20 "application/ld+json"
    ```
 
 2. **Validate with Google Tools**
