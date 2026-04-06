@@ -163,9 +163,34 @@ Items appear at correct positions
 
 ## API
 
-### No Configuration Required
+### Configuration
 
-`withScale()` has no configuration options — it automatically detects when scaling is needed and activates transparently.
+`withScale()` accepts an optional configuration object:
+
+```typescript
+interface ScaleConfig {
+  /**
+   * Force scaled scroll mode even when the total size is below the
+   * browser's ~16.7M pixel limit.
+   *
+   * When true, the feature always activates scaled scrolling
+   * (custom wheel/touch handling, lerp-based smooth scroll, custom
+   * scrollbar fallback) regardless of the list size.
+   *
+   * Useful for:
+   * - Testing — verify scaling behaviour with a small item set
+   * - Consistent UX — use the same smooth scroll physics for all lists
+   * - Pre-emptive — avoid the mode switch when items are added at runtime
+   *
+   * @default false
+   */
+  force?: boolean;
+}
+```
+
+#### Auto Mode (Default)
+
+Scaling activates automatically when the total height exceeds the browser limit:
 
 ```typescript
 import { vlist, withScale } from '@floor/vlist';
@@ -178,6 +203,22 @@ const list = vlist({
   .use(withScale())
   .build();
 ```
+
+#### Force Mode
+
+Force scaled scrolling on all lists for consistent scroll physics:
+
+```typescript
+const list = vlist({
+  container: '#app',
+  items: smallDataset,    // even with few items
+  item: { height: 48, template: renderRow },
+})
+  .use(withScale({ force: true }))
+  .build();
+```
+
+In force mode with a small dataset, the compression ratio is 1 (no actual compression), but the scroll pipeline switches to virtual mode: `overflow: hidden`, custom wheel/touch handling with lerp-based smooth scrolling, and a custom scrollbar. Items are positioned viewport-relative (`offset - scrollPosition`) instead of using native scroll offset.
 
 ### Exported Utilities
 
@@ -274,6 +315,31 @@ list.scrollToIndex(500_000, 'center');
 
 // Scroll to end
 list.scrollToIndex(999_999, 'end');
+```
+
+### With Table Layout
+
+```typescript
+import { vlist, withScale, withTable, withScrollbar } from '@floor/vlist';
+
+const rows = generateRows(1_000_000);
+
+const table = vlist({
+  container: '#table',
+  item: { height: 36, template: () => '' },
+  items: rows,
+})
+  .use(withTable({
+    columns: [
+      { key: 'name',       label: 'Name',       width: 220, sortable: true },
+      { key: 'email',      label: 'Email',      width: 280 },
+      { key: 'department', label: 'Department',  width: 160 },
+    ],
+    rowHeight: 36,
+  }))
+  .use(withScale())
+  .use(withScrollbar())
+  .build();
 ```
 
 ### With Grid Layout
@@ -381,6 +447,7 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 | Feature | Compatible | Notes |
 |--------|------------|-------|
 | `withGrid()` | ✅ Yes | Scales grid rows automatically |
+| `withTable()` | ✅ Yes | Rows positioned viewport-relative in scaled mode |
 | `withGroups()` | ✅ Yes | Scales grouped layout |
 | `withAsync()` | ✅ Yes | Scales async-loaded data |
 | `withSelection()` | ✅ Yes | No impact on selection |
