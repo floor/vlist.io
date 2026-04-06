@@ -84,6 +84,12 @@ const ids = list.getSelected();
 
 // Get selected item objects
 const selectedUsers = list.getSelectedItems();
+
+// Move focus to next item and select it
+list.selectNext();
+
+// Move focus to previous item and select it
+list.selectPrevious();
 ```
 
 ## Events

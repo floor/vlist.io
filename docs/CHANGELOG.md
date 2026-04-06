@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.10] — 2026-04-06
+
+### Fixed
+
+- **Table + Scale compatibility** — The table renderer now supports compressed scroll positioning via `withScale()`. Previously, table rows were positioned using absolute offsets from the size cache, which meant rows stayed in place when scrolling in compressed mode (`overflow: hidden`, virtual scroll). The table renderer now uses `calculateCompressedItemPosition()` to position rows relative to the viewport, matching the grid renderer's existing behavior
+- **Table `updatePositions()` method** — Added `updatePositions(compressionCtx)` to the table renderer for efficient position-only updates when the scroll position changes but the visible range doesn't. This prevents unnecessary template re-evaluation during smooth scroll frames
+
+### Added
+
+- **`withScale({ force })` option** — Force compressed scroll mode even when total content height is below the browser's ~16.7M pixel limit. When `force: true`, all lists use virtual scrolling with lerp-based smooth scroll, custom wheel/touch handling, and a custom scrollbar — providing consistent scroll physics across all list sizes
+
+### Performance
+
+- 2,863 tests / 38,082 assertions — all passing (5 new table compression tests)
+
 ## [1.3.9] — 2026-03-14
 
 ### Added

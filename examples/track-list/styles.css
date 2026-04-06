@@ -59,7 +59,7 @@
     display: block;
     border-radius: var(--radius-xs);
     background: var(--vlist-placeholder-bg);
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.4s ease;
 }
 
@@ -292,9 +292,6 @@
    ============================================================================ */
 
 /* List mode placeholders */
-.vlist-item--placeholder .item-cover--fallback {
-    color: transparent;
-}
 
 .vlist-item--placeholder .item-title {
     color: transparent;
