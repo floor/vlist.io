@@ -229,13 +229,16 @@ function hashFiles(dir: string): string {
 let _vlistHash: string | null = null;
 function getVlistHash(): string {
   if (_vlistHash) return _vlistHash;
-  const vlistDist = resolve("../vlist/dist/index.js");
+  const vlistDistDir = isVlistLinked()
+    ? resolve("../vlist/dist")
+    : resolve("node_modules/@floor/vlist/dist");
+  const vlistDist = join(vlistDistDir, "index.js");
   if (existsSync(vlistDist)) {
     const h = createHash("sha1");
     h.update(readFileSync(vlistDist));
     // Also hash the CSS files that get copied
     for (const css of ["vlist.css", "vlist-table.css", "vlist-extras.css"]) {
-      const p = resolve("../vlist/dist", css);
+      const p = join(vlistDistDir, css);
       if (existsSync(p)) h.update(readFileSync(p));
     }
     _vlistHash = h.digest("hex");
@@ -249,8 +252,16 @@ function getVlistHash(): string {
  *  The real bundle is 100+ KB. A corrupted re-export stub is ~1.5 KB. */
 const MIN_VALID_DIST_SIZE = 10_240;
 
+/** True when @floor/vlist is a local file: link (dev), not an npm install (deploy). */
+function isVlistLinked(): boolean {
+  const pkg = JSON.parse(readFileSync("package.json", "utf-8"));
+  const spec = pkg.dependencies?.["@floor/vlist"] ?? "";
+  return spec.startsWith("file:");
+}
+
 /** Check if @floor/vlist dist is missing, corrupted, or stale. */
 function isVlistDistStale(): boolean {
+  if (!isVlistLinked()) return false; // npm install — local dist irrelevant
   const distFile = resolve("../vlist/dist/index.js");
   if (!existsSync(distFile)) return true;
 
