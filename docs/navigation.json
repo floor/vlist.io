@@ -165,6 +165,11 @@
         "slug": "resources/roadmap",
         "name": "Architecture",
         "desc": "Architecture and competitive position"
+      },
+      {
+        "slug": "resources/claude-code",
+        "name": "Claude Code",
+        "desc": "Custom agents and skills for AI-assisted development"
       }
     ]
   }
