@@ -765,22 +765,23 @@ async function watchMode() {
     }
   });
 
-  // Watch vlist src directory for changes
-  const vlistSrcDir = resolve("../vlist/src");
-  if (existsSync(vlistSrcDir)) {
-    console.log("👀 Watching vlist/src for changes...\n");
-    watch(vlistSrcDir, { recursive: true }, async (_event, filename) => {
-      if (
-        filename &&
-        (filename.endsWith(".ts") ||
-          filename.endsWith(".tsx") ||
-          filename.endsWith(".js") ||
-          filename.endsWith(".jsx"))
-      ) {
-        console.log(
-          `\n📝 vlist/src/${filename} changed - rebuilding all examples...`,
-        );
-        await main();
+  // Watch vlist dist directory for changes (not src — vlist has its own
+  // watcher that rebuilds dist, so we react to the build output to avoid
+  // racing with a mid-write dist).
+  const vlistDistDir = resolve("../vlist/dist");
+  if (existsSync(vlistDistDir)) {
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    console.log("👀 Watching vlist/dist for changes...\n");
+    watch(vlistDistDir, { recursive: false }, async (_event, filename) => {
+      if (filename && (filename.endsWith(".js") || filename.endsWith(".css"))) {
+        // Debounce: vlist build writes multiple files in quick succession
+        if (debounce) clearTimeout(debounce);
+        debounce = setTimeout(async () => {
+          debounce = null;
+          console.log(`\n📝 vlist/dist changed — rebuilding all examples...`);
+          _vlistHash = null; // invalidate cached hash
+          await main();
+        }, 200);
       }
     });
   }
