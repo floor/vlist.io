@@ -131,13 +131,34 @@ Built-in keyboard handling when `withSelection` is active:
 
 | Key | Action |
 |-----|--------|
-| `↑` Arrow Up | Move focus up (wraps to bottom) |
-| `↓` Arrow Down | Move focus down (wraps to top) |
+| `↑` Arrow Up | Move focus up |
+| `↓` Arrow Down | Move focus down |
 | `Home` | Move focus to first item |
 | `End` | Move focus to last item |
-| `Page Up` | Move focus up by page size |
-| `Page Down` | Move focus down by page size |
+| `Page Up` | Move focus up by one page |
+| `Page Down` | Move focus down by one page |
 | `Space` / `Enter` | Toggle selection on focused item |
+
+### Smart Scroll
+
+Keyboard navigation uses edge-aligned scrolling — the list only scrolls
+when the focused item is outside the viewport:
+
+- **Scrolling down** — the focused item aligns to the bottom edge
+- **Scrolling up** — the focused item aligns to the top edge
+- **Already visible** — no scroll, focus ring moves in place
+
+This matches native OS list behavior. The previous center-aligned scroll
+(which locked the focused item in the middle of the viewport) has been
+replaced.
+
+### Compressed Lists (withScale)
+
+Keyboard navigation works correctly with `withScale()` for lists with
+millions of items. The scroll calculation automatically switches between:
+
+- **Normal mode** — pixel-perfect positioning using size cache offsets
+- **Compressed mode** — fractional index math in virtual scroll space
 
 ### Focus vs Selection
 
