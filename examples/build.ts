@@ -9,6 +9,7 @@ import {
   statSync,
   watch,
 } from "fs";
+import { spawnSync } from "child_process";
 import { join, resolve, dirname } from "path";
 import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 import { createHash } from "crypto";
@@ -292,37 +293,35 @@ function isVlistDistStale(): boolean {
 /**
  * Ensure @floor/vlist dist is up-to-date before building examples.
  *
- * Auto-rebuilding from this process is not possible because of how Bun
- * handles the `"imports"` field in vlist.io's package.json. The map
- * `"vlist" → "@floor/vlist"` is inherited by any subprocess launched via
- * `bun run`, `$`, or even `Bun.spawn`. When the subprocess runs
- * `Bun.build()` on vlist/src, Bun resolves internal imports through
- * that map — which points back to the symlinked dist/index.js — creating
- * a circular reference that produces a ~1.5 KB re-export stub instead of
- * the full 100+ KB bundle.
- *
- * The only reliable fix: detect staleness and tell the developer to run
- * `bun run build` from inside the vlist directory (where there is no
- * import map). It takes <1 second.
+ * When the dist is stale, we auto-rebuild by spawning `bun run build.ts`
+ * with cwd set to the vlist directory. This avoids the import map issue
+ * (vlist.io's package.json maps "vlist" → "@floor/vlist" which would
+ * create a circular reference if Bun.build() ran in this process).
  */
 function ensureVlistDist(): void {
   if (!isVlistDistStale()) return;
 
-  const distFile = resolve("../vlist/dist/index.js");
+  const vlistDir = resolve("../vlist");
+  const distFile = join(vlistDir, "dist/index.js");
   const missing = !existsSync(distFile);
   const corrupt = !missing && statSync(distFile).size < MIN_VALID_DIST_SIZE;
 
-  console.error("");
-  console.error(
-    "  ❌  @floor/vlist dist is " +
-      (missing ? "missing" : corrupt ? "corrupted" : "stale"),
-  );
-  console.error("");
-  console.error("  Run this first:");
-  console.error("");
-  console.error("    cd ../vlist && bun run build");
-  console.error("");
-  process.exit(1);
+  const label = missing ? "missing" : corrupt ? "corrupted" : "stale";
+  console.log(`\n  ⚡ @floor/vlist dist is ${label} — rebuilding...\n`);
+
+  const result = spawnSync("bun", ["run", "build.ts"], {
+    cwd: vlistDir,
+    stdio: "inherit",
+  });
+
+  if (result.status !== 0) {
+    console.error("\n  ❌  @floor/vlist build failed (exit code %d)", result.status);
+    console.error("  Fix the issue and retry, or build manually:");
+    console.error("\n    cd ../vlist && bun run build\n");
+    process.exit(1);
+  }
+
+  console.log("");
 }
 
 function computeExampleHash(name: string): string {
