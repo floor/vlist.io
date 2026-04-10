@@ -10,20 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Smart keyboard scroll** — Keyboard navigation no longer centers the focused item in the viewport. Instead it nudges just enough to reveal the item at the nearest edge (bottom when scrolling down, top when scrolling up), matching native OS list behavior. Affects Arrow keys, Home/End, PageUp/PageDown (#3)
-- **Keyboard scroll in compressed mode** — `scrollToIndexIfNeeded` compared pixel offsets from the size cache with virtual scroll positions — two completely different coordinate systems when `withScale()` is active. Split into a dual-path approach: pixel-perfect positioning for normal lists, fractional compressed-space math for scaled lists (#3)
+- **Keyboard scroll in compressed mode** — `scrollToFocus` compared pixel offsets from the size cache with virtual scroll positions — two completely different coordinate systems when `withScale()` is active. Split into a dual-path approach: pixel-perfect positioning for normal lists, fractional compressed-space math for scaled lists (#3)
 - **Table keyboard focus classes** — The core `rendered` Map is empty in table mode (the table renderer owns all DOM), so `updateItemClasses()` silently failed. Added a replaceable `updateItemClassesFn` slot (`$.uic`) that the table feature injects its own implementation into (#3)
 - **Container focus outline after mouse click** — After keyboard navigation the browser stays in `:focus-visible` mode, so clicking a row showed the blue outline on the container. Added a CSS rule to suppress the outline when any row has `--selected` class
 
 ### Added
 
-- **PageUp/PageDown support** — Wired the existing `moveFocusByPage()` state function into the keyboard handler. Page size is calculated as `floor(containerSize / itemHeight)`. Events are `preventDefault()`'d so they no longer bleed to the page
+- **PageUp/PageDown in withSelection** — Wired the existing `moveFocusByPage()` state function into the keyboard handler. Page size is calculated as `floor(containerSize / itemHeight)`. Events are `preventDefault()`'d so they no longer bleed to the page
+- **PageUp/PageDown in core baseline** — The built-in keyboard handler (used when no selection feature is present) now handles PageUp/PageDown with the same page-size calculation
 - **`getScrollToPos()` on BuilderContext** — Features can now call the compression-aware scroll-to-index calculator installed by `withScale`. Previously only a setter (`setScrollToPosFn`) existed
 - **`setUpdateItemClassesFn()` on BuilderContext** — Replaceable slot for item class updates, following the same pattern as `setScrollToPosFn` / `$.gsp`. Used by `withTable` to delegate to its own renderer
 
 ### Performance
 
-- 2,901 tests / 38,167 assertions — all passing (13 new keyboard navigation tests)
-- Bundle: 106.9 KB minified (35.3 KB gzipped)
+- 2,905 tests / 38,190 assertions — all passing (13 new keyboard navigation tests)
+- Bundle: 107.3 KB minified (35.4 KB gzipped)
 
 ## [1.3.10] — 2026-04-06
 
