@@ -160,22 +160,30 @@ interface ParsedFeed {
  * Split a feed XML string into individual item chunks.
  * Supports both RSS 2.0 (<item>) and Atom (<entry>).
  */
-const parseFeedXml = (xml: string): ParsedFeed => {
+const parseFeedXml = (
+  xml: string,
+): ParsedFeed & { feedLink: string | null } => {
   const isAtom = /<feed[\s>]/i.test(xml);
 
-  // Feed title
+  // Feed title and link
   let feedTitle = "";
+  let feedLink: string | null = null;
   if (isAtom) {
     // Atom: <feed><title>...</title> — but avoid picking up <entry><title>
     const feedMatch = xml.match(/<feed[\s\S]*?(?=<entry[\s>])/i);
     if (feedMatch) {
       feedTitle = getTagText(feedMatch[0], "title") ?? "";
+      const linkMatch = feedMatch[0].match(
+        /<link[^>]*href\s*=\s*["']([^"']+)["'][^>]*>/i,
+      );
+      if (linkMatch) feedLink = decodeXmlEntities(linkMatch[1]);
     }
   } else {
     // RSS: <channel><title>...</title> — before <item>
     const channelMatch = xml.match(/<channel[\s\S]*?(?=<item[\s>])/i);
     if (channelMatch) {
       feedTitle = getTagText(channelMatch[0], "title") ?? "";
+      feedLink = getTagText(channelMatch[0], "link");
     }
   }
 
@@ -188,7 +196,7 @@ const parseFeedXml = (xml: string): ParsedFeed => {
     items.push({ xml: match[0] });
   }
 
-  return { feedTitle, items, isAtom };
+  return { feedTitle, feedLink, items, isAtom };
 };
 
 // =============================================================================
@@ -215,7 +223,23 @@ const upgradeImageUrl = (url: string): string => {
   return url;
 };
 
-const extractImage = (itemXml: string): FeedImage | null => {
+/**
+ * Resolve a potentially relative URL against a base URL.
+ * Returns the original URL if it's already absolute or if resolution fails.
+ */
+const resolveUrl = (url: string, baseUrl: string | null): string => {
+  if (!baseUrl || /^https?:\/\//i.test(url)) return url;
+  try {
+    return new URL(url, baseUrl).href;
+  } catch {
+    return url;
+  }
+};
+
+const extractImage = (
+  itemXml: string,
+  baseUrl: string | null = null,
+): FeedImage | null => {
   let url: string | null = null;
 
   // 1. <enclosure type="image/..." url="...">
@@ -226,7 +250,12 @@ const extractImage = (itemXml: string): FeedImage | null => {
     );
   if (enclosureMatch) {
     url = getAttr(enclosureMatch[0], "url");
-    if (url) return { url: upgradeImageUrl(url), alt: "", aspect: "wide" };
+    if (url)
+      return {
+        url: upgradeImageUrl(resolveUrl(url, baseUrl)),
+        alt: "",
+        aspect: "wide",
+      };
   }
 
   // 2. <media:content url="..."> or <media:thumbnail url="...">
@@ -235,7 +264,11 @@ const extractImage = (itemXml: string): FeedImage | null => {
   );
   if (mediaMatch) {
     url = decodeXmlEntities(mediaMatch[2]);
-    return { url: upgradeImageUrl(url), alt: "", aspect: "wide" };
+    return {
+      url: upgradeImageUrl(resolveUrl(url, baseUrl)),
+      alt: "",
+      aspect: "wide",
+    };
   }
 
   // 3. First <img src="..."> in description/content
@@ -253,7 +286,11 @@ const extractImage = (itemXml: string): FeedImage | null => {
       !url.includes("piwik") &&
       !url.includes("1x1")
     ) {
-      return { url: upgradeImageUrl(url), alt: "", aspect: "wide" };
+      return {
+        url: upgradeImageUrl(resolveUrl(url, baseUrl)),
+        alt: "",
+        aspect: "wide",
+      };
     }
   }
 
@@ -270,6 +307,7 @@ const normaliseItem = (
   raw: RawItem,
   isAtom: boolean,
   feedTitle: string,
+  feedBaseUrl: string | null = null,
 ): FeedPost => {
   const xml = raw.xml;
 
@@ -314,8 +352,8 @@ const normaliseItem = (
     "";
   const text = stripHtml(rawDesc).slice(0, 500);
 
-  // Image
-  const image = extractImage(xml);
+  // Image — resolve relative URLs against feed's base URL
+  const image = extractImage(xml, feedBaseUrl ?? link);
 
   // ID
   const id =
@@ -388,11 +426,15 @@ const fetchRss = async (params: FeedParams): Promise<FeedResponse> => {
     clearTimeout(timeout);
   }
 
-  const { feedTitle, items, isAtom } = parseFeedXml(xml);
+  const { feedTitle, feedLink, items, isAtom } = parseFeedXml(xml);
+
+  // Use the feed's own <link> as base URL for resolving relative image paths.
+  // Fall back to the feed URL itself (the target parameter).
+  const baseUrl = feedLink || feedUrl;
 
   const posts = items
     .slice(0, limit)
-    .map((item) => normaliseItem(item, isAtom, feedTitle));
+    .map((item) => normaliseItem(item, isAtom, feedTitle, baseUrl));
 
   return {
     posts,
