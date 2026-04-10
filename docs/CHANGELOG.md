@@ -5,7 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] — 2026-04-10
+## [1.4.2] — 2026-04-11
+
+### Fixed
+
+- **Scale: End → PageUp keyboard navigation** — Repeated PageUp after pressing End in compressed mode no longer loses the focused item. The root cause was a non-linear "near-bottom interpolation" zone in `calculateCompressedVisibleRange` that made the scroll↔index mapping non-invertible — `scrollToFocus` couldn't compute the correct scroll position for near-bottom indices, causing cumulative drift. Replaced with **compression slack**: a small extension to the content div's virtual height (`effectiveSize × (1 − ratio) + mainAxisPadding`) that keeps the linear formula `index × compressedItemSize` valid for ALL indices. Removed interpolation from three places: `calculateCompressedVisibleRange`, `calculateCompressedItemPosition`, and `calculateCompressedScrollToIndex` (#7)
+- **Scale: stale viewportState in early-return render path** — `coreRenderIfNeeded` now updates `viewportState.scrollPosition` and `visibleRange` even when the render range is unchanged (items within the overscan buffer). Previously, consecutive keyboard presses that didn't change the render range left `viewportState` stale, causing `scrollToFocus` to read wrong values on the next keypress (#7)
+- **Scale: scrollbar not reaching bottom** — `withScrollbar` was reading `compression.virtualSize` (without compression slack) for its bounds. Now reads `viewportState.totalSize` which includes the slack. Also moved `contentSizeHandlers` notification into `updateCompressionMode` so the scrollbar is always notified when compression changes the effective content size — previously `withAsync` called `updateCompressionMode` but never fired `contentSizeHandlers` (#7)
+- **Scale: arrow-down from top scrolled unnecessarily** — The "above visible" boundary check in `scrollToFocus` used `visibleRange.end − fullyVisible` which false-triggered for items clearly visible in the viewport. Changed to `visibleRange.start` which correctly identifies only items at or above the potentially-clipped top edge (#7)
+- **Scale: PageDown focused item not flush with viewport bottom** — The "below visible" alignment in `scrollToFocus` used integer `fullyVisible` (floor) which left a gap. Now uses fractional `effectiveSize / itemSize` for sub-item precision (#7)
+- **Scale: bottom gap when scrolling past last item** — The compression slack formula was `containerSize − fullyVisible × compressedItemSize` (470px, left a 22px gap). Fixed to `effectiveSize × (1 − ratio) + mainAxisPadding` (465.11px) which places the last item's bottom edge exactly at the viewport's bottom edge (#7)
+- **Scale: CSS padding not accounted for in compression slack** — Lists with `padding` config didn't reach the very bottom because compression slack didn't account for main-axis CSS padding. The formula now uses `effectiveSize = containerSize − mainAxisPadding` (#7)
+
+### Changed
+
+- **Scale: removed near-bottom interpolation** — The non-linear blending zone in `calculateCompressedVisibleRange`, `calculateCompressedItemPosition`, and `calculateCompressedScrollToIndex` has been replaced by compression slack. The scroll↔index mapping is now purely linear and bijective across the entire scroll range
+- **Architecture: `updateCompressionMode` fires `contentSizeHandlers`** — Both the default implementation and withScale's enhanced version now fire `contentSizeHandlers` when the content size changes. This is the single notification point — `syncAfterChange` no longer duplicates the loop
+
+### Performance
+
+- Bundle: 109.3 KB minified (35.9 KB gzipped)
+- 2983 tests (47 new compressed-scroll tests), all passing
+
+## [1.4.1] — 2026-04-10
 
 ### Changed
 
