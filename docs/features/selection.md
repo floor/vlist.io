@@ -4,34 +4,50 @@
 
 ## Overview
 
-The selection module extends the core keyboard behavior with configurable selection modes, a programmatic API, and events:
+Selection in vlist follows a **two-tier model**:
 
-- **Single/Multiple Selection**: Configurable selection modes
+### Core baseline (built-in, no features needed)
+
+Every vlist has basic keyboard interaction out of the box — no `withSelection()` required:
+
+- **Arrow keys** move focus only (no selection change)
+- **Space / Enter** toggles selection on the focused item
+- **Click** selects and focuses the clicked item (single-select only)
+- **No events** and no programmatic API
+- **Focus ring hidden on mouse click** — only visible during keyboard navigation
+- **Wrapping** configurable via `scroll.wrap` (default: false)
+
+This is intended for read-only or display-only lists where basic keyboard scrolling and single item activation is sufficient.
+
+### `withSelection()` (extended features)
+
+The `withSelection()` feature adds configurable selection modes, a programmatic API, and events on top of the core baseline:
+
+- **Programmatic API** — `select()`, `getSelected()`, etc.
+- **`selection:change` event**
+- **`mode: 'multiple'`** — Focus and selection are independent. Arrow keys move focus only. Space/Enter toggles selection on the focused item. Click toggles selection. **Shift+click** performs range selection.
+- **Optional `followFocus: true`** — In single mode, arrow keys also select (WAI-ARIA selection-follows-focus pattern). Off by default.
 - **Smart Edge-Scroll**: Only scrolls when the focused item leaves the viewport, aligning to the nearest edge
 - **Compressed Mode Support**: Works correctly with `withScale()` for million-item lists
-- **Range Selection**: Shift+click for selecting ranges
-- **Programmatic Control**: Select, deselect, toggle, and query via the list instance
+- **Configurable wrapping** via `scroll.wrap`
 
 ## Core vs withSelection
 
-Every vlist has built-in keyboard navigation — no features required:
-
 | Capability | Core (built-in) | `withSelection()` |
 |---|---|---|
-| Arrow Up/Down | ✅ Focus + center scroll | ✅ Focus + smart edge-scroll |
-| Home / End | ✅ | ✅ |
-| PageUp / PageDown | ✅ | ✅ |
-| Click to select | ❌ | ✅ |
-| Selection follows focus | ❌ (focus only) | ✅ (single mode) |
-| Multiple selection | ❌ | ✅ (`mode: 'multiple'`) |
-| Space/Enter to toggle | ❌ | ✅ |
-| Range select (Shift+click) | ❌ | ✅ |
-| Programmatic API | ❌ | ✅ (`select()`, `getSelected()`, etc.) |
-| `selection:change` event | ❌ | ✅ |
-| Compressed-mode scroll | Center align | Smart edge-align with fractional math |
-| Wrap at boundaries | Yes (ARIA listbox) | No (configurable) |
+| Arrow keys | ✅ Focus + edge-scroll | ✅ Focus + edge-scroll |
+| Home / End / PageUp / PageDown | ✅ | ✅ |
+| Space / Enter | ✅ Toggle selection | ✅ Toggle selection |
+| Click to select | ✅ | ✅ |
+| Focus ring hidden on mouse | ✅ | ✅ |
+| Wrapping | `scroll.wrap` | `scroll.wrap` |
+| Selection follows focus | — | `followFocus: true` (single mode) |
+| Multiple selection | — | `mode: 'multiple'` |
+| Shift+click range | — | ✅ (multiple mode) |
+| Programmatic API | — | `select()`, `getSelected()`, etc. |
+| `selection:change` event | — | ✅ |
 
-For most interactive lists, add `withSelection()`. The core baseline is intended for read-only or display-only lists where keyboard scrolling is sufficient.
+For most interactive lists, add `withSelection()`. The core baseline is intended for read-only or display-only lists where basic keyboard scrolling is sufficient.
 
 ## Module Structure
 
@@ -149,33 +165,57 @@ template: (item, index, { selected, focused }) => `
 
 ## Keyboard Navigation
 
-Built-in keyboard handling when `withSelection` is active:
+### Core baseline
+
+The core baseline provides basic keyboard handling with no features required:
 
 | Key | Action |
 |-----|--------|
-| `↑` Arrow Up | Move focus up |
-| `↓` Arrow Down | Move focus down |
-| `Home` | Move focus to first item |
-| `End` | Move focus to last item |
-| `Page Up` | Move focus up by one page |
-| `Page Down` | Move focus down by one page |
+| `↑` / `↓` | Move focus (no selection change) |
+| `Home` / `End` | Move focus to first / last item |
+| `Page Up` / `Page Down` | Move focus by one page |
+| `Space` / `Enter` | Toggle selection on focused item |
+
+Wrapping is controlled by `scroll.wrap` (default: false). When off, pressing `↑` on the first item does nothing.
+
+### withSelection (single mode)
+
+By default, arrow keys move focus only (same as core). With `followFocus: true`, arrow keys also select — this is the WAI-ARIA selection-follows-focus pattern, opt-in:
+
+| Key | Action (default) | Action (`followFocus: true`) |
+|-----|--------|--------|
+| `↑` / `↓` | Move focus only | Move focus **and select** |
+| `Home` / `End` | Move focus to first / last item | Move focus to first / last item and select |
+| `Page Up` / `Page Down` | Move focus by one page | Move focus by one page and select |
+| `Space` / `Enter` | Toggle selection on focused item | Toggle selection on focused item |
+
+### withSelection (multiple mode)
+
+Focus and selection are independent — navigate first, then toggle:
+
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` | Move focus only |
+| `Home` / `End` | Move focus to first / last item |
+| `Page Up` / `Page Down` | Move focus by one page |
 | `Space` / `Enter` | Toggle selection on focused item |
 
 Page size is calculated as `floor(containerSize / itemHeight)`.
 
-### Smart Scroll (`scrollToFocus`)
+### Shared `scrollToFocus` Utility
 
-Keyboard navigation uses edge-aligned scrolling — the list only scrolls when the focused item is outside the viewport:
+Both the core baseline and `withSelection` use a shared `scrollToFocus()` function located in `src/rendering/scroll.ts`. This utility handles edge-aligned scrolling — the list only scrolls when the focused item is outside the viewport:
 
 - **Scrolling down** — the focused item aligns to the bottom edge
 - **Scrolling up** — the focused item aligns to the top edge
 - **Already visible** — no scroll, focus ring moves in place
+- **Padding-aware** — respects container padding so items are never hidden behind padded edges
 
-This matches native OS list behavior and replaces the center-aligned scroll used by the core baseline handler.
+This matches native OS list behavior and replaces the center-aligned scroll used by older implementations.
 
 ### Compressed Lists (withScale)
 
-Keyboard navigation works correctly with `withScale()` for lists with millions of items. The `scrollToFocus` helper automatically switches between:
+`scrollToFocus()` works correctly with `withScale()` for lists with millions of items, automatically switching between:
 
 - **Normal mode** — pixel-perfect positioning via `sizeCache.getOffset()` and direct comparison with `scrollPosition`
 - **Compressed mode** — visibility check via `visibleRange` + fractional index math (`exactTopIndex * compressedItemSize`) to position the focused item at the viewport edge
@@ -187,7 +227,7 @@ This dual-path approach is necessary because in compressed mode, size cache offs
 - **Focus**: Visual indicator of keyboard navigation position (single index)
 - **Selection**: Set of selected item IDs (can be multiple)
 
-In single mode, selection follows focus — arrow keys both move focus and select. In multiple mode, focus and selection are independent — navigate with arrow keys, then press Space to toggle.
+In single mode, focus and selection are independent by default — navigate with arrow keys, then press Space/Enter to select. With `followFocus: true`, arrow keys also select (selection-follows-focus pattern). In multiple mode, focus and selection are always independent — navigate with arrow keys, then press Space to toggle.
 
 ## Usage Examples
 
@@ -252,9 +292,15 @@ list.clearSelection();
 list.select('user-10');
 ```
 
-### Range Selection
+### Shift+Click Range Selection
 
-Shift+click selects all items between the last selected item and the clicked item (multiple mode only). This is handled automatically by `withSelection`.
+In `mode: 'multiple'`, Shift+click selects a contiguous range of items between the **anchor** (last selected item) and the clicked item, inclusive. All items in that range are added to the current selection.
+
+- The anchor is updated on every non-shift click or programmatic select.
+- Shift+click without a prior anchor falls back to selecting from the first item.
+- Range selection is only available in multiple mode — it is a no-op in single mode and in the core baseline.
+
+This is handled automatically by `withSelection`.
 
 ## Internals
 
