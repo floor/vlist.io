@@ -95,8 +95,8 @@ interface GroupsFeatureConfig {
   /** Returns group key for item at index (required) */
   getGroupForIndex: (index: number) => string
 
-  /** Height of group headers in pixels (required) */
-  headerHeight: number
+  /** Height of group headers in pixels, or a function for variable heights */
+  headerHeight: number | ((group: string, groupIndex: number) => number)
 
   /** Render function for headers (required) */
   headerTemplate: (key: string, groupIndex: number) => HTMLElement | string
@@ -131,15 +131,18 @@ getGroupForIndex: (i) => products[i].category
 
 ### headerHeight
 
-**Purpose:** Fixed height for all headers in pixels.
+**Purpose:** Height of group headers in pixels — either a fixed number or a function for variable heights.
 
 **Requirements:**
-- ✅ Must be a positive number
-- ✅ All headers have the same height
+- ✅ Must be a positive number (or a function returning one)
 - ✅ Used for scroll calculations
 
 ```typescript
-headerHeight: 36 // 36px tall headers
+// Fixed height for all headers
+headerHeight: 36
+
+// Variable height per group
+headerHeight: (group, groupIndex) => groupIndex === 0 ? 48 : 32
 ```
 
 ### headerTemplate
@@ -194,10 +197,11 @@ sticky: false // iMessage style (inline date headers)
 
 When `sticky: true` (default), the feature creates a special sticky header element that:
 
-1. **Positions above the viewport** — Uses `position: absolute` with `top: 0`
-2. **Updates on scroll** — Shows the current section's header
-3. **Smooth transitions** — Pushes up as next header approaches
-4. **Efficient** — Only one sticky element (not per-header)
+1. **Positions above the viewport** — Uses `position: absolute` with `overflow: hidden`
+2. **Recycled slot elements** — Two permanent `.sticky-group` divs swap content via `replaceChildren()`, avoiding DOM churn
+3. **Pre-cached offsets** — Header positions and sizes are cached in flat arrays, keeping the scroll handler allocation-free
+4. **Smooth push transition** — Both slots are translated independently to create the push-out effect
+5. **First header collapsed** — When sticky is active, the first group's inline header is collapsed to zero height (the sticky header already displays it)
 
 ### iOS Contacts Behavior
 
@@ -207,6 +211,7 @@ The sticky header mimics iOS Contacts:
 - **Pushes up** when the next header approaches
 - **Disappears** when scrolled past the bottom of the section
 - **Reappears** with the new section's header
+- The first group's inline header is automatically hidden — the sticky header shows it instead, preventing duplication
 
 ### Visual Example
 
@@ -238,25 +243,21 @@ The sticky header mimics iOS Contacts:
 
 ### Styling Sticky Headers
 
-The sticky header has the class `{classPrefix}-sticky-header`:
+The sticky header container has the class `{classPrefix}-sticky-header` and contains two `.sticky-group` slot elements:
 
 ```css
-/* Default: .vlist-sticky-header */
 .vlist-sticky-header {
+  /* Set automatically by the library */
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 10;
-  background: var(--vlist-sticky-header-bg, white);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-/* Custom styling */
-.vlist-sticky-header {
-  background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
-  font-weight: 600;
-  border-bottom: 1px solid #ccc;
+/* Style the slot elements that hold header content */
+.sticky-group {
+  position: absolute;
+  will-change: transform;
 }
 ```
 
@@ -730,10 +731,10 @@ headerTemplate: (letter) => `
 
 #### 3. Disable Sticky When Not Needed
 
-Sticky headers add minimal overhead, but if you don't need them:
+Sticky headers use pre-cached arrays and recycled DOM elements, adding negligible overhead per scroll frame. But if you don't need them, disabling avoids the sticky container entirely.
 
 ```typescript
-sticky: false // Saves ~0.5ms per scroll frame
+sticky: false
 ```
 
 ## Examples
