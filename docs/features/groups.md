@@ -72,12 +72,14 @@ const contacts = vlist({
 })
 .use(withGroups({
   getGroupForIndex: (index) => sortedContacts[index].lastName[0],
-  headerHeight: 36,
-  headerTemplate: (letter) => {
-    const div = document.createElement('div')
-    div.className = 'section-header'
-    div.textContent = letter
-    return div
+  header: {
+    height: 36,
+    template: (letter) => {
+      const div = document.createElement('div')
+      div.className = 'section-header'
+      div.textContent = letter
+      return div
+    },
   },
   sticky: true // Default: true
 }))
@@ -95,11 +97,14 @@ interface GroupsFeatureConfig {
   /** Returns group key for item at index (required) */
   getGroupForIndex: (index: number) => string
 
-  /** Height of group headers in pixels, or a function for variable heights */
-  headerHeight: number | ((group: string, groupIndex: number) => number)
+  /** Group header configuration — mirrors the item config shape */
+  header: {
+    /** Height in pixels, or a function for variable heights */
+    height: number | ((group: string, groupIndex: number) => number)
 
-  /** Render function for headers (required) */
-  headerTemplate: (key: string, groupIndex: number) => HTMLElement | string
+    /** Render function for headers */
+    template: (key: string, groupIndex: number) => HTMLElement | string
+  }
 
   /** Enable sticky headers — iOS Contacts style (default: true) */
   sticky?: boolean
@@ -129,7 +134,7 @@ getGroupForIndex: (i) => {
 getGroupForIndex: (i) => products[i].category
 ```
 
-### headerHeight
+### header.height
 
 **Purpose:** Height of group headers in pixels — either a fixed number or a function for variable heights.
 
@@ -139,19 +144,25 @@ getGroupForIndex: (i) => products[i].category
 
 ```typescript
 // Fixed height for all headers
-headerHeight: 36
+header: {
+  height: 36,
+  template: (letter) => `<div>${letter}</div>`
+}
 
 // Variable height per group
-headerHeight: (group, groupIndex) => groupIndex === 0 ? 48 : 32
+header: {
+  height: (group, groupIndex) => groupIndex === 0 ? 48 : 32,
+  template: (letter) => `<div>${letter}</div>`
+}
 ```
 
-### headerTemplate
+### header.template
 
 **Purpose:** Renders the header element.
 
 **Signature:**
 ```typescript
-headerTemplate: (key: string, groupIndex: number) => HTMLElement | string
+template: (key: string, groupIndex: number) => HTMLElement | string
 ```
 
 **Parameters:**
@@ -164,7 +175,7 @@ headerTemplate: (key: string, groupIndex: number) => HTMLElement | string
 
 ```typescript
 // Returns HTMLElement
-headerTemplate: (letter, groupIndex) => {
+template: (letter, groupIndex) => {
   const div = document.createElement('div')
   div.className = 'section-header'
   div.textContent = letter
@@ -173,7 +184,7 @@ headerTemplate: (letter, groupIndex) => {
 }
 
 // Returns HTML string
-headerTemplate: (letter) => `
+template: (letter) => `
   <div class="section-header">${letter}</div>
 `
 ```
@@ -282,8 +293,10 @@ const gallery = vlist({
     const date = new Date(sortedPhotos[i].date)
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   },
-  headerHeight: 40,
-  headerTemplate: (monthYear) => `<div class="month-header">${monthYear}</div>`,
+  header: {
+    height: 40,
+    template: (monthYear) => `<div class="month-header">${monthYear}</div>`,
+  },
   sticky: true
 }))
 .build()
@@ -330,8 +343,10 @@ const table = vlist({
 }))
 .use(withGroups({
   getGroupForIndex: (i) => sortedEmployees[i].department,
-  headerHeight: 32,
-  headerTemplate: (dept) => `<div class="group-label">${dept}</div>`,
+  header: {
+    height: 32,
+    template: (dept) => `<div class="group-label">${dept}</div>`,
+  },
   sticky: true,
 }))
 .build()
@@ -394,8 +409,10 @@ const list = vlist({
   .use(withTable({ columns, rowHeight: 28, headerHeight: 28 }))
   .use(withGroups({
     getGroupForIndex: (i) => getFileKind(files[i]),
-    headerHeight: 32,
-    headerTemplate: (key) => `<div class="group-header">${key}</div>`,
+    header: {
+      height: 32,
+      template: (key) => `<div class="group-header">${key}</div>`,
+    },
   }))
   .build();
 ```
@@ -518,10 +535,12 @@ const chat = vlist({
     const date = new Date(messages[i].timestamp)
     return date.toLocaleDateString()
   },
-  headerHeight: 28,
-  headerTemplate: (date) => `
-    <div class="date-header">${date}</div>
-  `,
+  header: {
+    height: 28,
+    template: (date) => `
+      <div class="date-header">${date}</div>
+    `,
+  },
   sticky: false // Inline headers (iMessage style)
 }))
 .build()
@@ -546,8 +565,10 @@ const chat = vlist({
     const date = new Date(messages[i].timestamp)
     return date.toLocaleDateString()
   },
-  headerHeight: 28,
-  headerTemplate: (date) => `<div class="date-header">${date}</div>`,
+  header: {
+    height: 28,
+    template: (date) => `<div class="date-header">${date}</div>`,
+  },
   sticky: true // Sticky header shows current section as you scroll up
 }))
 .build()
@@ -714,19 +735,25 @@ Prefer direct DOM creation over HTML strings:
 
 ```typescript
 // ✅ Fast: Direct DOM creation
-headerTemplate: (letter) => {
-  const div = document.createElement('div')
-  div.className = 'section-header'
-  div.textContent = letter
-  return div
+header: {
+  height: 36,
+  template: (letter) => {
+    const div = document.createElement('div')
+    div.className = 'section-header'
+    div.textContent = letter
+    return div
+  },
 }
 
 // ⚠️ Slower: HTML parsing
-headerTemplate: (letter) => `
-  <div class="section-header">
-    <span class="letter">${letter}</span>
-  </div>
-`
+header: {
+  height: 36,
+  template: (letter) => `
+    <div class="section-header">
+      <span class="letter">${letter}</span>
+    </div>
+  `,
+}
 ```
 
 #### 3. Disable Sticky When Not Needed
@@ -760,10 +787,12 @@ const contacts = vlist({
 })
 .use(withGroups({
   getGroupForIndex: (i) => sortedContacts[i].lastName[0].toUpperCase(),
-  headerHeight: 36,
-  headerTemplate: (letter) => `
-    <div class="section-header">${letter}</div>
-  `
+  header: {
+    height: 36,
+    template: (letter) => `
+      <div class="section-header">${letter}</div>
+    `,
+  }
 }))
 .build()
 ```
@@ -791,12 +820,14 @@ const chat = vlist({
     if (date.toDateString() === yesterday.toDateString()) return 'Yesterday'
     return date.toLocaleDateString()
   },
-  headerHeight: 28,
-  headerTemplate: (label) => `
-    <div class="date-divider">
-      <span>${label}</span>
-    </div>
-  `,
+  header: {
+    height: 28,
+    template: (label) => `
+      <div class="date-divider">
+        <span>${label}</span>
+      </div>
+    `,
+  },
   sticky: false // Inline headers for chat
 }))
 .build()
@@ -823,13 +854,15 @@ const catalog = vlist({
 })
 .use(withGroups({
   getGroupForIndex: (i) => sortedProducts[i].category,
-  headerHeight: 48,
-  headerTemplate: (category) => `
-    <div class="category-header">
-      <h2>${category}</h2>
-      <span class="count">${getCategoryCount(category)} items</span>
-    </div>
-  `
+  header: {
+    height: 48,
+    template: (category) => `
+      <div class="category-header">
+        <h2>${category}</h2>
+        <span class="count">${getCategoryCount(category)} items</span>
+      </div>
+    `,
+  }
 }))
 .build()
 ```
@@ -856,12 +889,14 @@ const gallery = vlist({
     const date = new Date(sortedPhotos[i].date)
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   },
-  headerHeight: 40,
-  headerTemplate: (monthYear) => `
-    <div class="month-header">
-      <h3>${monthYear}</h3>
-    </div>
-  `
+  header: {
+    height: 40,
+    template: (monthYear) => `
+      <div class="month-header">
+        <h3>${monthYear}</h3>
+      </div>
+    `,
+  }
 }))
 .build()
 ```
@@ -886,12 +921,14 @@ const carousel = vlist({
 })
 .use(withGroups({
   getGroupForIndex: (i) => sortedProducts[i].category,
-  headerHeight: 60, // Width in horizontal mode
-  headerTemplate: (category) => `
-    <div class="category-header">
-      <h3>${category}</h3>
-    </div>
-  `,
+  header: {
+    height: 60, // Width in horizontal mode
+    template: (category) => `
+      <div class="category-header">
+        <h3>${category}</h3>
+      </div>
+    `,
+  },
   sticky: true // Sticks to left edge in horizontal mode
 }))
 .build()
@@ -899,7 +936,7 @@ const carousel = vlist({
 
 **Horizontal mode notes:**
 - Headers stick to the **left edge** instead of top
-- `headerHeight` becomes the **width** of the header in horizontal mode
+- `header.height` becomes the **width** of the header in horizontal mode
 - Push-out effect happens **leftward** when the next category approaches
 - Perfect for product carousels, photo timelines, story feeds
 
@@ -919,7 +956,7 @@ const carousel = vlist({
 - **Don't use layout indices** — Always use data indices
 - **Don't use sticky headers with reverse mode** — Will throw error
 - **Don't compute group keys in render** — Pre-compute and cache
-- **Don't forget headerHeight** — Required parameter
+- **Don't forget `header.height`** — Required parameter
 
 ## Troubleshooting
 
@@ -988,7 +1025,7 @@ contacts.items.push(newContact) // Don't do this!
 
 **Symptom:** Slow scrolling with many groups.
 
-**Cause:** Complex group key computation or header template.
+**Cause:** Complex group key computation or `header.template`.
 
 **Solution:** Pre-compute and simplify:
 
@@ -1000,10 +1037,13 @@ const groupKeys = items.map(item => computeGroupKey(item))
 getGroupForIndex: (i) => groupKeys[i]
 
 // Simple header template
-headerTemplate: (key) => {
-  const div = document.createElement('div')
-  div.textContent = key
-  return div
+header: {
+  height: 36,
+  template: (key) => {
+    const div = document.createElement('div')
+    div.textContent = key
+    return div
+  },
 }
 ```
 
@@ -1026,7 +1066,7 @@ headerTemplate: (key) => {
 
 ## See Also
 
-- [Types — `GroupsConfig`](../api/types.md#groupsconfig) — `getGroupForIndex`, `headerHeight`, `headerTemplate`, `sticky`
+- [Types — `GroupsConfig`](../api/types.md#groupsconfig) — `getGroupForIndex`, `header: { height, template }`, `sticky`
 - [Exports — Groups](../api/exports.md#groups) — `createGroupLayout`, `buildLayoutItems`, `createStickyHeader`
 - [Grid](./grid.md) — Full-width group headers spanning the grid
 - [Table](./table.md) — Full-width group headers in data tables, sticky headers below column header

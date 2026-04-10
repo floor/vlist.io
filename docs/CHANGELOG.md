@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.5.0] — 2026-04-10
+## [1.4.3] — 2026-04-10
 
 ### Changed
 
@@ -17,24 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Orientation resolved once at construction, not per frame
   - Module reduced from 413 to 230 lines (44% smaller)
 - **Groups: sticky header supports variable-height headers** — Binary search now uses per-group header sizes via `layout.getHeaderHeight(mid)` instead of the raw `config.headerHeight` value, which could be a function
-- **BREAKING: Groups config uses nested `header` object** — `headerHeight` and `headerTemplate` are now `header.height` and `header.template`, mirroring the `item: { height, template }` pattern. Migration:
-  ```ts
-  // Before
-  withGroups({
-    getGroupForIndex: ...,
-    headerHeight: 32,
-    headerTemplate: (key) => `<div>${key}</div>`,
-  })
-
-  // After
-  withGroups({
-    getGroupForIndex: ...,
-    header: {
-      height: 32,
-      template: (key) => `<div>${key}</div>`,
-    },
-  })
-  ```
+- **Groups: new `header: { height, template }` config shape** — `withGroups` now accepts a nested `header` object that mirrors the `item: { height, template }` pattern. The legacy flat `headerHeight`/`headerTemplate` fields are still supported via a compatibility layer but are deprecated and will be removed in a future major version
 
 ### Fixed
 
