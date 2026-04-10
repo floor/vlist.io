@@ -197,9 +197,9 @@ sticky: false // iMessage style (inline date headers)
 
 When `sticky: true` (default), the feature creates a special sticky header element that:
 
-1. **Positions above the viewport** — Uses `position: absolute` with `overflow: hidden`
-2. **Recycled slot elements** — Two permanent `.sticky-group` divs swap content via `replaceChildren()`, avoiding DOM churn
-3. **Pre-cached offsets** — Header positions and sizes are cached in flat arrays, keeping the scroll handler allocation-free
+1. **Template-driven** — The sticky header receives a `renderInto(slot, groupIndex)` callback, the same pattern as item rendering. It has zero knowledge of template format (string vs HTMLElement) — the feature owns that logic in one place
+2. **Recycled slot elements** — Two permanent `.sticky-group` divs swap content via the `renderInto` callback, avoiding DOM churn during fast scrolling
+3. **Pre-cached offsets** — Header positions and sizes are cached in flat arrays on rebuild, keeping the per-tick scroll handler free of function calls and allocations
 4. **Smooth push transition** — Both slots are translated independently to create the push-out effect
 5. **First header collapsed** — When sticky is active, the first group's inline header is collapsed to zero height (the sticky header already displays it)
 
@@ -1020,6 +1020,7 @@ headerTemplate: (key) => {
 | **Horizontal mode** | ✅ Sticky headers stick to left edge |
 | **Dynamic updates** | ✅ Automatic group rebuild |
 | **Keyboard navigation** | ✅ Works seamlessly |
+| **Template-driven** | ✅ Same `renderInto` pattern as items |
 
 **Bottom line:** Groups transform flat lists into organized sections with minimal overhead. Use sticky headers for iOS Contacts style, or inline headers for bottom-anchored UIs (chat, logs, activity feeds).
 
