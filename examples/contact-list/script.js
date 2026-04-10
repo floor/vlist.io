@@ -112,8 +112,10 @@ export function createList() {
     builder.use(
       withGroups({
         getGroupForIndex: (index) => contacts[index].lastName[0].toUpperCase(),
-        headerHeight: HEADER_HEIGHT,
-        headerTemplate: (group) => renderGroupHeader(group),
+        header: {
+          height: HEADER_HEIGHT,
+          template: (group) => renderGroupHeader(group),
+        },
         sticky: currentHeaderMode === "sticky",
       }),
     );

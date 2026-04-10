@@ -276,8 +276,7 @@ export function createList() {
           const item = currentItems[index];
           return item ? DATE_LABELS[item.dateSection] : "Unknown";
         },
-        headerHeight: DATE_HEADER_HEIGHT,
-        headerTemplate: renderDateHeader,
+        header: { height: DATE_HEADER_HEIGHT, template: renderDateHeader },
         sticky: currentHeaderMode === "sticky",
       }),
     );
