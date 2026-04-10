@@ -162,13 +162,18 @@
    ============================================================================ */
 
 #grid-container .vlist-item {
-    padding: 0;
+    padding: 2px;
     border: none;
     background: transparent;
 }
 
 #grid-container .vlist-item:hover {
     background: transparent;
+}
+
+#grid-container .vlist-item.vlist-item--focused {
+    outline-offset: 0;
+    border-radius: 10px;
 }
 
 /* ============================================================================
