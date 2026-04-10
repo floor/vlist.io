@@ -481,18 +481,20 @@ function createGridView() {
     builder = builder.use(
       withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
-        headerHeight: 40,
-        headerTemplate: (groupKey) => {
-          let count = 0;
-          groupMap.forEach((key) => {
-            if (key === groupKey) count++;
-          });
-          return `
-            <div class="group-header">
-              <span class="group-header__label">${groupKey}</span>
-              <span class="group-header__count">${count} items</span>
-            </div>
-          `;
+        header: {
+          height: 40,
+          template: (groupKey) => {
+            let count = 0;
+            groupMap.forEach((key) => {
+              if (key === groupKey) count++;
+            });
+            return `
+              <div class="group-header">
+                <span class="group-header__label">${groupKey}</span>
+                <span class="group-header__count">${count} items</span>
+              </div>
+            `;
+          },
         },
         sticky: true,
       }),
@@ -579,18 +581,20 @@ function createTableList() {
     builder = builder.use(
       withGroups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
-        headerHeight: 32,
-        headerTemplate: (groupKey) => {
-          let count = 0;
-          groupMap.forEach((key) => {
-            if (key === groupKey) count++;
-          });
-          return `
-            <div class="group-header">
-              <span class="group-header__label">${groupKey}</span>
-              <span class="group-header__count">${count} items</span>
-            </div>
-          `;
+        header: {
+          height: 32,
+          template: (groupKey) => {
+            let count = 0;
+            groupMap.forEach((key) => {
+              if (key === groupKey) count++;
+            });
+            return `
+              <div class="group-header">
+                <span class="group-header__label">${groupKey}</span>
+                <span class="group-header__count">${count} items</span>
+              </div>
+            `;
+          },
         },
         sticky: false,
       }),
