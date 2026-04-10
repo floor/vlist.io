@@ -1,10 +1,10 @@
 # Scale Feature (Large Datasets)
 
-> Handle 1M+ items with automatic scroll scaling that works around browser height limits.
+> Handle 1M+ items with automatic scroll compression that works around browser height limits.
 
 ## Overview
 
-Browsers have a maximum element height limit of approximately **16.7 million pixels**. When a virtual list's total height (`totalItems × itemHeight`) exceeds this limit, we need **scaling** to make scrolling work.
+Browsers have a maximum element height limit of approximately **16.7 million pixels**. When a virtual list's total height (`totalItems × itemHeight`) exceeds this limit, we need **compression** to make scrolling work.
 
 ### The Problem
 
@@ -16,10 +16,10 @@ Result: Scrollbar breaks, can't reach end of list
 
 ### The Solution
 
-The `withScale()` feature automatically detects when scaling is needed and switches from native scrolling to **manual wheel-based scrolling**:
+The `withScale()` feature automatically detects when compression is needed and switches from native scrolling to **manual wheel-based scrolling**:
 
 1. **Native mode** (`overflow: auto`): Standard browser scrolling for smaller lists
-2. **Scaled mode** (`overflow: hidden`): Manual wheel event handling for large lists
+2. **Compressed mode** (`overflow: hidden`): Manual wheel event handling for large lists
 
 ## Installation
 
@@ -38,7 +38,7 @@ const list = vlist({
 
 **Bundle cost:** +2.2 KB gzipped
 
-## How Scaling Works
+## How Compression Works
 
 ### Key Concepts
 
@@ -46,12 +46,13 @@ const list = vlist({
 |------|-------------|
 | `actualSize` | True size if all items rendered: `totalItems × itemSize` |
 | `virtualSize` | Capped size used for scroll bounds: `min(actualSize, 16M)` |
-| `compressionRatio` | `virtualSize / actualSize` (1 = no scaling, <1 = scaled) |
-| `virtualScrollIndex` | The item index at the current scroll position |
+| `compressionRatio` | `virtualSize / actualSize` (1 = no compression, <1 = compressed) |
+| `compressedItemSize` | `virtualSize / totalItems` — scroll-space per item |
+| `compressionSlack` | Extra scroll range added so the linear formula reaches every item |
 
 ### Scroll Position Mapping
 
-In scaled mode, scroll position maps to item index via ratio:
+In compressed mode, scroll position maps to item index via a **purely linear** formula:
 
 ```javascript
 // Scroll position → Item index
@@ -59,47 +60,59 @@ const scrollRatio = scrollPosition / virtualSize;
 const itemIndex = Math.floor(scrollRatio * totalItems);
 
 // Item index → Scroll position
-const ratio = itemIndex / totalItems;
-const scrollPos = ratio * virtualSize;
+const compressedItemSize = virtualSize / totalItems;
+const scrollPos = itemIndex * compressedItemSize;
 ```
+
+This mapping is **bijective** — every index maps to a unique scroll position and vice versa. There are no special cases or non-linear zones.
 
 ### Item Positioning
 
-Items are positioned **relative to the viewport** (not content):
+Items are positioned **relative to the viewport** (not the content element):
 
 ```javascript
+// Map scroll position to an actual-pixel offset
 const scrollRatio = scrollPosition / virtualSize;
-const virtualScrollIndex = scrollRatio * totalItems;
-const position = (itemIndex - virtualScrollIndex) * itemSize;
+const actualScrollOffset = scrollRatio * actualSize;
+
+// Position item relative to that offset
+const position = sizeCache.getOffset(index) - actualScrollOffset;
 ```
 
 This formula ensures:
 - Items at the current scroll position appear at viewport top (position ≈ 0)
-- Items use their full `itemSize` (no visual scaling)
+- Items use their full `itemSize` (no visual compression)
 - Consecutive items are exactly `itemSize` pixels apart
+- **No discontinuities** — the formula is continuous across the entire scroll range
 
-### Near-Bottom Interpolation
+### Compression Slack
 
-Special handling ensures the last items are reachable:
+Without correction, the maximum scroll position (`virtualSize − containerSize`) maps to an index ~37 items from the end for typical configurations, leaving the tail of the list unreachable. This happens because each compressed item occupies `compressedItemSize` virtual pixels but displays at its full `itemSize` — the viewport "covers" more compressed items than it can actually display.
+
+**Compression slack** extends the content div's virtual height by a small amount so the linear formula can address every item:
 
 ```javascript
-const maxScroll = virtualSize - containerSize;
-const distanceFromBottom = maxScroll - scrollPosition;
+// effectiveSize = viewport area available for items (excludes CSS padding)
+const effectiveSize = containerSize - mainAxisPadding;
 
-if (distanceFromBottom <= containerSize) {
-  // Special case: at exact max scroll, position from bottom up
-  if (scrollPosition >= maxScroll - 1) {
-    const totalSizeFromBottom = totalSize - itemOffset;
-    return containerSize - totalSizeFromBottom;
-  }
-  
-  // Otherwise: interpolate between scaled position and actual bottom
-  const interpolation = 1 - (distanceFromBottom / containerSize);
-  // Blend positions to smoothly reach the last items
-}
+// Slack = the extra virtual pixels needed to reach the last item
+const slack = effectiveSize * (1 - compressionRatio) + mainAxisPadding;
+
+// Content height = virtualSize + slack
+// New maxScroll = virtualSize + slack - containerSize
 ```
 
-**Exact Bottom Positioning:** When scrolled to the absolute bottom (`scrollPosition >= maxScroll - 1`), items are positioned from the bottom up to ensure pixel-perfect alignment with zero gap.
+At the new `maxScroll`, the linear formula maps precisely to the last screenful of items, with the final item's bottom edge flush with the viewport's bottom edge. The slack is always less than `containerSize` (~465px for a typical 598px viewport with ratio 0.222), well within the browser's height limit.
+
+**Why not near-bottom interpolation?** An earlier design used a non-linear "interpolation zone" near the bottom of the scroll range to blend between the linear position and the actual bottom. This was removed because it made the scroll↔index mapping non-invertible — `scrollToFocus` couldn't compute the correct scroll position for a target index, causing the focused item to drift off-screen during keyboard navigation (End → repeated PageUp). The compression slack approach keeps the mapping purely linear and bijective.
+
+### CSS Padding Awareness
+
+When the list has CSS padding configured (`padding` option), the compression slack formula accounts for it:
+
+- `effectiveSize = containerSize - paddingTop - paddingBottom` (vertical) or `- paddingLeft - paddingRight` (horizontal)
+- The slack is computed on the effective size, then the padding is added back
+- This ensures the last item's bottom aligns with the viewport bottom, leaving room for the CSS end-padding
 
 ## Architecture
 
@@ -116,33 +129,37 @@ The scroll controller handles all three modes:
 │  - Browser handles scrolling                        │
 │  - Listen to 'scroll' event                         │
 ├─────────────────────────────────────────────────────┤
-│  Scaled Mode (large lists)                          │
+│  Compressed Mode (large lists)                      │
 │  - overflow: hidden                                 │
 │  - Intercept wheel events                           │
 │  - Track virtual scrollPosition                     │
 │  - Position items relative to viewport              │
+│  - Content height = virtualSize + compressionSlack  │
 ├─────────────────────────────────────────────────────┤
 │  Window Mode (document scrolling)                   │
 │  - overflow: visible (list sits in page flow)       │
 │  - Listen to window 'scroll' event                  │
-│  - Scaling is purely mathematical                   │
+│  - Compression is purely mathematical               │
 │  - No wheel interception or overflow changes        │
 └─────────────────────────────────────────────────────┘
 ```
 
-> **Window mode + scaling:** When using `withPage()` and the list exceeds browser height limits, scaling activates but works differently — the content div height is set to the virtual height, and the browser scrolls natively. There is no `overflow: hidden` or wheel interception. The scaling ratio-based position mapping is purely mathematical.
+> **Window mode + compression:** When using `withPage()` and the list exceeds browser height limits, compression activates but works differently — the content div height is set to the virtual height, and the browser scrolls natively. There is no `overflow: hidden` or wheel interception. The compression ratio-based position mapping is purely mathematical.
 
 ### Mode Switching
 
-Scaling activates automatically when needed:
+Compression activates automatically when needed:
 
 ```javascript
 // Automatic detection
-const scaleState = getScaleState(totalItems, itemHeight);
+const compressionState = getCompressionState(totalItems, sizeCache);
 
-if (scaleState.isCompressed && !scrollController.isCompressed()) {
-  scrollController.enableCompression(scaleState);
-} else if (!scaleState.isCompressed && scrollController.isCompressed()) {
+if (compressionState.isCompressed && !scrollController.isCompressed()) {
+  scrollController.enableCompression(compressionState);
+  // Compute compression slack for the linear formula
+  const slack = compressionSlack(virtualSize, containerSize, ratio, mainAxisPad);
+  updateContentSize(virtualSize + slack);
+} else if (!compressionState.isCompressed && scrollController.isCompressed()) {
   scrollController.disableCompression();
 }
 ```
@@ -150,16 +167,34 @@ if (scaleState.isCompressed && !scrollController.isCompressed()) {
 ### Rendering Flow
 
 ```
-Wheel Event
+Wheel / Touch / Keyboard Event
     ↓
-Update scrollPosition (virtual)
+Update virtualScrollPosition (lerp-smoothed for wheel)
     ↓
-Calculate visible range from scroll ratio
+Calculate visible range:  scrollRatio × totalItems
     ↓
-Position items relative to viewport
+Position items:  sizeCache.getOffset(i) − scrollRatio × actualSize
     ↓
-Items appear at correct positions
+Items appear at correct positions (full height, no visual compression)
 ```
+
+### Content Size Notification
+
+When compression changes the effective content size (via compression slack), the scale feature fires `contentSizeHandlers` to notify other features. This is critical for `withScrollbar`, which caches `totalSize` for its thumb calculations:
+
+```
+updateCompressionMode()
+    ↓
+Compute compression slack
+    ↓
+updateContentSize(virtualSize + slack)
+    ↓
+Update viewportState.totalSize (includes slack)
+    ↓
+Fire contentSizeHandlers → withScrollbar.updateBounds()
+```
+
+Both the default `updateCompressionMode` (no-op + notify) and the enhanced version (withScale) fire `contentSizeHandlers`, ensuring consistent notification regardless of whether compression is active.
 
 ## API
 
@@ -170,15 +205,15 @@ Items appear at correct positions
 ```typescript
 interface ScaleConfig {
   /**
-   * Force scaled scroll mode even when the total size is below the
+   * Force compressed scroll mode even when the total size is below the
    * browser's ~16.7M pixel limit.
    *
-   * When true, the feature always activates scaled scrolling
+   * When true, the feature always activates compressed scrolling
    * (custom wheel/touch handling, lerp-based smooth scroll, custom
    * scrollbar fallback) regardless of the list size.
    *
    * Useful for:
-   * - Testing — verify scaling behaviour with a small item set
+   * - Testing — verify compression behaviour with a small item set
    * - Consistent UX — use the same smooth scroll physics for all lists
    * - Pre-emptive — avoid the mode switch when items are added at runtime
    *
@@ -190,7 +225,7 @@ interface ScaleConfig {
 
 #### Auto Mode (Default)
 
-Scaling activates automatically when the total height exceeds the browser limit:
+Compression activates automatically when the total height exceeds the browser limit:
 
 ```typescript
 import { vlist, withScale } from '@floor/vlist';
@@ -206,7 +241,7 @@ const list = vlist({
 
 #### Force Mode
 
-Force scaled scrolling on all lists for consistent scroll physics:
+Force compressed scrolling on all lists for consistent scroll physics:
 
 ```typescript
 const list = vlist({
@@ -222,7 +257,7 @@ In force mode with a small dataset, the compression ratio is 1 (no actual compre
 
 ### Exported Utilities
 
-For advanced use cases, you can import scaling utilities directly:
+For advanced use cases, you can import compression utilities directly:
 
 ```typescript
 import {
@@ -233,17 +268,17 @@ import {
   getScaleState,
 } from '@floor/vlist';
 
-// Check if scaling needed
+// Check if compression needed
 const needsScale = needsScaling(totalItems, itemHeight);
 
-// Get max items without scaling for given height
+// Get max items without compression for given height
 const maxItems = getMaxItemsWithoutScaling(48); // → 333,333 items
 
 // Get human-readable info
 const info = getScaleInfo(totalItems, itemHeight);
 // → "Scaled to 33.3% (1000000 items × 48px = 48.0M px → 16.0M px virtual)"
 
-// Get full scale state
+// Get full compression state
 const state = getScaleState(totalItems, itemSize);
 // → { isCompressed: true, actualSize: 48000000, virtualSize: 16000000, ratio: 0.333 }
 ```
@@ -254,7 +289,7 @@ const state = getScaleState(totalItems, itemSize);
 // Maximum virtual size (browser safe limit)
 const MAX_VIRTUAL_SIZE = 16_000_000; // 16M pixels
 
-// Max items by size (without scaling)
+// Max items by size (without compression)
 // 48px → 333,333 items
 // 40px → 400,000 items
 // 32px → 500,000 items
@@ -263,7 +298,7 @@ const MAX_VIRTUAL_SIZE = 16_000_000; // 16M pixels
 
 ## Custom Scrollbar
 
-Scaled mode uses `overflow: hidden`, which hides the native scrollbar. Use `withScrollbar()` to add a custom scrollbar:
+Compressed mode uses `overflow: hidden`, which hides the native scrollbar. Use `withScrollbar()` to add a custom scrollbar:
 
 ```typescript
 import { vlist, withScale, withScrollbar } from '@floor/vlist';
@@ -281,7 +316,41 @@ const list = vlist({
   .build();
 ```
 
+The scrollbar reads `viewportState.totalSize` (which includes compression slack) for its bounds, ensuring the thumb can reach the very bottom of the list.
+
 See [Scrollbar Feature](./scrollbar.md) for full documentation.
+
+## Keyboard Navigation in Compressed Mode
+
+The `scrollToFocus` function handles keyboard navigation (ArrowUp/Down, PageUp/Down, Home/End) in compressed mode using the same linear formula:
+
+### Scroll-to-Focus Algorithm
+
+```javascript
+// Item above viewport → align to top edge
+if (index <= visibleRange.start) {
+  return index * compressedItemSize;
+}
+
+// Item below viewport → align to bottom edge (fractional precision)
+if (index >= visibleRange.start + fullyVisible) {
+  const exactVisible = effectiveSize / itemSize;  // e.g. 8.306
+  const wantStart = index + 1 - exactVisible;     // fractional top index
+  return wantStart * compressedItemSize;
+}
+
+// Item already visible → no scroll
+return scrollPosition;
+```
+
+**Key design decisions:**
+- The "above" check uses `index <= visibleRange.start` (not `visibleRange.end - fullyVisible`) to avoid false positives during arrow-down navigation
+- The "below" alignment uses fractional `effectiveSize / itemSize` (not integer `fullyVisible`) so the focused item's bottom edge aligns precisely with the viewport bottom
+- All computed positions are valid within `[0, maxScroll]` thanks to compression slack — no clamping needed
+
+### Viewport State Consistency
+
+The `coreRenderIfNeeded` early-return path (when the render range is unchanged but scroll position changed) now always updates `viewportState.scrollPosition` and `viewportState.visibleRange`. This prevents stale state during rapid keyboard navigation where consecutive keypresses may fall within the same overscan buffer.
 
 ## Examples
 
@@ -389,9 +458,27 @@ const list = vlist({
   .build();
 ```
 
+### With CSS Padding
+
+```typescript
+import { vlist, withScale, withScrollbar } from '@floor/vlist';
+
+const list = vlist({
+  container: '#app',
+  items: largeDataset,
+  item: { height: 48, template: renderItem },
+  padding: [16, 12],  // 16px top/bottom, 12px left/right
+})
+  .use(withScale())
+  .use(withScrollbar())
+  .build();
+```
+
+The compression slack automatically accounts for CSS padding — the formula reduces the effective viewport size by the main-axis padding, ensuring the last item is reachable and correctly positioned.
+
 ## ViewportState
 
-When scaling is active, the viewport state reflects the scaled state:
+When compression is active, the viewport state reflects the compressed state:
 
 ```typescript
 list.on('scroll', ({ scrollPosition }) => {
@@ -399,27 +486,28 @@ list.on('scroll', ({ scrollPosition }) => {
 });
 ```
 
-// Returns:
 ```typescript
 {
-  scrollPosition: 5000000,   // Current scroll position
+  scrollPosition: 5000000,   // Current scroll position (virtual)
   containerSize: 600,        // Viewport size
-  totalSize: 16000000,       // Virtual size (capped)
+  totalSize: 16000465,       // Virtual size + compression slack
   actualSize: 48000000,      // True size (uncapped)
-  isCompressed: true,        // Scaling active
-  compressionRatio: 0.333,   // Scale factor
+  isCompressed: true,        // Compression active
+  compressionRatio: 0.333,   // Compression factor
   visibleRange: { start: 104166, end: 104178 },
   renderRange: { start: 104163, end: 104181 }
 }
 ```
 
+> **Note:** `totalSize` includes the compression slack, not just `virtualSize`. This is the effective content height used by the scrollbar and other features.
+
 ## Performance
 
-Scaling has minimal performance impact:
+Compression has minimal performance impact:
 
 - **Calculation overhead:** < 1ms per scroll frame
 - **Memory overhead:** ~2-3 KB state
-- **Render performance:** Identical to non-scaled mode
+- **Render performance:** Identical to non-compressed mode
 - **Smooth scrolling:** 60fps with 1M+ items
 
 The feature only activates when needed, so smaller lists have zero overhead.
@@ -446,28 +534,30 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 
 | Feature | Compatible | Notes |
 |--------|------------|-------|
-| `withGrid()` | ✅ Yes | Scales grid rows automatically |
-| `withTable()` | ✅ Yes | Rows positioned viewport-relative in scaled mode |
-| `withGroups()` | ✅ Yes | Scales grouped layout |
-| `withAsync()` | ✅ Yes | Scales async-loaded data |
-| `withSelection()` | ✅ Yes | No impact on selection |
-| `withScrollbar()` | ✅ Recommended | Custom scrollbar for scaled mode |
-| `withPage()` | ✅ Yes | Mathematical scaling only |
+| `withGrid()` | ✅ Yes | Compresses grid rows automatically |
+| `withTable()` | ✅ Yes | Rows positioned viewport-relative in compressed mode |
+| `withGroups()` | ✅ Yes | Compresses grouped layout |
+| `withAsync()` | ✅ Yes | Compresses async-loaded data |
+| `withSelection()` | ✅ Yes | Keyboard nav uses linear scroll-to-focus formula |
+| `withScrollbar()` | ✅ Recommended | Custom scrollbar for compressed mode |
+| `withPage()` | ✅ Yes | Mathematical compression only |
 | `withSnapshots()` | ✅ Yes | No impact on snapshots |
 
 ## Known Limitations
 
-1. **Window mode visual quirk:** In window mode with scaling active, rapid scrolling may show a slight jump when switching between scaled and exact positioning near the bottom. This is a visual artifact of the mathematical mapping and doesn't affect functionality.
+1. **Wheel event override:** Compressed mode intercepts wheel events, which means custom wheel handling in parent elements may not work as expected.
 
-2. **Wheel event override:** Scaled mode intercepts wheel events, which means custom wheel handling in parent elements may not work as expected.
+2. **Native scrollbar hidden:** Compressed mode hides the native scrollbar. Always use `withScrollbar()` when compression is active.
 
-3. **Native scrollbar hidden:** Scaled mode hides the native scrollbar. Always use `withScrollbar()` when scaling is active.
+3. **Touch inertia approximation:** Touch momentum scrolling on iOS/Android uses a deceleration curve that approximates native behaviour but doesn't perfectly match the platform's physics.
+
+4. **Uniform item size assumption:** The linear compressed-index formula assumes roughly uniform item sizes. This is acceptable because `withScale` is designed for massive lists with fixed row heights. Variable-height items within a small range work fine, but extreme variation (e.g. 20px to 2000px) may cause slight positioning drift.
 
 ## See Also
 
 - [Constants — `MAX_VIRTUAL_SIZE`](../api/constants.md#max_virtual_size) — 16M pixel browser limit that triggers compression
 - [Types — `CompressionState`](../api/types.md#compressionstate) — `isCompressed`, `actualSize`, `virtualSize`, `ratio`
-- [Exports — Scale](../api/exports.md#scale) — `getScaleState`, `needsScaling`, `calculateScaledVisibleRange`, and other compression utilities
+- [Exports — Scale](../api/exports.md#scale) — `getScaleState`, `needsScaling`, `calculateCompressedVisibleRange`, and other compression utilities
 - [Scrollbar](./scrollbar.md) — Custom scrollbar (always use with scale — native scrollbar is hidden in compressed mode)
 - [Async](./async.md) — Lazy loading for large datasets that trigger compression
 - [Page](./page.md) — Cannot combine with `withScale` (requires controlled scroll container)
