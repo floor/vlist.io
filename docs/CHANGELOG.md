@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] — 2026-04-10
+
+### Changed
+
+- **Core baseline single-select** — The core now provides built-in single-select behavior out of the box, with no features needed. Per the WAI-ARIA listbox pattern: arrow keys move focus (focus ring + `aria-activedescendant`), Space/Enter toggles selection (`aria-selected` + `--selected` class), click selects + focuses. Wrapping configurable via `scroll.wrap` (default: false). This replaces the previous focus-only baseline that had `role="listbox"` without selection — violating the "No ARIA is better than Bad ARIA" principle (#4)
+- **`withSelection()` extended** — Now provides richer capabilities on top of the core baseline: `mode: 'multiple'` for multi-select (Space/Enter to toggle, separate focus from selection), optional `followFocus: true` for selection-follows-focus on arrow keys (single mode), Shift+click range selection in multiple mode, `selectNext()`/`selectPrevious()` methods, `selection:change` event (#4)
+- **Focus ring hidden on mouse click** — The focus outline (`--focused` class) only appears during keyboard navigation. Mouse clicks show selection highlight but no focus ring. Subsequent keyboard use restores the ring (#4)
+- **CSS specificity bump** — `.vlist-item--selected` and `.vlist-item--focused` rules now use `.vlist-item.vlist-item--selected` (two-class specificity) so they always win over `--odd` and other single-class overrides regardless of CSS source order
+
+### Added
+
+- **`scrollToFocus()` shared utility** — New `src/rendering/scroll.ts` module used by both core baseline and `withSelection`. Implements smart edge-scroll: only scrolls when the focused item is outside the viewport, aligns to the nearest edge. Handles both normal and compressed (withScale) modes. Padding-aware — accounts for CSS content padding so items aren't clipped at viewport edges (#4)
+
+### Fixed
+
+- **Padding-aware keyboard scroll** — `scrollToFocus()` now accounts for CSS content padding (`startPadding` + `endPadding`) when checking item visibility and computing scroll targets. Previously, items at the viewport bottom edge were clipped by the padding amount (#4)
+
+### Performance
+
+- Bundle: 108.5 KB minified (35.7 KB gzipped)
+- 67 core tests (17 new baseline single-select tests), all passing
+
 ## [1.4.1] — 2026-04-09
 
 ### Fixed

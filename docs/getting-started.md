@@ -214,6 +214,41 @@ const carousel = vlist({
 
 ---
 
+## Keyboard Navigation & Selection
+
+vlist provides built-in keyboard navigation and single-select behavior out of the box — no features needed. This follows the [WAI-ARIA Listbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/):
+
+| Key | Action |
+|-----|--------|
+| **Tab** | Focus the list (activates first or last-focused item) |
+| **↑ / ↓** | Move focus ring (no selection change) |
+| **Page Up / Page Down** | Move focus by one page |
+| **Home / End** | Move focus to first / last item |
+| **Space / Enter** | Toggle selection on the focused item |
+| **Click** | Select + focus the clicked item |
+
+**Smart edge-scroll** — the viewport only scrolls when the focused item is outside the visible area, aligning to the nearest edge.
+
+**Focus ring** — the outline only appears during keyboard navigation. Mouse clicks show the selection highlight but no focus ring.
+
+For multi-select, programmatic selection API, or `selection:change` events, add `withSelection()`:
+
+```typescript
+import { vlist, withSelection } from '@floor/vlist'
+
+const list = vlist({ ... })
+  .use(withSelection({ mode: 'multiple' }))
+  .build()
+
+list.on('selection:change', ({ selected }) => {
+  console.log('Selected:', selected)
+})
+```
+
+See [Selection](./features/selection.md) for the full feature documentation.
+
+---
+
 ## Horizontal Scrolling
 
 Set `orientation: 'horizontal'` and provide `width` instead of (or alongside) `height`:
