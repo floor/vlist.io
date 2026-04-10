@@ -4,12 +4,34 @@
 
 ## Overview
 
-The selection module provides item selection with keyboard navigation for vlist:
+The selection module extends the core keyboard behavior with configurable selection modes, a programmatic API, and events:
 
 - **Single/Multiple Selection**: Configurable selection modes
-- **Keyboard Navigation**: Focus management with arrow keys, Home/End, Page Up/Down
+- **Smart Edge-Scroll**: Only scrolls when the focused item leaves the viewport, aligning to the nearest edge
+- **Compressed Mode Support**: Works correctly with `withScale()` for million-item lists
 - **Range Selection**: Shift+click for selecting ranges
 - **Programmatic Control**: Select, deselect, toggle, and query via the list instance
+
+## Core vs withSelection
+
+Every vlist has built-in keyboard navigation — no features required:
+
+| Capability | Core (built-in) | `withSelection()` |
+|---|---|---|
+| Arrow Up/Down | ✅ Focus + center scroll | ✅ Focus + smart edge-scroll |
+| Home / End | ✅ | ✅ |
+| PageUp / PageDown | ✅ | ✅ |
+| Click to select | ❌ | ✅ |
+| Selection follows focus | ❌ (focus only) | ✅ (single mode) |
+| Multiple selection | ❌ | ✅ (`mode: 'multiple'`) |
+| Space/Enter to toggle | ❌ | ✅ |
+| Range select (Shift+click) | ❌ | ✅ |
+| Programmatic API | ❌ | ✅ (`select()`, `getSelected()`, etc.) |
+| `selection:change` event | ❌ | ✅ |
+| Compressed-mode scroll | Center align | Smart edge-align with fractional math |
+| Wrap at boundaries | Yes (ARIA listbox) | No (configurable) |
+
+For most interactive lists, add `withSelection()`. The core baseline is intended for read-only or display-only lists where keyboard scrolling is sufficient.
 
 ## Module Structure
 
@@ -139,33 +161,33 @@ Built-in keyboard handling when `withSelection` is active:
 | `Page Down` | Move focus down by one page |
 | `Space` / `Enter` | Toggle selection on focused item |
 
-### Smart Scroll
+Page size is calculated as `floor(containerSize / itemHeight)`.
 
-Keyboard navigation uses edge-aligned scrolling — the list only scrolls
-when the focused item is outside the viewport:
+### Smart Scroll (`scrollToFocus`)
+
+Keyboard navigation uses edge-aligned scrolling — the list only scrolls when the focused item is outside the viewport:
 
 - **Scrolling down** — the focused item aligns to the bottom edge
 - **Scrolling up** — the focused item aligns to the top edge
 - **Already visible** — no scroll, focus ring moves in place
 
-This matches native OS list behavior. The previous center-aligned scroll
-(which locked the focused item in the middle of the viewport) has been
-replaced.
+This matches native OS list behavior and replaces the center-aligned scroll used by the core baseline handler.
 
 ### Compressed Lists (withScale)
 
-Keyboard navigation works correctly with `withScale()` for lists with
-millions of items. The scroll calculation automatically switches between:
+Keyboard navigation works correctly with `withScale()` for lists with millions of items. The `scrollToFocus` helper automatically switches between:
 
-- **Normal mode** — pixel-perfect positioning using size cache offsets
-- **Compressed mode** — fractional index math in virtual scroll space
+- **Normal mode** — pixel-perfect positioning via `sizeCache.getOffset()` and direct comparison with `scrollPosition`
+- **Compressed mode** — visibility check via `visibleRange` + fractional index math (`exactTopIndex * compressedItemSize`) to position the focused item at the viewport edge
+
+This dual-path approach is necessary because in compressed mode, size cache offsets (actual pixels) and scroll positions (virtual compressed space) are in completely different coordinate systems.
 
 ### Focus vs Selection
 
 - **Focus**: Visual indicator of keyboard navigation position (single index)
 - **Selection**: Set of selected item IDs (can be multiple)
 
-Focus and selection are independent — you can navigate with arrow keys without changing the selection, then press Space to toggle the focused item.
+In single mode, selection follows focus — arrow keys both move focus and select. In multiple mode, focus and selection are independent — navigate with arrow keys, then press Space to toggle.
 
 ## Usage Examples
 
