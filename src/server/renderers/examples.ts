@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
 import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
-import { SITE, IS_PROD } from "./config";
+import { SITE, IS_PROD, VLIST_VERSION, SITE_VERSION } from "./config";
 import {
   loadShell,
   loadNavigation,
@@ -373,18 +373,22 @@ function buildExtraHead(
   const tags: string[] = [];
 
   // vlist styles — always needed for examples
-  tags.push(`<link rel="stylesheet" href="/dist/vlist.css" />`);
+  tags.push(
+    `<link rel="stylesheet" href="/dist/vlist.css?v=${VLIST_VERSION}" />`,
+  );
 
   // Table styles — only for examples that use the table feature
   if (example?.features?.includes("table")) {
-    tags.push(`<link rel="stylesheet" href="/dist/vlist-table.css" />`);
+    tags.push(
+      `<link rel="stylesheet" href="/dist/vlist-table.css?v=${VLIST_VERSION}" />`,
+    );
   }
 
   // Shared example styles (at example root, optional)
   const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));
   if (existsSync(sharedCssPath)) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/examples/${slug}/styles.css" />`,
+      `<link rel="stylesheet" href="/dist/examples/${slug}/styles.css?v=${SITE_VERSION}" />`,
     );
   }
 
@@ -395,7 +399,7 @@ function buildExtraHead(
     );
     if (existsSync(variantCssPath)) {
       tags.push(
-        `<link rel="stylesheet" href="/dist/examples/${slug}/${variant}/styles.css" />`,
+        `<link rel="stylesheet" href="/dist/examples/${slug}/${variant}/styles.css?v=${SITE_VERSION}" />`,
       );
     }
   }
@@ -412,8 +416,8 @@ function buildExtraBody(
 
   // Script path — check variant subdirectory first
   const scriptPath = variant
-    ? `/dist/examples/${slug}/${variant}/script.js`
-    : `/dist/examples/${slug}/script.js`;
+    ? `/dist/examples/${slug}/${variant}/script.js?v=${SITE_VERSION}`
+    : `/dist/examples/${slug}/script.js?v=${SITE_VERSION}`;
 
   // Mobile settings toggle — injects gear button + close button + overlay + toggle logic
   const mobileSettings = `<script>
@@ -491,7 +495,7 @@ function assemblePage(
     CONTENT: content,
 
     // Styles & scripts
-    EXTRA_STYLES: '<link rel="stylesheet" href="/dist/examples/styles.css" />',
+    EXTRA_STYLES: `<link rel="stylesheet" href="/dist/examples/styles.css?v=${SITE_VERSION}" />`,
     EXTRA_HEAD: buildExtraHead(slug, example, variant),
     EXTRA_BODY: buildExtraBody(slug, example, variant),
     MAIN_CLASS: "",

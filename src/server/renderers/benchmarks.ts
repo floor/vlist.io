@@ -4,7 +4,7 @@
 
 import { join, resolve } from "path";
 import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
-import { SITE, IS_PROD } from "./config";
+import { SITE, IS_PROD, VLIST_VERSION, SITE_VERSION } from "./config";
 import {
   loadShell,
   loadNavigation,
@@ -237,7 +237,7 @@ function assemblePage(
   // Only load the benchmark script on interactive pages (not overview)
   const extraBody =
     page !== "overview"
-      ? `<script type="module" src="/dist/benchmarks/script.js"></script>`
+      ? `<script type="module" src="/dist/benchmarks/script.js?v=${SITE_VERSION}"></script>`
       : "";
 
   const url = slug
@@ -256,8 +256,7 @@ function assemblePage(
     CONTENT: content,
 
     // Styles & scripts
-    EXTRA_STYLES:
-      '<link rel="stylesheet" href="/dist/vlist.css" />\n    <link rel="stylesheet" href="/dist/benchmarks/styles.css" />',
+    EXTRA_STYLES: `<link rel="stylesheet" href="/dist/vlist.css?v=${VLIST_VERSION}" />\n    <link rel="stylesheet" href="/dist/benchmarks/styles.css?v=${SITE_VERSION}" />`,
     EXTRA_HEAD: "",
     EXTRA_BODY: extraBody,
     MAIN_CLASS: "",
