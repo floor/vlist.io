@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] — 2026-04-10
+
+### Changed
+
+- **Groups: first inline header collapsed when sticky is active** — When sticky headers are enabled, the first group's inline header is collapsed to zero height since the sticky header already displays it. This eliminates the visual duplication seen at scroll position 0 (Apple Contacts style). Implemented via the size function returning 0 for the first group header, with `overflow: hidden` on group header CSS for proper clipping (#8)
+- **Groups: sticky header architecture rewrite** — The sticky header module has been rewritten for performance and minimal footprint:
+  - Removed the intermediate slider div — two permanent `.sticky-group` slot elements are translated directly
+  - Slot elements are recycled via `replaceChildren()` — zero `createElement`/`removeChild` on group changes  
+  - Header offsets and sizes pre-cached in flat arrays on rebuild — binary search is pure array reads, no function calls per scroll tick
+  - Orientation resolved once at construction, not per frame
+  - Module reduced from 413 to 230 lines (44% smaller)
+- **Groups: sticky header supports variable-height headers** — Binary search now uses per-group header sizes via `layout.getHeaderHeight(mid)` instead of the raw `config.headerHeight` value, which could be a function
+
+### Fixed
+
+- **Groups: sticky slider sizing** — Slider was hardcoded to `height: 36px`. Now derives size from the actual header height and is orientation-aware (uses width for horizontal mode)
+
 ## [1.4.2] — 2026-04-11
 
 ### Fixed
