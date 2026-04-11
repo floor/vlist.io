@@ -162,7 +162,7 @@
    ============================================================================ */
 
 #grid-container .vlist-item {
-    padding: 2px;
+    padding: 0;
     border: none;
     background: transparent;
 }
