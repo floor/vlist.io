@@ -169,12 +169,16 @@ template: (item, index, { selected, focused }) => `
 
 The core baseline provides basic keyboard handling with no features required:
 
-| Key | Action |
-|-----|--------|
-| `↑` / `↓` | Move focus (no selection change) |
-| `Home` / `End` | Move focus to first / last item |
-| `Page Up` / `Page Down` | Move focus by one page |
-| `Space` / `Enter` | Toggle selection on focused item |
+| Key | Flat List | Grid | Masonry |
+|-----|-----------|------|---------|
+| `↑` / `↓` | Move focus ±1 | Move focus by ±columns (row) | Move to prev/next item in same lane |
+| `←` / `→` | — (disabled) | Move focus ±1 (cell) | Move to nearest item in adjacent lane |
+| `Home` / `End` | First / last item | First / last cell in current row | First / last item |
+| `Ctrl+Home` / `Ctrl+End` | — | First / last item overall | — |
+| `Page Up` / `Page Down` | Move by visible items | Move by visible rows (same column) | Move by visible items in same lane |
+| `Space` / `Enter` | Toggle selection | Toggle selection | Toggle selection |
+
+> In horizontal orientation, Up/Down and Left/Right axes are swapped for both grid and masonry.
 
 Wrapping is controlled by `scroll.wrap` (default: false). When off, pressing `↑` on the first item does nothing.
 
@@ -189,16 +193,22 @@ By default, arrow keys move focus only (same as core). With `followFocus: true`,
 | `Page Up` / `Page Down` | Move focus by one page | Move focus by one page and select |
 | `Space` / `Enter` | Toggle selection on focused item | Toggle selection on focused item |
 
+When combined with `withGrid` or `withMasonry`, `withSelection` inherits the same 2D navigation as the core baseline (see table above). Arrow key deltas are resolved from the layout feature's `_getNavDelta` or `_navigate` method.
+
 ### withSelection (multiple mode)
 
 Focus and selection are independent — navigate first, then toggle:
 
-| Key | Action |
-|-----|--------|
-| `↑` / `↓` | Move focus only |
-| `Home` / `End` | Move focus to first / last item |
-| `Page Up` / `Page Down` | Move focus by one page |
-| `Space` / `Enter` | Toggle selection on focused item |
+| Key | Flat List | Grid | Masonry |
+|-----|-----------|------|---------|
+| `↑` / `↓` | Move focus ±1 | Move focus by ±columns (row) | Move to prev/next item in same lane |
+| `←` / `→` | — (disabled) | Move focus ±1 (cell) | Move to nearest item in adjacent lane |
+| `Home` / `End` | First / last item | First / last cell in current row | First / last item |
+| `Ctrl+Home` / `Ctrl+End` | — | First / last item overall | — |
+| `Page Up` / `Page Down` | Move by visible items | Move by visible rows (same column) | Move by visible items in same lane |
+| `Space` / `Enter` | Toggle selection | Toggle selection | Toggle selection |
+
+> In horizontal orientation, Up/Down and Left/Right axes are swapped for both grid and masonry.
 
 Page size is calculated as `floor(containerSize / itemHeight)`.
 
@@ -212,6 +222,8 @@ Both the core baseline and `withSelection` use a shared `scrollToFocus()` functi
 - **Padding-aware** — respects container padding so items are never hidden behind padded edges
 
 This matches native OS list behavior and replaces the center-aligned scroll used by older implementations.
+
+**Grid and masonry support:** In grid mode, the flat item index is converted to a row index via the `i2s` (item-to-scroll-index) mapping before offset lookup. In masonry mode, `scrollToFocus` delegates to a placement-based `_scrollItemIntoView` method that uses pre-calculated x/y coordinates instead of the size cache.
 
 ### Compressed Lists (withScale)
 
@@ -420,6 +432,8 @@ function moveFocusDown(
 // With wrap=true (default): boundaries wrap around
 // With wrap=false: boundaries clamp
 ```
+
+Both functions accept an optional `delta` parameter (default: `1`). In grid mode, `delta` is set to the column count so focus moves by an entire row. This parameter was added in v1.4.4.
 
 #### moveFocusToFirst / moveFocusToLast
 

@@ -14,6 +14,7 @@ The `withMasonry` feature converts a linear virtual list into a masonry/Pinteres
 - **Auto-Responsive** — Column/row width adjusts automatically on container resize
 - **Gap Support** — Configurable spacing between items (horizontal and vertical)
 - **Memory Efficient** — Virtualization keeps DOM nodes minimal
+- **Lane-Aware Keyboard Navigation** — ArrowUp/Down stay in the same visual column, ArrowLeft/Right move to the nearest item in the adjacent lane
 
 ### Key Features
 
@@ -23,6 +24,7 @@ The `withMasonry` feature converts a linear virtual list into a masonry/Pinteres
 - ✅ **Cached Placements** — O(1) position lookups after initial O(n) calculation
 - ✅ **Selection Support** — Works with `withSelection` for selectable items
 - ✅ **Scrollbar Support** — Works with `withScrollbar` for custom scrollbars
+- ✅ **Lane-Aware Navigation** — O(1) same-lane / O(log k) adjacent-lane keyboard navigation via pre-built per-lane index arrays
 
 ### Key Differences from Grid
 
@@ -231,6 +233,8 @@ const timeline = vlist({
 
 > The context object works identically in both orientations — `columnWidth` always refers to the cross-axis cell size, adapting automatically on resize.
 
+> **Keyboard note:** In horizontal mode, arrow keys are swapped — Left/Right navigates within the same lane (scroll axis forward/back) and Up/Down moves between adjacent lanes (cross axis).
+
 **Note:** In horizontal mode, you must specify both `height` and `width` in the item config.
 
 ## Examples
@@ -362,6 +366,15 @@ gallery.on('selection:change', ({ selectedIndices }) => {
 })
 ```
 
+When combined with `withSelection`, masonry provides lane-aware keyboard navigation:
+- **ArrowUp/Down** — Previous/next item in the same lane (visual column)
+- **ArrowLeft/Right** — Nearest item in the adjacent lane at a similar vertical position
+- **Home/End** — First/last item in the masonry
+- **PageUp/Down** — Jump by visible items in the same lane
+- **Space/Enter** — Toggle selection on focused item
+
+In horizontal orientation, the arrow key axes are swapped: Left/Right navigates within the same lane (scroll axis), Up/Down moves between adjacent lanes (cross axis).
+
 ### Content Feed with Mixed Media
 
 ```js
@@ -463,6 +476,8 @@ Use this for CSS styling or JavaScript logic.
 | **Visibility check** | O(k × log(n/k)) | Per-lane binary search, k = columns |
 | **Total size** | O(1) | Cached during layout calculation |
 | **Scroll frame (steady)** | O(1) | Early exit when position unchanged |
+| **Keyboard nav (same lane)** | O(1) | Pre-built per-lane index lookup |
+| **Keyboard nav (adjacent lane)** | O(log k) | Binary search on lane y-centers, k = items/lane |
 
 **Example with 10,000 items, 4 columns:**
 - Layout calculation: ~10-20ms (one-time cost)
@@ -490,6 +505,23 @@ The masonry feature is heavily optimized for the scroll hot path — the code th
 
 **Early exit guard:**
 - When scroll position and container size are identical to the previous frame, all downstream work is skipped entirely — no binary search, no renderer diffing, no viewport state updates
+
+### Navigation Index
+
+After each layout calculation, masonry builds per-lane index arrays for O(1)/O(log k) keyboard navigation:
+
+| Structure | Type | Purpose |
+|-----------|------|---------|
+| `laneItems[lane]` | `number[][]` | Flat item indices per lane, y-sorted |
+| `itemLanePos[i]` | `Int32Array` | Item's position within its lane array |
+| `laneYCenters[lane]` | `Float64Array` | Parallel y-centers for binary search |
+
+This enables:
+- **ArrowUp/Down** — O(1) direct index lookup in same lane
+- **ArrowLeft/Right** — O(log k) binary search on adjacent lane's y-centers
+- **PageUp/Down** — O(1) index arithmetic within same lane
+
+The index rebuild is O(n) and piggybacks on the existing `calculateLayout()` call.
 
 ### Memory Efficiency
 

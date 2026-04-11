@@ -13,6 +13,7 @@ The `withGrid` feature converts a linear virtual list into a 2D grid layout with
 - **Auto-Responsive** — Column width adjusts automatically on container resize
 - **Gap Support** — Configurable spacing between items (horizontal and vertical)
 - **Memory Efficient** — Same virtualization benefits as list mode
+- **2D Keyboard Navigation** — WAI-ARIA Grid pattern: arrow keys navigate rows and cells, with horizontal orientation support
 
 ### Key Features
 
@@ -24,6 +25,7 @@ The `withGrid` feature converts a linear virtual list into a 2D grid layout with
 - ✅ **Groups Support** — Works with `withGroups` for categorized grids
 - ✅ **Selection Support** — Works with `withSelection` for selectable grids
 - ✅ **Scrollbar Support** — Works with `withScrollbar` for custom scrollbars
+- ✅ **WAI-ARIA Grid Navigation** — Full 2D keyboard navigation: ArrowUp/Down by row, ArrowLeft/Right by cell, row-scoped Home/End, Ctrl+Home/End, PageUp/Down. Horizontal orientation swaps axes.
 
 ## Quick Start
 
@@ -217,6 +219,8 @@ const gallery = vlist({
 Scrolls **horizontally**, columns arranged **vertically**. In horizontal mode, `columns` controls the number of **rows**, and `columnWidth` in the context is each row's height.
 
 **Note:** In horizontal mode, you must specify both `height` and `width` in the item config. The `width` function receives the same context object as `height`.
+
+> **Keyboard note:** In horizontal mode, arrow keys are swapped — Left/Right navigate by row (±columns, scroll axis) and Up/Down navigate by cell (±1, cross axis).
 
 > The context object works identically in both orientations — `columnWidth` always refers to the cross-axis cell size, adapting automatically on resize.
 
@@ -473,6 +477,16 @@ const list = vlist(config)
   .use(withSelection({ mode: 'multiple' }))
   .build()
 ```
+
+When combined with `withSelection`, the grid provides full 2D keyboard navigation:
+- **ArrowUp/Down** — Move focus by row (±columns)
+- **ArrowLeft/Right** — Move focus by cell (±1)
+- **Home/End** — First/last cell in the current row
+- **Ctrl+Home/End** — First/last item in the grid
+- **PageUp/Down** — Jump by visible rows (same column)
+- **Space/Enter** — Toggle selection on focused item
+
+In horizontal orientation, the arrow key axes are swapped: Left/Right moves by row, Up/Down by cell.
 
 ### Grid + Groups
 
