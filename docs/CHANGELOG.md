@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Masonry: image flash on click** — Template was re-applied on selection/focus state changes, destroying loaded `<img>` elements. Now only CSS classes update on state change (matches grid renderer).
 - **Selection: grid/masonry-aware navigation** — ArrowUp/Down pass `delta=columns` for grids, use `_navigate` for masonry. ArrowLeft/Right enabled for both. Home/End row-scoped in grid. `scrollToFocus` uses `_scrollItemIntoView` when available.
 - **Core: `preventDefault` for nav keys at boundaries** — Recognized navigation keys now always prevent default browser scrolling, even when focus is at a boundary.
+- **Selection: scroll-if-needed on focusin** — `onFocusIn` was always centering the focused item, causing a large gap below the last item when tabbing back into the list after pressing End. Now uses `scrollToFocus` (scroll-if-needed) — only scrolls when the item is outside the viewport, aligning to the nearest edge.
 - **Groups: TypeScript strict null fix** — Non-null assertion for `groupLayout` in `renderInto` (pre-existing TS18047).
 
 ### Performance
