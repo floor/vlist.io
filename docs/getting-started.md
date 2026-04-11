@@ -162,10 +162,33 @@ scroll?: {
   element?: HTMLElement | Window;  // Override the scroll container
   wheel?: boolean;                 // Enable mouse wheel (default: true)
   wrap?: boolean;                  // Circular navigation (default: false)
+  gutter?: 'auto' | 'stable';     // Native scrollbar space reservation (default: 'auto')
   scrollbar?: 'none' | 'native';   // 'none' = no scrollbar, 'native' = browser default
   idleTimeout?: number;            // ms of no-scroll before 'idle' event fires (default: 150)
 }
 ```
+
+### Scrollbar gutter
+
+On macOS with "When scrolling" or "Automatically" overlay scrollbars, the native scrollbar takes zero width. On **Windows, Linux, and macOS with "Always" scrollbars**, the classic scrollbar takes ~15-17px from the content area and can cause layout shift when it appears or disappears.
+
+`gutter: 'stable'` applies [`scrollbar-gutter: stable`](https://developer.mozilla.org/en-US/docs/Web/CSS/scrollbar-gutter) to the viewport, permanently reserving space for the scrollbar:
+
+```typescript
+const list = vlist({
+  container: '#list',
+  items: contacts,
+  item: { height: 64, template: renderContact },
+  scroll: { gutter: 'stable' },
+}).build();
+```
+
+| Value | Behavior |
+|-------|----------|
+| `'auto'` (default) | Native browser behavior — overlay on macOS, classic on Windows/Linux |
+| `'stable'` | Always reserves scrollbar space — no layout shift when content grows |
+
+> **Note:** Has no effect when `withScrollbar()` is active — the custom scrollbar is `position: absolute` and doesn't affect layout.
 
 ### Window / page scrolling
 
