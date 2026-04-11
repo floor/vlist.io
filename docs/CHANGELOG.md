@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] — 2026-04-11
+
+### Fixed
+
+- **Grid: scroll jump on click** — Clicking items in grid mode caused scroll to jump to bottom. `commitFocus` was passing flat item indices to `scrollToFocus` but the size cache is indexed by rows. Added `i2s` (item-to-scroll-index) mapping that grid overrides with `floor(index/columns)`.
+- **Grid: baseline keyboard navigation** — The core single-select assumed flat list navigation (±1). Now supports full WAI-ARIA Grid pattern: ArrowUp/Down by ±columns, ArrowLeft/Right by ±1, Home/End row-scoped, Ctrl+Home/End grid-scoped, PageUp/Down by visible rows.
+- **Grid: `updateItemClasses` wiring** — `withSelection` focus/selection class updates were no-ops because the core rendered Map is empty in grid mode. Now delegates to the grid renderer.
+- **Grid: horizontal arrow key swap** — Left/Right = ±columns (scroll axis), Up/Down = ±1 (cross axis).
+- **Masonry: lane-aware keyboard navigation** — ArrowUp/Down find prev/next item in same lane, ArrowLeft/Right find nearest item in adjacent lane by y-position. Horizontal orientation swaps axes.
+- **Masonry: placement-based scroll-into-view** — Core size cache has no meaningful per-item offsets in masonry mode. Focus scrolling now uses pre-calculated placement coordinates.
+- **Masonry: `updateItemClasses` wiring** — Same fix as grid — delegates to masonry renderer.
+- **Masonry: image flash on click** — Template was re-applied on selection/focus state changes, destroying loaded `<img>` elements. Now only CSS classes update on state change (matches grid renderer).
+- **Selection: grid/masonry-aware navigation** — ArrowUp/Down pass `delta=columns` for grids, use `_navigate` for masonry. ArrowLeft/Right enabled for both. Home/End row-scoped in grid. `scrollToFocus` uses `_scrollItemIntoView` when available.
+- **Core: `preventDefault` for nav keys at boundaries** — Recognized navigation keys now always prevent default browser scrolling, even when focus is at a boundary.
+- **Groups: TypeScript strict null fix** — Non-null assertion for `groupLayout` in `renderInto` (pre-existing TS18047).
+
+### Performance
+
+- **Masonry: O(1)/O(log k) navigation** — Pre-built per-lane index arrays (`laneItems`, `itemLanePos`, `laneYCenters`) enable O(1) same-lane and O(log k) adjacent-lane keyboard navigation. Rebuilt after each layout calculation (O(n) one-time cost). Scales to 1M+ items.
+
+### Added
+
+- **Photo album example: `withSelection`** — The vanilla photo-album example now uses `withSelection({ mode: 'single' })` for keyboard-driven selection.
+- **25 integration tests** — Grid/masonry navigation covering vertical + horizontal orientation, baseline + `withSelection`, lane-aware masonry nav, renderer `updateItemClasses` DOM preservation.
+
 ## [1.4.3] — 2026-04-10
 
 ### Changed
