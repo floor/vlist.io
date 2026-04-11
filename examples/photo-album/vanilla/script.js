@@ -2,7 +2,13 @@
 // Demonstrates withGrid + withMasonry + withScrollbar plugins
 // Layout mode toggle: Grid ↔ Masonry
 
-import { vlist, withGrid, withMasonry, withScrollbar } from "vlist";
+import {
+  vlist,
+  withGrid,
+  withMasonry,
+  withScrollbar,
+  withSelection,
+} from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 import {
@@ -89,8 +95,8 @@ function createView() {
     updateInfo();
   });
 
-  list.on("item:click", ({ item }) => {
-    showDetail(item);
+  list.on("selection:change", ({ items: selected }) => {
+    if (selected.length > 0) showDetail(selected[0]);
   });
 
   // Restore scroll position to first visible item
@@ -126,6 +132,7 @@ function createGridView(container, orientation, columns, gap) {
         items,
       })
         .use(withGrid({ columns, gap }))
+        .use(withSelection({ mode: "single" }))
         .use(withScrollbar({ autoHide: true }))
         .build(),
     );
@@ -144,6 +151,7 @@ function createGridView(container, orientation, columns, gap) {
         items,
       })
         .use(withGrid({ columns, gap }))
+        .use(withSelection({ mode: "single" }))
         .use(withScrollbar({ autoHide: true }))
         .build(),
     );
@@ -172,6 +180,7 @@ function createMasonryView(container, orientation, columns, gap) {
       items,
     })
       .use(withMasonry({ columns, gap }))
+      .use(withSelection({ mode: "single" }))
       .use(withScrollbar({ autoHide: true }))
       .build(),
   );
