@@ -120,7 +120,7 @@ Version history and migration guides:
 → [API Methods](./api/reference.md)
 
 **Learn accessibility**
-→ [Accessibility Tutorial](/tutorials/accessibility)
+→ [Accessibility Guide](/docs/accessibility)
 
 **Optimise performance**
 → [Optimization Tutorial](/tutorials/optimization)

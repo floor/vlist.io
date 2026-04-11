@@ -609,7 +609,7 @@ Summary:
 
 **Test coverage:** 40 dedicated accessibility tests (`test/accessibility.test.ts`).
 
-**Full documentation:** [accessibility.md]/tutorials/accessibility)
+**Full documentation:** [accessibility.md](/docs/accessibility)
 
 ---
 
@@ -682,7 +682,7 @@ list.restoreScroll(saved);
 - [Optimization Guide](/tutorials/optimization) — Implemented performance optimizations
 - [Main Documentation](/) — Configuration and usage
 - [Scale Guide](../features/scale.md) — How 1M+ item compression works
-- [Accessibility Guide](/tutorials/accessibility) — WAI-ARIA implementation, keyboard navigation, screen reader support
+- [Accessibility Guide](/docs/accessibility) — WAI-ARIA implementation, keyboard navigation, screen reader support
 - [Benchmarks Guide](./benchmarks.md) — Performance suites, scroll FPS architecture, rating system
 - [Styles Guide](/tutorials/styling) — CSS architecture
 
