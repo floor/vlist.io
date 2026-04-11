@@ -5,6 +5,30 @@
 import * as app from "./script.js";
 
 // =============================================================================
+// Scrollbar Gutter — Auto ↔ Stable (rebuilds list)
+// =============================================================================
+
+const gutterMode = document.getElementById("gutter-mode");
+
+gutterMode.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-gutter]");
+  if (!btn) return;
+
+  const gutter = btn.dataset.gutter;
+  if (gutter === app.currentGutter) return;
+  app.setCurrentGutter(gutter);
+
+  gutterMode.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle(
+      "ui-segmented__btn--active",
+      b.dataset.gutter === gutter,
+    );
+  });
+
+  app.createList();
+});
+
+// =============================================================================
 // Header Mode — Sticky ↔ Inline ↔ Off (rebuilds list)
 // =============================================================================
 
