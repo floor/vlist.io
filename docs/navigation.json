@@ -5,6 +5,11 @@
         "slug": "getting-started",
         "name": "Getting Started",
         "desc": "Complete guide to installation and configuration"
+      },
+      {
+        "slug": "accessibility",
+        "name": "Accessibility",
+        "desc": "WAI-ARIA, keyboard navigation, screen readers, and focus management"
       }
     ]
   },
