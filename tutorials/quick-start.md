@@ -30,7 +30,7 @@ const list = vlist({
 }).build();
 ```
 
-**Bundle:** 7.7 KB gzipped
+**Bundle:** 11.2 KB gzipped
 
 ---
 
@@ -59,7 +59,7 @@ list.getSelected();       // [5]
 list.getSelectedItems();  // [{ id: 5, ... }]
 ```
 
-**Bundle:** 10.0 KB gzipped
+**Bundle:** 13.7 KB gzipped
 
 ---
 
@@ -86,7 +86,7 @@ const gallery = vlist({
   .build();
 ```
 
-**Bundle:** 11.7 KB gzipped
+**Bundle:** 15.1 KB gzipped
 
 ---
 
@@ -105,14 +105,16 @@ const contacts = vlist({
 })
   .use(withGroups({
     getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase(),
-    headerHeight: 36,
-    headerTemplate: (letter) => `<div class="header">${letter}</div>`,
+    header: {
+      height: 36,
+      template: (letter) => `<div class="header">${letter}</div>`,
+    },
     sticky: true,
   }))
   .build();
 ```
 
-**Bundle:** 12.3 KB gzipped
+**Bundle:** 15.9 KB gzipped
 
 ---
 
@@ -132,8 +134,10 @@ const chat = vlist({
 })
   .use(withGroups({
     getGroupForIndex: (i) => formatDate(messages[i].timestamp),
-    headerHeight: 32,
-    headerTemplate: (date) => `<div class="date">${date}</div>`,
+    header: {
+      height: 32,
+      template: (date) => `<div class="date">${date}</div>`,
+    },
     sticky: false,  // Inline headers (iMessage style)
   }))
   .build();
@@ -145,7 +149,7 @@ chat.appendItems([newMessage]);
 chat.prependItems(olderMessages);
 ```
 
-**Bundle:** 11.9 KB gzipped
+**Bundle:** 15.9 KB gzipped
 
 ---
 
@@ -177,7 +181,7 @@ const feed = vlist({
   .build();
 ```
 
-**Bundle:** 13.5 KB gzipped
+**Bundle:** 15.7 KB gzipped
 
 ---
 
@@ -199,7 +203,7 @@ const bigList = vlist({
   .build();
 ```
 
-**Bundle:** 9.9 KB gzipped
+**Bundle:** 14.0 KB gzipped
 
 ---
 
@@ -268,13 +272,15 @@ list.removeItem(5);
 
 | Feature | Cost | Description |
 |--------|------|-------------|
-| `withGrid()` | +4.0 KB | 2D grid layout |
-| `withGroups()` | +4.6 KB | Grouped lists with headers |
-| `withAsync()` | +5.3 KB | Async data loading |
-| `withSelection()` | +2.3 KB | Item selection |
-| `withScale()` | +2.2 KB | Handle 1M+ items |
-| `withScrollbar()` | +1.0 KB | Custom scrollbar |
-| `withPage()` | +0.9 KB | Page-level scrolling |
+| `withGrid()` | +3.9 KB | 2D grid layout with WAI-ARIA keyboard nav |
+| `withMasonry()` | +3.4 KB | Pinterest-style layout with lane-aware nav |
+| `withGroups()` | +4.6 KB | Grouped lists with sticky/inline headers |
+| `withAsync()` | +4.4 KB | Async data loading |
+| `withSelection()` | +2.5 KB | Single/multiple selection + 2D keyboard nav |
+| `withScale()` | +2.8 KB | Handle 1M+ items |
+| `withScrollbar()` | +1.2 KB | Custom scrollbar |
+| `withPage()` | +0.4 KB | Page-level scrolling |
+| `withSnapshots()` | +0.6 KB | Scroll save/restore |
 
 ## Next Steps
 
