@@ -42,10 +42,15 @@ export const sortedGroups = [...groupIndex.entries()].sort((a, b) =>
 // =============================================================================
 
 export let currentHeaderMode = "sticky"; // "sticky" | "inline" | "off"
+export let currentGutter = "auto"; // "auto" | "stable"
 export let list = null;
 
 export function setCurrentHeaderMode(v) {
   currentHeaderMode = v;
+}
+
+export function setCurrentGutter(v) {
+  currentGutter = v;
 }
 
 // =============================================================================
@@ -101,6 +106,7 @@ export function createList() {
   const builder = vlist({
     container: "#list-container",
     ariaLabel: "Contact list",
+    scroll: { gutter: currentGutter },
     item: {
       height: ITEM_HEIGHT,
       template: renderContact,
