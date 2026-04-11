@@ -28,11 +28,6 @@
     "label": "Advanced Topics",
     "items": [
       {
-        "slug": "accessibility",
-        "name": "Accessibility",
-        "desc": "WAI-ARIA and keyboard navigation"
-      },
-      {
         "slug": "mobile",
         "name": "Mobile",
         "desc": "Touch interactions and mobile optimization"
