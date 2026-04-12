@@ -10,15 +10,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-.vlist-item--odd {
-    background: rgba(255, 255, 255, 0.04);
-}
-
-[data-theme-mode="light"] .vlist-item--odd {
-    background: rgba(0, 0, 0, 0.04);
-    border-radius: 4px;
-}
-
 .item__row {
     display: flex;
     align-items: baseline;
