@@ -3,7 +3,7 @@
 
 import { Eta } from "eta";
 import { join, resolve } from "path";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 
 import { SITE, IS_PROD } from "./config";
 import { VLIST_ROOT } from "../config";
@@ -133,7 +133,16 @@ async function initBundleSize(): Promise<void> {
     return;
   }
   try {
-    const entry = resolve(VLIST_ROOT, "src/index.ts");
+    // Prefer src/index.ts (local dev), fall back to dist/index.js (production deploy)
+    const srcEntry = resolve(VLIST_ROOT, "src/index.ts");
+    const distEntry = resolve(VLIST_ROOT, "dist/index.js");
+    const entry = existsSync(srcEntry) ? srcEntry : distEntry;
+
+    if (!existsSync(entry)) {
+      bundleSizeCache = "~9";
+      return;
+    }
+
     const code = `import { vlist } from "${entry}"; globalThis._v = [vlist];`;
     const tmpFile = "/tmp/_vlist_homepage_size.ts";
     await Bun.write(tmpFile, code);
