@@ -129,17 +129,32 @@ function loadBundleSize(): string {
 async function initBundleSize(): Promise<void> {
   if (bundleSizeCache && IS_PROD) return;
   if (!VLIST_ROOT) {
-    bundleSizeCache = "~9";
+    bundleSizeCache = "~11";
     return;
   }
+
+  // 1. Prefer dist/size.json — accurate tree-shaken value written by `bun run build`
   try {
-    // Prefer src/index.ts (local dev), fall back to dist/index.js (production deploy)
+    const sizeJsonPath = resolve(VLIST_ROOT, "dist/size.json");
+    if (existsSync(sizeJsonPath)) {
+      const data = JSON.parse(readFileSync(sizeJsonPath, "utf-8"));
+      if (data?.base?.gzipped) {
+        bundleSizeCache = data.base.gzipped;
+        return;
+      }
+    }
+  } catch {
+    // fall through to runtime build
+  }
+
+  // 2. Fall back to runtime tree-shaken build (local dev without size.json)
+  try {
     const srcEntry = resolve(VLIST_ROOT, "src/index.ts");
     const distEntry = resolve(VLIST_ROOT, "dist/index.js");
     const entry = existsSync(srcEntry) ? srcEntry : distEntry;
 
     if (!existsSync(entry)) {
-      bundleSizeCache = "~9";
+      bundleSizeCache = "~11";
       return;
     }
 
@@ -159,10 +174,10 @@ async function initBundleSize(): Promise<void> {
       const compressed = Bun.gzipSync(new Uint8Array(output));
       bundleSizeCache = (compressed.byteLength / 1024).toFixed(1);
     } else {
-      bundleSizeCache = "~9";
+      bundleSizeCache = "~11";
     }
   } catch {
-    bundleSizeCache = "~9";
+    bundleSizeCache = "~11";
   }
 }
 
