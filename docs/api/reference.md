@@ -148,8 +148,8 @@ interface ItemConfig<T extends VListItem = VListItem> {
 |----------|------|---------|-------------|
 | `height` | `number \| (index, ctx?) => number` | — | Item size in pixels along the main axis. Required for vertical lists. A plain number enables the fast path (zero per-item overhead). A function enables variable sizes with a prefix-sum array for O(1) offset lookup and O(log n) index search. In grid mode, receives a context object as a second argument — see [Grid](../features/grid.md). |
 | `width` | `number \| (index) => number` | — | Item size in pixels along the main axis for horizontal lists (`orientation: 'horizontal'`). Same semantics as `height`. Ignored in vertical mode. |
-| `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Items are rendered at this size, then measured via `ResizeObserver`, and the real size is cached. Use for content whose size can't be predicted from data. Ignored if `height` is also set. |
-| `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Ignored if `width` is also set. |
+| `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Requires `.use(withAutoSize())`. Items are rendered at this size, then measured via `ResizeObserver`, and the real size is cached. Use for content whose size can't be predicted from data. Ignored if `height` is also set. |
+| `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Requires `.use(withAutoSize())`. Ignored if `width` is also set. |
 | `gap` | `number` | `0` | Gap between items in pixels along the main axis. Adds consistent spacing between items without CSS margin hacks. Ignored when `withGrid` or `withMasonry` is active (those features manage their own gap). See [Gap & Padding](#gap--padding). |
 | `striped` | `boolean \| "data" \| "even" \| "odd"` | `false` | Toggles `.vlist-item--odd` class for zebra-stripe styling. `true` counts all items (including group headers). `"data"` excludes group headers from the count (continuous across groups). `"even"` resets the counter after each group header — first data row is always even/non-striped (macOS Finder behavior). `"odd"` same reset but first data row is odd/striped. Without `withGroups`, all string modes behave like `true`. See [Groups — Striped Rows](../features/groups.md#striped-rows-with-groups). |
 | `template` | `ItemTemplate<T>` | — | **Required.** Render function for each visible item. |
@@ -179,19 +179,27 @@ item: {
 }
 ```
 
-**Mode B — Auto-measurement.** Use when the size depends on rendered content that you can't predict from data — variable-length user text, images with unknown aspect ratios, mixed-media feeds. You provide an *estimate*; vlist renders items at that size, measures the actual DOM size via `ResizeObserver`, caches the result, and adjusts scroll position to prevent visual jumps.
+**Mode B — Auto-measurement.** Use when the size depends on rendered content that you can't predict from data — variable-length user text, images with unknown aspect ratios, mixed-media feeds. You provide an *estimate* and add the `withAutoSize()` feature; vlist renders items at that size, measures the actual DOM size via `ResizeObserver`, caches the result, and adjusts scroll position to prevent visual jumps.
 
 ```ts
+import { vlist, withAutoSize } from '@floor/vlist';
+
 // Social feed — posts vary from one-liner to multi-paragraph with images
-item: {
-  estimatedHeight: 120,
-  template: (post) => `
-    <article class="post">
-      <div class="post__body">${post.text}</div>
-      ${post.image ? `<img src="${post.image}" />` : ''}
-    </article>
-  `,
-}
+vlist({
+  container: '#app',
+  item: {
+    estimatedHeight: 120,
+    template: (post) => `
+      <article class="post">
+        <div class="post__body">${post.text}</div>
+        ${post.image ? `<img src="${post.image}" />` : ''}
+      </article>
+    `,
+  },
+  items: posts,
+})
+  .use(withAutoSize())
+  .build();
 ```
 
 Once an item is measured, it behaves identically to Mode A — subsequent renders use the cached size with no further measurement. See [Measurement](../internals/measurement.md) for the full architecture.

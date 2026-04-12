@@ -28,7 +28,7 @@ src/builder/
 ├── types.ts           # Builder types (VListFeature, BuilderContext, etc.)
 ├── core.ts            # vlist() factory — scroll loop, feature wiring, lifecycle
 ├── api.ts             # Public API assembly — data wrappers, scroll methods, destroy
-├── measurement.ts     # Mode B measurement — ResizeObserver, scroll correction, stayAtEnd
+├── a11y.ts            # Baseline ARIA keyboard navigation
 ├── context.ts         # BuilderContext creation
 ├── materialize.ts     # Internal materialization context
 ├── data.ts            # Simple data manager
@@ -45,7 +45,7 @@ src/builder/
 - `BuilderContext` - Feature context interface
 - `VListFeature` - Feature interface
 
-**Decomposition (v1.3.2+):** The original monolithic `core.ts` (1,513 lines) was decomposed into `core.ts` (~1,097 lines), `api.ts` (~370 lines), and `measurement.ts` (~200 lines). See [V1 Code Review](../archive/V1_CODE_REVIEW.md) item #1 for details.
+**Decomposition (v1.3.2+):** The original monolithic `core.ts` was decomposed into `core.ts`, `api.ts`, `a11y.ts`, and `materialize.ts`. Mode B measurement was extracted into the `withAutoSize()` feature.
 
 ## Events System
 
@@ -64,6 +64,16 @@ src/events/
 ## Features (Features)
 
 All features follow the same structure: `index.ts` (exports), `feature.ts` (feature implementation), and supporting modules.
+
+### AutoSize Feature
+
+Auto-measurement for items with unknown sizes (Mode B). Measures items via ResizeObserver after render.
+
+```
+src/features/autosize/
+├── index.ts           # Module exports
+└── feature.ts          # withAutoSize() feature — ResizeObserver, scroll correction
+```
 
 ### Async Feature
 

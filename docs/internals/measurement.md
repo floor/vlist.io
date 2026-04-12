@@ -36,20 +36,29 @@ In both cases, the consumer is fully responsible for the accuracy of the sizes. 
 
 ### Dynamic Sizes (vlist-measured)
 
-The consumer provides an **estimate** and vlist measures actual sizes internally via `ResizeObserver` in the real DOM layout context:
+The consumer provides an **estimate** and adds the `withAutoSize()` feature. Vlist measures actual sizes internally via `ResizeObserver` in the real DOM layout context:
 
 ```typescript
+import { vlist, withAutoSize } from '@floor/vlist';
+
 // Vertical (default) — estimate height, vlist measures blockSize
-item: {
-  estimatedHeight: 120,
-  template: renderPost,
-}
+vlist({
+  container: '#app',
+  item: { estimatedHeight: 120, template: renderPost },
+  items: posts,
+})
+  .use(withAutoSize())
+  .build();
 
 // Horizontal — estimate width, vlist measures inlineSize
-item: {
-  estimatedWidth: 200,
-  template: renderCard,
-}
+vlist({
+  container: '#app',
+  item: { estimatedWidth: 200, template: renderCard },
+  items: cards,
+  orientation: 'horizontal',
+})
+  .use(withAutoSize())
+  .build();
 ```
 
 Vlist renders items using the estimate for initial layout, measures actual DOM size after render, caches the real size, and corrects scroll position so the user sees no jump.
@@ -62,7 +71,7 @@ Vlist renders items using the estimate for initial layout, measures actual DOM s
 
 | | Known Sizes | Dynamic Sizes |
 |---|---|---|
-| **Config** | `item.height` or `item.width` | `item.estimatedHeight` or `item.estimatedWidth` |
+| **Config** | `item.height` or `item.width` | `item.estimatedHeight` or `item.estimatedWidth` + `.use(withAutoSize())` |
 | **Who measures** | Consumer (before init) | vlist (after render, via ResizeObserver) |
 | **Accuracy** | Pixel-perfect from the start | Estimates initially, exact after measurement |
 | **Layout context** | N/A — sizes are just numbers | Real DOM — correct width, padding, fonts |

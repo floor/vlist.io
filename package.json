@@ -1,6 +1,6 @@
 {
   "name": "vlist.io",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "vlist.io — documentation, examples, and benchamrks for the vlist library",
   "type": "module",
   "imports": {

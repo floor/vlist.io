@@ -182,8 +182,8 @@ interface ItemConfig<T extends VListItem = VListItem> {
 |----------|------|---------|-------------|
 | `height` | `number \| (index, ctx?) => number` | — | Item size in pixels along the main axis. Required for vertical lists. In grid mode, the function receives a `GridSizeContext` as a second argument. |
 | `width` | `number \| (index) => number` | — | Item size for horizontal lists (`orientation: 'horizontal'`). Ignored in vertical mode. |
-| `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Items are rendered at this size, measured via `ResizeObserver`, and the real size is cached. Ignored if `height` is also set. |
-| `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Ignored if `width` is also set. |
+| `estimatedHeight` | `number` | — | Estimated size for auto-measurement (Mode B). Requires `.use(withAutoSize())`. Items are rendered at this size, measured via `ResizeObserver`, and the real size is cached. Ignored if `height` is also set. |
+| `estimatedWidth` | `number` | — | Horizontal equivalent of `estimatedHeight`. Requires `.use(withAutoSize())`. Ignored if `width` is also set. |
 | `gap` | `number` | `0` | Gap between items in pixels along the main axis. Baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element size, so items are positioned with precise spacing. The trailing gap after the last item is automatically removed. Works with fixed sizes, variable sizes, and auto-measurement (Mode B). Ignored when `withGrid` or `withMasonry` is active — those features manage their own gap. |
 | `striped` | `boolean \| "data" \| "even" \| "odd"` | `false` | Toggles `.vlist-item--odd` class for zebra-stripe styling. `true` counts all items (including group headers). `"data"` excludes group headers from the count (continuous across groups). `"even"` resets the counter after each group header — first data row is always even/non-striped (macOS Finder behavior). `"odd"` same reset but first data row is odd/striped. Without `withGroups`, all string modes behave like `true`. See [Groups — Striped Rows](../features/groups.md#striped-rows-with-groups). |
 | `template` | `ItemTemplate<T>` | — | **Required.** Render function for each visible item. |
@@ -201,13 +201,21 @@ item: {
 }
 ```
 
-**Mode B — Auto-measurement.** Use when size depends on rendered content (variable-length text, images with unknown aspect ratios). You provide an estimate; vlist measures actual DOM size, caches the result, and adjusts scroll position.
+**Mode B — Auto-measurement.** Use when size depends on rendered content (variable-length text, images with unknown aspect ratios). You provide an estimate and add the `withAutoSize()` feature; vlist measures actual DOM size, caches the result, and adjusts scroll position.
 
 ```typescript
-item: {
-  estimatedHeight: 120,
-  template: (post) => `<article>${post.text}</article>`,
-}
+import { vlist, withAutoSize } from '@floor/vlist';
+
+vlist({
+  container: '#app',
+  item: {
+    estimatedHeight: 120,
+    template: (post) => `<article>${post.text}</article>`,
+  },
+  items: posts,
+})
+  .use(withAutoSize())
+  .build();
 ```
 
 **Precedence:** If both `height` and `estimatedHeight` are set, `height` wins (Mode A).

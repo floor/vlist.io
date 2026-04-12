@@ -143,13 +143,19 @@ item: { height: (index) => items[index].type === 'header' ? 64 : 48, template: m
 
 ### Mode B — Estimated + Measured
 
-Sizes are estimated, then measured after render via ResizeObserver:
+Sizes are estimated, then measured after render via ResizeObserver. Requires the `withAutoSize()` feature:
 
 ```typescript
-item: { estimatedHeight: 120, template: myTemplate }
+import { vlist, withAutoSize } from '@floor/vlist';
+
+vlist({
+  container: '#app',
+  item: { estimatedHeight: 120, template: myTemplate },
+  items: data,
+}).use(withAutoSize()).build();
 ```
 
-Mode B extends `SizeCache` with a `MeasuredSizeCache` that tracks which items have been measured vs estimated. Once measured, an item behaves identically to Mode A. Scroll corrections are applied immediately per-batch in the ResizeObserver callback, masked by the user's own scroll motion.
+Mode B extends `SizeCache` with a `MeasuredSizeCache` that tracks which items have been measured vs estimated. Once measured, an item behaves identically to Mode A. Scroll corrections are applied immediately per-batch in the ResizeObserver callback, masked by the user's own scroll motion. The `withAutoSize()` feature is tree-shakeable — it's only included in the bundle when imported.
 
 See [Measurement](../internals/measurement.md) for full internals.
 
