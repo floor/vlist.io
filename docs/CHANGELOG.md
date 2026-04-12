@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.5] — 2026-04-12
+
+### Added
+
+- **Modular CSS** — Grid and masonry styles extracted into dedicated `vlist-grid.css` (1.2 KB) and `vlist-masonry.css` (1.3 KB) files, matching the existing `vlist-table.css` pattern. New package exports: `vlist/styles/grid`, `vlist/styles/masonry`. Core CSS reduced from 9.7 KB to 7.4 KB.
+- **Zebra striping** — `.vlist-item--odd` compound selectors ensure selected state always overrides striped background via `background` shorthand (specificity 0,3,0).
+- **`--vlist-bg-striped`** — New CSS custom property for stripe color, included in all theme blocks.
+- **`--vlist-group-header-bg`** — Now defined in `:root` (light: `#f3f4f6`) and all dark mode blocks.
+
+### Changed
+
+- **State colors redesigned** — All interactive state colors now use `rgba` for composability and a clear visual hierarchy: striped 2% → hover 4% → selected 12% blue → selected+hover 18% blue. Selected+hover now goes darker (was incorrectly lighter).
+- **CSS tokens restructured** — Theme-invariant tokens (spacing, transitions, scrollbar geometry) separated from color tokens. All three dark mode blocks (`[data-theme-mode="dark"]`, `prefers-color-scheme`, `.dark`) now contain identical color-only overrides.
+- **Loading overlay** — Uses `color-mix(in srgb, var(--vlist-bg) 80%, transparent)` for automatic dark mode adaptation, eliminating three separate dark mode override blocks.
+- **Enter animation** — `.vlist-item--enter` now uses its own `vlist-item-enter` keyframe (slide-in with `translateY`) instead of conflicting with core's `vlist-fade-in`.
+
+### Fixed
+
+- **Animation name mismatch** — `.vlist-item--replaced` referenced `fade-in` instead of `vlist-fade-in`.
+- **Table dark mode** — Now supports all 3 dark mode patterns (was only `[data-theme-mode="dark"]`).
+- **Table fallback values** — Stale hex fallbacks updated to match current rgba token defaults.
+
+### Removed
+
+- **`.vlist--striped`** — CSS-only `:nth-child(even)` approach removed (broken with DOM recycling). Use `item.striped: true` for JS-based striping.
+- **`.vlist--animate`** — Removed (transitioning `transform` on items caused scroll jitter since items use `translateY` for positioning).
+- **`.vlist-scrollbar-hide`** — Removed (redundant with core's `.vlist-viewport--no-scrollbar`).
+- **Dead code** — Commented-out `border-left` and `padding-left` adjustments removed from selected state and compact/comfortable variants.
+
 ## [1.4.4] — 2026-04-11
 
 ### Fixed
