@@ -6,13 +6,13 @@
 
 vlist uses a CSS custom properties (design tokens) system that provides:
 
-- **Zero runtime overhead** - Pure CSS, no JavaScript styling
-- **Dark mode support** - Automatic via `prefers-color-scheme` or manual via `.dark` class
-- **Customizable** - Override tokens to match your design system
-- **Variants** - Pre-built compact, comfortable, borderless, and striped styles
-- **Tailwind compatible** - Works alongside Tailwind CSS v4+
-- **Performance-optimized** - CSS containment, `will-change`, and scroll transition suppression
-- **Split CSS** - Core styles (6.7 KB) separated from optional extras (3.4 KB)
+- **Zero runtime overhead** — Pure CSS, no JavaScript styling
+- **Dark mode support** — Three strategies: `prefers-color-scheme`, `.dark` class, or `[data-theme-mode]` attribute
+- **Customizable** — Override tokens to match your design system
+- **Variants** — Pre-built compact, comfortable, and borderless styles
+- **Tailwind compatible** — Works alongside Tailwind CSS v4+
+- **Performance-optimized** — CSS containment, `will-change`, and scroll transition suppression
+- **Modular CSS** — Core styles + opt-in feature stylesheets for grid, masonry, table, and extras
 
 ## Quick Start
 
@@ -32,18 +32,26 @@ const list = vlist({
 });
 ```
 
-### Import Optional Extras
+### Import Feature Styles
 
-The CSS is split into **core** and **extras** for minimal bundle size:
+CSS is split into **core** + **feature modules** so you only load what you use:
 
-| File | Size | Contents |
-|------|------|----------|
-| `dist/vlist.css` | 6.7 KB | Tokens, base layout, item states, custom scrollbar |
-| `dist/vlist-extras.css` | 3.4 KB | Variants, loading/empty states, utilities, animations |
+| Import | File | Size | Contents |
+|--------|------|------|----------|
+| `vlist/styles` | `vlist.css` | 7.4 KB | Tokens, base list, item states, scrollbar, groups, horizontal mode |
+| `vlist/styles/grid` | `vlist-grid.css` | 1.2 KB | Grid layout item styles |
+| `vlist/styles/masonry` | `vlist-masonry.css` | 1.3 KB | Masonry layout item styles |
+| `vlist/styles/table` | `vlist-table.css` | 7.2 KB | Table layout (header, rows, cells, resize) |
+| `vlist/styles/extras` | `vlist-extras.css` | 1.1 KB | Variants, loading/empty states, enter animation |
 
 ```typescript
-// Core styles only (recommended minimum)
+// Core styles (always required)
 import 'vlist/styles';
+
+// Feature styles — import alongside the matching feature
+import 'vlist/styles/grid';     // when using withGrid()
+import 'vlist/styles/masonry';  // when using withMasonry()
+import 'vlist/styles/table';    // when using withTable()
 
 // Optional extras (variants, loading states, animations)
 import 'vlist/styles/extras';
@@ -52,8 +60,13 @@ import 'vlist/styles/extras';
 ### Using a CDN
 
 ```html
-<!-- Core styles -->
+<!-- Core (always required) -->
 <link rel="stylesheet" href="https://unpkg.com/vlist/dist/vlist.css">
+
+<!-- Feature styles (import what you use) -->
+<link rel="stylesheet" href="https://unpkg.com/vlist/dist/vlist-grid.css">
+<link rel="stylesheet" href="https://unpkg.com/vlist/dist/vlist-masonry.css">
+<link rel="stylesheet" href="https://unpkg.com/vlist/dist/vlist-table.css">
 
 <!-- Optional extras -->
 <link rel="stylesheet" href="https://unpkg.com/vlist/dist/vlist-extras.css">
@@ -77,16 +90,22 @@ import 'vlist/styles/extras';
 |-------|-------------|
 | `.vlist-item--selected` | Applied to selected items |
 | `.vlist-item--focused` | Applied to keyboard-focused item |
-| `.vlist-item--enter` | Applied briefly for fade-in animation |
+| `.vlist-item--odd` | Applied to odd-indexed items when `item.striped` is enabled |
+| `.vlist-item--placeholder` | Applied to placeholder items during async loading |
+| `.vlist-item--replaced` | Applied briefly when a placeholder is replaced with real data |
+| `.vlist-item--enter` | Applied briefly for slide-in animation (requires extras CSS) |
 | `.vlist--scrolling` | Applied to root during active scroll (suppresses CSS transitions) |
+| `.vlist--selectable` | Applied to root when selection is enabled |
 
 ### Layout Modifier Classes
 
 | Class | Description |
 |-------|-------------|
-| `.vlist--horizontal` | Applied to root when `orientation: 'horizontal'`. Swaps scroll axis, item positioning, and border direction. Sets `aria-orientation="horizontal"`. |
-| `.vlist--grid` | Applied to root when `layout: 'grid'` |
-| `.vlist--grouped` | Applied to root when `groups` config is present |
+| `.vlist--horizontal` | Horizontal scroll mode — swaps scroll axis, item positioning, and border direction |
+| `.vlist--grid` | Grid layout mode (requires `vlist/styles/grid`) |
+| `.vlist--masonry` | Masonry layout mode (requires `vlist/styles/masonry`) |
+| `.vlist--table` | Table layout mode (requires `vlist/styles/table`) |
+| `.vlist--grouped` | Applied when `groups` config is present |
 
 ### Custom Scrollbar Classes
 
@@ -98,122 +117,109 @@ Used in compressed mode (1M+ items):
 | `.vlist-scrollbar--visible` | Shows the scrollbar |
 | `.vlist-scrollbar--dragging` | Active during thumb drag |
 | `.vlist-scrollbar-thumb` | Draggable thumb element |
-
-## CSS Performance Optimizations
-
-vlist applies several CSS-level performance optimizations automatically:
-
-### CSS Containment
-
-The items container and individual items use CSS containment to help the browser optimize layout and paint:
-
-```css
-/* Items container - layout and style containment */
-.vlist-items {
-  contain: layout style;
-}
-
-/* Individual items - content containment + compositing hint */
-.vlist-item {
-  contain: content;
-  will-change: transform;
-}
-```
-
-- **`contain: layout style`** on the items container tells the browser that layout/style changes inside won't affect outside elements
-- **`contain: content`** on items is a stricter containment that enables more aggressive optimization
-- **`will-change: transform`** promotes items to their own compositing layer for smooth GPU-accelerated positioning
-
-### Static Positioning via CSS
-
-Item positioning uses CSS classes instead of inline `style.cssText`. The `.vlist-item` class sets `position: absolute; top: 0; left: 0; right: 0` — only the dynamic `height` and `transform` (for Y positioning) are set via JavaScript. This eliminates per-element CSS string parsing.
-
-### Scroll Transition Suppression
-
-During active scrolling, the `.vlist--scrolling` class is added to the root element. This disables CSS transitions on items to prevent visual jank:
-
-```css
-/* Transitions are suppressed during scroll */
-.vlist--scrolling .vlist-item {
-  transition: none !important;
-}
-```
-
-When scrolling stops (idle detected), the class is removed and transitions are re-enabled. This ensures smooth 60fps scrolling while preserving animations during interaction.
+| `.vlist-viewport--custom-scrollbar` | Hides native scrollbar when custom scrollbar is active |
+| `.vlist-viewport--no-scrollbar` | Hides scrollbar completely (`scroll.scrollbar: "none"`) |
+| `.vlist-viewport--gutter-stable` | Reserves stable gutter space for native scrollbar |
 
 ---
 
 ## Design Tokens
 
-All visual properties are controlled via CSS custom properties.
+All visual properties are controlled via CSS custom properties defined in `:root`.
 
-### Colors (Light Mode)
+### Theme-Invariant Tokens
 
-```css
-:root {
-  --vlist-bg: #ffffff;                    /* Background */
-  --vlist-bg-hover: #f9fafb;              /* Hover state */
-  --vlist-bg-selected: #eff6ff;           /* Selected state */
-  --vlist-bg-selected-hover: #dbeafe;     /* Selected + hover */
-  --vlist-border: #e5e7eb;                /* Borders */
-  --vlist-border-selected: #3b82f6;       /* Selected indicator */
-  --vlist-text: #111827;                  /* Primary text */
-  --vlist-text-muted: #6b7280;            /* Secondary text */
-  --vlist-focus-ring: #3b82f6;            /* Focus outline */
-  --vlist-scrollbar-thumb: #d1d5db;       /* Scrollbar thumb */
-  --vlist-scrollbar-thumb-hover: #9ca3af; /* Scrollbar hover */
-}
-```
-
-### Colors (Dark Mode)
-
-Automatically applied via `prefers-color-scheme: dark` or `.dark` class:
+These are set once and never change between light/dark modes:
 
 ```css
 :root {
-  --vlist-bg: #111827;
-  --vlist-bg-hover: #1f2937;
-  --vlist-bg-selected: rgba(59, 130, 246, 0.2);
-  --vlist-bg-selected-hover: rgba(59, 130, 246, 0.3);
-  --vlist-border: #374151;
-  --vlist-border-selected: #3b82f6;
-  --vlist-text: #f9fafb;
-  --vlist-text-muted: #9ca3af;
-  --vlist-scrollbar-thumb: #4b5563;
-  --vlist-scrollbar-thumb-hover: #6b7280;
-}
-```
+  /* Spacing */
+  --vlist-item-padding-x: 1rem;
+  --vlist-item-padding-y: 0.75rem;
+  --vlist-border-radius: 0.5rem;
 
-### Spacing
+  /* Transitions */
+  --vlist-transition-duration: 150ms;
+  --vlist-transition-timing: ease-in-out;
 
-```css
-:root {
-  --vlist-item-padding-x: 1rem;     /* Horizontal padding */
-  --vlist-item-padding-y: 0.75rem;  /* Vertical padding */
-  --vlist-border-radius: 0.5rem;    /* Container radius */
-}
-```
-
-### Custom Scrollbar (Compressed Mode)
-
-```css
-:root {
+  /* Custom scrollbar geometry */
   --vlist-scrollbar-width: 8px;
   --vlist-scrollbar-track-bg: transparent;
-  --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);
-  --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5);
   --vlist-scrollbar-custom-thumb-radius: 4px;
 }
 ```
 
-### Transitions
+### Color Tokens (Light Mode)
+
+Light mode colors are the `:root` defaults — they apply with no setup:
 
 ```css
 :root {
-  --vlist-transition-duration: 150ms;
-  --vlist-transition-timing: ease-in-out;
+  --vlist-bg: #ffffff;                              /* Item background */
+  --vlist-bg-striped: rgba(0, 0, 0, 0.02);         /* Zebra stripe (subtle) */
+  --vlist-bg-hover: rgba(0, 0, 0, 0.04);           /* Hover state */
+  --vlist-bg-selected: rgba(59, 130, 246, 0.12);   /* Selected state (blue tint) */
+  --vlist-bg-selected-hover: rgba(59, 130, 246, 0.18); /* Selected + hover (stronger) */
+  --vlist-border: #e5e7eb;                          /* Borders / dividers */
+  --vlist-border-selected: #3b82f6;                 /* Selected accent */
+  --vlist-text: #111827;                            /* Primary text */
+  --vlist-text-muted: #6b7280;                      /* Secondary text */
+  --vlist-focus-ring: #3b82f6;                      /* Keyboard focus outline */
+  --vlist-group-header-bg: #f3f4f6;                 /* Group header background */
+  --vlist-scrollbar-thumb: #d1d5db;                 /* Native scrollbar thumb */
+  --vlist-scrollbar-thumb-hover: #9ca3af;           /* Native scrollbar hover */
+  --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);       /* Custom scrollbar thumb */
+  --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5); /* Custom scrollbar hover */
+  --vlist-placeholder-bg: rgba(0, 0, 0, 0.2);      /* Placeholder skeleton */
 }
 ```
+
+#### State Hierarchy
+
+The state backgrounds follow a clear visual hierarchy — each level is more prominent than the last:
+
+| State | Opacity | Purpose |
+|-------|---------|---------|
+| Striped | 2% black | Decorative zebra — barely visible |
+| Hover | 4% black | Interactive feedback — clearly visible |
+| Selected | 12% blue | Distinct accent color |
+| Selected + hover | 18% blue | Stronger — confirms "still pointing at this" |
+
+### Color Tokens (Dark Mode)
+
+Dark mode overrides only the color tokens. The same set is applied via three selectors for different integration patterns:
+
+```css
+/* All three selectors set the same dark color tokens */
+[data-theme-mode="dark"],    /* Explicit attribute */
+.dark {                       /* Tailwind convention */
+  --vlist-bg: #111827;
+  --vlist-bg-striped: rgba(255, 255, 255, 0.02);
+  --vlist-bg-hover: rgba(255, 255, 255, 0.06);
+  --vlist-bg-selected: rgba(59, 130, 246, 0.2);
+  --vlist-bg-selected-hover: rgba(59, 130, 246, 0.28);
+  --vlist-border: #374151;
+  --vlist-border-selected: #3b82f6;
+  --vlist-text: #f9fafb;
+  --vlist-text-muted: #9ca3af;
+  --vlist-focus-ring: #3b82f6;
+  --vlist-group-header-bg: #1e2433;
+  --vlist-scrollbar-thumb: #4b5563;
+  --vlist-scrollbar-thumb-hover: #6b7280;
+  --vlist-scrollbar-custom-thumb-bg: rgba(255, 255, 255, 0.3);
+  --vlist-scrollbar-custom-thumb-hover-bg: rgba(255, 255, 255, 0.5);
+  --vlist-placeholder-bg: rgba(255, 255, 255, 0.3);
+}
+
+/* OS-level preference (auto, no JS needed) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme-mode="light"]):not([data-theme-mode="dark"]) {
+    /* Same dark tokens as above */
+  }
+}
+```
+
+---
 
 ## Customization
 
@@ -222,10 +228,9 @@ Automatically applied via `prefers-color-scheme: dark` or `.dark` class:
 Apply custom values to match your design system:
 
 ```css
-/* Custom theme */
 :root {
   --vlist-bg: #fafafa;
-  --vlist-bg-selected: #e0f2fe;
+  --vlist-bg-selected: rgba(14, 165, 233, 0.15);
   --vlist-border-selected: #0ea5e9;
   --vlist-focus-ring: #0ea5e9;
   --vlist-border-radius: 0.75rem;
@@ -240,7 +245,7 @@ Apply different styles to specific lists:
 .my-custom-list {
   --vlist-bg: #1e1e2e;
   --vlist-text: #cdd6f4;
-  --vlist-bg-selected: #45475a;
+  --vlist-bg-selected: rgba(137, 180, 250, 0.2);
 }
 ```
 
@@ -260,7 +265,7 @@ const list = vlist({
 });
 ```
 
-Then update your CSS:
+Then update your CSS accordingly:
 
 ```css
 .mylist { /* ... */ }
@@ -268,7 +273,42 @@ Then update your CSS:
 .mylist-item--selected { /* ... */ }
 ```
 
+---
+
+## Zebra Striping
+
+Virtual lists recycle DOM elements out of document order, so CSS `:nth-child(even/odd)` **does not work** for logical striping. vlist solves this with JavaScript-based striping that toggles a `.vlist-item--odd` class based on the real item index.
+
+### Enable Striping
+
+```typescript
+const list = vlist({
+  container: '#app',
+  item: {
+    height: 48,
+    striped: true,            // true, "even", "odd", or "data"
+    template: (item) => `...`,
+  },
+  items: data
+});
+```
+
+### Striping Modes
+
+| Mode | Description |
+|------|-------------|
+| `true` | Simple alternation by item index |
+| `"even"` | Even items get the odd class (resets per group) |
+| `"odd"` | Odd items get the odd class (resets per group) |
+| `"data"` | Skips group headers — only data items alternate |
+
+The `.vlist-item--odd` class is styled in `vlist.css` using the `--vlist-bg-striped` token. Selected state always overrides the stripe background.
+
+---
+
 ## Variants
+
+Variants are opt-in CSS classes from `vlist/styles/extras`.
 
 ### Compact
 
@@ -276,12 +316,6 @@ Reduced padding for dense lists:
 
 ```html
 <div id="list" class="vlist vlist--compact"></div>
-```
-
-```css
-.vlist--compact .vlist-item {
-  padding: 0.5rem 0.75rem;
-}
 ```
 
 ### Comfortable
@@ -292,12 +326,6 @@ Increased padding for touch-friendly lists:
 <div id="list" class="vlist vlist--comfortable"></div>
 ```
 
-```css
-.vlist--comfortable .vlist-item {
-  padding: 1rem 1.25rem;
-}
-```
-
 ### Borderless
 
 Remove container and item borders:
@@ -306,71 +334,63 @@ Remove container and item borders:
 <div id="list" class="vlist vlist--borderless"></div>
 ```
 
-### Striped
-
-Alternating row backgrounds:
-
-```html
-<div id="list" class="vlist vlist--striped"></div>
-```
-
-### Animated
-
-Enable smooth item transitions:
-
-```html
-<div id="list" class="vlist vlist--animate"></div>
-```
-
 ### Combining Variants
 
 ```html
-<div id="list" class="vlist vlist--compact vlist--striped vlist--borderless"></div>
+<div id="list" class="vlist vlist--compact vlist--borderless"></div>
 ```
+
+---
 
 ## Dark Mode
 
-### Automatic (System Preference)
+vlist supports three dark mode strategies. All three set the same color tokens — use whichever matches your app.
 
-Dark mode is automatically applied when the user's system prefers dark mode:
+### 1. Automatic (OS Preference)
+
+Works with zero JavaScript — dark colors apply when the user's system prefers dark:
 
 ```css
 @media (prefers-color-scheme: dark) {
-  :root {
-    --vlist-bg: #111827;
-    /* ... dark mode tokens */
+  :root:not([data-theme-mode="light"]):not([data-theme-mode="dark"]) {
+    /* dark tokens applied automatically */
   }
 }
 ```
 
-### Manual Toggle
+This is skipped when an explicit `data-theme-mode` attribute is set, preventing conflicts with manual toggles.
 
-Use the `.dark` class on any parent element:
+### 2. Tailwind / Class-Based
 
-```html
-<body class="dark">
-  <div id="list"></div>
-</body>
-```
-
-Or scope it to the list:
+Use the `.dark` class on any ancestor element:
 
 ```html
-<div id="list" class="dark"></div>
-```
-
-### Tailwind CSS Integration
-
-If using Tailwind's dark mode:
-
-```html
-<!-- Tailwind class-based dark mode -->
 <html class="dark">
   <body>
     <div id="list"></div>
   </body>
 </html>
 ```
+
+### 3. Explicit Attribute
+
+Use `data-theme-mode` for full control (light/dark toggle):
+
+```html
+<html data-theme-mode="dark">
+  <body>
+    <div id="list"></div>
+  </body>
+</html>
+```
+
+Switch themes by changing the attribute:
+
+```typescript
+document.documentElement.dataset.themeMode = 'light'; // or 'dark'
+```
+
+---
 
 ## Template Styling
 
@@ -383,8 +403,8 @@ const list = vlist({
     height: 64,
     template: (item, index, { selected, focused }) => `
     <div class="flex items-center gap-4 w-full">
-      <img 
-        src="${item.avatar}" 
+      <img
+        src="${item.avatar}"
         class="w-10 h-10 rounded-full"
         alt="${item.name}"
       />
@@ -416,9 +436,15 @@ item: {
 }
 ```
 
+---
+
 ## Loading & Empty States
 
+These classes are defined in `vlist/styles/extras`.
+
 ### Loading Overlay
+
+The loading overlay adapts to light/dark mode automatically via `color-mix()`:
 
 ```css
 .vlist-loading {
@@ -427,7 +453,7 @@ item: {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: color-mix(in srgb, var(--vlist-bg) 80%, transparent);
   backdrop-filter: blur(4px);
   z-index: 20;
 }
@@ -439,10 +465,6 @@ item: {
   border-top-color: var(--vlist-focus-ring);
   border-radius: 50%;
   animation: vlist-spin 1s linear infinite;
-}
-
-@keyframes vlist-spin {
-  to { transform: rotate(360deg); }
 }
 ```
 
@@ -473,14 +495,31 @@ item: {
 }
 ```
 
+---
+
 ## Animations
 
-### Fade-in Animation
+### Placeholder → Real Data
 
-New items can animate in:
+When async-loaded items replace placeholders, a subtle fade-in is applied automatically via core CSS:
 
 ```css
 @keyframes vlist-fade-in {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}
+
+.vlist-item--replaced {
+  animation: vlist-fade-in 0.3s ease-out;
+}
+```
+
+### Item Enter (Extras)
+
+For a slide-in effect on new items, use the `.vlist-item--enter` class from `vlist/styles/extras`:
+
+```css
+@keyframes vlist-item-enter {
   from {
     opacity: 0;
     transform: translateY(-8px);
@@ -492,43 +531,54 @@ New items can animate in:
 }
 
 .vlist-item--enter {
-  animation: vlist-fade-in 0.2s ease-out;
+  animation: vlist-item-enter 0.2s ease-out;
 }
 ```
 
-### Smooth Transitions
+---
 
-Enable with the `.vlist--animate` variant:
+## CSS Performance Optimizations
+
+vlist applies several CSS-level performance optimizations automatically.
+
+### CSS Containment
 
 ```css
-.vlist--animate .vlist-item {
-  transition:
-    background-color var(--vlist-transition-duration) var(--vlist-transition-timing),
-    transform 0.2s ease-out,
-    opacity 0.2s ease-out;
+/* Items container — layout and style containment */
+.vlist-items {
+  contain: layout style;
+}
+
+/* Individual items — content containment + compositing hint */
+.vlist-item {
+  contain: content;
+  will-change: transform;
 }
 ```
 
-## Utility Classes
+- **`contain: layout style`** on the items container tells the browser that layout/style changes inside won't affect outside elements
+- **`contain: content`** on items is a stricter containment that enables more aggressive optimization
+- **`will-change: transform`** promotes items to their own compositing layer for smooth GPU-accelerated positioning
 
-### Hide Scrollbar
+### Static Positioning via CSS
 
-Keep scroll functionality but hide the scrollbar:
+Item positioning uses CSS classes instead of inline `style.cssText`. The `.vlist-item` class sets `position: absolute; top: 0; left: 0; right: 0` — only the dynamic `height` and `transform` (for Y positioning) are set via JavaScript. This eliminates per-element CSS string parsing.
 
-```html
-<div id="list" class="vlist-scrollbar-hide"></div>
-```
+### Scroll Transition Suppression
+
+During active scrolling, the `.vlist--scrolling` class is added to the root element. This disables CSS transitions on items to prevent visual jank:
 
 ```css
-.vlist-scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.vlist-scrollbar-hide::-webkit-scrollbar {
-  display: none;
+.vlist--scrolling .vlist-item {
+  transition: none;
 }
 ```
+
+When scrolling stops (idle detected), the class is removed and transitions are re-enabled. This ensures smooth 60fps scrolling while preserving animations during interaction.
+
+> **Note:** Never add `transition: transform` to `.vlist-item` — items are positioned via `transform: translateY()`, and transitioning that property causes jittery, sluggish scrolling instead of crisp repositioning.
+
+---
 
 ## Best Practices
 
@@ -544,7 +594,7 @@ Always use CSS custom properties instead of hardcoding values:
 
 /* ❌ Avoid */
 .my-item {
-  background: #eff6ff;
+  background: #dbeafe;
 }
 ```
 
@@ -553,23 +603,39 @@ Always use CSS custom properties instead of hardcoding values:
 Use specific selectors to avoid conflicts:
 
 ```css
-/* ✅ Good - scoped */
+/* ✅ Good — scoped */
 #my-list .vlist-item {
   font-size: 14px;
 }
 
-/* ❌ Avoid - too broad */
+/* ❌ Avoid — too broad */
 .vlist-item {
   font-size: 14px;
 }
 ```
 
-### 3. Keep Templates Lightweight
+### 3. Use `background-color` Not `background` for Item Overrides
+
+If you style `.vlist-item--odd` or other item states, use `background-color` (longhand) so the library's selected/hover states can properly override via the `background` shorthand:
+
+```css
+/* ✅ Good — longhand, won't fight with selected state */
+.my-list .vlist-item--odd {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* ❌ Avoid — shorthand can override selected state */
+.my-list .vlist-item--odd {
+  background: rgba(0, 0, 0, 0.03);
+}
+```
+
+### 4. Keep Templates Lightweight
 
 For best performance, keep template CSS minimal:
 
 ```typescript
-// ✅ Good - uses existing classes
+// ✅ Good — uses existing classes
 item: {
   height: 48,
   template: (item) => `
@@ -579,7 +645,7 @@ item: {
   `,
 }
 
-// ❌ Avoid - complex inline styles
+// ❌ Avoid — complex inline styles
 item: {
   height: 48,
   template: (item) => `
@@ -590,11 +656,9 @@ item: {
 }
 ```
 
-### 4. Test Dark Mode
+### 5. Test Dark Mode
 
-Always verify your customizations work in both light and dark modes.
-
-
+Always verify your customizations work in both light and dark modes. Use your browser's DevTools to toggle `prefers-color-scheme`, or set `data-theme-mode="dark"` on the root element.
 
 ---
 

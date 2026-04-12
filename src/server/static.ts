@@ -21,6 +21,8 @@ const VLIST_SRC_STYLES = (() => {
 /** Map dist CSS filenames → source filenames (identical names). */
 const DEV_CSS_MAP: Record<string, string> = {
   "vlist.css": "vlist.css",
+  "vlist-grid.css": "vlist-grid.css",
+  "vlist-masonry.css": "vlist-masonry.css",
   "vlist-table.css": "vlist-table.css",
   "vlist-extras.css": "vlist-extras.css",
 };
