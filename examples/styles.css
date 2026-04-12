@@ -1,48 +1,10 @@
 /* examples/styles.css — Page scaffolding for example pages
 
-   Container layout, vlist theme bridging, example footer, and responsive
-   breakpoints. UI components are in styles/ui.css.
+   Container layout, example footer, and responsive breakpoints.
+   UI components are in styles/ui.css.
 
    Used in: all individual example pages (built to dist/examples/)
    NOT used in: examples/index.html (uses styles/examples.css) */
-
-/* ============================================================================
-   VList Theme Overrides
-   vlist.css uses @media (prefers-color-scheme) and .dark class,
-   but the website uses [data-theme] on <html>. Bridge the two systems.
-   ============================================================================ */
-
-html[data-theme-mode="light"] {
-    --vlist-bg: #ffffff;
-    --vlist-bg-hover: #f9fafb;
-    --vlist-bg-selected: #eff6ff;
-    --vlist-bg-selected-hover: #dbeafe;
-    --vlist-border: #e5e7eb;
-    --vlist-border-selected: #3b82f6;
-    --vlist-text: #111827;
-    --vlist-text-muted: #6b7280;
-    --vlist-scrollbar-thumb: #d1d5db;
-    --vlist-scrollbar-thumb-hover: #9ca3af;
-    --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);
-    --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5);
-    --vlist-group-header-bg: #f3f4f6;
-}
-
-html[data-theme-mode="dark"] {
-    --vlist-bg: #111827;
-    --vlist-bg-hover: #1f2937;
-    --vlist-bg-selected: rgba(59, 130, 246, 0.2);
-    --vlist-bg-selected-hover: rgba(59, 130, 246, 0.3);
-    --vlist-border: #374151;
-    --vlist-border-selected: #3b82f6;
-    --vlist-text: #f9fafb;
-    --vlist-text-muted: #9ca3af;
-    --vlist-scrollbar-thumb: #4b5563;
-    --vlist-scrollbar-thumb-hover: #6b7280;
-    --vlist-scrollbar-custom-thumb-bg: rgba(255, 255, 255, 0.3);
-    --vlist-scrollbar-custom-thumb-hover-bg: rgba(255, 255, 255, 0.5);
-    --vlist-group-header-bg: #1e2433;
-}
 
 /* ============================================================================
    Sandbox Design Tokens

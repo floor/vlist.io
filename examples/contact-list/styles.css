@@ -30,6 +30,20 @@
     background: var(--vlist-group-header-bg, #f3f4f6);
 }
 
+/* ============================================================================
+   Sticky header styling overrides
+   ============================================================================ */
+
+.vlist-sticky-header {
+    display: flex;
+    align-items: center;
+}
+
+.vlist-sticky-header .group-header {
+    width: 100%;
+    background-color: white;
+}
+
 .group-header__letter {
     font-size: 13px;
     font-weight: 700;
@@ -211,17 +225,4 @@
 .contact-detail__role {
     font-size: 12px;
     color: var(--text-muted);
-}
-
-/* ============================================================================
-   Sticky header styling overrides
-   ============================================================================ */
-
-.vlist-sticky-header {
-    display: flex;
-    align-items: center;
-}
-
-.vlist-sticky-header .group-header {
-    width: 100%;
 }

@@ -3,8 +3,27 @@
 
 import { existsSync, statSync } from "fs";
 import { join, extname, resolve } from "path";
-import { ROOT, VLIST_ROOT } from "./config";
+import { ROOT, VLIST_ROOT, IS_PROD } from "./config";
 import { CACHE_IMMUTABLE, CACHE_STATIC, CACHE_NOCACHE } from "./cache";
+
+// =============================================================================
+// Dev Mode: vlist source CSS
+// =============================================================================
+
+/** In dev mode, resolve vlist CSS from src/styles/ (readable) instead of dist/ (minified).
+ *  VLIST_ROOT points to the package root (follows symlinks), so src/styles/ is directly under it. */
+const VLIST_SRC_STYLES = (() => {
+  if (IS_PROD || !VLIST_ROOT) return null;
+  const candidate = resolve(VLIST_ROOT, "src/styles");
+  return existsSync(candidate) ? candidate : null;
+})();
+
+/** Map dist CSS filenames → source filenames (identical names). */
+const DEV_CSS_MAP: Record<string, string> = {
+  "vlist.css": "vlist.css",
+  "vlist-table.css": "vlist-table.css",
+  "vlist-extras.css": "vlist-extras.css",
+};
 
 // =============================================================================
 // MIME Types
@@ -169,6 +188,17 @@ export const resolveStatic = (pathname: string): Response | null => {
   // /dist/benchmarks/* → project root dist/benchmarks directory
   if (pathname.startsWith("/dist/benchmarks/")) {
     return serveStatic(pathname);
+  }
+
+  // /dist/vlist*.css → in dev mode, serve from src/styles/ (readable)
+  if (VLIST_SRC_STYLES && pathname.startsWith("/dist/")) {
+    const filename = pathname.slice("/dist/".length);
+    if (filename in DEV_CSS_MAP) {
+      const srcPath = join(VLIST_SRC_STYLES, DEV_CSS_MAP[filename]);
+      if (existsSync(srcPath)) {
+        return serveFile(srcPath, pathname);
+      }
+    }
   }
 
   // /dist/* → vlist package dist directory
