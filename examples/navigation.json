@@ -37,7 +37,7 @@
         "slug": "social-feed",
         "name": "Social Feed",
         "desc": "Social feed with real posts — variable heights measured automatically",
-        "features": ["estimatedHeight", "async"]
+        "features": ["autosize", "async"]
       },
       {
         "slug": "file-browser",
@@ -90,7 +90,7 @@
         "slug": "variable-sizes",
         "name": "Variables Sizes",
         "desc": "Variable Sizes Exmaples",
-        "features": ["core", "invert"]
+        "features": ["autosize", "invert"]
       },
       {
         "slug": "scroll-restore",

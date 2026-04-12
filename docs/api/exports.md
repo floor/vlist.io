@@ -14,7 +14,7 @@ boundary between stable API and implementation details explicit.
 
 ```ts
 // Public API — stable
-import { vlist, withGrid, withSelection } from '@floor/vlist'
+import { vlist, withGrid, withSelection, withAutoSize } from '@floor/vlist'
 
 // Internals — advanced, use at your own risk
 import { createSizeCache, calculateScrollToIndex } from '@floor/vlist/internals'

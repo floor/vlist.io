@@ -87,6 +87,11 @@
         "desc": "Grouped lists with headers (withGroups)"
       },
       {
+        "slug": "features/autosize",
+        "name": "AutoSize",
+        "desc": "Auto-measure items via ResizeObserver (withAutoSize)"
+      },
+      {
         "slug": "features/scrollbar",
         "name": "Scrollbar",
         "desc": "Custom scrollbar UI (withScrollbar)"

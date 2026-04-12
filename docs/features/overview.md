@@ -15,6 +15,7 @@
 | `withScrollbar()` | +1.0 KB | Custom scrollbar UI with auto-hide |
 | `withPage()` | +0.9 KB | Document-level (window) scrolling |
 | `withScale()` | +2.2 KB | Compress scroll space for 1M+ items |
+| `withAutoSize()` | +0.7 KB | Auto-measure items via ResizeObserver (Mode B) |
 | `withSnapshots()` | 0 KB | Scroll position save/restore (included in base) |
 
 ---
@@ -245,6 +246,31 @@ const bigList = vlist({
 
 ---
 
+## withAutoSize() — Auto-Measurement
+
+Measure items via `ResizeObserver` for content with unpredictable sizes.
+
+```typescript
+import { vlist, withAutoSize } from '@floor/vlist';
+
+const feed = vlist({
+  container: '#feed',
+  items: posts,
+  item: {
+    estimatedHeight: 120,
+    template: (post) => `<article>${post.text}</article>`,
+  },
+})
+  .use(withAutoSize())
+  .build();
+```
+
+Items render at the estimated size, then snap to their measured height. Each item is measured once and cached.
+
+> [Full docs](./autosize.md)
+
+---
+
 ## withSnapshots() — Scroll Save/Restore
 
 Included in the base — no import needed.
@@ -271,18 +297,19 @@ if (saved) list.restoreScroll(saved);
 
 Most features compose freely. This matrix shows the known constraints:
 
-| | Table | Grid | Masonry | Groups | Async | Selection | Scale | Scrollbar | Page | Snapshots |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Table** | — | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
-| **Grid** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ |
-| **Masonry** | ❌ | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ |
-| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ |
-| **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ |
-| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| | Table | Grid | Masonry | Groups | Async | Selection | Scale | Scrollbar | Page | Snapshots | AutoSize |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Table** | — | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
+| **Grid** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
+| **Masonry** | ❌ | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ | ✅ |
+| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ |
+| **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ | ✅ |
+| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| **AutoSize** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 
 | Symbol | Meaning |
 |--------|---------|

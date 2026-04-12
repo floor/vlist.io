@@ -6,7 +6,7 @@
 //
 // Any combination works — you can pre-measure Reddit posts or auto-size RSS items.
 
-import { vlist } from "vlist";
+import { vlist, withAutoSize } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -432,7 +432,7 @@ function createList() {
         estimatedHeight: estimatedSize,
         template: renderPost,
       },
-    }).build();
+    }).use(withAutoSize()).build();
 
     initTime = performance.now() - start;
   }
