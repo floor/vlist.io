@@ -438,6 +438,80 @@ item: {
 
 ---
 
+## Tailwind CSS Integration
+
+vlist works alongside Tailwind CSS out of the box. Tailwind utility classes can be used freely inside templates, and vlist's `.dark` class integration matches Tailwind's dark mode convention.
+
+### Dark Mode
+
+Tailwind's class-based dark mode (`.dark` on `<html>`) is natively supported — vlist detects it and applies dark tokens automatically:
+
+```html
+<html class="dark">
+  <body>
+    <div id="list"></div> <!-- vlist picks up dark mode -->
+  </body>
+</html>
+```
+
+No extra configuration needed. Tailwind and vlist share the same `.dark` class convention.
+
+### Utility Classes in Templates
+
+Use Tailwind classes directly in your item templates:
+
+```typescript
+const list = vlist({
+  container: '#app',
+  item: {
+    height: 64,
+    template: (item, index, { selected }) => `
+      <div class="flex items-center gap-3 px-4 w-full">
+        <img src="${item.avatar}" class="w-8 h-8 rounded-full" />
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">${item.name}</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${item.email}</div>
+        </div>
+        ${selected ? '<div class="w-2 h-2 rounded-full bg-blue-500"></div>' : ''}
+      </div>
+    `,
+  },
+  items: users,
+  selection: { mode: 'single' }
+});
+```
+
+> **Tip:** Tailwind's `dark:` variants work inside templates because the `.dark` class is on an ancestor element.
+
+### Overriding Tokens with Tailwind
+
+You can remap vlist tokens to Tailwind's color palette using `@theme` or plain CSS:
+
+```css
+/* Map vlist tokens to your Tailwind theme */
+:root {
+  --vlist-bg-selected: theme('colors.blue.100 / 0.5');
+  --vlist-border-selected: theme('colors.blue.500');
+  --vlist-focus-ring: theme('colors.blue.500');
+  --vlist-border-radius: theme('borderRadius.lg');
+}
+```
+
+### Preflight Considerations
+
+Tailwind's [Preflight](https://tailwindcss.com/docs/preflight) reset is generally compatible with vlist. However, if you notice unexpected styling (e.g., borders or margins on vlist elements), ensure `vlist/styles` is imported **after** Tailwind's base layer:
+
+```css
+/* Your main CSS file */
+@import 'tailwindcss';
+
+/* vlist styles after Tailwind base — ensures vlist rules take precedence */
+@import 'vlist/styles';
+@import 'vlist/styles/extras';
+```
+
+---
+
 ## Loading & Empty States
 
 These classes are defined in `vlist/styles/extras`.
