@@ -470,6 +470,10 @@
     margin-bottom: 8px;
 }
 
+.ui-detail__header:last-child {
+    margin-bottom: 0;
+}
+
 .ui-detail__name {
     font-weight: 600;
     font-size: var(--fs-ui);

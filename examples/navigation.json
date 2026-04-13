@@ -40,12 +40,6 @@
         "features": ["autosize", "async"]
       },
       {
-        "slug": "file-browser",
-        "name": "File Browser",
-        "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
-        "features": ["table", "grid", "selection", "groups", "scrollbar"]
-      },
-      {
         "slug": "carousel",
         "name": "Carousel",
         "desc": "Horizontal scrolling with fixed or variable item widths — toggle to compare",
@@ -58,10 +52,10 @@
         "features": ["page", "async"]
       },
       {
-        "slug": "wizard-nav",
-        "name": "Wizard",
-        "desc": "Button-only step navigation — wheel scrolling disabled",
-        "features": ["scroll.wheel", "selection"]
+        "slug": "track-list",
+        "name": "Track List",
+        "desc": "",
+        "features": ["async", "selection", "table", "grid"]
       },
       {
         "slug": "accessibility",
@@ -97,12 +91,23 @@
         "name": "Scroll Restore",
         "desc": "Save and restore scroll position across navigations",
         "features": ["snapshots", "selection"]
+      }
+    ]
+  },
+  {
+    "label": "Experimental",
+    "items": [
+      {
+        "slug": "file-browser",
+        "name": "File Browser",
+        "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
+        "features": ["table", "grid", "selection", "groups", "scrollbar"]
       },
       {
-        "slug": "track-list",
-        "name": "Track List",
-        "desc": "",
-        "features": ["async", "selection", "table", "grid"]
+        "slug": "wizard-nav",
+        "name": "Wizard",
+        "desc": "Button-only step navigation — wheel scrolling disabled",
+        "features": ["scroll.wheel", "selection"]
       }
     ]
   }

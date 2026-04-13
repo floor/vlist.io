@@ -236,7 +236,7 @@ const COLUMN_PRESETS = {
     {
       key: "population",
       label: "Population",
-      width: 140,
+      width: 136,
       minWidth: 100,
       align: "right",
       sortable: true,
@@ -253,7 +253,7 @@ const COLUMN_PRESETS = {
     {
       key: "lat",
       label: "Lat",
-      width: 74,
+      width: 70,
       minWidth: 70,
       align: "right",
       sortable: true,
@@ -261,7 +261,7 @@ const COLUMN_PRESETS = {
     {
       key: "lng",
       label: "Lng",
-      width: 74,
+      width: 70,
       minWidth: 70,
       align: "right",
       sortable: true,
@@ -473,12 +473,6 @@ function showCityDetail(city) {
         <div class="ui-detail__name">${city.name}</div>
         <div class="table-detail__role">${city.continent}</div>
       </div>
-    </div>
-    <div class="ui-detail__meta">
-      <span>Population: <strong>${popStr}</strong></span>
-      <span>Country: ${city.country_code}</span>
-      <span>Coordinates: ${lat}, ${lng}</span>
-      <span class="ui-badge ui-badge--pill" style="background:${color};color:#fff;display:inline-block;margin-top:4px">${city.continent}</span>
     </div>
   `;
 }
