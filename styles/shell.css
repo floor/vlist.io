@@ -243,7 +243,7 @@ body {
     font-size: var(--fs-md);
     color: var(--text-muted);
     text-decoration: none;
-    padding: 5px 20px;
+    padding: 2px 20px;
     transition: all 0.1s;
     margin-right: 8px;
     border-radius: 6px;
@@ -333,7 +333,7 @@ body {
     line-height: 1.5;
     color: var(--text-muted);
     text-decoration: none;
-    padding: 4px 0;
+    padding: 2px 0;
     transition: color 0.15s;
     border-left: 2px solid transparent;
     padding-left: 10px;

@@ -508,7 +508,9 @@ async function deleteSelected() {
     }
   });
 
+  totalTracks = list.total;
   list.clearSelection();
+  updateInfo();
 
   // Auto-select the item that is now at the deleted position
   if (
