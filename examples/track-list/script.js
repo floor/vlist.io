@@ -392,6 +392,14 @@ scrollbarToggle.addEventListener("change", (e) => {
 
 scaleToggle.addEventListener("change", (e) => {
   currentScaleEnabled = e.target.checked;
+  // Scale forces custom scrollbar — lock the toggle on when scale is active
+  if (currentScaleEnabled) {
+    scrollbarToggle.checked = true;
+    scrollbarToggle.disabled = true;
+    currentScrollbarEnabled = true;
+  } else {
+    scrollbarToggle.disabled = false;
+  }
   createList(currentSelectionMode);
 });
 
@@ -422,8 +430,14 @@ selectionModeEl.addEventListener("click", (e) => {
 btnSelectAll.addEventListener("click", () => {
   if (currentSelectionMode !== "multiple") {
     setSelectionMode("multiple");
+    // List was recreated — wait for async data to load before selecting
+    const unsub = list.on("load:end", () => {
+      unsub();
+      list.selectAll();
+    });
+  } else {
+    list.selectAll();
   }
-  list.selectAll();
 });
 
 btnClear.addEventListener("click", () => {
@@ -432,6 +446,7 @@ btnClear.addEventListener("click", () => {
 
 function updateSelectionCount(selected) {
   selectionCountEl.textContent = formatSelectionCount(selected.length);
+  btnDeleteSelected.disabled = selected.length === 0;
 }
 
 // =============================================================================
@@ -472,9 +487,18 @@ btnAddTrack.addEventListener("click", async () => {
   }
 });
 
+const MAX_DELETE = 25;
+
 async function deleteSelected() {
   const selected = list.getSelected();
   if (selected.length === 0) return;
+
+  if (selected.length > MAX_DELETE) {
+    alert(
+      `You can delete up to ${MAX_DELETE} tracks at a time to keep the demo functional.`,
+    );
+    return;
+  }
 
   const items = list.getSelectedItems();
 
