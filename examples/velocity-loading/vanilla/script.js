@@ -28,24 +28,11 @@ import { createInfoUpdater } from "../../info.js";
 // Storage key for snapshots
 const STORAGE_KEY = "vlist-velocity-loading-snapshot";
 
-// Parse saved snapshot (if any) to configure autoLoad + restore
-const savedRaw = sessionStorage.getItem(STORAGE_KEY);
-let snapshot = undefined;
-if (savedRaw) {
-  try {
-    snapshot = JSON.parse(savedRaw);
-  } catch (e) {
-    // Corrupt data — ignore
-  }
-}
-
 // Stats tracking
 let loadRequests = 0;
 let loadedCount = 0;
 let currentVelocity = 0;
 let isLoading = false;
-let saveSnapshotTimeoutId = null;
-let isRestoringSnapshot = !!snapshot;
 
 // DOM references (will be set after DOM loads)
 let loadRequestsEl, loadedCountEl;
@@ -113,8 +100,9 @@ function updateContext() {
   if (infoLoadedEl) infoLoadedEl.textContent = formatLoadedCount(loadedCount);
 }
 
-// Build list — snapshot restoration happens automatically via withSnapshots({ restore })
-// before the browser's first paint, so the user never sees position 0.
+// Build list — withSnapshots({ autoSave }) handles save/restore automatically.
+// On first visit, autoLoad fetches data. On return visits, the snapshot provides
+// the total and scroll position, and autoLoad is cancelled automatically.
 const list = vlist({
   container: "#list-container",
   ariaLabel: "Virtual user list with velocity-based loading",
@@ -139,8 +127,6 @@ const list = vlist({
           return result;
         },
       },
-      autoLoad: !snapshot,
-      total: snapshot?.total,
       storage: {
         chunkSize: 25,
       },
@@ -151,7 +137,7 @@ const list = vlist({
   )
   .use(withScale())
   .use(withScrollbar({ autoHide: true }))
-  .use(withSnapshots({ restore: snapshot }))
+  .use(withSnapshots({ autoSave: STORAGE_KEY }))
   .build();
 
 // =============================================================================
@@ -190,24 +176,9 @@ const btnRandom = document.getElementById("btn-random");
 const btnReload = document.getElementById("btn-reload");
 const btnResetStats = document.getElementById("btn-reset-stats");
 
-// Auto-save snapshot when scroll becomes idle
-function scheduleSaveSnapshot() {
-  if (isRestoringSnapshot) return;
-
-  if (saveSnapshotTimeoutId) {
-    clearTimeout(saveSnapshotTimeoutId);
-  }
-  saveSnapshotTimeoutId = setTimeout(() => {
-    const snap = list.getScrollSnapshot();
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
-    saveSnapshotTimeoutId = null;
-  }, 500);
-}
-
 // Event bindings
 list.on("scroll", () => {
   updateInfo();
-  scheduleSaveSnapshot();
 });
 
 list.on("range:change", () => {
@@ -233,17 +204,6 @@ list.on("load:end", ({ items }) => {
   updateControls();
   updateContext();
 });
-
-list.on("selection:change", () => {
-  scheduleSaveSnapshot();
-});
-
-// Re-enable saving after restore settles
-if (isRestoringSnapshot) {
-  setTimeout(() => {
-    isRestoringSnapshot = false;
-  }, 2000);
-}
 
 // Update button states
 function updateDataSourceButtons() {

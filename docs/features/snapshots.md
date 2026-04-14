@@ -15,8 +15,10 @@ import { vlist, withSnapshots } from '@floor/vlist';
 
 ## Quick Start
 
+The simplest way to persist scroll position: pass an `autoSave` key and everything is handled automatically — save, restore, and async data coordination.
+
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+import { vlist, withAsync, withSnapshots } from '@floor/vlist';
 
 const list = vlist({
   container: '#list',
@@ -26,21 +28,26 @@ const list = vlist({
     template: (user) => `<div>${user.name}</div>`,
   },
 })
-  .use(withSnapshots())
+  .use(withSnapshots({ autoSave: 'my-list' }))
   .build();
 
-// Save scroll position before navigation
-const snapshot = list.getScrollSnapshot();
-sessionStorage.setItem('list-scroll', JSON.stringify(snapshot));
-
-// Later — restore by passing the snapshot at creation time
-const saved = sessionStorage.getItem('list-scroll');
-
-const list2 = vlist({ /* same config */ })
-  .use(withSnapshots(saved ? { restore: JSON.parse(saved) } : undefined))
-  .build();
-// Scroll is restored automatically after build() — user never sees position 0
+// That's it — scroll position and selection are saved to sessionStorage
+// on scroll idle and selection change, and restored automatically on
+// the next build().
 ```
+
+With async data, no extra plumbing is needed — `withSnapshots` cancels the initial load and bootstraps the total from the saved snapshot:
+
+```typescript
+const list = vlist({ container: '#list', item: { height: 64, template: renderUser } })
+  .use(withAsync({ adapter }))
+  .use(withSnapshots({ autoSave: 'my-list' }))
+  .build();
+// First visit: autoLoad fetches data normally
+// Return visit: autoLoad is cancelled, scroll + selection restored from snapshot
+```
+
+For manual control, use `restore` and `getScrollSnapshot()` instead — see [Manual Save/Restore](#manual-saverestore).
 
 ## API
 
@@ -56,17 +63,37 @@ withSnapshots(config?: SnapshotConfig): VListFeature
 ```typescript
 interface SnapshotConfig {
   /**
+   * Automatically save and restore snapshots via sessionStorage.
+   *
+   * Pass a string key — snapshots are saved whenever scroll becomes
+   * idle or selection changes, and restored automatically on the
+   * next build(). When withAsync is present, autoLoad is cancelled
+   * and the total is bootstrapped from the snapshot.
+   */
+  autoSave?: string;
+
+  /**
    * Snapshot to restore automatically after build() completes.
    *
    * When provided, restoreScroll() is scheduled via queueMicrotask —
    * it runs right after .build() returns but before the browser paints,
    * so the user never sees position 0.
+   *
+   * Ignored when autoSave is set (autoSave reads from sessionStorage).
    */
   restore?: ScrollSnapshot;
 }
 ```
 
-**Example — auto-restore from sessionStorage:**
+**Example — automatic (recommended):**
+```typescript
+const list = vlist({ ... })
+  .use(withSnapshots({ autoSave: 'my-list' }))
+  .build();
+// Saves on scroll idle + selection change, restores on next build()
+```
+
+**Example — manual restore:**
 ```typescript
 const saved = sessionStorage.getItem('scroll');
 const snapshot = saved ? JSON.parse(saved) : undefined;
@@ -74,7 +101,6 @@ const snapshot = saved ? JSON.parse(saved) : undefined;
 const list = vlist({ ... })
   .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
   .build();
-// If snapshot existed, scroll + selection are restored automatically
 ```
 
 ### getScrollSnapshot()
@@ -125,105 +151,65 @@ list.restoreScroll({ index: 523, offsetInItem: 12, total: 5000 });
 
 ### SPA Navigation — Destroy & Recreate (Recommended)
 
-The cleanest pattern: pass the snapshot to `withSnapshots({ restore })` when recreating the list.
+With `autoSave`, the list handles everything — no manual save/restore code needed:
 
 ```typescript
 import { vlist, withSnapshots } from '@floor/vlist';
 
-const STORAGE_KEY = 'list-scroll';
 let list;
 
 function createList() {
-  const saved = sessionStorage.getItem(STORAGE_KEY);
-  const snapshot = saved ? JSON.parse(saved) : undefined;
-
   list = vlist({
     container: '#list',
     items: users,
     item: { height: 64, template: renderUser },
   })
-    .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
+    .use(withSnapshots({ autoSave: 'user-list' }))
     .build();
+  // On return visits, scroll position is restored automatically
 }
 
 function navigateAway() {
-  // Save snapshot
-  const snapshot = list.getScrollSnapshot();
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
-
-  // Destroy list
+  // Snapshot is already saved (autoSave handles it on scroll idle)
   list.destroy();
   list = null;
-
-  // Show detail page...
 }
 
 function goBack() {
-  // Recreate list — snapshot is restored automatically
-  createList();
+  createList(); // Restored from sessionStorage automatically
 }
 ```
 
-### SPA Navigation (Back/Forward via History API)
+### With Async Data
+
+No extra plumbing needed — `withSnapshots({ autoSave })` coordinates with `withAsync()` automatically:
 
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+import { vlist, withAsync, withSnapshots } from '@floor/vlist';
 
 const list = vlist({
   container: '#list',
-  items: users,
   item: { height: 64, template: renderUser },
 })
-  .use(withSnapshots())
+  .use(withAsync({ adapter }))
+  .use(withSnapshots({ autoSave: 'user-list' }))
   .build();
-
-// Before navigating to detail page
-document.querySelectorAll('.user-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-
-    // Save scroll position
-    const snapshot = list.getScrollSnapshot();
-    history.pushState({ scrollSnapshot: snapshot }, '', link.href);
-
-    // Navigate (load detail page)
-    loadDetailPage(link.href);
-  });
-});
-
-// When user navigates back
-window.addEventListener('popstate', (e) => {
-  if (e.state?.scrollSnapshot) {
-    list.restoreScroll(e.state.scrollSnapshot);
-  }
-});
+// First visit: autoLoad fetches from offset 0
+// Return visit: autoLoad is cancelled, total bootstrapped from snapshot,
+//               scroll restored, data loaded at the restored position
 ```
 
-### Session Storage (Debounced Auto-Save)
+For **runtime reloads** (e.g., switching data sources), pass the snapshot to `reload()` directly:
 
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+// Save snapshot before switching
+const snapshot = list.getScrollSnapshot();
+sessionStorage.setItem('current-tab', JSON.stringify(snapshot));
 
-const saved = sessionStorage.getItem('product-list-scroll');
-const snapshot = saved ? JSON.parse(saved) : undefined;
-
-const list = vlist({
-  container: '#list',
-  items: products,
-  item: { height: 200, template: renderProduct },
-})
-  .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
-  .build();
-
-// Auto-save on scroll (debounced)
-let saveTimeout;
-list.on('scroll', () => {
-  clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => {
-    const snap = list.getScrollSnapshot();
-    sessionStorage.setItem('product-list-scroll', JSON.stringify(snap));
-  }, 500);
-});
+// Switch data source and restore in one call
+const saved = sessionStorage.getItem('other-tab');
+const otherSnapshot = saved ? JSON.parse(saved) : undefined;
+await list.reload(otherSnapshot ? { snapshot: otherSnapshot } : undefined);
 ```
 
 ### Tab Switching
@@ -248,31 +234,60 @@ function switchTab(tabName) {
 }
 ```
 
-For tabs with **async data** (using `withAsync()`), prefer `reload({ snapshot })` — it resets the data source, seeds the total from the snapshot, skips the initial page load, and restores scroll position in one call:
+For tabs with **async data** (using `withAsync()`), prefer `reload({ snapshot })`:
 
 ```typescript
 const lists = { recent: null, popular: null, saved: null };
 const snapshots = { recent: null, popular: null, saved: null };
 
 async function switchTab(tabName) {
-  // Save current tab's snapshot
   const currentTab = getCurrentTab();
   if (lists[currentTab]) {
     snapshots[currentTab] = lists[currentTab].getScrollSnapshot();
   }
 
-  // Switch to new tab
   setCurrentTab(tabName);
 
-  // Reload with snapshot — handles everything
   await lists[tabName].reload(
     snapshots[tabName] ? { snapshot: snapshots[tabName] } : undefined
   );
-  // vlist: resets data → seeds total → skips page 1 → restores scroll → loads target page
 }
 ```
 
+### SPA Navigation (Back/Forward via History API)
+
+```typescript
+import { vlist, withSnapshots } from '@floor/vlist';
+
+const list = vlist({
+  container: '#list',
+  items: users,
+  item: { height: 64, template: renderUser },
+})
+  .use(withSnapshots())
+  .build();
+
+// Before navigating to detail page
+document.querySelectorAll('.user-link').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const snapshot = list.getScrollSnapshot();
+    history.pushState({ scrollSnapshot: snapshot }, '', link.href);
+    loadDetailPage(link.href);
+  });
+});
+
+// When user navigates back
+window.addEventListener('popstate', (e) => {
+  if (e.state?.scrollSnapshot) {
+    list.restoreScroll(e.state.scrollSnapshot);
+  }
+});
+```
+
 ### Local Storage (Persist Across Sessions)
+
+For long-term persistence (e.g., reading position), use manual save to `localStorage`:
 
 ```typescript
 import { vlist, withSnapshots } from '@floor/vlist';
@@ -288,11 +303,36 @@ const list = vlist({
   .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
   .build();
 
-// Save before unload
 window.addEventListener('beforeunload', () => {
   const snap = list.getScrollSnapshot();
   localStorage.setItem('reading-position', JSON.stringify(snap));
 });
+```
+
+### Manual Save/Restore
+
+When `autoSave` doesn't fit (e.g., custom storage, conditional saves), use the manual pattern:
+
+```typescript
+import { vlist, withSnapshots } from '@floor/vlist';
+
+const saved = sessionStorage.getItem('list-scroll');
+const snapshot = saved ? JSON.parse(saved) : undefined;
+
+const list = vlist({
+  container: '#list',
+  items: users,
+  item: { height: 64, template: renderUser },
+})
+  .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
+  .build();
+
+// Save before navigating away
+function navigateAway() {
+  const snap = list.getScrollSnapshot();
+  sessionStorage.setItem('list-scroll', JSON.stringify(snap));
+  list.destroy();
+}
 ```
 
 ## How It Works
@@ -374,13 +414,20 @@ No need to save or restore selection separately — it's all in the snapshot.
 
 ### With Async Data
 
-When using `withAsync()`, pass the snapshot's `total` to avoid a loading flash:
-
-**List creation** — pass the snapshot to both features:
+With `autoSave`, no manual coordination is needed:
 
 ```typescript
-import { vlist, withAsync, withSnapshots } from '@floor/vlist';
+const list = vlist({ ... })
+  .use(withAsync({ adapter }))
+  .use(withSnapshots({ autoSave: 'my-list' }))
+  .build();
+// withSnapshots reads the saved snapshot, cancels autoLoad, bootstraps
+// the total, restores scroll, and loads data at the restored position.
+```
 
+With `restore` (manual), pass the snapshot to both features:
+
+```typescript
 const saved = sessionStorage.getItem('scroll');
 const snapshot = saved ? JSON.parse(saved) : undefined;
 
@@ -396,28 +443,10 @@ const list = vlist({ ... })
 
 **Runtime reload** — pass the snapshot to `reload()` directly:
 
-For SPAs where the list already exists (e.g., switching categories or data sources), pass the snapshot to `reload()` instead of recreating the list:
-
 ```typescript
-// Save snapshot before switching away
-const snapshot = list.getScrollSnapshot();
-sessionStorage.setItem('current-tab', JSON.stringify(snapshot));
-
-// Switch data source and restore position in one call
-const saved = sessionStorage.getItem('other-tab');
-const otherSnapshot = saved ? JSON.parse(saved) : undefined;
-await list.reload(otherSnapshot ? { snapshot: otherSnapshot } : undefined);
-// vlist: resets data → skips page 1 → restores scroll → loads target page
+await list.reload(snapshot ? { snapshot } : undefined);
+// Seeds total → skips page 1 → restores scroll → loads target page
 ```
-
-When a snapshot with meaningful data (`total > 0` AND `index > 0`) is passed to `reload()`, it automatically:
-
-1. Seeds the total from the snapshot (so the virtual height is correct)
-2. Skips `loadInitial()` (no wasted page 1 fetch)
-3. Restores scroll position to the snapshot's index
-4. Loads the page containing that index
-
-No manual coordination between `withAsync` and `withSnapshots` is needed.
 
 ### With Filters/Sorting
 
@@ -444,7 +473,9 @@ function applyFilter(filterKey) {
 
 ### Debounced Save
 
-For better performance, debounce snapshot saves:
+> **Note:** With `autoSave`, saves are already debounced — they fire on `scroll:idle` (150ms after scrolling stops) and on `selection:change`. No manual debouncing needed.
+
+For manual save patterns, debounce with a timeout:
 
 ```typescript
 let saveTimeout;
@@ -454,7 +485,7 @@ list.on('scroll', () => {
   saveTimeout = setTimeout(() => {
     const snapshot = list.getScrollSnapshot();
     sessionStorage.setItem('scroll', JSON.stringify(snapshot));
-  }, 300);  // Save 300ms after scroll stops
+  }, 300);
 });
 ```
 
@@ -464,8 +495,8 @@ list.on('scroll', () => {
 
 ✅ `withGrid()` — Saves first visible row
 ✅ `withGroups()` — Saves data index (not layout index)
-✅ `withAsync()` — Works with lazy-loaded data (pass `total` from snapshot)
-✅ `withScale()` — Compression-aware
+✅ `withAsync()` — `autoSave` cancels autoLoad and bootstraps total automatically
+✅ `withScale()` — Compression-aware save/restore
 ✅ `withPage()` — Works with page-level scrolling
 ✅ `withSelection()` — Selection automatically included in snapshots
 
@@ -477,10 +508,19 @@ list.on('scroll', () => {
 
 ## Best Practices
 
-### Use `withSnapshots({ restore })` for List Recreation
+### Use `autoSave` for Most Cases
 
 ```typescript
-// ✅ Best — auto-restores via queueMicrotask, user never sees position 0
+// ✅ Best — fully automatic, no manual plumbing
+const list = vlist({ ... })
+  .use(withSnapshots({ autoSave: 'my-list' }))
+  .build();
+```
+
+### Use `restore` for Custom Storage
+
+```typescript
+// ✅ Good — manual control when autoSave doesn't fit (localStorage, History API, etc.)
 const list = vlist({ ... })
   .use(withSnapshots({ restore: snapshot }))
   .build();
@@ -489,40 +529,39 @@ const list = vlist({ ... })
 ### Use sessionStorage for Navigation
 
 ```typescript
-// ✅ Good — Clears on tab close
+// ✅ Good — Clears on tab close (autoSave uses this automatically)
 sessionStorage.setItem('scroll', JSON.stringify(snapshot));
 ```
 
 ### Use localStorage for Long-Term Persistence
 
 ```typescript
-// ✅ Good — Persists across sessions
+// ✅ Good — Persists across sessions (use manual restore pattern)
 localStorage.setItem('reading-position', JSON.stringify(snapshot));
 ```
 
 ### Clear Old Snapshots
 
 ```typescript
-// Clear snapshots for deleted items
 function cleanupSnapshots() {
-  const raw = sessionStorage.getItem('scroll');
+  const raw = sessionStorage.getItem('my-list');
   if (raw) {
     const snapshot = JSON.parse(raw);
     if (snapshot.total && snapshot.index >= snapshot.total) {
-      sessionStorage.removeItem('scroll');  // Index no longer valid
+      sessionStorage.removeItem('my-list');  // Index no longer valid
     }
   }
 }
 ```
 
-### Validate Before Restore
+### Validate Before Manual Restore
 
 ```typescript
+// NaN/Infinity are guarded internally, but you can validate defensively:
 const saved = sessionStorage.getItem('scroll');
 if (saved) {
   try {
     const snapshot = JSON.parse(saved);
-    // NaN/Infinity are guarded internally, but you can also check here
     if (Number.isFinite(snapshot.index)) {
       list.restoreScroll(snapshot);
     }
@@ -563,15 +602,22 @@ const snapshot = {
 
 **Problem:** With `withAsync()`, the total hasn't been set yet when restoring.
 
-**Solution A — Use `reload({ snapshot })` (recommended for runtime reloads):**
+**Solution A — Use `autoSave` (recommended):**
 
-`reload({ snapshot })` handles this automatically — it seeds the total from the snapshot before restoring, so you don't need to coordinate anything:
+`autoSave` handles async coordination automatically — it cancels autoLoad, bootstraps the total from the saved snapshot, and restores scroll position:
+```typescript
+.use(withAsync({ adapter }))
+.use(withSnapshots({ autoSave: 'my-list' }))
+```
+
+**Solution B — Use `reload({ snapshot })` for runtime reloads:**
+
 ```typescript
 await list.reload({ snapshot: savedSnapshot });
 // Total is set from snapshot.total → restoreScroll works immediately
 ```
 
-**Solution B — Pass total at creation time (for initial list setup):**
+**Solution C — Pass total manually at creation time:**
 ```typescript
 .use(withAsync({
   adapter,
@@ -593,9 +639,9 @@ await list.reload({ snapshot: savedSnapshot });
 - [Types — `ReloadOptions`](../api/types.md#reloadoptions) — `snapshot` option for `reload()`
 - [Types — `ScrollToOptions`](../api/types.md#scrolltooptions) — `align`, `behavior`, `duration`
 - [Selection](./selection.md) — Selection state included in snapshots automatically
-- [Async](./async.md) — Pass `snapshot.total` to `withAsync` to avoid loading flash on restore, or use `reload({ snapshot })` at runtime
+- [Async](./async.md) — `autoSave` coordinates with `withAsync` automatically, or use `reload({ snapshot })` at runtime
 
 ## Examples
 
 - [Scroll Restore](/examples/scroll-restore) — Save and restore scroll position across navigations
-- [Velocity Loading](/examples/velocity-loading) — Snapshots combined with async loading, scale, and selection
+- [Velocity Loading](/examples/velocity-loading) — `autoSave` with async loading, scale, and selection
