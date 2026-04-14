@@ -120,3 +120,21 @@
     font-size: 14px;
     line-height: 1;
 }
+
+/* ============================================================================
+   Mode description
+   ============================================================================ */
+
+.ui-desc {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--vlist-text-muted);
+    margin: 0;
+}
+
+.ui-desc code {
+    font-size: 11.5px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+}

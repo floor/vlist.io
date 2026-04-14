@@ -87,6 +87,27 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Mode description -->
+            <section class="ui-section ui-section--desc" id="section-mode-desc">
+                <h3 class="ui-title">How it works</h3>
+                <p class="ui-desc" id="mode-desc-a">
+                    All items are rendered into a hidden DOM element at init to
+                    measure their exact heights. The list then uses a
+                    <code>height(index)</code> function for pixel-perfect
+                    positioning. Best when you have few unique sizes or can
+                    cache measurements across sessions — accurate scrollbar and
+                    instant jump-to-index at the cost of a slower init.
+                </p>
+                <p class="ui-desc" id="mode-desc-b">
+                    Items start with an <code>estimatedHeight</code>. As they
+                    enter the viewport, a <code>ResizeObserver</code> measures
+                    their actual size and corrects the scroll position on the
+                    fly. Best for large datasets or dynamic content —
+                    near-instant init and no upfront DOM work, at the cost of an
+                    approximate scrollbar until items are visited.
+                </p>
+            </section>
         </aside>
     </div>
 
