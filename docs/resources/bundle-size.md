@@ -1,6 +1,6 @@
 # Bundle Size & Tree-Shaking
 
-> How vlist achieves 2-3x smaller bundles through explicit feature imports and perfect tree-shaking.
+> How vlist achieves smaller bundles through explicit feature imports and perfect tree-shaking.
 
 ## Overview
 
@@ -14,44 +14,36 @@ const gallery = vlist({ ... })
   .use(withSelection({ mode: 'multiple' }))
   .build();
 
-// Bundle: 12.6 KB gzipped
-// NOT included: withGroups, withAsync, withScale, withScrollbar, withPage
+// Only core + Grid + Selection are bundled
+// NOT included: withGroups, withAsync, withScale, withScrollbar, withPage, etc.
 ```
 
-**Result:** 8-12 KB gzipped average (vs 20-23 KB for traditional virtual lists).
+**Result:** {{size:base:gz}}–{{size:withTable:gz}} KB gzipped depending on features used (vs 20-23 KB for traditional virtual lists).
 
 ## Actual Bundle Sizes
 
 All measurements from production builds (minified + gzipped):
 
-### Real-World Examples
-
-| Example | Minified | Gzipped | Features Used |
-|---------|----------|---------|--------------|
-| **Basic list** | 22.5 KB | **8.2 KB** | None |
-| **Controls** | 30.6 KB | **10.5 KB** | `withSelection()` |
-| **Photo gallery** | 34.3 KB | **11.7 KB** | `withGrid()` + `withScrollbar()` |
-| **Contact list** | 34.3 KB | **12.3 KB** | `withGroups()` |
-| **Chat UI** | 34.2 KB | **11.9 KB** | `withGroups()` (inline) |
-| **Infinite scroll** | 38.2 KB | **13.5 KB** | `withAsync()` + `withPage()` |
-| **Large dataset** | 31.9 KB | **9.9 KB** | `withScale()` + `withScrollbar()` |
-| **File browser** | 46.2 KB | **15.3 KB** | `withGrid()` + `withGroups()` + `withScrollbar()` |
-
 ### Feature Costs
 
 Each feature adds incrementally to the base bundle:
 
-| Feature | Incremental Cost (Gzipped) | Description |
-|--------|---------------------------|-------------|
-| **Base** | 7.7 KB | Core virtualization |
-| `withGrid()` | +4.0 KB | 2D grid layout |
-| `withGroups()` | +4.6 KB | Grouped lists with headers |
-| `withAsync()` | +5.3 KB | Async data loading |
-| `withSelection()` | +2.3 KB | Item selection & keyboard nav |
-| `withScale()` | +2.2 KB | Handle 1M+ items |
-| `withScrollbar()` | +1.0 KB | Custom scrollbar UI |
-| `withPage()` | +0.9 KB | Document-level scrolling |
-| `withSnapshots()` | Included | Scroll save/restore (no cost) |
+| Feature | Minified | Gzipped | Incremental (gz) | Description |
+|---------|----------|---------|-------------------|-------------|
+| **Base** | {{size:base:min}} KB | {{size:base:gz}} KB | — | Core virtualization |
+| `withGrid()` | {{size:withGrid:min}} KB | {{size:withGrid:gz}} KB | +{{size:withGrid:delta}} KB | 2D grid layout |
+| `withMasonry()` | {{size:withMasonry:min}} KB | {{size:withMasonry:gz}} KB | +{{size:withMasonry:delta}} KB | Masonry layout |
+| `withGroups()` | {{size:withGroups:min}} KB | {{size:withGroups:gz}} KB | +{{size:withGroups:delta}} KB | Grouped lists with headers |
+| `withAsync()` | {{size:withAsync:min}} KB | {{size:withAsync:gz}} KB | +{{size:withAsync:delta}} KB | Async data loading |
+| `withSelection()` | {{size:withSelection:min}} KB | {{size:withSelection:gz}} KB | +{{size:withSelection:delta}} KB | Item selection & keyboard nav |
+| `withScale()` | {{size:withScale:min}} KB | {{size:withScale:gz}} KB | +{{size:withScale:delta}} KB | Handle 1M+ items |
+| `withScrollbar()` | {{size:withScrollbar:min}} KB | {{size:withScrollbar:gz}} KB | +{{size:withScrollbar:delta}} KB | Custom scrollbar UI |
+| `withPage()` | {{size:withPage:min}} KB | {{size:withPage:gz}} KB | +{{size:withPage:delta}} KB | Document-level scrolling |
+| `withSnapshots()` | {{size:withSnapshots:min}} KB | {{size:withSnapshots:gz}} KB | +{{size:withSnapshots:delta}} KB | Scroll save/restore |
+| `withTable()` | {{size:withTable:min}} KB | {{size:withTable:gz}} KB | +{{size:withTable:delta}} KB | Table layout with columns |
+| `withAutoSize()` | {{size:withAutoSize:min}} KB | {{size:withAutoSize:gz}} KB | +{{size:withAutoSize:delta}} KB | Automatic item sizing |
+
+> **Note:** The "Minified" and "Gzipped" columns show the **total** bundle size when that feature is used with the base. The "Incremental" column shows the additional gzipped cost of adding that single feature on top of the base.
 
 ## Comparison: Before vs After
 
@@ -81,9 +73,8 @@ const list = vlist({
   item: { height: 48, template: renderItem },
 }).build();
 
-// Bundle: 22.5 KB minified / 8.2 KB gzipped
+// Bundle: {{size:base:min}} KB minified / {{size:base:gz}} KB gzipped
 // Includes: ONLY core virtualization
-// Savings: 60% smaller!
 ```
 
 ### With Features
@@ -96,9 +87,8 @@ const list = vlist({ ... })
   .use(withSelection({ mode: 'multiple' }))
   .build();
 
-// Bundle: ~34 KB minified / ~12 KB gzipped
 // Includes: Core + Grid + Selection ONLY
-// Savings: 40-45% smaller than traditional!
+// Still smaller than traditional virtual lists
 ```
 
 ## How Tree-Shaking Works
@@ -111,6 +101,7 @@ VList exports everything from a single entry point, allowing perfect tree-shakin
 // vlist/src/index.ts
 export { vlist } from './builder';
 export { withGrid } from './features/grid';
+export { withMasonry } from './features/masonry';
 export { withGroups } from './features/groups';
 export { withAsync } from './features/async';
 export { withSelection } from './features/selection';
@@ -118,6 +109,8 @@ export { withScale } from './features/scale';
 export { withScrollbar } from './features/scrollbar';
 export { withPage } from './features/page';
 export { withSnapshots } from './features/snapshots';
+export { withTable } from './features/table';
+export { withAutoSize } from './features/autosize';
 ```
 
 **When you write:**
@@ -136,19 +129,21 @@ import { vlist, withGrid } from '@floor/vlist';
 import { vlist, withGrid } from '@floor/vlist';
 
 // These are exported but NOT imported, so bundler eliminates them:
+// - withMasonry and all its code
 // - withGroups and all its code
 // - withAsync and all its code
 // - withSelection and all its code
 // - withScale and all its code
 // - withScrollbar and all its code
 // - withPage and all its code
+// - withTable and all its code
+// - withAutoSize and all its code
 
 const list = vlist({ ... })
   .use(withGrid({ columns: 4 }))
   .build();
 
-// Final bundle: 11.7 KB gzipped
-// Eliminated: ~10 KB of unused features
+// Final bundle: {{size:withGrid:gz}} KB gzipped
 ```
 
 ## Bundle Analysis
@@ -162,9 +157,8 @@ vlist({ ... }).build();
 ```
 
 **Bundle:**
-- vlist function: 6.3 KB gzipped
-- Builder core: 1.4 KB gzipped
-- **Total: 7.7 KB gzipped**
+- {{size:base:min}} KB minified
+- **{{size:base:gz}} KB gzipped**
 
 ### Medium Configuration
 
@@ -178,22 +172,24 @@ vlist({ ... })
 ```
 
 **Bundle:**
-- Base: 7.7 KB gzipped
-- withSelection: +2.3 KB gzipped
-- withScrollbar: +1.0 KB gzipped
-- **Total: 11.0 KB gzipped**
+- Base: {{size:base:gz}} KB gzipped
+- withSelection: +{{size:withSelection:delta}} KB gzipped
+- withScrollbar: +{{size:withScrollbar:delta}} KB gzipped
+- **Estimated total: smaller than traditional virtual lists**
+
+> Individual feature deltas are measured one at a time. When combining multiple features, shared code may be deduplicated, so the actual total can be smaller than the sum of deltas.
 
 ### Full Configuration
 
 ```typescript
-import { 
-  vlist, 
-  withGrid, 
-  withGroups, 
+import {
+  vlist,
+  withGrid,
+  withGroups,
   withSelection,
   withAsync,
   withScale,
-  withScrollbar 
+  withScrollbar
 } from '@floor/vlist';
 
 vlist({ ... })
@@ -206,12 +202,7 @@ vlist({ ... })
   .build();
 ```
 
-**Bundle:**
-- Base: 7.7 KB gzipped
-- Features: +8.3 KB gzipped
-- **Total: ~16 KB gzipped**
-
-Still smaller than traditional virtual lists!
+**Bundle:** Even with many features, vlist remains smaller than traditional virtual lists that ship everything by default.
 
 ## Optimization Strategies
 
@@ -238,7 +229,7 @@ const list = vlist({ ... }).build();
 // Grid feature loads on demand
 button.addEventListener('click', async () => {
   const { withGrid } = await import('vlist');
-  
+
   list.destroy();
   const gridList = vlist({ ... })
     .use(withGrid({ columns: 4 }))
@@ -272,7 +263,7 @@ For quick prototypes, load from CDN:
 ```html
 <script type="module">
   import { vlist, withGrid } from 'https://cdn.jsdelivr.net/npm/@floor/vlist/+esm';
-  
+
   const list = vlist({ ... })
     .use(withGrid({ columns: 4 }))
     .build();
@@ -294,7 +285,7 @@ npx webpack-bundle-analyzer stats.json
 
 **Rollup:**
 ```bash
-npx rollup-feature-visualizer
+npx rollup-plugin-visualizer
 ```
 
 **Vite:**
@@ -317,12 +308,13 @@ import { vlist, withGrid, withSelection } from '@floor/vlist';
 - ✅ `vlist/features/selection/` (selection feature)
 - ❌ NO `features/async/`
 - ❌ NO `features/scale/`
-- ❌ NO `features/sections/`
+- ❌ NO `features/groups/`
 - ❌ NO `features/scrollbar/`
+- ❌ NO `features/table/`
 
 ## Common Misconceptions
 
-### "I only use basic features, why is my bundle 8 KB?"
+### "I only use basic features, why is my bundle {{size:base:gz}} KB?"
 
 **Answer:** That's the core virtualization! It includes:
 - Virtual scrolling calculations
@@ -334,20 +326,20 @@ import { vlist, withGrid, withSelection } from '@floor/vlist';
 - Data management (setItems, appendItems, etc.)
 - ARIA accessibility
 
-8 KB gzipped is **very small** for all that functionality.
+{{size:base:gz}} KB gzipped is **very small** for all that functionality.
 
 ### "Adding features makes the bundle bigger"
 
 **Answer:** Yes, that's expected! Each feature adds specific functionality:
-- withGrid adds 2D layout calculations
-- withAsync adds data fetching and sparse storage
-- withSelection adds selection state and keyboard navigation
+- withGrid adds +{{size:withGrid:delta}} KB for 2D layout calculations
+- withAsync adds +{{size:withAsync:delta}} KB for data fetching and sparse storage
+- withSelection adds +{{size:withSelection:delta}} KB for selection state and keyboard navigation
 
 The key is you **only pay for what you use**. Traditional virtual lists bundle everything regardless.
 
-### "Can I make it smaller than 8 KB?"
+### "Can I make it smaller than {{size:base:gz}} KB?"
 
-**Answer:** Yes! There's a lightweight core (not exposed in current API) that's 3.1 KB gzipped, but it has limited features. For production apps, 8-12 KB is excellent for a full-featured virtual list.
+**Answer:** The base at {{size:base:gz}} KB gzipped is the core virtualization engine. Some of the lightest features like `withPage()` (+{{size:withPage:delta}} KB) and `withSnapshots()` (+{{size:withSnapshots:delta}} KB) add very little overhead. For production apps, {{size:base:gz}}–{{size:withAsync:gz}} KB is excellent for a full-featured virtual list.
 
 ## Best Practices
 
@@ -363,7 +355,7 @@ The key is you **only pay for what you use**. Traditional virtual lists bundle e
 - Don't import features you don't use
 - Don't use wildcard imports (`import * from '@floor/vlist'`)
 - Don't worry about 1-2 KB differences (focus on features)
-- Don't sacrifice functionality to save bytes (8-12 KB is already tiny)
+- Don't sacrifice functionality to save bytes
 
 ## FAQ
 
@@ -387,26 +379,21 @@ All modern bundlers support ES modules tree-shaking.
 
 ### Q: Can I see the exact bundle composition?
 
-**A:** Yes! Use webpack-bundle-analyzer or rollup-feature-visualizer. You'll see each imported module and its size.
+**A:** Yes! Use webpack-bundle-analyzer or rollup-plugin-visualizer. You'll see each imported module and its size.
 
 ### Q: What if I need all features?
 
-**A:** Even with all features, vlist is ~16 KB gzipped - still smaller than most virtual lists with basic features!
-
-### Q: How much overhead does the builder add?
-
-**A:** ~1.4 KB gzipped. The builder core is 7.7 KB vs a hypothetical direct implementation at ~6.3 KB. The flexibility is worth it.
+**A:** Even with all features, vlist stays well under the 20-23 KB gzipped range of traditional virtual lists. Check the feature costs table above for exact per-feature sizes.
 
 ## Summary
 
 | Metric | VList (Builder) | Traditional | Improvement |
 |--------|----------------|-------------|-------------|
-| **Minimal** | 7.7 KB gzipped | 20-23 KB | **2.6-3x smaller** |
-| **With features** | 8-12 KB | 20-23 KB | **2-3x smaller** |
-| **Full-featured** | ~16 KB | 20-23 KB | **1.3-1.4x smaller** |
+| **Minimal** | {{size:base:gz}} KB gzipped | 20-23 KB | **Much smaller** |
+| **Heaviest single feature** | {{size:withTable:gz}} KB gzipped | 20-23 KB | **Still smaller** |
 | **Tree-shaking** | ✅ Perfect | ❌ None | Huge benefit |
 
-**Bottom line:** VList delivers 2-3x smaller bundles by letting you import only what you need.
+**Bottom line:** VList delivers smaller bundles by letting you import only what you need. The base is just {{size:base:gz}} KB gzipped, and each feature costs only {{size:withPage:delta}}–{{size:withTable:delta}} KB extra.
 
 ## See Also
 
