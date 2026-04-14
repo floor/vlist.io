@@ -1,10 +1,10 @@
 // Accessibility — WAI-ARIA listbox pattern demonstration
 // Shows: role="listbox" / role="option", aria-setsize, aria-posinset,
-// aria-activedescendant, aria-selected, keyboard navigation, and selection.
-// The ARIA inspector and announcement log update live as you interact.
-// Toggle selection off ("None") to test baseline ARIA without the feature.
+// aria-activedescendant, aria-selected, keyboard navigation.
+// The ARIA inspector updates live as you interact.
+// Toggle "interactive" off to disable all built-in keyboard navigation.
 
-import { vlist, withSelection } from "vlist";
+import { vlist } from "vlist";
 import { makeUsers } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -28,7 +28,7 @@ export const users = makeUsers(TOTAL);
 // =============================================================================
 
 export let list = null;
-export let selectionMode = "single"; // "none" | "single" | "multiple"
+export let interactiveEnabled = true;
 
 // =============================================================================
 // Template
@@ -97,81 +97,14 @@ function updateInspector() {
 }
 
 // =============================================================================
-// Announcement Log — mirrors what a screen reader would hear from the live
-// region. Captures text changes in the aria-live element created by
-// withSelection and displays them in the visible log panel.
+// Accessible-dependent UI visibility
 // =============================================================================
 
-const logList = document.getElementById("announcement-log-list");
-let logCount = 0;
-const MAX_LOG_ENTRIES = 50;
+const interactiveUi = document.querySelectorAll("[data-requires-interactive]");
 
-function logAnnouncement(text) {
-  if (!logList || !text) return;
-  logCount++;
-
-  const li = document.createElement("li");
-  li.className = "announcement-log__entry";
-  li.innerHTML = `<span class="announcement-log__number">${logCount}</span>${escapeHtml(text)}`;
-
-  // Prepend so newest is on top
-  logList.prepend(li);
-
-  // Trim old entries
-  while (logList.children.length > MAX_LOG_ENTRIES) {
-    logList.lastElementChild.remove();
-  }
-}
-
-function clearLog() {
-  if (!logList) return;
-  logList.innerHTML = "";
-  logCount = 0;
-}
-
-function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-// =============================================================================
-// Live region observer — watches the sr-only live region for text changes
-// =============================================================================
-
-let liveRegionObserver = null;
-
-function observeLiveRegion(root) {
-  if (liveRegionObserver) {
-    liveRegionObserver.disconnect();
-    liveRegionObserver = null;
-  }
-
-  const liveRegion = root.querySelector("[aria-live]");
-  if (!liveRegion) return;
-
-  liveRegionObserver = new MutationObserver(() => {
-    const text = liveRegion.textContent.trim();
-    if (text) logAnnouncement(text);
-  });
-
-  liveRegionObserver.observe(liveRegion, {
-    childList: true,
-    characterData: true,
-    subtree: true,
-  });
-}
-
-// =============================================================================
-// Selection-dependent UI visibility
-// =============================================================================
-
-const selectionUi = document.querySelectorAll("[data-requires-selection]");
-
-function updateSelectionUi() {
-  const enabled = selectionMode !== "none";
-  for (const el of selectionUi) {
-    el.classList.toggle("is-disabled", !enabled);
+function updateInteractiveUi() {
+  for (const el of interactiveUi) {
+    el.classList.toggle("is-disabled", !interactiveEnabled);
   }
 }
 
@@ -192,15 +125,10 @@ export function createList() {
     activeDescObserver = null;
   }
 
-  if (liveRegionObserver) {
-    liveRegionObserver.disconnect();
-    liveRegionObserver = null;
-  }
-
   const container = document.getElementById("list-container");
   container.innerHTML = "";
 
-  const builder = vlist({
+  list = vlist({
     container: "#list-container",
     ariaLabel: "Employee directory",
     item: {
@@ -208,17 +136,11 @@ export function createList() {
       template: itemTemplate,
     },
     items: users,
+    accessible: interactiveEnabled,
     scroll: {
       wrap: true,
     },
-  });
-
-  // Only add selection feature when mode is not "none"
-  if (selectionMode !== "none") {
-    builder.use(withSelection({ mode: selectionMode }));
-  }
-
-  list = builder.build();
+  }).build();
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);
@@ -226,14 +148,6 @@ export function createList() {
     stats.onVelocity(velocity);
     updateInfo();
   });
-
-  // Wire selection events only when the feature is active
-  if (selectionMode !== "none") {
-    list.on("selection:change", ({ selected }) => {
-      updateSelectionCount(selected);
-      updateInspector();
-    });
-  }
 
   // Watch aria-activedescendant on the root → update inspector + footer
   const root = container.querySelector(".vlist");
@@ -246,18 +160,12 @@ export function createList() {
       attributes: true,
       attributeFilter: ["aria-activedescendant"],
     });
-
-    // Observe the live region for announcements (only exists with selection)
-    if (selectionMode !== "none") {
-      observeLiveRegion(root);
-    }
   }
 
   updateInspector();
-  updateSelectionUi();
+  updateInteractiveUi();
   updateInfo();
   updateContext();
-  updateSelectionCount([]);
 }
 
 // =============================================================================
@@ -266,7 +174,6 @@ export function createList() {
 
 const infoFocused = document.getElementById("info-focused");
 const infoPosinset = document.getElementById("info-posinset");
-const infoSelection = document.getElementById("info-selection");
 
 export function updateContext() {
   const container = document.getElementById("list-container");
@@ -284,19 +191,12 @@ export function updateContext() {
   }
 }
 
-function updateSelectionCount(selected) {
-  if (!infoSelection) return;
-  const count = Array.isArray(selected) ? selected.length : 0;
-  infoSelection.textContent = String(count);
-}
-
 // =============================================================================
-// Selection mode switching
+// Interactive toggle
 // =============================================================================
 
-export function setSelectionMode(mode) {
-  selectionMode = mode;
-  clearLog();
+export function setInteractive(enabled) {
+  interactiveEnabled = enabled;
   createList();
 }
 
