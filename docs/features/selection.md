@@ -25,7 +25,7 @@ The `withSelection()` feature adds configurable selection modes, a programmatic 
 
 - **Programmatic API** — `select()`, `getSelected()`, etc.
 - **`selection:change` event**
-- **`mode: 'multiple'`** — Focus and selection are independent. Arrow keys move focus only. Space/Enter toggles selection on the focused item. Click toggles selection. **Shift+click** performs range selection.
+- **`mode: 'multiple'`** — Focus and selection are independent. Arrow keys move focus only. Space/Enter toggles selection on the focused item. Click toggles selection. **Shift+click** and **Shift+Arrow/Page/Home/End** perform range selection from an anchor point.
 - **Optional `followFocus: true`** — In single mode, arrow keys also select (WAI-ARIA selection-follows-focus pattern). Off by default.
 - **Smart Edge-Scroll**: Only scrolls when the focused item leaves the viewport, aligning to the nearest edge
 - **Compressed Mode Support**: Works correctly with `withScale()` for million-item lists
@@ -197,7 +197,7 @@ When combined with `withGrid` or `withMasonry`, `withSelection` inherits the sam
 
 ### withSelection (multiple mode)
 
-Focus and selection are independent — navigate first, then toggle:
+Focus and selection are independent — navigate first, then toggle with Space/Enter, or hold Shift while navigating to select a contiguous range:
 
 | Key | Flat List | Grid | Masonry |
 |-----|-----------|------|---------|
@@ -207,10 +207,16 @@ Focus and selection are independent — navigate first, then toggle:
 | `Ctrl+Home` / `Ctrl+End` | — | First / last item overall | — |
 | `Page Up` / `Page Down` | Move by visible items | Move by visible rows (same column) | Move by visible items in same lane |
 | `Space` / `Enter` | Toggle selection | Toggle selection | Toggle selection |
+| `Shift+↑` / `Shift+↓` | Extend range ±1 from anchor | Extend range by ±columns from anchor | Extend range in same lane from anchor |
+| `Shift+←` / `Shift+→` | — (disabled) | Extend range ±1 (cell) from anchor | Extend range to adjacent lane from anchor |
+| `Shift+Home` / `Shift+End` | Select from anchor to first / last | Select from anchor to first / last | Select from anchor to first / last |
+| `Shift+Page Up` / `Shift+Page Down` | Extend range by one page from anchor | Extend range by visible rows from anchor | Extend range by visible items from anchor |
 
 > In horizontal orientation, Up/Down and Left/Right axes are swapped for both grid and masonry.
 
 Page size is calculated as `floor(containerSize / itemHeight)`.
+
+**Shift+nav anchor behavior:** The anchor is the starting point for range selection. It is set automatically whenever you navigate without Shift, toggle with Space/Enter, or click without Shift. When you hold Shift and press a navigation key, the selection is replaced with the contiguous range from the anchor to the new focus position. Continuing to Shift+navigate extends or shrinks the range while keeping the same anchor. Releasing Shift and navigating resets the anchor to the new position.
 
 ### Shared `scrollToFocus` Utility
 
@@ -239,7 +245,7 @@ This dual-path approach is necessary because in compressed mode, size cache offs
 - **Focus**: Visual indicator of keyboard navigation position (single index)
 - **Selection**: Set of selected item IDs (can be multiple)
 
-In single mode, focus and selection are independent by default — navigate with arrow keys, then press Space/Enter to select. With `followFocus: true`, arrow keys also select (selection-follows-focus pattern). In multiple mode, focus and selection are always independent — navigate with arrow keys, then press Space to toggle.
+In single mode, focus and selection are independent by default — navigate with arrow keys, then press Space/Enter to select. With `followFocus: true`, arrow keys also select (selection-follows-focus pattern). In multiple mode, focus and selection are independent — navigate with arrow keys, then press Space to toggle individual items, or hold Shift while navigating to select a contiguous range.
 
 ## Usage Examples
 
@@ -304,12 +310,18 @@ list.clearSelection();
 list.select('user-10');
 ```
 
-### Shift+Click Range Selection
+### Range Selection (Shift+Click and Shift+Keyboard)
 
-In `mode: 'multiple'`, Shift+click selects a contiguous range of items between the **anchor** (last selected item) and the clicked item, inclusive. All items in that range are added to the current selection.
+In `mode: 'multiple'`, holding Shift while clicking or pressing navigation keys selects a contiguous range of items between the **anchor** and the target, inclusive.
 
-- The anchor is updated on every non-shift click or programmatic select.
-- Shift+click without a prior anchor falls back to selecting from the first item.
+**Shift+Click** selects the range from the anchor to the clicked item. **Shift+Arrow/Page/Home/End** extends (or shrinks) the range from the anchor to the new focus position, replacing the current selection with exactly that range.
+
+Anchor behavior:
+
+- The anchor is set on every non-shift click, non-shift navigation, or Space/Enter toggle.
+- Shift+click or Shift+nav without a prior anchor falls back to the current focus position.
+- Continuing to Shift+navigate keeps the same anchor — the range grows or shrinks as you move.
+- Releasing Shift and navigating (or toggling with Space) resets the anchor.
 - Range selection is only available in multiple mode — it is a no-op in single mode and in the core baseline.
 
 This is handled automatically by `withSelection`.
@@ -476,7 +488,7 @@ function selectFocused<T extends VListItem>(
 
 #### selectRange
 
-Handle shift+click range selection.
+Handle shift+click and shift+keyboard range selection.
 
 ```typescript
 function selectRange<T extends VListItem>(
@@ -488,6 +500,7 @@ function selectRange<T extends VListItem>(
 ): SelectionState;
 // Only works in 'multiple' mode
 // Selects all items between fromIndex and toIndex (inclusive)
+// Used by both shift+click and shift+keyboard navigation
 ```
 
 ### Queries
@@ -510,7 +523,7 @@ function isSelectionEmpty(state: SelectionState): boolean;
 
 ### Complete Keyboard Handler Example
 
-For custom feature authoring, here is how the pure functions compose into a keyboard handler:
+For custom feature authoring, here is how the pure functions compose into a keyboard handler (including shift+nav range selection):
 
 ```typescript
 import {
@@ -518,36 +531,64 @@ import {
   moveFocusDown,
   moveFocusToFirst,
   moveFocusToLast,
+  clearSelection,
+  selectRange,
   toggleSelection
 } from '@floor/vlist';
 
+let shiftAnchor = -1;
+
 function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VListItem[]) {
   const totalItems = items.length;
+  const previousIndex = state.focusedIndex;
+  let newState = state;
+  let focusOnly = false;
 
   switch (event.key) {
     case 'ArrowUp':
-      return moveFocusUp(state, totalItems);
+      newState = moveFocusUp(state, totalItems);
+      focusOnly = true;
+      break;
 
     case 'ArrowDown':
-      return moveFocusDown(state, totalItems);
+      newState = moveFocusDown(state, totalItems);
+      focusOnly = true;
+      break;
 
     case 'Home':
-      return moveFocusToFirst(state, totalItems);
+      newState = moveFocusToFirst(state, totalItems);
+      focusOnly = true;
+      break;
 
     case 'End':
-      return moveFocusToLast(state, totalItems);
+      newState = moveFocusToLast(state, totalItems);
+      focusOnly = true;
+      break;
 
     case ' ':
     case 'Enter':
       if (state.focusedIndex >= 0) {
         const item = items[state.focusedIndex];
-        return toggleSelection(state, item.id, 'multiple');
+        newState = toggleSelection(state, item.id, 'multiple');
       }
-      return state;
+      shiftAnchor = state.focusedIndex;
+      return newState;
 
     default:
       return state;
   }
+
+  // Shift+nav: select range from anchor to new focus
+  if (event.shiftKey && focusOnly && newState.focusedIndex >= 0) {
+    if (shiftAnchor < 0) shiftAnchor = previousIndex >= 0 ? previousIndex : 0;
+    newState = clearSelection(newState);
+    newState = selectRange(newState, items, shiftAnchor, newState.focusedIndex, 'multiple');
+  } else if (focusOnly) {
+    // Non-shift navigation resets the anchor
+    shiftAnchor = newState.focusedIndex;
+  }
+
+  return newState;
 }
 ```
 
