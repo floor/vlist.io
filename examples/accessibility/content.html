@@ -8,7 +8,7 @@
             positional context, <code>aria-activedescendant</code> for focus
             tracking, and <code>aria-selected</code> for selection state. Tab
             into the list and use arrow keys, Space, or Enter to interact.
-            Toggle selection off to test baseline ARIA without the feature.
+            Disable <code>interactive</code> to remove all keyboard navigation.
         </p>
     </header>
 
@@ -19,34 +19,23 @@
         </div>
 
         <aside class="split-panel">
-            <!-- Selection Mode -->
+            <!-- Interactive toggle -->
             <section class="ui-section">
-                <h3 class="ui-title">Selection</h3>
+                <h3 class="ui-title">Keyboard Navigation</h3>
                 <div class="ui-row">
-                    <div class="ui-btn-group ui-btn-group--fill">
-                        <button
-                            class="ui-btn"
-                            id="btn-mode-none"
-                            aria-pressed="false"
-                        >
-                            None
-                        </button>
-                        <button
-                            class="ui-btn ui-btn--active"
-                            id="btn-mode-single"
-                            aria-pressed="true"
-                        >
-                            Single
-                        </button>
-                        <button
-                            class="ui-btn"
-                            id="btn-mode-multiple"
-                            aria-pressed="false"
-                        >
-                            Multiple
-                        </button>
-                    </div>
+                    <span class="ui-label">interactive</span>
+                    <label class="ui-switch">
+                        <input
+                            type="checkbox"
+                            id="toggle-interactive"
+                            checked
+                        />
+                        <span class="ui-switch__track"></span>
+                    </label>
                 </div>
+                <p class="ui-hint" id="interactive-hint">
+                    Arrow keys move focus between items
+                </p>
             </section>
 
             <!-- ARIA Inspector -->
@@ -66,7 +55,7 @@
                     <span class="ui-label">tabindex</span>
                     <span class="ui-value" id="attr-tabindex">—</span>
                 </div>
-                <div class="ui-row no-margin" data-requires-selection>
+                <div class="ui-row no-margin">
                     <span class="ui-label">activedescendant</span>
                     <span
                         class="ui-value attr-truncate"
@@ -74,7 +63,7 @@
                         >—</span
                     >
                 </div>
-                <div class="ui-row no-margin" data-requires-selection>
+                <div class="ui-row no-margin">
                     <span class="ui-label">aria-selected</span>
                     <span class="ui-value" id="attr-selected">—</span>
                 </div>
@@ -89,40 +78,24 @@
             </section>
 
             <!-- Keyboard reference -->
-            <section class="ui-section">
+            <section class="ui-section" data-requires-interactive>
                 <h3 class="ui-title">Keyboard</h3>
                 <div class="ui-row no-margin">
                     <span class="ui-label">Tab</span>
                     <span class="ui-value">Focus list</span>
                 </div>
-                <div class="ui-row no-margin" data-requires-selection>
+                <div class="ui-row no-margin">
                     <span class="ui-label">↑ / ↓</span>
                     <span class="ui-value">Move focus</span>
                 </div>
-                <div class="ui-row no-margin" data-requires-selection>
+                <div class="ui-row no-margin">
                     <span class="ui-label">Space / Enter</span>
                     <span class="ui-value">Toggle select</span>
                 </div>
-                <div class="ui-row no-margin" data-requires-selection>
+                <div class="ui-row no-margin">
                     <span class="ui-label">Home / End</span>
                     <span class="ui-value">First / Last</span>
                 </div>
-            </section>
-
-            <!-- Announcements log -->
-            <section class="ui-section" data-requires-selection>
-                <h3 class="ui-title">
-                    Announcements
-                    <span class="ui-title__hint">aria-live</span>
-                </h3>
-                <ul
-                    class="announcement-log"
-                    id="announcement-log-list"
-                    aria-label="Screen reader announcement log"
-                ></ul>
-                <p class="announcement-log__empty" id="announcement-log-empty">
-                    Select an item to see announcements
-                </p>
             </section>
         </aside>
     </div>
@@ -144,13 +117,10 @@
             </span>
         </div>
         <div class="example-info__right">
-            <span class="example-info__stat" data-requires-selection>
-                selected <strong id="info-selection">0</strong>
-            </span>
-            <span class="example-info__stat" data-requires-selection>
+            <span class="example-info__stat">
                 focused <strong id="info-focused">—</strong>
             </span>
-            <span class="example-info__stat" data-requires-selection>
+            <span class="example-info__stat">
                 posinset <strong id="info-posinset">—</strong>
             </span>
         </div>
