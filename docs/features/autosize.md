@@ -53,19 +53,82 @@ The feature automatically:
 - Corrects scroll position when above-viewport items change size
 - Defers content size updates during active scrolling (scrollbar stability)
 
-## When to Use
+## Mode A vs Mode B
 
-### Use `withAutoSize()` when:
+vlist offers two strategies for handling variable-height items. Understanding the trade-offs helps you pick the right one.
 
-- Item size depends on rendered content (variable-length text, images with unknown aspect ratios)
+### At a Glance
+
+| | **Mode A — Pre-measure** | **Mode B — AutoSize** |
+|---|---|---|
+| **Config** | `height: (i) => px` | `estimatedHeight: px` + `.use(withAutoSize())` |
+| **Init cost** | Renders every item into a hidden element | Near-instant (no upfront DOM work) |
+| **Scrollbar accuracy** | Pixel-perfect from the start | Approximate until items are visited |
+| **Jump-to-index** | Exact — all offsets are known | Adapts on the fly as items are measured |
+| **Best for** | Few unique sizes, cacheable measurements | Large datasets, dynamic / user-generated content |
+
+### Mode A — Known Size Function
+
+You provide a `height(index)` function that returns the exact pixel height for every item. vlist builds a prefix-sum array at init and never needs to measure anything at runtime.
+
+```typescript
+// Pre-measure once (e.g. at page load or from a cache)
+const sizes = items.map(measureInHiddenDOM);
+
+const list = vlist({
+  container: '#app',
+  items,
+  item: {
+    height: (i) => sizes[i],
+    template: renderItem,
+  },
+}).build();
+```
+
+**When to choose Mode A:**
+
+- All items share one or a few fixed sizes (`height: 48`)
+- Size is derivable from the data model (`height: (i) => data[i].expanded ? 200 : 48`)
+- You can cache measurements across sessions (localStorage, server)
+- You need a pixel-perfect scrollbar and instant scroll-to-index on first load
+
+### Mode B — AutoSize (`withAutoSize()`)
+
+You provide an `estimatedHeight` and let a `ResizeObserver` measure each item as it enters the viewport. Measured sizes are cached and reused — each item is observed exactly once.
+
+```typescript
+const list = vlist({
+  container: '#app',
+  items,
+  item: {
+    estimatedHeight: 120,
+    template: renderItem,
+  },
+})
+  .use(withAutoSize())
+  .build();
+```
+
+**When to choose Mode B:**
+
+- Item height depends on rendered content (variable-length text, images with unknown aspect ratios, embedded media)
 - You can't compute the exact size from data alone
-- You were previously pre-measuring items in a hidden DOM element
+- You have thousands of items and can't afford the init cost of pre-measuring all of them
+- Content is dynamic or user-generated and sizes vary widely
+- You were previously pre-measuring items in a hidden DOM element and want to remove that step
 
-### Use Mode A instead when:
+### Switching Between Modes
 
-- All items have the same size (`height: 48`)
-- Size is derivable from data (`height: (i) => data[i].expanded ? 200 : 48`)
-- You need pixel-perfect initial layout (no reflow from measurement)
+Changing from Mode B to Mode A is a single config swap — replace `estimatedHeight` with `height` and remove `withAutoSize()`:
+
+```diff
+  item: {
+-   estimatedHeight: 120,
++   height: (i) => sizes[i],
+    template: renderItem,
+  },
+- .use(withAutoSize())
+```
 
 ## Use Cases
 
@@ -162,7 +225,17 @@ When an above-viewport item is measured and its size differs from the estimate, 
 
 ### Content Size Deferral
 
-During active scrolling, content size updates are deferred to prevent the scrollbar thumb from shifting under the user's finger. Deferred updates are flushed on scroll idle.
+During active scrolling, content size updates are **deferred** to prevent the scrollbar thumb from jumping under the user's finger. Deferred updates are flushed when scrolling becomes idle.
+
+There is one exception: when the render range includes the **last item**, content size is always updated immediately. This ensures `scrollToIndex(last, 'end')` and keyboard End reach the true bottom without the browser clamping the scroll position to a stale content height.
+
+### Bottom-Snapping
+
+When scrolling to the bottom (via `scrollToIndex`, the End key, or the scrollbar), vlist ensures the last item is fully visible:
+
+- **Dynamic animation target** — smooth scroll animations recalculate their target each frame from the current size cache, so the destination adapts as measurements arrive mid-scroll.
+- **Snap on measurement** — when items near the end are measured and the scroll position was already at the DOM's max scroll, vlist forces a layout reflow and snaps to the new bottom immediately.
+- **Drift-tolerant flush** — if the smooth scroll animation's target became stale (early measurement batches grew the content before the animation started), the idle flush detects that the render range includes the last item and the scroll position is within the size-drift distance of the old max scroll, then snaps to the correct bottom.
 
 ## Compatibility
 
@@ -194,13 +267,23 @@ If both `height` and `estimatedHeight` are set, **`height` wins** (Mode A). The 
 
 ## Choosing the Right Estimate
 
-The estimate affects initial layout quality:
+The estimate affects initial layout quality and scrollbar accuracy:
 
-- **Too small** — items jump larger after measurement, causing visible reflow below
-- **Too large** — items shrink after measurement, wasting initial space
-- **Close to average** — minimal visual disruption during measurement
+| Estimate | Effect |
+|----------|--------|
+| **Too small** | Items jump larger after measurement, causing visible reflow below the viewport |
+| **Too large** | Items shrink after measurement, wasting initial space and shifting content up |
+| **Close to median** | Minimal visual disruption — positive and negative deltas cancel out |
 
-**Tip:** Profile your content to find the median item height, then use that as the estimate.
+**Tip:** Render a sample of 50–100 items, collect their heights, and use the **median** as your estimate. The median minimises the total scroll correction because roughly half the items are taller and half are shorter.
+
+```typescript
+// One-time profiling (remove after you have a good estimate)
+const heights = sampleItems.map(item => measureInDOM(item));
+heights.sort((a, b) => a - b);
+const median = heights[Math.floor(heights.length / 2)];
+console.log('Recommended estimatedHeight:', median);
+```
 
 ## Performance
 

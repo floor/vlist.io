@@ -15,7 +15,7 @@ import { getAllPosts } from "../../src/api/posts.js";
 // =============================================================================
 
 const TOTAL_POSTS = 5000;
-const ESTIMATED_POST_HEIGHT = 200;
+const ESTIMATED_POST_HEIGHT = 240;
 const VLIST_PADDING = 12; // must match padding: passed to vlist()
 
 // =============================================================================
@@ -216,6 +216,12 @@ export function createList() {
 
 function updatePanelInfo(initTime, uniqueSizes) {
   const modeLabel = currentMode === "a" ? "Mode A" : "Mode B";
+
+  // Toggle mode description visibility
+  const descA = document.getElementById("mode-desc-a");
+  const descB = document.getElementById("mode-desc-b");
+  if (descA) descA.style.display = currentMode === "a" ? "" : "none";
+  if (descB) descB.style.display = currentMode === "b" ? "" : "none";
 
   if (infoModeEl) infoModeEl.textContent = modeLabel;
   if (infoEstimateEl) {
