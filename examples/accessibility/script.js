@@ -137,9 +137,6 @@ export function createList() {
     },
     items: users,
     accessible: interactiveEnabled,
-    scroll: {
-      wrap: true,
-    },
   }).build();
 
   list.on("scroll", updateInfo);
