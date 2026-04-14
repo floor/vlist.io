@@ -10,6 +10,7 @@ import {
   render as renderEta,
   loadNavigation as loadHeaderNavigation,
 } from "../config/eta";
+import { replaceSizePlaceholders } from "../size-data";
 import { SITE, IS_PROD } from "./config";
 import {
   loadShell as loadShellBase,
@@ -616,7 +617,8 @@ export function createContentRenderer(config: ContentConfig) {
     if (!existsSync(mdPath)) return null;
 
     // Read and parse markdown with context-aware link resolution
-    const mdSource = readFileSync(mdPath, "utf-8");
+    let mdSource = readFileSync(mdPath, "utf-8");
+    mdSource = replaceSizePlaceholders(mdSource);
     const marked = createMarkedInstance(slug);
     const rawHtml = marked.parse(mdSource) as string;
     const parsedHtml = disambiguateHeadings(rawHtml);
