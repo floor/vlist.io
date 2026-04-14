@@ -313,6 +313,12 @@
     background: var(--border);
 }
 
+.ui-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .ui-btn--active {
     background: var(--bg-card-hover);
     color: var(--text);
@@ -337,6 +343,25 @@
 .ui-btn--primary:active {
     transform: translateY(0);
     box-shadow: none;
+}
+
+.ui-btn--danger {
+    width: 100%;
+    background: transparent;
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.3);
+    font-weight: 600;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.ui-btn--danger:hover {
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.5);
+}
+
+.ui-btn--danger:active {
+    background: rgba(248, 113, 113, 0.2);
 }
 
 .ui-btn--load:hover:not(:disabled) {
@@ -880,6 +905,11 @@
 
 .ui-switch input:checked + .ui-switch__track::after {
     transform: translateX(18px);
+}
+
+.ui-switch input:disabled + .ui-switch__track {
+    opacity: 0.35;
+    cursor: not-allowed;
 }
 
 /* ============================================================================
