@@ -4,19 +4,19 @@
 
 ## Quick Reference
 
-| Feature | Cost | Description |
+| Feature | Cost (gzipped) | Description |
 |---|---|---|
-| `withAsync()` | +5.3 KB | Lazy loading via adapter with placeholders |
-| `withSelection()` | +2.3 KB | Single / multiple item selection with keyboard nav |
-| `withGrid()` | +4.0 KB | 2D grid layout (virtualises by row) |
-| `withTable()` | +5.8 KB | Data table with resizable columns, sortable headers |
-| `withMasonry()` | +2.9 KB | Pinterest-style shortest-lane placement |
-| `withGroups()` | +4.6 KB | Grouped lists with sticky or inline headers |
-| `withScrollbar()` | +1.0 KB | Custom scrollbar UI with auto-hide |
-| `withPage()` | +0.9 KB | Document-level (window) scrolling |
-| `withScale()` | +2.2 KB | Compress scroll space for 1M+ items |
-| `withAutoSize()` | +0.7 KB | Auto-measure items via ResizeObserver (Mode B) |
-| `withSnapshots()` | 0 KB | Scroll position save/restore (included in base) |
+| `withAsync()` | +{{size:withAsync:delta}} KB | Lazy loading via adapter with placeholders |
+| `withSelection()` | +{{size:withSelection:delta}} KB | Single / multiple item selection with keyboard nav |
+| `withGrid()` | +{{size:withGrid:delta}} KB | 2D grid layout (virtualises by row) |
+| `withTable()` | +{{size:withTable:delta}} KB | Data table with resizable columns, sortable headers |
+| `withMasonry()` | +{{size:withMasonry:delta}} KB | Pinterest-style shortest-lane placement |
+| `withGroups()` | +{{size:withGroups:delta}} KB | Grouped lists with sticky or inline headers |
+| `withScrollbar()` | +{{size:withScrollbar:delta}} KB | Custom scrollbar UI with auto-hide |
+| `withPage()` | +{{size:withPage:delta}} KB | Document-level (window) scrolling |
+| `withScale()` | +{{size:withScale:delta}} KB | Compress scroll space for 1M+ items |
+| `withAutoSize()` | +{{size:withAutoSize:delta}} KB | Auto-measure items via ResizeObserver (Mode B) |
+| `withSnapshots()` | +{{size:withSnapshots:delta}} KB | Scroll position save/restore |
 
 ---
 
