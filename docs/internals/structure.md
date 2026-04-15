@@ -284,7 +284,7 @@ src/styles/
 
 **Usage:**
 ```typescript
-import '@floor/vlist/styles';
+import 'vlist/styles';
 ```
 
 ## Core Files
@@ -350,16 +350,16 @@ export function withFeatureName(config?: FeatureConfig): VListFeature {
 
 ```typescript
 // Main entry point
-import { vlist } from '@floor/vlist';
+import { vlist } from 'vlist';
 
 // Features
-import { withGrid, withGroups, withAsync } from '@floor/vlist';
+import { withGrid, withGroups, withAsync } from 'vlist';
 
 // Utilities
-import { getScaleInfo, createEmitter } from '@floor/vlist';
+import { getScaleInfo, createEmitter } from 'vlist';
 
 // Styles
-import '@floor/vlist/styles';
+import 'vlist/styles';
 ```
 
 ### Internal Imports
@@ -397,7 +397,7 @@ export function getCompressionState() { ... }
 export { getCompressionState as getScaleState } from './rendering';
 
 // User imports:
-import { getScaleState } from '@floor/vlist';
+import { getScaleState } from 'vlist';
 ```
 
 ## File Naming Conventions

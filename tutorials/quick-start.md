@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-npm install @floor/vlist
+npm install vlist
 ```
 
 ## Examples
@@ -13,8 +13,8 @@ npm install @floor/vlist
 ### 1. Simple List
 
 ```typescript
-import { vlist } from '@floor/vlist';
-import '@floor/vlist/styles';
+import { vlist } from 'vlist';
+import 'vlist/styles';
 
 const list = vlist({
   container: '#app',
@@ -37,7 +37,7 @@ const list = vlist({
 ### 2. With Selection
 
 ```typescript
-import { vlist, withSelection } from '@floor/vlist';
+import { vlist, withSelection } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -66,7 +66,7 @@ list.getSelectedItems();  // [{ id: 5, ... }]
 ### 3. Photo Gallery (Grid)
 
 ```typescript
-import { vlist, withGrid, withScrollbar } from '@floor/vlist';
+import { vlist, withGrid, withScrollbar } from 'vlist';
 
 const gallery = vlist({
   container: '#gallery',
@@ -93,7 +93,7 @@ const gallery = vlist({
 ### 4. Contact List (A-Z Sections)
 
 ```typescript
-import { vlist, withGroups } from '@floor/vlist';
+import { vlist, withGroups } from 'vlist';
 
 const contacts = vlist({
   container: '#contacts',
@@ -121,7 +121,7 @@ const contacts = vlist({
 ### 5. Chat UI (Reverse Mode)
 
 ```typescript
-import { vlist, withGroups } from '@floor/vlist';
+import { vlist, withGroups } from 'vlist';
 
 const chat = vlist({
   container: '#messages',
@@ -156,7 +156,7 @@ chat.prependItems(olderMessages);
 ### 6. Infinite Scroll Feed
 
 ```typescript
-import { vlist, withPage, withAsync } from '@floor/vlist';
+import { vlist, withPage, withAsync } from 'vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -188,7 +188,7 @@ const feed = vlist({
 ### 7. Large Dataset (1M+ Items)
 
 ```typescript
-import { vlist, withScale, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withScrollbar } from 'vlist';
 
 const bigList = vlist({
   container: '#list',

@@ -169,7 +169,7 @@ npm run analyze:all           # Run all checks
 
 - **Generated:** February 18, 2026
 - **Tool:** Madge 8.0.0
-- **Project Version:** @floor/vlist 0.7.1
+- **Project Version:** vlist 0.7.1
 - **Files Analyzed:** 46 TypeScript files
 - **Total Dependencies:** 131 relationships
 

@@ -261,7 +261,7 @@ In single mode, focus and selection are independent by default — navigate with
 ### Single Selection
 
 ```typescript
-import { vlist, withSelection } from '@floor/vlist';
+import { vlist, withSelection } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -285,7 +285,7 @@ list.on('selection:change', ({ selected }) => {
 ### Multi-Select with Initial Selection
 
 ```typescript
-import { vlist, withSelection } from '@floor/vlist';
+import { vlist, withSelection } from 'vlist';
 
 const list = vlist({
   container: '#app',

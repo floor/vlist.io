@@ -411,7 +411,7 @@ DOM removed
 A minimal feature that adds a `getVisibleCount()` method:
 
 ```typescript
-import type { VListFeature, BuilderContext } from '@floor/vlist'
+import type { VListFeature, BuilderContext } from 'vlist'
 
 const withVisibleCount = (): VListFeature => ({
   name: 'visibleCount',

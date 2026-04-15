@@ -474,7 +474,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `column:sort`, `column:resize`, `column:click` events
   - `setSort()`, `getSort()`, `updateColumns()`, `resizeColumn()`, `getColumnWidths()` API methods
   - Flex columns (no explicit `width`) auto-fill remaining space
-  - Dedicated CSS file: `@floor/vlist/styles/table`
+  - Dedicated CSS file: `vlist/styles/table`
 
 ### Fixed
 

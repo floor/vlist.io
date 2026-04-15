@@ -55,7 +55,7 @@ The feature:
 ### With Builder (Recommended)
 
 ```typescript
-import { vlist, withGroups } from '@floor/vlist'
+import { vlist, withGroups } from 'vlist'
 
 const contacts = vlist({
   container: '#contacts',
@@ -277,7 +277,7 @@ The sticky header container has the class `{classPrefix}-sticky-header` and cont
 Groups work seamlessly with grid layout. Headers automatically span the full width:
 
 ```typescript
-import { vlist, withGrid, withGroups } from '@floor/vlist'
+import { vlist, withGrid, withGroups } from 'vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -325,7 +325,7 @@ const gallery = vlist({
 Groups work seamlessly with data tables. Group headers render as full-width rows without cells, and the sticky group header sits below the table's column header row:
 
 ```typescript
-import { vlist, withTable, withGroups } from '@floor/vlist'
+import { vlist, withTable, withGroups } from 'vlist'
 
 const table = vlist({
   container: '#employees',
@@ -514,7 +514,7 @@ contacts.scrollToIndex(2, 'start')
 The groups feature **works seamlessly with reverse mode** - both sticky and inline headers are supported:
 
 ```typescript
-import { vlist, withGroups } from '@floor/vlist'
+import { vlist, withGroups } from 'vlist'
 
 const chat = vlist({
   container: '#messages',

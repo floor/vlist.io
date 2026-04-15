@@ -225,7 +225,7 @@ The server automatically injects:
 Minimal list with no features (7.7 KB gzipped):
 
 ```javascript
-import { vlist } from "@floor/vlist";
+import { vlist } from "vlist";
 
 const items = Array.from({ length: 100000 }, (_, i) => ({
   id: i + 1,
@@ -247,7 +247,7 @@ const list = vlist({
 Composable features via `.use()` — only bundled features are included:
 
 ```javascript
-import { vlist, withGrid, withScrollbar } from "@floor/vlist";
+import { vlist, withGrid, withScrollbar } from "vlist";
 
 const gallery = vlist({
   container: "#grid-container",
@@ -269,7 +269,7 @@ Using React hooks with vlist:
 ```tsx
 import { useRef, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { vlist } from "@floor/vlist";
+import { vlist } from "vlist";
 
 function App() {
   const containerRef = useRef<HTMLDivElement>(null);

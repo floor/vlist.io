@@ -27,7 +27,7 @@ This isn't a cost-cutting measure — it's an architecture decision. When you ow
 vlist uses a builder pattern with opt-in features. The base is 8.7 KB gzipped. Add grid layout? That's 12.8 KB. Need groups with sticky headers? 12.9 KB. Most apps will never ship the full feature set, and the bundler drops everything you don't import.
 
 ```typescript
-import { vlist, withGrid, withSelection } from '@floor/vlist'
+import { vlist, withGrid, withSelection } from 'vlist'
 
 const list = vlist({
   container: '#gallery',
@@ -93,11 +93,11 @@ If your framework doesn't have an adapter yet, you can integrate vlist in an aft
 ## Get started
 
 ```bash
-npm install @floor/vlist
+npm install vlist
 ```
 
 Docs and 14+ interactive examples at [vlist.io](https://vlist.io).
 
 ---
 
-Built by [Floor IO](https://floor.io) · [GitHub](https://github.com/floor/vlist) · [NPM](https://www.npmjs.com/package/@floor/vlist)
+Built by [Floor IO](https://floor.io) · [GitHub](https://github.com/floor/vlist) · [NPM](https://www.npmjs.com/package/vlist)

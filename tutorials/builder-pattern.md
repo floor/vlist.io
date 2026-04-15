@@ -24,7 +24,7 @@ Different use cases need different features. A contact list doesn't need async l
 ### 1. `vlist(config)` — create a builder
 
 ```typescript
-import { vlist } from '@floor/vlist';
+import { vlist } from 'vlist';
 
 const builder = vlist({
   container: '#app',
@@ -40,7 +40,7 @@ const builder = vlist({
 ### 2. `.use(feature)` — add features
 
 ```typescript
-import { withSelection, withScrollbar } from '@floor/vlist';
+import { withSelection, withScrollbar } from 'vlist';
 
 builder
   .use(withSelection({ mode: 'multiple' }))
@@ -68,13 +68,13 @@ list.destroy();
 
 | Feature | Import | Cost | Description |
 |---|---|---|---|
-| `withGrid()` | `@floor/vlist` | +4.0 KB | 2D grid layout (virtualises by row) |
-| `withGroups()` | `@floor/vlist` | +4.6 KB | Grouped lists with sticky or inline headers |
-| `withAsync()` | `@floor/vlist` | +5.3 KB | Lazy loading via adapter |
-| `withSelection()` | `@floor/vlist` | +2.3 KB | Single / multiple item selection |
-| `withScale()` | `@floor/vlist` | +2.2 KB | 1M+ item compression |
-| `withScrollbar()` | `@floor/vlist` | +1.0 KB | Custom scrollbar UI |
-| `withPage()` | `@floor/vlist` | +0.9 KB | Document-level scrolling |
+| `withGrid()` | `vlist` | +4.0 KB | 2D grid layout (virtualises by row) |
+| `withGroups()` | `vlist` | +4.6 KB | Grouped lists with sticky or inline headers |
+| `withAsync()` | `vlist` | +5.3 KB | Lazy loading via adapter |
+| `withSelection()` | `vlist` | +2.3 KB | Single / multiple item selection |
+| `withScale()` | `vlist` | +2.2 KB | 1M+ item compression |
+| `withScrollbar()` | `vlist` | +1.0 KB | Custom scrollbar UI |
+| `withPage()` | `vlist` | +0.9 KB | Document-level scrolling |
 | `withSnapshots()` | built-in | 0 KB | Scroll save/restore |
 
 ---
@@ -108,7 +108,7 @@ import {
   withGroups,
   withSelection,
   withScrollbar,
-} from '@floor/vlist';
+} from 'vlist';
 
 const browser = vlist({
   container: '#browser',
@@ -148,7 +148,7 @@ browser.on('selection:change', ({ selectedIds }) => {
 Features can be added conditionally before calling `.build()`:
 
 ```typescript
-import { vlist, withGrid, withSelection } from '@floor/vlist';
+import { vlist, withGrid, withSelection } from 'vlist';
 
 let builder = vlist({
   container: '#list',

@@ -8,7 +8,7 @@ The `withPage()` feature enables **page-level scrolling** where the list partici
 
 **Import:**
 ```typescript
-import { vlist, withPage } from '@floor/vlist';
+import { vlist, withPage } from 'vlist';
 ```
 
 **Bundle cost:** +0.9 KB gzipped
@@ -16,7 +16,7 @@ import { vlist, withPage } from '@floor/vlist';
 ## Quick Start
 
 ```typescript
-import { vlist, withPage } from '@floor/vlist';
+import { vlist, withPage } from 'vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -56,7 +56,7 @@ The feature automatically:
 ### Blog Posts / Articles
 
 ```typescript
-import { vlist, withPage } from '@floor/vlist';
+import { vlist, withPage } from 'vlist';
 
 const blog = vlist({
   container: '#articles',
@@ -80,7 +80,7 @@ const blog = vlist({
 ### Infinite Scroll Feed
 
 ```typescript
-import { vlist, withPage, withAsync } from '@floor/vlist';
+import { vlist, withPage, withAsync } from 'vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -109,7 +109,7 @@ Combines page scrolling with lazy loading for infinite scroll.
 ### Product Listings
 
 ```typescript
-import { vlist, withPage } from '@floor/vlist';
+import { vlist, withPage } from 'vlist';
 
 const products = vlist({
   container: '#products',
@@ -133,7 +133,7 @@ const products = vlist({
 ### Search Results
 
 ```typescript
-import { vlist, withPage } from '@floor/vlist';
+import { vlist, withPage } from 'vlist';
 
 const results = vlist({
   container: '#results',
@@ -324,7 +324,7 @@ See these interactive examples at [vlist.io/examples](/examples/):
 ### Combining with Async Loading
 
 ```typescript
-import { vlist, withPage, withAsync } from '@floor/vlist';
+import { vlist, withPage, withAsync } from 'vlist';
 
 const feed = vlist({
   container: '#feed',

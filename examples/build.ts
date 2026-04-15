@@ -40,7 +40,7 @@ const BUILD_OPTIONS = {
 // Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
 // string `template` options work at runtime without .vue SFC compilation.
 //
-// vlist: resolves bare "vlist" imports to "@floor/vlist" via the package.json
+// vlist: resolves bare "vlist" imports to "vlist" via the package.json
 // "imports" field mapping (which Bun's bundler doesn't natively support).
 
 // =============================================================================
@@ -98,7 +98,7 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
   setup(build) {
     // Resolve vlist dist directory once — used for all "vlist" and "vlist/*" imports
     const vlistDist = dirname(
-      require.resolve("@floor/vlist", { paths: [PROJECT_ROOT] }),
+      require.resolve("vlist", { paths: [PROJECT_ROOT] }),
     );
 
     // vlist — resolve bare "vlist" and JS subpaths like "vlist/internals"
@@ -232,7 +232,7 @@ function getVlistHash(): string {
   if (_vlistHash) return _vlistHash;
   const vlistDistDir = isVlistLinked()
     ? resolve("../vlist/dist")
-    : resolve("node_modules/@floor/vlist/dist");
+    : resolve("node_modules/vlist/dist");
   const vlistDist = join(vlistDistDir, "index.js");
   if (existsSync(vlistDist)) {
     const h = createHash("sha1");
@@ -249,18 +249,18 @@ function getVlistHash(): string {
   return _vlistHash;
 }
 
-/** Minimum valid size for @floor/vlist dist bundle (bytes).
+/** Minimum valid size for vlist dist bundle (bytes).
  *  The real bundle is 100+ KB. A corrupted re-export stub is ~1.5 KB. */
 const MIN_VALID_DIST_SIZE = 10_240;
 
-/** True when @floor/vlist is a local file: link (dev), not an npm install (deploy). */
+/** True when vlist is a local file: link (dev), not an npm install (deploy). */
 function isVlistLinked(): boolean {
   const pkg = JSON.parse(readFileSync("package.json", "utf-8"));
-  const spec = pkg.dependencies?.["@floor/vlist"] ?? "";
+  const spec = pkg.dependencies?.["vlist"] ?? "";
   return spec.startsWith("file:");
 }
 
-/** Check if @floor/vlist dist is missing, corrupted, or stale. */
+/** Check if vlist dist is missing, corrupted, or stale. */
 function isVlistDistStale(): boolean {
   if (!isVlistLinked()) return false; // npm install — local dist irrelevant
   const distFile = resolve("../vlist/dist/index.js");
@@ -291,11 +291,11 @@ function isVlistDistStale(): boolean {
 }
 
 /**
- * Ensure @floor/vlist dist is up-to-date before building examples.
+ * Ensure vlist dist is up-to-date before building examples.
  *
  * When the dist is stale, we auto-rebuild by spawning `bun run build.ts`
  * with cwd set to the vlist directory. This avoids the import map issue
- * (vlist.io's package.json maps "vlist" → "@floor/vlist" which would
+ * (vlist.io's package.json maps "vlist" → "vlist" which would
  * create a circular reference if Bun.build() ran in this process).
  */
 function ensureVlistDist(): void {
@@ -307,7 +307,7 @@ function ensureVlistDist(): void {
   const corrupt = !missing && statSync(distFile).size < MIN_VALID_DIST_SIZE;
 
   const label = missing ? "missing" : corrupt ? "corrupted" : "stale";
-  console.log(`\n  ⚡ @floor/vlist dist is ${label} — rebuilding...\n`);
+  console.log(`\n  ⚡ vlist dist is ${label} — rebuilding...\n`);
 
   const result = spawnSync("bun", ["run", "build.ts"], {
     cwd: vlistDir,
@@ -315,7 +315,7 @@ function ensureVlistDist(): void {
   });
 
   if (result.status !== 0) {
-    console.error("\n  ❌  @floor/vlist build failed (exit code %d)", result.status);
+    console.error("\n  ❌  vlist build failed (exit code %d)", result.status);
     console.error("  Fix the issue and retry, or build manually:");
     console.error("\n    cd ../vlist && bun run build\n");
     process.exit(1);
@@ -681,7 +681,7 @@ function buildSharedCss(): void {
 async function main() {
   const totalStart = performance.now();
 
-  // Fail fast if @floor/vlist dist is missing, corrupted, or stale
+  // Fail fast if vlist dist is missing, corrupted, or stale
   ensureVlistDist();
 
   // Force mode: clean everything

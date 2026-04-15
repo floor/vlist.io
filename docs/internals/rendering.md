@@ -51,7 +51,7 @@ The `SizeCache` abstraction enables fixed, variable, and measured item sizes thr
 | **Measured** | `estimatedHeight: number` | O(1) prefix-sum lookup | O(log n) binary search | Same as Variable + Map lookup for measured sizes |
 
 ```typescript
-import { createSizeCache, type SizeCache } from '@floor/vlist';
+import { createSizeCache, type SizeCache } from 'vlist';
 
 // Fixed — zero overhead fast path
 const fixed = createSizeCache(48, totalItems);

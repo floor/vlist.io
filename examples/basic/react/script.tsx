@@ -27,7 +27,7 @@ function App() {
       <header>
         <h1>Basic List</h1>
         <p className="description">
-          React implementation — the core of <code>@floor/vlist</code>. Scroll
+          React implementation — the core of <code>vlist</code>. Scroll
           through 100,000 items to see virtualization in action.
         </p>
       </header>

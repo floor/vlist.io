@@ -246,7 +246,7 @@ function isRangeVisible(
 Using the low-level scroll controller and scrollbar directly:
 
 ```typescript
-import { createScrollController, createScrollbar, getCompressionState } from '@floor/vlist';
+import { createScrollController, createScrollbar, getCompressionState } from 'vlist';
 
 function createScrollSystem(viewport, totalItems, itemHeight) {
   const compression = getCompressionState(totalItems, itemHeight);

@@ -97,7 +97,7 @@ Each rendered item receives:
 Sets `aria-label` on the root element. Always provide this — screen readers need it to identify the list.
 
 ```typescript
-import { vlist } from '@floor/vlist'
+import { vlist } from 'vlist'
 
 const list = vlist({
   container: '#app',
@@ -121,7 +121,7 @@ Without `ariaLabel`, screen readers will announce the list generically (e.g., "l
 Enable keyboard navigation and selection by adding the `withSelection` feature via the builder API. When added, the full keyboard interaction model activates (arrow keys, Home/End, Space/Enter), along with focus tracking (`aria-activedescendant`) and the live region for selection announcements.
 
 ```typescript
-import { vlist, withSelection } from '@floor/vlist'
+import { vlist, withSelection } from 'vlist'
 
 const list = vlist({
   container: '#app',
@@ -287,7 +287,7 @@ The live region uses `aria-live="polite"` so announcements don't interrupt the u
 When using an async adapter, vlist sets `aria-busy="true"` on the root element while data is loading. Screen readers may announce this as "busy" or defer reading until loading completes. The attribute is removed when `load:end` fires.
 
 ```typescript
-import { vlist } from '@floor/vlist'
+import { vlist } from 'vlist'
 
 const list = vlist({
   container: '#app',
@@ -390,7 +390,7 @@ Grid mode follows the [WAI-ARIA Grid pattern](https://www.w3.org/WAI/ARIA/apg/pa
 - In **horizontal orientation**, Left/Right = ±columns (scroll axis), Up/Down = ±1 (cross axis)
 
 ```typescript
-import { vlist, withGrid, withSelection } from '@floor/vlist'
+import { vlist, withGrid, withSelection } from 'vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -421,7 +421,7 @@ Masonry layouts use lane-aware navigation since items flow into the shortest col
 - In **horizontal orientation**, Left/Right = same-lane (scroll axis), Up/Down = adjacent-lane (cross axis)
 
 ```typescript
-import { vlist, withMasonry, withSelection } from '@floor/vlist'
+import { vlist, withMasonry, withSelection } from 'vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -462,7 +462,7 @@ Core does **not** include:
 - ❌ `aria-busy` (no async adapter)
 
 ```typescript
-import { vlist } from '@floor/vlist'
+import { vlist } from 'vlist'
 
 const list = vlist({
   container: '#app',

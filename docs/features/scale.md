@@ -24,7 +24,7 @@ The `withScale()` feature automatically detects when compression is needed and s
 ## Installation
 
 ```typescript
-import { vlist, withScale, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withScrollbar } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -228,7 +228,7 @@ interface ScaleConfig {
 Compression activates automatically when the total height exceeds the browser limit:
 
 ```typescript
-import { vlist, withScale } from '@floor/vlist';
+import { vlist, withScale } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -266,7 +266,7 @@ import {
   getMaxItemsWithoutScaling,
   getScaleInfo,
   getScaleState,
-} from '@floor/vlist';
+} from 'vlist';
 
 // Check if compression needed
 const needsScale = needsScaling(totalItems, itemHeight);
@@ -301,7 +301,7 @@ const MAX_VIRTUAL_SIZE = 16_000_000; // 16M pixels
 Compressed mode uses `overflow: hidden`, which hides the native scrollbar. Use `withScrollbar()` to add a custom scrollbar:
 
 ```typescript
-import { vlist, withScale, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withScrollbar } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -357,7 +357,7 @@ The `coreRenderIfNeeded` early-return path (when the render range is unchanged b
 ### Basic Usage (Million Items)
 
 ```typescript
-import { vlist, withScale, getScaleInfo } from '@floor/vlist';
+import { vlist, withScale, getScaleInfo } from 'vlist';
 
 const items = Array.from({ length: 1_000_000 }, (_, i) => ({
   id: i,
@@ -389,7 +389,7 @@ list.scrollToIndex(999_999, 'end');
 ### With Table Layout
 
 ```typescript
-import { vlist, withScale, withTable, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withTable, withScrollbar } from 'vlist';
 
 const rows = generateRows(1_000_000);
 
@@ -414,7 +414,7 @@ const table = vlist({
 ### With Grid Layout
 
 ```typescript
-import { vlist, withScale, withGrid, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withGrid, withScrollbar } from 'vlist';
 
 const photos = generatePhotos(5_000_000);
 
@@ -435,7 +435,7 @@ const gallery = vlist({
 ### With Sections
 
 ```typescript
-import { vlist, withScale, withGroups, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withGroups, withScrollbar } from 'vlist';
 
 const contacts = generateContacts(2_000_000);
 
@@ -461,7 +461,7 @@ const list = vlist({
 ### With CSS Padding
 
 ```typescript
-import { vlist, withScale, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withScrollbar } from 'vlist';
 
 const list = vlist({
   container: '#app',

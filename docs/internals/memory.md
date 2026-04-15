@@ -358,7 +358,7 @@ vlist's builder pattern ensures you only load features you use:
 
 ```typescript
 // Minimal bundle - just core
-import { vlist } from '@floor/vlist';
+import { vlist } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -369,7 +369,7 @@ const list = vlist({
 
 ```typescript
 // With features - tree-shake what you don't use
-import { vlist, withSelection, withScrollbar } from '@floor/vlist';
+import { vlist, withSelection, withScrollbar } from 'vlist';
 
 const list = vlist({ ... })
   .use(withSelection({ mode: 'multiple' }))
@@ -448,7 +448,7 @@ function VirtualList({ items, itemHeight }) {
 ### vlist Equivalent
 
 ```typescript
-import { vlist } from '@floor/vlist';
+import { vlist } from 'vlist';
 
 const list = vlist({
   container: '#app',

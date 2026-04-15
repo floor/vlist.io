@@ -204,7 +204,7 @@ item: {
 **Mode B — Auto-measurement.** Use when size depends on rendered content (variable-length text, images with unknown aspect ratios). You provide an estimate and add the `withAutoSize()` feature; vlist measures actual DOM size, caches the result, and adjusts scroll position.
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 vlist({
   container: '#app',
@@ -366,7 +366,7 @@ interface ScrollSnapshot {
 
 ### ReloadOptions
 
-Options for the `reload()` method. Exported from `@floor/vlist`.
+Options for the `reload()` method. Exported from `vlist`.
 
 ```typescript
 interface ReloadOptions {
@@ -846,7 +846,7 @@ type EventMap = Record<string, unknown>
 ### Custom Item Type
 
 ```typescript
-import { vlist } from '@floor/vlist'
+import { vlist } from 'vlist'
 
 interface Product extends VListItem {
   id: number
@@ -943,4 +943,4 @@ const adapter: VListAdapter<Article> = {
 
 ---
 
-*All types are exported from `@floor/vlist` — import what you need.*
+*All types are exported from `vlist` — import what you need.*

@@ -3,7 +3,7 @@
 > Comprehensive analysis of the vlist codebase at v1.0.1, identifying areas for improvement across architecture, correctness, documentation, developer experience, and competitive positioning.
 
 *Review date: February 27, 2026*
-*Reviewed version: @floor/vlist 1.0.1 (303 commits, 25 days)*
+*Reviewed version: vlist 1.0.1 (303 commits, 25 days)*
 *Reviewer context: 10+ years TypeScript, extensive virtual scrolling experience*
 *Last updated: June 2025 — v1.4.0, all 14 items completed* ✅
 
