@@ -548,9 +548,8 @@ export const benchmarkVList = async (
             height: ITEM_HEIGHT,
             template: benchmarkTemplate,
           },
+          items,
         }).build();
-
-        list.setItems(items);
         await nextFrame();
         return list;
       },
@@ -581,9 +580,8 @@ export const benchmarkVList = async (
           height: ITEM_HEIGHT,
           template: benchmarkTemplate,
         },
+        items,
       }).build();
-
-      l.setItems(items);
       return l;
     },
     destroyFn: (l) => l.destroy(),

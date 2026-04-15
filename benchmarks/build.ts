@@ -173,6 +173,7 @@ async function build(): Promise<void> {
 
     // Define Vue feature flags for production builds
     const define: Record<string, string> = {
+      "process.env.NODE_ENV": '"production"',
       __VUE_OPTIONS_API__: "true",
       __VUE_PROD_DEVTOOLS__: "false",
       __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false",
