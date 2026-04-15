@@ -54,7 +54,7 @@ jobs:
             # Replace file: dependencies with npm registry versions BEFORE building
             # (file: paths are for local dev only — they don't exist on the server)
             echo "🔗 Resolving production dependencies..."
-            sed -i 's|"@floor/vlist": "file:../vlist"|"@floor/vlist": "latest"|' package.json
+            sed -i 's|"vlist": "file:../vlist"|"vlist": "latest"|' package.json
 
             # Clean install to ensure fresh resolution (avoid lockfile conflicts)
             rm -rf node_modules bun.lockb

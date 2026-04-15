@@ -8,7 +8,7 @@ The `withAutoSize()` feature enables **Mode B sizing** — items are rendered at
 
 **Import:**
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 ```
 
 **Bundle cost:** +0.7 KB gzipped
@@ -16,7 +16,7 @@ import { vlist, withAutoSize } from '@floor/vlist';
 ## Quick Start
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -135,7 +135,7 @@ Changing from Mode B to Mode A is a single config swap — replace `estimatedHei
 ### Social Feed
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -165,7 +165,7 @@ const feed = vlist({
 ### Chat Messages
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 const chat = vlist({
   container: '#chat',
@@ -188,7 +188,7 @@ const chat = vlist({
 ### Comments Thread
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 const thread = vlist({
   container: '#comments',

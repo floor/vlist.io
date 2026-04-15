@@ -133,7 +133,7 @@ madge --json --extensions ts src/ > deps-analysis.json
 
 - **Generated:** February 18, 2026
 - **Tool:** Madge 8.0.0
-- **Project Version:** @floor/vlist 0.7.1
+- **Project Version:** vlist 0.7.1
 - **Node Version:** 23.6.0
 - **Files Analyzed:** 46 TypeScript files
 

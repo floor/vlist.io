@@ -2,7 +2,7 @@
 // Server-wide constants and package resolution.
 
 import { existsSync, realpathSync, readFileSync } from "fs";
-import { join, resolve, dirname } from "path";
+import { join, resolve } from "path";
 
 /** True when NODE_ENV is explicitly set to "production". */
 export const IS_PROD = process.env.NODE_ENV === "production";
@@ -29,7 +29,7 @@ function resolvePackagePath(packageName: string): string | null {
   }
 }
 
-export const VLIST_ROOT = resolvePackagePath("@floor/vlist");
+export const VLIST_ROOT = resolvePackagePath("vlist");
 
 /** vlist package version — used as cache-buster for library CSS. */
 export const VLIST_VERSION = (() => {

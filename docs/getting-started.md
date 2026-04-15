@@ -5,8 +5,8 @@
 ## Installation
 
 ```bash
-npm install @floor/vlist
-# or: bun add @floor/vlist  |  pnpm add @floor/vlist  |  yarn add @floor/vlist
+npm install vlist
+# or: bun add vlist  |  pnpm add vlist  |  yarn add vlist
 ```
 
 ## Basic Usage
@@ -18,8 +18,8 @@ A container element with a defined height is required — virtual scrolling need
 ```
 
 ```typescript
-import { vlist } from '@floor/vlist';
-import '@floor/vlist/styles';
+import { vlist } from 'vlist';
+import 'vlist/styles';
 
 const list = vlist({
   container: '#list',
@@ -257,7 +257,7 @@ vlist provides built-in keyboard navigation and single-select behavior out of th
 For multi-select, programmatic selection API, or `selection:change` events, add `withSelection()`:
 
 ```typescript
-import { vlist, withSelection } from '@floor/vlist'
+import { vlist, withSelection } from 'vlist'
 
 const list = vlist({ ... })
   .use(withSelection({ mode: 'multiple' }))
@@ -298,7 +298,7 @@ const timeline = vlist({
 `reverse: true` anchors the scroll position to the **bottom** of the list. `appendItems` auto-scrolls if the user is already at the bottom; `prependItems` preserves the current scroll position. Useful for any bottom-anchored content: chat, logs, activity feeds, timelines.
 
 ```typescript
-import { vlist } from '@floor/vlist';
+import { vlist } from 'vlist';
 
 const chat = vlist({
   container: '#messages',
@@ -377,7 +377,7 @@ See [API Reference](/docs/api/reference) for all events.
 Pass your item type as a generic — all methods and events are fully typed:
 
 ```typescript
-import { vlist, type VList } from '@floor/vlist';
+import { vlist, type VList } from 'vlist';
 
 interface Message {
   id: string;

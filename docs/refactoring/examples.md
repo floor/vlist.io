@@ -46,11 +46,11 @@ The examples are the strongest of the three today. Code quality is high, the bui
 
 ### Build system
 
-Solid. Auto-discovers examples by scanning for `script.js`/`script.tsx`, builds in parallel with Bun, handles framework deduplication (React, Vue linked copies), maps bare `"vlist"` imports to `"@floor/vlist"`, reports sizes and gzip. Watch mode works. No issues found here.
+Solid. Auto-discovers examples by scanning for `script.js`/`script.tsx`, builds in parallel with Bun, handles framework deduplication (React, Vue linked copies), maps bare `"vlist"` imports to `"vlist"`, reports sizes and gzip. Watch mode works. No issues found here.
 
 ### Import paths
 
-All example scripts use `import { vlist } from "vlist"` (bare specifier). This is correct — the build plugin resolves `"vlist"` to `"@floor/vlist"` via the package.json imports field. **Not a bug**, but worth noting: readers who copy example code into their own project need `"@floor/vlist"`, not `"vlist"`. The examples don't make this visible.
+All example scripts use `import { vlist } from "vlist"` (bare specifier). This is correct — the build plugin resolves `"vlist"` to `"vlist"` via the package.json imports field. **Not a bug**, but worth noting: readers who copy example code into their own project need `"vlist"`, not `"vlist"`. The examples don't make this visible.
 
 ---
 
@@ -402,7 +402,7 @@ Extending the 17 principles from docs + tutorials:
 18. **Organize by what you build, not what features you use.** An example is a "Photo Album" or a "Chat," not a "Grid Feature" or "Reverse Feature." Feature chips tell the reader which vlist features are involved.
 19. **Feature chips are the vocabulary.** Every example declares its features. Chips use builder function names (`[grid]`, `[async]`, `[selection]`) — what the developer types. Readers can scan for a chip across all examples to find every usage of a feature.
 20. **Realistic data, minimal chrome.** Use plausible data (names, photos, messages, products) but keep the UI focused on the vlist functionality, not the surrounding app shell.
-21. **Copy-paste to learn.** A developer should be able to read the source, copy the pattern into their own project (changing `"vlist"` to `"@floor/vlist"`), and have it work.
+21. **Copy-paste to learn.** A developer should be able to read the source, copy the pattern into their own project (changing `"vlist"` to `"vlist"`), and have it work.
 22. **Progressive complexity within groups.** If a group has multiple examples, order from simple to complex. The first example is the "hello world" for that theme.
 23. **Navigation.json is the source of truth.** `index.html` must be generated from or kept in sync with `navigation.json`. No manual HTML-only entries. Feature chips render from the `features` array in each entry.
 

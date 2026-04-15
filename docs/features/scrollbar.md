@@ -447,7 +447,7 @@ For the circular buffer implementation, see [Scrollbar Internals](../internals/s
 The default experience: custom scrollbar, wheel enabled, everything automatic.
 
 ```typescript
-import { vlist } from '@floor/vlist';
+import { vlist } from 'vlist';
 
 const list = vlist({
   container: '#app',

@@ -81,7 +81,7 @@ Because the table is built on vlist's core, you get everything else for free: `w
 ## Quick Start
 
 ```js
-import { vlist, withTable, withSelection } from '@floor/vlist'
+import { vlist, withTable, withSelection } from 'vlist'
 
 const table = vlist({
   container: '#my-table',
@@ -484,7 +484,7 @@ table.updateColumns([
 Feature factory. Returns a `VListFeature` to pass to `.use()`.
 
 ```js
-import { vlist, withTable } from '@floor/vlist'
+import { vlist, withTable } from 'vlist'
 
 const table = vlist({
   container: '#table',

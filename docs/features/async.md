@@ -27,7 +27,7 @@ src/features/async/
 The `withAsync` feature is the main API for adding async data loading to vlist:
 
 ```typescript
-import { vlist, withAsync } from '@floor/vlist'
+import { vlist, withAsync } from 'vlist'
 
 const list = vlist({
   container: '#app',
@@ -86,7 +86,7 @@ Velocity-based loading optimization:
 ## Complete Integration
 
 ```typescript
-import { vlist, withAsync } from '@floor/vlist';
+import { vlist, withAsync } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -228,7 +228,7 @@ When a snapshot with meaningful data is provided, `reload()`:
 ### Placeholder Detection in Templates
 
 ```typescript
-import { isPlaceholderItem } from '@floor/vlist';
+import { isPlaceholderItem } from 'vlist';
 
 item: {
   height: 48,

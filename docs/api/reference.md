@@ -9,18 +9,18 @@
 ## Installation
 
 ```sh
-npm install @floor/vlist
+npm install vlist
 ```
 
 ```ts
-import { vlist } from '@floor/vlist'
-import '@floor/vlist/styles'
+import { vlist } from 'vlist'
+import 'vlist/styles'
 ```
 
 Optional extras (variants, loading states, animations):
 
 ```ts
-import '@floor/vlist/styles/extras'
+import 'vlist/styles/extras'
 ```
 
 ---
@@ -28,8 +28,8 @@ import '@floor/vlist/styles/extras'
 ## Quick Start
 
 ```ts
-import { vlist } from '@floor/vlist'
-import '@floor/vlist/styles'
+import { vlist } from 'vlist'
+import 'vlist/styles'
 
 const list = vlist({
   container: '#my-list',
@@ -64,7 +64,7 @@ function vlist<T extends VListItem>(config: BuilderConfig<T>): VListBuilder<T>
 **Example with features:**
 
 ```ts
-import { vlist, withSelection, withScrollbar, withSnapshots } from '@floor/vlist'
+import { vlist, withSelection, withScrollbar, withSnapshots } from 'vlist'
 
 const list = vlist({
   container: '#app',
@@ -182,7 +182,7 @@ item: {
 **Mode B — Auto-measurement.** Use when the size depends on rendered content that you can't predict from data — variable-length user text, images with unknown aspect ratios, mixed-media feeds. You provide an *estimate* and add the `withAutoSize()` feature; vlist renders items at that size, measures the actual DOM size via `ResizeObserver`, caches the result, and adjusts scroll position to prevent visual jumps.
 
 ```ts
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 // Social feed — posts vary from one-liner to multi-paragraph with images
 vlist({

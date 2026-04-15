@@ -1,4 +1,4 @@
-# Continue: @floor/vlist examples & tutorials refactoring
+# Continue: vlist examples & tutorials refactoring
 
 ## Context
 
@@ -14,7 +14,7 @@ Source lives in `vlist/`, adapter source in `vlist-react/`, `vlist-vue/`, `vlist
 
 ### Docs (complete)
 
-Phases 1–7 finished. All docs are factually accurate, structurally clean, import-path correct, builder-API consistent. `VListConfig` type added to core (`@floor/vlist@1.1.2`), all 4 adapters at `0.1.2`, everything published to npm.
+Phases 1–7 finished. All docs are factually accurate, structurally clean, import-path correct, builder-API consistent. `VListConfig` type added to core (`vlist@1.1.2`), all 4 adapters at `0.1.2`, everything published to npm.
 
 ### Examples Phase 1 (complete)
 

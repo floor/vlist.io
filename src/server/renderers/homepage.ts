@@ -48,7 +48,7 @@ const eta = new Eta({
 // Quick Start Code Block (preserved outside Eta to avoid rmWhitespace stripping)
 // =============================================================================
 
-const QUICKSTART_CODE = `<span class="kw">import</span> { <span class="fn">vlist</span> } <span class="kw">from</span> <span class="str">"@floor/vlist"</span>
+const QUICKSTART_CODE = `<span class="kw">import</span> { <span class="fn">vlist</span> } <span class="kw">from</span> <span class="str">"vlist"</span>
 
 <span class="kw">const</span> list <span class="op">=</span> <span class="fn">vlist</span>({
   <span class="prop">container</span><span class="par">:</span> <span class="str">"#list"</span>,

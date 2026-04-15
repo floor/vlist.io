@@ -19,7 +19,7 @@ import { buildHistoryPage } from "./history.js";
 import BUNDLE_DATA from "./data/bundle.json";
 import PERFORMANCE_DATA from "./data/performance.json";
 import FEATURES_DATA from "./data/features.json";
-import vlistPackage from "@floor/vlist/package.json";
+import vlistPackage from "vlist/package.json";
 
 // =============================================================================
 // Persistence — crowdsourced benchmark storage

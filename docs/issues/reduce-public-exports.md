@@ -1,6 +1,6 @@
 # Issue: Reduce Public Exports — Internal Symbols Leak Through Entry Point
 
-> The top-level `@floor/vlist` entry point re-exports ~50 internal symbols
+> The top-level `vlist` entry point re-exports ~50 internal symbols
 > alongside the ~15 that users actually need. This clutters IDE autocomplete,
 > inflates the perceived API surface, and implies stability guarantees on
 > implementation details.
@@ -8,7 +8,7 @@
 **Status:** ✅ Resolved
 **Priority:** Medium
 **Affects:** `vlist/src/index.ts`
-**Discovered via:** Bundlephobia Exports Analysis for `@floor/vlist@1.3.3`
+**Discovered via:** Bundlephobia Exports Analysis for `vlist@1.3.3`
 **Resolved:** 2026-03-08
 
 ---
@@ -16,7 +16,7 @@
 ## Problem
 
 The main `index.ts` re-exports everything from internal modules. As a result,
-`import { } from '@floor/vlist'` exposes symbols like:
+`import { } from 'vlist'` exposes symbols like:
 
 | Category | Examples | Count |
 |---|---|---|
@@ -108,25 +108,25 @@ Feature authors and power users can still reach internals via deep paths:
 
 ```typescript
 // Advanced: import internals explicitly
-import { createSizeCache } from '@floor/vlist/rendering/sizes'
-import { calculateScrollToIndex } from '@floor/vlist/rendering/viewport'
+import { createSizeCache } from 'vlist/rendering/sizes'
+import { calculateScrollToIndex } from 'vlist/rendering/viewport'
 ```
 
 This requires adding `exports` entries in `package.json` for the subpaths we
 want to support. Only add entries for modules that are genuinely useful to
 feature authors — not every internal file.
 
-### 3. Consider a Separate `@floor/vlist/internals` Entry Point
+### 3. Consider a Separate `vlist/internals` Entry Point
 
-As an alternative to many deep paths, a single `@floor/vlist/internals` entry
+As an alternative to many deep paths, a single `vlist/internals` entry
 point could re-export everything feature authors need:
 
 ```typescript
-import { createSizeCache, calculateScrollToIndex } from '@floor/vlist/internals'
+import { createSizeCache, calculateScrollToIndex } from 'vlist/internals'
 ```
 
-This makes the boundary explicit: `@floor/vlist` = stable API,
-`@floor/vlist/internals` = use at your own risk.
+This makes the boundary explicit: `vlist` = stable API,
+`vlist/internals` = use at your own risk.
 
 ---
 
@@ -146,7 +146,7 @@ This makes the boundary explicit: `@floor/vlist` = stable API,
 
 ## Resolution
 
-Implemented Option 3 from the proposal: a single `@floor/vlist/internals` entry
+Implemented Option 3 from the proposal: a single `vlist/internals` entry
 point.
 
 ### What changed
@@ -157,7 +157,7 @@ point.
 | `src/internals.ts` | New file — all 57 low-level runtime exports (create*, calculate*, selection, etc.) |
 | `build.ts` | Builds both `dist/index.js` and `dist/internals.js` as separate ESM bundles |
 | `package.json` | Added `"./internals"` to `exports` map and `dist/internals.js` to `files` |
-| `docs/api/exports.md` | All import paths updated to `@floor/vlist/internals` with migration note |
+| `docs/api/exports.md` | All import paths updated to `vlist/internals` with migration note |
 
 ### Verification
 
@@ -165,17 +165,17 @@ point.
 - **Tests:** 2781 pass, 0 fail
 - **Build:** both bundles generate with `.d.ts` declarations
 - **Framework adapters:** zero changes needed — all four (react, vue, svelte,
-  solidjs) only import from `@floor/vlist` (public API)
+  solidjs) only import from `vlist` (public API)
 
 ### Import paths after this change
 
 ```typescript
 // Public API — stable, clean autocomplete
-import { vlist, withGrid, withSelection } from '@floor/vlist'
-import type { VList, VListItem } from '@floor/vlist'
+import { vlist, withGrid, withSelection } from 'vlist'
+import type { VList, VListItem } from 'vlist'
 
 // Internals — advanced, use at your own risk
-import { createSizeCache, calculateScrollToIndex } from '@floor/vlist/internals'
+import { createSizeCache, calculateScrollToIndex } from 'vlist/internals'
 ```
 
 ---
@@ -193,7 +193,7 @@ import { createSizeCache, calculateScrollToIndex } from '@floor/vlist/internals'
 
 ## References
 
-- Bundlephobia analysis: https://bundlephobia.com/package/@floor/vlist@1.3.3
+- Bundlephobia analysis: https://bundlephobia.com/package/vlist@1.3.3
 - Node.js `exports` field: https://nodejs.org/api/packages.html#exports
 - Related: `docs/api/exports.md` (current exports documentation)
 

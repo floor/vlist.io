@@ -69,7 +69,7 @@ The `/tutorials/` section has 7 files. Only one (`chat-interface.md`) is actuall
 
 **Problems:**
 - Reference/guide, not a tutorial
-- Stale import paths: `import { vlist } from 'vlist'` (should be `@floor/vlist`)
+- Stale import paths: `import { vlist } from 'vlist'` (should be `vlist`)
 - "Future Enhancements" section describes features that don't exist (pull-to-refresh, swipe actions, haptic feedback) — misleading
 - Browser support table duplicates README
 - Much of the performance content duplicates `optimization.md`
@@ -100,7 +100,7 @@ The `/tutorials/` section has 7 files. Only one (`chat-interface.md`) is actuall
 - Reference doc, not a tutorial — no "style your list" journey
 - Comprehensive but overwhelming — 500 lines of CSS custom properties and class names
 - Stale import paths in Quick Start: `import { vlist } from 'vlist'`
-- CDN links use `unpkg.com/vlist` (wrong package name — should be `@floor/vlist`)
+- CDN links use `unpkg.com/vlist` (wrong package name — should be `vlist`)
 
 **Verdict:** Rewrite as a tutorial: "Style your list" — import styles, customize tokens, add dark mode, apply variants. Move the exhaustive class/token reference to a new `docs/api/styles.md` or keep in a collapsed reference section at the bottom.
 

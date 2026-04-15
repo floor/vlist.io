@@ -11,7 +11,7 @@
 vlist uses a composable builder pattern — `vlist().use(withFeature()).build()` — where each feature is a self-contained plugin with priority-ordered initialization. This enables true tree-shaking: consumers only pay for what they use.
 
 ```typescript
-import { vlist, withAsync, withSelection, withScale } from '@floor/vlist';
+import { vlist, withAsync, withSelection, withScale } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -86,7 +86,7 @@ Variable sizes use an O(1) offset lookup via prefix-sum array with O(log n) bina
 
 | Library | Core (gzipped) | Full (gzipped) |
 |---------|---------------|----------------|
-| **@floor/vlist** | **~8.2 KB** | ~32.5 KB |
+| **vlist** | **~8.2 KB** | ~32.5 KB |
 | @tanstack/virtual | ~5.5 KB | — |
 | react-virtuoso | ~15 KB | — |
 
@@ -146,7 +146,7 @@ item: { height: (index) => items[index].type === 'header' ? 64 : 48, template: m
 Sizes are estimated, then measured after render via ResizeObserver. Requires the `withAutoSize()` feature:
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 vlist({
   container: '#app',
@@ -200,4 +200,4 @@ A comprehensive [code review](../archive/V1_CODE_REVIEW.md) at v1.0.1 identified
 
 ---
 
-*@floor/vlist v1.4.0 — zero dependencies, composable features, best-in-class performance.*
+*vlist v1.4.0 — zero dependencies, composable features, best-in-class performance.*

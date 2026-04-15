@@ -39,7 +39,7 @@ In both cases, the consumer is fully responsible for the accuracy of the sizes. 
 The consumer provides an **estimate** and adds the `withAutoSize()` feature. Vlist measures actual sizes internally via `ResizeObserver` in the real DOM layout context:
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 // Vertical (default) — estimate height, vlist measures blockSize
 vlist({

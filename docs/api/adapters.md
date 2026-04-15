@@ -25,14 +25,14 @@ You never call `.use()` or `.build()` yourself — the adapter does it for you. 
 ### Install
 
 ```bash
-npm install @floor/vlist vlist-react
+npm install vlist vlist-react
 ```
 
 ### useVList
 
 ```tsx
 import { useVList } from 'vlist-react';
-import '@floor/vlist/styles';
+import 'vlist/styles';
 
 interface User {
   id: number;
@@ -120,7 +120,7 @@ function ScrollableList({ users }: { users: User[] }) {
 ### Install
 
 ```bash
-npm install @floor/vlist vlist-vue
+npm install vlist vlist-vue
 ```
 
 ### useVList
@@ -129,7 +129,7 @@ npm install @floor/vlist vlist-vue
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useVList } from 'vlist-vue';
-import '@floor/vlist/styles';
+import 'vlist/styles';
 
 interface User {
   id: number;
@@ -231,7 +231,7 @@ function scrollToTop() {
 ### Install
 
 ```bash
-npm install @floor/vlist vlist-svelte
+npm install vlist vlist-svelte
 ```
 
 ### vlist Action
@@ -241,7 +241,7 @@ The Svelte adapter exports a Svelte action, not a hook. Use it with `use:vlist`:
 ```svelte
 <script>
   import { vlist } from 'vlist-svelte';
-  import '@floor/vlist/styles';
+  import 'vlist/styles';
 
   let users = [
     { id: 1, name: 'Alice' },
@@ -331,7 +331,7 @@ Unlike the React and Vue event helpers, `onVListEvent` does not auto-clean-up �
 ### Install
 
 ```bash
-npm install @floor/vlist vlist-solidjs
+npm install vlist vlist-solidjs
 ```
 
 ### createVList
@@ -339,7 +339,7 @@ npm install @floor/vlist vlist-solidjs
 ```tsx
 import { createSignal } from 'solid-js';
 import { createVList } from 'vlist-solidjs';
-import '@floor/vlist/styles';
+import 'vlist/styles';
 
 interface User {
   id: number;
@@ -445,7 +445,7 @@ Mark your vlist component as a client component with `'use client'`. Pass data f
 'use client'
 
 import { useVList } from 'vlist-react'
-import '@floor/vlist/styles'
+import 'vlist/styles'
 
 export function UserList({ users }: { users: User[] }) {
   const { containerRef } = useVList<User>({
@@ -528,7 +528,7 @@ Virtualized content is **not present in the server-rendered HTML** — only the 
 
 ## Config Reference
 
-All adapters accept `VListConfig` (exported from `@floor/vlist`) minus `container`. This extends `BuilderConfig` with convenience fields that adapters translate into `.use(withX())` calls automatically.
+All adapters accept `VListConfig` (exported from `vlist`) minus `container`. This extends `BuilderConfig` with convenience fields that adapters translate into `.use(withX())` calls automatically.
 
 ### Core Fields
 
@@ -687,7 +687,7 @@ Each is `Omit<VListConfig<T>, 'container'>` — the full core config without `co
 
 **Config-driven feature wiring.** The adapter reads your config and decides which features to enable. You don't compose `.use()` chains — the adapter does it for you. This keeps framework code minimal and ensures features are always wired in the correct priority order.
 
-**Externalised dependencies.** Each adapter declares both `@floor/vlist` and the framework as peer dependencies. The adapter bundle contains only wrapper code — typically under 2 KB before minification.
+**Externalised dependencies.** Each adapter declares both `vlist` and the framework as peer dependencies. The adapter bundle contains only wrapper code — typically under 2 KB before minification.
 
 ---
 

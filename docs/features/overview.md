@@ -23,7 +23,7 @@
 ## withAsync() — Lazy Loading
 
 ```typescript
-import { vlist, withAsync } from '@floor/vlist';
+import { vlist, withAsync } from 'vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -54,7 +54,7 @@ const feed = vlist({
 ## withSelection() — Item Selection
 
 ```typescript
-import { vlist, withSelection } from '@floor/vlist';
+import { vlist, withSelection } from 'vlist';
 
 const list = vlist({
   container: '#list',
@@ -84,7 +84,7 @@ list.getSelectedItems();   // → [{ id: 2, ... }, { id: 5, ... }]
 ## withGrid() — 2D Grid Layout
 
 ```typescript
-import { vlist, withGrid } from '@floor/vlist';
+import { vlist, withGrid } from 'vlist';
 
 const gallery = vlist({
   container: '#gallery',
@@ -106,7 +106,7 @@ const gallery = vlist({
 ## withTable() — Data Table
 
 ```typescript
-import { vlist, withTable, withSelection } from '@floor/vlist';
+import { vlist, withTable, withSelection } from 'vlist';
 
 const table = vlist({
   container: '#employees',
@@ -136,7 +136,7 @@ Leverages all of vlist's core — virtualization, element pooling, size caching,
 ## withMasonry() — Pinterest Layout
 
 ```typescript
-import { vlist, withMasonry } from '@floor/vlist';
+import { vlist, withMasonry } from 'vlist';
 
 const gallery = vlist({
   container: '#gallery',
@@ -159,7 +159,7 @@ Items flow into the shortest column, creating an organic packed layout with no w
 ## withGroups() — Grouped Lists
 
 ```typescript
-import { vlist, withGroups } from '@floor/vlist';
+import { vlist, withGroups } from 'vlist';
 
 // Sticky headers (Telegram-style contact list)
 const contacts = vlist({
@@ -183,7 +183,7 @@ const contacts = vlist({
 ## withScrollbar() — Custom Scrollbar
 
 ```typescript
-import { vlist, withScrollbar } from '@floor/vlist';
+import { vlist, withScrollbar } from 'vlist';
 
 const list = vlist({
   container: '#list',
@@ -208,7 +208,7 @@ const list = vlist({
 ## withPage() — Document Scrolling
 
 ```typescript
-import { vlist, withPage, withAsync } from '@floor/vlist';
+import { vlist, withPage, withAsync } from 'vlist';
 
 const blog = vlist({
   container: '#articles',
@@ -230,7 +230,7 @@ Cannot combine with `withScrollbar()` or `orientation: 'horizontal'`.
 ## withScale() — 1M+ Items
 
 ```typescript
-import { vlist, withScale, withScrollbar } from '@floor/vlist';
+import { vlist, withScale, withScrollbar } from 'vlist';
 
 const bigList = vlist({
   container: '#list',
@@ -251,7 +251,7 @@ const bigList = vlist({
 Measure items via `ResizeObserver` for content with unpredictable sizes.
 
 ```typescript
-import { vlist, withAutoSize } from '@floor/vlist';
+import { vlist, withAutoSize } from 'vlist';
 
 const feed = vlist({
   container: '#feed',
@@ -276,7 +276,7 @@ Items render at the estimated size, then snap to their measured height. Each ite
 Included in the base — no import needed.
 
 ```typescript
-import { vlist } from '@floor/vlist';
+import { vlist } from 'vlist';
 
 const list = vlist({ container: '#list', items, item: { height: 48, template: render } }).build();
 

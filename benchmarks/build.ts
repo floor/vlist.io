@@ -36,18 +36,18 @@ const BUILD_OPTIONS = {
 // Vue: resolves to the compiler-included build (vue.esm-bundler.js) so that
 // string `template` options work at runtime without .vue SFC compilation.
 //
-// vlist: resolves bare "vlist" imports to "@floor/vlist" via the package.json
+// vlist: resolves bare "vlist" imports to "vlist" via the package.json
 // "imports" field mapping (which Bun's bundler doesn't natively support).
 
 const frameworkDedupePlugin: import("bun").BunPlugin = {
   name: "dedupe-frameworks",
   setup(build) {
     // vlist — resolve bare imports via package.json imports map
-    // "vlist" → "@floor/vlist"
-    // "vlist/react" → "@floor/vlist/react"
+    // "vlist" → "vlist"
+    // "vlist/react" → "vlist/react"
     build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
       try {
-        const subpath = args.path.replace(/^vlist/, "@floor/vlist");
+        const subpath = args.path.replace(/^vlist/, "vlist");
         const resolved = require.resolve(subpath, {
           paths: [PROJECT_ROOT],
         });

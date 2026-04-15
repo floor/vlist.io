@@ -8,20 +8,20 @@
 
 ## Import Path
 
-All low-level exports live under `@floor/vlist/internals` — a separate entry
+All low-level exports live under `vlist/internals` — a separate entry
 point from the public API. This keeps IDE autocomplete clean and makes the
 boundary between stable API and implementation details explicit.
 
 ```ts
 // Public API — stable
-import { vlist, withGrid, withSelection, withAutoSize } from '@floor/vlist'
+import { vlist, withGrid, withSelection, withAutoSize } from 'vlist'
 
 // Internals — advanced, use at your own risk
-import { createSizeCache, calculateScrollToIndex } from '@floor/vlist/internals'
+import { createSizeCache, calculateScrollToIndex } from 'vlist/internals'
 ```
 
 > **Migration from ≤ 1.3.x:** These symbols were previously exported from
-> `@floor/vlist` directly. Update your imports to `@floor/vlist/internals`.
+> `vlist` directly. Update your imports to `vlist/internals`.
 > The public entry point now only exports `vlist`, the `with*` features,
 > and types.
 
@@ -44,7 +44,7 @@ import {
   isInRange,
   getRangeCount,
   diffRanges,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 | Export | Description |
@@ -83,7 +83,7 @@ import {
   calculateScaledItemPosition,
   calculateScaledScrollToIndex,
   calculateIndexFromScrollPosition,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 `MAX_VIRTUAL_SIZE` is 16,000,000 px — the safe limit below the browser's maximum element size. The compression ratio is computed from the actual total size reported by the `SizeCache` — fixed, variable, and measured sizes all compress correctly.
@@ -107,7 +107,7 @@ import {
   isSelected,
   getSelectedIds,
   getSelectedItems,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 ---
@@ -123,7 +123,7 @@ import {
   createGroupedSizeFn,
   createStickyHeader,
   isGroupHeader,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 ---
@@ -136,7 +136,7 @@ Layout and rendering utilities for 2D grid layouts.
 import {
   createGridLayout,
   createGridRenderer,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 ---
@@ -149,7 +149,7 @@ Layout and rendering utilities for Pinterest-style masonry layouts.
 import {
   createMasonryLayout,
   createMasonryRenderer,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 ---
@@ -163,7 +163,7 @@ import {
   createTableLayout,
   createTableHeader,
   createTableRenderer,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 ---
@@ -181,7 +181,7 @@ import {
   filterPlaceholders,
   mergeRanges,
   calculateMissingRanges,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 ---
@@ -191,7 +191,7 @@ import {
 Standalone type-safe event emitter — the same one used internally by vlist.
 
 ```ts
-import { createEmitter } from '@floor/vlist/internals'
+import { createEmitter } from 'vlist/internals'
 
 const emitter = createEmitter<VListEvents>()
 emitter.on('item:click', handler)
@@ -213,7 +213,7 @@ import {
   createScrollController,
   createScrollbar,
   rafThrottle,
-} from '@floor/vlist/internals'
+} from 'vlist/internals'
 ```
 
 ---
@@ -224,8 +224,8 @@ Scroll statistics tracker — velocity, progress, visible item count.
 Exported from the public API so consumers do not need to reach into internals.
 
 ```ts
-import { createStats } from '@floor/vlist'
-import type { Stats, StatsConfig, StatsState } from '@floor/vlist'
+import { createStats } from 'vlist'
+import type { Stats, StatsConfig, StatsState } from 'vlist'
 ```
 
 ---
@@ -236,7 +236,7 @@ Options accepted by `reload()` for snapshot-aware reloading.
 Exported from the public API alongside the other configuration types.
 
 ```ts
-import type { ReloadOptions, ScrollSnapshot } from '@floor/vlist'
+import type { ReloadOptions, ScrollSnapshot } from 'vlist'
 ```
 
 See [Types — ReloadOptions](./types.md#reloadoptions) for the full interface.
@@ -250,8 +250,8 @@ Feature types are part of the public API — only the low-level utilities
 they compose come from internals.
 
 ```ts
-import type { VListFeature, BuilderContext, ReloadOptions } from '@floor/vlist'
-import { createEmitter, createSizeCache } from '@floor/vlist/internals'
+import type { VListFeature, BuilderContext, ReloadOptions } from 'vlist'
+import { createEmitter, createSizeCache } from 'vlist/internals'
 
 function withMyFeature(): VListFeature {
   return {

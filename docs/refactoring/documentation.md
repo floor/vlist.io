@@ -302,9 +302,9 @@ Systematic pass across all user-facing docs to fix stale references, broken link
 
 Systematic pass across all 8 `features/*.md` files to fix import paths, API patterns, deprecated names, and broken links.
 
-### Import path: `'vlist'` → `'@floor/vlist'`
+### Import path: `'vlist'` → `'vlist'`
 
-The npm package name is `@floor/vlist`. All code examples must use the scoped name.
+The npm package name is `vlist`. All code examples must use the scoped name.
 
 | File | Occurrences fixed |
 |------|-------------------|
@@ -314,7 +314,7 @@ The npm package name is `@floor/vlist`. All code examples must use the scoped na
 | `features/scrollbar.md` | 2 |
 | `features/placeholders.md` | 1 |
 | `features/async.md` | 1 (also removed non-existent `'vlist/async'` sub-path import) |
-| `features/selection.md` | 4 (changed `'./selection'` internal paths to `'@floor/vlist'`) |
+| `features/selection.md` | 4 (changed `'./selection'` internal paths to `'vlist'`) |
 
 **Not changed:** `grid.md` migration section — `import { createVList } from 'vlist'` is intentionally showing the old API in a "Before" example.
 
@@ -322,8 +322,8 @@ The npm package name is `@floor/vlist`. All code examples must use the scoped na
 
 | File | Removed | Replaced with |
 |------|---------|---------------|
-| `features/async.md` | `import { withAsync } from 'vlist/async'` | `import { vlist, withAsync } from '@floor/vlist'` |
-| `features/snapshots.md` | `import { withSnapshots } from 'vlist/snapshots'` | Single import from `'@floor/vlist'` |
+| `features/async.md` | `import { withAsync } from 'vlist/async'` | `import { vlist, withAsync } from 'vlist'` |
+| `features/snapshots.md` | `import { withSnapshots } from 'vlist/snapshots'` | Single import from `'vlist'` |
 
 ### features/selection.md — Old monolithic API
 
@@ -495,7 +495,7 @@ Navigation and overview updated:
 | Health Indicators | Removed (all green — no action items) |
 | Conclusion | Removed (was "the objective has been reached" victory lap) |
 | Feature comparison | Added masonry layout row (missing from original) |
-| Package names | `vlist-react` → `@floor/vlist-react` etc. (scoped names) |
+| Package names | `vlist-react` → `vlist-react` etc. (scoped names) |
 | Known Issues link | Removed from Related Documentation (file archived) |
 | Dependency Analysis link | Removed (not user-facing) |
 | Navigation | `navigation.json`: "Roadmap" → "Architecture", updated desc |
@@ -537,13 +537,13 @@ Phases 1–4 left `grid.md` and `masonry.md` marked "✅ Accurate" without catch
 
 | Change | Detail |
 |--------|--------|
-| All imports | `'vlist/builder'` + `'vlist/grid'` etc. → single `'@floor/vlist'` import (10 code blocks) |
+| All imports | `'vlist/builder'` + `'vlist/grid'` etc. → single `'vlist'` import (10 code blocks) |
 | `withAdapter` | → `withAsync` with correct `{ adapter: { read } }` config shape |
 | `withGroups` | kept as `withGroups` (originally renamed to `withSections`, then reverted back to `withGroups`) |
-| `withScrollbar` import | `'vlist/scroll'` → `'@floor/vlist'` |
+| `withScrollbar` import | `'vlist/scroll'` → `'vlist'` |
 | Infinite Scroll example | Fixed adapter params: `{ start, end }` → `{ offset, limit }` (matches `withAsync` API) |
 | Key Features bullet | "Group Support — Works with `withGroups`" → "Groups Support — Works with `withGroups`" |
-| Key Differences (migration) | "Import path changed: `vlist/builder` + `vlist/grid`" → "Everything from `'@floor/vlist'`" |
+| Key Differences (migration) | "Import path changed: `vlist/builder` + `vlist/grid`" → "Everything from `'vlist'`" |
 | Related Documentation | Fixed all 5 links to use relative paths to existing files |
 
 ### features/masonry.md — Import paths, stale feature name, stale links
@@ -552,7 +552,7 @@ Phases 1–4 left `grid.md` and `masonry.md` marked "✅ Accurate" without catch
 
 | Change | Detail |
 |--------|--------|
-| All imports | `'vlist/builder'` + `'vlist/masonry'` etc. → single `'@floor/vlist'` import (4 code blocks) |
+| All imports | `'vlist/builder'` + `'vlist/masonry'` etc. → single `'vlist'` import (4 code blocks) |
 | Limitations section | Uses `withGroups({ ... })` |
 | Limitations heading | "Groups" |
 | Related Documentation | Fixed all 4 links to use relative paths to existing files |
@@ -564,19 +564,19 @@ Phases 1–4 left `grid.md` and `masonry.md` marked "✅ Accurate" without catch
 
 | Change | Detail |
 |--------|--------|
-| Core example | `'vlist/core'` → `'@floor/vlist'`, added `.build()`, heading "Core (Lightweight)" → "Basic Example" |
-| Builder example | `'vlist/builder'` + `'vlist/grid'` + `'vlist (withScrollbar)'` → single `'@floor/vlist'`, heading "Builder Pattern with Features" → "With Features" |
-| React example | `'vlist/core'` → `'@floor/vlist'` |
+| Core example | `'vlist/core'` → `'vlist'`, added `.build()`, heading "Core (Lightweight)" → "Basic Example" |
+| Builder example | `'vlist/builder'` + `'vlist/grid'` + `'vlist (withScrollbar)'` → single `'vlist'`, heading "Builder Pattern with Features" → "With Features" |
+| React example | `'vlist/core'` → `'vlist'` |
 
 ### resources/bundle-size.md — Import paths
 
-**Before:** 13 code blocks used bare `from 'vlist'` instead of `from '@floor/vlist'`.
+**Before:** 13 code blocks used bare `from 'vlist'` instead of `from 'vlist'`.
 
-**After:** All 13 replaced with `'@floor/vlist'`. Prose references (`import * from 'vlist'` in Don't list) also updated.
+**After:** All 13 replaced with `'vlist'`. Prose references (`import * from 'vlist'` in Don't list) also updated.
 
 ### internals/rendering.md — Import path
 
-Single `from 'vlist'` → `from '@floor/vlist'` in the SizeCache example.
+Single `from 'vlist'` → `from 'vlist'` in the SizeCache example.
 
 ### api/types.md — Stale feature name
 
@@ -623,7 +623,7 @@ Moved internal development artifacts out of the served docs tree:
 | **refactoring/v0.9.0-migration-guide.md** | `from 'vlist'` in Before/After examples is historically accurate (pre-scoped-name era) |
 | **refactoring/height-to-size-refactoring.md** | Same — migration doc for v0.8.2→v0.9.0 era |
 | **CHANGELOG.md** | No import examples — version history only |
-| **getting-started.md** | Already uses `'@floor/vlist'` throughout (fixed in Phase 3) |
+| **getting-started.md** | Already uses `'vlist'` throughout (fixed in Phase 3) |
 | **All archive/** files | Historical — not served, not fixed |
 
 ---
@@ -647,9 +647,9 @@ Read all four adapter source files (`vlist-react/src/index.ts`, `vlist-vue/src/i
 
 All four share identical internal wiring: read config fields, conditionally chain `.use(withPage())`, `.use(withAsync())`, `.use(withGrid())`, `.use(withGroups())`, `.use(withSelection())`, `.use(withScale())`, `.use(withScrollbar())`, `.use(withSnapshots())`. The user never calls `.use()` or `.build()` — the adapter does it. Adapters use a monolithic config shape, not the builder API directly.
 
-**Package name correction:** Adapters are `vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-solidjs` (unscoped), NOT `@floor/vlist-react` etc. The Architecture page had the wrong scoped names — fixed.
+**Package name correction:** Adapters are `vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-solidjs` (unscoped), NOT `vlist-react` etc. The Architecture page had the wrong scoped names — fixed.
 
-**Type observation:** All adapters import `VListConfig` from `@floor/vlist`, but at the time of this audit, this type did not exist in core — only `BuilderConfig` was exported. The adapters referenced fields like `adapter`, `loading`, `layout`, `grid`, `groups`, `selection`, `scrollbar` that aren't part of `BuilderConfig`. **Fixed in Phase 7** — `VListConfig` now exists in core as an extension of `BuilderConfig` with all adapter convenience fields.
+**Type observation:** All adapters import `VListConfig` from `vlist`, but at the time of this audit, this type did not exist in core — only `BuilderConfig` was exported. The adapters referenced fields like `adapter`, `loading`, `layout`, `grid`, `groups`, `selection`, `scrollbar` that aren't part of `BuilderConfig`. **Fixed in Phase 7** — `VListConfig` now exists in core as an extension of `BuilderConfig` with all adapter convenience fields.
 
 ### Structure Decision: Single Page
 
@@ -674,7 +674,7 @@ Chose a single `frameworks.md` page over four separate pages:
 | API Summary | Comparison table of all four adapters |
 | Design Principles | Mount-based vs virtual-items, config-driven wiring, externalised deps |
 
-Every code example verified against the actual adapter source. Import paths use the correct unscoped package names (`vlist-react`, not `@floor/vlist-react`). Core imports use `@floor/vlist` per Principle #8.
+Every code example verified against the actual adapter source. Import paths use the correct unscoped package names (`vlist-react`, not `vlist-react`). Core imports use `vlist` per Principle #8.
 
 ### navigation.json — Added entry
 
@@ -702,7 +702,7 @@ Added "Use React, Vue, Svelte, or SolidJS → Framework Adapters" as the first r
 
 | Change | Detail |
 |--------|--------|
-| Package names | `@floor/vlist-react` → `vlist-react`, same for vue/svelte/solidjs |
+| Package names | `vlist-react` → `vlist-react`, same for vue/svelte/solidjs |
 | Cross-reference | Added "See Framework Adapters for install, usage, event subscription, and config reference per framework" |
 
 ### Not changed (verified accurate)
@@ -773,7 +773,7 @@ Four open items from the NEXT_THREAD doc, all resolved in one pass.
 
 ### VListConfig type — code fix in core
 
-All four adapter packages import `VListConfig` from `@floor/vlist`, but core only exported `BuilderConfig`. The adapters use convenience fields (`adapter`, `loading`, `layout`, `grid`, `groups`, `selection`, `scrollbar`) that aren't part of `BuilderConfig` — they're the monolithic config shape that adapters translate into `.use(withX())` calls.
+All four adapter packages import `VListConfig` from `vlist`, but core only exported `BuilderConfig`. The adapters use convenience fields (`adapter`, `loading`, `layout`, `grid`, `groups`, `selection`, `scrollbar`) that aren't part of `BuilderConfig` — they're the monolithic config shape that adapters translate into `.use(withX())` calls.
 
 **Fix:** Added `VListConfig<T>` interface in `vlist/src/builder/types.ts` that extends `BuilderConfig<T>` (via `Omit<BuilderConfig<T>, 'scroll'>`) with:
 
@@ -798,17 +798,17 @@ All four adapter READMEs (`vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-sol
 
 | Section | Content |
 |---------|---------|
-| Title + intro | One-line description linking to `@floor/vlist` |
-| Install | `npm install @floor/vlist <adapter>` |
-| Quick Start | Minimal working example with `@floor/vlist/styles` import |
+| Title + intro | One-line description linking to `vlist` |
+| Install | `npm install vlist <adapter>` |
+| Quick Start | Minimal working example with `vlist/styles` import |
 | API | Bullet list of exports + one-line description each |
 | Config note | Links to API reference, explains feature fields are auto-wired |
 | Documentation | Links to `frameworks.md#<framework>` anchor |
 
 **Specific fixes:**
-- SolidJS: install order was `vlist-solidjs @floor/vlist` → `@floor/vlist vlist-solidjs`
-- SolidJS: added missing `import '@floor/vlist/styles'` and container height
-- All: added `@floor/vlist/styles` import where missing
+- SolidJS: install order was `vlist-solidjs vlist` → `vlist vlist-solidjs`
+- SolidJS: added missing `import 'vlist/styles'` and container height
+- All: added `vlist/styles` import where missing
 - All: link text points to `vlist.io/docs/frameworks#<framework>` instead of generic `vlist.io`
 
 ### Tutorials audit
@@ -857,7 +857,7 @@ All referenced tutorials exist: `quick-start`, `chat-interface`, `builder-patter
 5. **Behavior over use case** — Describe what `reverse` *does*, not what it's *for*. List use cases as examples, don't prescribe one.
 6. **Focused pages** — Reference covers config + properties + methods. Events, types, constants, exports each get their own page.
 7. **No backticks in headings** — `marked` passes heading text as raw markdown, so backticks survive as literal characters in the TOC. Use plain text for all H2/H3/H4 headings; code formatting belongs in the body text, not the heading.
-8. **Correct package name** — All import examples use `'@floor/vlist'` (the npm scoped name), not `'vlist'`. Sub-path imports only for `'@floor/vlist/styles'` and `'@floor/vlist/styles/extras'` — no `'vlist/async'`, `'vlist/snapshots'`, etc.
+8. **Correct package name** — All import examples use `'vlist'` (the npm scoped name), not `'vlist'`. Sub-path imports only for `'vlist/styles'` and `'vlist/styles/extras'` — no `'vlist/async'`, `'vlist/snapshots'`, etc.
 9. **Builder API everywhere** — All user-facing examples use `vlist({...}).use(withX()).build()`. No monolithic config with top-level `adapter`, `selection`, `layout`. Old API shown only in clearly labeled migration sections.
 10. **User journey first** — Feature docs lead with `withX()` builder config, instance methods, and events. Low-level pure functions and `create*` factories go in an Internals section at the bottom, clearly labeled as advanced/feature-authoring APIs.
 11. **No stale resource pages** — Historical documents (completed roadmaps, resolved known issues) are archived, not served. Resource pages reflect the current state of the library.

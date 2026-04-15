@@ -8,7 +8,7 @@ The `withSnapshots()` feature enables **scroll position save/restore** for seaml
 
 **Import:**
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+import { vlist, withSnapshots } from 'vlist';
 ```
 
 **Bundle cost:** Included in base (0 KB additional)
@@ -18,7 +18,7 @@ import { vlist, withSnapshots } from '@floor/vlist';
 The simplest way to persist scroll position: pass an `autoSave` key and everything is handled automatically — save, restore, and async data coordination.
 
 ```typescript
-import { vlist, withAsync, withSnapshots } from '@floor/vlist';
+import { vlist, withAsync, withSnapshots } from 'vlist';
 
 const list = vlist({
   container: '#list',
@@ -154,7 +154,7 @@ list.restoreScroll({ index: 523, offsetInItem: 12, total: 5000 });
 With `autoSave`, the list handles everything — no manual save/restore code needed:
 
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+import { vlist, withSnapshots } from 'vlist';
 
 let list;
 
@@ -185,7 +185,7 @@ function goBack() {
 No extra plumbing needed — `withSnapshots({ autoSave })` coordinates with `withAsync()` automatically:
 
 ```typescript
-import { vlist, withAsync, withSnapshots } from '@floor/vlist';
+import { vlist, withAsync, withSnapshots } from 'vlist';
 
 const list = vlist({
   container: '#list',
@@ -257,7 +257,7 @@ async function switchTab(tabName) {
 ### SPA Navigation (Back/Forward via History API)
 
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+import { vlist, withSnapshots } from 'vlist';
 
 const list = vlist({
   container: '#list',
@@ -290,7 +290,7 @@ window.addEventListener('popstate', (e) => {
 For long-term persistence (e.g., reading position), use manual save to `localStorage`:
 
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+import { vlist, withSnapshots } from 'vlist';
 
 const saved = localStorage.getItem('reading-position');
 const snapshot = saved ? JSON.parse(saved) : undefined;
@@ -314,7 +314,7 @@ window.addEventListener('beforeunload', () => {
 When `autoSave` doesn't fit (e.g., custom storage, conditional saves), use the manual pattern:
 
 ```typescript
-import { vlist, withSnapshots } from '@floor/vlist';
+import { vlist, withSnapshots } from 'vlist';
 
 const saved = sessionStorage.getItem('list-scroll');
 const snapshot = saved ? JSON.parse(saved) : undefined;
@@ -386,7 +386,7 @@ This is more reliable than calling `restoreScroll()` manually after `build()`, b
 When `withSelection()` is installed, snapshots **automatically include selection**:
 
 ```typescript
-import { vlist, withSelection, withSnapshots } from '@floor/vlist';
+import { vlist, withSelection, withSnapshots } from 'vlist';
 
 const list = vlist({ ... })
   .use(withSelection({ mode: 'multiple' }))

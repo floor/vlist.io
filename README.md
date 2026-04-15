@@ -205,7 +205,7 @@ This clones the repo, installs dependencies, starts PM2, links the nginx vhost, 
 
 | Package | Purpose | Resolution |
 |---------|---------|------------|
-| `vlist` | The library being documented | `file:../vlist` (local) → `@floor/vlist` (production) |
+| `vlist` | The library being documented | `file:../vlist` (local) → `vlist` (production) |
 
 Local `file:` paths are used in development. The deploy script swaps them for registry versions before installing on the server.
 

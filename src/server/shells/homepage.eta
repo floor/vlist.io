@@ -190,7 +190,7 @@
 
                 <div class="install">
                     <div class="install__cmd">
-                        <span>npm install @floor/vlist</span>
+                        <span>npm install vlist</span>
                     </div>
                 </div>
 

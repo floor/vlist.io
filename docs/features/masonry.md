@@ -39,7 +39,7 @@ The `withMasonry` feature converts a linear virtual list into a masonry/Pinteres
 ## Quick Start
 
 ```js
-import { vlist, withMasonry } from '@floor/vlist'
+import { vlist, withMasonry } from 'vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -242,7 +242,7 @@ const timeline = vlist({
 ### Pinterest-Style Photo Gallery
 
 ```js
-import { vlist, withMasonry } from '@floor/vlist'
+import { vlist, withMasonry } from 'vlist'
 
 const photos = [
   { id: 1, url: 'photo1.jpg', aspectRatio: 0.75, title: 'Sunset' },
@@ -341,7 +341,7 @@ const catalog = vlist({
 ### Masonry with Selection
 
 ```js
-import { vlist, withMasonry, withSelection } from '@floor/vlist'
+import { vlist, withMasonry, withSelection } from 'vlist'
 
 const gallery = vlist({
   container: '#gallery',
@@ -422,7 +422,7 @@ Creates a masonry feature for the builder.
 **Example:**
 
 ```js
-import { vlist, withMasonry } from '@floor/vlist'
+import { vlist, withMasonry } from 'vlist'
 
 const list = vlist({
   container: '#app',

@@ -8,7 +8,7 @@
 
 ### Homepage & README
 
-- Add Bundlephobia badge prominently: https://bundlephobia.com/package/@floor/vlist — zero deps, gzipped size, tree-shakable stats. Developers trust this signal instantly.
+- Add Bundlephobia badge prominently: https://bundlephobia.com/package/vlist — zero deps, gzipped size, tree-shakable stats. Developers trust this signal instantly.
 - Write a pinned "Why vlist" elevator pitch in the README:
   > vlist is the smallest full-featured virtual list (~8.7 KB core) with constant ~0.1–0.3 MB memory even at 1M+ items, sticky sections, grid, masonry, reverse chat, selection, async, and tiny adapters for React/Vue/Svelte — proven by live benchmarks.
 - Add a hero GIF or short video showing smooth 1M-item scrolling vs. janky naive rendering. First impressions are everything.
