@@ -63,7 +63,7 @@ src/features/selection/
 The `withSelection` feature is the main API for adding selection to vlist:
 
 ```typescript
-import { vlist, withSelection } from '@floor/vlist';
+import { vlist, withSelection } from 'vlist';
 
 const list = vlist({
   container: '#app',
@@ -87,6 +87,8 @@ const list = vlist({
 |--------|------|---------|-------------|
 | `mode` | `'none' \| 'single' \| 'multiple'` | `'single'` | Selection mode |
 | `initial` | `Array<string \| number>` | `[]` | Initially selected item IDs |
+| `followFocus` | `boolean` | `false` | When `true`, arrow keys also select in single mode (WAI-ARIA selection-follows-focus). Ignored in multiple mode. |
+| `shiftArrowToggle` | `'origin' \| 'destination'` | `'origin'` | Which item Shift+Arrow toggles in multiple mode. `'origin'` toggles the item being left (macOS-style). `'destination'` toggles the item being moved to (WAI-ARIA APG literal). |
 
 ### Selection Modes
 
@@ -197,26 +199,33 @@ When combined with `withGrid` or `withMasonry`, `withSelection` inherits the sam
 
 ### withSelection (multiple mode)
 
-Focus and selection are independent — navigate first, then toggle with Space/Enter, or hold Shift while navigating to select a contiguous range:
+Focus and selection are independent — navigate first, then toggle with Space/Enter. Shift+Arrow toggles items one at a time as you move through the list, following the [WAI-ARIA APG recommended multi-select listbox model](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/):
 
-| Key | Flat List | Grid | Masonry |
-|-----|-----------|------|---------|
-| `↑` / `↓` | Move focus ±1 | Move focus by ±columns (row) | Move to prev/next item in same lane |
-| `←` / `→` | — (disabled) | Move focus ±1 (cell) | Move to nearest item in adjacent lane |
-| `Home` / `End` | First / last item | First / last cell in current row | First / last item |
-| `Ctrl+Home` / `Ctrl+End` | — | First / last item overall | — |
-| `Page Up` / `Page Down` | Move by visible items | Move by visible rows (same column) | Move by visible items in same lane |
-| `Space` / `Enter` | Toggle selection | Toggle selection | Toggle selection |
-| `Shift+↑` / `Shift+↓` | Extend range ±1 from anchor | Extend range by ±columns from anchor | Extend range in same lane from anchor |
-| `Shift+←` / `Shift+→` | — (disabled) | Extend range ±1 (cell) from anchor | Extend range to adjacent lane from anchor |
-| `Shift+Home` / `Shift+End` | Select from anchor to first / last | Select from anchor to first / last | Select from anchor to first / last |
-| `Shift+Page Up` / `Shift+Page Down` | Extend range by one page from anchor | Extend range by visible rows from anchor | Extend range by visible items from anchor |
+| Key | Action |
+|-----|--------|
+| `↑` / `↓` / `←` / `→` | Move focus (no selection change) |
+| `Home` / `End` | Move focus to first / last item |
+| `Page Up` / `Page Down` | Move focus by one page |
+| `Space` / `Enter` | Toggle selection of focused item |
+| `Shift+↑` / `Shift+↓` | Move focus and toggle one item (see `shiftArrowToggle`) |
+| `Shift+←` / `Shift+→` | Move focus and toggle one item (grid/masonry only) |
+| `Shift+Space` | Select contiguous range from last selected item to focused item |
+| `Ctrl+Shift+Home` | Select from focused item to first item |
+| `Ctrl+Shift+End` | Select from focused item to last item |
+| `Ctrl+A` / `Cmd+A` | Select all (or deselect all if all are selected) |
+| `Shift+Home` / `Shift+End` | Move focus only (no selection change) |
+| `Shift+Page Up` / `Shift+Page Down` | Move focus only (no selection change) |
 
-> In horizontal orientation, Up/Down and Left/Right axes are swapped for both grid and masonry.
+> In horizontal orientation, Up/Down and Left/Right axes are swapped for both grid and masonry. In grid mode, arrow key deltas are resolved from the layout feature. In masonry mode, navigation delegates to the placement-based `_navigate` method.
 
 Page size is calculated as `floor(containerSize / itemHeight)`.
 
-**Shift+nav anchor behavior:** The anchor is the starting point for range selection. It is set automatically whenever you navigate without Shift, toggle with Space/Enter, or click without Shift. When you hold Shift and press a navigation key, the selection is replaced with the contiguous range from the anchor to the new focus position. Continuing to Shift+navigate extends or shrinks the range while keeping the same anchor. Releasing Shift and navigating resets the anchor to the new position.
+**`shiftArrowToggle` option:** Controls which item is toggled when pressing Shift+Arrow:
+
+- **`'origin'`** (default) — toggles the item you're **leaving**. Pressing Shift+Down from an unselected item selects it as you move away; pressing Shift+Down from a selected item deselects it. This is macOS-style behavior.
+- **`'destination'`** — toggles the item you're **moving to**. This matches the WAI-ARIA APG specification literally ("moves focus to and toggles the selected state of the next option").
+
+Both modes are additive — prior selections from Space/Enter toggles or earlier Shift+Arrow sequences are always preserved. Shift+Arrow never clears existing selections.
 
 ### Shared `scrollToFocus` Utility
 
@@ -245,7 +254,7 @@ This dual-path approach is necessary because in compressed mode, size cache offs
 - **Focus**: Visual indicator of keyboard navigation position (single index)
 - **Selection**: Set of selected item IDs (can be multiple)
 
-In single mode, focus and selection are independent by default — navigate with arrow keys, then press Space/Enter to select. With `followFocus: true`, arrow keys also select (selection-follows-focus pattern). In multiple mode, focus and selection are independent — navigate with arrow keys, then press Space to toggle individual items, or hold Shift while navigating to select a contiguous range.
+In single mode, focus and selection are independent by default — navigate with arrow keys, then press Space/Enter to select. With `followFocus: true`, arrow keys also select (selection-follows-focus pattern). In multiple mode, focus and selection are always independent — navigate with arrow keys, then press Space to toggle individual items, Shift+Arrow to toggle one at a time, or Shift+Space to select a contiguous range.
 
 ## Usage Examples
 
@@ -310,21 +319,23 @@ list.clearSelection();
 list.select('user-10');
 ```
 
-### Range Selection (Shift+Click and Shift+Keyboard)
+### Range Selection (Shift+Space and Shift+Click)
 
-In `mode: 'multiple'`, holding Shift while clicking or pressing navigation keys selects a contiguous range of items between the **anchor** and the target, inclusive.
+In `mode: 'multiple'`, range selection is available via **Shift+Space** (keyboard) and **Shift+Click** (mouse).
 
-**Shift+Click** selects the range from the anchor to the clicked item. **Shift+Arrow/Page/Home/End** extends (or shrinks) the range from the anchor to the new focus position, replacing the current selection with exactly that range.
+**Shift+Space** selects a contiguous range from the **last selected item** to the currently focused item. This lets you navigate to a position, then select everything between it and your previous selection in one keystroke.
 
-Anchor behavior:
+**Shift+Click** selects a contiguous range from the last selected/focused item to the clicked item.
 
-- The anchor is set on every non-shift click, non-shift navigation, or Space/Enter toggle.
-- Shift+click or Shift+nav without a prior anchor falls back to the current focus position.
-- Continuing to Shift+navigate keeps the same anchor — the range grows or shrinks as you move.
-- Releasing Shift and navigating (or toggling with Space) resets the anchor.
-- Range selection is only available in multiple mode — it is a no-op in single mode and in the core baseline.
+**Shift+Arrow** does **not** perform range selection — it toggles one item at a time (see `shiftArrowToggle`). For bulk range selection, use Shift+Space, Ctrl+Shift+Home/End, or Shift+Click.
 
-This is handled automatically by `withSelection`.
+The `lastSelectedIndex` (used as the anchor for Shift+Space and Shift+Click) is updated when:
+
+- Space/Enter toggles an item
+- Shift+Arrow toggles an item
+- A click selects an item
+
+Range selection is only available in multiple mode — it is a no-op in single mode and in the core baseline. This is handled automatically by `withSelection`.
 
 ## Internals
 
@@ -523,7 +534,7 @@ function isSelectionEmpty(state: SelectionState): boolean;
 
 ### Complete Keyboard Handler Example
 
-For custom feature authoring, here is how the pure functions compose into a keyboard handler (including shift+nav range selection):
+For custom feature authoring, here is how the pure functions compose into a keyboard handler following the ARIA recommended model with origin-style Shift+Arrow toggle:
 
 ```typescript
 import {
@@ -531,12 +542,13 @@ import {
   moveFocusDown,
   moveFocusToFirst,
   moveFocusToLast,
+  selectAll,
   clearSelection,
   selectRange,
   toggleSelection
-} from '@floor/vlist';
+} from 'vlist';
 
-let shiftAnchor = -1;
+let lastSelectedIndex = -1;
 
 function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VListItem[]) {
   const totalItems = items.length;
@@ -566,26 +578,52 @@ function handleKeyboard(event: KeyboardEvent, state: SelectionState, items: VLis
       break;
 
     case ' ':
+      // Shift+Space: range select from lastSelectedIndex to focused
+      if (event.shiftKey && lastSelectedIndex >= 0) {
+        newState = selectRange(state, items, lastSelectedIndex, state.focusedIndex, 'multiple');
+        return newState;
+      }
+      // Regular Space: toggle focused item
+      if (state.focusedIndex >= 0) {
+        const item = items[state.focusedIndex];
+        newState = toggleSelection(state, item.id, 'multiple');
+      }
+      lastSelectedIndex = state.focusedIndex;
+      return newState;
+
     case 'Enter':
       if (state.focusedIndex >= 0) {
         const item = items[state.focusedIndex];
         newState = toggleSelection(state, item.id, 'multiple');
       }
-      shiftAnchor = state.focusedIndex;
+      lastSelectedIndex = state.focusedIndex;
       return newState;
+
+    case 'a':
+      // Ctrl+A / Cmd+A: select all or deselect all
+      if (event.ctrlKey || event.metaKey) {
+        if (state.selected.size === items.length) {
+          newState = clearSelection(state);
+        } else {
+          newState = selectAll(state, items, 'multiple');
+        }
+        return newState;
+      }
+      return state;
 
     default:
       return state;
   }
 
-  // Shift+nav: select range from anchor to new focus
+  // Shift+Arrow: toggle the origin item (the one being left)
   if (event.shiftKey && focusOnly && newState.focusedIndex >= 0) {
-    if (shiftAnchor < 0) shiftAnchor = previousIndex >= 0 ? previousIndex : 0;
-    newState = clearSelection(newState);
-    newState = selectRange(newState, items, shiftAnchor, newState.focusedIndex, 'multiple');
-  } else if (focusOnly) {
-    // Non-shift navigation resets the anchor
-    shiftAnchor = newState.focusedIndex;
+    if (previousIndex >= 0) {
+      const originItem = items[previousIndex];
+      if (originItem) {
+        newState = toggleSelection(newState, originItem.id, 'multiple');
+      }
+    }
+    lastSelectedIndex = newState.focusedIndex;
   }
 
   return newState;
