@@ -25,7 +25,7 @@ The `withGrid` feature converts a linear virtual list into a 2D grid layout with
 - ✅ **Groups Support** — Works with `withGroups` for categorized grids
 - ✅ **Selection Support** — Works with `withSelection` for selectable grids
 - ✅ **Scrollbar Support** — Works with `withScrollbar` for custom scrollbars
-- ✅ **WAI-ARIA Grid Navigation** — Full 2D keyboard navigation: ArrowUp/Down by row, ArrowLeft/Right by cell, row-scoped Home/End, Ctrl+Home/End, PageUp/Down. Horizontal orientation swaps axes.
+- ✅ **WAI-ARIA Grid Navigation** — Full 2D keyboard navigation: ArrowUp/Down by row, ArrowLeft/Right by cell, Home/End to first/last item, PageUp/Down. Horizontal orientation swaps axes.
 
 ## Quick Start
 
@@ -373,8 +373,8 @@ const catalog = vlist({
 .build()
 
 // Listen for selection changes
-catalog.on('selection:change', ({ selectedIndices }) => {
-  console.log('Selected products:', selectedIndices)
+catalog.on('selection:change', ({ selected, items }) => {
+  console.log('Selected products:', selected, items)
 })
 ```
 
@@ -481,8 +481,7 @@ const list = vlist(config)
 When combined with `withSelection`, the grid provides full 2D keyboard navigation:
 - **ArrowUp/Down** — Move focus by row (±columns)
 - **ArrowLeft/Right** — Move focus by cell (±1)
-- **Home/End** — First/last cell in the current row
-- **Ctrl+Home/End** — First/last item in the grid
+- **Home/End** — First/last item overall
 - **PageUp/Down** — Jump by visible rows (same column)
 - **Space/Enter** — Toggle selection on focused item
 
@@ -497,8 +496,10 @@ const list = vlist(config)
   .use(withGrid({ columns: 4, gap: 8 }))
   .use(withGroups({
     getGroupForIndex: (index) => items[index].category,
-    headerHeight: 40,
-    headerTemplate: (group) => `<h2>${group}</h2>`,
+    header: {
+      height: 40,
+      template: (group) => `<h2>${group}</h2>`,
+    },
     sticky: true,
   }))
   .build()

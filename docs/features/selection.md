@@ -175,8 +175,7 @@ The core baseline provides basic keyboard handling with no features required:
 |-----|-----------|------|---------|
 | `↑` / `↓` | Move focus ±1 | Move focus by ±columns (row) | Move to prev/next item in same lane |
 | `←` / `→` | — (disabled) | Move focus ±1 (cell) | Move to nearest item in adjacent lane |
-| `Home` / `End` | First / last item | First / last cell in current row | First / last item |
-| `Ctrl+Home` / `Ctrl+End` | — | First / last item overall | — |
+| `Home` / `End` | First / last item | First / last item overall | First / last item |
 | `Page Up` / `Page Down` | Move by visible items | Move by visible rows (same column) | Move by visible items in same lane |
 | `Space` / `Enter` | Toggle selection | Toggle selection | Toggle selection |
 
@@ -443,16 +442,16 @@ function setFocusedIndex(
 function moveFocusUp(
   state: SelectionState,
   totalItems: number,
-  wrap?: boolean  // default: true
+  wrap?: boolean  // default: false
 ): SelectionState;
 
 function moveFocusDown(
   state: SelectionState,
   totalItems: number,
-  wrap?: boolean  // default: true
+  wrap?: boolean  // default: false
 ): SelectionState;
 
-// With wrap=true (default): boundaries wrap around
+// With wrap=true: boundaries wrap around
 // With wrap=false: boundaries clamp
 ```
 

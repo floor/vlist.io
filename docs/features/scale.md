@@ -449,8 +449,10 @@ const list = vlist({
 })
   .use(withGroups({
     getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase(),
-    headerHeight: 36,
-    headerTemplate: (letter) => `<div>${letter}</div>`,
+    header: {
+      height: 36,
+      template: (letter) => `<div>${letter}</div>`,
+    },
     sticky: true,
   }))
   .use(withScale())
@@ -560,7 +562,7 @@ The feature uses a conservative 16M px limit for cross-browser compatibility.
 - [Exports — Scale](../api/exports.md#scale) — `getScaleState`, `needsScaling`, `calculateCompressedVisibleRange`, and other compression utilities
 - [Scrollbar](./scrollbar.md) — Custom scrollbar (always use with scale — native scrollbar is hidden in compressed mode)
 - [Async](./async.md) — Lazy loading for large datasets that trigger compression
-- [Page](./page.md) — Cannot combine with `withScale` (requires controlled scroll container)
+- [Page](./page.md) — Compatible with `withScale` (mathematical compression only)
 
 ## Examples
 

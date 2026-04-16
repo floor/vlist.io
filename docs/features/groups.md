@@ -954,7 +954,7 @@ const carousel = vlist({
 
 - **Don't unsort items** — Headers will appear in wrong places
 - **Don't use layout indices** — Always use data indices
-- **Don't use sticky headers with reverse mode** — Will throw error
+- **Don't forget to pre-sort items** — Groups require sorted data
 - **Don't compute group keys in render** — Pre-compute and cache
 - **Don't forget `header.height`** — Required parameter
 
@@ -974,18 +974,20 @@ const sortedContacts = [...contacts].sort((a, b) =>
 )
 ```
 
-### Error: "cannot be used with reverse: true"
+### Reverse mode not scrolling correctly
 
-**Symptom:** Error when combining groups with reverse mode.
+**Symptom:** Headers or items misaligned in reverse mode.
 
-**Cause:** Trying to use sticky headers in reverse mode.
+**Cause:** Items may not be sorted correctly for the reverse layout.
 
-**Solution:** Set `sticky: false`:
+**Solution:** Ensure items are in chronological order (oldest first) and choose the header style that fits your UI:
 
 ```typescript
 .use(withGroups({
   // ...
-  sticky: false // Required for reverse mode
+  sticky: false // Inline headers (iMessage style)
+  // OR
+  sticky: true  // Sticky header shows current section while scrolling
 }))
 ```
 
@@ -1056,7 +1058,7 @@ header: {
 | **Variable heights** | ✅ Items and headers can differ |
 | **Grid layout** | ✅ Full-width headers |
 | **Table layout** | ✅ Full-width headers, no cells |
-| **Reverse mode** | ✅ Only with `sticky: false` |
+| **Reverse mode** | ✅ Works with both sticky and inline headers |
 | **Horizontal mode** | ✅ Sticky headers stick to left edge |
 | **Dynamic updates** | ✅ Automatic group rebuild |
 | **Keyboard navigation** | ✅ Works seamlessly |
