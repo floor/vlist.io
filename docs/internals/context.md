@@ -132,10 +132,11 @@ The DOM structure created during `.build()`. Read-only — features should not r
 
 ```typescript
 interface DOMStructure {
-  root:     HTMLElement   // Root vlist element (role="listbox")
-  viewport: HTMLElement   // Scrollable container
-  content:  HTMLElement   // Size-setting element (height/width matches total content)
-  items:    HTMLElement   // Container for rendered item elements
+  root:       HTMLElement   // Root vlist element
+  viewport:   HTMLElement   // Scrollable container
+  content:    HTMLElement   // Size-setting element (height/width matches total content)
+  items:      HTMLElement   // Container for rendered item elements (role="listbox")
+  liveRegion: HTMLElement   // Visually-hidden live region for screen reader announcements
 }
 ```
 

@@ -15,7 +15,11 @@ vlist/src/
 ├── styles/            # CSS styles
 ├── constants.ts       # Global constants
 ├── index.ts           # Main package entry point
-└── types.ts           # Core TypeScript types
+├── internals.ts       # Internal re-exports
+├── types.ts           # Core TypeScript types
+└── utils/             # Shared utilities
+    ├── padding.ts     # Padding calculations
+    └── stats.ts       # Statistics helpers
 ```
 
 ## Builder System
@@ -135,6 +139,7 @@ src/features/masonry/
 ├── index.ts           # Module exports
 ├── feature.ts         # withMasonry() feature
 ├── layout.ts          # Masonry layout calculations
+├── renderer.ts        # Masonry renderer
 └── types.ts           # Masonry types
 ```
 
@@ -149,6 +154,7 @@ Data table with resizable columns and sortable headers.
 src/features/table/
 ├── index.ts           # Module exports
 ├── feature.ts         # withTable() feature
+├── header.ts          # Table header (resizable columns, sortable)
 ├── layout.ts          # Table layout calculations
 ├── renderer.ts        # Table renderer
 └── types.ts           # Table types
@@ -260,6 +266,7 @@ src/rendering/
 ├── measured.ts        # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts        # DOM renderer
 ├── sort.ts            # Shared DOM sort utility for accessibility (reorders DOM on scroll idle)
+├── scroll.ts          # Scroll-related rendering utilities
 ├── scale.ts           # Scaling calculations for 1M+ items
 └── viewport.ts        # Viewport state management
 ```
@@ -279,7 +286,11 @@ CSS styles for vlist components.
 
 ```
 src/styles/
-└── vlist.css          # Main stylesheet
+├── vlist.css          # Main stylesheet
+├── vlist-extras.css   # Extra component styles
+├── vlist-grid.css     # Grid layout styles
+├── vlist-masonry.css  # Masonry layout styles
+└── vlist-table.css    # Table layout styles
 ```
 
 **Usage:**
@@ -460,7 +471,7 @@ The codebase is structured for optimal tree-shaking:
 
 ## Testing
 
-Tests mirror the source structure (2,822 tests / 37,978 assertions):
+Tests mirror the source structure (approximately 2,800+ tests):
 
 ```
 test/
@@ -480,7 +491,7 @@ test/
 └── rendering/         # Renderer, sizes, viewport, scale, snapshots
 ```
 
-Coverage: 96.3% functions / 98.7% lines (85% minimum threshold enforced in CI).
+Coverage: approximately 95%+ functions / 98%+ lines (85% minimum threshold enforced in CI).
 
 ## Related Documentation
 
@@ -492,6 +503,6 @@ Coverage: 96.3% functions / 98.7% lines (85% minimum threshold enforced in CI).
 
 ---
 
-**Last Updated:** June 2025  
+**Last Updated:** April 2026  
 **Version:** v1.4.0  
 **Accuracy:** Verified against actual source code

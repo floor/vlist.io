@@ -400,7 +400,7 @@ Measurements only happen for **newly rendered items** (typically 10–20 per scr
 | `src/rendering/sizes.ts` | `SizeCache` interface, fixed and variable implementations |
 | `src/rendering/measured.ts` | `MeasuredSizeCache` implementation (dynamic sizes) |
 | `src/builder/core.ts` | Config resolution, ResizeObserver wiring, scroll correction |
-| `src/builder/measurement.ts` | Measurement subsystem: observer, flush, stayAtEnd |
+| `src/features/autosize/feature.ts` | Measurement subsystem: ResizeObserver wiring, flush, scroll correction |
 | `src/types.ts` | `estimatedHeight` / `estimatedWidth` on `ItemConfig` |
 | `test/rendering/measured.test.ts` | 57 unit tests for the measured cache |
 

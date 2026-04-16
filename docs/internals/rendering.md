@@ -21,6 +21,7 @@ src/rendering/
 ├── measured.ts     # Measured size cache for auto-size measurement (Mode B)
 ├── renderer.ts     # DOM rendering with compression support (axis-aware)
 ├── sort.ts         # Shared DOM sort utility for accessibility (scroll idle)
+├── scroll.ts       # Scroll-related rendering utilities
 ├── viewport.ts     # Virtual scrolling calculations and viewport state
 └── scale.ts        # Large list compression logic (1M+ items)
 ```
@@ -98,10 +99,10 @@ The **Measured** implementation (`measured.ts`) wraps a Variable cache with a `M
 vlist creates a specific DOM hierarchy for virtual scrolling:
 
 ```html
-<div class="vlist" role="listbox" tabindex="0">
+<div class="vlist" tabindex="0">
   <div class="vlist-viewport" style="overflow: auto; height: 100%;">
     <div class="vlist-content" style="position: relative; height: {totalSize}px;">
-      <div class="vlist-items" style="position: relative;">
+      <div class="vlist-items" role="listbox" style="position: relative;">
         <!-- Rendered items appear here -->
         <div class="vlist-item" data-index="0" style="transform: translateY(0px);">...</div>
         <div class="vlist-item" data-index="1" style="transform: translateY(48px);">...</div>
@@ -212,14 +213,18 @@ Creates the vlist DOM hierarchy.
 ```typescript
 function createDOMStructure(
   container: HTMLElement,
-  classPrefix: string
+  classPrefix: string,
+  ariaLabel?: string,
+  horizontal?: boolean,
+  interactive?: boolean,
 ): DOMStructure;
 
 interface DOMStructure {
-  root: HTMLElement;      // Root vlist element
-  viewport: HTMLElement;  // Scrollable container
-  content: HTMLElement;   // Size-setting element
-  items: HTMLElement;     // Items container
+  root: HTMLElement;        // Root vlist element
+  viewport: HTMLElement;    // Scrollable container
+  content: HTMLElement;     // Size-setting element
+  items: HTMLElement;       // Items container (role="listbox")
+  liveRegion: HTMLElement;  // Visually-hidden live region for screen reader announcements
 }
 ```
 
@@ -263,7 +268,7 @@ Creates an element pool for recycling DOM elements.
 
 ```typescript
 function createElementPool(
-  tagName?: string,  // default: "div"
+  maxSize?: number,  // default: 100
 ): ElementPool;
 
 interface ElementPool {

@@ -34,11 +34,10 @@ interface ScrollControllerConfig {
   horizontal?: boolean;
 
   /**
-   * Enable mouse wheel scrolling (default: true).
-   * In horizontal mode, translates deltaY → scrollLeft.
+   * Allow mouse wheel to scroll (default: true).
    * When false, blocks all wheel events.
    */
-  wheelScroll?: boolean;
+  wheel?: boolean;
 
   /** Wheel sensitivity multiplier (default: 1) */
   sensitivity?: number;
@@ -62,7 +61,7 @@ interface ScrollControllerConfig {
 ```typescript
 interface ScrollController {
   /** Get current scroll position */
-  getScrollPosition: () => number;
+  getScrollTop: () => number;
 
   /** Set scroll position */
   scrollTo: (position: number, smooth?: boolean) => void;
@@ -122,7 +121,7 @@ interface ScrollController {
 
 ```typescript
 interface ScrollEventData {
-  scrollPosition: number;
+  scrollTop: number;
   direction: 'up' | 'down';
   velocity: number;
 }
@@ -266,7 +265,7 @@ function createScrollSystem(viewport, totalItems, itemHeight) {
     false // vertical
   );
 
-  scrollbar.updateBounds(compression.virtualHeight, viewport.clientHeight);
+  scrollbar.updateBounds(compression.virtualSize, viewport.clientHeight);
 
   function handleScroll({ scrollTop }) {
     scrollbar.updatePosition(scrollTop);

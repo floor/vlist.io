@@ -223,12 +223,12 @@ Every feature plugin (`withScale`, `withGroups`, `withGrid`, `withAsync`, `withS
 ```typescript
 // Features access these — all axis-neutral
 ctx.sizeCache           // SizeCache (getSize, getOffset, getTotalSize)
-ctx.viewportState       // ViewportState (scrollPosition, containerSize)
-ctx.compressionState    // CompressionState (actualSize, virtualSize)
-ctx.resolvedConfig      // { horizontal: boolean } — for the rare feature that needs it
+ctx.state.viewportState  // ViewportState (scrollPosition, containerSize)
+ctx.getCachedCompression() // CompressionState (actualSize, virtualSize)
+ctx.config               // { horizontal: boolean } — for the rare feature that needs it
 ```
 
-Features that need to do DOM work (like `withScrollbar` rendering a thumb along the correct edge, or `withGroups` positioning a sticky header) check `ctx.resolvedConfig.horizontal` at their own DOM boundary — keeping the same pattern of axis-neutral math with thin DOM translation.
+Features that need to do DOM work (like `withScrollbar` rendering a thumb along the correct edge, or `withGroups` positioning a sticky header) check `ctx.config.horizontal` at their own DOM boundary — keeping the same pattern of axis-neutral math with thin DOM translation.
 
 ### Grid: Cross-Axis Resolution
 
