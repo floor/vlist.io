@@ -1,7 +1,8 @@
-// benchmarks/render/react/suite.js — Initial Render Benchmark (React)
+// benchmarks/suites/render/react/suite.js — Initial Render Benchmark (React)
 //
-// Measures how long it takes to create a vlist with React's useVList hook
-// and render the first frame. Runs multiple iterations and reports median, min, and p95.
+// Thin wrapper around engine/render.js measureRenderPerformance.
+// Defines the React create/destroy lifecycle and formats results with
+// rating thresholds (slightly more lenient for React overhead).
 
 import { createRoot } from "react-dom/client";
 import { useVList } from "vlist-react";
@@ -10,18 +11,10 @@ import {
   generateItems,
   benchmarkTemplate,
   nextFrame,
-  waitFrames,
-  tryGC,
-  round,
-  median,
-  percentile,
   rateLower,
 } from "../../../runner.js";
-import {
-  ITEM_HEIGHT,
-  WARMUP_ITERATIONS,
-  MEASURE_ITERATIONS,
-} from "../constants.js";
+import { ITEM_HEIGHT } from "../../../engine/constants.js";
+import { measureRenderPerformance } from "../../../engine/render.js";
 
 // =============================================================================
 // React Component
@@ -40,44 +33,6 @@ function BenchmarkList({ items }) {
 }
 
 // =============================================================================
-// Core measurement
-// =============================================================================
-
-/**
- * Run a single render measurement with React.
- * Creates a React root, renders the component, waits for first paint, then unmounts.
- *
- * @param {HTMLElement} container
- * @param {Array<{id: number}>} items
- * @returns {Promise<number>} render time in ms
- */
-const measureRender = async (container, items) => {
-  // Clear container
-  container.innerHTML = "";
-
-  // Let the container settle before measuring
-  await nextFrame();
-
-  const start = performance.now();
-
-  // Create React root and render
-  const root = createRoot(container);
-  root.render(<BenchmarkList items={items} />);
-
-  // Wait for React to commit and browser to paint
-  await nextFrame();
-  await nextFrame(); // React may need an extra frame
-
-  const elapsed = performance.now() - start;
-
-  // Clean up
-  root.unmount();
-  container.innerHTML = "";
-
-  return elapsed;
-};
-
-// =============================================================================
 // Suite
 // =============================================================================
 
@@ -90,33 +45,18 @@ defineSuite({
   run: async ({ itemCount, container, onStatus }) => {
     const items = generateItems(itemCount);
 
-    // Warmup — let the JIT optimize
-    onStatus("Warming up...");
-    for (let i = 0; i < WARMUP_ITERATIONS; i++) {
-      await measureRender(container, items);
-      await tryGC();
-    }
-
-    // Measure
-    onStatus("Measuring...");
-    const times = [];
-
-    for (let i = 0; i < MEASURE_ITERATIONS; i++) {
-      onStatus(`Iteration ${i + 1}/${MEASURE_ITERATIONS}`);
-
-      await tryGC();
-      const time = await measureRender(container, items);
-      times.push(time);
-
-      // Short pause between iterations
-      await waitFrames(5);
-    }
-
-    // Compute stats
-    const sorted = [...times].sort((a, b) => a - b);
-    const med = round(median(times), 2);
-    const min = round(sorted[0], 2);
-    const p95 = round(percentile(sorted, 95), 2);
+    const result = await measureRenderPerformance({
+      container,
+      createFn: async (c) => {
+        const root = createRoot(c);
+        root.render(<BenchmarkList items={items} />);
+        await nextFrame(); // React needs an extra frame to commit
+        return root;
+      },
+      destroyFn: (root) => root.unmount(),
+      label: "vlist-react",
+      onStatus,
+    });
 
     // Rating thresholds (slightly more lenient for React overhead)
     const goodThreshold =
@@ -127,24 +67,24 @@ defineSuite({
     return [
       {
         label: "Median",
-        value: med,
+        value: result.median,
         unit: "ms",
         better: "lower",
-        rating: rateLower(med, goodThreshold, okThreshold),
+        rating: rateLower(result.median, goodThreshold, okThreshold),
       },
       {
         label: "Min",
-        value: min,
+        value: result.min,
         unit: "ms",
         better: "lower",
-        rating: rateLower(min, goodThreshold, okThreshold),
+        rating: rateLower(result.min, goodThreshold, okThreshold),
       },
       {
         label: "p95",
-        value: p95,
+        value: result.p95,
         unit: "ms",
         better: "lower",
-        rating: rateLower(p95, goodThreshold * 1.5, okThreshold * 1.5),
+        rating: rateLower(result.p95, goodThreshold * 1.5, okThreshold * 1.5),
       },
     ];
   },

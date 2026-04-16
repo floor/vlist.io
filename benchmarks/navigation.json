@@ -85,6 +85,12 @@
     "label": "Results",
     "items": [
       {
+        "slug": "suite-history",
+        "name": "Suite History",
+        "icon": "📊",
+        "desc": "Crowdsourced vlist suite results over time, by version and browser"
+      },
+      {
         "slug": "history",
         "name": "Comparison History",
         "icon": "📈",
