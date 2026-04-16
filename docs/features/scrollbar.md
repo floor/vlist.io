@@ -262,7 +262,7 @@ interface ScrollConfig {
   /** Wrap around at boundaries (default: false) */
   wrap?: boolean;
 
-  /** Scrollbar mode (default: custom scrollbar) */
+  /** Scrollbar mode (default: native browser scrollbar). Use withScrollbar() for custom. */
   scrollbar?: 'native' | 'none' | ScrollbarOptions;
 
   /** External scroll element for window scrolling */
@@ -301,11 +301,11 @@ interface ScrollbarOptions {
 
 | `wheel` | `scrollbar` | Use case |
 |---------|-------------|----------|
-| `true` | *(default)* | Standard list — wheel + custom scrollbar |
-| `true` | `'native'` | Wheel + browser-native scrollbar |
+| `true` | *(default)* | Standard list — wheel + native scrollbar |
+| `true` | `'native'` | Same as default (explicit native) |
 | `true` | `'none'` | Wheel scrolling, no visible scrollbar |
-| `false` | *(default)* | Custom scrollbar drag only, no wheel |
-| `false` | `'native'` | Native scrollbar drag only, no wheel |
+| `false` | *(default)* | Native scrollbar drag only, no wheel |
+| `false` | `'native'` | Same as above (explicit native) |
 | `false` | `'none'` | Button-only / programmatic navigation |
 
 ### Scroll Transition Suppression
