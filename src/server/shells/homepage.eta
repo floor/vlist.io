@@ -25,7 +25,7 @@
         <!-- Additional SEO -->
         <meta name="author" content="Floor IO" />
         <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-        <meta name="keywords" content="virtual list, virtual scroll, infinite scroll, react virtual list, performance, web components, javascript library, zero dependencies" />
+        <meta name="keywords" content="virtual list, virtual scroll, vue virtual list, svelte virtual list, solidjs virtual list, accessible virtual list, infinite scroll, masonry layout, data table, javascript library, zero dependencies, framework agnostic" />
 
         <!-- JSON-LD Structured Data -->
         <script type="application/ld+json">
@@ -153,16 +153,24 @@
             <section class="hero">
                 <h1 class="hero__name">VList</h1>
                 <p class="hero__tagline">
-                    Ultra-efficient virtual list with constant memory.
-                    Dimension-agnostic architecture. Tree-shakeable features. 120+ FPS sustained.
+                    The virtual list for every framework.
+                    Accessible by default. Grid, masonry, table — all composable. Constant memory at any scale.
                 </p>
+
+                <div class="hero__frameworks">
+                    <span class="framework-tag">Vanilla JS</span>
+                    <span class="framework-tag">Vue <small>0.6 KB</small></span>
+                    <span class="framework-tag">Svelte <small>0.5 KB</small></span>
+                    <span class="framework-tag">Solid <small>0.5 KB</small></span>
+                    <span class="framework-tag">React <small>0.6 KB</small></span>
+                </div>
 
                 <div class="hero__badges">
                     <span class="badge badge--accent">v<%= it.version %></span>
                     <span class="badge"><%= it.bundleSize %> KB gzipped</span>
                     <span class="badge">Zero Dependencies</span>
-                    <span class="badge badge--accent">0.1-0.3 MB @ 1M items</span>
-                    <span class="badge">120+ FPS sustained</span>
+                    <span class="badge badge--accent">WAI-ARIA Accessible</span>
+                    <span class="badge">0.1 MB @ 1M items</span>
                 </div>
 
                 <div class="hero__actions">
@@ -255,6 +263,87 @@
             </section>
 
             <!-- ========================================================
+                 Why vlist — Comparison
+                 ======================================================== -->
+
+            <section class="section">
+                <h2 class="section__title">Why VList</h2>
+                <p class="section__desc">The only virtual list with built-in accessibility, every layout mode, and multi-framework support.</p>
+                <div class="comparison-table-wrap">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th class="comparison-table__highlight">VList</th>
+                                <th>TanStack Virtual</th>
+                                <th>react-virtuoso</th>
+                                <th>virtua</th>
+                                <th>vue-virtual-scroller</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="comparison-table__label">Accessibility</td>
+                                <td class="comparison-table__highlight">WAI-ARIA + 2D keyboard</td>
+                                <td>None (DIY)</td>
+                                <td>Partial</td>
+                                <td>Minimal</td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td class="comparison-table__label">Grid + Masonry + Table</td>
+                                <td class="comparison-table__highlight">All</td>
+                                <td>Grid only</td>
+                                <td>Grid + Table</td>
+                                <td>Grid only</td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td class="comparison-table__label">Vue</td>
+                                <td class="comparison-table__highlight">0.6 KB adapter</td>
+                                <td>Yes</td>
+                                <td>—</td>
+                                <td>Yes</td>
+                                <td>11.8 KB</td>
+                            </tr>
+                            <tr>
+                                <td class="comparison-table__label">Svelte</td>
+                                <td class="comparison-table__highlight">0.5 KB adapter</td>
+                                <td>Yes</td>
+                                <td>—</td>
+                                <td>Yes</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td class="comparison-table__label">Solid</td>
+                                <td class="comparison-table__highlight">0.5 KB adapter</td>
+                                <td>Yes</td>
+                                <td>—</td>
+                                <td>Yes</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td class="comparison-table__label">Vanilla JS</td>
+                                <td class="comparison-table__highlight">Native</td>
+                                <td>Yes</td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td class="comparison-table__label">Constant memory</td>
+                                <td class="comparison-table__highlight">~0.1 MB @ 1M</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ========================================================
                  Features
                  ======================================================== -->
 
@@ -263,73 +352,63 @@
                 <p class="section__desc">Every feature is tree-shakeable — import only what you need.</p>
                 <div class="features">
                     <div class="ui-card feature">
-                        <span class="feature__icon">⚡</span>
-                        <div class="feature__name">Blazing Fast</div>
+                        <div class="feature__name">Accessible by Default</div>
                         <div class="feature__desc">
-                            DOM recycling, RAF batching, O(log n) lookups — 120+ FPS sustained
+                            WAI-ARIA listbox, 2D keyboard navigation, focus recovery, screen-reader DOM ordering, ARIA live region
                         </div>
                     </div>
                     <div class="ui-card feature">
-                        <span class="feature__icon">💾</span>
+                        <div class="feature__name">Every Framework</div>
+                        <div class="feature__desc">
+                            Vanilla JS core with 0.5-0.6 KB adapters for Vue, Svelte, Solid, and React
+                        </div>
+                    </div>
+                    <div class="ui-card feature">
+                        <div class="feature__name">Grid, Table &amp; Masonry</div>
+                        <div class="feature__desc">
+                            Virtualized 2D grid, data table with resize/sort, and masonry layouts — all orientations
+                        </div>
+                    </div>
+                    <div class="ui-card feature">
                         <div class="feature__name">Constant Memory</div>
                         <div class="feature__desc">
-                            Just 0.24 MB at 10K items, scales to 0.1-0.3 MB even at 1M+ items — true O(1) memory complexity
+                            ~0.1 MB overhead at any scale — 10K to 1M+ items with true O(1) memory complexity
                         </div>
                     </div>
                     <div class="ui-card feature">
-                        <span class="feature__icon">↔️</span>
                         <div class="feature__name">Dimension Agnostic</div>
                         <div class="feature__desc">
                             Vertical &amp; horizontal orientations with semantic API — grid, groups, all features work both ways
                         </div>
                     </div>
                     <div class="ui-card feature">
-                        <span class="feature__icon">📏</span>
-                        <div class="feature__name">Variable Sizes</div>
-                        <div class="feature__desc">
-                            Per-item size function with DOM measurement support
-                        </div>
-                    </div>
-                    <div class="ui-card feature">
-                        <span class="feature__icon">♾️</span>
                         <div class="feature__name">Infinite Scroll</div>
                         <div class="feature__desc">
-                            Async adapter with placeholders, velocity-aware loading
+                            Async adapter with placeholders, velocity-aware loading that skips fetches during fast scroll
                         </div>
                     </div>
                     <div class="ui-card feature">
-                        <span class="feature__icon">🔀</span>
-                        <div class="feature__name">Reverse Mode</div>
-                        <div class="feature__desc">
-                            Chat UIs — start at bottom, prepend history, auto-scroll
-                        </div>
-                    </div>
-                    <div class="ui-card feature">
-                        <span class="feature__icon">☑️</span>
                         <div class="feature__name">Selection</div>
                         <div class="feature__desc">
-                            Single &amp; multi-select with full keyboard navigation
+                            Single &amp; multi-select with 2D keyboard navigation, Shift+Arrow, range select
                         </div>
                     </div>
                     <div class="ui-card feature">
-                        <span class="feature__icon">🔲</span>
-                        <div class="feature__name">Grid, Table &amp; Masonry</div>
-                        <div class="feature__desc">
-                            Virtualized 2D grid, data table, and masonry layouts — all orientations
-                        </div>
-                    </div>
-                    <div class="ui-card feature">
-                        <span class="feature__icon">📌</span>
                         <div class="feature__name">Sticky Headers</div>
                         <div class="feature__desc">
-                            Grouped lists with sticky headers in any orientation
+                            Grouped lists with sticky or inline headers in any orientation
                         </div>
                     </div>
                     <div class="ui-card feature">
-                        <span class="feature__icon">🗜️</span>
-                        <div class="feature__name">Compression</div>
+                        <div class="feature__name">Scale to Millions</div>
                         <div class="feature__desc">
-                            Handle millions of items by compressing scroll space
+                            Handle 1M+ items via scroll compression — same performance as 10K items
+                        </div>
+                    </div>
+                    <div class="ui-card feature">
+                        <div class="feature__name">120+ FPS Sustained</div>
+                        <div class="feature__desc">
+                            DOM recycling, element pooling, prefix-sum lookups, zero per-frame allocations
                         </div>
                     </div>
                 </div>
@@ -371,7 +450,7 @@
                     <a href="/examples/" class="ui-card ui-card--interactive nav-card">
                         <div class="nav-card__title">Examples</div>
                         <div class="nav-card__desc">
-                            13 interactive examples — from basic lists to million-item stress tests
+                            18 interactive examples — from basic lists to million-item stress tests
                         </div>
                         <span class="nav-card__link">Browse examples →</span>
                     </a>
