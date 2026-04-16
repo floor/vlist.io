@@ -9,6 +9,12 @@ import { SITE, IS_PROD } from "./config";
 import { VLIST_ROOT } from "../config";
 import { htmlHeaders } from "../cache";
 
+// Search dialog partial — shared with base.html via config/eta.ts
+const SEARCH_HTML = readFileSync(
+  resolve("src/server/shells/search.html"),
+  "utf-8",
+);
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -205,6 +211,7 @@ export function renderHomepage(): Response {
       navItems: loadNavigation(),
       exampleGroups: loadExampleGroups(),
       quickstartCode: QUICKSTART_CODE,
+      SEARCH_HTML,
     });
   }
 
