@@ -273,12 +273,12 @@ Items render at the estimated size, then snap to their measured height. Each ite
 
 ## withSnapshots() — Scroll Save/Restore
 
-Included in the base — no import needed.
-
 ```typescript
-import { vlist } from 'vlist';
+import { vlist, withSnapshots } from 'vlist';
 
-const list = vlist({ container: '#list', items, item: { height: 48, template: render } }).build();
+const list = vlist({ container: '#list', items, item: { height: 48, template: render } })
+  .use(withSnapshots())
+  .build();
 
 // Save before navigation
 const snapshot = list.getScrollSnapshot();
