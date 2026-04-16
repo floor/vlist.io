@@ -150,10 +150,10 @@ interface TableConfig<T extends VListItem = VListItem> {
   /** Column definitions (required, at least one) */
   columns: TableColumn<T>[]
 
-  /** Row height — fixed number or function per index */
-  rowHeight: number | ((index: number) => number)
+  /** Row height — fixed number or function per index. Omit when using estimatedRowHeight. */
+  rowHeight?: number | ((index: number) => number)
 
-  /** Estimated row height for auto-measurement (Mode B) */
+  /** Estimated row height for auto-measurement (Mode B). Requires withAutoSize(). */
   estimatedRowHeight?: number
 
   /** Header height in pixels (default: rowHeight or 40) */
@@ -629,8 +629,10 @@ const table = vlist({
 }))
 .use(withGroups({
   getGroupForIndex: (i) => sortedEmployees[i].department,
-  headerHeight: 32,
-  headerTemplate: (dept) => `<div class="group-label">${dept}</div>`,
+  header: {
+    height: 32,
+    template: (dept) => `<div class="group-label">${dept}</div>`,
+  },
   sticky: true,
 }))
 .build()

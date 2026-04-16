@@ -259,7 +259,8 @@ When scrolling to the bottom (via `scrollToIndex`, the End key, or the scrollbar
 |---------|--------|
 | `withGrid()` | Grid requires deterministic row heights |
 | `withMasonry()` | Masonry requires known heights for lane placement |
-| `withTable()` | Table rows have uniform height |
+
+> **Note:** `withTable()` supports auto-measurement via `estimatedRowHeight` — see [Table docs](./table.md).
 
 ## Sizing Precedence
 
