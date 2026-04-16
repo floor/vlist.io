@@ -38,6 +38,7 @@ import {
   DEFAULT_LIMIT as TRACKS_DEFAULT_LIMIT,
 } from "./tracks";
 import type { TrackInput } from "./tracks";
+import { searchSite } from "../server/search";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -568,6 +569,14 @@ const handleGetTracksStats = (): Response => {
   }
 };
 
+// GET /api/search?q=...&limit=...
+const handleSearch = (url: URL) => {
+  const q = url.searchParams.get("q") || "";
+  const limit = intParam(url, "limit", 10, 1, 50);
+  const results = searchSite(q, limit);
+  return json({ query: q, results });
+};
+
 /**
  * GET /api/info
  *
@@ -805,6 +814,11 @@ export const routeApi = async (
   // GET /api/info → JSON metadata
   if (path === "/api/info") {
     return handleInfo();
+  }
+
+  // GET /api/search
+  if (path === "/api/search" || path === "/api/search/") {
+    return handleSearch(url);
   }
 
   // GET /api/users

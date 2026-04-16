@@ -23,7 +23,6 @@
     "deploy": "gh workflow run deploy.yml --ref main -R floor/vlist.io && echo 'Deploy triggered'"
   },
   "dependencies": {
-    "vlist": "file:../vlist",
     "@legendapp/list": "3.0.0-beta.40",
     "@tanstack/react-virtual": "^3.13.18",
     "@tanstack/solid-virtual": "^3.13.18",
@@ -32,6 +31,7 @@
     "clusterize.js": "^0.18.1",
     "eta": "^4.5.1",
     "marked": "^17.0.1",
+    "minisearch": "^7.2.0",
     "mongodb": "^7.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -39,6 +39,7 @@
     "react-window": "1.8.10",
     "solid-js": "^1.9.11",
     "virtua": "^0.48.6",
+    "vlist": "file:../vlist",
     "vlist-react": "^1.2.0",
     "vlist-solidjs": "^1.2.0",
     "vlist-svelte": "^1.2.0",
