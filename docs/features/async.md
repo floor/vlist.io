@@ -44,7 +44,7 @@ const list = vlist({
   autoLoad: true,  // Load data immediately (default: true)
   storage: {
     chunkSize: 100,      // Items per chunk (default: 100)
-    maxCachedItems: 10000 // Max items in memory (default: 10000)
+    maxCachedItems: 10000 // Max items in memory (default: 5000)
   },
   loading: {
     cancelThreshold: 5,   // Cancel load above this velocity (default: 5)
@@ -75,7 +75,7 @@ Configure sparse storage behavior:
 - `chunkSize`: Number of items per chunk (default: 100)
   - **Important**: Should match your API pagination size for optimal performance
   - Example: If your API returns 25 items per page, use `chunkSize: 25`
-- `maxCachedItems`: Maximum items in memory before eviction (default: 10000)
+- `maxCachedItems`: Maximum items in memory before eviction (default: 5000)
 
 #### loading (optional)
 Velocity-based loading optimization:

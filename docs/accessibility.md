@@ -57,8 +57,10 @@ div.vlist [tabindex="0"]
                  │     [aria-selected="true"]
                  │     ...
                  └── ...
+  └── div.vlist-live [aria-live="polite"] [aria-atomic="true"] [role="status"]
+       (visually hidden — announces viewport range on scroll settle)
   └── div.vlist-live-region [aria-live="polite"] [aria-atomic="true"]
-       (visually hidden — announces selection changes)
+       (visually hidden — announces selection changes, added by withSelection)
 ```
 
 ### Root Element
@@ -140,7 +142,7 @@ const list = vlist({
   .build()
 ```
 
-> **Note:** `withSelection` accepts `{ mode: 'single' | 'multiple' }`. Without this feature, the list provides a baseline single-select via ArrowUp/Down, Home/End, PageUp/Down, and Space/Enter — but no multi-select, no live region, and no `aria-activedescendant`.
+> **Note:** `withSelection` accepts `{ mode: 'single' | 'multiple' }`. Without this feature, the list provides a baseline single-select via ArrowUp/Down, Home/End, PageUp/Down, and Space/Enter with `aria-activedescendant` — but no multi-select and no selection live region.
 
 ### `classPrefix`
 
@@ -203,6 +205,19 @@ Lane-aware navigation using pre-built per-lane index arrays:
 | `Space` / `Enter` | Toggle selection |
 
 > In horizontal orientation, axes are swapped: Left/Right = same-lane navigation (scroll axis), Up/Down = adjacent-lane navigation (cross axis).
+
+### Multi-Select Shortcuts (`withSelection({ mode: 'multiple' })`)
+
+These additional shortcuts are available in multiple selection mode, on top of the navigation keys above:
+
+| Key | Action |
+|-----|--------|
+| `Shift` + `↑` / `↓` | Toggle selection of origin/destination item while moving focus |
+| `Shift` + `Space` | Select contiguous range from last-selected item to focused item |
+| `Shift` + Click | Range selection from last-selected item to clicked item |
+| `Ctrl` + `Shift` + `Home` | Select range from focused item to first item |
+| `Ctrl` + `Shift` + `End` | Select range from focused item to last item |
+| `Ctrl` + `A` / `Cmd` + `A` | Select all items (or deselect all if all are already selected) |
 
 ### How Focus Works
 
@@ -267,18 +282,35 @@ When keyboard focus moves, the root element's `aria-activedescendant` is updated
 // Screen reader reads its text content
 ```
 
-### Selection Announcements (Live Region)
+### Live Regions
 
-vlist creates a visually-hidden live region inside the root element:
+vlist uses **two** visually-hidden live regions for different purposes:
+
+#### Core Live Region (`vlist-live`)
+
+Created by the core builder in all modes. Announces viewport range information when scrolling settles:
 
 ```html
-<div aria-live="polite" aria-atomic="true"
-     class="vlist-live-region"
+<div class="vlist-live" role="status"
+     aria-live="polite" aria-atomic="true"
      style="position:absolute;width:1px;height:1px;...">
+  Showing items 1 to 25 of 10000
 </div>
 ```
 
-When selection changes, the live region is updated and the screen reader announces:
+This gives screen reader users positional context during scrolling without interrupting navigation.
+
+#### Selection Live Region (`vlist-live-region`)
+
+Created by `withSelection`. Announces selection count changes:
+
+```html
+<div class="vlist-live-region"
+     aria-live="polite" aria-atomic="true"
+     style="position:absolute;width:1px;height:1px;...">
+  3 items selected
+</div>
+```
 
 | Selection count | Announcement |
 |----------------|--------------|
@@ -286,7 +318,7 @@ When selection changes, the live region is updated and the screen reader announc
 | 1 | `"1 item selected"` |
 | 3 | `"3 items selected"` |
 
-The live region uses `aria-live="polite"` so announcements don't interrupt the user's current reading flow.
+Both live regions use `aria-live="polite"` so announcements don't interrupt the user's current reading flow.
 
 ### Loading State
 
@@ -459,11 +491,15 @@ The core entry point provides the same ARIA attributes as the full bundle:
 
 Core provides a baseline single-select with ArrowUp/Down, Home/End, PageUp/Down, Space/Enter — no `withSelection` needed.
 
+Core **includes**:
+
+- ✅ `aria-activedescendant` — updated on keyboard navigation and click (set in the baseline a11y handler)
+- ✅ Core live region (`vlist-live`, `role="status"`) — announces viewport range ("Showing items X to Y of Z") on scroll settle
+
 Core does **not** include:
 
 - ❌ Multi-select keyboard navigation (no selection feature)
-- ❌ `aria-activedescendant` (no focus tracking)
-- ❌ Live region (no selection changes to announce)
+- ❌ Selection live region (no selection changes to announce)
 - ❌ `aria-busy` (no async adapter)
 
 ```typescript
@@ -478,7 +514,9 @@ const list = vlist({
 
 // Items have aria-setsize and aria-posinset ✓
 // Baseline single-select via keyboard ✓
-// No multi-select, live region, or aria-activedescendant
+// aria-activedescendant updated on focus ✓
+// Core live region for range announcements ✓
+// No multi-select or selection live region
 ```
 
 ---

@@ -111,7 +111,7 @@ Masonry **requires** item heights to be deterministic (calculable before renderi
 When the height is a function, it receives two parameters — the item **index** and a **context** object:
 
 - `columnWidth` — Current column width in pixels (precomputed, updates on resize)
-- `containerSize` — Current container size in pixels (cross-axis dimension)
+- `containerWidth` — Current container width in pixels (cross-axis dimension)
 - `columns` — Number of columns
 - `gap` — Gap between items in pixels
 
@@ -297,9 +297,20 @@ function getResponsiveColumns() {
   return 5
 }
 
-// Update column count on resize
+// To change column count, destroy and rebuild the list.
+// Masonry column count is set at build time and cannot be updated dynamically.
 window.addEventListener('resize', () => {
-  gallery.updateMasonry({ columns: getResponsiveColumns() })
+  gallery.destroy()
+  gallery = vlist({
+    container: '#gallery',
+    item: {
+      height: (index, { columnWidth }) => Math.round(columnWidth * photos[index].aspectRatio),
+      template: renderPhoto,
+    },
+    items: photos,
+  })
+  .use(withMasonry({ columns: getResponsiveColumns(), gap: 8 }))
+  .build()
 })
 ```
 
@@ -361,8 +372,8 @@ const gallery = vlist({
 .build()
 
 // Listen for selection changes
-gallery.on('selection:change', ({ selectedIndices }) => {
-  console.log(`Selected ${selectedIndices.length} photos`)
+gallery.on('selection:change', ({ selected }) => {
+  console.log(`Selected ${selected.length} photos`)
 })
 ```
 
