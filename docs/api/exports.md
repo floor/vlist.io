@@ -367,6 +367,8 @@ For related type definitions (`BuilderState`, `ResolvedBuilderConfig`, `VListFea
 | `resizeHandlers` | `Array<(width, height) => void>` | Called when the container is resized. |
 | `contentSizeHandlers` | `Array<() => void>` | Called when total content size changes. |
 | `afterScroll` | `Array<(scrollPosition, direction) => void>` | Called after each scroll-triggered render. |
+| `afterRenderBatch` | `Array<(items: ReadonlyArray<{ index, element }>) => void>` | Called after a batch of new items is rendered to the DOM. |
+| `idleHandlers` | `Array<() => void>` | Called when scrolling becomes idle. |
 | `destroyHandlers` | `Array<() => void>` | Called during destroy for cleanup. |
 | `methods` | `Map<string, Function>` | Register public methods exposed on the instance. |
 
@@ -385,6 +387,28 @@ For related type definitions (`BuilderState`, `ResolvedBuilderConfig`, `VListFea
 | `replaceRenderer(renderer)` | Replace the renderer (used by grid/masonry). |
 | `replaceDataManager(manager)` | Replace the data manager (used by withAsync). |
 | `replaceScrollController(ctrl)` | Replace the scroll controller. |
+| `adjustScrollPosition(position)` | Adjust scroll position for CSS padding. |
+| `invalidateRendered()` | Mark rendered items as stale, forcing re-render on next cycle. |
+| `rebuildSizeCache(total?)` | Rebuild the size cache (e.g., after column count changes). |
+| `setSizeConfig(config)` | Replace the size configuration (height/width functions). |
+| `updateContentSize(totalSize)` | Update the content element's total size. |
+| `updateCompressionMode()` | Recalculate whether compression is needed. |
+| `setVirtualTotalFn(fn)` | Replace the virtual total calculator (used by withGroups). |
+| `setVisibleRangeFn(fn)` | Replace the visible range calculator. |
+| `setScrollToPosFn(fn)` | Replace the scroll-to-index position calculator. |
+| `setPositionElementFn(fn)` | Replace the element positioning function. |
+| `setRenderFns(renderIfNeeded, forceRender)` | Replace the render functions. |
+| `setScrollFns(getTop, setTop)` | Replace scroll getter/setter. |
+| `setScrollTarget(target)` | Set the scroll target element. |
+| `getScrollTarget()` | Get the current scroll target element. |
+| `setContainerDimensions(getter)` | Replace the container dimensions getter. |
+| `setUpdateItemClassesFn(fn)` | Replace the item-class updater for the renderer. |
+| `getStripeIndexFn()` | Get the current stripe-index function. |
+| `setStripeIndexFn(fn)` | Replace the stripe-index function (for zebra striping with groups). |
+| `getItemToScrollIndexFn()` | Get the item-to-scroll-index mapping. |
+| `setItemToScrollIndexFn(fn)` | Replace the item-to-scroll-index mapping (used by withGrid). |
+| `disableViewportResize()` | Disable the viewport ResizeObserver. |
+| `disableWheelHandler()` | Disable the built-in wheel handler. |
 
 ---
 
