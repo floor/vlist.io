@@ -409,7 +409,7 @@ Override these CSS custom properties to match your design system:
 }
 ```
 
-Dark mode tokens are set automatically via `prefers-color-scheme: dark` or the `.dark` class. See [styles.md](./styling.md) for the full token reference.
+Dark mode tokens are set automatically via `prefers-color-scheme: dark` or the `.dark` class. See [Styling](/tutorials/styling) for the full token reference.
 
 ---
 
@@ -677,7 +677,6 @@ Grid and masonry layouts register navigation hints via `ctx.methods` that the co
 - [Selection](/docs/features/selection) — Selection state management and keyboard interaction internals
 - [Grid](/docs/features/grid) — 2D grid layout with WAI-ARIA Grid keyboard navigation
 - [Masonry](/docs/features/masonry) — Lane-aware masonry layout with keyboard navigation
-- [Handlers](/docs/internals/handlers) — Scroll, click, and keyboard event handler implementation
-- [Render](/docs/internals/rendering) — Element pool, DOM structure, and renderer details
-- [Styles](./styling) — CSS tokens, variants, focus ring, and dark mode
-- [Main Documentation](./getting-started) — Full configuration and API reference
+- [Rendering](./internals/rendering) — Element pool, DOM structure, and renderer details
+- [Styling](/tutorials/styling) — CSS tokens, variants, focus ring, and dark mode
+- [Getting Started](./getting-started.md) — Full configuration and API reference

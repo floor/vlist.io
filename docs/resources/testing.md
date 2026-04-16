@@ -720,4 +720,4 @@ bun test --test-name-pattern="grid"
 
 ---
 
-*For module-specific implementation details, see the corresponding module documentation: [async data](./features/async.md), [scrollbar](./features/scrollbar.md), [rendering](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [groups](./features/groups.md), [snapshots](./features/snapshots.md), [scale](./features/scale.md).*
+*For module-specific implementation details, see the corresponding module documentation: [async data](../features/async.md), [scrollbar](../features/scrollbar.md), [rendering](../internals/rendering.md), [selection](../features/selection.md), [events](../api/events.md), [groups](../features/groups.md), [snapshots](../features/snapshots.md), [scale](../features/scale.md).*
