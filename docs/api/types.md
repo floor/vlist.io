@@ -295,6 +295,7 @@ Scroll behavior options, passed as the `scroll` property of `BuilderConfig`.
 interface ScrollConfig {
   wheel?:       boolean
   wrap?:        boolean
+  gutter?:      'auto' | 'stable'
   idleTimeout?: number
   element?:     Window
   scrollbar?:   'native' | 'none' | ScrollbarOptions
