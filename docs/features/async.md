@@ -59,7 +59,7 @@ const list = vlist({
 
 #### adapter (required)
 Async data source with a `read` function:
-- **Input**: `{ offset: number, limit: number, signal?: AbortSignal }`
+- **Input**: `{ offset: number, limit: number }`
 - **Output**: `Promise<{ items: T[], total: number, hasMore?: boolean, cursor?: string }>`
 
 #### autoLoad (optional)

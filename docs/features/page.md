@@ -11,7 +11,7 @@ The `withPage()` feature enables **page-level scrolling** where the list partici
 import { vlist, withPage } from 'vlist';
 ```
 
-**Bundle cost:** +0.9 KB gzipped
+**Bundle cost:** +0.4 KB gzipped
 
 ## Quick Start
 
@@ -196,13 +196,11 @@ The feature modifies:
 - `withScale()` - Large page-level datasets
 - `reverse: true` - Reverse mode with page scroll
 
-### ❌ Incompatible With
+### Not Recommended
 
-- `withScrollbar()` - Page uses native browser scrollbar
+- `withScrollbar()` - Not recommended; has no effect since page mode uses the native browser scrollbar
 - `orientation: 'horizontal'` - Page scroll is vertical only
 - `withGrid()` in some cases - Grid works but may need careful styling
-
-**Note:** The builder will throw an error if you try to combine `withPage()` with `withScrollbar()`.
 
 ## Styling Considerations
 
@@ -394,7 +392,7 @@ For better SEO with infinite scroll:
 - [Exports — Scrollbar / Scroll Controller](../api/exports.md#scrollbar--scroll-controller) — `createScrollController`
 - [Async](./async.md) — Combine for infinite scroll with document-level scrolling
 - [Scrollbar](./scrollbar.md) — Alternative: custom scrollbar (cannot combine with `withPage`)
-- [Scale](./scale.md) — Cannot combine with `withPage` (requires controlled scroll container)
+- [Scale](./scale.md) — Compatible with `withPage` (mathematical compression only)
 
 ## Examples
 

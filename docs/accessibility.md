@@ -10,7 +10,7 @@ vlist implements the [WAI-ARIA Listbox pattern](https://www.w3.org/WAI/ARIA/apg/
 
 | Feature | Standard | Description |
 |---------|----------|-------------|
-| **ARIA roles** | WAI-ARIA 1.2 | `role="listbox"` on root, `role="option"` on items |
+| **ARIA roles** | WAI-ARIA 1.2 | `role="listbox"` on `.vlist-items`, `role="option"` on items |
 | **Positional context** | `aria-setsize` / `aria-posinset` | Screen readers announce "item 5 of 10,000" |
 | **Focus tracking** | `aria-activedescendant` | Root element declares focused item by ID |
 | **Selection state** | `aria-selected` | Each item reflects its selection state |
@@ -18,7 +18,7 @@ vlist implements the [WAI-ARIA Listbox pattern](https://www.w3.org/WAI/ARIA/apg/
 | **Live region** | `aria-live="polite"` | Selection changes announced to screen readers |
 | **Keyboard navigation** | WAI-ARIA Practices | Arrow keys, Home, End, Space, Enter |
 | **Focus visibility** | `:focus-visible` | Keyboard-only focus ring (no mouse outline) |
-| **2D grid navigation** | WAI-ARIA Grid | ArrowUp/Down by row, ArrowLeft/Right by cell, row-scoped Home/End |
+| **2D grid navigation** | WAI-ARIA Grid | ArrowUp/Down by row, ArrowLeft/Right by cell, Home/End to first/last item |
 | **Lane-aware masonry navigation** | Custom | ArrowUp/Down in same lane, ArrowLeft/Right to adjacent lane |
 | **Horizontal axis swap** | WAI-ARIA Grid | Arrow keys swap for horizontal orientation |
 
@@ -45,10 +45,10 @@ Every accessibility feature works in all vlist configurations:
 vlist produces the following accessible DOM hierarchy:
 
 ```
-div.vlist [role="listbox"] [tabindex="0"] [aria-label="..."]
+div.vlist [tabindex="0"]
   └── div.vlist-viewport
        └── div.vlist-content
-            └── div.vlist-items
+            └── div.vlist-items [role="listbox"] [aria-label="..."]
                  ├── div.vlist-item [role="option"] [id="vlist-0-item-3"]
                  │     [aria-selected="false"]
                  │     [aria-setsize="10000"]
@@ -63,15 +63,22 @@ div.vlist [role="listbox"] [tabindex="0"] [aria-label="..."]
 
 ### Root Element
 
-The root element receives:
+The root `.vlist` element receives:
+
+| Attribute | Value | Purpose |
+|-----------|-------|---------|
+| `tabindex` | `"0"` | Makes the list focusable via Tab key |
+| `aria-activedescendant` | Element ID | Points to the currently focused item (set on keyboard/click) |
+| `aria-busy` | `"true"` | Present only during async data loading |
+
+### Items Container (`.vlist-items`)
+
+The `.vlist-items` element receives:
 
 | Attribute | Value | Purpose |
 |-----------|-------|---------|
 | `role` | `"listbox"` | Identifies the widget as a list of selectable items |
-| `tabindex` | `"0"` | Makes the list focusable via Tab key |
 | `aria-label` | User-provided | Describes the list's purpose to screen readers |
-| `aria-activedescendant` | Element ID | Points to the currently focused item (set on keyboard/click) |
-| `aria-busy` | `"true"` | Present only during async data loading |
 
 ### Item Elements
 
@@ -94,7 +101,7 @@ Each rendered item receives:
 **Type:** `string`
 **Default:** `undefined`
 
-Sets `aria-label` on the root element. Always provide this — screen readers need it to identify the list.
+Sets `aria-label` on the `.vlist-items` element. Always provide this — screen readers need it to identify the list.
 
 ```typescript
 import { vlist } from 'vlist'
@@ -177,8 +184,7 @@ Following the [WAI-ARIA Grid pattern](https://www.w3.org/WAI/ARIA/apg/patterns/g
 |-----|--------|
 | `↑` / `↓` | Move focus by ±columns (row navigation) |
 | `←` / `→` | Move focus by ±1 (cell navigation) |
-| `Home` / `End` | First / last cell in current row |
-| `Ctrl+Home` / `Ctrl+End` | First / last item overall |
+| `Home` / `End` | First / last item overall |
 | `Page Up` / `Page Down` | Jump by visible rows (same column) |
 | `Space` / `Enter` | Toggle selection |
 
@@ -384,8 +390,7 @@ Grid mode follows the [WAI-ARIA Grid pattern](https://www.w3.org/WAI/ARIA/apg/pa
 - `aria-posinset` uses the **flat item index** (not row/column)
 - **ArrowUp/Down** move by ±columns (row navigation)
 - **ArrowLeft/Right** move by ±1 (cell navigation)
-- **Home/End** go to first/last cell in the current row
-- **Ctrl+Home/End** go to first/last item overall
+- **Home/End** go to first/last item overall
 - **PageUp/Down** jump by visible rows while staying in the same column
 - In **horizontal orientation**, Left/Right = ±columns (scroll axis), Up/Down = ±1 (cross axis)
 
@@ -405,7 +410,7 @@ const gallery = vlist({
 // Screen reader: "Beach sunset, item 13 of 200"
 // ArrowDown from item 5 → item 9 (same column, next row)
 // ArrowRight from item 5 → item 6 (next cell)
-// Home from item 6 → item 4 (first cell in row 1)
+// Home from item 6 → item 0 (first item overall)
 ```
 
 ---
@@ -446,8 +451,8 @@ const gallery = vlist({
 
 The core entry point provides the same ARIA attributes as the full bundle:
 
-- ✅ `role="listbox"` / `role="option"`
-- ✅ `aria-label`, `tabindex="0"`
+- ✅ `role="listbox"` on `.vlist-items` / `role="option"` on items
+- ✅ `aria-label` on `.vlist-items`, `tabindex="0"` on root
 - ✅ `aria-setsize`, `aria-posinset`
 - ✅ Unique element IDs
 - ✅ `aria-selected` (always `"false"` — core has no selection)

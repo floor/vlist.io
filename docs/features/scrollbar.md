@@ -7,7 +7,7 @@
 The scroll module handles all scrolling functionality in vlist, including:
 
 - **Scroll Configuration** — unified `scroll` config with wheel, scrollbar, window, and idle settings
-- **Custom Scrollbar** — cross-browser consistent scrollbar (the default), with auto-hide and drag support
+- **Custom Scrollbar** — cross-browser consistent scrollbar via `.use(withScrollbar())`, with auto-hide and drag support
 - **Native Scrolling** — standard browser scrolling with native scrollbar
 - **Compressed Scrolling** — manual wheel-based scrolling for large lists (1M+ items)
 - **Window Scrolling** — document-level scrolling where the list participates in the page flow
@@ -123,40 +123,40 @@ btnPrev.addEventListener('click', () => {
 ### scroll.scrollbar
 
 **Type:** `'native' | 'none' | ScrollbarOptions`
-**Default:** custom scrollbar (when omitted)
+**Default:** `undefined` (native browser scrollbar)
 
-Controls which scrollbar is displayed. The three modes:
+Controls which scrollbar is displayed. These options apply to the `scroll.scrollbar` field in `VListConfig` (the framework adapter config). For the core builder API, use `.use(withScrollbar())` to enable the custom scrollbar.
 
 | Value | Scrollbar shown | Native hidden | Notes |
 |-------|----------------|---------------|-------|
-| *omitted* | **Custom** | Yes | Default — consistent cross-browser styling |
-| `'native'` | **Browser native** | No | Falls back to custom in compressed mode |
+| *omitted* | **Browser native** | No | Default — standard browser scrollbar |
+| `'native'` | **Browser native** | No | Explicit native; falls back to custom in compressed mode |
 | `'none'` | **None** | Yes | No scrollbar at all |
-| `{ autoHide: false }` | **Custom** (configured) | Yes | Object form for fine-tuning |
+| `{ autoHide: false }` | **Custom** (configured) | Yes | Object form for fine-tuning (requires `withScrollbar()` in core builder) |
 
-#### Custom Scrollbar (default)
+#### Custom Scrollbar
 
-When `scrollbar` is omitted or an options object is passed, vlist renders its own scrollbar overlay and hides the browser's native scrollbar via CSS. This gives a consistent look across browsers and full control over styling via CSS variables.
+To use the custom scrollbar, explicitly add `.use(withScrollbar())` in the core builder API. When using a framework adapter's `VListConfig`, pass a scrollbar options object to `scroll.scrollbar`.
 
 The custom scrollbar works in **all modes** — native scroll, compressed scroll, and horizontal scroll.
 
 ```typescript
-// Default — custom scrollbar with default options
-vlist({ container, item });
+// Custom scrollbar via builder API (recommended)
+import { vlist, withScrollbar } from 'vlist';
+
+vlist({ container, item })
+  .use(withScrollbar())
+  .build();
 
 // Custom scrollbar, always visible (no auto-hide)
-vlist({
-  container,
-  item,
-  scroll: { scrollbar: { autoHide: false } },
-});
+vlist({ container, item })
+  .use(withScrollbar({ autoHide: false }))
+  .build();
 
 // Custom scrollbar with slow fade
-vlist({
-  container,
-  item,
-  scroll: { scrollbar: { autoHide: true, autoHideDelay: 3000 } },
-});
+vlist({ container, item })
+  .use(withScrollbar({ autoHide: true, autoHideDelay: 3000 }))
+  .build();
 ```
 
 **Custom scrollbar options (ScrollbarOptions):**
@@ -442,9 +442,9 @@ For the circular buffer implementation, see [Scrollbar Internals](../internals/s
 
 ## Usage Examples
 
-### Default — Custom Scrollbar
+### Default — Native Scrollbar
 
-The default experience: custom scrollbar, wheel enabled, everything automatic.
+The default experience: native browser scrollbar, wheel enabled, everything automatic.
 
 ```typescript
 import { vlist } from 'vlist';
@@ -453,7 +453,7 @@ const list = vlist({
   container: '#app',
   item: { height: 48, template: (item) => `<div>${item.name}</div>` },
   items: myData,
-});
+}).build();
 ```
 
 ### Custom Scrollbar with Options
@@ -461,14 +461,15 @@ const list = vlist({
 Fine-tune the custom scrollbar — disable auto-hide so it's always visible:
 
 ```typescript
+import { vlist, withScrollbar } from 'vlist';
+
 const list = vlist({
   container: '#app',
   item: { height: 48, template },
   items: myData,
-  scroll: {
-    scrollbar: { autoHide: false },
-  },
-});
+})
+  .use(withScrollbar({ autoHide: false }))
+  .build();
 ```
 
 ### Scrollbar — Hover to Reveal Only
@@ -476,19 +477,20 @@ const list = vlist({
 Show the scrollbar only when hovering near the edge or on scroll — not when the mouse enters the list:
 
 ```typescript
+import { vlist, withScrollbar } from 'vlist';
+
 const list = vlist({
   container: '#app',
   item: { height: 48, template },
   items: myData,
-  scroll: {
-    scrollbar: {
-      showOnViewportEnter: false, // don't show on list enter
-      showOnHover: true,          // show when hovering near the edge
-      hoverZoneWidth: 20,         // 20px hover zone
-      autoHideDelay: 800,         // hide after 800ms idle
-    },
-  },
-});
+})
+  .use(withScrollbar({
+    showOnViewportEnter: false, // don't show on list enter
+    showOnHover: true,          // show when hovering near the edge
+    hoverZoneWidth: 20,         // 20px hover zone
+    autoHideDelay: 800,         // hide after 800ms idle
+  }))
+  .build();
 ```
 
 ### Scrollbar — Minimal (Scroll-Only)
@@ -496,19 +498,20 @@ const list = vlist({
 Show the scrollbar only while actively scrolling — no hover zone, no viewport enter:
 
 ```typescript
+import { vlist, withScrollbar } from 'vlist';
+
 const list = vlist({
   container: '#app',
   item: { height: 48, template },
   items: myData,
-  scroll: {
-    scrollbar: {
-      showOnViewportEnter: false,
-      showOnHover: false,
-      autoHide: true,
-      autoHideDelay: 500,
-    },
-  },
-});
+})
+  .use(withScrollbar({
+    showOnViewportEnter: false,
+    showOnHover: false,
+    autoHide: true,
+    autoHideDelay: 500,
+  }))
+  .build();
 ```
 
 ### Native Browser Scrollbar
@@ -804,7 +807,7 @@ vlist({
 
 | Old | New | Behavior |
 |-----|-----|----------|
-| *(omitted)* | *(omitted)* | Custom scrollbar (now the default for all lists) |
+| *(omitted)* | *(omitted)* | Native browser scrollbar (default) |
 | `scrollbar: { enabled: true }` | *(omitted)* or `{ autoHide: ... }` | Custom scrollbar |
 | `scrollbar: { enabled: false }` | `scrollbar: 'none'` | No scrollbar |
 | *(no equivalent)* | `scrollbar: 'native'` | Browser's native scrollbar |
@@ -816,7 +819,7 @@ vlist({
 - [Events — `scroll:idle`](../api/events.md#scrollidle) — Fires when scrolling stops, used for auto-hide timing
 - [Scrollbar Internals](../internals/scrollbar.md) — Low-level `createScrollController`, `createScrollbar`, velocity circular buffer, track/thumb interaction
 - [Scale](./scale.md) — Scroll compression for large lists (always use custom scrollbar with scale)
-- [Page](./page.md) — Document scrolling (cannot combine with custom scrollbar)
+- [Page](./page.md) — Document scrolling (custom scrollbar has no effect with page mode)
 
 ## Examples
 
