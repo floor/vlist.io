@@ -559,6 +559,7 @@ export function createContentRenderer(config: ContentConfig) {
 
       // Feature flags
       SEO_ENHANCED: true,
+      HAS_LIST: false,
       HAS_IMPORTMAP: false,
       HAS_TOC: !!toc,
       HAS_SYNTAX_HIGHLIGHTING: true,

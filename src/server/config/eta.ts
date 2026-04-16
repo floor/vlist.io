@@ -59,6 +59,7 @@ export interface TemplateData {
 
   // Feature flags
   SEO_ENHANCED: boolean;
+  HAS_LIST: boolean;
   HAS_IMPORTMAP: boolean;
   HAS_TOC: boolean;
   HAS_SYNTAX_HIGHLIGHTING: boolean;
