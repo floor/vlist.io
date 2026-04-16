@@ -2,7 +2,7 @@
 
 > How vlist is built, what makes it unique, and where it stands against competitors.
 
-*Current version: 1.4.0*
+*Current version: 1.6.0*
 
 ---
 
@@ -41,7 +41,7 @@ src/
 │   ├── page/      # Window/document scrolling
 │   ├── scale/     # 1M+ item compression
 │   ├── scrollbar/ # Custom scrollbar + scroll controller
-│   ├── sections/  # Sticky headers / grouped lists
+│   ├── groups/    # Sticky headers / grouped lists
 │   ├── selection/ # Single/multi selection with keyboard
 │   └── snapshots/ # Scroll position save/restore
 ├── rendering/     # Virtual rendering, size cache, viewport
@@ -80,7 +80,7 @@ Variable sizes use an O(1) offset lookup via prefix-sum array with O(log n) bina
 | Infinite scroll w/ adapter | ✅ | ❌ (BYO) | ✅ |
 | Auto-size measurement | ✅ | ✅ | ✅ |
 | Public benchmarks | ✅ | ❌ | ❌ |
-| React/Vue/Svelte/Solid adapters | ✅ (4) | ✅ (4) | ❌ (React only) |
+| React/Vue/Svelte/Solid adapters | ✅ (4) | ✅ (5) | ❌ (React only) |
 
 ### Bundle Size Comparison
 
@@ -118,12 +118,12 @@ Four framework adapters ship as separate packages, each a thin wrapper:
 **Design principle:** Mount-based (not virtual-items-based like TanStack Virtual). The framework manages the container element lifecycle, while vlist does all DOM rendering internally — preserving vlist's full performance model with zero virtual DOM overhead.
 
 Each adapter:
-- Auto-wires all features (async, grid, sections, selection, scale, scrollbar, snapshots)
+- Auto-wires all features (async, grid, groups, masonry, table, page, autosize, selection, scale, scrollbar, snapshots)
 - Syncs items reactively when the framework's data changes
 - Provides ergonomic event subscription with automatic cleanup
 - Externalizes both the framework and vlist — the adapter bundle contains only wrapper code
 
-See [Framework Adapters](../frameworks.md) for install, usage, event subscription, and config reference per framework.
+See [Framework Adapters](../api/adapters.md) for install, usage, event subscription, and config reference per framework.
 
 ---
 
@@ -172,11 +172,11 @@ vlist was developed over 4 weeks against a 14-item roadmap spanning four phases:
 | **3 — Advanced Patterns** | Sticky headers, reverse mode, framework adapters | Real-world patterns |
 | **4 — Prove It** | Benchmarks, auto-size, accessibility, scroll config | Polish and proof |
 
-All 14 items shipped. Several features exceeded the original scope: SolidJS adapter (not in roadmap), builder pattern architecture (refactored from monolithic API), velocity-based infinite scroll, wrap navigation, masonry layout, and 13 interactive examples.
+All 14 items shipped. Several features exceeded the original scope: SolidJS adapter (not in roadmap), builder pattern architecture (refactored from monolithic API), velocity-based infinite scroll, wrap navigation, masonry layout, and 18 interactive examples.
 
 ### v1.0 Code Review — All 14 Items Complete ✅
 
-A comprehensive [code review](../archive/V1_CODE_REVIEW.md) at v1.0.1 identified 14 enhancement areas across architecture, correctness, documentation, DX, and competitive positioning. All 14 were addressed across four sprints (v1.1.0 → v1.4.0):
+A comprehensive [code review](../archive/V1_CODE_REVIEW.md) at v1.0.1 identified 14 enhancement areas across architecture, correctness, documentation, DX, and competitive positioning. All 14 were addressed across four sprints (v1.1.0 → v1.6.0):
 
 | Sprint | Items | Highlights |
 |--------|-------|------------|
@@ -200,4 +200,4 @@ A comprehensive [code review](../archive/V1_CODE_REVIEW.md) at v1.0.1 identified
 
 ---
 
-*vlist v1.4.0 — zero dependencies, composable features, best-in-class performance.*
+*vlist v1.6.0 — zero dependencies, composable features, best-in-class performance.*

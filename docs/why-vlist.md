@@ -10,7 +10,7 @@ vlist takes a different approach: **vanilla first, framework optional**.
 |---------|-----------|-------------|---------|----------------|
 | react-window | React | 1 (react) | ~6 KB | No |
 | react-virtuoso | React | 1 (react) | ~16 KB | No |
-| TanStack Virtual | React-first | 1+ | ~10 KB | Partial |
+| TanStack Virtual | Multi-framework (React dominates usage) | 1+ | ~10 KB | Partial |
 | Legend List v3 | React / RN | 1+ | ~21 KB | No |
 | **vlist** | **None** | **0** | **8.7 KB** | **Yes** |
 
@@ -79,7 +79,7 @@ Each feature is self-contained. No feature costs you anything until you import i
 
 ## Framework adapters, not framework lock-in
 
-vlist ships adapters for React, Vue, and Svelte. They're thin wrappers — a few lines of glue code that translate framework idioms (refs, hooks, reactivity) into vlist's vanilla API. The core never imports React, never calls `useState`, never touches a virtual DOM.
+vlist ships adapters for React, Vue, Svelte, and SolidJS. They're thin wrappers — a few lines of glue code that translate framework idioms (refs, hooks, reactivity) into vlist's vanilla API. The core never imports React, never calls `useState`, never touches a virtual DOM.
 
 If your framework doesn't have an adapter yet, you can integrate vlist in an afternoon. It's just DOM.
 
@@ -96,7 +96,7 @@ If your framework doesn't have an adapter yet, you can integrate vlist in an aft
 npm install vlist
 ```
 
-Docs and 14+ interactive examples at [vlist.io](https://vlist.io).
+Docs and 18 interactive examples at [vlist.io](https://vlist.io).
 
 ---
 
