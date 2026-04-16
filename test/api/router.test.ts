@@ -409,4 +409,329 @@ describe("router", () => {
       }
     });
   });
+
+  // ===========================================================================
+  // Cities (SQLite-backed)
+  // ===========================================================================
+
+  describe("GET /api/cities", () => {
+    test("returns paginated cities", async () => {
+      const { req, url } = createRequest("/api/cities?limit=10");
+      const result = await routeApi(req, url);
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(200);
+
+      const body = (await parseJson(result!)) as {
+        items: unknown[];
+        total: number;
+        hasMore: boolean;
+      };
+      expect(body.items).toHaveLength(10);
+      expect(body.total).toBeGreaterThan(0);
+    });
+
+    test("supports search filter", async () => {
+      const { req, url } = createRequest(
+        "/api/cities?search=Paris&limit=10",
+      );
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as {
+        items: Array<{ name: string }>;
+      };
+      expect(body.items.length).toBeGreaterThan(0);
+    });
+
+    test("trailing slash also works", async () => {
+      const { req, url } = createRequest("/api/cities/");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+    });
+  });
+
+  describe("GET /api/cities/:id", () => {
+    test("returns single city by ID", async () => {
+      const { req, url } = createRequest("/api/cities/1");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as { id: number };
+      expect(body.id).toBe(1);
+    });
+
+    test("returns 404 for non-existent city", async () => {
+      const { req, url } = createRequest("/api/cities/999999999");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(404);
+    });
+  });
+
+  describe("GET /api/cities/countries", () => {
+    test("returns country list", async () => {
+      const { req, url } = createRequest("/api/cities/countries");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as Array<{
+        code: string;
+        count: number;
+      }>;
+      expect(body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("GET /api/cities/continents", () => {
+    test("returns continent list", async () => {
+      const { req, url } = createRequest("/api/cities/continents");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as Array<{
+        continent: string;
+        count: number;
+      }>;
+      expect(body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("GET /api/cities/stats", () => {
+    test("returns aggregate statistics", async () => {
+      const { req, url } = createRequest("/api/cities/stats");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as {
+        total: number;
+        countries: number;
+      };
+      expect(body.total).toBeGreaterThan(0);
+      expect(body.countries).toBeGreaterThan(0);
+    });
+  });
+
+  // ===========================================================================
+  // Tracks (SQLite-backed with CRUD)
+  // ===========================================================================
+
+  describe("GET /api/tracks", () => {
+    test("returns paginated tracks", async () => {
+      const { req, url } = createRequest("/api/tracks?limit=10");
+      const result = await routeApi(req, url);
+
+      expect(result).not.toBeNull();
+      expect(result?.status).toBe(200);
+
+      const body = (await parseJson(result!)) as {
+        items: unknown[];
+        total: number;
+        hasMore: boolean;
+      };
+      expect(body.items).toHaveLength(10);
+      expect(body.total).toBeGreaterThan(0);
+    });
+
+    test("trailing slash also works", async () => {
+      const { req, url } = createRequest("/api/tracks/");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+    });
+  });
+
+  describe("GET /api/tracks/:id", () => {
+    test("returns single track by ID", async () => {
+      // Get a known existing track ID first
+      const { req: listReq, url: listUrl } = createRequest(
+        "/api/tracks?limit=1",
+      );
+      const listResult = await routeApi(listReq, listUrl);
+      const listBody = (await parseJson(listResult!)) as {
+        items: Array<{ id: number }>;
+      };
+      const trackId = listBody.items[0].id;
+
+      const { req, url } = createRequest(`/api/tracks/${trackId}`);
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as { id: number };
+      expect(body.id).toBe(trackId);
+    });
+
+    test("returns 404 for non-existent track", async () => {
+      const { req, url } = createRequest("/api/tracks/999999999");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(404);
+    });
+  });
+
+  describe("POST /api/tracks", () => {
+    let createdTrackId: number;
+
+    test("creates a new track", async () => {
+      const body = JSON.stringify({
+        title: "Router Test Track",
+        artist: "Router Test Artist",
+        year: 2024,
+      });
+      const url = new URL("https://vlist.io/api/tracks");
+      const req = new Request(url.toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(201);
+      const responseBody = (await parseJson(result!)) as {
+        id: number;
+        title: string;
+      };
+      expect(responseBody.title).toBe("Router Test Track");
+      createdTrackId = responseBody.id;
+    });
+
+    test("returns 400 for missing required fields", async () => {
+      const body = JSON.stringify({ title: "No Artist" });
+      const url = new URL("https://vlist.io/api/tracks");
+      const req = new Request(url.toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(400);
+    });
+
+    test("returns 400 for invalid JSON", async () => {
+      const url = new URL("https://vlist.io/api/tracks");
+      const req = new Request(url.toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "not json",
+      });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(400);
+    });
+
+    // Cleanup: use the createdTrackId in later tests
+    test("PUT updates the created track", async () => {
+      const body = JSON.stringify({ title: "Updated Router Track" });
+      const url = new URL(`https://vlist.io/api/tracks/${createdTrackId}`);
+      const req = new Request(url.toString(), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const responseBody = (await parseJson(result!)) as { title: string };
+      expect(responseBody.title).toBe("Updated Router Track");
+    });
+
+    test("PUT returns 404 for non-existent track", async () => {
+      const body = JSON.stringify({ title: "Nope" });
+      const url = new URL("https://vlist.io/api/tracks/999999999");
+      const req = new Request(url.toString(), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body,
+      });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(404);
+    });
+
+    test("DELETE removes the created track", async () => {
+      const url = new URL(`https://vlist.io/api/tracks/${createdTrackId}`);
+      const req = new Request(url.toString(), { method: "DELETE" });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const responseBody = (await parseJson(result!)) as { success: boolean };
+      expect(responseBody.success).toBe(true);
+    });
+
+    test("DELETE returns 404 for non-existent track", async () => {
+      const url = new URL("https://vlist.io/api/tracks/999999999");
+      const req = new Request(url.toString(), { method: "DELETE" });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(404);
+    });
+  });
+
+  describe("POST not allowed on non-tracks routes", () => {
+    test("POST /api/cities returns 405", async () => {
+      const url = new URL("https://vlist.io/api/cities");
+      const req = new Request(url.toString(), { method: "POST" });
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(405);
+    });
+  });
+
+  describe("GET /api/tracks/countries", () => {
+    test("returns country list", async () => {
+      const { req, url } = createRequest("/api/tracks/countries");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as Array<{
+        code: string;
+        count: number;
+      }>;
+      expect(body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("GET /api/tracks/decades", () => {
+    test("returns decades list", async () => {
+      const { req, url } = createRequest("/api/tracks/decades");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as Array<{
+        decade: number;
+        count: number;
+      }>;
+      expect(body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("GET /api/tracks/categories", () => {
+    test("returns categories list", async () => {
+      const { req, url } = createRequest("/api/tracks/categories");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as Array<{
+        category: string;
+        count: number;
+      }>;
+      expect(body.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("GET /api/tracks/stats", () => {
+    test("returns aggregate statistics", async () => {
+      const { req, url } = createRequest("/api/tracks/stats");
+      const result = await routeApi(req, url);
+
+      expect(result?.status).toBe(200);
+      const body = (await parseJson(result!)) as {
+        total: number;
+        countries: number;
+      };
+      expect(body.total).toBeGreaterThan(0);
+    });
+  });
 });
