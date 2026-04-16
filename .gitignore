@@ -12,6 +12,9 @@ dist/
 *.swo
 *~
 
+# Scripts
+scripts/verify-cloudflare.sh
+
 # OS
 .DS_Store
 Thumbs.db
