@@ -268,6 +268,7 @@ function assemblePage(
 
     // Feature flags
     SEO_ENHANCED: false,
+    HAS_LIST: false,
     HAS_IMPORTMAP: true,
     HAS_TOC: false,
     HAS_SYNTAX_HIGHLIGHTING: false,

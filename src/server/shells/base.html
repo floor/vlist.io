@@ -113,6 +113,12 @@
         <%~ it.EXTRA_HEAD %>
     </head>
     <body>
+        <% if (it.HAS_LIST) { %>
+        <a class="skip-link" href="#list-container">Skip to list</a>
+        <% } else { %>
+        <a class="skip-link" href="#content">Skip to content</a>
+        <% } %>
+
         <!-- ─── Header ───────────────────────────────────── -->
 
         <header class="header">
@@ -201,7 +207,7 @@
         <div class="layout">
             <nav class="sidebar" id="sidebar"><%~ it.SIDEBAR %></nav>
 
-            <main class="content<%= it.MAIN_CLASS || '' %>"<% if (it.PAGE_ATTR) { %> id="content" data-page="<%= it.PAGE_ATTR %>"<% } %>>
+            <main class="content<%= it.MAIN_CLASS || '' %>" id="content" tabindex="-1"<% if (it.PAGE_ATTR) { %> data-page="<%= it.PAGE_ATTR %>"<% } %>>
                 <%~ it.CONTENT %>
             </main>
 

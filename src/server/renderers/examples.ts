@@ -419,6 +419,19 @@ function buildExtraBody(
     ? `/dist/examples/${slug}/${variant}/script.js?v=${SITE_VERSION}`
     : `/dist/examples/${slug}/script.js?v=${SITE_VERSION}`;
 
+  // When the skip link is activated, focus the actual .vlist element inside #list-container
+  const skipLinkTarget = `<script>
+(function() {
+  var link = document.querySelector('a.skip-link[href="#list-container"]');
+  if (!link) return;
+  link.addEventListener('click', function(e) {
+    var container = document.getElementById('list-container');
+    var vlist = container && container.querySelector('.vlist');
+    if (vlist) { e.preventDefault(); vlist.focus({ focusVisible: true }); }
+  });
+})();
+</script>`;
+
   // Mobile settings toggle — injects gear button + close button + overlay + toggle logic
   const mobileSettings = `<script>
 (function() {
@@ -457,7 +470,7 @@ function buildExtraBody(
 })();
 </script>`;
 
-  return `<script type="module" src="${scriptPath}"></script>\n${mobileSettings}`;
+  return `<script type="module" src="${scriptPath}"></script>\n${skipLinkTarget}\n${mobileSettings}`;
 }
 
 // =============================================================================
@@ -507,6 +520,7 @@ function assemblePage(
 
     // Feature flags
     SEO_ENHANCED: false,
+    HAS_LIST: !!slug,
     HAS_IMPORTMAP: false,
     HAS_TOC: false,
     HAS_SYNTAX_HIGHLIGHTING: true,
