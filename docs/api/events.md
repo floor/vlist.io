@@ -53,18 +53,6 @@ listeners[event]?.forEach((handler) => {
 })
 ```
 
-### Once (emitter only)
-
-The internal emitter exposes a `once` method for one-time subscriptions. This is available to feature authors via `BuilderContext`, not on the public `VList` API:
-
-```typescript
-ctx.emitter.once('load:end', ({ items }) => {
-  console.log('First load complete:', items.length)
-})
-```
-
-See [Exports](./exports.md#event-emitter) for the standalone `createEmitter` factory.
-
 ---
 
 ## Interaction Events

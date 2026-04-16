@@ -73,7 +73,7 @@ Only applies when velocity is between `PRELOAD_VELOCITY_THRESHOLD` and `LOAD_VEL
 Velocity threshold above which data loading is skipped entirely (px/ms).
 
 ```typescript
-const LOAD_VELOCITY_THRESHOLD = 5;
+const LOAD_VELOCITY_THRESHOLD = 12;
 ```
 
 During very fast scrolling, loading is deferred until scroll stops (idle). This avoids wasted network requests for ranges the user scrolls past.
