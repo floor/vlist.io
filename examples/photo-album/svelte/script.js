@@ -25,7 +25,7 @@ import "../controls.js";
 // =============================================================================
 
 function getEffectiveItemHeight() {
-  const container = document.getElementById("grid-container");
+  const container = document.getElementById("list-container");
   if (!container || !list) return 200;
   const innerWidth = container.clientWidth - 2;
   const colWidth =
@@ -40,7 +40,7 @@ const stats = createStats({
   getItemSize: () => getEffectiveItemHeight(),
   getColumns: () => currentColumns,
   getContainerSize: () => {
-    const el = document.querySelector("#grid-container");
+    const el = document.querySelector("#list-container");
     if (!el) return 0;
     return currentOrientation === "horizontal"
       ? el.clientWidth
@@ -75,7 +75,7 @@ function getItemConfig(mode, orientation) {
 
   // Grid mode
   if (orientation === "horizontal") {
-    const container = document.getElementById("grid-container");
+    const container = document.getElementById("list-container");
     const innerHeight = container.clientHeight - 2;
     const colWidth =
       (innerHeight - (currentColumns - 1) * currentGap) / currentColumns;
@@ -103,7 +103,7 @@ function createView() {
     setList(null);
   }
 
-  const container = document.getElementById("grid-container");
+  const container = document.getElementById("list-container");
   container.innerHTML = "";
 
   const mode = currentMode;
