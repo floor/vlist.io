@@ -687,8 +687,8 @@
                 function open() {
                     overlay.classList.add("search-overlay--visible");
                     dialog.classList.add("search-dialog--visible");
-                    input.focus();
                     activeIndex = -1;
+                    requestAnimationFrame(function () { input.focus(); });
                 }
 
                 function close() {
