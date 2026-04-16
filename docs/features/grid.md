@@ -646,7 +646,7 @@ padding: [16, 12]             // 16px top/bottom, 12px left/right
 padding: [16, 12, 20, 8]     // top, right, bottom, left
 ```
 
-See [Gap & Padding](../api/reference.md#gap--padding) for full details.
+See [Gap & Padding](../api/reference.md#gap-padding) for full details.
 
 ### 3. Use `loading="lazy"` for Images
 

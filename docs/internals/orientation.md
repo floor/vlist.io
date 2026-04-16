@@ -366,4 +366,3 @@ The middle four steps (`SizeCache` → `Viewport` → `Range` → core render ma
 - [Height-to-Size Refactoring](../refactoring/height-to-size-refactoring.md) — The commit-by-commit story of how this architecture was built
 - [Rendering Internals](./rendering.md) — DOM rendering and virtualization
 - [Structure](./structure.md) — Complete source code map
-- [Variable Heights Implementation](../issues/variable-heights-implementation.md) — How `SizeCache` handles variable item sizes

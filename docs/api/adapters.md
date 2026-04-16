@@ -537,7 +537,7 @@ These are passed directly to the vlist builder:
 | Field | Type | Description |
 |-------|------|-------------|
 | `items` | `T[]` | Data array. Synced reactively when changed. |
-| `item` | `ItemConfig<T>` | Item sizing and template. See [Getting Started](./getting-started.md). |
+| `item` | `ItemConfig<T>` | Item sizing and template. See [Getting Started](../getting-started.md). |
 | `overscan` | `number` | Extra items outside viewport (default: 3). |
 | `orientation` | `'vertical' \| 'horizontal'` | Scroll axis (default: `'vertical'`). |
 | `reverse` | `boolean` | Bottom-anchored mode (default: `false`). |

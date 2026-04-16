@@ -349,6 +349,6 @@ In development mode, vlist logs a warning:
 
 - [Measurement Internals](../internals/measurement.md) — Full architecture: MeasuredSizeCache, ResizeObserver wiring, scroll correction
 - [Types — ItemConfig](../api/types.md#itemconfig) — `estimatedHeight`, `estimatedWidth` configuration
-- [API Reference — Sizing Modes](../api/reference.md#sizing-modes) — Mode A vs Mode B comparison
+- [API Reference — ItemConfig](../api/reference.md#itemconfig) — Mode A vs Mode B comparison
 - [Variable Sizes Example](/examples/variable-sizes/) — Interactive demo with Mode A / Mode B toggle
 - [Social Feed Example](/examples/social-feed/) — Live feed with auto-measured posts

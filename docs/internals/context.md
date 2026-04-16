@@ -434,7 +434,7 @@ For complete feature authoring guidance, see [Exports](../api/exports.md).
 
 ## Related
 
-- [Types](../api/types.md#buildercontext) — Full `BuilderContext` type definition
+- [Types](../api/types.md#builder-types) — Full `BuilderContext` type definition
 - [Exports](../api/exports.md) — Feature authoring guide and low-level utilities
 - [Rendering](./rendering.md) — DOM rendering, SizeCache, viewport calculations
 - [Events](../api/events.md) — Event types emitted through the emitter
