@@ -109,9 +109,12 @@ item: {
 interface BuilderConfig<T> {
   container: HTMLElement | string;  // Required: selector or element
   item: {
-    height: number | ((index: number) => number);  // Required for vertical
-    width?: number | ((index: number) => number);  // Required for horizontal
+    height?: number | ((index: number) => number);  // Size for vertical (or use estimatedHeight)
+    width?: number | ((index: number) => number);   // Size for horizontal
+    estimatedHeight?: number;           // Auto-measure mode (requires withAutoSize)
+    estimatedWidth?: number;            // Auto-measure mode for horizontal
     gap?: number;                       // Spacing between items (default: 0)
+    striped?: boolean | 'data' | 'even' | 'odd'; // Zebra-stripe styling (default: false)
     template: (item: T, index: number, state: ItemState) => string | HTMLElement;
   };
   items?: T[];                          // Static items (omit when using withAsync)
@@ -119,6 +122,7 @@ interface BuilderConfig<T> {
   orientation?: 'vertical' | 'horizontal'; // Default: 'vertical'
   padding?: number | [number, number] | [number, number, number, number]; // Content inset (default: 0)
   reverse?: boolean;                    // Bottom-anchored content (default: false)
+  interactive?: boolean;                // Enable keyboard navigation (default: true)
   classPrefix?: string;                 // CSS class prefix (default: 'vlist')
   ariaLabel?: string;                   // Accessible label for the list element
 }
@@ -159,12 +163,11 @@ The `scroll` key controls the scroll system behaviour. All fields are optional.
 
 ```typescript
 scroll?: {
-  element?: HTMLElement | Window;  // Override the scroll container
-  wheel?: boolean;                 // Enable mouse wheel (default: true)
-  wrap?: boolean;                  // Circular navigation (default: false)
-  gutter?: 'auto' | 'stable';     // Native scrollbar space reservation (default: 'auto')
-  scrollbar?: 'none' | 'native';   // 'none' = no scrollbar, 'native' = browser default
-  idleTimeout?: number;            // ms of no-scroll before 'idle' event fires (default: 150)
+  element?: Window;                  // Override scroll container (use window for page-level scroll)
+  wheel?: boolean;                   // Enable mouse wheel (default: true)
+  wrap?: boolean;                    // Circular navigation (default: false)
+  gutter?: 'auto' | 'stable';       // Native scrollbar space reservation (default: 'auto')
+  idleTimeout?: number;              // ms of no-scroll before 'idle' event fires (default: 150)
 }
 ```
 
@@ -212,7 +215,7 @@ const wizard = vlist({
   container: '#steps',
   items: steps,
   item: { height: 600, template: renderStep },
-  scroll: { wheel: false, scrollbar: 'none' },
+  scroll: { wheel: false },
 }).build();
 
 // Drive navigation programmatically
@@ -289,7 +292,7 @@ const timeline = vlist({
 }).build();
 ```
 
-**Restrictions:** `withGrid()`, `withGroups()`, and `reverse: true` require vertical orientation.
+All features — `withGrid()`, `withGroups()`, `withMasonry()` — work in both vertical and horizontal orientations.
 
 ---
 
@@ -331,8 +334,10 @@ See [Chat Interface Tutorial](/tutorials/chat-interface) for the full scrolling 
 list.setItems(items)              // Replace entire dataset
 list.appendItems(items)           // Add to end
 list.prependItems(items)          // Add to start (preserves scroll)
-list.updateItem(id, partialItem)  // Merge update by ID → void
-list.removeItem(id)               // Remove by ID → void
+list.updateItem(index, partial)   // Merge update by index
+list.removeItem(id)               // Remove by ID → boolean
+list.getItemAt(index)             // Get item at index → T | undefined
+list.getIndexById(id)             // Get index by item ID → number
 ```
 
 ---
@@ -347,10 +352,18 @@ list.scrollToIndex(100, 'center')         // 'start' | 'center' | 'end'
 // Animated
 list.scrollToIndex(100, { align: 'center', behavior: 'smooth', duration: 300 })
 
+// Cancel in-progress smooth scroll
+list.cancelScroll()
+
 // Read position
 list.getScrollPosition()                  // pixels from top (or left)
 
-// Snapshots — save/restore scroll position across navigation
+// Properties (readonly)
+list.element                              // root DOM element
+list.items                                // current items array
+list.total                                // total item count
+
+// Snapshots — requires withSnapshots()
 const snapshot = list.getScrollSnapshot() // { index, offsetInItem }
 list.restoreScroll(snapshot)
 ```
@@ -360,7 +373,7 @@ list.restoreScroll(snapshot)
 ## Events
 
 ```typescript
-const off = list.on('scroll', ({ scrollTop, direction }) => { ... })
+const off = list.on('scroll', ({ scrollPosition, direction }) => { ... })
 list.on('item:click', ({ item, index, event }) => { ... })
 list.on('range:change', ({ range }) => { ... })  // range = { start, end }
 

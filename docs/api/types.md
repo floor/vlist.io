@@ -21,8 +21,10 @@ interface VList<T extends VListItem = VListItem> {
   setItems:     (items: T[]) => void
   appendItems:  (items: T[]) => void
   prependItems: (items: T[]) => void
-  updateItem:   (id: string | number, updates: Partial<T>) => void
-  removeItem:   (id: string | number) => void
+  updateItem:   (index: number, updates: Partial<T>) => void
+  removeItem:   (id: string | number) => boolean
+  getItemAt:    (index: number) => T | undefined
+  getIndexById: (id: string | number) => number
   reload:       (options?: ReloadOptions) => Promise<void>
 
   // Scroll methods (always available)
@@ -45,8 +47,11 @@ interface VList<T extends VListItem = VListItem> {
   clearSelection?:    () => void
   getSelected?:       () => Array<string | number>
   getSelectedItems?:  () => T[]
+  selectNext?:        () => void
+  selectPrevious?:    () => void
   getScrollSnapshot?: () => ScrollSnapshot
   restoreScroll?:     (snapshot: ScrollSnapshot) => void
+  updateGrid?:        (config: { columns?: number; gap?: number }) => void
 
   // Extensible — features add arbitrary methods
   [key: string]: unknown
@@ -54,7 +59,7 @@ interface VList<T extends VListItem = VListItem> {
 ```
 
 **Always available:**
-- Data: `setItems`, `appendItems`, `prependItems`, `updateItem`, `removeItem`, `reload`
+- Data: `setItems`, `appendItems`, `prependItems`, `updateItem`, `removeItem`, `getItemAt`, `getIndexById`, `reload`
 - Scroll: `scrollToIndex`, `cancelScroll`, `getScrollPosition`
 - Events: `on`, `off`
 - Lifecycle: `destroy`
@@ -139,8 +144,9 @@ Extended configuration used by framework adapters (React, Vue, Svelte, SolidJS).
 interface VListConfig<T extends VListItem = VListItem>
   extends Omit<BuilderConfig<T>, 'scroll'> {
   scroll?:    BuilderConfig['scroll'] & { scrollbar?: 'native' | 'none' | ScrollbarOptions }
-  layout?:    'list' | 'grid'
+  layout?:    'list' | 'grid' | 'masonry'
   grid?:      GridConfig
+  masonry?:   MasonryConfig
   adapter?:   VListAdapter<T>
   loading?:   { cancelThreshold?: number; preloadThreshold?: number; preloadAhead?: number }
   groups?:    GroupsConfig
@@ -151,8 +157,9 @@ interface VListConfig<T extends VListItem = VListItem>
 
 | Property | Type | Triggers | Description |
 |----------|------|----------|-------------|
-| `layout` | `'list' \| 'grid'` | — | Layout mode. Set to `'grid'` with `grid` to enable grid layout. |
+| `layout` | `'list' \| 'grid' \| 'masonry'` | — | Layout mode. Set to `'grid'` or `'masonry'` with corresponding config. |
 | `grid` | `GridConfig` | `withGrid()` | Grid columns and gap. Only used when `layout` is `'grid'`. |
+| `masonry` | `MasonryConfig` | `withMasonry()` | Masonry columns and gap. Only used when `layout` is `'masonry'`. |
 | `adapter` | `VListAdapter<T>` | `withAsync()` | Async data source. Omit `items` when using an adapter. |
 | `loading` | `object` | — | Loading behavior passed to `withAsync()`. |
 | `groups` | `GroupsConfig` | `withGroups()` | Group items with sticky/inline headers. |
@@ -822,12 +829,10 @@ The type-safe event emitter used internally and available as a standalone export
 
 ```typescript
 interface Emitter<T extends EventMap> {
-  on:            <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => Unsubscribe
-  off:           <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => void
-  emit:          <K extends keyof T>(event: K, payload: T[K]) => void
-  once:          <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => Unsubscribe
-  clear:         <K extends keyof T>(event?: K) => void
-  listenerCount: <K extends keyof T>(event: K) => number
+  on:    <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => Unsubscribe
+  off:   <K extends keyof T>(event: K, handler: EventHandler<T[K]>) => void
+  emit:  <K extends keyof T>(event: K, payload: T[K]) => void
+  clear: <K extends keyof T>(event?: K) => void
 }
 ```
 

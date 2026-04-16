@@ -1,6 +1,6 @@
 # Framework Adapters
 
-> Thin wrappers that connect vlist to React, Vue, Svelte, and SolidJS — same engine, idiomatic API per framework.
+> Thin wrappers that connect vlist to Vue, Svelte, SolidJS, and React — same engine, idiomatic API per framework.
 
 Each adapter ships as a separate package. It manages the container element lifecycle, wires all features automatically based on your config, syncs items reactively, and cleans up on unmount. vlist does all DOM rendering internally — there is no virtual DOM overhead.
 
@@ -693,8 +693,7 @@ Each is `Omit<VListConfig<T>, 'container'>` — the full core config without `co
 
 ## Related
 
-- [Getting Started](./getting-started.md) — Core API, config options, and vanilla JS usage
-- [Features Overview](./features/overview.md) — All features with examples and compatibility matrix
-- [Events](./api/events.md) — Complete event reference
-- [Types](./api/types.md) — TypeScript type definitions
-- [Architecture](./resources/roadmap.md) — Builder pattern, adapter design, competitive position
+- [Getting Started](../getting-started.md) — Core API, config options, and vanilla JS usage
+- [Features Overview](../features/overview.md) — All features with examples and compatibility matrix
+- [Events](./events.md) — Complete event reference
+- [Types](./types.md) — TypeScript type definitions
