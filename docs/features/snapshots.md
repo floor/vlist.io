@@ -11,7 +11,7 @@ The `withSnapshots()` feature enables **scroll position save/restore** for seaml
 import { vlist, withSnapshots } from 'vlist';
 ```
 
-**Bundle cost:** Included in base (0 KB additional)
+**Bundle cost:** +0.7 KB gzipped
 
 ## Quick Start
 
