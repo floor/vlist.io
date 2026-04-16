@@ -29,7 +29,7 @@
       {
         "slug": "data-table",
         "name": "Data Table",
-        "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 60 fps",
+        "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 120 FPS",
         "features": ["table", "selection"]
       },
 
@@ -82,7 +82,7 @@
       },
       {
         "slug": "variable-sizes",
-        "name": "Variables Sizes",
+        "name": "Variable Sizes",
         "desc": "Per-item height functions and auto-measured DOM sizing",
         "features": ["autosize", "invert"]
       },
