@@ -60,6 +60,33 @@
     margin: 0 auto 32px;
 }
 
+.hero__frameworks {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.framework-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+}
+
+.framework-tag small {
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    font-weight: 400;
+}
+
 .hero__badges {
     display: flex;
     justify-content: center;
@@ -203,6 +230,53 @@
 
 .ui-card--xl .feature__desc {
     font-size: var(--fs-md);
+}
+
+/* ============================================================
+   Comparison Table
+   ============================================================ */
+
+.comparison-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-base);
+    min-width: 640px;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.comparison-table thead th {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.comparison-table tbody td {
+    color: var(--text-muted);
+}
+
+.comparison-table__label {
+    font-weight: 500;
+    color: var(--text) !important;
+    white-space: nowrap;
+}
+
+.comparison-table__highlight {
+    color: var(--accent-text) !important;
+    font-weight: 500;
+    background: color-mix(in oklch, var(--accent) 6%, transparent);
 }
 
 /* ============================================================
@@ -466,6 +540,16 @@ footer a:hover {
 
     .hero__logo {
         margin-bottom: 16px;
+    }
+
+    .hero__frameworks {
+        gap: 6px;
+        margin-bottom: 18px;
+    }
+
+    .framework-tag {
+        font-size: var(--fs-sm);
+        padding: 5px 10px;
     }
 
     .hero__badges {

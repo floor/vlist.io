@@ -196,9 +196,9 @@ export function renderHomepage(): Response {
   if (!pageCache || !IS_PROD) {
     const template = loadTemplate();
     pageCache = eta.renderString(template, {
-      title: "VList — Virtual List for the Web",
+      title: "VList — The Virtual List for Every Framework",
       description:
-        "VList — a lightweight, high-performance virtual list for the web. Zero dependencies, infinite scroll, selection, grid layout, and more.",
+        "Accessible virtual list for Vue, Svelte, Solid, React, and vanilla JS. Grid, masonry, table, WAI-ARIA keyboard navigation — 10.5 KB, zero dependencies.",
       canonicalUrl: SITE,
       version: loadVersion(),
       bundleSize: loadBundleSize(),
