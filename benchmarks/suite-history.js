@@ -1,9 +1,13 @@
 // benchmarks/suite-history.js — Interactive suite benchmark history page
 //
-// Focused on vlist's own suite benchmarks (render, scroll, memory, scrollto
-// across vanilla/react/vue/svelte/solidjs). Fetches crowdsourced data from
-// /api/benchmarks/* endpoints with ?type=suite and renders stats tables,
-// SVG trend charts, browser/version breakdowns.
+// Shows vlist's own suite benchmark results (render, scroll, memory, scrollTo)
+// aggregated by VERSION — the primary axis for tracking performance regressions.
+//
+// Key difference from history.js (comparison page):
+//   - X-axis is VERSION (categorical), not date (continuous)
+//   - Chart data comes from /stats (aggregated per version) not /history (daily)
+//   - No "Days" filter — all versions are always shown
+//   - Versions are ordered by firstSeen date (oldest → newest, left → right)
 
 import { buildSuiteHistoryPageHTML } from "./templates.js";
 import { formatItemCount } from "./runner.js";
@@ -11,7 +15,6 @@ import {
   confidenceLabel,
   formatMetricValue,
   niceScale,
-  niceDateTicks,
   formatTickValue,
   round,
 } from "./history-utils.js";
@@ -22,8 +25,8 @@ import {
 
 const API_BASE = "/api/benchmarks";
 const CHART_WIDTH = 700;
-const CHART_HEIGHT = 260;
-const CHART_PAD = { top: 20, right: 20, bottom: 40, left: 60 };
+const CHART_HEIGHT = 280;
+const CHART_PAD = { top: 20, right: 20, bottom: 55, left: 60 };
 
 const COLORS = {
   line: "var(--accent, #3b82f6)",
@@ -67,9 +70,8 @@ const SUITE_DISPLAY_NAMES = {
 // =============================================================================
 
 let currentSuiteId = "";
-let currentItemCount = 10_000;
-let currentVersion = "";
-let currentDays = 30;
+let currentItemCount = 0; // 0 = all item counts
+let currentVersion = ""; // used for stats table filtering only
 let currentMetric = "";
 
 /** Cached data from API */
@@ -108,9 +110,14 @@ export function buildSuiteHistoryPage(root) {
       // Wire up interactive controls
       wireFilters();
 
-      // Auto-select first suite if available
+      // Auto-select first vanilla suite, or fall back to first available
       if (suitesData.length > 0) {
-        currentSuiteId = suitesData[0].suiteId;
+        const vanillaSuite = suitesData.find((s) =>
+          s.suiteId.endsWith("-vanilla"),
+        );
+        currentSuiteId = vanillaSuite
+          ? vanillaSuite.suiteId
+          : suitesData[0].suiteId;
         const suiteSelect = document.getElementById("suite-history-suite");
         if (suiteSelect) suiteSelect.value = currentSuiteId;
         refreshStats();
@@ -179,7 +186,7 @@ function wireFilters() {
     });
   }
 
-  // Version select
+  // Version select — only affects the stats table, not the chart
   const versionSelect = document.getElementById("suite-history-version");
   if (versionSelect) {
     versionSelect.addEventListener("change", () => {
@@ -188,21 +195,12 @@ function wireFilters() {
     });
   }
 
-  // Days select
-  const daysSelect = document.getElementById("suite-history-days");
-  if (daysSelect) {
-    daysSelect.addEventListener("change", () => {
-      currentDays = parseInt(daysSelect.value, 10);
-      refreshChart();
-    });
-  }
-
-  // Metric select
+  // Metric select — affects the version chart
   const metricSelect = document.getElementById("suite-history-metric");
   if (metricSelect) {
     metricSelect.addEventListener("change", () => {
       currentMetric = metricSelect.value;
-      refreshChart();
+      refreshVersionChart();
     });
   }
 }
@@ -211,14 +209,19 @@ function wireFilters() {
 // Refresh Data
 // =============================================================================
 
+/**
+ * Refresh the stats table (filtered by optional version) AND the version chart
+ * (always shows all versions).
+ */
 async function refreshStats() {
   if (!currentSuiteId) return;
 
+  // Stats table: optionally filtered by version
   const params = new URLSearchParams({
     suiteId: currentSuiteId,
-    itemCount: String(currentItemCount),
     type: "suite",
   });
+  if (currentItemCount > 0) params.set("itemCount", String(currentItemCount));
   if (currentVersion) params.set("version", currentVersion);
 
   const data = await fetchJSON(`${API_BASE}/stats?${params}`);
@@ -234,7 +237,8 @@ async function refreshStats() {
       if (metricSelect) metricSelect.value = currentMetric;
     }
 
-    refreshChart();
+    // Always refresh the version chart (it shows ALL versions, ignores version filter)
+    refreshVersionChart();
   } else {
     renderEmpty(
       "suite-history-stats-content",
@@ -245,32 +249,35 @@ async function refreshStats() {
   }
 }
 
-async function refreshChart() {
+/**
+ * Fetch stats for ALL versions (no version filter) and render the version chart.
+ * The chart X-axis is version labels, ordered by firstSeen date.
+ */
+async function refreshVersionChart() {
   if (!currentSuiteId || !currentMetric) {
     renderEmpty(
       "suite-history-chart",
-      "Select a suite and metric to view trends.",
+      "Select a suite and metric to view version trends.",
     );
     return;
   }
 
+  // Fetch stats for ALL versions of this suite + item count (high limit)
   const params = new URLSearchParams({
     suiteId: currentSuiteId,
-    itemCount: String(currentItemCount),
-    metric: currentMetric,
-    days: String(currentDays),
     type: "suite",
+    limit: "200",
   });
-  if (currentVersion) params.set("version", currentVersion);
+  if (currentItemCount > 0) params.set("itemCount", String(currentItemCount));
 
-  const data = await fetchJSON(`${API_BASE}/history?${params}`);
+  const data = await fetchJSON(`${API_BASE}/stats?${params}`);
 
   if (data?.items?.length > 0) {
-    renderChart(data.items);
+    renderVersionChart(data.items);
   } else {
     renderEmpty(
       "suite-history-chart",
-      "No historical data for this selection yet.",
+      "No version data for this selection yet.",
     );
   }
 }
@@ -280,22 +287,23 @@ async function refreshChart() {
 // =============================================================================
 
 /**
- * Derive a color rating for suite-specific metrics.
+ * Derive a rating for suite metrics based on label/value.
  * Returns "good" | "ok" | "bad" | null.
  */
 function deriveSuiteRating(label, better, value) {
   const lbl = label.toLowerCase();
 
   // Render: Median/Min/p95 in ms — lower is better
-  if (lbl === "median" || lbl === "min" || lbl === "p95")
+  if (lbl === "median" || lbl === "min")
     return value < 30 ? "good" : value < 80 ? "ok" : "bad";
+  if (lbl === "p95") return value < 45 ? "good" : value < 120 ? "ok" : "bad";
 
   // Scroll: Avg FPS — higher is better
   if (lbl.includes("avg fps"))
     return value >= 55 ? "good" : value >= 40 ? "ok" : "bad";
 
   // Scroll: Frame budget / Budget p95 — lower is better
-  if (lbl.includes("frame budget") || lbl.includes("budget p95"))
+  if (lbl.includes("frame budget") || lbl.includes("budget"))
     return value < 8 ? "good" : value < 16 ? "ok" : "bad";
 
   // Scroll: Dropped % — lower is better
@@ -310,9 +318,15 @@ function deriveSuiteRating(label, better, value) {
   if (lbl.includes("scroll delta"))
     return Math.abs(value) < 1 ? "good" : Math.abs(value) < 5 ? "ok" : "bad";
 
-  // ScrollTo: ms — lower is better
+  // ScrollTo: ms values — lower is better
   if (lbl.includes("max"))
     return value < 800 ? "good" : value < 1200 ? "ok" : "bad";
+
+  // Generic: use better direction
+  if (better === "lower")
+    return value < 30 ? "good" : value < 100 ? "ok" : "bad";
+  if (better === "higher")
+    return value >= 55 ? "good" : value >= 40 ? "ok" : "bad";
 
   return null;
 }
@@ -325,7 +339,7 @@ function renderSummary(data) {
   const el = document.getElementById("suite-history-summary");
   if (!el || !data) {
     if (el)
-      el.innerHTML = `<div class="bench-history__empty">No benchmark data collected yet. Run a benchmark to start!</div>`;
+      el.innerHTML = `<div class="bench-history__empty">No benchmark data collected yet. Run a suite benchmark to start!</div>`;
     return;
   }
 
@@ -370,18 +384,14 @@ function renderStatsTable(statsItems) {
   const sections = [];
 
   for (const stat of statsItems) {
-    // Total sample count (use first metric's count as representative)
     const totalSamples =
       stat.metrics.length > 0 ? stat.metrics[0].sampleCount : 0;
     const confidence = confidenceLabel(totalSamples);
 
-    // Build metric cards
     const metricCards = stat.metrics
       .map((m) => {
         const rating = deriveSuiteRating(m.label, m.better, m.median);
         const ratingClass = rating ? ` bench-metric--${rating}` : "";
-
-        // Format the display value
         const displayValue = formatMetricValue(m.median, m.unit);
 
         return `
@@ -475,47 +485,98 @@ function renderDetailsTable(stat) {
   `;
 }
 
-function renderChart(points) {
+// =============================================================================
+// Version Chart — X-axis is version labels, ordered by firstSeen date
+// =============================================================================
+
+/**
+ * Build version order from the cached versionsData.
+ * Returns a Map<version, index> ordered by firstSeen date (oldest first).
+ */
+function getVersionOrder() {
+  if (!versionsData || versionsData.length === 0) return new Map();
+
+  // Sort by firstSeen ascending (oldest → newest)
+  const sorted = [...versionsData].sort((a, b) => {
+    const aDate = a.firstSeen || "9999";
+    const bDate = b.firstSeen || "9999";
+    return aDate.localeCompare(bDate);
+  });
+
+  const order = new Map();
+  sorted.forEach((v, i) => order.set(v.version, i));
+  return order;
+}
+
+/**
+ * Render the version trend chart.
+ *
+ * @param {Array} statsItems - Array of { version, suiteId, itemCount, totalRuns, metrics[] }
+ *   from /stats endpoint (all versions for one suite + itemCount).
+ */
+function renderVersionChart(statsItems) {
   const el = document.getElementById("suite-history-chart");
-  if (!el || points.length === 0) return;
+  if (!el) return;
 
-  // Parse dates and compute bounds
-  const parsed = points.map((p) => ({
-    ...p,
-    dateObj: new Date(p.date + "T00:00:00Z"),
-    dateMs: new Date(p.date + "T00:00:00Z").getTime(),
-  }));
+  // Extract the selected metric from each version's stats
+  const versionOrder = getVersionOrder();
 
-  // Sort by date
-  parsed.sort((a, b) => a.dateMs - b.dateMs);
+  const points = [];
+  for (const stat of statsItems) {
+    const metric = stat.metrics.find((m) => m.label === currentMetric);
+    if (!metric) continue;
 
-  const xMin = parsed[0].dateMs;
-  const xMax = parsed[parsed.length - 1].dateMs;
-  const xRange = xMax - xMin || 1;
+    const orderIndex = versionOrder.get(stat.version);
+    points.push({
+      version: stat.version,
+      orderIndex: orderIndex ?? 999,
+      median: metric.median,
+      mean: metric.mean,
+      p5: metric.p5,
+      p95: metric.p95,
+      min: metric.min,
+      max: metric.max,
+      sampleCount: metric.sampleCount,
+      unit: metric.unit,
+    });
+  }
 
-  // Find y bounds from p5/p95 range
+  if (points.length === 0) {
+    el.innerHTML = `<div class="bench-history__empty">No data for metric "${escapeHtml(currentMetric)}" across versions.</div>`;
+    return;
+  }
+
+  // Sort by version order (oldest → newest, left → right)
+  points.sort((a, b) => a.orderIndex - b.orderIndex);
+
+  // ── Y-axis bounds ──────────────────────────────────────────────────────
   let yMin = Infinity;
   let yMax = -Infinity;
-  for (const p of parsed) {
+  for (const p of points) {
     if (p.p5 < yMin) yMin = p.p5;
     if (p.p95 > yMax) yMax = p.p95;
     if (p.median < yMin) yMin = p.median;
     if (p.median > yMax) yMax = p.median;
   }
 
-  // Add 10% padding
   const yPad = (yMax - yMin) * 0.1 || 1;
   yMin = Math.max(0, yMin - yPad);
   yMax = yMax + yPad;
   const yRange = yMax - yMin || 1;
 
+  // ── Layout ─────────────────────────────────────────────────────────────
   const plotW = CHART_WIDTH - CHART_PAD.left - CHART_PAD.right;
   const plotH = CHART_HEIGHT - CHART_PAD.top - CHART_PAD.bottom;
 
-  const xScale = (ms) => CHART_PAD.left + ((ms - xMin) / xRange) * plotW;
+  // Categorical X: evenly space versions across the plot width
+  const xStep = points.length > 1 ? plotW / (points.length - 1) : 0;
+  const xScale = (i) =>
+    points.length === 1
+      ? CHART_PAD.left + plotW / 2
+      : CHART_PAD.left + i * xStep;
   const yScale = (v) => CHART_PAD.top + plotH - ((v - yMin) / yRange) * plotH;
 
-  // Build SVG
+  // ── Build SVG ──────────────────────────────────────────────────────────
   const parts = [];
   parts.push(
     `<svg viewBox="0 0 ${CHART_WIDTH} ${CHART_HEIGHT}" class="bench-history__svg">`,
@@ -533,28 +594,37 @@ function renderChart(points) {
     );
   }
 
-  // X-axis date labels
-  const xTicks = niceDateTicks(xMin, xMax, 6);
-  for (const tick of xTicks) {
-    const x = xScale(tick);
-    const label = formatDateShort(new Date(tick));
-    parts.push(
-      `<text x="${x}" y="${CHART_HEIGHT - 8}" text-anchor="middle" fill="${COLORS.text}" font-size="11">${label}</text>`,
-    );
+  // X-axis: version labels (rotated for readability)
+  // Show all labels if ≤ 12 versions, otherwise subsample
+  const maxLabels = 12;
+  const labelStep =
+    points.length <= maxLabels ? 1 : Math.ceil(points.length / maxLabels);
+
+  for (let i = 0; i < points.length; i++) {
+    const x = xScale(i);
+
+    // Vertical grid line for each version
     parts.push(
       `<line x1="${x}" y1="${CHART_PAD.top}" x2="${x}" y2="${CHART_HEIGHT - CHART_PAD.bottom}" stroke="${COLORS.grid}" stroke-width="1" stroke-dasharray="2,4" />`,
     );
+
+    // Label (subsampled to avoid overlap)
+    if (i % labelStep === 0 || i === points.length - 1) {
+      parts.push(
+        `<text x="${x}" y="${CHART_HEIGHT - CHART_PAD.bottom + 14}" text-anchor="end" fill="${COLORS.text}" font-size="10" transform="rotate(-35 ${x} ${CHART_HEIGHT - CHART_PAD.bottom + 14})">${escapeHtml(points[i].version)}</text>`,
+      );
+    }
   }
 
   // P5–P95 band (polygon)
-  if (parsed.length > 1) {
-    const bandTop = parsed
-      .map((p) => `${xScale(p.dateMs)},${yScale(p.p95)}`)
+  if (points.length > 1) {
+    const bandTop = points
+      .map((p, i) => `${xScale(i)},${yScale(p.p95)}`)
       .join(" ");
-    const bandBot = parsed
+    const bandBot = points
       .slice()
       .reverse()
-      .map((p) => `${xScale(p.dateMs)},${yScale(p.p5)}`)
+      .map((p, i) => `${xScale(points.length - 1 - i)},${yScale(p.p5)}`)
       .join(" ");
     parts.push(
       `<polygon points="${bandTop} ${bandBot}" fill="${COLORS.band}" opacity="${COLORS.bandOpacity}" />`,
@@ -562,12 +632,9 @@ function renderChart(points) {
   }
 
   // Median line
-  if (parsed.length > 1) {
-    const linePath = parsed
-      .map(
-        (p, i) =>
-          `${i === 0 ? "M" : "L"}${xScale(p.dateMs)},${yScale(p.median)}`,
-      )
+  if (points.length > 1) {
+    const linePath = points
+      .map((p, i) => `${i === 0 ? "M" : "L"}${xScale(i)},${yScale(p.median)}`)
       .join(" ");
     parts.push(
       `<path d="${linePath}" fill="none" stroke="${COLORS.line}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />`,
@@ -575,10 +642,23 @@ function renderChart(points) {
   }
 
   // Data points + tooltips
-  for (const p of parsed) {
-    const cx = xScale(p.dateMs);
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    const cx = xScale(i);
     const cy = yScale(p.median);
-    const title = `${p.date}${p.version ? ` (${p.version})` : ""}\nMedian: ${p.median}\nMean: ${p.mean}\nP5: ${p.p5} / P95: ${p.p95}\nSamples: ${p.sampleCount}`;
+    const title = [
+      `${p.version}`,
+      `Median: ${formatMetricValue(p.median, p.unit)} ${p.unit}`,
+      `Mean: ${formatMetricValue(p.mean, p.unit)} ${p.unit}`,
+      `P5: ${formatMetricValue(p.p5, p.unit)} / P95: ${formatMetricValue(p.p95, p.unit)}`,
+      `Range: ${formatMetricValue(p.min, p.unit)} – ${formatMetricValue(p.max, p.unit)}`,
+      `Samples: ${p.sampleCount}`,
+    ].join("\n");
+
+    // Larger hover target (invisible) + visible dot
+    parts.push(
+      `<circle cx="${cx}" cy="${cy}" r="12" fill="transparent" stroke="none"><title>${escapeHtml(title)}</title></circle>`,
+    );
     parts.push(
       `<circle cx="${cx}" cy="${cy}" r="4" fill="${COLORS.dot}" stroke="var(--bg, #fff)" stroke-width="2"><title>${escapeHtml(title)}</title></circle>`,
     );
@@ -611,6 +691,10 @@ function renderChart(points) {
 
   el.innerHTML = parts.join("\n");
 }
+
+// =============================================================================
+// Browsers & Versions Tables
+// =============================================================================
 
 function renderBrowsers(browsers) {
   const el = document.getElementById("suite-history-browsers-content");
@@ -662,7 +746,7 @@ function renderVersions(versions) {
     return;
   }
 
-  const formatDate = (d) => (d ? new Date(d + "Z").toLocaleDateString() : "\u2014");
+  const formatDate = (d) => (d ? new Date(d + "Z").toLocaleDateString() : "—");
 
   const rows = versions.map(
     (v) => `
@@ -703,34 +787,37 @@ function populateSuiteSelect(suites) {
     return;
   }
 
-  // Group by benchmark type: render, scroll, memory, scrollto
-  const groupOrder = ["render", "scroll", "memory", "scrollto"];
-  const groupLabels = {
-    render: "\u26A1 Render",
-    scroll: "\uD83D\uDCCA Scroll",
-    memory: "\uD83E\uDDE0 Memory",
-    scrollto: "\uD83C\uDFAF ScrollTo",
+  // Group by adapter (framework), vanilla first
+  const adapterOrder = ["vanilla", "react", "vue", "solidjs", "svelte"];
+  const adapterLabels = {
+    vanilla: "Vanilla",
+    react: "React",
+    vue: "Vue",
+    solidjs: "SolidJS",
+    svelte: "Svelte",
   };
 
   const groups = new Map();
   for (const s of suites) {
     const dashIdx = s.suiteId.indexOf("-");
-    const prefix = dashIdx > 0 ? s.suiteId.slice(0, dashIdx) : "other";
-    if (!groups.has(prefix)) groups.set(prefix, []);
-    groups.get(prefix).push(s);
+    const adapter = dashIdx > 0 ? s.suiteId.slice(dashIdx + 1) : "other";
+    if (!groups.has(adapter)) groups.set(adapter, []);
+    groups.get(adapter).push(s);
   }
 
   let html = "";
 
-  // Render groups in preferred order first, then any remaining
+  // Ordered adapters first, then any unexpected ones
   const orderedKeys = [
-    ...groupOrder.filter((k) => groups.has(k)),
-    ...[...groups.keys()].filter((k) => !groupOrder.includes(k)),
+    ...adapterOrder.filter((k) => groups.has(k)),
+    ...[...groups.keys()].filter((k) => !adapterOrder.includes(k)),
   ];
 
-  for (const prefix of orderedKeys) {
-    const items = groups.get(prefix);
-    const label = groupLabels[prefix] || prefix.charAt(0).toUpperCase() + prefix.slice(1);
+  for (const adapter of orderedKeys) {
+    const items = groups.get(adapter);
+    const label =
+      adapterLabels[adapter] ||
+      adapter.charAt(0).toUpperCase() + adapter.slice(1);
     html += `<optgroup label="${escapeHtml(label)}">`;
     for (const s of items) {
       const displayName = SUITE_DISPLAY_NAMES[s.suiteId] || s.suiteId;
@@ -772,7 +859,7 @@ function populateMetricSelect(metrics) {
 }
 
 // =============================================================================
-// Helper Renderers
+// CTA Links
 // =============================================================================
 
 function renderCTALinks() {
@@ -788,11 +875,15 @@ function renderCTALinks() {
 
   el.innerHTML = links
     .map(
-      (link) =>
-        `<a href="${escapeHtml(link.url)}" class="bench-history__cta-link">${escapeHtml(link.label)}</a>`,
+      (l) =>
+        `<a href="${escapeHtml(l.url)}" class="bench-history__cta-link">${l.label}</a>`,
     )
     .join("");
 }
+
+// =============================================================================
+// Helper Renderers
+// =============================================================================
 
 function renderEmpty(elementId, message) {
   const el = document.getElementById(elementId);
@@ -804,32 +895,6 @@ function renderError(elementId, message) {
   const el = document.getElementById(elementId);
   if (el)
     el.innerHTML = `<div class="bench-history__error">${escapeHtml(message)}</div>`;
-}
-
-// =============================================================================
-// Chart Helpers
-// =============================================================================
-
-/** Format a date as "Jan 5" or "Jan 5 '24" */
-function formatDateShort(d) {
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  const now = new Date();
-  const sameYear = d.getUTCFullYear() === now.getFullYear();
-  const label = `${months[d.getUTCMonth()]} ${d.getUTCDate()}`;
-  return sameYear ? label : `${label} '${String(d.getUTCFullYear()).slice(2)}`;
 }
 
 function escapeHtml(str) {
