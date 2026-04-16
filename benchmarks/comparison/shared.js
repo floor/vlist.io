@@ -3,9 +3,8 @@
 // Common functions and constants used across all library comparison benchmarks.
 // Eliminates code duplication and ensures consistent methodology.
 //
-// Memory measurement is isolated from render iterations to prevent GC
-// cross-contamination between phases. Negative deltas are rejected as
-// artifacts. Timing uses performance.mark/measure for DevTools integration.
+// Measurement functions are imported from the shared engine modules so that
+// comparison benchmarks use the exact same methodology as suite benchmarks.
 
 import { vlist } from "vlist";
 import {
@@ -13,78 +12,53 @@ import {
   nextFrame,
   waitFrames,
   tryGC,
-  measureDuration,
-  measureMemoryDelta,
-  getHeapUsed,
-  burnCpu,
-  bytesToMB,
   round,
   median,
-  percentile,
   ITEM_NAMES,
   ITEM_BADGES,
 } from "../runner.js";
 
-// Re-export utilities for comparison benchmarks
+// Engine modules — single source of truth for measurement methodology
+import { findViewport } from "../engine/viewport.js";
+import { measureRenderPerformance } from "../engine/render.js";
+import { measureScrollRun } from "../engine/scroll.js";
+import { measureMemoryWithRetries } from "../engine/memory.js";
+import {
+  ITEM_HEIGHT,
+  VLIST_OVERSCAN,
+  RENDER_WARMUP_ITERATIONS,
+  RENDER_MEASURE_ITERATIONS,
+  MEMORY_ATTEMPTS,
+  BASE_SCROLL_SPEED,
+  COMPARISON_SCROLL_SPEEDS,
+  COMPARISON_SCROLL_DURATION_MS,
+} from "../engine/constants.js";
+
+// =============================================================================
+// Re-exports — public API consumed by comparison benchmark files
+// =============================================================================
+
+// Utilities from runner.js
 export { tryGC, waitFrames };
 
-// Re-export item data arrays for comparison suite renderers (React, Vue, Solid)
+// Item data arrays for comparison suite renderers (React, Vue, Solid)
 export { ITEM_NAMES, ITEM_BADGES };
 
-// =============================================================================
-// Constants
-// =============================================================================
+// Viewport detection from engine
+export { findViewport };
 
-export const ITEM_HEIGHT = 48;
-export const VLIST_OVERSCAN = 5;
-export const MEASURE_ITERATIONS = 5;
-export const MEMORY_ATTEMPTS = 10;
-export const SCROLL_DURATION_MS = 2000;
-
-/**
- * Base scroll speed in pixels per second.
- * 1× = 7200 px/s ≈ 2.5 items/frame at 60fps (48px items).
- * All speed multipliers are derived from this value.
- */
-export const BASE_SCROLL_SPEED = 7200;
-
-/**
- * Scroll speed presets for comparison benchmarks.
- * Each library is tested at all 7 speeds automatically — no user selection.
- * 2 seconds per speed × 7 speeds × 2 libraries = ~28s total scroll time.
- *
- * All speeds are multiples of BASE_SCROLL_SPEED (7200 px/s).
- * Time-based scrolling ensures consistent speed regardless of refresh rate.
- *
- *   - 0.1× (720 px/s): Barely moving — pure baseline overhead
- *   - 0.25× (1800 px/s): Gentle browsing — minimal recycling
- *   - 0.5× (3600 px/s): Casual scrolling
- *   - 1× (7200 px/s): Normal scroll speed
- *   - 2× (14400 px/s): Fast flick — aggressive touch/wheel
- *   - 3× (21600 px/s): Aggressive scroll
- *   - 5× (36000 px/s): Stress test — heavy DOM churn
- *
- * Progressive speeds build a complete scroll performance profile,
- * exposing performance cliffs invisible at any single speed.
- */
-const scrollSpeed = (id, multiplier) => {
-  const pxPerSec = BASE_SCROLL_SPEED * multiplier;
-  return {
-    id,
-    label: `${pxPerSec.toLocaleString()} px/s`,
-    pxPerSec,
-  };
+// Constants from engine (re-exported under both engine names and legacy names)
+export {
+  ITEM_HEIGHT,
+  VLIST_OVERSCAN,
+  BASE_SCROLL_SPEED,
+  COMPARISON_SCROLL_SPEEDS,
 };
+export { MEMORY_ATTEMPTS };
 
-export const COMPARISON_SCROLL_SPEEDS = [
-  scrollSpeed("crawl", 0.1),
-  scrollSpeed("gentle", 0.25),
-  scrollSpeed("slow", 0.5),
-  scrollSpeed("normal", 1),
-  scrollSpeed("fast", 2),
-  scrollSpeed("aggressive", 3),
-  scrollSpeed("extreme", 5),
-];
+// Legacy aliases — some comparison files may use the old names
+export const MEASURE_ITERATIONS = RENDER_MEASURE_ITERATIONS;
+export const SCROLL_DURATION_MS = COMPARISON_SCROLL_DURATION_MS;
 
 // =============================================================================
 // Helper: Realistic React item children
@@ -213,288 +187,6 @@ export const generateRealisticItemHTML = (index) => {
 };
 
 // =============================================================================
-// Helper: Find scrollable viewport
-// =============================================================================
-
-/**
- * Find the scrollable viewport element in a container.
- * Tries vlist's viewport first, then searches the subtree for any
- * element with overflow scrolling (depth-first). This handles React
- * libraries that wrap the scroll container in extra divs, which
- * varies across browsers (Firefox in particular).
- */
-export const findViewport = (container) => {
-  // Check for vlist viewport first
-  const vp = container.querySelector(".vlist-viewport");
-  if (vp) return vp;
-
-  // Helper: does this element's computed style indicate scrollability?
-  // Firefox can report the `overflow` shorthand differently from Chrome
-  // (e.g. "" or "hidden auto") so we check both the shorthand and the
-  // per-axis longhand properties.
-  const isScrollable = (style) => {
-    const vals = ["auto", "scroll"];
-    if (vals.includes(style.overflowY)) return true;
-    if (vals.includes(style.overflowX)) return true;
-    // Shorthand — Chrome returns "auto", Firefox may return "hidden auto"
-    const ov = style.overflow;
-    if (vals.includes(ov)) return true;
-    if (ov && ov.split(" ").some((v) => vals.includes(v))) return true;
-    return false;
-  };
-
-  // Depth-first search for any descendant with overflow scrolling
-  const walk = (el) => {
-    for (const child of el.children) {
-      const style = getComputedStyle(child);
-      if (isScrollable(style)) return child;
-      const found = walk(child);
-      if (found) return found;
-    }
-    return null;
-  };
-
-  const found = walk(container);
-  if (found) return found;
-
-  // Last resort: find the deepest element whose scrollHeight exceeds its
-  // clientHeight — the library rendered content but the CSS overflow value
-  // wasn't detected (e.g. set via a framework stylesheet Firefox applies
-  // differently). This catches react-window, Virtua, etc.
-  const walkScrollable = (el) => {
-    for (const child of el.children) {
-      if (child.scrollHeight > child.clientHeight + 1) {
-        // Prefer a deeper match (the actual viewport, not just a wrapper)
-        const deeper = walkScrollable(child);
-        return deeper || child;
-      }
-    }
-    return null;
-  };
-
-  return walkScrollable(container) || container.firstElementChild;
-};
-
-// =============================================================================
-// Helper: Scroll measurement
-// =============================================================================
-
-/**
- * Scroll and measure frame times over a duration.
- * Returns median FPS and frame time percentiles.
- *
- * Uses a dual-loop architecture (same as the scroll suite):
- *   1. setTimeout scroll driver (~250 updates/sec) — smooth sub-pixel scrolling
- *   2. rAF paint counter — accurate frame timing without coupling to scroll
- *
- * The high-frequency scroll driver ensures smooth movement at all speeds,
- * especially slow ones where a single rAF loop would produce visible stepping.
- *
- * @param {HTMLElement} viewport - Scrollable element
- * @param {number} durationMs - Duration to scroll in milliseconds
- * @param {number} [stressMs=0] - CPU burn per frame (simulates app workload)
- * @param {number} [speedPxPerSec=6000] - Scroll speed in pixels per second
- * @returns {Promise<{medianFPS: number, medianFrameTime: number, p95FrameTime: number, totalFrames: number}>}
- */
-export const measureScrollPerformance = async (
-  viewport,
-  durationMs,
-  stressMs = 0,
-  speedPxPerSec = 6000,
-) => {
-  // Guard: if the viewport element is null/undefined (e.g. library failed to
-  // mount, or findViewport() couldn't locate a scrollable container on this
-  // browser), return zero metrics instead of crashing.
-  if (!viewport) {
-    return {
-      medianFPS: 0,
-      medianFrameTime: 0,
-      p95FrameTime: 0,
-      totalFrames: 0,
-    };
-  }
-
-  const maxScroll = viewport.scrollHeight - viewport.clientHeight;
-
-  return new Promise((resolve) => {
-    // -------------------------------------------------------------------
-    // Shared state
-    // -------------------------------------------------------------------
-    const frameTimes = [];
-    let running = true;
-    let scrollPos = 0;
-    let direction = 1;
-
-    // -------------------------------------------------------------------
-    // Loop 1 — Paint counter (rAF)
-    // Pure timing — records when frames are delivered to compute FPS.
-    // Stress burns happen here so the library's rendering competes
-    // for the remaining frame budget.
-    // -------------------------------------------------------------------
-    let lastPaintTime = 0;
-
-    const paintTick = (timestamp) => {
-      if (!running) return;
-
-      if (lastPaintTime > 0) {
-        frameTimes.push(timestamp - lastPaintTime);
-      }
-      lastPaintTime = timestamp;
-
-      // Simulate additional CPU work (stress mode).
-      // Burns in the rAF callback so the library's rendering
-      // competes for the remaining frame budget.
-      if (stressMs > 0) burnCpu(stressMs);
-
-      requestAnimationFrame(paintTick);
-    };
-
-    // -------------------------------------------------------------------
-    // Loop 2 — Scroll driver (setTimeout)
-    // Advances scrollTop at constant px/s using wall-clock time.
-    // setTimeout(0) fires ~4ms apart in Chrome, giving ~250 scroll
-    // updates/sec — much smoother than 60fps rAF, especially at
-    // slow scroll speeds.
-    // -------------------------------------------------------------------
-    const scrollStartTime = performance.now();
-    let lastScrollTime = scrollStartTime;
-
-    const scrollTick = () => {
-      if (!running) return;
-
-      const now = performance.now();
-      const elapsed = now - scrollStartTime;
-
-      if (elapsed >= durationMs) {
-        running = false;
-
-        const medianFrameTime = median(frameTimes);
-        const p95FrameTime = percentile(
-          [...frameTimes].sort((a, b) => a - b),
-          95,
-        );
-        const medianFPS = round(1000 / medianFrameTime, 1);
-
-        resolve({
-          medianFPS,
-          medianFrameTime: round(medianFrameTime, 2),
-          p95FrameTime: round(p95FrameTime, 2),
-          totalFrames: frameTimes.length,
-        });
-        return;
-      }
-
-      // Advance scroll position based on real elapsed time (NOT per-frame)
-      const dt = now - lastScrollTime;
-      lastScrollTime = now;
-
-      const pxDelta = (speedPxPerSec * dt) / 1000;
-      scrollPos += pxDelta * direction;
-
-      if (scrollPos >= maxScroll) {
-        scrollPos = maxScroll;
-        direction = -1;
-      } else if (scrollPos <= 0) {
-        scrollPos = 0;
-        direction = 1;
-      }
-
-      viewport.scrollTop = scrollPos;
-
-      setTimeout(scrollTick, 0);
-    };
-
-    // Start both loops
-    requestAnimationFrame(paintTick);
-    setTimeout(scrollTick, 0);
-  });
-};
-
-// =============================================================================
-// Helper: Retry memory measurement
-// =============================================================================
-
-/**
- * Measure memory usage with multiple attempts for reliability.
- *
- * A single `measureMemoryDelta()` call can return null when GC reclaims
- * stale garbage during the snapshot window, producing a negative delta.
- * Running multiple attempts and taking the median of valid readings
- * dramatically reduces the chance of reporting "—" to the user.
- *
- * The last attempt's instance is kept alive (not destroyed) so Phase 3
- * (scroll) can reuse it directly.
- *
- * @param {Object} opts
- * @param {HTMLElement} opts.container - Benchmark container
- * @param {() => Promise<*>} opts.createFn - Creates and returns a component instance
- * @param {(instance: *) => Promise<void>} opts.destroyFn - Destroys a component instance
- * @param {Function} opts.onStatus - Status callback
- * @param {string} opts.label - Library name for status messages
- * @param {number} [opts.attempts=MEMORY_ATTEMPTS] - Max measurement attempts
- * @returns {Promise<{memoryUsed: number|null, instance: *}>}
- */
-const measureMemoryWithRetries = async ({
-  container,
-  createFn,
-  destroyFn,
-  onStatus,
-  label,
-  attempts = MEMORY_ATTEMPTS,
-}) => {
-  const validDeltas = [];
-  let instance = null;
-
-  // Check if the memory API is available. On Firefox (and any browser without
-  // performance.memory) measureMemoryDelta returns null immediately — *before*
-  // calling the create callback. That means the component is never mounted,
-  // leaving `instance` null and Phase 3 (scroll) with an empty container.
-  const hasMemoryAPI = getHeapUsed() !== null;
-
-  if (hasMemoryAPI) {
-    for (let i = 0; i < attempts; i++) {
-      // Destroy previous attempt's instance before retrying
-      if (instance) {
-        await destroyFn(instance);
-        instance = null;
-      }
-      container.innerHTML = "";
-
-      onStatus(
-        attempts > 1
-          ? `Testing ${label} - measuring memory (${i + 1}/${attempts})...`
-          : `Testing ${label} - measuring memory...`,
-      );
-
-      let inst;
-      const delta = await measureMemoryDelta(async () => {
-        inst = await createFn();
-        await waitFrames(3);
-      });
-
-      instance = inst;
-
-      if (delta !== null) {
-        validDeltas.push(delta);
-      }
-    }
-  } else {
-    // No memory API — skip measurement but still create the component
-    // so Phase 3 (scroll) has a mounted instance to work with.
-    onStatus(`Testing ${label} - measuring memory (not available)...`);
-    container.innerHTML = "";
-    instance = await createFn();
-    await waitFrames(3);
-  }
-
-  const memoryUsed =
-    validDeltas.length > 0 ? bytesToMB(median(validDeltas)) : null;
-
-  // instance is still mounted — caller uses it for Phase 3 (scroll)
-  return { memoryUsed, instance };
-};
-
-// =============================================================================
 // Benchmark: vlist (baseline)
 // =============================================================================
 
@@ -502,15 +194,15 @@ const measureMemoryWithRetries = async ({
  * Benchmark vlist performance (used as baseline in all comparisons).
  *
  * Three isolated phases:
- *   1. TIMING  — render iterations with performance.mark/measure
- *   2. MEMORY  — up to MEMORY_ATTEMPTS isolated measurements (median)
- *   3. SCROLL  — FPS and P95 frame time
+ *   1. TIMING  — warmup + measured render iterations via engine/render.js
+ *   2. MEMORY  — retry-based measurement via engine/memory.js
+ *   3. SCROLL  — 3-loop architecture via engine/scroll.js
  *
  * @param {HTMLElement} container - Container element
  * @param {number} itemCount - Number of items to render
  * @param {Function} onStatus - Status callback
  * @param {number} [stressMs=0] - CPU burn per frame during scroll (simulates app workload)
- * @returns {Promise<{library: string, renderTime: number, memoryUsed: number|null, scrollFPS: number, p95FrameTime: number}>}
+ * @returns {Promise<{library: string, renderTime: number, memoryUsed: number|null, scrollResults: Array}>}
  */
 export const benchmarkVList = async (
   container,
@@ -524,56 +216,37 @@ export const benchmarkVList = async (
   const items = Array.from({ length: itemCount }, (_, i) => ({ id: i }));
 
   // ── Phase 1: TIMING ────────────────────────────────────────────────────
-  // Measure render time across multiple iterations using performance.mark/measure.
+  // Uses the unified engine: 2 warmup + 7 measured iterations, median reported.
   // No memory measurement here — iterations create/destroy garbage that would
   // pollute heap snapshots.
 
-  const renderTimes = [];
-
-  // Hide container during measurements to prevent visual glitches
-  const originalVisibility = container.style.visibility;
-  container.style.visibility = "hidden";
-
-  for (let i = 0; i < MEASURE_ITERATIONS; i++) {
-    container.innerHTML = "";
-    await nextFrame();
-
-    const { duration, result: tempList } = await measureDuration(
-      `vlist-render-${i}`,
-      async () => {
-        const list = vlist({
-          container,
-          overscan: VLIST_OVERSCAN,
-          item: {
-            height: ITEM_HEIGHT,
-            template: benchmarkTemplate,
-          },
-          items,
-        }).build();
-        await nextFrame();
-        return list;
-      },
-    );
-
-    renderTimes.push(duration);
-
-    // Destroy the instance — it was only for timing
-    tempList.destroy();
-    container.innerHTML = "";
-  }
-
-  // Restore visibility
-  container.style.visibility = originalVisibility;
+  const renderResult = await measureRenderPerformance({
+    container,
+    createFn: async (c) => {
+      return vlist({
+        container: c,
+        overscan: VLIST_OVERSCAN,
+        item: {
+          height: ITEM_HEIGHT,
+          template: benchmarkTemplate,
+        },
+        items,
+      }).build();
+    },
+    destroyFn: (list) => list.destroy(),
+    label: "vlist",
+    onStatus: (msg) => onStatus(`Testing vlist - ${msg.toLowerCase()}`),
+  });
 
   // ── Phase 2: MEMORY ────────────────────────────────────────────────────
-  // Up to MEMORY_ATTEMPTS isolated measurements. settleHeap() inside each
-  // attempt flushes garbage before the baseline snapshot. The median of
-  // valid readings is used; null only when ALL attempts fail.
+  // Up to MEMORY_ATTEMPTS isolated measurements. The median of valid
+  // readings is used; null only when ALL attempts fail.
+  // The last attempt's instance is kept alive for Phase 3 (scroll).
 
-  const { memoryUsed, instance: list } = await measureMemoryWithRetries({
+  const { memoryUsedMB, instance: list } = await measureMemoryWithRetries({
     container,
     createFn: () => {
-      const l = vlist({
+      return vlist({
         container,
         overscan: VLIST_OVERSCAN,
         item: {
@@ -582,7 +255,6 @@ export const benchmarkVList = async (
         },
         items,
       }).build();
-      return l;
     },
     destroyFn: (l) => l.destroy(),
     onStatus,
@@ -592,6 +264,7 @@ export const benchmarkVList = async (
   // ── Phase 3: SCROLL ────────────────────────────────────────────────────
   // Uses the instance from the last memory attempt (still mounted).
   // Tests at all COMPARISON_SCROLL_SPEEDS to expose performance cliffs.
+  // Uses the 3-loop architecture from engine/scroll.js.
 
   const viewport = findViewport(container);
   const scrollResults = [];
@@ -610,12 +283,12 @@ export const benchmarkVList = async (
     if (viewport) viewport.scrollTop = 0;
     await nextFrame();
 
-    const scrollMetrics = await measureScrollPerformance(
+    const scrollMetrics = await measureScrollRun({
       viewport,
-      SCROLL_DURATION_MS,
+      durationMs: COMPARISON_SCROLL_DURATION_MS,
+      speedPxPerSec: speed.pxPerSec,
       stressMs,
-      speed.pxPerSec,
-    );
+    });
 
     scrollResults.push({
       speed,
@@ -630,8 +303,8 @@ export const benchmarkVList = async (
 
   return {
     library: "vlist",
-    renderTime: round(median(renderTimes), 2),
-    memoryUsed,
+    renderTime: renderResult.median,
+    memoryUsed: memoryUsedMB,
     scrollResults,
   };
 };
@@ -644,9 +317,9 @@ export const benchmarkVList = async (
  * Generic benchmark wrapper for any library.
  *
  * Three isolated phases:
- *   1. TIMING  — render iterations with performance.mark/measure
- *   2. MEMORY  — up to MEMORY_ATTEMPTS isolated measurements (median)
- *   3. SCROLL  — FPS and P95 frame time
+ *   1. TIMING  — warmup + measured render iterations via engine/render.js
+ *   2. MEMORY  — retry-based measurement via engine/memory.js
+ *   3. SCROLL  — 3-loop architecture via engine/scroll.js
  *
  * @param {Object} config - Benchmark configuration
  * @param {string} config.libraryName - Name of the library
@@ -670,43 +343,25 @@ export const benchmarkLibrary = async (config) => {
   } = config;
 
   // ── Phase 1: TIMING ────────────────────────────────────────────────────
+  // Uses the unified engine: 2 warmup + 7 measured iterations, median reported.
 
   onStatus(`Testing ${libraryName} - preparing...`);
 
-  const renderTimes = [];
-
-  // Hide container during measurements to prevent visual glitches
-  const originalVisibility = container.style.visibility;
-  container.style.visibility = "hidden";
-
-  for (let i = 0; i < MEASURE_ITERATIONS; i++) {
-    container.innerHTML = "";
-    await nextFrame();
-
-    const { duration, result: instance } = await measureDuration(
-      `${libraryName}-render-${i}`,
-      async () => {
-        const inst = await createComponent(container, itemCount);
-        await nextFrame();
-        return inst;
-      },
-    );
-
-    renderTimes.push(duration);
-
-    // Destroy — this instance was only for timing
-    await destroyComponent(instance);
-  }
-
-  // Restore visibility
-  container.style.visibility = originalVisibility;
+  const renderResult = await measureRenderPerformance({
+    container,
+    createFn: (c) => createComponent(c, itemCount),
+    destroyFn: destroyComponent,
+    label: libraryName,
+    onStatus: (msg) =>
+      onStatus(`Testing ${libraryName} - ${msg.toLowerCase()}`),
+  });
 
   // ── Phase 2: MEMORY ────────────────────────────────────────────────────
-  // Up to MEMORY_ATTEMPTS isolated measurements. settleHeap() inside each
-  // attempt flushes garbage before the baseline snapshot. The median of
-  // valid readings is used; null only when ALL attempts fail.
+  // Up to MEMORY_ATTEMPTS isolated measurements. The median of valid
+  // readings is used; null only when ALL attempts fail.
+  // The last attempt's instance is kept alive for Phase 3 (scroll).
 
-  const { memoryUsed, instance } = await measureMemoryWithRetries({
+  const { memoryUsedMB, instance } = await measureMemoryWithRetries({
     container,
     createFn: () => createComponent(container, itemCount),
     destroyFn: destroyComponent,
@@ -717,6 +372,7 @@ export const benchmarkLibrary = async (config) => {
   // ── Phase 3: SCROLL ────────────────────────────────────────────────────
   // Uses the instance from the last memory attempt (still mounted).
   // Tests at all COMPARISON_SCROLL_SPEEDS to expose performance cliffs.
+  // Uses the 3-loop architecture from engine/scroll.js.
 
   const viewport = findViewport(container);
 
@@ -748,12 +404,12 @@ export const benchmarkLibrary = async (config) => {
     if (viewport) viewport.scrollTop = 0;
     await nextFrame();
 
-    const scrollMetrics = await measureScrollPerformance(
+    const scrollMetrics = await measureScrollRun({
       viewport,
-      SCROLL_DURATION_MS,
+      durationMs: COMPARISON_SCROLL_DURATION_MS,
+      speedPxPerSec: speed.pxPerSec,
       stressMs,
-      speed.pxPerSec,
-    );
+    });
 
     scrollResults.push({
       speed,
@@ -768,8 +424,8 @@ export const benchmarkLibrary = async (config) => {
 
   return {
     library: libraryName,
-    renderTime: round(median(renderTimes), 2),
-    memoryUsed,
+    renderTime: renderResult.median,
+    memoryUsed: memoryUsedMB,
     scrollResults,
   };
 };

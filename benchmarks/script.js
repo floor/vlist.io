@@ -14,6 +14,7 @@ import {
 } from "./templates.js";
 
 import { buildHistoryPage } from "./history.js";
+import { buildSuiteHistoryPage } from "./suite-history.js";
 
 // Import data files
 import BUNDLE_DATA from "./data/bundle.json";
@@ -825,6 +826,8 @@ if (root) {
     buildPerformanceComparisonPage(root);
   } else if (page === "history") {
     buildHistoryPage(root);
+  } else if (page === "suite-history") {
+    buildSuiteHistoryPage(root);
   } else {
     // Suite page (render, scroll, memory, scrollto)
     const variants = detectVariants(page);
