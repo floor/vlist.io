@@ -228,7 +228,7 @@ const App = {
       <div class="split-layout">
         <div class="split-main split-main--full">
           <h2 class="sr-only">Photos</h2>
-          <div ref="containerRef" id="grid-container"></div>
+          <div ref="containerRef" id="list-container"></div>
         </div>
 
         <aside class="split-panel">

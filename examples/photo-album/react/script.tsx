@@ -58,7 +58,7 @@ function GridContainer({
         getScrollPosition: () => instanceRef.current?.getScrollPosition() ?? 0,
         getTotal: () => ITEM_COUNT,
         getItemSize: () => {
-          const el = document.getElementById("grid-container");
+          const el = document.getElementById("list-container");
           if (!el) return 200;
           const innerWidth = el.clientWidth - 2;
           const colW = (innerWidth - (columns - 1) * gap) / columns;
@@ -68,7 +68,7 @@ function GridContainer({
         },
         getColumns: () => columns,
         getContainerSize: () => {
-          const el = document.getElementById("grid-container");
+          const el = document.getElementById("list-container");
           if (!el) return 0;
           return orientation === "horizontal"
             ? el.clientWidth
@@ -99,7 +99,7 @@ function GridContainer({
     onItem(item);
   });
 
-  return <div ref={containerRef} id="grid-container" />;
+  return <div ref={containerRef} id="list-container" />;
 }
 
 // =============================================================================
@@ -169,7 +169,7 @@ function App() {
   }, [mode, orientation]);
 
   const scrollTo = useCallback((target: "first" | "middle" | "last") => {
-    const el = document.querySelector("#grid-container .vlist-viewport");
+    const el = document.querySelector("#list-container .vlist-viewport");
     if (!el) return;
     // Access instance via DOM — the useVList hook manages it internally
     const idx =

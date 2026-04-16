@@ -9,23 +9,23 @@
 }
 
 /* Grid container */
-#grid-container {
+#list-container {
     height: 600px;
     margin: 0 auto;
 }
 
-#grid-container .vlist {
+#list-container .vlist {
     border: none;
     background-color: transparent;
 }
 
 /* Horizontal orientation - swap dimensions */
-#grid-container.vlist--horizontal {
+#list-container.vlist--horizontal {
     height: 300px;
     width: 100%;
 }
 
-#grid-container.vlist--horizontal .vlist-viewport {
+#list-container.vlist--horizontal .vlist-viewport {
     overflow-x: auto;
     overflow-y: hidden;
 }
@@ -161,17 +161,17 @@
    vlist grid overrides — remove item borders/padding for photo cards
    ============================================================================ */
 
-#grid-container .vlist-item {
+#list-container .vlist-item {
     padding: 0;
     border: none;
     background: transparent;
 }
 
-#grid-container .vlist-item:hover {
+#list-container .vlist-item:hover {
     background: transparent;
 }
 
-#grid-container .vlist-item.vlist-item--focused {
+#list-container .vlist-item.vlist-item--focused {
     outline-offset: 0;
     border-radius: 10px;
 }
@@ -181,11 +181,11 @@
    ============================================================================ */
 
 @media (max-width: 820px) {
-    #grid-container {
+    #list-container {
         height: 400px;
     }
 
-    #grid-container.vlist--horizontal {
+    #list-container.vlist--horizontal {
         height: 250px;
     }
 }
