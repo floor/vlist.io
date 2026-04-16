@@ -54,7 +54,7 @@
       {
         "slug": "track-list",
         "name": "Track List",
-        "desc": "",
+        "desc": "Music library with async loading — toggle between list, grid, and table views",
         "features": ["async", "selection", "table", "grid"]
       },
       {
@@ -83,7 +83,7 @@
       {
         "slug": "variable-sizes",
         "name": "Variables Sizes",
-        "desc": "Variable Sizes Exmaples",
+        "desc": "Per-item height functions and auto-measured DOM sizing",
         "features": ["autosize", "invert"]
       },
       {
