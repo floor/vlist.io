@@ -6,6 +6,22 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 // =============================================================================
+// Search dialog partial (shared between base.html and homepage.eta)
+// =============================================================================
+
+/**
+ * search.html contains the search overlay, dialog markup, and behavior script.
+ * Injected into every page via the SEARCH_HTML template variable to avoid
+ * duplicating ~250 lines across multiple shell templates.
+ *
+ * Read once at startup — the file never changes at runtime.
+ */
+const SEARCH_HTML = readFileSync(
+  resolve("src/server/shells/search.html"),
+  "utf-8",
+);
+
+// =============================================================================
 // Critical CSS (inlined into every page to eliminate render-blocking request)
 // =============================================================================
 
@@ -129,5 +145,5 @@ const eta = new Eta({
  * @returns Rendered HTML string
  */
 export function render(template: string, data: TemplateData): string {
-  return eta.renderString(template, { ...data, TOKENS_CSS });
+  return eta.renderString(template, { ...data, TOKENS_CSS, SEARCH_HTML });
 }
