@@ -5,6 +5,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { useVList, useVListEvent } from "vlist-react";
+import type { ItemConfig } from "vlist";
 import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
@@ -111,7 +112,7 @@ function getItemConfig(
   orientation: string,
   columns: number,
   gap: number,
-) {
+): ItemConfig {
   if (mode === "masonry") {
     return {
       height: (_index: number, ctx: any) =>
