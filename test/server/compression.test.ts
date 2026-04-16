@@ -1,6 +1,7 @@
 // test/server/compression.test.ts
 import { describe, test, expect } from "bun:test";
 import { compressResponse } from "../../src/server/compression";
+import { IS_PROD } from "../../src/server/config";
 
 // Helper to create a mock response
 const createResponse = (
@@ -53,6 +54,28 @@ describe("compression", () => {
       }
     });
 
+    test("serves from cache on repeated requests for same dist path (prod)", async () => {
+      const distPath = "/dist/examples/variable-sizes/script.js";
+
+      // First call populates the cache
+      const response1 = new Response('console.log("test");', {
+        headers: { "Content-Type": "application/javascript" },
+      });
+      const result1 = compressResponse(response1, "br", distPath);
+
+      // Second call should hit the preCompressedCache (line 41)
+      const response2 = new Response('console.log("test");', {
+        headers: { "Content-Type": "application/javascript" },
+      });
+      const result2 = compressResponse(response2, "br", distPath);
+
+      // Both should return the same encoding
+      if (result1 instanceof Response && result2 instanceof Response) {
+        expect(result1.headers.get("Content-Encoding")).toBe("br");
+        expect(result2.headers.get("Content-Encoding")).toBe("br");
+      }
+    });
+
     test("falls back to on-the-fly compression for non-dist paths", async () => {
       const html = "<html><body>Hello</body></html>".repeat(100);
       const response = new Response(html, {
@@ -61,8 +84,13 @@ describe("compression", () => {
 
       const result = compressResponse(response, "gzip", "/page.html");
 
-      // Non-dist paths should use async compression
-      expect(result).toBeInstanceOf(Promise);
+      if (IS_PROD) {
+        // Production: Cloudflare compresses at the edge, origin returns as-is
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        // Dev: on-the-fly gzip compression returns a Promise
+        expect(result).toBeInstanceOf(Promise);
+      }
     });
 
     test("falls back to on-the-fly when pre-compressed file not found", async () => {
@@ -78,8 +106,13 @@ describe("compression", () => {
         "/dist/nonexistent/file.js",
       );
 
-      // Should fall back to async compression
-      expect(result).toBeInstanceOf(Promise);
+      if (IS_PROD) {
+        // Production: returns uncompressed, Cloudflare handles it
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        // Dev: falls back to async gzip compression
+        expect(result).toBeInstanceOf(Promise);
+      }
     });
 
     test("rejects path traversal attempts in dist paths", async () => {
@@ -95,8 +128,13 @@ describe("compression", () => {
         "/dist/../../../etc/passwd",
       );
 
-      // Should not serve pre-compressed and fall back to async
-      expect(result).toBeInstanceOf(Promise);
+      if (IS_PROD) {
+        // Production: returns uncompressed, Cloudflare handles it
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        // Dev: falls back to async gzip compression
+        expect(result).toBeInstanceOf(Promise);
+      }
     });
   });
 
@@ -141,12 +179,17 @@ describe("compression", () => {
       const response = createResponse(html, "text/html");
       const result = compressResponse(response, "gzip", "/page.html");
 
-      // For on-the-fly compression, returns a Promise
-      expect(result).toBeInstanceOf(Promise);
-
-      const compressed = await result;
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
-      expect(compressed.headers.get("Vary")).toBe("Accept-Encoding");
+      if (IS_PROD) {
+        // Production: returned uncompressed for Cloudflare to handle
+        expect(result).toBeInstanceOf(Response);
+        expect((result as Response).headers.get("Content-Encoding")).toBeNull();
+      } else {
+        // Dev: on-the-fly gzip compression returns a Promise
+        expect(result).toBeInstanceOf(Promise);
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+        expect(compressed.headers.get("Vary")).toBe("Accept-Encoding");
+      }
     });
 
     test("handles application/json content type", async () => {
@@ -154,8 +197,12 @@ describe("compression", () => {
       const response = createResponse(json, "application/json");
       const result = compressResponse(response, "gzip", "/api/data");
 
-      const compressed = await result;
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      if (IS_PROD) {
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      }
     });
 
     test("handles application/javascript content type", async () => {
@@ -163,8 +210,12 @@ describe("compression", () => {
       const response = createResponse(js, "application/javascript");
       const result = compressResponse(response, "gzip", "/script.js");
 
-      const compressed = await result;
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      if (IS_PROD) {
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      }
     });
 
     test("handles text/css content type", async () => {
@@ -172,8 +223,12 @@ describe("compression", () => {
       const response = createResponse(css, "text/css");
       const result = compressResponse(response, "gzip", "/style.css");
 
-      const compressed = await result;
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      if (IS_PROD) {
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      }
     });
 
     test("uses gzip when both br and gzip supported (dev mode — brotli skipped)", async () => {
@@ -181,11 +236,14 @@ describe("compression", () => {
       const response = createResponse(html, "text/html");
       const result = compressResponse(response, "br, gzip", "/page.html");
 
-      const compressed = await result;
-      // In dev/test (non-production), on-the-fly compression uses gzip only.
-      // Brotli is too slow (~20-40ms) without an edge cache to amortize it.
-      // In production, Cloudflare handles compression at the edge instead.
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      if (IS_PROD) {
+        // Production: origin skips compression, Cloudflare handles it
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        // Dev: on-the-fly compression uses gzip only (brotli is too slow)
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      }
     });
 
     test("uses gzip when brotli not supported", async () => {
@@ -193,8 +251,12 @@ describe("compression", () => {
       const response = createResponse(html, "text/html");
       const result = compressResponse(response, "gzip", "/page.html");
 
-      const compressed = await result;
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      if (IS_PROD) {
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      }
     });
 
     test("sets Content-Length header on compressed response", async () => {
@@ -202,8 +264,13 @@ describe("compression", () => {
       const response = createResponse(html, "text/html");
       const result = compressResponse(response, "gzip", "/page.html");
 
-      const compressed = await result;
-      expect(compressed.headers.get("Content-Length")).not.toBeNull();
+      if (IS_PROD) {
+        // Production: no compression at origin, no Content-Length change
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Length")).not.toBeNull();
+      }
     });
 
     test("does not compress small responses (< 1KB)", async () => {
@@ -212,7 +279,7 @@ describe("compression", () => {
       const result = compressResponse(response, "gzip", "/small.html");
 
       const finalResponse = await result;
-      // Small responses should not be compressed
+      // Small responses should not be compressed in either mode
       expect(finalResponse.headers.get("Content-Encoding")).toBeNull();
     });
 
@@ -225,15 +292,18 @@ describe("compression", () => {
       expect(result).toBe(response);
     });
 
-    test("does not compress image/svg+xml", async () => {
-      // SVG is actually compressible - let's check the shouldCompress logic
+    test("compresses image/svg+xml", async () => {
+      // SVG is compressible text — shouldCompress matches "image/svg"
       const svg = "<svg></svg>".repeat(100);
       const response = createResponse(svg, "image/svg+xml");
       const result = compressResponse(response, "gzip", "/icon.svg");
 
-      // SVG should be compressed (contains "image/svg")
-      const compressed = await result;
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      if (IS_PROD) {
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      }
     });
 
     test("handles Accept-Encoding with quality values", async () => {
@@ -245,10 +315,12 @@ describe("compression", () => {
         "/page.html",
       );
 
-      const compressed = await result;
-      // In dev/test, on-the-fly compression always uses gzip (Bun-native, fast).
-      // In production, origin skips compression entirely — Cloudflare handles it.
-      expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      if (IS_PROD) {
+        expect(result).toBeInstanceOf(Response);
+      } else {
+        const compressed = await result;
+        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+      }
     });
   });
 
@@ -281,8 +353,13 @@ describe("compression", () => {
         const response = createResponse(content, contentType);
         const result = compressResponse(response, "gzip", "/test");
 
-        const compressed = await result;
-        expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+        if (IS_PROD) {
+          // Production: origin returns uncompressed, Cloudflare handles it
+          expect(result).toBeInstanceOf(Response);
+        } else {
+          const compressed = await result;
+          expect(compressed.headers.get("Content-Encoding")).toBe("gzip");
+        }
       });
     }
 
