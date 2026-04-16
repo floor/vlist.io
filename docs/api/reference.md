@@ -107,6 +107,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
   orientation?: 'vertical' | 'horizontal'
   padding?:     number | [number, number] | [number, number, number, number]
   reverse?:     boolean
+  interactive?: boolean
   classPrefix?: string
   ariaLabel?:   string
   scroll?:      ScrollConfig
@@ -122,8 +123,9 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 | `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. Use `'horizontal'` for carousels or timelines. |
 | `padding` | `number \| [number, number] \| [number, number, number, number]` | `0` | Padding around the list content. Works like CSS `padding` — adds inset space between the viewport edge and items. Follows CSS shorthand: `number` (all sides), `[v, h]` (vertical/horizontal), or `[top, right, bottom, left]`. Works with list, grid, and masonry layouts. See [Gap & Padding](#gap--padding). |
 | `reverse` | `boolean` | `false` | Reverse mode — list starts scrolled to the bottom. `appendItems` auto-scrolls if already at bottom; `prependItems` preserves scroll position. Useful for any bottom-anchored content: chat, logs, activity feeds, timelines. |
+| `interactive` | `boolean` | `true` | Enable built-in keyboard navigation following the WAI-ARIA listbox pattern. Set to `false` for display-only lists or when items contain their own interactive elements. |
 | `classPrefix` | `string` | `'vlist'` | CSS class prefix for all internal elements. |
-| `ariaLabel` | `string` | — | Sets `aria-label` on the root listbox element. |
+| `ariaLabel` | `string` | — | Sets `aria-label` on the listbox element (`.vlist-items`). |
 | `scroll` | `ScrollConfig` | — | Fine-grained scroll behavior options. |
 
 ---
@@ -134,7 +136,7 @@ Controls how items are sized and rendered. Supports two sizing strategies, each 
 
 ```ts
 interface ItemConfig<T extends VListItem = VListItem> {
-  height?:          number | ((index: number, context?: GridHeightContext) => number)
+  height?:          number | ((index: number, context?: GridSizeContext) => number)
   width?:           number | ((index: number) => number)
   estimatedHeight?: number
   estimatedWidth?:  number
@@ -243,9 +245,9 @@ Scroll behavior options, passed as the `scroll` property of `BuilderConfig`.
 interface ScrollConfig {
   wheel?:       boolean
   wrap?:        boolean
+  gutter?:      'auto' | 'stable'
   idleTimeout?: number
   element?:     Window
-  scrollbar?:   'native' | 'none' | ScrollbarOptions
 }
 ```
 
@@ -254,14 +256,14 @@ interface ScrollConfig {
 | `wheel` | `boolean` | `true` | Whether mouse-wheel scrolling is enabled. Set to `false` for wizard-style navigation. |
 | `wrap` | `boolean` | `false` | Circular scrolling — `scrollToIndex` past the last item wraps to the beginning, and vice versa. Useful for carousels. |
 | `idleTimeout` | `number` | `150` | Milliseconds after the last scroll event before the list is considered idle. Used by async loading and velocity tracking. |
+| `gutter` | `'auto' \| 'stable'` | `'auto'` | Scrollbar gutter mode. `'stable'` reserves space for the scrollbar to prevent layout shift. Has no effect when `withScrollbar()` is active. |
 | `element` | `Window` | — | Use the browser window as the scroll container (document-level scrolling). Assign `window`. |
-| `scrollbar` | `'native' \| 'none' \| ScrollbarOptions` | custom | Scrollbar mode. Omit for the default custom scrollbar. `'native'` shows the browser's native bar. `'none'` hides all scrollbars. A `ScrollbarOptions` object fine-tunes the custom scrollbar. |
 
 ---
 
 ### ScrollbarOptions
 
-Fine-tuning for the custom scrollbar. Pass as `scroll.scrollbar` or to `withScrollbar()`.
+Fine-tuning for the custom scrollbar. Pass to `withScrollbar()`.
 
 ```ts
 interface ScrollbarOptions {
@@ -381,7 +383,7 @@ if (idx >= 0) list.updateItem(idx, { name: 'Renamed' })
 Remove a single item by ID.
 
 ```ts
-removeItem(id: string | number): void
+removeItem(id: string | number): boolean
 ```
 
 ---
