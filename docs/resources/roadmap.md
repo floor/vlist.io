@@ -185,7 +185,7 @@ A comprehensive [code review](../archive/V1_CODE_REVIEW.md) at v1.0.1 identified
 | **3 — Architecture** | #1, #12, #13 | `core.ts` decomposition (1,513 → 8 modules), feature conflict matrix, ARIA compliance (live region, focus recovery, grid roles) |
 | **4 — Polish** | #7, #10, #14 | Dev-mode diagnostics (DCE-verified), rendering edge case hardening, shared test helpers, DOM snapshot tests |
 
-**Final health:** 2,822 tests / 37,978 assertions, 96.3% function coverage / 98.7% line coverage (85% min enforced in CI), all 11 tree-shaking scenarios verified, zero runtime dependencies.
+**Final health:** 3,108 tests / 38,934 assertions, 95.70% function coverage / 98.32% line coverage (85% min enforced in CI), all 11 tree-shaking scenarios verified, zero runtime dependencies.
 
 ---
 
@@ -193,7 +193,7 @@ A comprehensive [code review](../archive/V1_CODE_REVIEW.md) at v1.0.1 identified
 
 - [Bundle Size](./bundle-size.md) — Detailed bundle analysis and tree-shaking
 - [Benchmarks](./benchmarks.md) — Live performance suites
-- [Testing](./testing.md) — Test suite and coverage (2,822 tests)
+- [Testing](./testing.md) — Test suite and coverage (3,108 tests)
 - [Structure](../internals/structure.md) — Complete source code map
 - [Context](../internals/context.md) — BuilderContext and feature system
 - [Measurement](../internals/measurement.md) — Auto-size measurement internals

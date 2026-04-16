@@ -12,13 +12,13 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 | Metric | Value |
 |--------|-------|
-| Total tests | 2,822 |
-| Passing tests | 2,822 (100%) ✅ |
-| Total assertions | 37,978 |
-| Test files | 48 |
-| Coverage | 98.7% lines, 96.3% functions (85% min threshold enforced) |
+| Total tests | 3,108 |
+| Passing tests | 3,108 (100%) |
+| Total assertions | 38,934 |
+| Test files | 57 |
+| Coverage | 98.32% lines, 95.70% functions (85% min threshold enforced) |
 | CI | GitHub Actions — typecheck, test, coverage, build, size + tree-shaking |
-| Runtime | ~18s |
+| Runtime | ~25s |
 
 **V1 Code Review ✅ ALL 14 ITEMS COMPLETE:**
 All 14 enhancement areas from the [V1 Code Review](../archive/V1_CODE_REVIEW.md) have been addressed across four sprints. Key test infrastructure improvements:
@@ -26,7 +26,7 @@ All 14 enhancement areas from the [V1 Code Review](../archive/V1_CODE_REVIEW.md)
 - Phase 2: 184 new tests (cross-feature integration, memory leak detection, performance benchmarks)
 - Phase 3: Shared test helpers (`test/helpers/`), DOM snapshot tests (11 tests across 6 configurations)
 - Coverage threshold enforcement in CI (85% minimum)
-- Coverage improved: lines 94.03% → 98.7%, functions 92.95% → 96.3%
+- Coverage improved: lines 94.03% → 98.32%, functions 92.95% → 95.70%
 
 ## Quick Start
 
@@ -236,7 +236,7 @@ Phase 2 tests verify that features work correctly together, resources are proper
 - **Memory Leak Detection (47 tests):** DOM cleanup verification, create/destroy cycles with DOM node counting, event listener leak detection, ResizeObserver disconnect tracking, timer cleanup, element pool cleanup, double-destroy safety across all features, large dataset cleanup (100K–1M items)
 - **Performance Benchmarks (50 tests):** Timing bounds for initialization (10K–1M items), render cycles, data operations, destroy, scrollToIndex, selection, snapshots, compression transitions, feature overhead comparison, virtualization correctness
 
-**Combined Impact:** Added 259+ tests across 6 files. All 2,822 tests passing with 37,978 assertions. Coverage: 98.7% lines / 96.3% functions (85% minimum enforced in CI).
+**Combined Impact:** Added 259+ tests across 6 files. All 3,108 tests passing with 38,934 assertions. Coverage: 98.32% lines / 95.70% functions (85% minimum enforced in CI).
 
 Several modules are primarily tested through integration tests in `builder/index.test.ts` (233 tests, 531 assertions). Their dedicated test files contain smoke tests + documentation noting indirect coverage:
 
@@ -284,9 +284,9 @@ The lcov report is written to `coverage/lcov.info`.
 
 ### Coverage Summary
 
-**Overall: 98.7% lines, 96.3% functions** (2,822 tests / 37,978 assertions)
+**Overall: 98.32% lines, 95.70% functions** (3,108 tests / 38,934 assertions)
 
-After the V1 Code Review (all 14 items complete): core.ts decomposed into smaller modules (measurement.ts, api.ts, dom.ts, scroll.ts, velocity.ts, data.ts, range.ts, context.ts), shared test helpers extracted to `test/helpers/`, DOM snapshot tests added, and coverage threshold enforcement (85% minimum) integrated into CI. Coverage improved from 94.03% → 98.7% lines, 92.95% → 96.3% functions.
+After the V1 Code Review (all 14 items complete): core.ts decomposed into smaller modules (measurement.ts, api.ts, dom.ts, scroll.ts, velocity.ts, data.ts, range.ts, context.ts), shared test helpers extracted to `test/helpers/`, DOM snapshot tests added, and coverage threshold enforcement (85% minimum) integrated into CI.
 
 | Category | Lines | Functions | Notes |
 |----------|------:|----------:|-------|
@@ -716,7 +716,7 @@ bun test --test-name-pattern="grid"
 | `src/features/snapshots/` | `test/features/snapshots/` | 1 |
 | `src/rendering/` | `test/rendering/` | 6 |
 | *(cross-cutting)* | `test/integration/` | 3 |
-| **Total** | | **46** |
+| **Total** | | **57** |
 
 ---
 
