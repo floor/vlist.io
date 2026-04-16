@@ -8,6 +8,8 @@ vlist uses [Bun's built-in test runner](https://bun.sh/docs/test/writing) with J
 
 **Current stats:**
 
+> These numbers are from a specific build and may differ from the current version. Run `bun test --coverage` for current figures.
+
 | Metric | Value |
 |--------|-------|
 | Total tests | 2,822 |
@@ -194,7 +196,7 @@ Phase 2 tests verify that features work correctly together, resources are proper
 | `features/grid/feature.test.ts` | 52 | 66 | withGrid integration — builder integration, scroll virtualization, column updates |
 | `features/scrollbar/scrollbar.test.ts` | 55 | 68 | Custom scrollbar — creation, position updates, show/hide, drag interaction, auto-hide, destroy |
 | `features/async/placeholder.test.ts` | 47 | 91 | Placeholder generation — structure analysis, string/number/boolean field masking, arrays, nested objects |
-| `features/sections/layout.test.ts` | 47 | 328 | Section layout — header positioning, item offset, group boundaries |
+| `features/groups/layout.test.ts` | 47 | 328 | Section layout — header positioning, item offset, group boundaries |
 | `features/snapshots/feature.test.ts` | 47 | 79 | Snapshots — getScrollSnapshot, restoreScroll, auto-restore via config, NaN guards, sizeCache rebuild, loadVisibleRange |
 | `features/async/feature.test.ts` | 42 | 53 | withAsync integration — adapter loading, data flow, error handling |
 | `features/selection/index.test.ts` | 61 | 100 | Selection state — single/multiple modes, toggle, range select, clear, keyboard focus |
@@ -327,11 +329,11 @@ After the V1 Code Review (all 14 items complete): core.ts decomposed into smalle
 | `src/features/scrollbar/index.ts` | 100% | 100% |
 | `src/features/scrollbar/scrollbar.ts` | 97.00% | 90.48% |
 | **Features — Sections** | | |
-| `src/features/sections/feature.ts` | 85.22% | 82.61% |
-| `src/features/sections/index.ts` | 100% | 100% |
-| `src/features/sections/layout.ts` | 100% | 100% |
-| `src/features/sections/sticky.ts` | 86.07% | 100% |
-| `src/features/sections/types.ts` | 100% | 100% |
+| `src/features/groups/feature.ts` | 85.22% | 82.61% |
+| `src/features/groups/index.ts` | 100% | 100% |
+| `src/features/groups/layout.ts` | 100% | 100% |
+| `src/features/groups/sticky.ts` | 86.07% | 100% |
+| `src/features/groups/types.ts` | 100% | 100% |
 | **Features — Selection** | | |
 | `src/features/selection/feature.ts` | 99.29% | 80.65% |
 | `src/features/selection/index.ts` | 100% | 100% |
@@ -351,8 +353,8 @@ Some lines remain uncovered due to JSDOM limitations, defensive code, and edge c
 | `features/page/feature.ts` | ~43% uncovered | Window scroll mode — `getBoundingClientRect()`, `window.scrollTo()`, resize listener internals all require real browser layout. Tests cover factory, DOM modifications, context delegation, and cleanup |
 | `features/scale/feature.ts` | ~12% uncovered | Touch momentum physics, browser-specific paths |
 | `features/scrollbar/feature.ts` | ~11% uncovered | Edge cases in destroy cleanup path |
-| `features/sections/feature.ts` | ~15% uncovered | Complex section reflow paths |
-| `features/sections/sticky.ts` | ~14% uncovered | Sticky header transitions requiring real layout (style assignment fails in JSDOM) |
+| `features/groups/feature.ts` | ~15% uncovered | Complex section reflow paths |
+| `features/groups/sticky.ts` | ~14% uncovered | Sticky header transitions requiring real layout (style assignment fails in JSDOM) |
 | `rendering/scale.ts` | ~10% uncovered | Compression edge cases at extreme ratios |
 | `rendering/viewport.ts` | ~4% uncovered | Defensive bounds checks |
 
@@ -709,7 +711,7 @@ bun test --test-name-pattern="grid"
 | `src/features/page/` | `test/features/page/` | 1 |
 | `src/features/scale/` | `test/features/scale/` | 1 |
 | `src/features/scrollbar/` | `test/features/scrollbar/` | 3 |
-| `src/features/sections/` | `test/features/sections/` | 3 |
+| `src/features/groups/` | `test/features/groups/` | 3 |
 | `src/features/selection/` | `test/features/selection/` | 3 |
 | `src/features/snapshots/` | `test/features/snapshots/` | 1 |
 | `src/rendering/` | `test/rendering/` | 6 |
@@ -718,4 +720,4 @@ bun test --test-name-pattern="grid"
 
 ---
 
-*For module-specific implementation details, see the corresponding module documentation: [async data](./features/async.md), [scrollbar](./features/scrollbar.md), [rendering](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [sections](./features/sections.md), [snapshots](./features/snapshots.md), [scale](./features/scale.md).*
+*For module-specific implementation details, see the corresponding module documentation: [async data](./features/async.md), [scrollbar](./features/scrollbar.md), [rendering](./internals/rendering.md), [selection](./features/selection.md), [events](./api/events.md), [groups](./features/groups.md), [snapshots](./features/snapshots.md), [scale](./features/scale.md).*

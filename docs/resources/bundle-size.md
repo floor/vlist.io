@@ -4,7 +4,7 @@
 
 ## Overview
 
-VList uses a **builder pattern with explicit features**. You import only the features you need, and bundlers eliminate everything else.
+vlist uses a **builder pattern with explicit features**. You import only the features you need, and bundlers eliminate everything else.
 
 ```typescript
 import { vlist, withGrid, withSelection } from 'vlist';
@@ -62,7 +62,7 @@ const list = new VirtualList({
 // Includes: ALL features whether you use them or not
 ```
 
-### VList (Builder Pattern)
+### vlist (Builder Pattern)
 
 ```typescript
 import { vlist } from 'vlist';
@@ -95,7 +95,7 @@ const list = vlist({ ... })
 
 ### Explicit Imports
 
-VList exports everything from a single entry point, allowing perfect tree-shaking:
+vlist exports everything from a single entry point, allowing perfect tree-shaking:
 
 ```typescript
 // vlist/src/index.ts
@@ -387,13 +387,13 @@ All modern bundlers support ES modules tree-shaking.
 
 ## Summary
 
-| Metric | VList (Builder) | Traditional | Improvement |
+| Metric | vlist (Builder) | Traditional | Improvement |
 |--------|----------------|-------------|-------------|
 | **Minimal** | {{size:base:gz}} KB gzipped | 20-23 KB | **Much smaller** |
 | **Heaviest single feature** | {{size:withTable:gz}} KB gzipped | 20-23 KB | **Still smaller** |
 | **Tree-shaking** | ✅ Perfect | ❌ None | Huge benefit |
 
-**Bottom line:** VList delivers smaller bundles by letting you import only what you need. The base is just {{size:base:gz}} KB gzipped, and each feature costs only {{size:withPage:delta}}–{{size:withTable:delta}} KB extra.
+**Bottom line:** vlist delivers smaller bundles by letting you import only what you need. The base is just {{size:base:gz}} KB gzipped, and each feature costs only {{size:withPage:delta}}–{{size:withTable:delta}} KB extra.
 
 ## See Also
 
