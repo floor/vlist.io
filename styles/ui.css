@@ -873,7 +873,15 @@
 }
 
 .ui-switch input {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .ui-switch__track {
@@ -905,6 +913,11 @@
 
 .ui-switch input:checked + .ui-switch__track::after {
     transform: translateX(18px);
+}
+
+.ui-switch input:focus-visible + .ui-switch__track {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .ui-switch input:disabled + .ui-switch__track {
