@@ -460,9 +460,10 @@ export function buildSuiteHistoryPageHTML() {
         <div class="bench-history__filter-group">
           <label class="bench-history__filter-label">Item Count</label>
           <div class="ui-segmented" id="suite-history-item-count">
+            <button class="ui-segmented__btn ui-segmented__btn--active" data-count="0">All</button>
             ${HISTORY_ITEM_COUNTS.map(
-              (count, i) =>
-                `<button class="ui-segmented__btn${i === 0 ? " ui-segmented__btn--active" : ""}" data-count="${count}">${formatItemCount(count)}</button>`,
+              (count) =>
+                `<button class="ui-segmented__btn" data-count="${count}">${formatItemCount(count)}</button>`,
             ).join("")}
           </div>
         </div>
@@ -472,15 +473,7 @@ export function buildSuiteHistoryPageHTML() {
             <option value="">All versions</option>
           </select>
         </div>
-        <div class="bench-history__filter-group">
-          <label class="bench-history__filter-label">Days</label>
-          <select class="bench-history__select" id="suite-history-days">
-            <option value="7">7 days</option>
-            <option value="30" selected>30 days</option>
-            <option value="90">90 days</option>
-            <option value="365">1 year</option>
-          </select>
-        </div>
+
       </div>
 
       <!-- Results Card -->
@@ -494,8 +487,8 @@ export function buildSuiteHistoryPageHTML() {
 
       <!-- Chart Area -->
       <div class="ui-card ui-card--xl bench-history__chart-card" id="suite-history-chart-card">
-        <h2 class="bench-history__section-title">Trend Over Time</h2>
-        <p class="bench-history__section-desc">Daily aggregated median with p5–p95 range band.</p>
+        <h2 class="bench-history__section-title">Version Trend</h2>
+        <p class="bench-history__section-desc">Median value per version with p5–p95 range band. Versions ordered oldest → newest.</p>
         <div class="bench-history__metric-select-row">
           <label class="bench-history__filter-label">Metric</label>
           <select class="bench-history__select" id="suite-history-metric">
