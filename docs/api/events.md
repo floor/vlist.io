@@ -217,6 +217,21 @@ list.on('load:end', ({ items, total, offset }) => {
 | `total` | `number` | Total item count (if reported by the adapter). |
 | `offset` | `number` | Starting offset of the completed request. |
 
+### data:change
+
+Fired when items are updated or removed via `updateItem()` or `removeItem()`.
+
+```typescript
+list.on('data:change', ({ type, id }) => {
+  console.log(`Item ${id} was ${type}d`)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | `'remove' \| 'update'` | The kind of data change. |
+| `id` | `string \| number` | The ID of the affected item. |
+
 ---
 
 ## Error Events
@@ -345,6 +360,7 @@ Use cases:
 | `scroll:idle` | Scroll | — | `{ scrollPosition }` |
 | `load:start` | Data | `withAsync` | `{ offset, limit }` |
 | `load:end` | Data | `withAsync` | `{ items, total?, offset? }` |
+| `data:change` | Data | — | `{ type, id }` |
 | `error` | Error | — | `{ error, context, viewport? }` |
 | `resize` | Lifecycle | — | `{ height, width }` |
 | `destroy` | Lifecycle | — | — |

@@ -590,8 +590,11 @@ Configuration for `withGroups()`.
 ```typescript
 interface GroupsConfig {
   getGroupForIndex: (index: number) => string
-  headerHeight:     number | ((group: string, groupIndex: number) => number)
-  headerTemplate:   (group: string, groupIndex: number) => string | HTMLElement
+  header?: {
+    height:    number | ((group: string, groupIndex: number) => number)
+    width?:    number | ((group: string, groupIndex: number) => number)
+    template:  (group: string, groupIndex: number) => string | HTMLElement
+  }
   sticky?:          boolean
 }
 ```
@@ -599,9 +602,12 @@ interface GroupsConfig {
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `getGroupForIndex` | `(index) => string` | — | **Required.** Returns the group key for a data index. Items must be pre-sorted by group. |
-| `headerHeight` | `number \| (group, groupIndex) => number` | — | **Required.** Size of group header elements in pixels. |
-| `headerTemplate` | `(group, groupIndex) => string \| HTMLElement` | — | **Required.** Render function for group headers. |
+| `header.height` | `number \| (group, groupIndex) => number` | — | Size of group header elements in pixels (main axis). |
+| `header.width` | `number \| (group, groupIndex) => number` | — | Size of group header elements in pixels (cross axis, for horizontal). |
+| `header.template` | `(group, groupIndex) => string \| HTMLElement` | — | Render function for group headers. |
 | `sticky` | `boolean` | `true` | Enable sticky headers that follow the viewport. |
+
+> **Deprecated:** `headerHeight` and `headerTemplate` as top-level properties still work but are deprecated. Use the nested `header` object instead.
 
 ### GridConfig
 
