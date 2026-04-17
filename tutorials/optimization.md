@@ -37,7 +37,7 @@ The following optimizations are already implemented in vlist:
 - **CSS-Only Static Positioning** - Items use `.vlist-item` CSS for `position:absolute;top:0;left:0;right:0`; only dynamic `height` set via JS
 - **Split Core/Extras CSS** - Core styles (6.7 KB) separated from optional variants, loading/empty states, and animations (3.4 KB extras)
 - **Re-exported Range Functions** - `calculateVisibleRange` and `calculateRenderRange` are direct re-exports from compression, eliminating pass-through wrappers
-- **Configurable Idle Timeout** - `idleTimeout` option on `BuilderConfig` (default: 150ms) for tuning scroll idle detection per device
+- **Configurable Idle Timeout** - `scroll.idleTimeout` option on `BuilderConfig` (default: 150ms) for tuning scroll idle detection per device
 
 ---
 
@@ -54,11 +54,13 @@ const list = vlist({
     height: 50,
     template: myTemplate,
   },
+})
+.use(withAsync({
   adapter: myAdapter,
   loading: {
     // Velocity above which loading is skipped entirely (px/ms)
-    // Default: 25
-    cancelThreshold: 25,
+    // Default: 12
+    cancelThreshold: 12,
 
     // Velocity above which preloading kicks in (px/ms)
     // Default: 2
@@ -68,7 +70,8 @@ const list = vlist({
     // Default: 50
     preloadAhead: 50,
   },
-});
+}))
+.build();
 ```
 
 **Velocity-based loading strategy:**
@@ -92,9 +95,10 @@ Control how long after the last scroll event before the list is considered "idle
 const list = vlist({
   container: '#list',
   item: { height: 50, template: myTemplate },
-  adapter: myAdapter,
-  idleTimeout: 200, // ms (default: 150)
-});
+  scroll: { idleTimeout: 200 }, // ms (default: 150)
+})
+.use(withAsync({ adapter: myAdapter }))
+.build();
 ```
 
 When idle is detected, vlist:
@@ -191,7 +195,7 @@ Arrow key navigation now uses `renderer.updateItemClasses()` on just the 2 affec
 
 #### ~~M2. Make idle timeout configurable~~ ✅ Implemented
 
-Added `idleTimeout` option to both `BuilderConfig` and `ScrollControllerConfig`. Defaults to 150ms. Consumers can tune for mobile/slower devices.
+Added `scroll.idleTimeout` option to `BuilderConfig`. Defaults to 150ms. Consumers can tune for mobile/slower devices.
 
 ---
 
@@ -203,7 +207,7 @@ Added `idleTimeout` option to both `BuilderConfig` and `ScrollControllerConfig`.
 
 #### ~~Z2. Split unused CSS into a separate file~~ ✅ Implemented
 
-Core styles split from optional presets. `dist/vlist.css` (6.7 KB) contains tokens, base layout, item states, and custom scrollbar. `dist/vlist-extras.css` (3.4 KB) contains variants, loading/empty states, utilities, and animations. Available via `import 'vlist/styles/extras'`.
+Core styles split from optional presets. `dist/vlist.css` (~7.5 KB) contains tokens, base layout, item states, and custom scrollbar. `dist/vlist-extras.css` (~1.2 KB) contains variants, loading/empty states, utilities, and animations. Available via `import 'vlist/styles/extras'`.
 
 #### Z3. Lazy-initialize placeholder manager 🟡 Low Impact
 

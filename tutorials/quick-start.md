@@ -30,7 +30,7 @@ const list = vlist({
 }).build();
 ```
 
-**Bundle:** 11.2 KB gzipped
+**Bundle:** 10.5 KB gzipped
 
 ---
 
@@ -59,7 +59,7 @@ list.getSelected();       // [5]
 list.getSelectedItems();  // [{ id: 5, ... }]
 ```
 
-**Bundle:** 13.7 KB gzipped
+**Bundle:** ~13.2 KB gzipped
 
 ---
 
@@ -86,7 +86,7 @@ const gallery = vlist({
   .build();
 ```
 
-**Bundle:** 15.1 KB gzipped
+**Bundle:** ~15.4 KB gzipped
 
 ---
 
@@ -114,7 +114,7 @@ const contacts = vlist({
   .build();
 ```
 
-**Bundle:** 15.9 KB gzipped
+**Bundle:** ~13.5 KB gzipped
 
 ---
 
@@ -149,7 +149,7 @@ chat.appendItems([newMessage]);
 chat.prependItems(olderMessages);
 ```
 
-**Bundle:** 15.9 KB gzipped
+**Bundle:** ~13.5 KB gzipped
 
 ---
 
@@ -181,7 +181,7 @@ const feed = vlist({
   .build();
 ```
 
-**Bundle:** 15.7 KB gzipped
+**Bundle:** ~15.2 KB gzipped
 
 ---
 
@@ -203,7 +203,7 @@ const bigList = vlist({
   .build();
 ```
 
-**Bundle:** 14.0 KB gzipped
+**Bundle:** ~13.5 KB gzipped
 
 ---
 
@@ -272,15 +272,15 @@ list.removeItem(5);
 
 | Feature | Cost | Description |
 |--------|------|-------------|
-| `withGrid()` | +3.9 KB | 2D grid layout with WAI-ARIA keyboard nav |
-| `withMasonry()` | +3.4 KB | Pinterest-style layout with lane-aware nav |
-| `withGroups()` | +4.6 KB | Grouped lists with sticky/inline headers |
-| `withAsync()` | +4.4 KB | Async data loading |
-| `withSelection()` | +2.5 KB | Single/multiple selection + 2D keyboard nav |
-| `withScale()` | +2.8 KB | Handle 1M+ items |
-| `withScrollbar()` | +1.2 KB | Custom scrollbar |
+| `withGrid()` | +3.8 KB | 2D grid layout with WAI-ARIA keyboard nav |
+| `withMasonry()` | +3.3 KB | Pinterest-style layout with lane-aware nav |
+| `withGroups()` | +2.7 KB | Grouped lists with sticky/inline headers |
+| `withAsync()` | +4.3 KB | Async data loading |
+| `withSelection()` | +2.7 KB | Single/multiple selection + 2D keyboard nav |
+| `withScale()` | +3.0 KB | Handle 1M+ items |
+| `withScrollbar()` | +1.1 KB | Custom scrollbar |
 | `withPage()` | +0.4 KB | Page-level scrolling |
-| `withSnapshots()` | +0.6 KB | Scroll save/restore |
+| `withSnapshots()` | +0.7 KB | Scroll save/restore |
 
 ## Next Steps
 
@@ -288,4 +288,4 @@ list.removeItem(5);
 - **[Builder Pattern](./builder-pattern)** — Features, composition, bundle costs
 - **[Feature Docs](/docs/features/overview)** — All features with examples
 - **[API Reference](/docs/api/reference)** — Complete method and event reference
-- **[Examples](/examples/)** — 34 interactive examples
+- **[Examples](/examples/)** — 16 interactive examples

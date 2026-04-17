@@ -319,19 +319,18 @@ const chat = vlist({
   }
 })
 .use(withAsync({
-  load: async (offset, limit) => {
-    // Load older messages
-    const response = await fetch(`/api/messages?offset=${offset}&limit=${limit}`)
-    const data = await response.json()
-    
-    return {
-      items: data.messages,
-      total: data.total,
-      hasMore: data.hasMore
+  adapter: {
+    read: async ({ offset, limit }) => {
+      // Load older messages
+      const response = await fetch(`/api/messages?offset=${offset}&limit=${limit}`)
+      const data = await response.json()
+      return {
+        items: data.messages,
+        total: data.total,
+        hasMore: data.hasMore
+      }
     }
-  },
-  total: 10000,
-  placeholder: (index) => ({ id: `temp-${index}`, text: '...' })
+  }
 }))
 .build()
 
@@ -367,10 +366,10 @@ const chat = vlist({
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date) // "Today", "Yesterday", "Jan 15"
   },
-  headerHeight: 28,
-  headerTemplate: (label) => `
-    <div class="date-divider">${label}</div>
-  `,
+  header: {
+    height: 28,
+    template: (label) => `<div class="date-divider">${label}</div>`,
+  },
   sticky: false // Inline headers (iMessage style)
 }))
 .build()
@@ -411,10 +410,10 @@ const chat = vlist({
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
   },
-  headerHeight: 28,
-  headerTemplate: (label) => `
-    <div class="date-divider">${label}</div>
-  `,
+  header: {
+    height: 28,
+    template: (label) => `<div class="date-divider">${label}</div>`,
+  },
   sticky: true // Sticky header shows current section as you scroll up
 }))
 .build()
@@ -519,32 +518,11 @@ Scrolls to item at data index.
 **Example:**
 
 ```typescript
-// Scroll to newest message
+// Scroll to newest message (bottom)
 chat.scrollToIndex(messages.length - 1, 'end')
 
 // Scroll to specific message
 chat.scrollToIndex(42, 'center')
-```
-
-#### scrollToBottom
-
-```typescript
-chat.scrollToBottom(behavior?)
-```
-
-Scrolls to the bottom (newest message).
-
-**Parameters:**
-- `behavior` — `'auto'` or `'smooth'` (default: `'auto'`)
-
-**Example:**
-
-```typescript
-// Jump to bottom
-chat.scrollToBottom()
-
-// Smooth scroll to bottom
-chat.scrollToBottom('smooth')
 ```
 
 #### getVisibleRange
@@ -714,12 +692,10 @@ const chat = vlist({
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
   },
-  headerHeight: 28,
-  headerTemplate: (label) => `
-    <div class="date-divider">
-      <span>${label}</span>
-    </div>
-  `,
+  header: {
+    height: 28,
+    template: (label) => `<div class="date-divider"><span>${label}</span></div>`,
+  },
   sticky: false
 }))
 .build()
@@ -781,7 +757,6 @@ setInterval(async () => {
 
 - **Don't reverse the array** — Keep chronological order
 - **Don't use with horizontal mode** — Not supported
-- **Don't use sticky headers** — Use inline headers instead
 - **Don't use with grid** — Not supported
 - **Don't manually manage scroll** — Let reverse mode handle it
 
@@ -852,23 +827,6 @@ const chat = vlist({
   item: { height: 60, template: render },
   items: messages
 })
-```
-
-### Error: "withGroups cannot be used with reverse: true"
-
-**Symptom:** Error when combining groups with reverse mode.
-
-**Cause:** Trying to use sticky headers in reverse mode.
-
-**Solution:** Set `sticky: false`:
-
-```typescript
-.use(withGroups({
-  getGroupForIndex: (i) => getDateGroup(messages[i]),
-  headerHeight: 28,
-  headerTemplate: (date) => `<div>${date}</div>`,
-  sticky: false // Add this
-}))
 ```
 
 ### Messages in wrong order

@@ -416,8 +416,9 @@ const list = vlist({
   `,
   },
   items: users,
-  selection: { mode: 'single' }
-});
+})
+.use(withSelection({ mode: 'single' }))
+.build();
 ```
 
 ### Template Context
@@ -477,8 +478,9 @@ const list = vlist({
     `,
   },
   items: users,
-  selection: { mode: 'single' }
-});
+})
+.use(withSelection({ mode: 'single' }))
+.build();
 ```
 
 > **Tip:** Tailwind's `dark:` variants work inside templates because the `.dark` class is on an ancestor element.
@@ -736,4 +738,4 @@ Always verify your customizations work in both light and dark modes. Use your br
 
 ---
 
-*See also: [Getting Started](./getting-started) | [API Reference](/docs/api/reference)*
+*See also: [Getting Started](/docs/getting-started) | [API Reference](/docs/api/reference)*

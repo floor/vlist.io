@@ -271,7 +271,6 @@ const list = vlist({
   items: data,
   scroll: {
     wheel: true,        // Still useful for desktop/trackpads
-    smoothing: false    // Native momentum is better on mobile
   }
 })
 .build();
@@ -615,8 +614,8 @@ The library's reliance on native scrolling rather than custom touch handling res
 
 ## Related Documentation
 
-- [Accessibility](accessibility.md) — Screen reader support, ARIA attributes
-- [Performance](optimization.md) — Optimization strategies and benchmarks
+- [Accessibility](/docs/accessibility) — Screen reader support, ARIA attributes
+- [Performance](/tutorials/optimization) — Optimization strategies and benchmarks
 - [Scroll](/docs/features/scrollbar) — Scroll controller and configuration
 
 ---

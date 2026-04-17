@@ -8,12 +8,12 @@ Different use cases need different features. A contact list doesn't need async l
 
 | Configuration | Bundle | vs. monolithic |
 |---|---|---|
-| Base (no features) | 7.7 KB | – |
-| + Selection | 10.0 KB | 2.1× smaller |
-| + Grid + Scrollbar | 11.7 KB | 1.8× smaller |
-| + Groups | 12.3 KB | 1.8× smaller |
-| + Async + Page | 13.5 KB | 1.6× smaller |
-| All features | ~16 KB | 1.4× smaller |
+| Base (no features) | 10.5 KB | – |
+| + Selection | 13.2 KB | 1.6× smaller |
+| + Grid + Scrollbar | 14.3 KB | 1.5× smaller |
+| + Groups | 13.2 KB | 1.6× smaller |
+| + Async + Page | 14.8 KB | 1.4× smaller |
+| All features | ~18 KB | 1.2× smaller |
 
 **Traditional virtual lists:** 20–23 KB minimum (all features bundled).
 
@@ -68,14 +68,14 @@ list.destroy();
 
 | Feature | Import | Cost | Description |
 |---|---|---|---|
-| `withGrid()` | `vlist` | +4.0 KB | 2D grid layout (virtualises by row) |
-| `withGroups()` | `vlist` | +4.6 KB | Grouped lists with sticky or inline headers |
-| `withAsync()` | `vlist` | +5.3 KB | Lazy loading via adapter |
-| `withSelection()` | `vlist` | +2.3 KB | Single / multiple item selection |
-| `withScale()` | `vlist` | +2.2 KB | 1M+ item compression |
-| `withScrollbar()` | `vlist` | +1.0 KB | Custom scrollbar UI |
-| `withPage()` | `vlist` | +0.9 KB | Document-level scrolling |
-| `withSnapshots()` | built-in | 0 KB | Scroll save/restore |
+| `withGrid()` | `vlist` | +3.8 KB | 2D grid layout (virtualises by row) |
+| `withGroups()` | `vlist` | +2.7 KB | Grouped lists with sticky or inline headers |
+| `withAsync()` | `vlist` | +4.3 KB | Lazy loading via adapter |
+| `withSelection()` | `vlist` | +2.7 KB | Single / multiple item selection |
+| `withScale()` | `vlist` | +3.0 KB | 1M+ item compression |
+| `withScrollbar()` | `vlist` | +1.1 KB | Custom scrollbar UI |
+| `withPage()` | `vlist` | +0.4 KB | Document-level scrolling |
+| `withSnapshots()` | `vlist` | +0.7 KB | Scroll save/restore |
 
 ---
 
@@ -126,8 +126,10 @@ const browser = vlist({
   .use(withGrid({ columns: 6, gap: 12 }))
   .use(withGroups({
     getGroupForIndex: (i) => files[i].category,
-    headerHeight: 40,
-    headerTemplate: (cat) => `<h2 class="category-header">${cat}</h2>`,
+    header: {
+      height: 40,
+      template: (cat) => `<h2 class="category-header">${cat}</h2>`,
+    },
     sticky: true,
   }))
   .use(withSelection({ mode: 'multiple' }))
@@ -136,8 +138,8 @@ const browser = vlist({
 
 // Bundle: ~15.3 KB gzipped
 
-browser.on('selection:change', ({ selectedIds }) => {
-  toolbar.setCount(selectedIds.length);
+browser.on('selection:change', ({ selected }) => {
+  toolbar.setCount(selected.length);
 });
 ```
 
