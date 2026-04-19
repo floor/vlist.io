@@ -85,6 +85,30 @@ const list = vlist({
 }).build();
 ```
 
+> **⚠️ Scrollbar width caveat — cross-platform pre-measurement**
+>
+> The vlist viewport has `overflow: auto`, so on platforms with **classic (non-overlay) scrollbars** — Windows and most Linux desktops — the scrollbar consumes ~17 px of horizontal space inside the viewport. If your hidden measurer doesn't account for this, items are measured at a **wider** width than they actually render at, text wraps differently, and measured heights end up **shorter** than reality.
+>
+> Subtract the scrollbar width from the measurer's width:
+>
+> ```typescript
+> function getScrollbarWidth(): number {
+>   const el = document.createElement('div');
+>   el.style.cssText =
+>     'position:absolute;top:-9999px;width:100px;height:100px;overflow:scroll';
+>   document.body.appendChild(el);
+>   const w = el.offsetWidth - el.clientWidth;
+>   el.remove();
+>   return w;
+> }
+>
+> // Use when building your hidden measurer:
+> const scrollbarW = getScrollbarWidth();          // 0 on macOS, ~17 on Windows
+> const innerWidth = container.offsetWidth - scrollbarW - padding * 2;
+> ```
+>
+> On macOS with overlay scrollbars this returns **0**, so the subtraction is a no-op. On Windows it returns the real scrollbar width and your measurements will match the rendered layout.
+
 **When to choose Mode A:**
 
 - All items share one or a few fixed sizes (`height: 48`)
@@ -344,6 +368,14 @@ In development mode, vlist logs a warning:
 **Problem:** Content size updates during scroll cause the scrollbar to shift.
 
 **Solution:** This is handled automatically — content size updates are deferred during active scrolling and flushed on idle. If still noticeable, the items may have very large size variance.
+
+### Mode A items are shorter than expected on Windows / Linux
+
+**Problem:** Pre-measured heights are correct on macOS but too short on Windows or Linux. Items overflow their allocated space, clipping borders, border-radius, or bottom content.
+
+**Cause:** The hidden measurer element doesn't account for the classic scrollbar width. The vlist viewport uses `overflow: auto`, so on platforms with non-overlay scrollbars the content area is ~17 px narrower than `container.offsetWidth`. Text wraps at a different point, making items taller than what was measured.
+
+**Solution:** Subtract the scrollbar width from the measurer's width — see the [scrollbar width caveat](#mode-a--known-size-function) in the Mode A section above.
 
 ## See Also
 
