@@ -67,12 +67,28 @@ const renderItem = (item) => renderPostHTML(item);
  * measurement. For 5 000 items with ~12 unique body texts this means
  * ~12 actual DOM measurements instead of 5 000.
  */
+const getScrollbarWidth = () => {
+  const outer = document.createElement("div");
+  outer.style.cssText =
+    "position:absolute;top:-9999px;width:100px;height:100px;overflow:scroll;";
+  document.body.appendChild(outer);
+  const width = outer.offsetWidth - outer.clientWidth;
+  outer.remove();
+  return width;
+};
+
 const measureSizes = (itemList, container, vlistPadding = 0) => {
   // Items render inside the vlist content div which applies vlistPadding on all
   // sides (border-box). The cross-axis (left + right) padding narrows each item,
   // so the measurer must use that exact inner width — otherwise text wraps at a
   // different point and measured heights diverge from actual rendered heights.
-  const innerWidth = container.offsetWidth - vlistPadding * 2;
+  //
+  // The vlist viewport has overflow:auto, so on platforms with classic
+  // (non-overlay) scrollbars (e.g. Windows) the scrollbar consumes space
+  // and narrows the content area. We must subtract that width here so
+  // measurements match the actual rendered width.
+  const scrollbarW = getScrollbarWidth();
+  const innerWidth = container.offsetWidth - scrollbarW - vlistPadding * 2;
   const measurer = document.createElement("div");
   measurer.style.cssText =
     "position:absolute;top:0;left:0;visibility:hidden;pointer-events:none;" +
