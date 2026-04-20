@@ -1,0 +1,192 @@
+<div class="container">
+    <header>
+        <h1>Books</h1>
+        <p class="description">
+            Virtualized data table with <code>withTable</code> +
+            <code>withAsync</code> + <code>withScale</code>, backed by a real
+            <strong>SQLite database</strong> of
+            <strong>40.8 million books</strong> from
+            <a href="https://openlibrary.org" target="_blank">Open Library</a>.
+            Data loads <strong>lazily in chunks</strong> as you scroll —
+            sorting, filtering, and search all happen
+            <strong>server-side</strong> via <code>/api/books</code>.
+            <code>withScale</code> + <code>withScrollbar</code> handle the
+            compressed scroll space needed for 40M+ items (far beyond the
+            browser's ~16.7M pixel limit).
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <h2 class="sr-only">Books</h2>
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Search -->
+            <section class="ui-section">
+                <h3 class="ui-title">Search</h3>
+                <div class="ui-row">
+                    <input
+                        type="text"
+                        id="search-input"
+                        class="ui-input"
+                        placeholder="Search by title…"
+                        spellcheck="false"
+                        autocomplete="off"
+                    />
+                </div>
+                <div class="ui-row">
+                    <input
+                        type="text"
+                        id="author-input"
+                        class="ui-input"
+                        placeholder="Search by author…"
+                        spellcheck="false"
+                        autocomplete="off"
+                    />
+                </div>
+            </section>
+
+            <!-- Category Filter -->
+            <section class="ui-section">
+                <h3 class="ui-title">Category</h3>
+                <div class="ui-row">
+                    <select id="filter-category" class="ui-select">
+                        <option value="">All categories</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Columns -->
+            <section class="ui-section">
+                <h3 class="ui-title">Columns</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="column-preset">
+                        <button class="ui-segmented__btn" data-preset="default">
+                            Default
+                        </button>
+                        <button class="ui-segmented__btn" data-preset="compact">
+                            Compact
+                        </button>
+                        <button class="ui-segmented__btn" data-preset="full">
+                            Full
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Row Height -->
+            <section class="ui-section">
+                <h3 class="ui-title">Row Height</h3>
+                <div class="ui-row slider">
+                    <input
+                        type="range"
+                        id="row-height"
+                        class="ui-slider"
+                        min="28"
+                        max="64"
+                        value="36"
+                    />
+                    <span class="ui-value" id="row-height-value">36px</span>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
+                        <button
+                            id="btn-first"
+                            class="ui-btn ui-btn--icon"
+                            title="First row"
+                        >
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button
+                            id="btn-middle"
+                            class="ui-btn ui-btn--icon"
+                            title="Middle"
+                        >
+                            <i class="icon icon--center"></i>
+                        </button>
+                        <button
+                            id="btn-last"
+                            class="ui-btn ui-btn--icon"
+                            title="Last row"
+                        >
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button
+                            id="btn-random"
+                            class="ui-btn ui-btn--icon"
+                            title="Random row"
+                        >
+                            <i class="icon icon--shuffle"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sort State -->
+            <section class="ui-section">
+                <h3 class="ui-title">Sort</h3>
+                <div class="ui-detail" id="sort-detail">
+                    <span class="ui-detail__empty"
+                        >Click a column header to sort</span
+                    >
+                </div>
+            </section>
+
+            <!-- Selected Book -->
+            <section class="ui-section">
+                <h3 class="ui-title">Selected book</h3>
+                <div class="ui-detail" id="row-detail">
+                    <span class="ui-detail__empty"
+                        >Click a row to see details</span
+                    >
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">rows</span>
+            </span>
+        </div>
+        <div class="example-info__right">
+            <span class="example-info__stat">
+                <strong id="info-results">0</strong>
+                <span class="example-info__unit">results</span>
+            </span>
+            <span class="example-info__stat">
+                <strong id="info-loaded">0</strong>
+                <span class="example-info__unit">loaded</span>
+            </span>
+            <span class="example-info__stat">
+                <strong id="info-requests">0</strong>
+                <span class="example-info__unit">reqs</span>
+            </span>
+            <span class="example-info__stat">
+                <strong id="info-columns">0</strong>
+                <span class="example-info__unit">cols</span>
+            </span>
+            <span class="example-info__stat">
+                <strong id="info-sort">none</strong>
+            </span>
+        </div>
+    </div>
+</div>
