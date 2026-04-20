@@ -62,7 +62,7 @@ Async data source with a `read` function:
 - **Input**: `{ offset: number, limit: number, cursor: string | undefined, signal: AbortSignal }`
   - `offset` — zero-based start index for this chunk
   - `limit` — number of items requested
-  - `cursor` — reserved for future use; currently always `undefined` (see [Roadmap — cursor forwarding](../roadmap.md))
+  - `cursor` — the cursor returned by the previous sequential response, or `undefined`. vlist forwards it automatically on the next in-sequence request; any non-sequential request (jump, random access) always receives `undefined`
   - `signal` — AbortSignal tied to this chunk's lifecycle; pass to `fetch()` to cancel stale in-flight requests automatically
 - **Output**: `Promise<{ items: T[], total: number, hasMore?: boolean, cursor?: string }>`
 
@@ -387,7 +387,9 @@ If `signal` is not passed, vlist still removes the request from its tracking map
 
 ### Client-Computed Cursor for High-Performance Pagination
 
-The `cursor` field in `AdapterParams` is reserved for future use (currently always `undefined` — see [Roadmap](../roadmap.md)). For APIs that support keyset pagination, implement cursor logic directly in the adapter using a local cache:
+vlist natively forwards server-returned cursors for sequential reads (`AdapterParams.cursor`). For APIs that use opaque page tokens — Elasticsearch scroll, Firestore `startAfter`, etc. — return the token in `AdapterResponse.cursor` and vlist will pass it back on the next in-sequence request automatically.
+
+For SQL-style keyset pagination (e.g. `WHERE col > ? AND id > ?`), a client-computed cursor is more powerful: it works for any offset, not just sequential reads, because the adapter derives the anchor value from previously loaded data rather than relying on the server to issue a token. Implement it with a local cache in the adapter:
 
 ```typescript
 // Cache the last item of each chunk: offset → { val, id }
