@@ -99,7 +99,24 @@ Automated benchmarks against TanStack Virtual, react-window, react-virtuoso, vir
 
 ---
 
-## 5. Production readiness and trust
+## 5. Forward response cursor to AdapterParams
+
+**Priority:** Medium
+**Status:** Planned
+
+`AdapterResponse.cursor` (a server-returned opaque string, e.g. a "next page token") is stored in `DataState.cursor` but is never passed back to `AdapterParams.cursor` on subsequent reads. The field is wired into the types and documented as the cursor-pagination mechanism, but the data manager always passes `cursor: undefined`.
+
+### Impact
+
+Adapters that rely on a server-side cursor string must work around this by managing cursor state themselves. The more capable client-computed cursor pattern (caching the last item's sort value and id) does not depend on `AdapterParams.cursor` at all and is the recommended approach in the meantime — see [Async — Client-Computed Cursor](./features/async.md#client-computed-cursor-for-high-performance-pagination).
+
+### What needs to change
+
+`manager.ts` `loadRange()` currently hard-codes `cursor: undefined` in `AdapterParams`. The fix is to pass the stored `cursor` string when available, but only for sequential forward loads — passing a cursor meant for offset N to a request at offset M would return wrong data. The data manager needs to track whether the stored cursor is valid for the requested offset before forwarding it.
+
+---
+
+## 6. Production readiness and trust
 
 **Priority:** Medium
 **Status:** Ongoing

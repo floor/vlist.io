@@ -24,6 +24,15 @@ import {
   DEFAULT_LIMIT as CITIES_DEFAULT_LIMIT,
 } from "./cities";
 import {
+  getBooks,
+  getBookById,
+  getCategories as getBookCategories,
+  getStats as getBooksStats,
+  parseQueryOptions as parseBooksParams,
+  MAX_LIMIT as BOOKS_MAX_LIMIT,
+  DEFAULT_LIMIT as BOOKS_DEFAULT_LIMIT,
+} from "./books";
+import {
   getTracks,
   getTrackById,
   createTrack,
@@ -378,6 +387,50 @@ const handleGetContinents = (): Response => {
 const handleGetCitiesStats = (): Response => {
   try {
     return json(getCitiesStats());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+// ── Books handlers ──────────────────────────────────────────────────────────
+
+const handleGetBooks = async (url: URL): Promise<Response> => {
+  const params = parseBooksParams(url);
+  await sleep(params.delay);
+
+  try {
+    const result = getBooks(params);
+    return json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+const handleGetBook = (_url: URL, id: number): Response => {
+  try {
+    const book = getBookById(id);
+    if (!book) return error("Book not found", 404);
+    return json(book);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+const handleGetBookCategories = (): Response => {
+  try {
+    return json(getBookCategories());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+const handleGetBooksStats = (): Response => {
+  try {
+    return json(getBooksStats());
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -895,6 +948,28 @@ export const routeApi = async (
   // GET /api/cities
   if (path === "/api/cities" || path === "/api/cities/") {
     return handleGetCities(url);
+  }
+
+  // GET /api/books/categories
+  if (path === "/api/books/categories") {
+    return handleGetBookCategories();
+  }
+
+  // GET /api/books/stats
+  if (path === "/api/books/stats") {
+    return handleGetBooksStats();
+  }
+
+  // GET /api/books/:id
+  const bookMatch = path.match(/^\/api\/books\/(\d+)$/);
+  if (bookMatch) {
+    const id = parseInt(bookMatch[1], 10);
+    return handleGetBook(url, id);
+  }
+
+  // GET /api/books
+  if (path === "/api/books" || path === "/api/books/") {
+    return handleGetBooks(url);
   }
 
   // GET /api/tracks/countries

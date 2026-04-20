@@ -59,7 +59,11 @@ const list = vlist({
 
 #### adapter (required)
 Async data source with a `read` function:
-- **Input**: `{ offset: number, limit: number }`
+- **Input**: `{ offset: number, limit: number, cursor: string | undefined, signal: AbortSignal }`
+  - `offset` — zero-based start index for this chunk
+  - `limit` — number of items requested
+  - `cursor` — reserved for future use; currently always `undefined` (see [Roadmap — cursor forwarding](../roadmap.md))
+  - `signal` — AbortSignal tied to this chunk's lifecycle; pass to `fetch()` to cancel stale in-flight requests automatically
 - **Output**: `Promise<{ items: T[], total: number, hasMore?: boolean, cursor?: string }>`
 
 #### autoLoad (optional)
@@ -93,30 +97,27 @@ const list = vlist({
   item: {
     height: 48,
     template: (item, index) => {
-      const isLoading = !item || String(item.id).startsWith('__placeholder_');
-      return `
-        <div class="item ${isLoading ? 'loading' : ''}">
-          ${isLoading ? 'Loading...' : item.name}
-        </div>
-      `;
+      if (isPlaceholderItem(item)) {
+        return `<div class="item loading">${item.name}</div>`;
+      }
+      return `<div class="item">${item.name}</div>`;
     },
   },
 })
 .use(withAsync({
   adapter: {
-    read: async ({ offset, limit, cursor }) => {
-      const url = cursor 
-        ? `/api/items?cursor=${cursor}&limit=${limit}`
-        : `/api/items?offset=${offset}&limit=${limit}`;
-        
-      const response = await fetch(url);
+    // Always pass signal to fetch() — vlist cancels stale chunks automatically
+    // when the user scrolls away, freeing browser connections immediately.
+    read: async ({ offset, limit, signal }) => {
+      const response = await fetch(
+        `/api/items?offset=${offset}&limit=${limit}`,
+        { signal }
+      );
       const data = await response.json();
-      
       return {
         items: data.items,
         total: data.total,
-        cursor: data.nextCursor,
-        hasMore: data.hasMore
+        hasMore: data.hasMore,
       };
     },
   },
@@ -360,6 +361,73 @@ console.log({
 
 ## Performance Optimizations
 
+### Stale Request Cancellation
+
+vlist tracks every in-flight chunk request with an `AbortController`. When the user scrolls to a new position, any request whose chunk is more than 2 chunk-widths from the new viewport is canceled immediately:
+
+```
+User jumps from offset 0 → offset 35,500,000
+  → All in-flight requests at offset ~0 are aborted
+  → Only 2-3 new requests fire for the target position
+  → Browser's 6-connection HTTP/1.1 pool never saturates
+```
+
+This keeps concurrent requests to at most 3 (current chunk + 1 on each side), well under the browser's 6-connection HTTP/1.1 limit. Without this, a fast scroll through a large list queues dozens of requests — the connections fill up and each completion appears slow even when the server is fast.
+
+**Always pass `signal` to `fetch()`** so the browser actually cancels the TCP request when the AbortController fires:
+
+```typescript
+read: async ({ offset, limit, signal }) => {
+  const res = await fetch(`/api/items?offset=${offset}&limit=${limit}`, { signal });
+  // ...
+}
+```
+
+If `signal` is not passed, vlist still removes the request from its tracking maps (so it won't block new requests), but the underlying HTTP connection stays open until the server responds.
+
+### Client-Computed Cursor for High-Performance Pagination
+
+The `cursor` field in `AdapterParams` is reserved for future use (currently always `undefined` — see [Roadmap](../roadmap.md)). For APIs that support keyset pagination, implement cursor logic directly in the adapter using a local cache:
+
+```typescript
+// Cache the last item of each chunk: offset → { val, id }
+// Keyed by offset within the current sort/filter state.
+const chunkCursorCache = new Map();
+
+const adapter = {
+  read: async ({ offset, limit, signal }) => {
+    const params = new URLSearchParams({ offset, limit, sort, direction });
+
+    // Attach keyset cursor from the previous chunk if available
+    const prevCursor = chunkCursorCache.get(offset - limit);
+    if (prevCursor) {
+      params.set('cursorVal', prevCursor.val);
+      params.set('cursorId', prevCursor.id);
+    }
+
+    const res = await fetch(`/api/items?${params}`, { signal });
+    const data = await res.json();
+
+    // Cache cursor for the next sequential chunk
+    if (data.items.length > 0) {
+      const last = data.items.at(-1);
+      chunkCursorCache.set(offset, { val: last[sortKey], id: last.id });
+    }
+
+    return { items: data.items, total: data.total, hasMore: data.hasMore };
+  }
+};
+
+// Clear cursor cache whenever sort/filter state changes — cursors
+// are only valid for the same query state as when they were collected.
+function onSortOrFilterChange() {
+  chunkCursorCache.clear();
+  list.reload();
+}
+```
+
+On a 40M-row table, this reduces sequential scroll chunk latency from O(N) OFFSET scans to O(log N) index seeks — from seconds to milliseconds at any depth.
+
 ### Batched LRU Timestamps
 
 Sparse storage uses LRU (Least Recently Used) eviction to manage memory. Each chunk tracks when it was last accessed. Rather than calling `Date.now()` on every `storage.get()` call during rendering, vlist batches timestamp updates via `touchChunksForRange(start, end)`:
@@ -498,7 +566,11 @@ interface DataState<T extends VListItem> {
   /** Whether more items exist */
   hasMore: boolean;
   
-  /** Current cursor (for cursor pagination) */
+  /**
+   * Last cursor returned by the adapter response.
+   * Stored from AdapterResponse.cursor but not yet forwarded back
+   * to AdapterParams.cursor on subsequent reads — see roadmap.
+   */
   cursor: string | undefined;
 }
 ```
