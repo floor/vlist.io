@@ -568,8 +568,7 @@ interface DataState<T extends VListItem> {
   
   /**
    * Last cursor returned by the adapter response.
-   * Stored from AdapterResponse.cursor but not yet forwarded back
-   * to AdapterParams.cursor on subsequent reads — see roadmap.
+   * Forwarded back to AdapterParams.cursor on the next sequential request.
    */
   cursor: string | undefined;
 }
