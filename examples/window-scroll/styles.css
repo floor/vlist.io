@@ -12,7 +12,7 @@
 
 .sticky-bar {
     position: fixed;
-    bottom: 39.5px;
+    top: 56px;
     z-index: 90;
     display: flex;
     align-items: center;
@@ -22,7 +22,7 @@
     background: var(--header-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    // border-bottom: 1px solid var(--border);
     font-size: 13px;
 }
 
@@ -188,6 +188,7 @@
 
 .list-section {
     margin-bottom: 32px;
+    min-height:5000px;
 }
 
 .section-title {

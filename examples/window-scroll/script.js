@@ -76,7 +76,17 @@ const list = vlist({
     template: itemTemplate,
   },
 })
-  .use(withPage())
+  .use(
+    withPage({
+      scrollPadding: {
+        top: () => {
+          const bar = document.getElementById("sticky-bar");
+          return bar ? bar.getBoundingClientRect().bottom : 100;
+        },
+        bottom: 45,
+      },
+    }),
+  )
   .use(
     withAsync({
       adapter: {
