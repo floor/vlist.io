@@ -39,7 +39,7 @@ The list now scrolls with the page, using the browser's native scrollbar.
 
 ## Configuration
 
-**No configuration needed:**
+### Basic (no options)
 
 ```typescript
 withPage()  // That's it!
@@ -50,6 +50,42 @@ The feature automatically:
 - ✅ Uses document scroll position
 - ✅ Adjusts viewport calculations for page-level scrolling
 - ✅ Handles window resize events
+- ✅ Uses `behavior: "instant"` on all scroll calls (overrides CSS `scroll-behavior: smooth`)
+
+### `scrollPadding`
+
+When your page has fixed or sticky elements (headers, toolbars, bottom bars), focused items can end up hidden behind them during keyboard navigation or `scrollToIndex` calls. `scrollPadding` defines insets from the viewport edges — the "safe area" where items should land.
+
+Mirrors the CSS [`scroll-padding`](https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-padding) concept.
+
+```typescript
+withPage({
+  scrollPadding: { top: 60, bottom: 50 }
+})
+```
+
+**Accepts static values or functions** (for dynamic sticky elements):
+
+```typescript
+withPage({
+  scrollPadding: {
+    top: () => document.getElementById('sticky-header')!.getBoundingClientRect().bottom,
+    bottom: 41,
+  },
+})
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `top` | `number \| () => number` | Inset from viewport top (e.g. sticky header height) |
+| `bottom` | `number \| () => number` | Inset from viewport bottom (e.g. bottom toolbar height) |
+| `left` | `number \| () => number` | Inset from left (horizontal mode) |
+| `right` | `number \| () => number` | Inset from right (horizontal mode) |
+
+**What it affects:**
+
+- **Keyboard navigation** — arrow keys keep the focused item inside the safe area, never behind sticky chrome
+- **`scrollToIndex`** — `align: "start"` lands items below the top inset, `align: "end"` lands items above the bottom inset, `align: "center"` centers within the safe area
 
 ## Use Cases
 
@@ -92,7 +128,12 @@ const feed = vlist({
     },
   },
 })
-  .use(withPage())
+  .use(withPage({
+    scrollPadding: {
+      top: () => document.querySelector('.sticky-header')?.getBoundingClientRect().bottom ?? 0,
+      bottom: 50,
+    },
+  }))
   .use(withAsync({
     adapter: {
       read: async ({ offset, limit }) => {
@@ -104,7 +145,7 @@ const feed = vlist({
   .build();
 ```
 
-Combines page scrolling with lazy loading for infinite scroll.
+Combines page scrolling with lazy loading for infinite scroll. The `scrollPadding` keeps items clear of sticky headers and bottom chrome during keyboard navigation.
 
 ### Product Listings
 
@@ -250,7 +291,13 @@ The native page scrollbar provides:
 
 ## API
 
-The `withPage()` feature doesn't add any new methods. All standard VList methods work:
+### `withPage(options?)`
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `scrollPadding` | `object` | — | Viewport insets for sticky chrome (see [scrollPadding](#scrollpadding)) |
+
+The feature doesn't add any new methods. All standard VList methods work:
 
 ```typescript
 const list = vlist({ ... })
@@ -360,6 +407,33 @@ For better SEO with infinite scroll:
 4. Update page URL as user scrolls through content
 
 ## Troubleshooting
+
+### Focused item hidden behind sticky header/footer
+
+**Problem:** Pressing arrow keys scrolls the focused item behind a fixed header or bottom bar.
+
+**Solution:** Add `scrollPadding` matching your sticky chrome:
+```typescript
+withPage({
+  scrollPadding: {
+    top: 60,    // height of your sticky header
+    bottom: 40, // height of your bottom bar
+  },
+})
+```
+
+For dynamic heights, use a function:
+```typescript
+scrollPadding: {
+  top: () => document.getElementById('header')!.offsetHeight,
+}
+```
+
+### Scroll lags during rapid keyboard navigation
+
+**Problem:** Holding arrow keys causes the focused item to drift off-screen.
+
+**Solution:** This is caused by CSS `scroll-behavior: smooth` on the `<html>` element. The `withPage` feature uses `behavior: "instant"` on all its scroll calls to override this, but if you have other code calling `window.scrollTo` without `behavior: "instant"`, it may still be affected.
 
 ### List doesn't scroll
 
