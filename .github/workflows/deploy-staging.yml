@@ -1,5 +1,5 @@
 # GitHub Actions — Deploy staging.vlist.io
-# Triggers on push to staging branch
+# Triggers on push to staging branch, manual trigger, or when vlist staging is updated
 # SSHs into the server and runs deploy commands for the staging instance
 
 name: Deploy Staging
@@ -7,6 +7,10 @@ name: Deploy Staging
 on:
   push:
     branches: [staging]
+
+  # Triggered by vlist repo when its staging branch is updated
+  repository_dispatch:
+    types: [vlist-staging-updated]
 
   # Allow manual trigger from Actions tab
   workflow_dispatch:
