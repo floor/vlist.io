@@ -37,8 +37,8 @@ jobs:
 
             echo "📦 Deploying staging.vlist.io..."
 
-            # Pull latest vlist staging branch (used by file browser API + staleness check)
-            VLIST_DIR="/home/floor/vlist"
+            # Pull latest vlist staging branch (separate clone — production uses /home/floor/vlist)
+            VLIST_DIR="/home/floor/staging.vlist"
             cd $VLIST_DIR
             git fetch origin staging
             git reset --hard origin/staging
@@ -50,16 +50,15 @@ jobs:
             git fetch origin staging
             git reset --hard origin/staging
 
-            # Replace file: dependencies with npm registry versions BEFORE building
-            # (file: paths are for local dev only — they don't exist on the server)
-            echo "🔗 Resolving production dependencies..."
-            sed -i 's|"vlist": "file:../vlist"|"vlist": "latest"|' package.json
+            # Point vlist dependency to local staging clone (not npm — we want latest staging code)
+            echo "🔗 Linking vlist from staging clone..."
+            sed -i 's|"vlist": "file:../vlist"|"vlist": "file:../staging.vlist"|' package.json
 
             # Clean install to ensure fresh resolution (avoid lockfile conflicts)
             rm -rf node_modules bun.lockb
             bun install --force
 
-            # Build sandbox examples and benchmarks (now that vlist is installed from npm)
+            # Build sandbox examples and benchmarks (using latest vlist staging code)
             bun run build:examples
             bun run build:bench
 
