@@ -79,11 +79,8 @@ const list = vlist({
   .use(
     withPage({
       scrollPadding: {
-        top: () => {
-          const bar = document.getElementById("sticky-bar");
-          return bar ? bar.getBoundingClientRect().bottom : 100;
-        },
-        bottom: 45,
+        top: 112,
+        bottom: 56,
       },
     }),
   )
