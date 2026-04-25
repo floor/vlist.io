@@ -62,6 +62,12 @@ jobs:
             rm -rf node_modules bun.lockb
             bun install --force
 
+            # Framework adapters (vlist-react, vlist-vue, etc.) depend on @floor/vlist
+            # but the local file: link installs as "vlist". Create the @floor/vlist symlink
+            # so adapter packages can resolve it.
+            mkdir -p node_modules/@floor
+            ln -sfn ../vlist node_modules/@floor/vlist
+
             # Build sandbox examples and benchmarks (using latest vlist staging code)
             bun run build:examples
             bun run build:bench
