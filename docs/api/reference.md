@@ -108,6 +108,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
   padding?:     number | [number, number] | [number, number, number, number]
   reverse?:     boolean
   interactive?: boolean
+  focusOnClick?: boolean;
   classPrefix?: string
   ariaLabel?:   string
   scroll?:      ScrollConfig
@@ -124,6 +125,7 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 | `padding` | `number \| [number, number] \| [number, number, number, number]` | `0` | Padding around the list content. Works like CSS `padding` — adds inset space between the viewport edge and items. Follows CSS shorthand: `number` (all sides), `[v, h]` (vertical/horizontal), or `[top, right, bottom, left]`. Works with list, grid, and masonry layouts. See [Gap & Padding](#gap-padding). |
 | `reverse` | `boolean` | `false` | Reverse mode — list starts scrolled to the bottom. `appendItems` auto-scrolls if already at bottom; `prependItems` preserves scroll position. Useful for any bottom-anchored content: chat, logs, activity feeds, timelines. |
 | `interactive` | `boolean` | `true` | Enable built-in keyboard navigation following the WAI-ARIA listbox pattern. Set to `false` for display-only lists or when items contain their own interactive elements. |
+| `focusOnClick` | `boolean` | `false` | Show focus ring on mouse click. By default, clicking hides the focus ring (`:focus-visible` convention). Enable for file-manager or spreadsheet UIs. When using `withSelection()`, pass `focusOnClick` in its config instead. |
 | `classPrefix` | `string` | `'vlist'` | CSS class prefix for all internal elements. |
 | `ariaLabel` | `string` | — | Sets `aria-label` on the listbox element (`.vlist-items`). |
 | `scroll` | `ScrollConfig` | — | Fine-grained scroll behavior options. |

@@ -255,6 +255,27 @@ Arrow keys move **focus** without changing **selection**. Press Space or Enter t
 
 When enabled, arrow keys also select the focused item (WAI-ARIA "selection follows focus" pattern). Useful for single-select lists where navigation and selection should be unified (e.g., file browsers, settings panels).
 
+### `focusOnClick` Option
+
+```typescript
+// Baseline (no withSelection)
+vlist({
+  container: '#app',
+  focusOnClick: true,
+  item: { height: 48, template },
+  items,
+}).build()
+
+// With withSelection
+.use(withSelection({ mode: 'single', focusOnClick: true }))
+```
+
+By default, clicking an item updates the focused index but does not show the focus ring — this matches the web platform's `:focus-visible` convention where mouse users don't need a keyboard focus indicator.
+
+When `focusOnClick` is `true`, the `.vlist-item--focused` class (and `aria-activedescendant`) is applied on click as well, making the focus ring visible. This is useful for file-manager, spreadsheet, or selection-heavy UIs where the focus indicator doubles as a "current item" marker.
+
+Applies to both the baseline single-select and `withSelection` (regular clicks and Shift+clicks in multiple mode).
+
 ---
 
 ## Screen Reader Support
@@ -385,6 +406,8 @@ The root element uses `:focus-visible` so the focus ring only appears during key
   outline-offset: 2px;
 }
 ```
+
+> **Tip:** By default, the focus ring only appears on keyboard navigation. To also show it on mouse click, set `focusOnClick: true` in the list config or `withSelection` config. See [`focusOnClick` Option](#focusonclick-option) above.
 
 ### Item States
 

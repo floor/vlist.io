@@ -15,6 +15,7 @@ Every vlist has basic keyboard interaction out of the box — no `withSelection(
 - **Click** selects and focuses the clicked item (single-select only)
 - **No events** and no programmatic API
 - **Focus ring hidden on mouse click** — only visible during keyboard navigation
+- **`focusOnClick`** option — set on the top-level config to show focus ring on mouse click too
 - **Wrapping** configurable via `scroll.wrap` (default: false)
 
 This is intended for read-only or display-only lists where basic keyboard scrolling and single item activation is sufficient.
@@ -40,6 +41,7 @@ The `withSelection()` feature adds configurable selection modes, a programmatic 
 | Space / Enter | ✅ Toggle selection | ✅ Toggle selection |
 | Click to select | ✅ | ✅ |
 | Focus ring hidden on mouse | ✅ | ✅ |
+| `focusOnClick` | `focusOnClick: true` in config | `focusOnClick: true` in feature config |
 | Wrapping | `scroll.wrap` | `scroll.wrap` |
 | Selection follows focus | — | `followFocus: true` (single mode) |
 | Multiple selection | — | `mode: 'multiple'` |
@@ -89,6 +91,7 @@ const list = vlist({
 | `initial` | `Array<string \| number>` | `[]` | Initially selected item IDs |
 | `followFocus` | `boolean` | `false` | When `true`, arrow keys also select in single mode (WAI-ARIA selection-follows-focus). Ignored in multiple mode. |
 | `shiftArrowToggle` | `'origin' \| 'destination'` | `'origin'` | Which item Shift+Arrow toggles in multiple mode. `'origin'` toggles the item being left (macOS-style). `'destination'` toggles the item being moved to (WAI-ARIA APG literal). |
+| `focusOnClick` | `boolean` | `false` | Show focus ring on mouse click. By default, clicking hides the focus ring (`:focus-visible` convention). Enable for file-manager or spreadsheet-style UIs where the focus indicator doubles as a "current item" marker. |
 
 ### Selection Modes
 
@@ -225,6 +228,18 @@ Page size is calculated as `floor(containerSize / itemHeight)`.
 - **`'destination'`** — toggles the item you're **moving to**. This matches the WAI-ARIA APG specification literally ("moves focus to and toggles the selected state of the next option").
 
 Both modes are additive — prior selections from Space/Enter toggles or earlier Shift+Arrow sequences are always preserved. Shift+Arrow never clears existing selections.
+
+### `focusOnClick` Option
+
+```typescript
+.use(withSelection({ mode: 'single', focusOnClick: true }))
+```
+
+By default, clicking an item selects it but hides the focus ring — matching the web platform's `:focus-visible` convention. When `focusOnClick` is `true`, the focus ring is shown on click too.
+
+This is useful for file-manager, spreadsheet, or selection-heavy UIs where the focus indicator doubles as a "current item" marker. Applies to both regular clicks and Shift+clicks in multiple mode.
+
+For the baseline (no `withSelection`), set `focusOnClick: true` on the top-level `vlist()` config instead.
 
 ### Shared `scrollToFocus` Utility
 

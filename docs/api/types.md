@@ -119,6 +119,8 @@ interface BuilderConfig<T extends VListItem = VListItem> {
   orientation?: 'vertical' | 'horizontal'
   padding?:     number | [number, number] | [number, number, number, number]
   reverse?:     boolean
+  interactive?: boolean
+  focusOnClick?: boolean
   scroll?:      ScrollConfig
 }
 ```
@@ -134,6 +136,8 @@ interface BuilderConfig<T extends VListItem = VListItem> {
 | `orientation` | `'vertical' \| 'horizontal'` | `'vertical'` | Scroll axis. |
 | `padding` | `number \| [number, number] \| [number, number, number, number]` | `0` | Padding around the list content. Works like CSS `padding` — adds inset space between the viewport edge and items. Follows CSS shorthand: `number` (all sides), `[v, h]` (vertical/horizontal), or `[top, right, bottom, left]`. Applied as CSS padding on `.vlist-content` with `border-box`. Works with list, grid, and masonry. Grid/masonry automatically subtract cross-axis padding from the container width for column calculations. |
 | `reverse` | `boolean` | `false` | Bottom-anchored mode — list starts scrolled to the bottom. |
+| `interactive` | `boolean` | `true` | Enable built-in keyboard navigation following the WAI-ARIA listbox pattern. |
+| `focusOnClick` | `boolean` | `false` | Show focus ring on mouse click. Applies to baseline single-select. When using `withSelection()`, pass `focusOnClick` in its config instead. |
 | `scroll` | `ScrollConfig` | — | Fine-grained scroll behavior options. |
 
 ### VListConfig
