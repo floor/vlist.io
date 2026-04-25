@@ -10,6 +10,7 @@ import {
   withTable,
   withScrollbar,
   withScale,
+  withSnapshots,
 } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -45,6 +46,7 @@ let currentSelectionMode = "single";
 let currentLayoutMode = "list";
 let currentScrollbarEnabled = false;
 let currentScaleEnabled = false;
+let currentFocusOnClick = false;
 let loadRequests = 0;
 let loadedCount = 0;
 
@@ -131,6 +133,7 @@ const updateInfo = createInfoUpdater(stats);
 const layoutModeEl = document.getElementById("layout-mode");
 const scrollbarToggle = document.getElementById("scrollbar-toggle");
 const scaleToggle = document.getElementById("scale-toggle");
+const focusOnClickToggle = document.getElementById("focus-on-click-toggle");
 
 // Selection
 const selectionModeEl = document.getElementById("selection-mode");
@@ -167,7 +170,12 @@ function getAsyncConfig() {
 // =============================================================================
 
 function createList(selectionMode) {
+  // Capture snapshot before destroying so we can restore scroll + selection
+  let snapshot = null;
   if (list) {
+    try {
+      snapshot = list.getScrollSnapshot();
+    } catch {}
     list.destroy();
   }
 
@@ -178,11 +186,11 @@ function createList(selectionMode) {
   container.innerHTML = "";
 
   if (currentLayoutMode === "grid") {
-    createGridView(selectionMode);
+    createGridView(selectionMode, snapshot);
   } else if (currentLayoutMode === "table") {
-    createTableView(selectionMode);
+    createTableView(selectionMode, snapshot);
   } else {
-    createListView(selectionMode);
+    createListView(selectionMode, snapshot);
   }
 
   bindListEvents();
@@ -223,7 +231,7 @@ function applyScale(builder) {
 // List View (default — vertical list with 80px rows)
 // =============================================================================
 
-function createListView(selectionMode) {
+function createListView(selectionMode, snapshot) {
   const builder = vlist({
     container: "#list-container",
     ariaLabel: "Track list",
@@ -236,7 +244,10 @@ function createListView(selectionMode) {
   builder.use(withAsync(getAsyncConfig()));
   applyScale(builder);
   applyScrollbar(builder);
-  builder.use(withSelection({ mode: selectionMode }));
+  builder.use(
+    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+  );
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
 }
@@ -245,7 +256,7 @@ function createListView(selectionMode) {
 // Grid View (withGrid — card layout)
 // =============================================================================
 
-function createGridView(selectionMode) {
+function createGridView(selectionMode, snapshot) {
   const container = document.getElementById("list-container");
   const innerWidth = container.clientWidth - 2;
   const colWidth = (innerWidth - (GRID_COLUMNS - 1) * GRID_GAP) / GRID_COLUMNS;
@@ -265,12 +276,15 @@ function createGridView(selectionMode) {
   builder.use(withGrid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
   applyScale(builder);
   applyScrollbar(builder);
-  builder.use(withSelection({ mode: selectionMode }));
+  builder.use(
+    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+  );
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
 }
 
-function createTableView(selectionMode) {
+function createTableView(selectionMode, snapshot) {
   const builder = vlist({
     container: "#list-container",
     ariaLabel: "Track list",
@@ -295,7 +309,10 @@ function createTableView(selectionMode) {
   );
   applyScale(builder);
   applyScrollbar(builder);
-  builder.use(withSelection({ mode: selectionMode }));
+  builder.use(
+    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+  );
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
 }
@@ -304,7 +321,7 @@ function createTableView(selectionMode) {
 // Table View (withTable — columns with header)
 // =============================================================================
 
-function createTableView(selectionMode) {
+function createTableView(selectionMode, snapshot) {
   const builder = vlist({
     container: "#list-container",
     ariaLabel: "Track list",
@@ -327,7 +344,10 @@ function createTableView(selectionMode) {
       minColumnWidth: 50,
     }),
   );
-  builder.use(withSelection({ mode: selectionMode }));
+  builder.use(
+    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+  );
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
 }
@@ -400,6 +420,15 @@ scaleToggle.addEventListener("change", (e) => {
   } else {
     scrollbarToggle.disabled = false;
   }
+  createList(currentSelectionMode);
+});
+
+// =============================================================================
+// Focus on Click Toggle
+// =============================================================================
+
+focusOnClickToggle.addEventListener("change", (e) => {
+  currentFocusOnClick = e.target.checked;
   createList(currentSelectionMode);
 });
 
