@@ -95,43 +95,6 @@ const list = vlist({
   )
   .build();
 
-// Stats display
-const statsEl = document.getElementById("stats");
-let loadedCount = 0;
-let updateScheduled = false;
-
-const scheduleUpdate = () => {
-  if (updateScheduled) return;
-  updateScheduled = true;
-  requestAnimationFrame(() => {
-    updateStats();
-    updateScheduled = false;
-  });
-};
-
-const updateStats = () => {
-  const domNodes = document.querySelectorAll(".vlist-item").length;
-  const pct = Math.round((loadedCount / TOTAL_ITEMS) * 100);
-
-  statsEl.innerHTML = `
-    <span class="stat"><strong>${loadedCount.toLocaleString()}</strong> / ${TOTAL_ITEMS.toLocaleString()} loaded</span>
-    <span class="stat-sep">·</span>
-    <span class="stat"><strong>${domNodes}</strong> DOM nodes</span>
-    <span class="stat-sep">·</span>
-    <span class="stat"><strong>${pct}%</strong></span>
-  `;
-};
-
-list.on("scroll", scheduleUpdate);
-list.on("range:change", scheduleUpdate);
-
-list.on("load:end", ({ items }) => {
-  loadedCount += items.length;
-  scheduleUpdate();
-});
-
-updateStats();
-
 // Navigation buttons
 document.getElementById("btn-top").addEventListener("click", () => {
   list.scrollToIndex(0, { align: "start", behavior: "smooth" });
