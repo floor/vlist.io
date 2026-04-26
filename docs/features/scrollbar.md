@@ -725,16 +725,16 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 
 #### Gutter CSS
 
-When `gutter: true` is set, `vlist--scrollbar-gutter` is added to the root element and CSS pads `.vlist-items` to reserve space on the appropriate axis:
+When `gutter: true` is set, `vlist-viewport--gutter` is added to the viewport element. Padding on the viewport shrinks the scrollable content box so items stay clear of the scrollbar track:
 
 ```css
 /* Vertical: reserve space on the right */
-.vlist--scrollbar-gutter .vlist-items {
+.vlist-viewport--gutter {
   padding-right: var(--vlist-custom-scrollbar-width);
 }
 
 /* Horizontal: reserve space at the bottom */
-.vlist--scrollbar-gutter.vlist--horizontal .vlist-items {
+.vlist--horizontal .vlist-viewport--gutter {
   padding-right: 0;
   padding-bottom: var(--vlist-custom-scrollbar-width);
 }
