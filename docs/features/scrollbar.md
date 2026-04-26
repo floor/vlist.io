@@ -169,6 +169,7 @@ vlist({ container, item })
 | `showOnHover` | `boolean` | `true` | Show scrollbar when hovering near the scrollbar edge |
 | `hoverZoneWidth` | `number` | `16` | Width in px of the invisible hover zone along the scrollbar edge |
 | `showOnViewportEnter` | `boolean` | `true` | Show scrollbar when the mouse enters the list viewport |
+| `gutter` | `boolean` | `false` | Reserve layout space for the scrollbar — content shrinks to make room so the scrollbar never overlaps items. Equivalent to CSS `scrollbar-gutter: stable`. |
 
 When `showOnHover` is `true`, an invisible hover zone is placed along the scrollbar edge. Moving the mouse into this zone reveals the scrollbar, and it stays visible as long as the cursor remains over the zone or the track — the auto-hide timer is suspended while hovering.
 
@@ -290,6 +291,13 @@ interface ScrollbarOptions {
 
   /** Show scrollbar when the mouse enters the list viewport (default: true) */
   showOnViewportEnter?: boolean;
+
+  /**
+   * Reserve layout space for the scrollbar (default: false).
+   * When true, content shrinks to make room for the scrollbar track so it
+   * never overlaps items. Equivalent to CSS `scrollbar-gutter: stable`.
+   */
+  gutter?: boolean;
 }
 ```
 
@@ -514,6 +522,24 @@ const list = vlist({
   .build();
 ```
 
+### Scrollbar with Gutter (Reserved Space)
+
+Reserve layout space so the scrollbar track never overlaps content — equivalent to CSS `scrollbar-gutter: stable`:
+
+```typescript
+import { vlist, withScrollbar } from 'vlist';
+
+const list = vlist({
+  container: '#app',
+  item: { height: 48, template },
+  items: myData,
+})
+  .use(withScrollbar({ gutter: true }))
+  .build();
+```
+
+Use this when precise content width matters — tables where the last column shouldn't be clipped, grids with exact column widths, or any UI where overlay scrollbars would obscure content.
+
 ### Native Browser Scrollbar
 
 Opt into the browser's built-in scrollbar:
@@ -646,9 +672,9 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
   position: absolute;
   top: 0;
   right: 0;
-  width: var(--vlist-scrollbar-width, 8px);
+  width: var(--vlist-custom-scrollbar-width, 8px);
   height: 100%;
-  background: var(--vlist-scrollbar-track-bg, transparent);
+  background: var(--vlist-custom-scrollbar-track-color, transparent);
   opacity: 0;
   transition: opacity 0.2s;
 }
@@ -667,13 +693,13 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 .vlist-scrollbar-thumb {
   position: absolute;
   width: 100%;
-  background: var(--vlist-scrollbar-custom-thumb-bg, rgba(0, 0, 0, 0.3));
-  border-radius: var(--vlist-scrollbar-custom-thumb-radius, 4px);
+  background: var(--vlist-custom-scrollbar-thumb-color, rgba(0, 0, 0, 0.3));
+  border-radius: var(--vlist-custom-scrollbar-radius, 8px);
   cursor: pointer;
 }
 
 .vlist-scrollbar-thumb:hover {
-  background: var(--vlist-scrollbar-custom-thumb-hover-bg, rgba(0, 0, 0, 0.5));
+  background: var(--vlist-custom-scrollbar-thumb-hover-color, rgba(0, 0, 0, 0.5));
 }
 
 /* Hover zone — always pointer-events:auto so mouseenter fires
@@ -697,6 +723,23 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 }
 ```
 
+#### Gutter CSS
+
+When `gutter: true` is set, `vlist--scrollbar-gutter` is added to the root element and CSS pads `.vlist-items` to reserve space on the appropriate axis:
+
+```css
+/* Vertical: reserve space on the right */
+.vlist--scrollbar-gutter .vlist-items {
+  padding-right: var(--vlist-custom-scrollbar-width);
+}
+
+/* Horizontal: reserve space at the bottom */
+.vlist--scrollbar-gutter.vlist--horizontal .vlist-items {
+  padding-right: 0;
+  padding-bottom: var(--vlist-custom-scrollbar-width);
+}
+```
+
 #### Horizontal Scrollbar CSS
 
 When `orientation: 'horizontal'` is set, the scrollbar renders along the bottom edge:
@@ -709,7 +752,7 @@ When `orientation: 'horizontal'` is set, the scrollbar renders along the bottom 
   left: 0;
   right: 0;
   width: 100%;
-  height: var(--vlist-scrollbar-width);
+  height: var(--vlist-custom-scrollbar-width);
 }
 
 /* Horizontal thumb */
@@ -749,18 +792,19 @@ Customize the scrollbar appearance with CSS custom properties:
 
 ```css
 :root {
-  --vlist-scrollbar-width: 8px;
-  --vlist-scrollbar-track-bg: transparent;
-  --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);
-  --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5);
-  --vlist-scrollbar-custom-thumb-radius: 4px;
+  /* Custom overlay scrollbar (withScrollbar feature) */
+  --vlist-custom-scrollbar-width: 8px;
+  --vlist-custom-scrollbar-track-color: transparent;
+  --vlist-custom-scrollbar-radius: 8px;
+  --vlist-custom-scrollbar-thumb-color: rgba(0, 0, 0, 0.3);
+  --vlist-custom-scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.5);
 }
 
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --vlist-scrollbar-custom-thumb-bg: rgba(255, 255, 255, 0.3);
-    --vlist-scrollbar-custom-thumb-hover-bg: rgba(255, 255, 255, 0.5);
+    --vlist-custom-scrollbar-thumb-color: rgba(255, 255, 255, 0.3);
+    --vlist-custom-scrollbar-thumb-hover-color: rgba(255, 255, 255, 0.5);
   }
 }
 ```
@@ -814,7 +858,7 @@ vlist({
 
 ## See Also
 
-- [Types — `ScrollbarOptions`](../api/types.md#scrollbaroptions) — `autoHide`, `autoHideDelay`, `minThumbSize`, `showOnHover`, `hoverZoneWidth`, `showOnViewportEnter`
+- [Types — `ScrollbarOptions`](../api/types.md#scrollbaroptions) — `autoHide`, `autoHideDelay`, `minThumbSize`, `showOnHover`, `hoverZoneWidth`, `showOnViewportEnter`, `gutter`
 - [Constants — Scrollbar](../api/constants.md#scrollbar) — `SCROLLBAR_AUTO_HIDE`, `SCROLLBAR_AUTO_HIDE_DELAY`, `SCROLLBAR_MIN_THUMB_SIZE`
 - [Events — `scroll:idle`](../api/events.md#scrollidle) — Fires when scrolling stops, used for auto-hide timing
 - [Scrollbar Internals](../internals/scrollbar.md) — Low-level `createScrollController`, `createScrollbar`, velocity circular buffer, track/thumb interaction

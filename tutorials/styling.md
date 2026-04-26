@@ -142,10 +142,15 @@ These are set once and never change between light/dark modes:
   --vlist-transition-duration: 150ms;
   --vlist-transition-timing: ease-in-out;
 
-  /* Custom scrollbar geometry */
+  /* Native (webkit) scrollbar */
   --vlist-scrollbar-width: 8px;
-  --vlist-scrollbar-track-bg: transparent;
-  --vlist-scrollbar-custom-thumb-radius: 4px;
+  --vlist-scrollbar-track-color: transparent;
+  --vlist-scrollbar-radius: 4px;
+
+  /* Custom overlay scrollbar (withScrollbar feature) */
+  --vlist-custom-scrollbar-width: 8px;
+  --vlist-custom-scrollbar-track-color: transparent;
+  --vlist-custom-scrollbar-radius: 8px;
 }
 ```
 
@@ -166,10 +171,10 @@ Light mode colors are the `:root` defaults — they apply with no setup:
   --vlist-text-muted: #6b7280;                      /* Secondary text */
   --vlist-focus-ring: #3b82f6;                      /* Keyboard focus outline */
   --vlist-group-header-bg: #f3f4f6;                 /* Group header background */
-  --vlist-scrollbar-thumb: #d1d5db;                 /* Native scrollbar thumb */
-  --vlist-scrollbar-thumb-hover: #9ca3af;           /* Native scrollbar hover */
-  --vlist-scrollbar-custom-thumb-bg: rgba(0, 0, 0, 0.3);       /* Custom scrollbar thumb */
-  --vlist-scrollbar-custom-thumb-hover-bg: rgba(0, 0, 0, 0.5); /* Custom scrollbar hover */
+  --vlist-scrollbar-thumb-color: #d1d5db;                           /* Native scrollbar thumb */
+  --vlist-scrollbar-thumb-hover-color: #9ca3af;                     /* Native scrollbar hover */
+  --vlist-custom-scrollbar-thumb-color: rgba(0, 0, 0, 0.3);        /* Custom overlay thumb */
+  --vlist-custom-scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.5);  /* Custom overlay hover */
   --vlist-placeholder-bg: rgba(0, 0, 0, 0.2);      /* Placeholder skeleton */
 }
 ```
@@ -204,10 +209,10 @@ Dark mode overrides only the color tokens. The same set is applied via three sel
   --vlist-text-muted: #9ca3af;
   --vlist-focus-ring: #3b82f6;
   --vlist-group-header-bg: #1e2433;
-  --vlist-scrollbar-thumb: #4b5563;
-  --vlist-scrollbar-thumb-hover: #6b7280;
-  --vlist-scrollbar-custom-thumb-bg: rgba(255, 255, 255, 0.3);
-  --vlist-scrollbar-custom-thumb-hover-bg: rgba(255, 255, 255, 0.5);
+  --vlist-scrollbar-thumb-color: #4b5563;
+  --vlist-scrollbar-thumb-hover-color: #6b7280;
+  --vlist-custom-scrollbar-thumb-color: rgba(255, 255, 255, 0.3);
+  --vlist-custom-scrollbar-thumb-hover-color: rgba(255, 255, 255, 0.5);
   --vlist-placeholder-bg: rgba(255, 255, 255, 0.3);
 }
 
