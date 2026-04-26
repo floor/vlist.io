@@ -15,19 +15,19 @@
             <div id="list-container"></div>
         </div>
 
-        <aside class="split-panel" id="scrollbar-panel">
+        <aside class="split-panel mode-native" id="scrollbar-panel">
             <!-- Mode -->
             <section class="ui-section">
                 <h3 class="ui-title">Mode</h3>
                 <div class="ui-row">
                     <div class="ui-segmented" id="mode-buttons">
-                        <button
-                            class="ui-segmented__btn ui-segmented__btn--active"
-                            data-mode="custom"
-                        >
+                        <button class="ui-segmented__btn" data-mode="custom">
                             Custom
                         </button>
-                        <button class="ui-segmented__btn" data-mode="native">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-mode="native"
+                        >
                             Native
                         </button>
                         <button class="ui-segmented__btn" data-mode="none">
@@ -246,7 +246,7 @@
         </div>
         <div class="example-info__right">
             <span class="example-info__stat">
-                mode <strong id="info-mode">custom</strong>
+                mode <strong id="info-mode">native</strong>
             </span>
             <span class="example-info__stat">
                 gutter <strong id="info-gutter">overlay</strong>

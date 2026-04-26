@@ -26,7 +26,7 @@ export const contacts = makeContacts(TOTAL).sort((a, b) =>
 // State — exported so controls.js can read/write
 // =============================================================================
 
-export let mode = "custom"; // "native" | "custom" | "none"
+export let mode = "native"; // "native" | "custom" | "none"
 export let autoHide = true;
 export let autoHideDelay = 1000;
 export let gutterEnabled = false;
