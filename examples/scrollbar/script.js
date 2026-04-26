@@ -1,7 +1,7 @@
 // Scrollbar — showcase all withScrollbar options
 // Uses a contact list as the canvas to demonstrate native, custom, and none modes.
 
-import { vlist, withScrollbar } from "vlist";
+import { vlist, withScrollbar, withSelection, withSnapshots } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -11,6 +11,7 @@ import "./controls.js";
 // Constants
 // =============================================================================
 
+const STORAGE_KEY = "scrollbar-list";
 const TOTAL = 1_000;
 const ITEM_HEIGHT = 64;
 
@@ -34,12 +35,24 @@ export let showOnHover = true;
 export let showOnViewportEnter = true;
 export let list = null;
 
-export function setMode(v) { mode = v; }
-export function setAutoHide(v) { autoHide = v; }
-export function setAutoHideDelay(v) { autoHideDelay = v; }
-export function setGutterEnabled(v) { gutterEnabled = v; }
-export function setShowOnHover(v) { showOnHover = v; }
-export function setShowOnViewportEnter(v) { showOnViewportEnter = v; }
+export function setMode(v) {
+  mode = v;
+}
+export function setAutoHide(v) {
+  autoHide = v;
+}
+export function setAutoHideDelay(v) {
+  autoHideDelay = v;
+}
+export function setGutterEnabled(v) {
+  gutterEnabled = v;
+}
+export function setShowOnHover(v) {
+  showOnHover = v;
+}
+export function setShowOnViewportEnter(v) {
+  showOnViewportEnter = v;
+}
 
 // =============================================================================
 // Template
@@ -104,6 +117,9 @@ export function createList() {
       }),
     );
   }
+
+  builder.use(withSelection());
+  builder.use(withSnapshots({ autoSave: STORAGE_KEY }));
 
   list = builder.build();
 
