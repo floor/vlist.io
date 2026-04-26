@@ -22,12 +22,7 @@
     transition: background-color 0.2s ease;
 }
 
-.vlist-item.vlist-item--selected {
-    background-color: var(--badge-error-bg);
-}
-
 .vlist-item.vlist-item--selected:hover {
-    background-color: var(--badge-error-bg);
     opacity: 0.8;
 }
 

@@ -121,11 +121,11 @@ export function getTemplate(variableWidth) {
 
 // Build vlist config for the given mode, height, and gap.
 // Gap is added to item dimensions so vlist spaces items correctly.
-export function buildConfig(variableWidth, height = CARD_HEIGHT, gap = 0) {
+export function buildConfig(variableWidth, height = CARD_HEIGHT, gap = 0, showScrollbar = false) {
   const cardWidth = Math.round(height * ASPECT_RATIO);
   return {
     orientation: "horizontal",
-    scroll: { wheel: true },
+    scroll: { wheel: true, ...(showScrollbar ? {} : { scrollbar: "none" }) },
     ariaLabel: "Horizontal card carousel",
     item: {
       height,

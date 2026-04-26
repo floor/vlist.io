@@ -1,5 +1,9 @@
 /* Basic List — order list item styles (shared across all variants) */
 
+#list-container {
+    --vlist-scrollbar-width: 16px;
+}
+
 .vlist-item {
     display: flex;
     flex-direction: column;
