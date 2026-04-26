@@ -111,12 +111,7 @@ const widthValue = document.getElementById("width-value");
 widthSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
   widthValue.textContent = px + "px";
-  // Update the appropriate CSS variable based on current mode
-  const prop =
-    app.mode === "native"
-      ? "--vlist-scrollbar-width"
-      : "--vlist-custom-scrollbar-width";
-  document.documentElement.style.setProperty(prop, px + "px");
+  document.documentElement.style.setProperty("--vlist-custom-scrollbar-width", px + "px");
 });
 
 // =============================================================================
