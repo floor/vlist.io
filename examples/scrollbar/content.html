@@ -134,6 +134,68 @@
                 </div>
             </section>
 
+            <!-- Native appearance — native only -->
+            <section class="ui-section native-only">
+                <h3 class="ui-title">Appearance</h3>
+
+                <div class="ui-row">
+                    <label class="ui-label">Width</label>
+                    <div class="ui-segmented" id="native-width">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-width="auto"
+                        >
+                            Auto
+                        </button>
+                        <button class="ui-segmented__btn" data-width="thin">
+                            Thin
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Thumb</label>
+                    <input
+                        type="color"
+                        id="native-thumb"
+                        value="#6b7280"
+                        class="ui-color-input"
+                    />
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Track</label>
+                    <input
+                        type="color"
+                        id="native-track"
+                        value="#f3f4f6"
+                        class="ui-color-input"
+                    />
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Gutter</label>
+                    <div class="ui-segmented" id="native-gutter">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-gutter="auto"
+                        >
+                            Auto
+                        </button>
+                        <button class="ui-segmented__btn" data-gutter="stable">
+                            Stable
+                        </button>
+                    </div>
+                </div>
+
+                <p class="ui-hint">
+                    Uses <code>scrollbar-color</code> and
+                    <code>scrollbar-width</code> — Chrome 121+, Firefox 64+,
+                    Safari 18.2+. macOS overlay scrollbars only appear on
+                    scroll.
+                </p>
+            </section>
+
             <!-- Navigate -->
             <section class="ui-section">
                 <h3 class="ui-title">Navigate</h3>

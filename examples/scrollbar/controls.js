@@ -11,6 +11,11 @@ const panel = document.getElementById("scrollbar-panel");
 
 function syncPanelMode() {
   panel.classList.toggle("mode-custom", app.mode === "custom");
+  panel.classList.toggle("mode-native", app.mode === "native");
+}
+
+function getViewport() {
+  return document.querySelector("#list-container .vlist-viewport");
 }
 
 // =============================================================================
@@ -33,6 +38,7 @@ modeButtons.addEventListener("click", (e) => {
 
   syncPanelMode();
   app.createList();
+  if (mode === "native") applyNativeSettings();
 });
 
 // =============================================================================
@@ -112,6 +118,68 @@ widthSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
   widthValue.textContent = px + "px";
   document.documentElement.style.setProperty("--vlist-custom-scrollbar-width", px + "px");
+});
+
+// =============================================================================
+// Native appearance — width, colors, gutter
+// =============================================================================
+
+let nativeScrollbarWidth = "auto";
+let nativeThumbColor = "#6b7280";
+let nativeTrackColor = "#f3f4f6";
+let nativeGutter = "auto";
+
+function applyNativeSettings() {
+  const vp = getViewport();
+  if (!vp) return;
+  vp.style.scrollbarWidth = nativeScrollbarWidth;
+  vp.style.scrollbarColor = `${nativeThumbColor} ${nativeTrackColor}`;
+  vp.style.scrollbarGutter = nativeGutter;
+}
+
+// Width — auto / thin
+const nativeWidth = document.getElementById("native-width");
+
+nativeWidth.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-width]");
+  if (!btn) return;
+  const width = btn.dataset.width;
+  if (width === nativeScrollbarWidth) return;
+  nativeScrollbarWidth = width;
+  nativeWidth.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.width === width);
+  });
+  applyNativeSettings();
+});
+
+// Thumb color
+document.getElementById("native-thumb").addEventListener("input", (e) => {
+  nativeThumbColor = e.target.value;
+  applyNativeSettings();
+});
+
+// Track color
+document.getElementById("native-track").addEventListener("input", (e) => {
+  nativeTrackColor = e.target.value;
+  applyNativeSettings();
+});
+
+// Gutter — auto / stable
+const nativeGutterEl = document.getElementById("native-gutter");
+
+nativeGutterEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-gutter]");
+  if (!btn) return;
+  const gutter = btn.dataset.gutter;
+  if (gutter === nativeGutter) return;
+  nativeGutter = gutter;
+  nativeGutterEl.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle(
+      "ui-segmented__btn--active",
+      b.dataset.gutter === gutter,
+    );
+  });
+  applyNativeSettings();
 });
 
 // =============================================================================

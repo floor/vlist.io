@@ -50,15 +50,35 @@
 }
 
 /* ============================================================================
-   Panel — hide custom-only sections when not in custom mode
+   Panel — hide mode-specific sections based on current mode
    ============================================================================ */
 
-.custom-only {
+.custom-only,
+.native-only {
     display: none;
 }
 
 .mode-custom .custom-only {
     display: block;
+}
+
+.mode-native .native-only {
+    display: block;
+}
+
+/* ============================================================================
+   Native color input
+   ============================================================================ */
+
+.ui-color-input {
+    width: 36px;
+    height: 24px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px;
+    cursor: pointer;
+    background: none;
+    flex-shrink: 0;
 }
 
 /* ============================================================================
