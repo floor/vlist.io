@@ -91,6 +91,12 @@
         "name": "Scroll Restore",
         "desc": "Save and restore scroll position across navigations",
         "features": ["snapshots", "selection"]
+      },
+      {
+        "slug": "scrollbar",
+        "name": "Scrollbar",
+        "desc": "Native, custom, and none — configure auto-hide, gutter, hover behavior, and track width",
+        "features": ["scrollbar"]
       }
     ]
   },
