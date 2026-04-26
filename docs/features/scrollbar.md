@@ -795,7 +795,7 @@ Customize the scrollbar appearance with CSS custom properties:
   /* Custom overlay scrollbar (withScrollbar feature) */
   --vlist-custom-scrollbar-width: 8px;
   --vlist-custom-scrollbar-track-color: transparent;
-  --vlist-custom-scrollbar-radius: 8px;
+  --vlist-custom-scrollbar-radius: calc(var(--vlist-custom-scrollbar-width) / 2); /* pill by default */
   --vlist-custom-scrollbar-thumb-color: rgba(0, 0, 0, 0.3);
   --vlist-custom-scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.5);
 }
