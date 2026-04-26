@@ -207,7 +207,5 @@ document.getElementById("btn-bottom").addEventListener("click", () => {
 });
 
 // =============================================================================
-// Init
+// Init — initial panel state is declared via class in content.html
 // =============================================================================
-
-syncPanelMode();
