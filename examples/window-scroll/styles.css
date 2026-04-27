@@ -16,17 +16,17 @@
 
 .sticky-bar {
     position: fixed;
-    top: 56px;
+    top: 64px;
     z-index: 90;
+    margin: 0 auto;
     display: flex;
     align-items: center;
-    gap: 16px;
-    width: 800px;
-    padding: 10px 20px;
-    background: var(--header-bg);
+    margin-left: 8px;
+    padding: 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    // border-bottom: 1px solid var(--border);
     font-size: 13px;
 }
 
@@ -86,7 +86,7 @@
 }
 
 .delay-control {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 6px;
     font-size: 12px;
@@ -192,7 +192,7 @@
 
 .list-section {
     margin-bottom: 32px;
-    min-height:5000px;
+    min-height: 5000px;
 }
 
 .section-title {

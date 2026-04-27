@@ -19,6 +19,7 @@ function getScale(h) {
 // =============================================================================
 
 let variableWidth = false;
+let showScrollbar = false;
 let currentHeight = 240;
 let currentGap = 8;
 let currentRadius = 12;
@@ -29,6 +30,7 @@ let list = null;
 // =============================================================================
 
 const toggleEl = document.getElementById("toggle-variable");
+const toggleScrollbarEl = document.getElementById("toggle-scrollbar");
 const sizeSlider = document.getElementById("size-slider");
 const sizeValue = document.getElementById("size-value");
 const gapButtons = document.getElementById("gap-buttons");
@@ -83,14 +85,17 @@ function createList() {
   }
 
   listContainerEl.innerHTML = "";
-  listContainerEl.style.height = currentHeight + "px";
+  // When the scrollbar is visible, vlist sizes its own root to item.height +
+  // scrollbar-width. Clear the inline height so the container auto-expands.
+  // When the scrollbar is hidden, pin to currentHeight explicitly.
+  listContainerEl.style.height = showScrollbar ? "" : currentHeight + "px";
   listContainerEl.style.setProperty("--card-scale", getScale(currentHeight));
   listContainerEl.style.setProperty("--item-gap", currentGap + "px");
   listContainerEl.style.setProperty("--item-radius", currentRadius + "px");
 
   list = vlist({
     container: "#list-container",
-    ...buildConfig(variableWidth, currentHeight, currentGap),
+    ...buildConfig(variableWidth, currentHeight, currentGap, showScrollbar),
   }).build();
 
   list.on("scroll", updateInfo);
@@ -175,6 +180,11 @@ radiusButtons?.addEventListener("click", (e) => {
 
 toggleEl?.addEventListener("change", (e) => {
   variableWidth = e.target.checked;
+  createList();
+});
+
+toggleScrollbarEl?.addEventListener("change", (e) => {
+  showScrollbar = e.target.checked;
   createList();
 });
 

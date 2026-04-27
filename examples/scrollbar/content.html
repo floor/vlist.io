@@ -1,0 +1,266 @@
+<div class="container">
+    <header>
+        <h1>Scrollbar</h1>
+        <p class="description">
+            Explore every scrollbar mode and option. Switch between
+            <strong>native</strong>,
+            <strong>custom</strong> (<code>withScrollbar</code>), and
+            <strong>none</strong>. Configure auto-hide, gutter, hover behavior,
+            padding, click behavior, and track width live.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <h2 class="sr-only">Contact list</h2>
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel mode-native" id="scrollbar-panel">
+            <!-- Mode -->
+            <section class="ui-section">
+                <h3 class="ui-title">Mode</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="mode-buttons">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-mode="native"
+                        >
+                            Native
+                        </button>
+                        <button class="ui-segmented__btn" data-mode="custom">
+                            Custom
+                        </button>
+                        <button class="ui-segmented__btn" data-mode="none">
+                            None
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Behavior — custom only -->
+            <section class="ui-section custom-only">
+                <h3 class="ui-title">Behavior</h3>
+
+                <div class="ui-row">
+                    <label class="ui-label">Auto-hide</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-autohide" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+
+                <div class="ui-row" id="delay-row">
+                    <label class="ui-label">
+                        Delay
+                        <span class="ui-label__unit" id="delay-value"
+                            >1000ms</span
+                        >
+                    </label>
+                    <input
+                        type="range"
+                        id="delay-slider"
+                        class="ui-slider"
+                        min="200"
+                        max="3000"
+                        step="100"
+                        value="1000"
+                    />
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Track click</label>
+                    <div class="ui-segmented" id="click-behavior-buttons">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-behavior="page"
+                        >
+                            Page
+                        </button>
+                        <button class="ui-segmented__btn" data-behavior="jump">
+                            Jump
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hover — custom only -->
+            <section class="ui-section custom-only">
+                <h3 class="ui-title">Hover</h3>
+
+                <div class="ui-row">
+                    <label class="ui-label">Show on hover</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-show-hover" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Show on enter</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-show-enter" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Gutter — custom only -->
+            <section class="ui-section custom-only">
+                <h3 class="ui-title">Gutter</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="gutter-buttons">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-gutter="false"
+                        >
+                            Overlay
+                        </button>
+                        <button class="ui-segmented__btn" data-gutter="true">
+                            Stable
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Width & Padding — custom only -->
+            <section class="ui-section custom-only">
+                <h3 class="ui-title">Width</h3>
+                <div class="ui-row">
+                    <label class="ui-label">
+                        Track
+                        <span class="ui-label__unit" id="width-value">8px</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="width-slider"
+                        class="ui-slider"
+                        min="4"
+                        max="20"
+                        step="1"
+                        value="8"
+                    />
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label">
+                        Padding
+                        <span class="ui-label__unit" id="padding-value"
+                            >2px</span
+                        >
+                    </label>
+                    <input
+                        type="range"
+                        id="padding-slider"
+                        class="ui-slider"
+                        min="0"
+                        max="12"
+                        step="1"
+                        value="2"
+                    />
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label">
+                        Radius
+                        <span class="ui-label__unit" id="radius-value"
+                            >4px</span
+                        >
+                    </label>
+                    <input
+                        type="range"
+                        id="radius-slider"
+                        class="ui-slider"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="4"
+                    />
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label">
+                        Min thumb
+                        <span class="ui-label__unit" id="min-thumb-value"
+                            >15px</span
+                        >
+                    </label>
+                    <input
+                        type="range"
+                        id="min-thumb-slider"
+                        class="ui-slider"
+                        min="4"
+                        max="80"
+                        step="1"
+                        value="15"
+                    />
+                </div>
+            </section>
+
+            <!-- Native appearance — native only -->
+            <section class="ui-section native-only">
+                <h3 class="ui-title">Appearance</h3>
+
+                <div class="ui-row">
+                    <label class="ui-label">Width</label>
+                    <div class="ui-segmented" id="native-width">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-width="auto"
+                        >
+                            Auto
+                        </button>
+                        <button class="ui-segmented__btn" data-width="thin">
+                            Thin
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Gutter</label>
+                    <div class="ui-segmented" id="native-gutter">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-gutter="auto"
+                        >
+                            Auto
+                        </button>
+                        <button class="ui-segmented__btn" data-gutter="stable">
+                            Stable
+                        </button>
+                    </div>
+                </div>
+
+                <p class="ui-hint">
+                    Uses <code>scrollbar-width</code> and
+                    <code>scrollbar-gutter</code> — Chrome 121+, Firefox 64+,
+                    Safari 18.2+. macOS overlay scrollbars only appear on
+                    scroll.
+                </p>
+            </section>
+        </aside>
+    </div>
+
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">items</span>
+            </span>
+        </div>
+        <div class="example-info__right">
+            <span class="example-info__stat">
+                mode <strong id="info-mode">native</strong>
+            </span>
+            <span class="example-info__stat">
+                gutter <strong id="info-gutter">overlay</strong>
+            </span>
+        </div>
+    </div>
+</div>

@@ -460,13 +460,7 @@
 
                 // Compute available height for source body
                 function updateSourceHeight() {
-                    var header = document.querySelector(
-                        ".content .container header",
-                    );
-                    if (!header) return;
-                    var headerBottom = header.getBoundingClientRect().bottom;
-                    var bodyHeight =
-                        window.innerHeight - headerBottom - 20 - 41;
+                    var bodyHeight = window.innerHeight - 56;
                     source.style.setProperty(
                         "--source-body-height",
                         Math.max(200, bodyHeight) + "px",

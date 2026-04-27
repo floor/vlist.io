@@ -1,0 +1,81 @@
+# GitHub Actions — Deploy staging.vlist.io
+# Triggers on push to staging branch, manual trigger, or when vlist staging is updated
+# SSHs into the server and runs deploy commands for the staging instance
+
+name: Deploy Staging
+
+on:
+  push:
+    branches: [staging]
+
+  # Triggered by vlist repo when its staging branch is updated
+  repository_dispatch:
+    types: [vlist-staging-updated]
+
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to staging.vlist.io
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            set -e
+
+            # Set up PATH explicitly (avoid sourcing .zshrc — it fails
+            # in non-interactive SSH sessions due to prompt/completion setup)
+            export PATH="$HOME/.bun/bin:$HOME/bin:$HOME/.local/share/fnm:$PATH"
+            eval "$(fnm env)"
+
+            APP_DIR="/home/floor/staging.vlist.io"
+
+            echo "📦 Deploying staging.vlist.io..."
+
+            # Pull latest vlist staging branch (separate clone — production uses /home/floor/vlist)
+            VLIST_DIR="/home/floor/staging.vlist"
+            cd $VLIST_DIR
+            git fetch origin staging
+            git reset --hard origin/staging
+            bun install --frozen-lockfile
+            bun run build
+
+            # Pull latest vlist.io staging branch
+            cd $APP_DIR
+            git fetch origin staging
+            git reset --hard origin/staging
+
+            # Point vlist dependency to local staging clone (not npm — we want latest staging code)
+            echo "🔗 Linking vlist from staging clone..."
+            sed -i 's|"vlist": "file:../vlist"|"vlist": "file:../staging.vlist"|' package.json
+
+            # Clean install to ensure fresh resolution (avoid lockfile conflicts)
+            rm -rf node_modules bun.lockb
+            bun install --force
+
+            # Framework adapters (vlist-react, vlist-vue, etc.) depend on @floor/vlist
+            # but the local file: link installs as "vlist". Create the @floor/vlist symlink
+            # so adapter packages can resolve it.
+            mkdir -p node_modules/@floor
+            ln -sfn ../vlist node_modules/@floor/vlist
+
+            # Build sandbox examples and benchmarks (using latest vlist staging code)
+            bun run build:examples
+            bun run build:bench
+
+            # Restore package.json (keep git clean for next pull)
+            git checkout -- package.json
+
+            # Restart PM2 staging process
+            pm2 reload staging.vlist.io --update-env || pm2 start ecosystem.staging.config.cjs
+
+            echo "✅ Staging deployed successfully"

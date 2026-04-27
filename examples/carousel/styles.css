@@ -23,6 +23,7 @@
     height: auto;
     overflow: hidden;
     border-radius: var(--item-radius);
+    --vlist-scrollbar-width: 16px;
 }
 
 /* Override vlist defaults for horizontal cards */
@@ -66,10 +67,6 @@
         calc(6px + 8px * var(--card-scale));
     position: relative;
     transition: box-shadow 0.15s ease-out;
-}
-
-.vlist-item:hover .card {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Featured cards — variable-width mode */

@@ -294,6 +294,7 @@ body {
 .content {
     position: relative;
     flex: 1;
+    min-width: 0;
     min-height: calc(100vh - var(--header-height));
     display: flex;
     flex-direction: column;

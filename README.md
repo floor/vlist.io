@@ -3,6 +3,7 @@
 Documentation, examples, tutorials, and benchmarks site for the [vlist](https://github.com/floor/vlist) virtual list library.
 
 **Live:** [https://vlist.io](https://vlist.io)
+**Staging:** [https://staging.vlist.io](https://staging.vlist.io)
 
 ## What's Inside
 
@@ -179,7 +180,8 @@ vlist.io/
 │   ├── seed-tracks.ts         # Tracks database seeder
 │   └── build-utils.ts         # Shared build utilities
 ├── .github/workflows/
-│   └── deploy.yml             # GitHub Actions → SSH deploy + Cloudflare cache purge
+│   ├── deploy.yml             # Production deploy → SSH + Cloudflare cache purge
+│   └── deploy-staging.yml     # Staging deploy → SSH (triggered by push or vlist dispatch)
 ├── server.ts                  # Entry point (Bun.serve)
 ├── ecosystem.config.cjs       # PM2 process config (2 fork instances, SO_REUSEPORT)
 ├── package.json
@@ -203,19 +205,42 @@ All pages are server-rendered using Eta templates. No client-side framework for 
 
 ## Deployment
 
-Deployed to **floor.io** via GitHub Actions on push to `main`, with Cloudflare CDN in front.
+Two environments, both deployed via GitHub Actions:
 
-**Stack:** Bun → PM2 (2 fork instances, SO_REUSEPORT) → Cloudflare Pro
+| Environment | URL | Branch | Trigger |
+|-------------|-----|--------|---------|
+| **Production** | [vlist.io](https://vlist.io) | `main` | PR merge from `staging` |
+| **Staging** | [staging.vlist.io](https://staging.vlist.io) | `staging` | Push to `staging` |
 
-**How it works:**
+**Stack:** Bun → PM2 → nginx → Cloudflare
 
-1. Push to `main` triggers `.github/workflows/deploy.yml`
-2. GitHub Actions SSHs into the server
-3. Pulls latest `vlist` (staging branch) and builds it
-4. Pulls latest `vlist.io`, swaps `file:` deps for registry versions
-5. Runs `bun install`, builds examples + benchmarks
-6. Restores `package.json` and reloads PM2
-7. Purges Cloudflare edge cache
+### Production (`vlist.io`)
+
+1. Merge PR from `staging` → `main`
+2. `.github/workflows/deploy.yml` triggers
+3. SSHs into server, pulls `main`, installs npm vlist, builds, reloads PM2
+4. Purges Cloudflare edge cache
+
+### Staging (`staging.vlist.io`)
+
+1. Push to `staging` (or vlist repo staging update triggers cross-repo dispatch)
+2. `.github/workflows/deploy-staging.yml` triggers
+3. SSHs into server, pulls `staging`, links local vlist staging clone, builds, reloads PM2
+4. Staging uses the latest **unpublished** vlist code from the staging branch
+
+### Server Layout
+
+```
+/home/floor/
+├── vlist/                 # vlist — production (main branch)
+├── vlist.io/              # vlist.io — production (main branch, port 3338)
+├── staging.vlist/         # vlist — staging (staging branch)
+└── staging.vlist.io/      # vlist.io — staging (staging branch, port 3339)
+```
+
+### Cross-Repo Deploy
+
+When the `vlist` staging branch is updated, it automatically triggers a `staging.vlist.io` redeploy via `repository_dispatch`, so the staging site always reflects the latest library code.
 
 **First-time server setup:**
 
@@ -233,6 +258,7 @@ bash scripts/setup-server.sh
 | `SERVER_PORT` | SSH port (optional, defaults to 22) |
 | `CF_ZONE_ID` | Cloudflare zone ID |
 | `CF_API_TOKEN` | Cloudflare API token |
+| `DISPATCH_TOKEN` | Fine-grained PAT for cross-repo dispatch (on `vlist` repo) |
 
 ## Dependencies
 
@@ -257,4 +283,4 @@ Tests are in `test/` covering API routes, benchmarks, and server functionality.
 
 ## License
 
-GPL-3.0-or-later — Built by [Floor IO](https://floor.io)
+GPL-3.0-or-later — Built by [FloorIO](https://floor.io)
