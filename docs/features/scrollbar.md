@@ -165,15 +165,19 @@ vlist({ container, item })
 |--------|------|---------|-------------|
 | `autoHide` | `boolean` | `true` | Auto-hide scrollbar after idle |
 | `autoHideDelay` | `number` | `1000` | Auto-hide delay in milliseconds |
-| `minThumbSize` | `number` | `30` | Minimum thumb size in pixels |
+| `minThumbSize` | `number` | `15` | Minimum thumb size in pixels. Also controllable via `--vlist-custom-scrollbar-min-thumb-size`. |
 | `showOnHover` | `boolean` | `true` | Show scrollbar when hovering near the scrollbar edge |
-| `hoverZoneWidth` | `number` | `16` | Width in px of the invisible hover zone along the scrollbar edge |
+| `hoverZoneWidth` | `number` | `wallPadding + 16` | Width in px of the invisible hover zone along the scrollbar edge. Defaults to the wall-side padding (`right` for vertical, `bottom` for horizontal) plus 16px reach buffer. |
 | `showOnViewportEnter` | `boolean` | `true` | Show scrollbar when the mouse enters the list viewport |
 | `gutter` | `boolean` | `false` | Reserve layout space for the scrollbar — content shrinks to make room so the scrollbar never overlaps items. Equivalent to CSS `scrollbar-gutter: stable`. |
+| `padding` | `number \| { top?, right?, bottom?, left? }` | `2` | Inset the track from the viewport edges. A single number applies to all sides. An object allows per-side control — omitted sides default to `2`. Thumb travel range adjusts automatically. Also controllable via `--vlist-custom-scrollbar-padding-{side}`. |
+| `clickBehavior` | `'jump' \| 'page'` | `'page'` | What happens when clicking the track (not the thumb). `'page'` scrolls by one page toward the click — hold the mouse button to continue scrolling smoothly, matching macOS native scrollbar behavior. `'jump'` centers the thumb at the click position instantly. |
 
-When `showOnHover` is `true`, an invisible hover zone is placed along the scrollbar edge. Moving the mouse into this zone reveals the scrollbar, and it stays visible as long as the cursor remains over the zone or the track — the auto-hide timer is suspended while hovering.
+When `showOnHover` is `true`, an invisible hover zone is placed along the scrollbar edge. Moving the mouse into this zone reveals the scrollbar, and it stays visible as long as the cursor remains over the zone or the track — the auto-hide timer is suspended while hovering. The default `hoverZoneWidth` is the wall-side padding (`right` for vertical, `bottom` for horizontal) plus 16px, so the zone always covers the full inset track area regardless of how much padding is set; increase it if you want a wider reach from the edge.
 
 When `showOnViewportEnter` is `false`, the scrollbar only appears on scroll or when hovering near the scrollbar edge (if `showOnHover` is `true`). This is useful for cleaner UIs where you don't want the scrollbar to flash every time the mouse enters the list.
+
+When `clickBehavior` is `'page'` (the default), clicking the track scrolls by one `containerSize` toward the click immediately. Holding the mouse button then triggers smooth continuous scrolling after a 350ms initial delay — the scroll accelerates at a fixed speed and stops automatically when the thumb reaches the cursor, at a boundary, or on mouseup. This matches the native macOS scrollbar feel. Use `'jump'` to instantly center the thumb at the clicked position instead.
 
 #### Native Scrollbar
 
@@ -280,13 +284,13 @@ interface ScrollbarOptions {
   /** Auto-hide delay in milliseconds (default: 1000) */
   autoHideDelay?: number;
 
-  /** Minimum thumb size in pixels (default: 30) */
+  /** Minimum thumb size in pixels (default: 15). Also settable via --vlist-custom-scrollbar-min-thumb-size. */
   minThumbSize?: number;
 
   /** Show scrollbar when hovering near the scrollbar edge (default: true) */
   showOnHover?: boolean;
 
-  /** Width of the invisible hover zone in pixels (default: 16) */
+  /** Width of the invisible hover zone in pixels (default: wallPadding + 16). */
   hoverZoneWidth?: number;
 
   /** Show scrollbar when the mouse enters the list viewport (default: true) */
@@ -298,6 +302,23 @@ interface ScrollbarOptions {
    * never overlaps items. Equivalent to CSS `scrollbar-gutter: stable`.
    */
   gutter?: boolean;
+
+  /**
+   * Inset between the scrollbar track and the viewport edges (default: 2).
+   * Accepts a single number (all sides) or per-side object: { top?, right?, bottom?, left? }.
+   * Omitted sides default to 2. Thumb travel range is recalculated automatically.
+   * Can also be set globally via `--vlist-custom-scrollbar-padding-{side}` CSS variables.
+   */
+  padding?: number | { top?: number; right?: number; bottom?: number; left?: number };
+
+  /**
+   * Behavior when clicking the scrollbar track (not the thumb) (default: 'page').
+   * - `'page'`  — scrolls by one page toward the click; hold for smooth continuous
+   *               scrolling, matching macOS native scrollbar behavior. Auto-stops
+   *               when the thumb reaches the cursor.
+   * - `'jump'`  — instantly centers the thumb at the clicked position.
+   */
+  clickBehavior?: 'jump' | 'page';
 }
 ```
 
@@ -495,7 +516,7 @@ const list = vlist({
   .use(withScrollbar({
     showOnViewportEnter: false, // don't show on list enter
     showOnHover: true,          // show when hovering near the edge
-    hoverZoneWidth: 20,         // 20px hover zone
+    hoverZoneWidth: 20,         // explicit override (default is wallPadding + 16)
     autoHideDelay: 800,         // hide after 800ms idle
   }))
   .build();
@@ -539,6 +560,65 @@ const list = vlist({
 ```
 
 Use this when precise content width matters — tables where the last column shouldn't be clipped, grids with exact column widths, or any UI where overlay scrollbars would obscure content.
+
+### Scrollbar with Padding (Floating)
+
+Add breathing room between the scrollbar track and the viewport edges. The default is `2px` on all sides — increase it for a more detached, floating appearance.
+
+A single number applies to all sides:
+
+```typescript
+import { vlist, withScrollbar } from 'vlist';
+
+const list = vlist({
+  container: '#app',
+  item: { height: 48, template },
+  items: myData,
+})
+  .use(withScrollbar({ padding: 4 }))
+  .build();
+```
+
+Or control each side independently — for example, more vertical breathing room while keeping sides tight:
+
+```typescript
+.use(withScrollbar({
+  padding: { top: 8, bottom: 8, right: 2, left: 2 },
+}))
+```
+
+Omitted sides default to `2px`, so `{ right: 6 }` gives `right=6`, all others `2`.
+
+The thumb travel range adjusts automatically — it spans `top` to `bottom` (vertical) or `left` to `right` (horizontal), never exceeding the padded area.
+
+You can also set padding globally via CSS without touching JavaScript:
+
+```css
+#my-list {
+  --vlist-custom-scrollbar-padding-top: 8px;
+  --vlist-custom-scrollbar-padding-right: 2px;
+  --vlist-custom-scrollbar-padding-bottom: 8px;
+  --vlist-custom-scrollbar-padding-left: 2px;
+}
+```
+
+### Scrollbar — Jump to Position on Click
+
+Opt out of the default page-scroll behavior and jump the thumb directly to the clicked position:
+
+```typescript
+import { vlist, withScrollbar } from 'vlist';
+
+const list = vlist({
+  container: '#app',
+  item: { height: 48, template },
+  items: myData,
+})
+  .use(withScrollbar({ clickBehavior: 'jump' }))
+  .build();
+```
+
+Use this when you want click-to-seek behavior — clicking anywhere on the track instantly repositions the scroll, without the page-by-page progression.
 
 ### Native Browser Scrollbar
 
@@ -667,13 +747,14 @@ const list = vlist({
 The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 
 ```css
-/* Track — positioned absolutely inside the viewport */
+/* Track — positioned absolutely inside the viewport.
+   Inset per side via --vlist-custom-scrollbar-padding-{side} (default: 2px each). */
 .vlist-scrollbar {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: var(--vlist-custom-scrollbar-padding-top, 2px);
+  right: var(--vlist-custom-scrollbar-padding-right, 2px);
+  bottom: var(--vlist-custom-scrollbar-padding-bottom, 2px);
   width: var(--vlist-custom-scrollbar-width, 8px);
-  height: 100%;
   background: var(--vlist-custom-scrollbar-track-color, transparent);
   opacity: 0;
   transition: opacity 0.2s;
@@ -703,7 +784,8 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 }
 
 /* Hover zone — always pointer-events:auto so mouseenter fires
-   even when the track is hidden. Width set via JS from hoverZoneWidth config. */
+   even when the track is hidden. Width is set via JS: wallPadding + 16 by default,
+   or the explicit hoverZoneWidth config value. */
 .vlist-scrollbar-hover {
   position: absolute;
   top: 0;
@@ -728,15 +810,23 @@ The custom scrollbar uses these CSS classes (prefix defaults to `vlist`):
 When `gutter: true` is set, `vlist-viewport--gutter` is added to the viewport element. Padding on the viewport shrinks the scrollable content box so items stay clear of the scrollbar track:
 
 ```css
-/* Vertical: reserve space on the right */
+/* Vertical: right-wall inset + track width + left breathing room */
 .vlist-viewport--gutter {
-  padding-right: var(--vlist-custom-scrollbar-width);
+  padding-right: calc(
+    var(--vlist-custom-scrollbar-padding-right) +
+    var(--vlist-custom-scrollbar-width) +
+    var(--vlist-custom-scrollbar-padding-left)
+  );
 }
 
-/* Horizontal: reserve space at the bottom */
+/* Horizontal: bottom-wall inset + track height + top breathing room */
 .vlist--horizontal .vlist-viewport--gutter {
   padding-right: 0;
-  padding-bottom: var(--vlist-custom-scrollbar-width);
+  padding-bottom: calc(
+    var(--vlist-custom-scrollbar-padding-bottom) +
+    var(--vlist-custom-scrollbar-width) +
+    var(--vlist-custom-scrollbar-padding-top)
+  );
 }
 ```
 
@@ -745,21 +835,20 @@ When `gutter: true` is set, `vlist-viewport--gutter` is added to the viewport el
 When `orientation: 'horizontal'` is set, the scrollbar renders along the bottom edge:
 
 ```css
-/* Horizontal track — along the bottom */
-.vlist--horizontal .vlist-scrollbar {
+/* Horizontal track — along the bottom, inset from left, right, and bottom edges */
+.vlist-scrollbar--horizontal {
   top: auto;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
+  left: var(--vlist-custom-scrollbar-padding-left, 2px);
+  right: var(--vlist-custom-scrollbar-padding-right, 2px);
+  bottom: var(--vlist-custom-scrollbar-padding-bottom, 2px);
+  width: auto;
   height: var(--vlist-custom-scrollbar-width);
 }
 
 /* Horizontal thumb */
-.vlist--horizontal .vlist-scrollbar-thumb {
+.vlist-scrollbar--horizontal .vlist-scrollbar-thumb {
   top: 0;
   left: 0;
-  bottom: 0;
   width: auto;
   height: 100%;
 }
@@ -796,6 +885,11 @@ Customize the scrollbar appearance with CSS custom properties:
   --vlist-custom-scrollbar-width: 8px;
   --vlist-custom-scrollbar-track-color: transparent;
   --vlist-custom-scrollbar-radius: calc(var(--vlist-custom-scrollbar-width) / 2); /* pill by default */
+  --vlist-custom-scrollbar-padding-top: 2px;    /* inset per side */
+  --vlist-custom-scrollbar-padding-right: 2px;
+  --vlist-custom-scrollbar-padding-bottom: 2px;
+  --vlist-custom-scrollbar-padding-left: 2px;
+  --vlist-custom-scrollbar-min-thumb-size: 15px;
   --vlist-custom-scrollbar-thumb-color: rgba(0, 0, 0, 0.3);
   --vlist-custom-scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.5);
 }
@@ -858,7 +952,7 @@ vlist({
 
 ## See Also
 
-- [Types — `ScrollbarOptions`](../api/types.md#scrollbaroptions) — `autoHide`, `autoHideDelay`, `minThumbSize`, `showOnHover`, `hoverZoneWidth`, `showOnViewportEnter`, `gutter`
+- [Types — `ScrollbarOptions`](../api/types.md#scrollbaroptions) — `autoHide`, `autoHideDelay`, `minThumbSize`, `showOnHover`, `hoverZoneWidth`, `showOnViewportEnter`, `gutter`, `padding`, `clickBehavior`
 - [Constants — Scrollbar](../api/constants.md#scrollbar) — `SCROLLBAR_AUTO_HIDE`, `SCROLLBAR_AUTO_HIDE_DELAY`, `SCROLLBAR_MIN_THUMB_SIZE`
 - [Events — `scroll:idle`](../api/events.md#scrollidle) — Fires when scrolling stops, used for auto-hide timing
 - [Scrollbar Internals](../internals/scrollbar.md) — Low-level `createScrollController`, `createScrollbar`, velocity circular buffer, track/thumb interaction

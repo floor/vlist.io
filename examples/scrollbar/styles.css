@@ -89,19 +89,3 @@
     opacity: 0.4;
     pointer-events: none;
 }
-
-/* ============================================================================
-   Hint text under sections
-   ============================================================================ */
-
-.ui-hint {
-    font-size: 11px;
-    color: var(--text-muted);
-    line-height: 1.4;
-    margin: 4px 0 0;
-    padding: 0 2px;
-}
-
-.ui-hint code {
-    font-size: 10px;
-}

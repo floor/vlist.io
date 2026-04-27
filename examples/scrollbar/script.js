@@ -33,6 +33,9 @@ export let autoHideDelay = 1000;
 export let gutterEnabled = false;
 export let showOnHover = true;
 export let showOnViewportEnter = true;
+export let padding = 2;
+export let minThumbSize = 15;
+export let clickBehavior = "page"; // "jump" | "page"
 export let list = null;
 
 export function setMode(v) {
@@ -52,6 +55,15 @@ export function setShowOnHover(v) {
 }
 export function setShowOnViewportEnter(v) {
   showOnViewportEnter = v;
+}
+export function setPadding(v) {
+  padding = v;
+}
+export function setMinThumbSize(v) {
+  minThumbSize = v;
+}
+export function setClickBehavior(v) {
+  clickBehavior = v;
 }
 
 // =============================================================================
@@ -114,6 +126,9 @@ export function createList() {
         gutter: gutterEnabled,
         showOnHover,
         showOnViewportEnter,
+        padding,
+        clickBehavior,
+        minThumbSize,
       }),
     );
   }

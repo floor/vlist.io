@@ -3,9 +3,10 @@
         <h1>Scrollbar</h1>
         <p class="description">
             Explore every scrollbar mode and option. Switch between
-            <strong>native</strong>, <strong>custom</strong>
-            (<code>withScrollbar</code>), and <strong>none</strong>. Configure
-            auto-hide, gutter, hover behavior, and track width live.
+            <strong>native</strong>,
+            <strong>custom</strong> (<code>withScrollbar</code>), and
+            <strong>none</strong>. Configure auto-hide, gutter, hover behavior,
+            padding, click behavior, and track width live.
         </p>
     </header>
 
@@ -52,7 +53,9 @@
                 <div class="ui-row" id="delay-row">
                     <label class="ui-label">
                         Delay
-                        <span class="ui-label__unit" id="delay-value">1000ms</span>
+                        <span class="ui-label__unit" id="delay-value"
+                            >1000ms</span
+                        >
                     </label>
                     <input
                         type="range"
@@ -63,6 +66,42 @@
                         step="100"
                         value="1000"
                     />
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Track click</label>
+                    <div class="ui-segmented" id="click-behavior-buttons">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-behavior="page"
+                        >
+                            Page
+                        </button>
+                        <button class="ui-segmented__btn" data-behavior="jump">
+                            Jump
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Hover — custom only -->
+            <section class="ui-section custom-only">
+                <h3 class="ui-title">Hover</h3>
+
+                <div class="ui-row">
+                    <label class="ui-label">Show on hover</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-show-hover" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Show on enter</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-show-enter" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
                 </div>
             </section>
 
@@ -82,39 +121,9 @@
                         </button>
                     </div>
                 </div>
-                <p class="ui-hint">
-                    Stable reserves space so the scrollbar never overlaps
-                    content — like CSS
-                    <code>scrollbar-gutter: stable</code>.
-                </p>
             </section>
 
-            <!-- Hover — custom only -->
-            <section class="ui-section custom-only">
-                <h3 class="ui-title">Hover</h3>
-
-                <div class="ui-row">
-                    <label class="ui-label">Show on hover</label>
-                    <label class="ui-switch">
-                        <input type="checkbox" id="toggle-show-hover" checked />
-                        <span class="ui-switch__track"></span>
-                    </label>
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Show on enter</label>
-                    <label class="ui-switch">
-                        <input
-                            type="checkbox"
-                            id="toggle-show-enter"
-                            checked
-                        />
-                        <span class="ui-switch__track"></span>
-                    </label>
-                </div>
-            </section>
-
-            <!-- Width — custom only -->
+            <!-- Width & Padding — custom only -->
             <section class="ui-section custom-only">
                 <h3 class="ui-title">Width</h3>
                 <div class="ui-row">
@@ -130,6 +139,57 @@
                         max="20"
                         step="1"
                         value="8"
+                    />
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label">
+                        Padding
+                        <span class="ui-label__unit" id="padding-value"
+                            >2px</span
+                        >
+                    </label>
+                    <input
+                        type="range"
+                        id="padding-slider"
+                        class="ui-slider"
+                        min="0"
+                        max="12"
+                        step="1"
+                        value="2"
+                    />
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label">
+                        Radius
+                        <span class="ui-label__unit" id="radius-value"
+                            >4px</span
+                        >
+                    </label>
+                    <input
+                        type="range"
+                        id="radius-slider"
+                        class="ui-slider"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="4"
+                    />
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label">
+                        Min thumb
+                        <span class="ui-label__unit" id="min-thumb-value"
+                            >15px</span
+                        >
+                    </label>
+                    <input
+                        type="range"
+                        id="min-thumb-slider"
+                        class="ui-slider"
+                        min="4"
+                        max="80"
+                        step="1"
+                        value="15"
                     />
                 </div>
             </section>
@@ -154,26 +214,6 @@
                 </div>
 
                 <div class="ui-row">
-                    <label class="ui-label">Thumb</label>
-                    <input
-                        type="color"
-                        id="native-thumb"
-                        value="#6b7280"
-                        class="ui-color-input"
-                    />
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Track</label>
-                    <input
-                        type="color"
-                        id="native-track"
-                        value="#f3f4f6"
-                        class="ui-color-input"
-                    />
-                </div>
-
-                <div class="ui-row">
                     <label class="ui-label">Gutter</label>
                     <div class="ui-segmented" id="native-gutter">
                         <button
@@ -189,41 +229,11 @@
                 </div>
 
                 <p class="ui-hint">
-                    Uses <code>scrollbar-color</code> and
-                    <code>scrollbar-width</code> — Chrome 121+, Firefox 64+,
+                    Uses <code>scrollbar-width</code> and
+                    <code>scrollbar-gutter</code> — Chrome 121+, Firefox 64+,
                     Safari 18.2+. macOS overlay scrollbars only appear on
                     scroll.
                 </p>
-            </section>
-
-            <!-- Navigate -->
-            <section class="ui-section">
-                <h3 class="ui-title">Navigate</h3>
-                <div class="ui-row">
-                    <div class="ui-btn-group">
-                        <button
-                            id="btn-top"
-                            class="ui-btn ui-btn--icon"
-                            title="Top"
-                        >
-                            <i class="icon icon--up"></i>
-                        </button>
-                        <button
-                            id="btn-middle"
-                            class="ui-btn ui-btn--icon"
-                            title="Middle"
-                        >
-                            <i class="icon icon--center"></i>
-                        </button>
-                        <button
-                            id="btn-bottom"
-                            class="ui-btn ui-btn--icon"
-                            title="Bottom"
-                        >
-                            <i class="icon icon--down"></i>
-                        </button>
-                    </div>
-                </div>
             </section>
         </aside>
     </div>

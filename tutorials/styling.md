@@ -119,6 +119,7 @@ Used in compressed mode (1M+ items):
 | `.vlist-scrollbar-thumb` | Draggable thumb element |
 | `.vlist-viewport--custom-scrollbar` | Hides native scrollbar when custom scrollbar is active |
 | `.vlist-viewport--no-scrollbar` | Hides scrollbar completely (`scroll.scrollbar: "none"`) |
+| `.vlist-viewport--gutter` | Reserves layout space for the scrollbar track (`gutter: true`) |
 | `.vlist-viewport--gutter-stable` | Reserves stable gutter space for native scrollbar |
 
 ---
@@ -151,6 +152,10 @@ These are set once and never change between light/dark modes:
   --vlist-custom-scrollbar-width: 8px;
   --vlist-custom-scrollbar-track-color: transparent;
   --vlist-custom-scrollbar-radius: 8px;
+  --vlist-custom-scrollbar-padding-top: 2px;    /* per-side inset */
+  --vlist-custom-scrollbar-padding-right: 2px;
+  --vlist-custom-scrollbar-padding-bottom: 2px;
+  --vlist-custom-scrollbar-padding-left: 2px;
 }
 ```
 

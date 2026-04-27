@@ -987,6 +987,22 @@
 }
 
 /* ============================================================================
+   Hint text under sections
+   ============================================================================ */
+
+.ui-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin: 8px 0 0;
+    padding: 0 2px;
+}
+
+.ui-hint code {
+    font-size: 10px;
+}
+
+/* ============================================================================
    Icons — mask-image on <i class="icon icon--name">
    Uses currentColor via background-color + CSS mask.
    SVG files live in /examples/icons/ — no inline SVG in the bundle.

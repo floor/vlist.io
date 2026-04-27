@@ -108,6 +108,27 @@ document.getElementById("toggle-show-enter").addEventListener("change", (e) => {
 });
 
 // =============================================================================
+// Click behavior — Jump / Page
+// =============================================================================
+
+const clickBehaviorButtons = document.getElementById("click-behavior-buttons");
+
+clickBehaviorButtons.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-behavior]");
+  if (!btn) return;
+
+  const behavior = btn.dataset.behavior;
+  if (behavior === app.clickBehavior) return;
+  app.setClickBehavior(behavior);
+
+  clickBehaviorButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.behavior === behavior);
+  });
+
+  app.createList();
+});
+
+// =============================================================================
 // Width slider — sets CSS variable, no rebuild needed
 // =============================================================================
 
@@ -121,19 +142,57 @@ widthSlider.addEventListener("input", (e) => {
 });
 
 // =============================================================================
+// Radius slider — sets CSS variable, no rebuild needed
+// =============================================================================
+
+const radiusSlider = document.getElementById("radius-slider");
+const radiusValue = document.getElementById("radius-value");
+
+radiusSlider.addEventListener("input", (e) => {
+  const px = parseInt(e.target.value, 10);
+  radiusValue.textContent = px + "px";
+  document.documentElement.style.setProperty("--vlist-custom-scrollbar-radius", px + "px");
+});
+
+// =============================================================================
+// Padding slider
+// =============================================================================
+
+const paddingSlider = document.getElementById("padding-slider");
+const paddingValue = document.getElementById("padding-value");
+
+paddingSlider.addEventListener("input", (e) => {
+  const px = parseInt(e.target.value, 10);
+  paddingValue.textContent = px + "px";
+  app.setPadding(px);
+  app.createList();
+});
+
+// =============================================================================
+// Min thumb slider
+// =============================================================================
+
+const minThumbSlider = document.getElementById("min-thumb-slider");
+const minThumbValue = document.getElementById("min-thumb-value");
+
+minThumbSlider.addEventListener("input", (e) => {
+  const px = parseInt(e.target.value, 10);
+  minThumbValue.textContent = px + "px";
+  app.setMinThumbSize(px);
+  app.createList();
+});
+
+// =============================================================================
 // Native appearance — width, colors, gutter
 // =============================================================================
 
 let nativeScrollbarWidth = "auto";
-let nativeThumbColor = "#6b7280";
-let nativeTrackColor = "#f3f4f6";
 let nativeGutter = "auto";
 
 function applyNativeSettings() {
   const vp = getViewport();
   if (!vp) return;
   vp.style.scrollbarWidth = nativeScrollbarWidth;
-  vp.style.scrollbarColor = `${nativeThumbColor} ${nativeTrackColor}`;
   vp.style.scrollbarGutter = nativeGutter;
 }
 
@@ -149,18 +208,6 @@ nativeWidth.addEventListener("click", (e) => {
   nativeWidth.querySelectorAll("button").forEach((b) => {
     b.classList.toggle("ui-segmented__btn--active", b.dataset.width === width);
   });
-  applyNativeSettings();
-});
-
-// Thumb color
-document.getElementById("native-thumb").addEventListener("input", (e) => {
-  nativeThumbColor = e.target.value;
-  applyNativeSettings();
-});
-
-// Track color
-document.getElementById("native-track").addEventListener("input", (e) => {
-  nativeTrackColor = e.target.value;
   applyNativeSettings();
 });
 
@@ -180,30 +227,6 @@ nativeGutterEl.addEventListener("click", (e) => {
     );
   });
   applyNativeSettings();
-});
-
-// =============================================================================
-// Navigate
-// =============================================================================
-
-document.getElementById("btn-top").addEventListener("click", () => {
-  app.list?.scrollToIndex(0, { behavior: "smooth", duration: 300 });
-});
-
-document.getElementById("btn-middle").addEventListener("click", () => {
-  app.list?.scrollToIndex(Math.floor(app.contacts.length / 2), {
-    align: "center",
-    behavior: "smooth",
-    duration: 500,
-  });
-});
-
-document.getElementById("btn-bottom").addEventListener("click", () => {
-  app.list?.scrollToIndex(app.contacts.length - 1, {
-    align: "end",
-    behavior: "smooth",
-    duration: 300,
-  });
 });
 
 // =============================================================================
