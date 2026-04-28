@@ -262,8 +262,9 @@
     margin-top: 2px;
 }
 
-/* Grid mode: remove list-style borders on items */
-.mode-grid .vlist-item {
+/* Grid/table mode: remove list-style borders on items */
+.mode-grid .vlist-item,
+.mode-table .vlist-item {
     border-bottom: none;
 }
 
