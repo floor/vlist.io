@@ -14,33 +14,31 @@ export const API_BASE = "/api/tracks";
 // Cover artwork helper — returns { html, bg } where bg is the cover_color style for the parent container
 // size: "thumb" (default, list mode) or "large" (grid mode)
 function coverArt(track, cls, size = "thumb") {
-  const initials = track.title
-    ? track.title.substring(0, 2).toUpperCase()
-    : "♪";
   const bg = track.cover_color
     ? ` style="background-color:${track.cover_color}"`
     : "";
-  if (track.cover_url) {
+  if (track.cover_url && !track._isPlaceholder) {
     const src =
       size !== "thumb"
         ? track.cover_url.replace("/thumb/", `/${size}/`)
         : track.cover_url;
-    const fallbackEl = `Object.assign(document.createElement('span'),{className:'${cls} ${cls}--fallback',textContent:'${initials}'})`;
+    const fallbackEl = `Object.assign(document.createElement('span'),{className:'${cls} ${cls}--fallback'})`;
     return {
       html: `<img class="${cls}" src="${src}" alt="" loading="lazy" decoding="async" data-t="${performance.now()}" onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('${cls}--loaded')" onerror="this.replaceWith(${fallbackEl})"/>`,
       bg,
     };
   }
   return {
-    html: `<span class="${cls} ${cls}--fallback"${bg}>${initials}</span>`,
+    html: `<span class="${cls} ${cls}--fallback"${bg}></span>`,
     bg: "",
   };
 }
 
 // Track item template — list mode (row with artwork, title, artist, duration)
 export const trackTemplate = (track, index) => {
-  const duration =
-    track.duration && Number.isFinite(track.duration)
+  const duration = track._isPlaceholder
+    ? track.duration
+    : track.duration && Number.isFinite(track.duration)
       ? formatDuration(track.duration)
       : "";
   const artistInfo = `${escapeHtml(track.artist)}${track.country ? ` – ${track.country}` : ""}`;
@@ -103,7 +101,7 @@ export const trackTableColumns = [
     width: 200,
     minWidth: 100,
     sortable: true,
-    cell: (track) => escapeHtml(track.artist),
+    cell: (track) => `<span>${escapeHtml(track.artist)}</span>`,
   },
   {
     key: "country",
@@ -112,7 +110,7 @@ export const trackTableColumns = [
     minWidth: 60,
     sortable: true,
     align: "center",
-    cell: (track) => track.country || "",
+    cell: (track) => `<span>${track.country || ""}</span>`,
   },
   {
     key: "year",
@@ -121,7 +119,7 @@ export const trackTableColumns = [
     minWidth: 50,
     sortable: true,
     align: "center",
-    cell: (track) => (track.year ? String(track.year) : ""),
+    cell: (track) => `<span>${track.year ? String(track.year) : ""}</span>`,
   },
   {
     key: "duration",
@@ -130,10 +128,14 @@ export const trackTableColumns = [
     minWidth: 60,
     sortable: true,
     align: "right",
-    cell: (track) =>
-      track.duration && Number.isFinite(track.duration)
-        ? formatDuration(track.duration)
-        : "",
+    cell: (track) => {
+      const text = track._isPlaceholder
+        ? track.duration
+        : track.duration && Number.isFinite(track.duration)
+          ? formatDuration(track.duration)
+          : "";
+      return `<span>${text}</span>`;
+    },
   },
 ];
 

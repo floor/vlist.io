@@ -22,9 +22,6 @@
     transition: background-color 0.2s ease;
 }
 
-.vlist-item.vlist-item--selected:hover {
-    opacity: 0.8;
-}
 
 .item-content {
     display: flex;
@@ -164,8 +161,8 @@
 }
 
 .vlist-grid-item.vlist-item--selected .grid-card {
-    border: 1px solid var(--accent);
-    background-color: var(--badge-error-bg);
+    border: 1px solid var(--vlist-border-selected);
+    background-color: var(--vlist-bg-selected);
 }
 
 .grid-card {
@@ -185,8 +182,8 @@
 }
 
 .vlist-item--selected .grid-card {
-    border-color: var(--badge-error-bg);
-    box-shadow: 0 0 0 1px var(--badge-error-bg);
+    border-color: var(--vlist-border-selected);
+    box-shadow: 0 0 0 1px var(--vlist-border-selected);
 }
 
 .grid-card__artwork {
@@ -262,8 +259,9 @@
     margin-top: 2px;
 }
 
-/* Grid mode: remove list-style borders on items */
-.mode-grid .vlist-item {
+/* Grid/table mode: remove list-style borders on items */
+.mode-grid .vlist-item,
+.mode-table .vlist-item {
     border-bottom: none;
 }
 
@@ -275,10 +273,7 @@
     font-weight: 500;
 }
 
-/* Table mode: tighter selection highlight */
-.mode-table .vlist-item.vlist-item--selected {
-    background-color: var(--badge-error-bg);
-}
+/* Table mode: let vlist's default --vlist-bg-selected (blue) apply */
 
 /* ============================================================================
    Placeholder skeleton — driven by .vlist-item--placeholder on the wrapper.
@@ -307,6 +302,9 @@
 
 .vlist-item--placeholder .item-duration-main {
     color: transparent;
+    background-color: var(--vlist-placeholder-bg);
+    border-radius: 4px;
+    width: fit-content;
 }
 
 .vlist-item--placeholder .item-menu {

@@ -366,6 +366,7 @@ interface ScrollSnapshot {
   offsetInItem: number
   total?:       number
   selectedIds?: Array<string | number>
+  focusedId?:   string | number
 }
 ```
 
@@ -374,7 +375,8 @@ interface ScrollSnapshot {
 | `index` | `number` | First visible item index. |
 | `offsetInItem` | `number` | Pixel offset within the first visible item. |
 | `total` | `number` | Total item count at snapshot time (used by restore to set sizeCache). |
-| `selectedIds` | `Array<string \| number>` | Selected item IDs (optional convenience). |
+| `selectedIds` | `Array<string \| number>` | Selected item IDs (optional, requires `withSelection`). |
+| `focusedId` | `string \| number` | Focused item ID (optional, requires `withSelection`). Restored without showing the focus ring until the user tabs into the list. |
 
 ### ReloadOptions
 
@@ -539,6 +541,7 @@ interface VListEvents<T extends VListItem = VListItem> {
   'item:click':        { item: T; index: number; event: MouseEvent }
   'item:dblclick':     { item: T; index: number; event: MouseEvent }
   'selection:change':  { selected: Array<string | number>; items: T[] }
+  'focus:change':      { id: string | number; index: number }
   'scroll':            { scrollPosition: number; direction: 'up' | 'down' }
   'velocity:change':   { velocity: number; reliable: boolean }
   'range:change':      { range: Range }

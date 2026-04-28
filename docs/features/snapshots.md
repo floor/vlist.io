@@ -4,7 +4,7 @@
 
 ## Overview
 
-The `withSnapshots()` feature enables **scroll position save/restore** for seamless navigation in Single Page Applications. Capture the exact scroll position and restore it later, preserving the user's place in the list — including selection state.
+The `withSnapshots()` feature enables **scroll position save/restore** for seamless navigation in Single Page Applications. Capture the exact scroll position and restore it later, preserving the user's place in the list — including selection state and keyboard focus.
 
 **Import:**
 ```typescript
@@ -31,9 +31,9 @@ const list = vlist({
   .use(withSnapshots({ autoSave: 'my-list' }))
   .build();
 
-// That's it — scroll position and selection are saved to sessionStorage
-// on scroll idle and selection change, and restored automatically on
-// the next build().
+// That's it — scroll position, selection, and keyboard focus are saved
+// to sessionStorage on scroll idle, selection change, and focus change,
+// and restored automatically on the next build().
 ```
 
 With async data, no extra plumbing is needed — `withSnapshots` cancels the initial load and bootstraps the total from the saved snapshot:
@@ -66,9 +66,9 @@ interface SnapshotConfig {
    * Automatically save and restore snapshots via sessionStorage.
    *
    * Pass a string key — snapshots are saved whenever scroll becomes
-   * idle or selection changes, and restored automatically on the
-   * next build(). When withAsync is present, autoLoad is cancelled
-   * and the total is bootstrapped from the snapshot.
+   * idle, selection changes, or keyboard focus moves, and restored
+   * automatically on the next build(). When withAsync is present,
+   * autoLoad is cancelled and the total is bootstrapped from the snapshot.
    */
   autoSave?: string;
 
@@ -90,7 +90,7 @@ interface SnapshotConfig {
 const list = vlist({ ... })
   .use(withSnapshots({ autoSave: 'my-list' }))
   .build();
-// Saves on scroll idle + selection change, restores on next build()
+// Saves on scroll idle, selection change, and focus change — restores on next build()
 ```
 
 **Example — manual restore:**
@@ -114,20 +114,21 @@ list.getScrollSnapshot(): ScrollSnapshot
 **Returns:**
 ```typescript
 interface ScrollSnapshot {
-  index: number;                      // First visible item index
-  offsetInItem: number;               // Pixels scrolled into that item
-  total?: number;                     // Total item count at snapshot time
-  selectedIds?: Array<string | number>; // Selected IDs (if selection is active)
+  index: number;                        // First visible item index
+  offsetInItem: number;                 // Pixels scrolled into that item
+  total?: number;                       // Total item count at snapshot time
+  selectedIds?: Array<string | number>; // Selected IDs (if withSelection is active)
+  focusedId?: string | number;          // Focused item ID (if withSelection is active)
 }
 ```
 
 **Example:**
 ```typescript
 const snapshot = list.getScrollSnapshot();
-// { index: 523, offsetInItem: 12, total: 5000, selectedIds: [3, 7, 42] }
+// { index: 523, offsetInItem: 12, total: 5000, selectedIds: [3, 7, 42], focusedId: 7 }
 ```
 
-The `total` field is included automatically so that the snapshot is self-contained — useful when restoring with `withAsync()` where you need to set the initial total.
+The `total` field is included automatically so that the snapshot is self-contained — useful when restoring with `withAsync()` where you need to set the initial total. The `focusedId` field is only present when an item has keyboard focus.
 
 ### `restoreScroll(snapshot)`
 
@@ -345,6 +346,7 @@ Instead of saving raw `scrollTop` pixels, snapshots save:
 2. **Offset within item** — How many pixels into that item
 3. **Total** — Total item count at snapshot time
 4. **Selected IDs** — Selection state (if `withSelection()` is active)
+5. **Focused item ID** — Keyboard focus position (if `withSelection()` is active)
 
 **Why this approach?**
 
@@ -352,7 +354,7 @@ Instead of saving raw `scrollTop` pixels, snapshots save:
 ✅ **Works with compression** — Independent of virtual height
 ✅ **Handles data changes** — Restores to same item even if list changed
 ✅ **Works with variable heights** — Doesn't depend on total height
-✅ **Self-contained** — Total and selection included in one JSON blob
+✅ **Self-contained** — Total, selection, and focus included in one JSON blob
 
 ### Example
 
@@ -381,9 +383,9 @@ This is more reliable than calling `restoreScroll()` manually after `build()`, b
 
 ## Advanced Usage
 
-### With Selection State
+### With Selection and Focus State
 
-When `withSelection()` is installed, snapshots **automatically include selection**:
+When `withSelection()` is installed, snapshots **automatically include selection and keyboard focus**:
 
 ```typescript
 import { vlist, withSelection, withSnapshots } from 'vlist';
@@ -393,24 +395,26 @@ const list = vlist({ ... })
   .use(withSnapshots())
   .build();
 
-// Select some items
+// Select some items, navigate with arrow keys
 list.select(3, 7, 42);
 
-// Save — selectedIds are included automatically
+// Save — selectedIds and focusedId are included automatically
 const snapshot = list.getScrollSnapshot();
-// { index: 0, offsetInItem: 0, total: 5000, selectedIds: [3, 7, 42] }
+// { index: 0, offsetInItem: 0, total: 5000, selectedIds: [3, 7, 42], focusedId: 7 }
 sessionStorage.setItem('list-state', JSON.stringify(snapshot));
 
-// Restore — selection is restored automatically too
+// Restore — scroll, selection, and focus are all restored
 const saved = JSON.parse(sessionStorage.getItem('list-state'));
 const list2 = vlist({ ... })
   .use(withSelection({ mode: 'multiple' }))
   .use(withSnapshots({ restore: saved }))
   .build();
-// Scroll position AND selection are both restored
+// When the user tabs into the list, the focus ring appears on item 7
 ```
 
-No need to save or restore selection separately — it's all in the snapshot.
+No need to save or restore selection or focus separately — it's all in the snapshot.
+
+> **Focus ring timing:** The focus ring is not shown immediately on restore. It appears only when the user tabs into the list, at which point it jumps directly to the previously focused item. This avoids showing an unexpected focus ring on page load.
 
 ### With Async Data
 
@@ -473,7 +477,7 @@ function applyFilter(filterKey) {
 
 ### Debounced Save
 
-> **Note:** With `autoSave`, saves are already debounced — they fire on `scroll:idle` (150ms after scrolling stops) and on `selection:change`. No manual debouncing needed.
+> **Note:** With `autoSave`, saves are already debounced — they fire on `scroll:idle` (150ms after scrolling stops), on `selection:change`, and on `focus:change` (arrow-key navigation). No manual debouncing needed.
 
 For manual save patterns, debounce with a timeout:
 
@@ -498,7 +502,7 @@ list.on('scroll', () => {
 ✅ `withAsync()` — `autoSave` cancels autoLoad and bootstraps total automatically
 ✅ `withScale()` — Compression-aware save/restore
 ✅ `withPage()` — Works with page-level scrolling
-✅ `withSelection()` — Selection automatically included in snapshots
+✅ `withSelection()` — Selection and keyboard focus automatically included in snapshots
 
 ### Platform Support
 
@@ -635,7 +639,7 @@ await list.reload({ snapshot: savedSnapshot });
 
 ## See Also
 
-- [Types — `ScrollSnapshot`](../api/types.md#scrollsnapshot) — `index`, `offsetInItem`, `total`, `selectedIds`
+- [Types — `ScrollSnapshot`](../api/types.md#scrollsnapshot) — `index`, `offsetInItem`, `total`, `selectedIds`, `focusedId`
 - [Types — `ReloadOptions`](../api/types.md#reloadoptions) — `snapshot` option for `reload()`
 - [Types — `ScrollToOptions`](../api/types.md#scrolltooptions) — `align`, `behavior`, `duration`
 - [Selection](./selection.md) — Selection state included in snapshots automatically

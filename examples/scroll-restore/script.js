@@ -144,6 +144,7 @@ function createList(snapshot) {
 
   list.on("scroll", scheduleSnapshotUpdate);
   list.on("selection:change", scheduleSnapshotUpdate);
+  list.on("focus:change", scheduleSnapshotUpdate);
 
   // Initial preview
   updateSnapshotPreview();
@@ -188,6 +189,10 @@ function formatSnapshot(snapshot) {
       const preview = ids.slice(0, 6).join(", ");
       parts.push(`  "selectedIds": [${preview}, … +${ids.length - 6} more]`);
     }
+  }
+
+  if (snapshot.focusedId !== undefined) {
+    parts.push(`  "focusedId": ${snapshot.focusedId}`);
   }
 
   return "{\n" + parts.join(",\n") + "\n}";

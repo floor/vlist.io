@@ -106,6 +106,23 @@ list.on('selection:change', ({ selected, items }) => {
 | `selected` | `Array<string \| number>` | IDs of currently selected items. |
 | `items` | `T[]` | The selected item objects. |
 
+### focus:change
+
+Fired when keyboard focus moves to a different item. Only emitted when `withSelection` is active. Fires on arrow-key navigation and when `withSnapshots` restores focus after a snapshot restore.
+
+```typescript
+list.on('focus:change', ({ id, index }) => {
+  console.log(`Focus moved to item ${id} at index ${index}`)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string \| number` | ID of the newly focused item. |
+| `index` | `number` | Index of the newly focused item. |
+
+> **Note:** This event fires when the focused *item* changes, not when the list gains or loses DOM focus. The focus ring is only visible when the list has DOM focus (`focusin`).
+
 ---
 
 ## Scroll Events
@@ -354,6 +371,7 @@ Use cases:
 | `item:click` | Interaction | — | `{ item, index, event }` |
 | `item:dblclick` | Interaction | — | `{ item, index, event }` |
 | `selection:change` | Interaction | `withSelection` | `{ selected, items }` |
+| `focus:change` | Interaction | `withSelection` | `{ id, index }` |
 | `scroll` | Scroll | — | `{ scrollPosition, direction }` |
 | `velocity:change` | Scroll | — | `{ velocity, reliable }` |
 | `range:change` | Scroll | — | `{ range }` |
