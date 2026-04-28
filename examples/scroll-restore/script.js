@@ -190,6 +190,10 @@ function formatSnapshot(snapshot) {
     }
   }
 
+  if (snapshot.focusedId !== undefined) {
+    parts.push(`  "focusedId": ${snapshot.focusedId}`);
+  }
+
   return "{\n" + parts.join(",\n") + "\n}";
 }
 
