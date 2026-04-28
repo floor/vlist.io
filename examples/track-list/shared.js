@@ -36,8 +36,9 @@ function coverArt(track, cls, size = "thumb") {
 
 // Track item template — list mode (row with artwork, title, artist, duration)
 export const trackTemplate = (track, index) => {
-  const duration =
-    track.duration && Number.isFinite(track.duration)
+  const duration = track._isPlaceholder
+    ? track.duration
+    : track.duration && Number.isFinite(track.duration)
       ? formatDuration(track.duration)
       : "";
   const artistInfo = `${escapeHtml(track.artist)}${track.country ? ` – ${track.country}` : ""}`;
