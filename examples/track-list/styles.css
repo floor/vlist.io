@@ -164,8 +164,8 @@
 }
 
 .vlist-grid-item.vlist-item--selected .grid-card {
-    border: 1px solid var(--accent);
-    background-color: var(--badge-error-bg);
+    border: 1px solid var(--vlist-border-selected);
+    background-color: var(--vlist-bg-selected);
 }
 
 .grid-card {
@@ -185,8 +185,8 @@
 }
 
 .vlist-item--selected .grid-card {
-    border-color: var(--badge-error-bg);
-    box-shadow: 0 0 0 1px var(--badge-error-bg);
+    border-color: var(--vlist-border-selected);
+    box-shadow: 0 0 0 1px var(--vlist-border-selected);
 }
 
 .grid-card__artwork {
@@ -275,10 +275,7 @@
     font-weight: 500;
 }
 
-/* Table mode: tighter selection highlight */
-.mode-table .vlist-item.vlist-item--selected {
-    background-color: var(--badge-error-bg);
-}
+/* Table mode: let vlist's default --vlist-bg-selected (blue) apply */
 
 /* ============================================================================
    Placeholder skeleton — driven by .vlist-item--placeholder on the wrapper.
