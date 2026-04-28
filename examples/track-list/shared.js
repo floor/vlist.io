@@ -20,7 +20,7 @@ function coverArt(track, cls, size = "thumb") {
   const bg = track.cover_color
     ? ` style="background-color:${track.cover_color}"`
     : "";
-  if (track.cover_url) {
+  if (track.cover_url && !track._isPlaceholder) {
     const src =
       size !== "thumb"
         ? track.cover_url.replace("/thumb/", `/${size}/`)
