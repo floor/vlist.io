@@ -50,6 +50,8 @@ let currentFocusOnClick = false;
 let loadRequests = 0;
 let loadedCount = 0;
 
+let currentSort = { key: "id", direction: "desc" };
+
 let currentFilters = {
   search: "",
   country: "",
@@ -64,8 +66,8 @@ function buildParams(offset, limit) {
   const params = new URLSearchParams({
     offset: String(offset),
     limit: String(limit),
-    sort: "id",
-    direction: "desc",
+    sort: currentSort.key,
+    direction: currentSort.direction,
   });
 
   if (currentFilters.search) params.set("search", currentFilters.search);
@@ -305,6 +307,9 @@ function createTableView(selectionMode, snapshot) {
       columnBorders: false,
       rowBorders: false,
       minColumnWidth: 50,
+      sort: currentSort.key !== "id"
+        ? { key: currentSort.key, direction: currentSort.direction }
+        : undefined,
     }),
   );
   applyScale(builder);
@@ -315,41 +320,15 @@ function createTableView(selectionMode, snapshot) {
   builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
-}
 
-// =============================================================================
-// Table View (withTable — columns with header)
-// =============================================================================
-
-function createTableView(selectionMode, snapshot) {
-  const builder = vlist({
-    container: "#list-container",
-    ariaLabel: "Track list",
-    item: {
-      height: TABLE_ROW_HEIGHT,
-      striped: "odd",
-      template: trackTableRowTemplate,
-    },
+  list.on("column:sort", ({ key, direction }) => {
+    if (direction === null) {
+      currentSort = { key: "id", direction: "desc" };
+    } else {
+      currentSort = { key, direction };
+    }
+    list.reload();
   });
-
-  builder.use(withAsync(getAsyncConfig()));
-  builder.use(
-    withTable({
-      columns: trackTableColumns,
-      rowHeight: TABLE_ROW_HEIGHT,
-      headerHeight: TABLE_HEADER_HEIGHT,
-      resizable: true,
-      columnBorders: false,
-      rowBorders: false,
-      minColumnWidth: 50,
-    }),
-  );
-  builder.use(
-    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
-  );
-  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
-
-  list = builder.build();
 }
 
 // =============================================================================
