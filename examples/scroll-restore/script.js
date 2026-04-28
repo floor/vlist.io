@@ -144,6 +144,7 @@ function createList(snapshot) {
 
   list.on("scroll", scheduleSnapshotUpdate);
   list.on("selection:change", scheduleSnapshotUpdate);
+  list.on("focus:change", scheduleSnapshotUpdate);
 
   // Initial preview
   updateSnapshotPreview();
