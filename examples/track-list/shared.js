@@ -14,9 +14,6 @@ export const API_BASE = "/api/tracks";
 // Cover artwork helper — returns { html, bg } where bg is the cover_color style for the parent container
 // size: "thumb" (default, list mode) or "large" (grid mode)
 function coverArt(track, cls, size = "thumb") {
-  const initials = track.title
-    ? track.title.substring(0, 2).toUpperCase()
-    : "♪";
   const bg = track.cover_color
     ? ` style="background-color:${track.cover_color}"`
     : "";
@@ -25,14 +22,14 @@ function coverArt(track, cls, size = "thumb") {
       size !== "thumb"
         ? track.cover_url.replace("/thumb/", `/${size}/`)
         : track.cover_url;
-    const fallbackEl = `Object.assign(document.createElement('span'),{className:'${cls} ${cls}--fallback',textContent:'${initials}'})`;
+    const fallbackEl = `Object.assign(document.createElement('span'),{className:'${cls} ${cls}--fallback'})`;
     return {
       html: `<img class="${cls}" src="${src}" alt="" loading="lazy" decoding="async" data-t="${performance.now()}" onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('${cls}--loaded')" onerror="this.replaceWith(${fallbackEl})"/>`,
       bg,
     };
   }
   return {
-    html: `<span class="${cls} ${cls}--fallback"${bg}>${initials}</span>`,
+    html: `<span class="${cls} ${cls}--fallback"${bg}></span>`,
     bg: "",
   };
 }
