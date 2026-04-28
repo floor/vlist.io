@@ -53,7 +53,6 @@ export const trackTemplate = (track, index) => {
         <div class="item-artist">${artistInfo}</div>
       </div>
       <div class="item-duration-main">${duration}</div>
-      <div class="item-menu">⋮</div>
     </div>
   `;
 };
