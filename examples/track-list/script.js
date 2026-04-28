@@ -51,6 +51,7 @@ let loadRequests = 0;
 let loadedCount = 0;
 
 let currentSort = { key: "id", direction: "desc" };
+let currentColumnWidths = null; // persists across rebuilds
 
 let currentFilters = {
   search: "",
@@ -298,9 +299,16 @@ function createTableView(selectionMode, snapshot) {
   });
 
   builder.use(withAsync(getAsyncConfig()));
+  const columns = currentColumnWidths
+    ? trackTableColumns.map((col) => ({
+        ...col,
+        width: currentColumnWidths[col.key] ?? col.width,
+      }))
+    : trackTableColumns;
+
   builder.use(
     withTable({
-      columns: trackTableColumns,
+      columns,
       rowHeight: TABLE_ROW_HEIGHT,
       headerHeight: TABLE_HEADER_HEIGHT,
       resizable: true,
@@ -320,6 +328,11 @@ function createTableView(selectionMode, snapshot) {
   builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
+
+  list.on("column:resize", ({ key, width }) => {
+    if (!currentColumnWidths) currentColumnWidths = {};
+    currentColumnWidths[key] = width;
+  });
 
   list.on("column:sort", ({ key, direction }) => {
     if (direction === null) {
