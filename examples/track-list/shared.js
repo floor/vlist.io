@@ -128,8 +128,14 @@ export const trackTableColumns = [
     minWidth: 60,
     sortable: true,
     align: "right",
-    cell: (track) =>
-      `<span>${track.duration && Number.isFinite(track.duration) ? formatDuration(track.duration) : ""}</span>`,
+    cell: (track) => {
+      const text = track._isPlaceholder
+        ? track.duration
+        : track.duration && Number.isFinite(track.duration)
+          ? formatDuration(track.duration)
+          : "";
+      return `<span>${text}</span>`;
+    },
   },
 ];
 
