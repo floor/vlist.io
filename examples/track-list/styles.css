@@ -22,9 +22,6 @@
     transition: background-color 0.2s ease;
 }
 
-.vlist-item.vlist-item--selected:hover {
-    opacity: 0.8;
-}
 
 .item-content {
     display: flex;
