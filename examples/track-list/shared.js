@@ -100,7 +100,7 @@ export const trackTableColumns = [
     width: 200,
     minWidth: 100,
     sortable: true,
-    cell: (track) => escapeHtml(track.artist),
+    cell: (track) => `<span>${escapeHtml(track.artist)}</span>`,
   },
   {
     key: "country",
@@ -109,7 +109,7 @@ export const trackTableColumns = [
     minWidth: 60,
     sortable: true,
     align: "center",
-    cell: (track) => track.country || "",
+    cell: (track) => `<span>${track.country || ""}</span>`,
   },
   {
     key: "year",
@@ -118,7 +118,7 @@ export const trackTableColumns = [
     minWidth: 50,
     sortable: true,
     align: "center",
-    cell: (track) => (track.year ? String(track.year) : ""),
+    cell: (track) => `<span>${track.year ? String(track.year) : ""}</span>`,
   },
   {
     key: "duration",
@@ -128,9 +128,7 @@ export const trackTableColumns = [
     sortable: true,
     align: "right",
     cell: (track) =>
-      track.duration && Number.isFinite(track.duration)
-        ? formatDuration(track.duration)
-        : "",
+      `<span>${track.duration && Number.isFinite(track.duration) ? formatDuration(track.duration) : ""}</span>`,
   },
 ];
 
