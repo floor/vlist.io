@@ -1,0 +1,296 @@
+/* Sortable — example styles */
+
+/* ============================================================================
+   vlist overrides
+   ============================================================================ */
+
+#list-container .vlist-item {
+    padding: 0;
+    border-bottom: none;
+    cursor: default;
+}
+
+/* Free mode: entire item is draggable */
+#list-container[data-grip="free"] .vlist-item {
+    cursor: grab;
+}
+
+#list-container .vlist--sorting .vlist-item {
+    transition: transform 0.15s ease;
+}
+
+/* Grabbing cursor on items during drag */
+#list-container .vlist--sorting .vlist-item {
+    cursor: grabbing;
+}
+
+/* ============================================================================
+   Task Item (56px)
+   ============================================================================ */
+
+.task {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    height: 100%;
+    width: 100%;
+}
+
+.task--done .task__name {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+/* ── Drag Handle ── */
+
+.task__handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 32px;
+    font-size: 16px;
+    color: var(--text-dim, #9ca3af);
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+    border-radius: 4px;
+    transition:
+        color 0.15s ease,
+        background 0.15s ease;
+}
+
+.task__handle:hover {
+    color: var(--text-muted, #6b7280);
+}
+
+.task__handle:active {
+    cursor: grabbing;
+}
+
+/* Hide handle in free-drag mode */
+#list-container:not([data-grip="handle"]) .task__handle {
+    display: none;
+}
+
+/* ── Checkbox ── */
+
+.task__check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border, #d1d5db);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent, #667eea);
+    flex-shrink: 0;
+}
+
+.task--done .task__check {
+    background: var(--accent, #667eea);
+    border-color: var(--accent, #667eea);
+    color: white;
+}
+
+/* ── Info ── */
+
+.task__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.task__name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text, #111827);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.task__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.task__priority {
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.task__sep {
+    color: var(--text-dim, #9ca3af);
+}
+
+.task__assignee {
+    color: var(--text-muted, #6b7280);
+    font-weight: 500;
+}
+
+.task__id {
+    font-size: 12px;
+    color: var(--text-dim, #9ca3af);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+/* ============================================================================
+   Sort Ghost (dragged item clone)
+   ============================================================================ */
+
+.vlist-sort-ghost {
+    border-radius: 8px;
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        0 2px 8px rgba(0, 0, 0, 0.08);
+    background: var(--bg, white);
+    opacity: 0.95 !important;
+}
+
+/* Hide handle in ghost when in free-drag mode */
+.vlist-sort-ghost.vlist-sort-ghost--free .task__handle {
+    display: none;
+}
+
+/* ============================================================================
+   Sort Placeholder (drop target gap)
+   ============================================================================ */
+
+.vlist-sort-placeholder {
+    background: var(--accent, #667eea);
+    opacity: 0.12;
+    border-radius: 6px;
+    margin: 0 8px;
+    transition: height 0.15s ease;
+}
+
+/* ============================================================================
+   Sorting state — dim non-dragged items slightly
+   ============================================================================ */
+
+.vlist--sorting .vlist-item {
+    opacity: 0.85;
+}
+
+/* ============================================================================
+   Sort status message
+   ============================================================================ */
+
+.sort-status {
+    font-size: 12px;
+    color: var(--text-muted, #6b7280);
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ── Live state line ── */
+
+.sort-status__state {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text, #111827);
+}
+
+.sort-status__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sort-status__dot--idle {
+    background: var(--text-dim, #9ca3af);
+}
+
+.sort-status__dot--active {
+    background: #3b82f6;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+    animation: sort-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes sort-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ── Last move breakdown ── */
+
+.sort-status__move {
+    display: none;
+}
+
+.sort-status__move--visible {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+
+.sort-status__name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text, #111827);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sort-status__detail {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-dim, #9ca3af);
+}
+
+.sort-status__positions {
+    font-variant-numeric: tabular-nums;
+}
+
+.sort-status__delta {
+    font-weight: 600;
+    font-size: 11px;
+}
+
+.sort-status__delta--up {
+    color: #3b82f6;
+}
+
+.sort-status__delta--down {
+    color: #f59e0b;
+}
+
+.sort-status__method {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+}
+
+/* ============================================================================
+   Disable controls during sort
+   ============================================================================ */
+
+.split-panel .ui-btn[disabled],
+.split-panel .ui-segmented__btn[disabled] {
+    opacity: 0.4;
+    pointer-events: none;
+}
