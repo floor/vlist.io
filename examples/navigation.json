@@ -110,6 +110,12 @@
         "features": ["table", "grid", "selection", "groups", "scrollbar"]
       },
       {
+        "slug": "sortable",
+        "name": "Sortable",
+        "desc": "Drag-and-drop reordering with handle or full-item drag — task list demo",
+        "features": ["sortable", "selection"]
+      },
+      {
         "slug": "wizard-nav",
         "name": "Wizard",
         "desc": "Button-only step navigation — wheel scrolling disabled",

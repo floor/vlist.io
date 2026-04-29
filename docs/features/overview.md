@@ -16,6 +16,7 @@
 | `withPage()` | +{{size:withPage:delta}} KB | Document-level (window) scrolling |
 | `withScale()` | +{{size:withScale:delta}} KB | Compress scroll space for 1M+ items |
 | `withAutoSize()` | +{{size:withAutoSize:delta}} KB | Auto-measure items via ResizeObserver (Mode B) |
+| `withSortable()` | +{{size:withSortable:delta}} KB | Drag-and-drop reordering with smooth item shifting |
 | `withSnapshots()` | +{{size:withSnapshots:delta}} KB | Scroll position save/restore |
 
 ---
@@ -78,6 +79,41 @@ list.getSelectedItems();   // → [{ id: 2, ... }, { id: 5, ... }]
 ```
 
 → [Full docs](./selection.md)
+
+---
+
+## withSortable() — Drag & Drop Reorder
+
+```typescript
+import { vlist, withSortable } from 'vlist';
+
+const list = vlist({
+  container: '#list',
+  items: tasks,
+  item: {
+    height: 56,
+    template: (task) => `
+      <div class="task">
+        <span class="grip">&#x2807;</span>
+        ${task.name}
+      </div>
+    `,
+  },
+})
+  .use(withSortable({ handle: '.grip' }))
+  .build();
+
+list.on('sort:end', ({ fromIndex, toIndex }) => {
+  const reordered = [...tasks];
+  const [moved] = reordered.splice(fromIndex, 1);
+  reordered.splice(toIndex, 0, moved);
+  list.setItems(reordered);
+});
+```
+
+Items shift out of the way as you drag — like iOS. Cannot combine with `withGrid()`, `withMasonry()`, or `withTable()`.
+
+→ [Full docs](./sortable.md)
 
 ---
 
@@ -297,19 +333,20 @@ if (saved) list.restoreScroll(saved);
 
 Most features compose freely. This matrix shows the known constraints:
 
-| | Table | Grid | Masonry | Groups | Async | Selection | Scale | Scrollbar | Page | Snapshots | AutoSize |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Table** | — | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
-| **Grid** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
-| **Masonry** | ❌ | ❌ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-| **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ | ✅ |
-| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ |
-| **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ | ✅ |
-| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **AutoSize** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| | Table | Grid | Masonry | Groups | Async | Selection | Sortable | Scale | Scrollbar | Page | Snapshots | AutoSize |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Table** | — | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
+| **Grid** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
+| **Masonry** | ❌ | ❌ | — | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Sortable** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ | ✅ |
+| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ |
+| **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ | ✅ |
+| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| **AutoSize** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 
 | Symbol | Meaning |
 |--------|---------|
@@ -319,7 +356,7 @@ Most features compose freely. This matrix shows the known constraints:
 
 **Key constraints:**
 
-- **Table ↔ Grid ↔ Masonry** — Mutually exclusive layout modes (each provides its own renderer)
+- **Table ↔ Grid ↔ Masonry ↔ Sortable** — Mutually exclusive layout modes; sortable is for flat lists only
 - **Table + Groups** — ✅ Full-width group headers in data tables, sticky headers sit below column header
 - **Grid + Groups** — ✅ Full-width group headers span the grid
 - **Masonry ↔ Groups** — Masonry doesn't support grouped layouts

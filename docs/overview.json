@@ -50,7 +50,7 @@
       {
         "slug": "features/overview",
         "name": "Overview",
-        "desc": "All 10 features with examples, costs, and compatibility"
+        "desc": "All 11 features with examples, costs, and compatibility"
       },
       {
         "slug": "features/async",
@@ -61,6 +61,11 @@
         "slug": "features/selection",
         "name": "Selection",
         "desc": "Single & multi-select with keyboard navigation"
+      },
+      {
+        "slug": "features/sortable",
+        "name": "Sortable",
+        "desc": "Drag-and-drop reordering with smooth item shifting"
       },
       {
         "slug": "features/grid",
