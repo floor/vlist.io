@@ -114,6 +114,21 @@ list.on('sort:start', ({ index }) => {
 |-------|------|-------------|
 | `index` | `number` | Index of the item being dragged |
 
+### sort:move
+
+Emitted during a pointer drag whenever the **drop position changes**. Use this to show live feedback (e.g. updating a status panel in real time). Not emitted for keyboard reordering (use `sort:end` instead, which fires per arrow key press).
+
+```typescript
+list.on('sort:move', ({ fromIndex, currentIndex }) => {
+  console.log(`Would drop at #${currentIndex + 1} (started at #${fromIndex + 1})`);
+});
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `fromIndex` | `number` | Index of the item being dragged |
+| `currentIndex` | `number` | Current drop target index |
+
 ### sort:end
 
 Emitted when a drag completes and the item was moved to a different position. **Not emitted** if the item is dropped back to its original position.
@@ -241,6 +256,7 @@ Root gets .vlist--sorting class
     |
 pointermove updates ghost position
     Nearby items shift via CSS transform transitions
+    sort:move emitted each time drop position changes
     Edge zones trigger auto-scroll
     |
 pointerup
@@ -449,6 +465,28 @@ list.on('sort:end', async ({ fromIndex, toIndex }) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ fromIndex, toIndex }),
   });
+});
+```
+
+### Live Drag Feedback
+
+Use `sort:move` to update a status panel in real time as the user drags:
+
+```typescript
+list.on('sort:move', ({ fromIndex, currentIndex }) => {
+  const item = items[fromIndex];
+  const delta = currentIndex - fromIndex;
+  const arrow = delta > 0 ? '↓' : '↑';
+  statusEl.textContent =
+    `${item.name}: #${fromIndex + 1} → #${currentIndex + 1} (${arrow} ${Math.abs(delta)})`;
+});
+
+list.on('sort:end', ({ fromIndex, toIndex }) => {
+  const reordered = [...items];
+  const [moved] = reordered.splice(fromIndex, 1);
+  reordered.splice(toIndex, 0, moved);
+  list.setItems(reordered);
+  statusEl.textContent = `Moved "${moved.name}" to #${toIndex + 1}`;
 });
 ```
 

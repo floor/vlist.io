@@ -201,6 +201,19 @@ export function createList() {
     }
   });
 
+  // Live position update during pointer drag
+  list.on("sort:move", ({ fromIndex, currentIndex }) => {
+    const item = tasks[fromIndex];
+    if (!item) return;
+    showLastMove({
+      name: item.name,
+      from: fromIndex,
+      to: currentIndex,
+      total: tasks.length,
+      method: "drag",
+    });
+  });
+
   list.on("sort:end", ({ fromIndex, toIndex }) => {
     // Reorder the data array
     const reordered = [...tasks];
