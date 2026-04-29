@@ -141,8 +141,11 @@ export function buildSidebar(
     for (const item of group.items) {
       const active = item.slug === activeSlug ? " sidebar__link--active" : "";
       const href = `${urlPrefix}/${item.slug}${queryString}`;
+      const badge = item.badge
+        ? ` <span class="sidebar__badge">${item.badge}</span>`
+        : "";
       lines.push(
-        `  <a href="${href}" class="sidebar__link${active}">${item.name}</a>`,
+        `  <a href="${href}" class="sidebar__link${active}">${item.name}${badge}</a>`,
       );
     }
 
