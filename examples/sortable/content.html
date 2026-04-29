@@ -1,0 +1,108 @@
+<div class="container">
+    <header>
+        <h1>Sortable</h1>
+        <p class="description">
+            Drag-and-drop reordering with <code>withSortable</code>. Grab any
+            item to reorder tasks. Items shift out of the way as you
+            drag — like iOS. Switch between free drag and handle-only.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <h2 class="sr-only">Tasks</h2>
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Drag Mode -->
+            <section class="ui-section">
+                <h3 class="ui-title">Grip</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="handle-mode">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-handle="false"
+                        >
+                            Free
+                        </button>
+                        <button class="ui-segmented__btn" data-handle="true">
+                            Handle
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Status -->
+            <section class="ui-section">
+                <h3 class="ui-title">Status</h3>
+                <div class="ui-card ui-card--compact sort-status" id="sort-status">
+                    <span class="sort-status__state" id="sort-state">
+                        <span class="sort-status__dot sort-status__dot--idle"></span>
+                        Idle
+                    </span>
+                    <div class="sort-status__move" id="sort-move"></div>
+                </div>
+            </section>
+
+            <!-- Keyboard -->
+            <section class="ui-section">
+                <h3 class="ui-title">Keyboard</h3>
+                <div class="ui-row">
+                    <p class="ui-hint">
+                        <kbd>Space</kbd> grab · <kbd>↑</kbd><kbd>↓</kbd> move · <kbd>Space</kbd> drop · <kbd>Esc</kbd> cancel
+                    </p>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="ui-section">
+                <h3 class="ui-title">Actions</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
+                        <button id="btn-add" class="ui-btn" title="Add task">
+                            + Add
+                        </button>
+                        <button
+                            id="btn-shuffle"
+                            class="ui-btn"
+                            title="Shuffle"
+                        >
+                            Shuffle
+                        </button>
+                        <button id="btn-reset" class="ui-btn" title="Reset">
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">items</span>
+            </span>
+        </div>
+        <div class="example-info__right">
+            <span class="example-info__stat">
+                <strong id="info-moves">0</strong>
+                <span class="example-info__unit">moves</span>
+            </span>
+            <span class="example-info__stat">
+                <strong id="info-handle">free</strong>
+            </span>
+        </div>
+    </div>
+</div>

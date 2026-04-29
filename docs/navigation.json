@@ -67,6 +67,11 @@
         "desc": "Item selection & keyboard nav (withSelection)"
       },
       {
+        "slug": "features/sortable",
+        "name": "Sortable",
+        "desc": "Drag-and-drop reordering (withSortable)"
+      },
+      {
         "slug": "features/grid",
         "name": "Grid",
         "desc": "2D grid layout (withGrid)"

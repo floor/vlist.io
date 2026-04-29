@@ -96,7 +96,8 @@
         "slug": "scrollbar",
         "name": "Scrollbar",
         "desc": "Native, custom, and none — configure auto-hide, gutter, hover behavior, and track width",
-        "features": ["scrollbar"]
+        "features": ["scrollbar"],
+        "badge": "new"
       }
     ]
   },
@@ -108,6 +109,13 @@
         "name": "File Browser",
         "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
         "features": ["table", "grid", "selection", "groups", "scrollbar"]
+      },
+      {
+        "slug": "sortable",
+        "name": "Sortable",
+        "desc": "Drag-and-drop reordering with handle or full-item drag — task list demo",
+        "features": ["sortable", "selection"],
+        "badge": "new"
       },
       {
         "slug": "wizard-nav",

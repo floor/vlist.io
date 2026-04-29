@@ -22,7 +22,6 @@
     transition: background-color 0.2s ease;
 }
 
-
 .item-content {
     display: flex;
     align-items: center;
@@ -305,6 +304,8 @@
     background-color: var(--vlist-placeholder-bg);
     border-radius: 4px;
     width: fit-content;
+    height: 12px;
+    padding: 0 4px;
 }
 
 .vlist-item--placeholder .item-menu {
