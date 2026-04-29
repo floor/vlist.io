@@ -123,6 +123,66 @@ list.on('focus:change', ({ id, index }) => {
 
 > **Note:** This event fires when the focused *item* changes, not when the list gains or loses DOM focus. The focus ring is only visible when the list has DOM focus (`focusin`).
 
+### sort:start
+
+Fired when a drag or keyboard grab begins. Only emitted when `withSortable` is active.
+
+```typescript
+list.on('sort:start', ({ index }) => {
+  console.log(`Started sorting item at index ${index}`)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `index` | `number` | Index of the item being sorted. |
+
+### sort:move
+
+Fired when the drop position changes during a pointer drag. Only emitted when `withSortable` is active.
+
+```typescript
+list.on('sort:move', ({ fromIndex, currentIndex }) => {
+  console.log(`Item ${fromIndex} now hovering over position ${currentIndex}`)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `fromIndex` | `number` | Original index of the dragged item. |
+| `currentIndex` | `number` | Current drop position. |
+
+### sort:end
+
+Fired when an item is dropped at a new position. Only emitted when `withSortable` is active.
+
+```typescript
+list.on('sort:end', ({ fromIndex, toIndex }) => {
+  const [moved] = items.splice(fromIndex, 1)
+  items.splice(toIndex, 0, moved)
+  list.setItems(items)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `fromIndex` | `number` | Original index before the move. |
+| `toIndex` | `number` | Final index after the move. |
+
+### sort:cancel
+
+Fired when a keyboard grab is cancelled with Escape. Only emitted when `withSortable` is active.
+
+```typescript
+list.on('sort:cancel', ({ originalItems }) => {
+  list.setItems(originalItems)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `originalItems` | `T[]` | Snapshot of the items array before any moves. |
+
 ---
 
 ## Scroll Events
@@ -372,6 +432,10 @@ Use cases:
 | `item:dblclick` | Interaction | — | `{ item, index, event }` |
 | `selection:change` | Interaction | `withSelection` | `{ selected, items }` |
 | `focus:change` | Interaction | `withSelection` | `{ id, index }` |
+| `sort:start` | Interaction | `withSortable` | `{ index }` |
+| `sort:move` | Interaction | `withSortable` | `{ fromIndex, currentIndex }` |
+| `sort:end` | Interaction | `withSortable` | `{ fromIndex, toIndex }` |
+| `sort:cancel` | Interaction | `withSortable` | `{ originalItems }` |
 | `scroll` | Scroll | — | `{ scrollPosition, direction }` |
 | `velocity:change` | Scroll | — | `{ velocity, reliable }` |
 | `range:change` | Scroll | — | `{ range }` |
