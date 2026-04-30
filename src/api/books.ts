@@ -526,7 +526,7 @@ export function getBooks(options: QueryOptions): BooksResponse {
   const recordSample = (pageItems: Book[]): void => {
     if (sort === "id" || !hasNoFilters(options) || pageItems.length === 0) return;
     const last = pageItems[pageItems.length - 1];
-    const val = (last as Record<string, unknown>)[sort];
+    const val = (last as unknown as Record<string, unknown>)[sort];
     if (val != null) storeSample(sort, direction, offset, val as string | number, last.id);
   };
 
