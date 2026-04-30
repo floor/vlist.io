@@ -309,7 +309,7 @@ function buildOverviewContent(): string {
   sections.push(`<div class="overview">`);
   sections.push(`  <h1 class="overview__title">Examples</h1>`);
   sections.push(
-    `  <p class="overview__tagline">Interactive examples for the VList virtual list library — from basic lists to million-item stress tests.</p>`,
+    `  <p class="overview__tagline">Interactive examples for the vlist virtual list library — from basic lists to million-item stress tests.</p>`,
   );
 
   const groups = loadNavigation<ExampleGroup[]>(NAV_PATH);
@@ -486,11 +486,11 @@ function assemblePage(
 ): string {
   const shell = loadShell(SHELL_PATH);
 
-  const title = example ? `VList — ${example.name}` : "VList — Examples";
+  const title = example ? `vlist — ${example.name}` : "vlist — Examples";
 
   const description = example
-    ? `VList ${example.name.toLowerCase()} example — ${example.desc}`
-    : "Interactive examples for the VList virtual list library — from basic lists to million-item stress tests.";
+    ? `vlist ${example.name.toLowerCase()} example — ${example.desc}`
+    : "Interactive examples for the vlist virtual list library — from basic lists to million-item stress tests.";
 
   const url = slug
     ? `${SITE}/examples/${slug}${queryString || ""}`

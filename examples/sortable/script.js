@@ -81,7 +81,7 @@ function makeTasks(count) {
   }));
 }
 
-let tasks = makeTasks(90);
+let tasks = makeTasks(20);
 
 // =============================================================================
 // State — exported for controls
@@ -279,8 +279,7 @@ const moveCountEl = document.getElementById("info-moves");
 
 function setSortState(label, active) {
   if (!stateEl) return;
-  stateEl.innerHTML =
-    `<span class="sort-status__dot sort-status__dot--${active ? "active" : "idle"}"></span>${label}`;
+  stateEl.innerHTML = `<span class="sort-status__dot sort-status__dot--${active ? "active" : "idle"}"></span>${label}`;
 }
 
 function showLastMove({ name, from, to, total, method }) {
@@ -295,9 +294,9 @@ function showLastMove({ name, from, to, total, method }) {
   moveEl.innerHTML =
     `<span class="sort-status__name">${name}</span>` +
     `<span class="sort-status__detail">` +
-      `<span class="sort-status__positions">#${from + 1} → #${to + 1} <span class="sort-status__method">of ${total}</span></span>` +
-      `<span class="sort-status__delta sort-status__delta--${deltaClass}">${arrow} ${absDelta} ${plural}</span>` +
-      `<span class="sort-status__method">${method}</span>` +
+    `<span class="sort-status__positions">#${from + 1} → #${to + 1} <span class="sort-status__method">of ${total}</span></span>` +
+    `<span class="sort-status__delta sort-status__delta--${deltaClass}">${arrow} ${absDelta} ${plural}</span>` +
+    `<span class="sort-status__method">${method}</span>` +
     `</span>`;
 }
 

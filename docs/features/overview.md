@@ -341,8 +341,8 @@ Most features compose freely. This matrix shows the known constraints:
 | **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Sortable** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ❌ | ✅ | ✅ |
+| **Sortable** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | — | ✅ | ❌ | ✅ | ✅ |
 | **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ |
 | **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ | ✅ |
 | **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
@@ -357,6 +357,7 @@ Most features compose freely. This matrix shows the known constraints:
 **Key constraints:**
 
 - **Table ↔ Grid ↔ Masonry ↔ Sortable** — Mutually exclusive layout modes; sortable is for flat lists only
+- **Sortable ↔ Scale** — Drag calculations require uncompressed scroll positions
 - **Table + Groups** — ✅ Full-width group headers in data tables, sticky headers sit below column header
 - **Grid + Groups** — ✅ Full-width group headers span the grid
 - **Masonry ↔ Groups** — Masonry doesn't support grouped layouts

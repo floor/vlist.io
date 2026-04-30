@@ -1,10 +1,10 @@
-# VList Documentation
+# vlist Documentation
 
 > Reference documentation for the vlist virtual list library.
 
 ## 🚀 Quick Start
 
-**New to VList?** Start with tutorials:
+**New to vlist?** Start with tutorials:
 
 - **[Tutorials](/tutorials)** - Step-by-step learning guides
 - **[Quick Start](/tutorials/quick-start)** - Get started in 5 minutes

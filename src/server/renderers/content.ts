@@ -554,7 +554,7 @@ export function createContentRenderer(config: ContentConfig) {
 
       // SEO metadata
       OG_TYPE: "article",
-      OG_SITE_NAME: "VList",
+      OG_SITE_NAME: "vlist",
       TWITTER_CARD: "summary_large_image",
 
       // Feature flags
@@ -667,10 +667,10 @@ export const docsRenderer = createContentRenderer({
   contentDir: "./docs",
   urlPrefix: "/docs",
   sectionName: "Docs",
-  titleSuffix: "VList docs",
-  defaultTitle: "VList — Docs",
+  titleSuffix: "vlist docs",
+  defaultTitle: "vlist — Docs",
   defaultDescription:
-    "VList documentation — API reference, configuration, events, methods, styling, and more.",
+    "vlist documentation — API reference, configuration, events, methods, styling, and more.",
   overviewTitle: "Documentation",
   overviewTagline:
     'Reference documentation for the vlist virtual list library. For learning content, see <a href="/tutorials">Tutorials</a>.',
@@ -681,10 +681,10 @@ export const tutorialsRenderer = createContentRenderer({
   contentDir: "./tutorials",
   urlPrefix: "/tutorials",
   sectionName: "Tutorials",
-  titleSuffix: "VList Tutorials",
-  defaultTitle: "Tutorials — VList",
+  titleSuffix: "vlist Tutorials",
+  defaultTitle: "Tutorials — vlist",
   defaultDescription: "Step-by-step tutorials to learn vlist",
-  overviewTitle: "VList Tutorials",
+  overviewTitle: "vlist Tutorials",
   overviewTagline:
     "Step-by-step guides to learn vlist from beginner to advanced.",
 });

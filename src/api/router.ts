@@ -29,8 +29,6 @@ import {
   getCategories as getBookCategories,
   getStats as getBooksStats,
   parseQueryOptions as parseBooksParams,
-  MAX_LIMIT as BOOKS_MAX_LIMIT,
-  DEFAULT_LIMIT as BOOKS_DEFAULT_LIMIT,
 } from "./books";
 import {
   getTracks,
@@ -43,8 +41,6 @@ import {
   getCategories,
   getStats as getTracksStats,
   parseQueryOptions as parseTracksParams,
-  MAX_LIMIT as TRACKS_MAX_LIMIT,
-  DEFAULT_LIMIT as TRACKS_DEFAULT_LIMIT,
 } from "./tracks";
 import type { TrackInput } from "./tracks";
 import { searchSite } from "../server/search";
@@ -998,8 +994,6 @@ export const routeApi = async (
   const trackMatch = path.match(/^\/api\/tracks\/(\d+)$/);
   if (trackMatch) {
     const id = parseInt(trackMatch[1], 10);
-    const delay = intParam(url, "delay", 0, 0, 5000);
-
     if (req.method === "GET") {
       return handleGetTrack(url, id);
     } else if (req.method === "PUT") {

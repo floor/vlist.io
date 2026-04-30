@@ -152,7 +152,7 @@ vlist.io/
 │   └── icons/
 ├── benchmarks/                # Performance benchmarks
 │   ├── build.ts               # Benchmark build script
-│   ├── suites/                # VList performance suites (scroll, render, memory, scrollto)
+│   ├── suites/                # vlist performance suites (scroll, render, memory, scrollto)
 │   └── comparison/            # Cross-library comparisons (9 libraries)
 ├── docs/                      # Documentation (Markdown, server-rendered)
 │   ├── getting-started.md

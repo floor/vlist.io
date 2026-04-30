@@ -1,6 +1,6 @@
-# VList API Reference
+# vlist API Reference
 
-> Complete reference for the core VList API — factory, configuration, properties, and methods.
+> Complete reference for the core vlist API — factory, configuration, properties, and methods.
 >
 > For feature-specific documentation (`withGrid`, `withAsync`, `withSelection`, etc.), see the [Features](../features/overview.md) section.
 
@@ -677,4 +677,4 @@ const gallery = vlist({
 
 ---
 
-*VList is built and maintained by [Floor IO](https://floor.io). Source at [github.com/floor/vlist](https://github.com/floor/vlist).*
+*vlist is built and maintained by [Floor IO](https://floor.io). Source at [github.com/floor/vlist](https://github.com/floor/vlist).*

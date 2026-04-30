@@ -226,11 +226,11 @@ function assemblePage(
 ): string {
   const shell = loadShell(SHELL_PATH);
 
-  const title = item ? `VList — ${item.name} Benchmark` : "VList — Benchmarks";
+  const title = item ? `vlist — ${item.name} Benchmark` : "vlist — Benchmarks";
 
   const description = item
-    ? `VList ${item.name.toLowerCase()} benchmark — ${item.desc}`
-    : "VList performance benchmarks — scroll FPS, initial render, memory stability, and bundle size comparisons.";
+    ? `vlist ${item.name.toLowerCase()} benchmark — ${item.desc}`
+    : "vlist performance benchmarks — scroll FPS, initial render, memory stability, and bundle size comparisons.";
 
   const sidebar = buildSidebar(slug, variant);
 

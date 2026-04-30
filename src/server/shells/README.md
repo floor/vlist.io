@@ -1,6 +1,6 @@
-# VList Shell Templates
+# vlist Shell Templates
 
-This directory contains HTML shell templates for the VList documentation site.
+This directory contains HTML shell templates for the vlist documentation site.
 
 ## 📁 Files
 
@@ -67,8 +67,8 @@ The new unified shell combines all features from the legacy shells:
 
 ```javascript
 const html = renderTemplate('base.html', {
-  TITLE: 'Getting Started - VList',
-  DESCRIPTION: 'Learn how to use VList virtual scrolling',
+  TITLE: 'Getting Started - vlist',
+  DESCRIPTION: 'Learn how to use vlist virtual scrolling',
   URL: 'https://vlist.io/docs/getting-started',
   SECTION: 'Docs',
   SECTION_LINK: '/docs/',
@@ -85,7 +85,7 @@ const html = renderTemplate('base.html', {
   
   // Metadata
   OG_TYPE: 'article',
-  OG_SITE_NAME: 'VList',
+  OG_SITE_NAME: 'vlist',
   TWITTER_CARD: 'summary_large_image'
 });
 ```
@@ -94,7 +94,7 @@ const html = renderTemplate('base.html', {
 
 ```javascript
 const html = renderTemplate('base.html', {
-  TITLE: 'Velocity Loading - VList Examples',
+  TITLE: 'Velocity Loading - vlist Examples',
   DESCRIPTION: 'Smart data loading example',
   URL: 'https://vlist.io/examples/velocity-loading',
   SECTION: 'Examples',
@@ -118,8 +118,8 @@ const html = renderTemplate('base.html', {
 
 ```javascript
 const html = renderTemplate('base.html', {
-  TITLE: 'VList Benchmarks',
-  DESCRIPTION: 'Performance benchmarks for VList',
+  TITLE: 'vlist Benchmarks',
+  DESCRIPTION: 'Performance benchmarks for vlist',
   URL: 'https://vlist.io/benchmarks/',
   SECTION: 'Benchmarks',
   SIDEBAR: renderSidebar(),
