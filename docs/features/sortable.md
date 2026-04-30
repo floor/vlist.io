@@ -524,7 +524,7 @@ src/features/sortable/
 | `withSelection()` | Yes | Space grabs items; use Enter for selection toggle |
 | `withScrollbar()` | Yes | Custom scrollbar works during drag |
 | `withAsync()` | Yes | Drag works on loaded items |
-| `withScale()` | Yes | Works with compressed scroll |
+| `withScale()` | No | Conflicts — drag calculations require uncompressed scroll positions |
 | `withSnapshots()` | Yes | Snapshots capture order after reorder |
 | `withGroups()` | Yes | Drag within grouped lists |
 | `withGrid()` | No | Conflicts — sortable is for flat lists |
