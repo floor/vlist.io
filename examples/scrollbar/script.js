@@ -28,7 +28,7 @@ export const contacts = makeContacts(TOTAL).sort((a, b) =>
 // =============================================================================
 
 export let mode = "native"; // "native" | "custom" | "none"
-export let autoHide = true;
+export let autoHide = false;
 export let autoHideDelay = 1000;
 export let gutterEnabled = false;
 export let showOnHover = true;

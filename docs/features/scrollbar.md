@@ -163,7 +163,7 @@ vlist({ container, item })
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `autoHide` | `boolean` | `true` | Auto-hide scrollbar after idle |
+| `autoHide` | `boolean` | `true` | Auto-hide scrollbar after idle. When `false`, the scrollbar is always visible as long as content overflows. |
 | `autoHideDelay` | `number` | `1000` | Auto-hide delay in milliseconds |
 | `minThumbSize` | `number` | `15` | Minimum thumb size in pixels. Also controllable via `--vlist-custom-scrollbar-min-thumb-size`. |
 | `showOnHover` | `boolean` | `true` | Show scrollbar when hovering near the scrollbar edge |
@@ -174,6 +174,8 @@ vlist({ container, item })
 | `clickBehavior` | `'jump' \| 'page'` | `'page'` | What happens when clicking the track (not the thumb). `'page'` scrolls by one page toward the click — hold the mouse button to continue scrolling smoothly, matching macOS native scrollbar behavior. `'jump'` centers the thumb at the click position instantly. |
 
 When `showOnHover` is `true`, an invisible hover zone is placed along the scrollbar edge. Moving the mouse into this zone reveals the scrollbar, and it stays visible as long as the cursor remains over the zone or the track — the auto-hide timer is suspended while hovering. The default `hoverZoneWidth` is the wall-side padding (`right` for vertical, `bottom` for horizontal) plus 16px, so the zone always covers the full inset track area regardless of how much padding is set; increase it if you want a wider reach from the edge.
+
+When `autoHide` is `false`, the scrollbar is visible immediately and stays visible as long as content overflows — no user interaction is needed to reveal it. The `autoHideDelay`, `showOnHover`, and `showOnViewportEnter` options have no effect in this mode since the scrollbar never hides.
 
 When `showOnViewportEnter` is `false`, the scrollbar only appears on scroll or when hovering near the scrollbar edge (if `showOnHover` is `true`). This is useful for cleaner UIs where you don't want the scrollbar to flash every time the mouse enters the list.
 
@@ -278,7 +280,7 @@ interface ScrollConfig {
 }
 
 interface ScrollbarOptions {
-  /** Auto-hide scrollbar after idle (default: true) */
+  /** Auto-hide scrollbar after idle (default: true). When false, scrollbar is always visible. */
   autoHide?: boolean;
 
   /** Auto-hide delay in milliseconds (default: 1000) */
