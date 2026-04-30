@@ -297,7 +297,7 @@ The native page scrollbar provides:
 |--------|------|---------|-------------|
 | `scrollPadding` | `object` | — | Viewport insets for sticky chrome (see [scrollPadding](#scrollpadding)) |
 
-The feature doesn't add any new methods. All standard VList methods work:
+The feature doesn't add any new methods. All standard vlist methods work:
 
 ```typescript
 const list = vlist({ ... })

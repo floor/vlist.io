@@ -202,7 +202,7 @@ export function renderHomepage(): Response {
   if (!pageCache || !IS_PROD) {
     const template = loadTemplate();
     pageCache = eta.renderString(template, {
-      title: "VList — The Virtual List for Every Framework",
+      title: "vlist — The Virtual List for Every Framework",
       description:
         "Accessible virtual list for Vue, Svelte, Solid, React, and vanilla JS. Grid, masonry, table, WAI-ARIA keyboard navigation — 10.5 KB, zero dependencies.",
       canonicalUrl: SITE,

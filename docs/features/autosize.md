@@ -331,7 +331,7 @@ console.log('Recommended estimatedHeight:', median);
 
 ## API
 
-The feature doesn't add any new methods. All standard VList methods work:
+The feature doesn't add any new methods. All standard vlist methods work:
 
 ```typescript
 const list = vlist({ ... })
