@@ -5,13 +5,14 @@ import { vlist, withScrollbar, withSelection, withSnapshots } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
-import "./controls.js";
+import { restoreFromStorage } from "./controls.js";
 
 // =============================================================================
 // Constants
 // =============================================================================
 
 const STORAGE_KEY = "scrollbar-list";
+const CONFIG_KEY = "scrollbar-config";
 const TOTAL = 1_000;
 const ITEM_HEIGHT = 64;
 
@@ -35,7 +36,7 @@ export let showOnHover = true;
 export let showOnViewportEnter = true;
 export let padding = 2;
 export let minThumbSize = 15;
-export let clickBehavior = "page"; // "jump" | "page"
+export let clickBehavior = "scroll"; // "jump" | "scroll"
 export let list = null;
 
 export function setMode(v) {
@@ -64,6 +65,30 @@ export function setMinThumbSize(v) {
 }
 export function setClickBehavior(v) {
   clickBehavior = v;
+}
+
+// =============================================================================
+// Persist / restore config
+// =============================================================================
+
+export function saveConfig() {
+  const config = {
+    mode, autoHide, autoHideDelay, gutterEnabled, showOnHover,
+    showOnViewportEnter, padding, minThumbSize, clickBehavior,
+    width: parseInt(getComputedStyle(document.documentElement)
+      .getPropertyValue("--vlist-custom-scrollbar-width")) || 8,
+    radius: parseInt(getComputedStyle(document.documentElement)
+      .getPropertyValue("--vlist-custom-scrollbar-radius")) || 4,
+  };
+  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); } catch {}
+}
+
+export function restoreConfig() {
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
 }
 
 // =============================================================================
@@ -165,7 +190,8 @@ export function updateContext() {
 }
 
 // =============================================================================
-// Init
+// Init — restore saved config (if any), then create the list
 // =============================================================================
 
+restoreFromStorage();
 createList();

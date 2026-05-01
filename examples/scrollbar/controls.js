@@ -39,16 +39,25 @@ modeButtons.addEventListener("click", (e) => {
   syncPanelMode();
   app.createList();
   if (mode === "native") applyNativeSettings();
+  save();
 });
 
 // =============================================================================
 // Auto-hide toggle
 // =============================================================================
 
+function syncAutoHideDependents() {
+  const disabled = !app.autoHide;
+  document.getElementById("delay-row").classList.toggle("ui-row--disabled", disabled);
+  document.getElementById("hover-row").classList.toggle("ui-row--disabled", disabled);
+  document.getElementById("enter-row").classList.toggle("ui-row--disabled", disabled);
+}
+
 document.getElementById("toggle-autohide").addEventListener("change", (e) => {
   app.setAutoHide(e.target.checked);
-  document.getElementById("delay-row").classList.toggle("ui-row--disabled", !e.target.checked);
+  syncAutoHideDependents();
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -63,6 +72,7 @@ delaySlider.addEventListener("input", (e) => {
   delayValue.textContent = ms + "ms";
   app.setAutoHideDelay(ms);
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -87,6 +97,7 @@ gutterButtons.addEventListener("click", (e) => {
   });
 
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -96,6 +107,7 @@ gutterButtons.addEventListener("click", (e) => {
 document.getElementById("toggle-show-hover").addEventListener("change", (e) => {
   app.setShowOnHover(e.target.checked);
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -105,6 +117,7 @@ document.getElementById("toggle-show-hover").addEventListener("change", (e) => {
 document.getElementById("toggle-show-enter").addEventListener("change", (e) => {
   app.setShowOnViewportEnter(e.target.checked);
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -126,6 +139,7 @@ clickBehaviorButtons.addEventListener("click", (e) => {
   });
 
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -139,6 +153,7 @@ widthSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
   widthValue.textContent = px + "px";
   document.documentElement.style.setProperty("--vlist-custom-scrollbar-width", px + "px");
+  save();
 });
 
 // =============================================================================
@@ -152,6 +167,7 @@ radiusSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
   radiusValue.textContent = px + "px";
   document.documentElement.style.setProperty("--vlist-custom-scrollbar-radius", px + "px");
+  save();
 });
 
 // =============================================================================
@@ -166,6 +182,7 @@ paddingSlider.addEventListener("input", (e) => {
   paddingValue.textContent = px + "px";
   app.setPadding(px);
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -180,6 +197,7 @@ minThumbSlider.addEventListener("input", (e) => {
   minThumbValue.textContent = px + "px";
   app.setMinThumbSize(px);
   app.createList();
+  save();
 });
 
 // =============================================================================
@@ -230,5 +248,66 @@ nativeGutterEl.addEventListener("click", (e) => {
 });
 
 // =============================================================================
-// Init — initial panel state is declared via class in content.html
+// Persist on every change
 // =============================================================================
+
+function save() {
+  app.saveConfig();
+}
+
+// =============================================================================
+// Init — restore saved config, then sync UI.
+// Called from script.js after all module-level state is initialized.
+// =============================================================================
+
+export function restoreFromStorage() {
+  const saved = app.restoreConfig();
+
+  if (saved) {
+    if (saved.mode) app.setMode(saved.mode);
+    if (saved.autoHide !== undefined) app.setAutoHide(saved.autoHide);
+    if (saved.autoHideDelay !== undefined) app.setAutoHideDelay(saved.autoHideDelay);
+    if (saved.gutterEnabled !== undefined) app.setGutterEnabled(saved.gutterEnabled);
+    if (saved.showOnHover !== undefined) app.setShowOnHover(saved.showOnHover);
+    if (saved.showOnViewportEnter !== undefined) app.setShowOnViewportEnter(saved.showOnViewportEnter);
+    if (saved.padding !== undefined) app.setPadding(saved.padding);
+    if (saved.minThumbSize !== undefined) app.setMinThumbSize(saved.minThumbSize);
+    if (saved.clickBehavior) app.setClickBehavior(saved.clickBehavior);
+
+    if (saved.width !== undefined) {
+      widthSlider.value = saved.width;
+      widthValue.textContent = saved.width + "px";
+      document.documentElement.style.setProperty("--vlist-custom-scrollbar-width", saved.width + "px");
+    }
+    if (saved.radius !== undefined) {
+      radiusSlider.value = saved.radius;
+      radiusValue.textContent = saved.radius + "px";
+      document.documentElement.style.setProperty("--vlist-custom-scrollbar-radius", saved.radius + "px");
+    }
+  }
+
+  // Always sync UI to match current state (saved or defaults)
+  modeButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === app.mode);
+  });
+  syncPanelMode();
+
+  document.getElementById("toggle-autohide").checked = app.autoHide;
+  document.getElementById("toggle-show-hover").checked = app.showOnHover;
+  document.getElementById("toggle-show-enter").checked = app.showOnViewportEnter;
+  syncAutoHideDependents();
+
+  delaySlider.value = app.autoHideDelay;
+  delayValue.textContent = app.autoHideDelay + "ms";
+  paddingSlider.value = app.padding;
+  paddingValue.textContent = app.padding + "px";
+  minThumbSlider.value = app.minThumbSize;
+  minThumbValue.textContent = app.minThumbSize + "px";
+
+  gutterButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.gutter === String(app.gutterEnabled));
+  });
+  clickBehaviorButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.behavior === app.clickBehavior);
+  });
+}
