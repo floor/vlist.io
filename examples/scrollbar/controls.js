@@ -48,9 +48,17 @@ modeButtons.addEventListener("click", (e) => {
 
 function syncAutoHideDependents() {
   const disabled = !app.autoHide;
-  document.getElementById("delay-row").classList.toggle("ui-row--disabled", disabled);
-  document.getElementById("hover-row").classList.toggle("ui-row--disabled", disabled);
-  document.getElementById("enter-row").classList.toggle("ui-row--disabled", disabled);
+  for (const id of ["delay-row", "hover-row", "enter-row"]) {
+    const row = document.getElementById(id);
+    row.classList.toggle("ui-row--disabled", disabled);
+    for (const el of row.querySelectorAll("input, button, select")) {
+      if (disabled) {
+        el.setAttribute("tabindex", "-1");
+      } else {
+        el.removeAttribute("tabindex");
+      }
+    }
+  }
 }
 
 document.getElementById("toggle-autohide").addEventListener("change", (e) => {
