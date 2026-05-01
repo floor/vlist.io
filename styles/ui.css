@@ -428,7 +428,7 @@
     background: var(--bg);
     padding: 2px;
     flex: 1;
-    gap: 3px;
+    gap: 4px;
 }
 
 .ui-segmented__btn {

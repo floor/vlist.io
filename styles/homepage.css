@@ -32,7 +32,7 @@
    ============================================================ */
 
 .hero {
-    padding: calc(var(--header-height) + 40px) 0 56px;
+    padding: 64px 0 24px;
     text-align: center;
 }
 
