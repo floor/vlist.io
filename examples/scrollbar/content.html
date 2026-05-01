@@ -16,16 +16,13 @@
             <div id="list-container"></div>
         </div>
 
-        <aside class="split-panel mode-native" id="scrollbar-panel">
+        <aside class="split-panel" id="scrollbar-panel">
             <!-- Mode -->
             <section class="ui-section">
                 <h3 class="ui-title">Mode</h3>
                 <div class="ui-row">
                     <div class="ui-segmented" id="mode-buttons">
-                        <button
-                            class="ui-segmented__btn ui-segmented__btn--active"
-                            data-mode="native"
-                        >
+                        <button class="ui-segmented__btn" data-mode="native">
                             Native
                         </button>
                         <button class="ui-segmented__btn" data-mode="custom">
@@ -45,7 +42,7 @@
                 <div class="ui-row">
                     <label class="ui-label">Auto-hide</label>
                     <label class="ui-switch">
-                        <input type="checkbox" id="toggle-autohide" checked />
+                        <input type="checkbox" id="toggle-autohide" />
                         <span class="ui-switch__track"></span>
                     </label>
                 </div>
@@ -67,28 +64,11 @@
                         value="1000"
                     />
                 </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Track click</label>
-                    <div class="ui-segmented" id="click-behavior-buttons">
-                        <button
-                            class="ui-segmented__btn ui-segmented__btn--active"
-                            data-behavior="page"
-                        >
-                            Page
-                        </button>
-                        <button class="ui-segmented__btn" data-behavior="jump">
-                            Jump
-                        </button>
-                    </div>
-                </div>
             </section>
 
             <!-- Hover — custom only -->
             <section class="ui-section custom-only">
-                <h3 class="ui-title">Hover</h3>
-
-                <div class="ui-row">
+                <div class="ui-row" id="hover-row">
                     <label class="ui-label">Show on hover</label>
                     <label class="ui-switch">
                         <input type="checkbox" id="toggle-show-hover" checked />
@@ -96,7 +76,7 @@
                     </label>
                 </div>
 
-                <div class="ui-row">
+                <div class="ui-row" id="enter-row">
                     <label class="ui-label">Show on enter</label>
                     <label class="ui-switch">
                         <input type="checkbox" id="toggle-show-enter" checked />
@@ -105,10 +85,11 @@
                 </div>
             </section>
 
-            <!-- Gutter — custom only -->
+            <!-- Track — custom only -->
             <section class="ui-section custom-only">
                 <h3 class="ui-title">Gutter</h3>
                 <div class="ui-row">
+                    <label class="ui-label">Mode</label>
                     <div class="ui-segmented" id="gutter-buttons">
                         <button
                             class="ui-segmented__btn ui-segmented__btn--active"
@@ -118,6 +99,20 @@
                         </button>
                         <button class="ui-segmented__btn" data-gutter="true">
                             Stable
+                        </button>
+                    </div>
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label">Track click</label>
+                    <div class="ui-segmented" id="click-behavior-buttons">
+                        <button
+                            class="ui-segmented__btn"
+                            data-behavior="scroll"
+                        >
+                            Scroll
+                        </button>
+                        <button class="ui-segmented__btn" data-behavior="jump">
+                            Jump
                         </button>
                     </div>
                 </div>
@@ -216,10 +211,7 @@
                 <div class="ui-row">
                     <label class="ui-label">Gutter</label>
                     <div class="ui-segmented" id="native-gutter">
-                        <button
-                            class="ui-segmented__btn ui-segmented__btn--active"
-                            data-gutter="auto"
-                        >
+                        <button class="ui-segmented__btn" data-gutter="auto">
                             Auto
                         </button>
                         <button class="ui-segmented__btn" data-gutter="stable">

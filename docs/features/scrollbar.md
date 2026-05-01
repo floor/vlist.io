@@ -163,7 +163,7 @@ vlist({ container, item })
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `autoHide` | `boolean` | `true` | Auto-hide scrollbar after idle |
+| `autoHide` | `boolean` | `true` | Auto-hide scrollbar after idle. When `false`, the scrollbar is always visible as long as content overflows. |
 | `autoHideDelay` | `number` | `1000` | Auto-hide delay in milliseconds |
 | `minThumbSize` | `number` | `15` | Minimum thumb size in pixels. Also controllable via `--vlist-custom-scrollbar-min-thumb-size`. |
 | `showOnHover` | `boolean` | `true` | Show scrollbar when hovering near the scrollbar edge |
@@ -171,13 +171,15 @@ vlist({ container, item })
 | `showOnViewportEnter` | `boolean` | `true` | Show scrollbar when the mouse enters the list viewport |
 | `gutter` | `boolean` | `false` | Reserve layout space for the scrollbar — content shrinks to make room so the scrollbar never overlaps items. Equivalent to CSS `scrollbar-gutter: stable`. |
 | `padding` | `number \| { top?, right?, bottom?, left? }` | `2` | Inset the track from the viewport edges. A single number applies to all sides. An object allows per-side control — omitted sides default to `2`. Thumb travel range adjusts automatically. Also controllable via `--vlist-custom-scrollbar-padding-{side}`. |
-| `clickBehavior` | `'jump' \| 'page'` | `'page'` | What happens when clicking the track (not the thumb). `'page'` scrolls by one page toward the click — hold the mouse button to continue scrolling smoothly, matching macOS native scrollbar behavior. `'jump'` centers the thumb at the click position instantly. |
+| `clickBehavior` | `'jump' \| 'scroll'` | `'scroll'` | What happens when clicking the track (not the thumb). `'scroll'` scrolls by one page toward the click — hold the mouse button to continue scrolling smoothly, matching macOS native scrollbar behavior. `'jump'` centers the thumb at the click position instantly. |
 
 When `showOnHover` is `true`, an invisible hover zone is placed along the scrollbar edge. Moving the mouse into this zone reveals the scrollbar, and it stays visible as long as the cursor remains over the zone or the track — the auto-hide timer is suspended while hovering. The default `hoverZoneWidth` is the wall-side padding (`right` for vertical, `bottom` for horizontal) plus 16px, so the zone always covers the full inset track area regardless of how much padding is set; increase it if you want a wider reach from the edge.
 
+When `autoHide` is `false`, the scrollbar is visible immediately and stays visible as long as content overflows — no user interaction is needed to reveal it. The `autoHideDelay`, `showOnHover`, and `showOnViewportEnter` options have no effect in this mode since the scrollbar never hides.
+
 When `showOnViewportEnter` is `false`, the scrollbar only appears on scroll or when hovering near the scrollbar edge (if `showOnHover` is `true`). This is useful for cleaner UIs where you don't want the scrollbar to flash every time the mouse enters the list.
 
-When `clickBehavior` is `'page'` (the default), clicking the track scrolls by one `containerSize` toward the click immediately. Holding the mouse button then triggers smooth continuous scrolling after a 350ms initial delay — the scroll accelerates at a fixed speed and stops automatically when the thumb reaches the cursor, at a boundary, or on mouseup. This matches the native macOS scrollbar feel. Use `'jump'` to instantly center the thumb at the clicked position instead.
+When `clickBehavior` is `'scroll'` (the default), clicking the track scrolls by one `containerSize` toward the click immediately. Holding the mouse button then triggers smooth continuous scrolling after a 350ms initial delay — the scroll accelerates at a fixed speed and stops automatically when the thumb reaches the cursor, at a boundary, or on mouseup. This matches the native macOS scrollbar feel. Use `'jump'` to instantly center the thumb at the clicked position instead.
 
 #### Native Scrollbar
 
@@ -278,7 +280,7 @@ interface ScrollConfig {
 }
 
 interface ScrollbarOptions {
-  /** Auto-hide scrollbar after idle (default: true) */
+  /** Auto-hide scrollbar after idle (default: true). When false, scrollbar is always visible. */
   autoHide?: boolean;
 
   /** Auto-hide delay in milliseconds (default: 1000) */
@@ -312,13 +314,13 @@ interface ScrollbarOptions {
   padding?: number | { top?: number; right?: number; bottom?: number; left?: number };
 
   /**
-   * Behavior when clicking the scrollbar track (not the thumb) (default: 'page').
-   * - `'page'`  — scrolls by one page toward the click; hold for smooth continuous
+   * Behavior when clicking the scrollbar track (not the thumb) (default: 'scroll').
+   * - `'scroll'` — scrolls by one page toward the click; hold for smooth continuous
    *               scrolling, matching macOS native scrollbar behavior. Auto-stops
    *               when the thumb reaches the cursor.
    * - `'jump'`  — instantly centers the thumb at the clicked position.
    */
-  clickBehavior?: 'jump' | 'page';
+  clickBehavior?: 'jump' | 'scroll' | 'page';
 }
 ```
 
