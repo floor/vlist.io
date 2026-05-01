@@ -81,7 +81,7 @@ function makeTasks(count) {
   }));
 }
 
-let tasks = makeTasks(20);
+let tasks = makeTasks(100);
 
 // =============================================================================
 // State — exported for controls
