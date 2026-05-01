@@ -1035,8 +1035,7 @@ function jsonResponse(data: unknown, status: number = 200): Response {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control":
-        status >= 400 ? "no-cache" : "public, s-maxage=60, max-age=0",
+      "Cache-Control": "private, no-store",
       ...CORS_HEADERS,
     },
   });
