@@ -426,7 +426,6 @@
     display: flex;
     border-radius: var(--radius);
     background: var(--bg);
-    overflow: hidden;
     padding: 2px;
     flex: 1;
     gap: 3px;
