@@ -2,7 +2,7 @@
 // API router for vlist.io — handles /api/* routes with CORS support
 
 import { routeBenchmarks } from "./benchmarks";
-import { CACHE_API, CACHE_API_DOCS } from "../server/cache";
+import { CACHE_API, CACHE_API_DOCS, CACHE_API_MUTABLE } from "../server/cache";
 import { getUsers, getUserById, TOTAL, MAX_LIMIT } from "./users";
 import {
   getPosts,
@@ -77,12 +77,16 @@ const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Max-Age": "86400",
 };
 
-const json = (data: unknown, status: number = 200): Response =>
+const json = (
+  data: unknown,
+  status: number = 200,
+  cache: string = CACHE_API,
+): Response =>
   new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": CACHE_API,
+      "Cache-Control": cache,
       ...CORS_HEADERS,
     },
   });
@@ -462,7 +466,7 @@ const handleGetTracks = async (url: URL, delay: number): Promise<Response> => {
 
   try {
     const result = getTracks(params);
-    return json(result);
+    return json(result, 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -481,7 +485,7 @@ const handleGetTrack = (_url: URL, id: number): Response => {
   try {
     const track = getTrackById(id);
     if (!track) return error("Track not found", 404);
-    return json(track);
+    return json(track, 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -505,7 +509,7 @@ const handleCreateTrack = async (req: Request): Promise<Response> => {
     }
 
     const track = createTrack(body);
-    return json(track, 201);
+    return json(track, 201, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Invalid JSON";
     return error(message, 400);
@@ -532,7 +536,7 @@ const handleUpdateTrack = async (
     const track = updateTrack(id, body);
     if (!track) return error("Track not found", 404);
 
-    return json(track);
+    return json(track, 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Invalid JSON";
     return error(message, 400);
@@ -552,7 +556,7 @@ const handleDeleteTrack = (id: number): Response => {
     const deleted = deleteTrack(id);
     if (!deleted) return error("Track not found", 404);
 
-    return json({ success: true });
+    return json({ success: true }, 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -567,7 +571,7 @@ const handleDeleteTrack = (id: number): Response => {
  */
 const handleGetTrackCountries = (): Response => {
   try {
-    return json(getTrackCountries());
+    return json(getTrackCountries(), 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -582,7 +586,7 @@ const handleGetTrackCountries = (): Response => {
  */
 const handleGetDecades = (): Response => {
   try {
-    return json(getDecades());
+    return json(getDecades(), 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -597,7 +601,7 @@ const handleGetDecades = (): Response => {
  */
 const handleGetTrackCategories = (): Response => {
   try {
-    return json(getCategories());
+    return json(getCategories(), 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);
@@ -611,7 +615,7 @@ const handleGetTrackCategories = (): Response => {
  */
 const handleGetTracksStats = (): Response => {
   try {
-    return json(getTracksStats());
+    return json(getTracksStats(), 200, CACHE_API_MUTABLE);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return error(message, 500);

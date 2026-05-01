@@ -77,6 +77,13 @@ export const CACHE_API = IS_PROD
   : DEV_NOCACHE;
 
 /**
+ * Mutable API responses — data that can be created, updated, or deleted
+ * at runtime (e.g. tracks CRUD). Must never be cached by Cloudflare or
+ * browser, otherwise mutations appear to not persist until cache expires.
+ */
+export const CACHE_API_MUTABLE = "private, no-store";
+
+/**
  * API docs HTML page — static file read at startup.
  * Same policy as server-rendered pages.
  */
