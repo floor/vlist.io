@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-16
+status: draft
+---
+
 # Grid Layout
 
 Transform your virtual list into a responsive 2D grid with the `withGrid` feature.

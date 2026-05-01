@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-16
+status: draft
+---
+
 # Scale Feature (Large Datasets)
 
 > Handle 1M+ items with automatic scroll compression that works around browser height limits.

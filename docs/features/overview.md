@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-30
+status: draft
+---
+
 # Features
 
 > All features are tree-shaken — you only pay for what you import and use.

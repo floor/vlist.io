@@ -1,3 +1,9 @@
+---
+created: 2026-03-11
+updated: 2026-03-11
+status: draft
+---
+
 # Async: `removeItem` — sparse storage shift, re-render & gap refill
 
 > Fixed. Deleting items via `removeItem(id)` in async mode now correctly shifts sparse storage, forces a DOM re-render, and refills chunk-boundary gaps via a debounced adapter fetch.

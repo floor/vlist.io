@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-04-30
+status: draft
+---
+
 # vlist Documentation
 
 > Reference documentation for the vlist virtual list library.
@@ -154,6 +160,20 @@ For **learning content**, see [/tutorials](/tutorials):
 | All features | ~33 KB | Everything |
 
 **Traditional virtual lists:** 20–23 KB minimum (all features bundled)
+
+## Document Conventions
+
+All documentation files use YAML frontmatter for metadata:
+
+```yaml
+---
+created: 2026-05-01
+updated: 2026-05-01
+status: draft
+---
+```
+
+**Status values:** `draft`, `accepted`, `implemented`, `superseded`
 
 ## 🔗 External Links
 

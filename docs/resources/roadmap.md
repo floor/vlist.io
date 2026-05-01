@@ -1,3 +1,9 @@
+---
+created: 2026-02-24
+updated: 2026-04-16
+status: draft
+---
+
 # Architecture & Competitive Position
 
 > How vlist is built, what makes it unique, and where it stands against competitors.

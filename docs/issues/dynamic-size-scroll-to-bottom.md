@@ -1,3 +1,9 @@
+---
+created: 2026-03-09
+updated: 2026-03-09
+status: draft
+---
+
 # Dynamic Size: `scrollToIndex` doesn't reach the bottom
 
 > `scrollToIndex(lastIndex, { align: "end" })` in dynamic size mode lands several items short of the actual bottom.

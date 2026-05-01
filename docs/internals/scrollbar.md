@@ -1,3 +1,9 @@
+---
+created: 2026-02-27
+updated: 2026-04-16
+status: draft
+---
+
 # Scroll Internals
 
 > Low-level scroll controller, custom scrollbar component, and velocity tracking implementation.

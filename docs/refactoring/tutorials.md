@@ -1,3 +1,9 @@
+---
+created: 2026-02-27
+updated: 2026-04-15
+status: draft
+---
+
 # Tutorial Refactoring — Audit & Plan
 
 Companion to `documentation.md` (docs refactoring, phases 1–7 complete). Same principles, same audit-log format — every decision and change recorded here.

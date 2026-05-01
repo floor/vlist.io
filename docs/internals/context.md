@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-16
+status: draft
+---
+
 # Builder Context
 
 > The internal interface that features receive during setup — provides access to core components, mutable state, and registration points.

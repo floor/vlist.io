@@ -1,3 +1,9 @@
+---
+created: 2026-02-23
+updated: 2026-03-04
+status: draft
+---
+
 # Comparison Benchmark Audit
 
 > Honest analysis of the vlist comparison benchmarks.

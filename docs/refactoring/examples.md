@@ -1,3 +1,9 @@
+---
+created: 2026-02-27
+updated: 2026-04-15
+status: draft
+---
+
 # Examples Refactoring — Audit & Plan
 
 Companion to `documentation.md` (docs, phases 1–7) and `tutorials.md` (tutorials, planned). Same audit-log format — every decision and change recorded here.

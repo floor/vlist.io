@@ -1,3 +1,9 @@
+---
+created: 2026-04-12
+updated: 2026-04-30
+status: draft
+---
+
 # AutoSize Feature
 
 > Automatic item measurement via ResizeObserver for content with unpredictable sizes.

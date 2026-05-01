@@ -1,3 +1,9 @@
+---
+created: 2026-02-27
+updated: 2026-04-15
+status: draft
+---
+
 # Documentation Refactoring — v1.1.0 Audit
 
 > Systematic audit and rewrite of vlist documentation against source code, started after v1.0.0 and continued through v1.1.0.

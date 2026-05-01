@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-16
+status: draft
+---
+
 # Getting Started
 
 > Install vlist, configure your first list, and understand the core API.

@@ -1,3 +1,9 @@
+---
+created: 2026-04-30
+updated: 2026-04-30
+status: draft
+---
+
 # vlist Launch Plan v3
 
 **Goal:** Take vlist from hidden gem to the default virtual list across every framework, starting where the competition is weakest.

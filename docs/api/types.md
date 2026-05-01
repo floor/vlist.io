@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-28
+status: draft
+---
+
 # Types
 
 > TypeScript type definitions for vlist — items, configuration, state, events, and the public API.

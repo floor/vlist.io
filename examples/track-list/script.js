@@ -52,6 +52,7 @@ let loadedCount = 0;
 
 let currentSort = { key: "id", direction: "desc" };
 let currentColumnWidths = null; // persists across rebuilds
+let deleteHistory = [];
 
 let currentFilters = {
   search: "",
@@ -145,8 +146,8 @@ const btnClear = document.getElementById("btn-clear");
 const selectionCountEl = document.getElementById("selection-count");
 
 // Actions
-const btnAddTrack = document.getElementById("btn-add-track");
 const btnDeleteSelected = document.getElementById("btn-delete-selected");
+const btnUndo = document.getElementById("btn-undo");
 
 // =============================================================================
 // Async plugin config (shared across all modes)
@@ -248,7 +249,7 @@ function createListView(selectionMode, snapshot) {
   applyScale(builder);
   applyScrollbar(builder);
   builder.use(
-    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+    withSelection({ mode: selectionMode, followFocus: true, focusOnClick: currentFocusOnClick }),
   );
   builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
@@ -280,7 +281,7 @@ function createGridView(selectionMode, snapshot) {
   applyScale(builder);
   applyScrollbar(builder);
   builder.use(
-    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+    withSelection({ mode: selectionMode, followFocus: true, focusOnClick: currentFocusOnClick }),
   );
   builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
@@ -323,7 +324,7 @@ function createTableView(selectionMode, snapshot) {
   applyScale(builder);
   applyScrollbar(builder);
   builder.use(
-    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+    withSelection({ mode: selectionMode, followFocus: true, focusOnClick: currentFocusOnClick }),
   );
   builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
@@ -474,43 +475,34 @@ function updateSelectionCount(selected) {
 // CRUD Operations
 // =============================================================================
 
-btnAddTrack.addEventListener("click", async () => {
-  const title = prompt("Track title:");
-  if (!title) return;
+function updateUndoButton() {
+  const count = deleteHistory.length;
+  btnUndo.disabled = count === 0;
+  btnUndo.textContent = count > 0 ? `Undo (${count})` : "Undo";
+}
 
-  const artist = prompt("Artist name:");
-  if (!artist) return;
+async function undoDelete() {
+  if (deleteHistory.length === 0) return;
 
-  const year = prompt("Year (optional):");
-  const country = prompt("Country code (optional, e.g., USA):");
+  deleteHistory.pop();
+  loadedCount = 0;
+  await list.reload();
 
-  const trackData = {
-    title,
-    artist,
-    year: year ? parseInt(year, 10) : null,
-    country: country || null,
-  };
-
-  try {
-    const response = await fetch(API_BASE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(trackData),
-    });
-
-    if (!response.ok) throw new Error("Failed to create track");
-
-    alert("Track created successfully!");
-    loadedCount = 0;
-    await list.reload();
-  } catch (error) {
-    alert("Failed to create track: " + error.message);
+  const remainingIds = deleteHistory.flat().map((t) => t.id);
+  for (const id of remainingIds) {
+    list.removeItem(id);
   }
-});
+
+  totalTracks = list.total;
+  updateInfo();
+  updateUndoButton();
+}
+
+btnUndo.addEventListener("click", undoDelete);
 
 const MAX_DELETE = 25;
 
-async function deleteSelected() {
+function deleteSelected() {
   const selected = list.getSelected();
   if (selected.length === 0) return;
 
@@ -523,12 +515,7 @@ async function deleteSelected() {
 
   const items = list.getSelectedItems();
 
-  // Delete from server
-  const promises = items.map((track) =>
-    fetch(`${API_BASE}/${track.id}`, { method: "DELETE" }),
-  );
-
-  await Promise.all(promises);
+  deleteHistory.push(items);
 
   // Remove each item from the list, tracking the lowest index for auto-select.
   // We delete from highest index to lowest so earlier deletions don't shift
@@ -577,17 +564,18 @@ async function deleteSelected() {
       }
     });
   }
+
+  updateUndoButton();
 }
 
 btnDeleteSelected.addEventListener("click", deleteSelected);
 
-// Keyboard shortcut: Delete/Backspace to delete selected item
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Delete" || e.key === "Backspace") {
-    // Don't trigger if user is typing in an input
-    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+  if (e.key === "z" && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
-    deleteSelected();
+    undoDelete();
   }
 });
 
@@ -596,6 +584,10 @@ document.addEventListener("keydown", (e) => {
 // =============================================================================
 
 function bindListEvents() {
+  list.on("delete", () => {
+    deleteSelected();
+  });
+
   list.on("selection:change", ({ selected }) => {
     updateSelectionCount(selected);
   });
@@ -620,6 +612,7 @@ function bindListEvents() {
 // =============================================================================
 
 async function init() {
+  updateUndoButton();
   createList(currentSelectionMode);
 }
 

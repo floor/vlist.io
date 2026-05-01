@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-20
+status: draft
+---
+
 # Async Module
 
 > Asynchronous data loading with lazy loading and placeholders.

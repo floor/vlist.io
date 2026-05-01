@@ -1,3 +1,9 @@
+---
+created: 2026-03-05
+updated: 2026-04-04
+status: draft
+---
+
 # vlist.io — Server Optimization Plan
 
 > Migrate the Bun HTTP server from Node.js-compatible patterns to Bun-native APIs

@@ -1,3 +1,9 @@
+---
+created: 2026-04-13
+updated: 2026-04-13
+status: draft
+---
+
 # Translation Integration Blueprint — vlist.io
 
 > Plan for adding multi-language support to vlist.io, reusing the translation system built for Radiooooo.

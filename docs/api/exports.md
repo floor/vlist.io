@@ -1,3 +1,9 @@
+---
+created: 2026-02-27
+updated: 2026-04-16
+status: draft
+---
+
 # Low-Level Exports
 
 > For advanced use cases — building custom features, writing framework adapters, or integrating directly with the rendering pipeline.

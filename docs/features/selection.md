@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-25
+status: draft
+---
+
 # Selection Module
 
 > Single, multi, and keyboard-navigated item selection.

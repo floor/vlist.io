@@ -1,3 +1,9 @@
+---
+created: 2026-03-06
+updated: 2026-04-16
+status: draft
+---
+
 # Why vlist?
 
 Virtual list libraries have been around for years, but almost all of them are locked to a single framework. **react-window**, **react-virtuoso**, **TanStack Virtual**, **Legend List** — they all assume you're inside React. If you're building with Vue, Svelte, vanilla JS, or a web component, you're either out of luck or reaching for an adapter that was never the primary target.

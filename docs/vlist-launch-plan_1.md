@@ -1,3 +1,9 @@
+---
+created: 2026-04-10
+updated: 2026-04-15
+status: draft
+---
+
 # vlist Launch Plan
 
 **Goal:** Take vlist from hidden gem to widely known in the JS ecosystem.

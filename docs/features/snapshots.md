@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-28
+status: draft
+---
+
 # Snapshots Feature
 
 > Save and restore scroll position for SPA navigation and tab switching.

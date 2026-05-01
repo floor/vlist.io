@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-29
+status: draft
+---
+
 # Events
 
 > Type-safe event system for vlist — subscribe to scroll, interaction, data, and lifecycle events.

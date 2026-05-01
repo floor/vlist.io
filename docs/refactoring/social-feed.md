@@ -1,3 +1,9 @@
+---
+created: 2026-03-02
+updated: 2026-03-03
+status: draft
+---
+
 # Social Feed Example — Refactoring Notes
 
 > Status: **Mostly complete**
