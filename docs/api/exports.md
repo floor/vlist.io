@@ -319,6 +319,7 @@ interface BuilderContext<T extends VListItem = VListItem> {
   // Handler registration slots
   afterScroll:          Array<(scrollPosition: number, direction: string) => void>
   clickHandlers:        Array<(event: MouseEvent) => void>
+  contextMenuHandlers:  Array<(event: MouseEvent) => void>
   keydownHandlers:      Array<(event: KeyboardEvent) => void>
   resizeHandlers:       Array<(width: number, height: number) => void>
   contentSizeHandlers:  Array<() => void>
@@ -369,6 +370,7 @@ For related type definitions (`BuilderState`, `ResolvedBuilderConfig`, `VListFea
 | Hook | Type | Description |
 |------|------|-------------|
 | `clickHandlers` | `Array<(event: MouseEvent) => void>` | Called on item click events. |
+| `contextMenuHandlers` | `Array<(event: MouseEvent) => void>` | Called on item right-click events. |
 | `keydownHandlers` | `Array<(event: KeyboardEvent) => void>` | Called on keydown events on the root element. |
 | `resizeHandlers` | `Array<(width, height) => void>` | Called when the container is resized. |
 | `contentSizeHandlers` | `Array<() => void>` | Called when total content size changes. |

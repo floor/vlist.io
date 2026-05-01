@@ -97,6 +97,41 @@ list.on('item:dblclick', ({ item, index, event }) => {
 | `index` | `number` | Item index in the list. |
 | `event` | `MouseEvent` | The original DOM mouse event. |
 
+### item:contextmenu
+
+Fired when an item is right-clicked. When `withSelection` is active with `contextMenu: 'select'` (the default), selection state is updated before this event fires — the app always sees settled state.
+
+```typescript
+list.on('item:contextmenu', ({ item, index, event }) => {
+  event.preventDefault()
+  showContextMenu(item, event)
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `item` | `T` | The right-clicked item. |
+| `index` | `number` | Item index in the list. |
+| `event` | `MouseEvent` | The original DOM contextmenu event. |
+
+### delete
+
+Fired when Delete or Backspace is pressed with items selected. Only emitted when `withSelection` is active and at least one item is selected.
+
+This is a notification — vlist does not remove items. The app is responsible for updating its data source.
+
+```typescript
+list.on('delete', ({ selected, items }) => {
+  items.forEach(item => api.remove(item.id))
+  list.setItems(currentItems.filter(i => !selected.includes(i.id)))
+})
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `selected` | `Array<string \| number>` | IDs of the selected items to delete. |
+| `items` | `T[]` | The selected item objects. |
+
 ### selection:change
 
 Fired when the selection changes. Only emitted when `withSelection` is active.
@@ -436,6 +471,8 @@ Use cases:
 |-------|----------|----------|---------|
 | `item:click` | Interaction | — | `{ item, index, event }` |
 | `item:dblclick` | Interaction | — | `{ item, index, event }` |
+| `item:contextmenu` | Interaction | — | `{ item, index, event }` |
+| `delete` | Interaction | `withSelection` | `{ selected, items }` |
 | `selection:change` | Interaction | `withSelection` | `{ selected, items }` |
 | `focus:change` | Interaction | `withSelection` | `{ id, index }` |
 | `sort:start` | Interaction | `withSortable` | `{ index }` |

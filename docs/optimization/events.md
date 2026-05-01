@@ -1,225 +1,141 @@
 ---
 created: 2026-05-01
 updated: 2026-05-01
-status: draft
+status: implemented
 ---
 
-# Event System Architecture — Design Options
+# Event System Architecture
 
-Evaluation of event system patterns for vlist, focused on how features (internal)
-and applications (external) intercept and react to user interactions like
-contextmenu, delete, click, and selection changes.
-
-The core question: **how should state settle before events reach the application,
-and who gets to intercept?**
+How features (internal) and applications (external) intercept and react to
+user interactions like contextmenu, delete, click, and selection changes.
 
 ---
 
-## Context
+## Decision
 
-vlist's current event system has two layers:
+**Option A — Handler Arrays**, with the door open to Option D (`withEvents`
+feature for app-level interception) if needed later. D is A + an opt-in
+feature on top, so starting with A closes no doors.
 
-1. **Handler arrays** (`clickHandlers`, `keydownHandlers`) — internal extension
-   points. Features push handlers during `setup()`. Core dispatches to them
-   on DOM events.
-2. **Emitter** (`emitter.emit("item:click", ...)`) — external notification.
-   Apps subscribe via `list.on()`.
-
-These two layers serve different audiences but are not formally connected.
-The ordering between them varies: click emits the event *before* dispatching
-to handlers, meaning the app sees stale selection state on `item:click`.
-
-New events (`item:contextmenu`, `delete`) need a clear lifecycle:
-internal state settles first, then the app is notified.
+Options B (emitter listener ordering), C (before/after hooks baked into core),
+and D (full handler arrays + withEvents feature) were evaluated and rejected
+for now. See [Design Options](#design-options-evaluated) below.
 
 ---
 
-## Option A — Handler Arrays
+## Implementation
+
+### Core: Handler Arrays
+
+`contextMenuHandlers` added alongside the existing `clickHandlers` and
+`keydownHandlers`. Core dispatches to handlers first, then emits the event.
+
+```
+DOM contextmenu
+  → core runs contextMenuHandlers[i](event)  ← features settle state
+  → core finds target item
+  → emitter.emit("item:contextmenu")         ← app sees settled state
+```
+
+Click handler ordering was also fixed — `clickHandlers` now dispatch before
+`item:click` is emitted (previously the emit came first, causing apps to see
+stale selection state).
+
+**Files changed:** `types.ts`, `core.ts`, `materialize.ts`, `context.ts`,
+`builder/types.ts` — one line each for the new array, plus the dispatch
+logic in `core.ts`.
+
+### Selection Feature: Configurable `contextMenu`
+
+`withSelection()` gains a `contextMenu` option controlling right-click
+selection behavior:
+
+```ts
+withSelection({
+  mode: "multiple",
+  contextMenu: "select",  // default
+})
+```
+
+| Value      | Behavior |
+|------------|----------|
+| `"select"` | Right-click an unselected item clears selection and selects it. Right-click an already-selected item keeps current selection. File explorer semantics. |
+| `"keep"`   | Right-click never changes selection. Context menu applies to whatever is currently selected. |
+| `false`    | No contextmenu handler registered. Selection feature ignores right-clicks entirely. |
+
+The handler shares a `findItemTarget` helper with the click handler to avoid
+duplicating target resolution logic.
+
+### Delete Event
+
+Handled inside the selection feature's existing keyboard handler. When
+Delete/Backspace is pressed with items selected, emits a `"delete"` event
+with `{ selected, items }`. No separate handler array needed — delete is a
+derived keyboard event, not a DOM event requiring its own extension point.
+
+### Event Types Added
+
+```ts
+"item:contextmenu": { item: T; index: number; event: MouseEvent }
+"delete": { selected: Array<string | number>; items: T[] }
+```
+
+### Bundle Impact
+
+Zero regression — `withSelection` delta unchanged at +3.0 KB gzipped.
+
+---
+
+## Design Options Evaluated
+
+Four patterns were considered. The comparison and rationale for choosing A
+are preserved here for future reference.
+
+### Option A — Handler Arrays (chosen)
 
 Extend the existing pattern: add `contextMenuHandlers` alongside `clickHandlers`.
-Core dispatches to handlers first, then emits the event.
 
-### Flow
+- **Pros:** Structural ordering, follows established pattern, explicit extension point
+- **Cons:** Each interaction type needs a new array; no app-level interception
+- **Cost:** ~20 lines across core files + consuming feature
 
-```
-DOM contextmenu
-  → core finds target
-  → contextMenuHandlers[i](event)    ← features update state
-  → emitter.emit("item:contextmenu") ← app sees settled state
-```
+### Option B — Emitter Listener
 
-### Pros
+Features subscribe via `emitter.on()` during `setup()`, relying on registration
+order to fire before app listeners.
 
-- Explicit extension point — any feature can hook in
-- Ordering is structural, not implicit (handlers before emit)
-- Follows established pattern (`clickHandlers`, `keydownHandlers`)
-- Features get raw `MouseEvent`, full flexibility
+- **Pros:** No new infrastructure, minimal code (~15 lines)
+- **Cons:** Implicit ordering (registration order), no interception, fragile
+- **Rejected:** Ordering guarantee is not contractual
 
-### Cons
+### Option C — Before/After Hooks in Core
 
-- Each new interaction type needs a new array, types, context field, cleanup
-- Features must resolve the target item themselves (repeated work)
-- No app-level interception — apps can only react, not prevent
+Add `emitPreventable()` to the emitter with `before:` / `after:` phases.
 
-### Cost
+- **Pros:** Full lifecycle (intercept → settle → react), covers future use cases
+- **Cons:** Baked into core, all users pay complexity, design surface for cancellation API
+- **Rejected:** Core bloat for a capability most apps don't need
 
-~28 lines across `types.ts`, `context.ts`, `core.ts`, `materialize.ts`,
-and the consuming feature.
+### Option D — Handler Arrays + `withEvents` Feature
 
----
+Core stays minimal with handler arrays (A). An opt-in `withEvents` feature
+exposes before/after interception to apps.
 
-## Option B — Emitter Listener
+- **Pros:** Core stays minimal, interception is opt-in, follows vlist's plugin philosophy
+- **Cons:** Two-layer system, feature ordering matters
+- **Deferred:** Can be added later on top of A without any core changes
 
-Features subscribe to the emitted event via `emitter.on()` during `setup()`.
-Since features register before the app (which registers after `build()`),
-they fire first.
+### Comparison
 
-### Flow
+| Criterion            | A (chosen)  | B            | C              | D (future)           |
+|----------------------|-------------|--------------|----------------|----------------------|
+| Core complexity      | Low         | None         | Medium         | Low                  |
+| Ordering guarantee   | Structural  | Implicit     | Structural     | Structural           |
+| App interception     | No          | No           | Yes            | Yes (opt-in)         |
+| Feature interception | Yes         | No           | Yes            | Yes                  |
+| Follows vlist design | Yes         | Partially    | No             | Yes                  |
 
-```
-DOM contextmenu
-  → core finds target
-  → emitter.emit("item:contextmenu")
-    → feature listener fires first (registered during setup)
-    → app listener fires second (registered after build)
-```
-
-### Pros
-
-- No new infrastructure — uses existing emitter
-- Features get pre-resolved `{ item, index, event }` payload
-- Minimal code (~15 lines)
-
-### Cons
-
-- Ordering depends on registration order — implicit, not contractual
-- No interception — features cannot prevent the event from reaching the app
-- If a second feature listens at a different priority, ordering is unpredictable
-- Couples feature behavior to an emitter implementation detail (Set iteration order)
-
-### Cost
-
-~15 lines in the consuming feature only. Zero core changes.
-
----
-
-## Option C — Before/After Hooks in Core
-
-Add `emitPreventable()` to the emitter. Interaction events get a `before:` phase
-where any listener (feature or app) can cancel.
-
-### Flow
-
-```
-DOM contextmenu
-  → core finds target
-  → emitter.emitPreventable("before:contextmenu", { item, index, event, cancel })
-    → feature/app can call cancel()
-  → if not cancelled:
-    → handlers dispatch (state settles)
-    → emitter.emit("item:contextmenu")
-```
-
-### API
-
-```js
-list.on("before:contextmenu", ({ item, index, event, cancel }) => {
-  if (shouldSuppress) cancel();
-});
-
-list.on("item:contextmenu", ({ item, index, event }) => {
-  // state is settled, safe to read selection
-  showContextMenu(item);
-});
-```
-
-### Pros
-
-- Full lifecycle: intercept → settle → react
-- Apps and features share the same interception mechanism
-- Simple to explain: "`before:X` to intercept, `X` to react"
-- Covers unforeseen use cases (drag suppression, disabled items, confirmation)
-
-### Cons
-
-- Every interaction event potentially has a `before:` variant — type surface grows
-- Cancellation API is design surface (must get right on first try)
-- Baked into core — all users pay the complexity, even those who don't need it
-- Non-interaction events (`scroll`, `resize`, `range:change`) don't benefit
-
-### Cost
-
-~50 lines across `emitter.ts`, `core.ts`, `types.ts`, and the consuming feature.
-
----
-
-## Option D — Handler Arrays (Core) + Event Feature (Opt-in)
-
-Core stays minimal with handler arrays (Option A). A `withEvents` feature
-exposes interception to apps, translating the internal extension points
-into a user-facing before/after API.
-
-### Flow
-
-```
-DOM contextmenu
-  → core finds target
-  → contextMenuHandlers[i](event)
-    → withEvents feature: call before callbacks, check cancel
-    → selection feature: update state (if not cancelled)
-  → emitter.emit("item:contextmenu") ← app sees settled state
-```
-
-### API
-
-```js
-builder.use(withEvents({
-  "before:contextmenu": ({ item, cancel }) => {
-    if (shouldSuppress) cancel();
-  },
-  "before:delete": ({ items, cancel }) => {
-    if (!confirm(`Delete ${items.length} items?`)) cancel();
-  },
-}));
-```
-
-### Pros
-
-- Core stays minimal — handler arrays are the only extension point
-- Event lifecycle is a feature, not a primitive — zero cost for apps that don't need it
-- Follows vlist's plugin philosophy: simple core, composable features
-- The feature can evolve independently (batching, debouncing, filtering)
-- Apps that don't need interception just use `list.on()` as usual
-
-### Cons
-
-- Two-layer system: must understand handler arrays *and* the feature
-- Feature ordering matters — `withEvents` must register its handlers before
-  other features that depend on cancellation
-- Slightly more code than C for apps that *do* need interception
-
-### Cost
-
-~28 lines for core handler arrays + ~30 lines for the `withEvents` feature.
-Total ~58 lines, but the core portion is ~28.
-
----
-
-## Comparison
-
-| Criterion            | A (Arrays)  | B (Emitter) | C (Before/After) | D (Arrays + Feature) |
-|----------------------|-------------|-------------|-------------------|----------------------|
-| Code cost            | ~28 lines   | ~15 lines   | ~50 lines         | ~58 lines            |
-| Core complexity      | Low         | None        | Medium            | Low                  |
-| Ordering guarantee   | Structural  | Implicit    | Structural        | Structural           |
-| App interception     | No          | No          | Yes               | Yes (opt-in)         |
-| Feature interception | Yes         | No          | Yes               | Yes                  |
-| Follows vlist design | Yes         | Partially   | No (core bloat)   | Yes                  |
-| Future extensibility | Medium      | Low         | High              | High                 |
-
----
-
-## State of the Art
+### State of the Art
 
 Mature UI component libraries converge on: **internal state settles before
 external events fire**, enforced structurally.
@@ -232,20 +148,4 @@ external events fire**, enforced structurally.
 None rely on listener registration order. All have explicit internal-then-external
 pipelines. The before/after pattern appears in libraries with broad interaction
 surfaces (grids, spreadsheets). Focused libraries tend toward simpler dispatch.
-
----
-
-## Recommendation
-
-**Option D** — handler arrays as the core extension mechanism, with an opt-in
-`withEvents` feature for app-level interception.
-
-This aligns with vlist's architecture: the core provides clean extension points,
-features compose behavior on top. Apps that need simple event handling use
-`list.on()`. Apps that need interception opt into `withEvents`. The cost is
-zero for the common case and incremental for the advanced case.
-
-The handler array pattern is proven (already used for clicks and keyboard),
-structural (not dependent on registration order), and minimal (one array per
-interaction type). The `withEvents` feature can evolve independently — adding
-batching, filtering, or debouncing later without touching core.
+vlist's handler array approach aligns with the simpler end of this spectrum.

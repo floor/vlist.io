@@ -546,7 +546,9 @@ Event names and their payloads. Subscribe with `list.on(event, handler)`. See [E
 interface VListEvents<T extends VListItem = VListItem> {
   'item:click':        { item: T; index: number; event: MouseEvent }
   'item:dblclick':     { item: T; index: number; event: MouseEvent }
+  'item:contextmenu':  { item: T; index: number; event: MouseEvent }
   'selection:change':  { selected: Array<string | number>; items: T[] }
+  'delete':            { selected: Array<string | number>; items: T[] }
   'focus:change':      { id: string | number; index: number }
   'scroll':            { scrollPosition: number; direction: 'up' | 'down' }
   'velocity:change':   { velocity: number; reliable: boolean }
