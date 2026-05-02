@@ -64,6 +64,10 @@
         </script>
         <% } %>
 
+        <!-- Font preloads -->
+        <link rel="preload" href="/fonts/DIN-Alternate-Regular.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/DIN-Alternate-Bold.woff2" as="font" type="font/woff2" crossorigin />
+
         <!-- Critical CSS inlined to eliminate render-blocking request -->
         <style><%~ it.TOKENS_CSS %></style>
 

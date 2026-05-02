@@ -5,7 +5,7 @@
 
 @font-face {
     font-family: "DIN Alternate";
-    src: url("/fonts/DIN Alternate Regular.woff2") format("woff2");
+    src: url("/fonts/DIN-Alternate-Regular.woff2") format("woff2");
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -13,7 +13,7 @@
 
 @font-face {
     font-family: "DIN Alternate";
-    src: url("/fonts/DIN Alternate Bold.woff2") format("woff2");
+    src: url("/fonts/DIN-Alternate-Bold.woff2") format("woff2");
     font-weight: 700;
     font-style: normal;
     font-display: swap;
