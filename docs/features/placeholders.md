@@ -1,7 +1,7 @@
 ---
 created: 2026-02-24
 updated: 2026-04-15
-status: draft
+status: published
 ---
 
 # Placeholders

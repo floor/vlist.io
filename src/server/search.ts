@@ -136,7 +136,7 @@ function readJSON<T>(relativePath: string): T {
 function readMarkdown(relativePath: string): string {
   try {
     const absolute = join(ROOT, relativePath);
-    return readFileSync(absolute, "utf-8");
+    return readFileSync(absolute, "utf-8").replace(/^---\n[\s\S]*?\n---\n/, "");
   } catch {
     // File missing or unreadable — not fatal, just skip body content
     return "";

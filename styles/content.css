@@ -4,6 +4,48 @@
    Covers: markdown body, code blocks, tables, syntax highlighting, errors.
    ============================================================================= */
 
+/* ─── Page metadata ─────────────────────────────────────────────────────── */
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    letter-spacing: 0.2px;
+}
+
+.meta__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.5px;
+}
+
+.meta__badge--draft {
+    color: var(--badge-warning);
+    background: var(--badge-warning-bg);
+}
+
+.meta__badge--review {
+    color: var(--badge-info);
+    background: var(--badge-info-bg);
+}
+
+.meta__badge--published {
+    color: var(--badge-success);
+    background: var(--badge-success-bg);
+}
+
+.meta__item {
+    color: var(--text-dim);
+}
+
 /* ─── Markdown body ──────────────────────────────────────────────────────── */
 
 .md {

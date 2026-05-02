@@ -1,7 +1,7 @@
 ---
 created: 2026-02-17
 updated: 2026-04-29
-status: draft
+status: published
 ---
 
 # Events

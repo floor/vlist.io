@@ -75,6 +75,67 @@ interface TocItem {
 }
 
 // =============================================================================
+// Frontmatter
+// =============================================================================
+
+interface Frontmatter {
+  created?: string;
+  updated?: string;
+  status?: string;
+}
+
+function parseFrontmatter(source: string): Frontmatter {
+  const match = source.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!match) return {};
+  const meta: Frontmatter = {};
+  for (const line of match[1].split("\n")) {
+    const [key, ...rest] = line.split(":");
+    const value = rest.join(":").trim();
+    if (key.trim() === "created") meta.created = value;
+    if (key.trim() === "updated") meta.updated = value;
+    if (key.trim() === "status") meta.status = value;
+  }
+  return meta;
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+const statusConfig: Record<string, { label: string; className: string }> = {
+  draft: { label: "Draft", className: "meta__badge--draft" },
+  review: { label: "In Review", className: "meta__badge--review" },
+  published: { label: "Published", className: "meta__badge--published" },
+};
+
+function buildFrontmatterHtml(fm: Frontmatter): string {
+  if (!fm.created && !fm.updated && !fm.status) return "";
+  const parts: string[] = [];
+  if (fm.status) {
+    const cfg = statusConfig[fm.status] || {
+      label: fm.status,
+      className: "meta__badge--draft",
+    };
+    parts.push(`<span class="meta__badge ${cfg.className}">${cfg.label}</span>`);
+  }
+  if (fm.updated) {
+    parts.push(
+      `<span class="meta__item">Updated ${formatDate(fm.updated)}</span>`
+    );
+  } else if (fm.created) {
+    parts.push(
+      `<span class="meta__item">Created ${formatDate(fm.created)}</span>`
+    );
+  }
+  return `<div class="meta">${parts.join("")}</div>`;
+}
+
+// =============================================================================
 // Content Renderer Factory
 // =============================================================================
 
@@ -617,8 +678,10 @@ export function createContentRenderer(config: ContentConfig) {
     const mdPath = join(CONTENT_DIR, mdFile);
     if (!existsSync(mdPath)) return null;
 
-    // Read and parse markdown with context-aware link resolution
+    // Read and parse markdown, extracting frontmatter
     let mdSource = readFileSync(mdPath, "utf-8");
+    const frontmatter = parseFrontmatter(mdSource);
+    mdSource = mdSource.replace(/^---\n[\s\S]*?\n---\n/, "");
     mdSource = replaceSizePlaceholders(mdSource);
     const marked = createMarkedInstance(slug);
     const rawHtml = marked.parse(mdSource) as string;
@@ -631,8 +694,12 @@ export function createContentRenderer(config: ContentConfig) {
     // Build prev/next navigation
     const prevNextHtml = buildPrevNext(slug);
 
-    // Wrap in .md container with prev/next at bottom
-    const content = `<div class="md">${parsedHtml}${prevNextHtml}</div>`;
+    // Inject frontmatter metadata after the first h1
+    const metaHtml = buildFrontmatterHtml(frontmatter);
+    const htmlWithMeta = metaHtml
+      ? parsedHtml.replace(/(<\/h1>)/, `$1\n${metaHtml}`)
+      : parsedHtml;
+    const content = `<div class="md">${htmlWithMeta}${prevNextHtml}</div>`;
 
     // Extract title from first h1
     const h1Title = extractTitle(parsedHtml);

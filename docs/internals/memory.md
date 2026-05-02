@@ -1,7 +1,7 @@
 ---
 created: 2026-03-10
 updated: 2026-04-15
-status: draft
+status: published
 ---
 
 # Memory Efficiency

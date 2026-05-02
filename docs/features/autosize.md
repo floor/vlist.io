@@ -1,7 +1,7 @@
 ---
 created: 2026-04-12
 updated: 2026-04-30
-status: draft
+status: published
 ---
 
 # AutoSize Feature

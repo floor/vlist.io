@@ -1,7 +1,7 @@
 ---
 created: 2026-02-22
 updated: 2026-04-28
-status: draft
+status: published
 ---
 
 # Snapshots Feature
