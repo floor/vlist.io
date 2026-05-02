@@ -22,7 +22,7 @@ The async module handles all data-related operations in vlist, designed for effi
 ```
 src/features/async/
 ├── index.ts       # Module exports
-├── feature.ts      # withAsync() feature
+├── feature.ts     # withAsync() feature
 ├── manager.ts     # Data manager (main coordinator)
 ├── sparse.ts      # Sparse storage implementation
 └── placeholder.ts # Placeholder generation

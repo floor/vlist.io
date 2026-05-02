@@ -13,6 +13,8 @@ import { VLIST_ROOT } from "./config";
 interface SizeEntry {
   minified: string;
   gzipped: string;
+  minBytes?: number;
+  gzBytes?: number;
 }
 
 type SizeData = Record<string, SizeEntry>;
@@ -64,11 +66,17 @@ export function replaceSizePlaceholders(markdown: string): string {
       case "delta": {
         const base = sizeData!.base;
         if (!base) return match;
+        if (entry.gzBytes != null && base.gzBytes != null) {
+          return ((entry.gzBytes - base.gzBytes) / 1024).toFixed(1);
+        }
         return (parseFloat(entry.gzipped) - parseFloat(base.gzipped)).toFixed(1);
       }
       case "delta-min": {
         const base = sizeData!.base;
         if (!base) return match;
+        if (entry.minBytes != null && base.minBytes != null) {
+          return ((entry.minBytes - base.minBytes) / 1024).toFixed(1);
+        }
         return (parseFloat(entry.minified) - parseFloat(base.minified)).toFixed(1);
       }
       default:

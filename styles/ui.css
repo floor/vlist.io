@@ -124,7 +124,7 @@
 
 .ui-title {
     font-size: var(--fs-2xs);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.6px;
     color: var(--text-dim);
@@ -133,7 +133,7 @@
 
 .ui-title__hint {
     font-size: var(--fs-2xs);
-    font-weight: 400;
+    font-weight: var(--fw-normal);
     color: var(--text-muted);
     opacity: 0.7;
     margin-left: 6px;
@@ -167,7 +167,7 @@
 .ui-label {
     flex: 1;
     font-size: var(--fs-sm);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
@@ -283,7 +283,7 @@
     background: var(--bg);
     color: var(--text);
     font-size: var(--fs-xs);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     white-space: nowrap;
     transition:
@@ -322,14 +322,14 @@
 .ui-btn--active {
     background: var(--bg-card-hover);
     color: var(--text);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
 }
 
 .ui-btn--primary {
     width: 100%;
     background: var(--accent);
     color: #fff;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     justify-content: center;
     transition: all 0.15s ease;
 }
@@ -350,7 +350,7 @@
     background: transparent;
     color: #f87171;
     border-color: rgba(248, 113, 113, 0.3);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     justify-content: center;
     transition: all 0.15s ease;
 }
@@ -399,7 +399,7 @@
     background: var(--bg-card);
     color: var(--text-muted);
     font-size: var(--fs-sm);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-family: inherit;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -438,7 +438,7 @@
     background: var(--bg);
     color: var(--text-muted);
     font-size: var(--fs-xs);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     white-space: nowrap;
     border-radius: 4px;
@@ -499,7 +499,7 @@
 }
 
 .ui-detail__name {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: var(--fs-ui);
 }
 
@@ -523,7 +523,7 @@
     border-radius: 50%;
     background: var(--accent);
     color: white;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: var(--fs-ui);
     flex-shrink: 0;
 }
@@ -567,7 +567,7 @@
     align-items: center;
     gap: 8px;
     font-size: var(--fs-ui);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text-muted);
 }
 
@@ -594,7 +594,7 @@
     background: var(--bg-card);
     color: var(--text);
     font-size: var(--fs-ui);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     transition:
         background 0.15s ease,
@@ -627,7 +627,7 @@
 .ui-chip {
     display: inline-block;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     line-height: 1;
     padding: 4px 10px;
@@ -649,7 +649,7 @@
     padding: 2px 8px;
     border-radius: 4px;
     font-size: var(--fs-2xs);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     letter-spacing: 0.02em;
     line-height: 1.5;
     white-space: nowrap;
@@ -757,7 +757,7 @@
 
 .source__title {
     font-size: var(--fs-sm);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -804,7 +804,7 @@
     background: none;
     color: var(--text-dim);
     font-size: var(--fs-sm);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     font-family: var(--font-mono);
     cursor: pointer;
     border-bottom: 2px solid transparent;

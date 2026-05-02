@@ -41,7 +41,7 @@
     border: 1px solid var(--accent, #6e9eff);
     border-radius: 6px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-decoration: none;
     z-index: 10000;
 }
@@ -74,6 +74,13 @@ body {
     line-height: 1.6;
 }
 
+code,
+pre,
+kbd,
+samp {
+    font-family: var(--font-mono);
+}
+
 /* ─── Header ─────────────────────────────────────────────────────── */
 
 .header {
@@ -103,7 +110,7 @@ body {
 
 .header__logo {
     font-size: var(--fs-md);
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     color: var(--text);
     text-decoration: none;
     letter-spacing: -0.3px;
@@ -117,7 +124,7 @@ body {
 
 .header__sep {
     color: var(--text-dim);
-    font-weight: 300;
+    font-weight: var(--fw-normal);
     font-size: var(--fs-md);
     user-select: none;
 }
@@ -126,7 +133,7 @@ body {
     font-size: var(--fs-lg);
     color: var(--text-muted);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     padding: 3px 12px;
     border-radius: 6px;
 }
@@ -138,7 +145,7 @@ body {
 .header__nav {
     margin-left: auto;
     display: flex;
-    gap: 8px;
+    gap: 2px;
 }
 
 .header__nav a {
@@ -263,7 +270,7 @@ body {
 
 .sidebar__label {
     font-size: var(--fs-base);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--accent-text);
@@ -276,7 +283,7 @@ body {
     font-size: var(--fs-md);
     color: var(--text-muted);
     text-decoration: none;
-    padding: 2px 20px;
+    padding: 0 20px;
     transition: all 0.1s;
     margin-right: 8px;
     border-radius: 6px;
@@ -285,26 +292,25 @@ body {
 
 .sidebar__link:hover {
     color: var(--text);
-    background: var(--sidebar-hover);
 }
 
 .sidebar__link--active,
 .sidebar__link--active:hover {
     color: var(--accent-text);
     border-right-color: var(--accent);
-    background: var(--accent-dim);
 }
 
 .sidebar__badge {
     font-size: 9px;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 1px 5px;
+    padding: 3px 5px;
     border-radius: 4px;
     background: var(--accent);
     color: white;
     margin-left: 6px;
+    margin-top: -2px;
     vertical-align: middle;
 }
 
@@ -359,7 +365,7 @@ body {
 
 .toc__title {
     font-size: var(--fs-2xs);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-dim);
@@ -447,7 +453,7 @@ body {
 
 .overview__title {
     font-size: 38px;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: -0.5px;
     margin-bottom: 8px;
     color: var(--text);
@@ -476,7 +482,7 @@ body {
 
 .overview__section-title {
     font-size: var(--fs-base);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-dim);
@@ -501,7 +507,7 @@ body {
 
 .overview__card-title {
     font-size: var(--fs-lg);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text);
     margin-bottom: 4px;
 }
@@ -522,7 +528,7 @@ body {
 .overview__chip {
     display: inline-block;
     font-size: var(--fs-2xs);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     line-height: 1;
     padding: 3px 7px;
     border-radius: 4px;
@@ -546,7 +552,7 @@ body {
 .variant-switcher__option {
     padding: 2px 6px;
     font-size: 10px;
-    font-weight: 400;
+    font-weight: var(--fw-normal);
     text-transform: uppercase;
     color: var(--text-muted);
     text-decoration: none;
@@ -564,12 +570,12 @@ body {
 .variant-switcher__option--active {
     color: #fff;
     background-color: var(--accent);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
 }
 .variant-switcher__option--active:hover {
     color: #fff;
     background-color: var(--accent);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
 }
 
 .variant-switcher__option--disabled {
@@ -865,7 +871,7 @@ body.no-sidebar .header__nav {
 
 .doc-nav__label {
     font-size: var(--fs-xs);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-dim);
@@ -874,7 +880,7 @@ body.no-sidebar .header__nav {
 
 .doc-nav__title {
     font-size: var(--fs-md);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--accent-text);
 }
 
@@ -903,7 +909,7 @@ SWICHER
     border-radius: 4px;
     color: var(--text);
     font-size: var(--fs-xs);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     white-space: nowrap;
     transition:
@@ -919,7 +925,7 @@ SWICHER
 .button-group .button--active {
     background: var(--accent);
     color: #fff;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 

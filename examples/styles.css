@@ -14,6 +14,10 @@
     --radius: 6px;
 }
 
+#list-container {
+    font-family: var(--font-vlist);
+}
+
 /* ============================================================================
    Container — unified width for all examples
    ============================================================================ */
@@ -37,7 +41,7 @@
 
 .container h1 {
     font-size: 32px;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: -0.3px;
     color: var(--text);
     margin: 0 0 8px;
@@ -184,7 +188,7 @@
 
 .example-info__stat strong {
     color: var(--text);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
 }
 .example-info__stat:nth-child(2) {
     opacity: 0.5;

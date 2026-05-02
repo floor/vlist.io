@@ -19,7 +19,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 13px;
     flex-shrink: 0;
 }
@@ -33,7 +33,7 @@
 }
 
 .contact__name {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 14px;
     color: var(--vlist-text, #111827);
     white-space: nowrap;

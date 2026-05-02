@@ -29,6 +29,7 @@ export interface NavItem {
   slug: string;
   name: string;
   desc: string;
+  depth?: number;
 }
 
 export interface NavGroup {
@@ -312,41 +313,38 @@ export function createContentRenderer(config: ContentConfig) {
     return toc;
   }
 
-  function buildToc(tocItems: TocItem[]): string {
+  function buildToc(tocItems: TocItem[], maxDepth: number = 1): string {
     if (tocItems.length === 0) return "";
+    const items = maxDepth === 1 ? tocItems.filter((t) => t.depth === 2) : tocItems;
 
     const lines: string[] = [];
     lines.push(`<nav class="toc">`);
     lines.push(`  <div class="toc__title">On this page</div>`);
     lines.push(`  <ul class="toc__list">`);
 
-    for (let i = 0; i < tocItems.length; i++) {
-      const item = tocItems[i];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
 
       if (item.depth === 3) {
-        // H3 items outside of a parent H2 — render flat (shouldn't happen, but safe)
         lines.push(`    <li class="toc__item toc__item--sub">`);
         lines.push(
           `      <a href="#${item.slug}" class="toc__link toc__link--sub">${item.text}</a>`,
         );
         lines.push(`    </li>`);
       } else {
-        // H2 item — check if followed by H3 children
         const hasChildren =
-          i + 1 < tocItems.length && tocItems[i + 1].depth === 3;
+          i + 1 < items.length && items[i + 1].depth === 3;
 
         if (hasChildren) {
-          // Open <li>, render link, open nested <ul>
           lines.push(`    <li class="toc__item toc__item--parent">`);
           lines.push(
             `      <a href="#${item.slug}" class="toc__link">${item.text}</a>`,
           );
           lines.push(`      <ul class="toc__sublist">`);
 
-          // Consume all following H3 children
           let j = i + 1;
-          while (j < tocItems.length && tocItems[j].depth === 3) {
-            const sub = tocItems[j];
+          while (j < items.length && items[j].depth === 3) {
+            const sub = items[j];
             lines.push(`        <li class="toc__item toc__item--sub">`);
             lines.push(
               `          <a href="#${sub.slug}" class="toc__link toc__link--sub">${sub.text}</a>`,
@@ -358,10 +356,8 @@ export function createContentRenderer(config: ContentConfig) {
           lines.push(`      </ul>`);
           lines.push(`    </li>`);
 
-          // Skip the children we just consumed
           i = j - 1;
         } else {
-          // H2 with no children — simple item
           lines.push(`    <li class="toc__item">`);
           lines.push(
             `      <a href="#${item.slug}" class="toc__link">${item.text}</a>`,
@@ -687,9 +683,14 @@ export function createContentRenderer(config: ContentConfig) {
     const rawHtml = marked.parse(mdSource) as string;
     const parsedHtml = disambiguateHeadings(rawHtml);
 
+    // Find nav item for metadata (depth, description)
+    const navItem = loadNavigation()
+      .flatMap((g) => g.items)
+      .find((i) => i.slug === slug);
+
     // Extract table of contents
     const tocItems = extractToc(parsedHtml);
-    const tocHtml = buildToc(tocItems);
+    const tocHtml = buildToc(tocItems, navItem?.depth ?? 1);
 
     // Build prev/next navigation
     const prevNextHtml = buildPrevNext(slug);
@@ -704,11 +705,6 @@ export function createContentRenderer(config: ContentConfig) {
     // Extract title from first h1
     const h1Title = extractTitle(parsedHtml);
     const title = h1Title ? `${h1Title} — ${titleSuffix}` : defaultTitle;
-
-    // Find description from navigation
-    const navItem = loadNavigation()
-      .flatMap((g) => g.items)
-      .find((i) => i.slug === slug);
     const description = navItem?.desc || defaultDescription;
 
     const html = assemblePage(slug, content, title, description, tocHtml);

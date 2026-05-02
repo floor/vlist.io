@@ -45,7 +45,7 @@
 
 .hero__name {
     font-size: clamp(38px, 8vw, 78px);
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: clamp(-1px, -0.3vw, -2px);
     line-height: 1;
     margin-bottom: 16px;
@@ -75,7 +75,7 @@
     padding: 6px 14px;
     border-radius: var(--radius-sm);
     font-size: var(--fs-md);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text);
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -84,7 +84,7 @@
 .framework-tag small {
     font-size: var(--fs-xs);
     color: var(--text-dim);
-    font-weight: 400;
+    font-weight: var(--fw-normal);
 }
 
 .hero__badges {
@@ -109,7 +109,7 @@
     padding: 10px 22px;
     border-radius: var(--radius-sm);
     font-size: var(--fs-lg);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     font-family: inherit;
     text-decoration: none;
     cursor: pointer;
@@ -177,7 +177,7 @@
 
 .section__title {
     font-size: clamp(22px, 5vw, var(--fs-4xl));
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     /*text-transform: uppercase;*/
     letter-spacing: 1px;
     color: var(--text-dim);
@@ -213,7 +213,7 @@
 
 .feature__name {
     font-size: var(--fs-lg);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text);
     margin-bottom: 4px;
 }
@@ -256,7 +256,7 @@
 }
 
 .comparison-table thead th {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text-muted);
     font-size: var(--fs-sm);
     text-transform: uppercase;
@@ -268,14 +268,14 @@
 }
 
 .comparison-table__label {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text) !important;
     white-space: nowrap;
 }
 
 .comparison-table__highlight {
     color: var(--accent-text) !important;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     background: color-mix(in oklch, var(--accent) 6%, transparent);
 }
 
@@ -303,7 +303,7 @@
 
 .nav-card__title {
     font-size: var(--fs-xl);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text);
 }
 
@@ -344,7 +344,7 @@
 
 .example-item__name {
     font-size: 17px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text);
     min-width: 160px;
 }
@@ -430,7 +430,7 @@
 
 .quickstart__demo-label {
     font-size: var(--fs-sm);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text-muted);
     letter-spacing: 0.02em;
 }
@@ -472,6 +472,8 @@ footer {
 footer a {
     color: var(--text-muted);
     text-decoration: none;
+    padding: 3px 12px;
+    border-radius: 6px;
 }
 
 footer a:hover {
@@ -484,7 +486,16 @@ footer a:hover {
     gap: 16px 24px;
     flex-wrap: wrap;
     margin-bottom: 12px;
-    padding: 0 16px;
+    padding: 4px 16px;
+}
+
+.footer__built {
+    padding: 4px 0;
+}
+
+.footer__built a {
+    padding: 4px 6px;
+    margin: 0 2px;
 }
 
 /* ============================================================

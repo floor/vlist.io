@@ -79,7 +79,7 @@
 .book-cell-year {
     font-variant-numeric: tabular-nums;
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text, #111827);
 }
 
@@ -103,7 +103,7 @@
 }
 
 .book-cell-title__text {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -155,7 +155,7 @@
 }
 
 .book-detail__year {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text, #111827);
 }
 
@@ -190,7 +190,7 @@
 }
 
 .sort-info__key {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text, #111827);
     text-transform: capitalize;
 }
