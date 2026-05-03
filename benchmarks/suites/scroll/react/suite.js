@@ -36,7 +36,7 @@ import {
 // React Component
 // =============================================================================
 
-function BenchmarkList({ items }) {
+function BenchmarkList({ items, target }) {
   const { containerRef } = useVList({
     items,
     item: {
@@ -45,7 +45,9 @@ function BenchmarkList({ items }) {
     },
   });
 
-  return <div ref={containerRef} />;
+  containerRef.current = target;
+
+  return null;
 }
 
 // =============================================================================
@@ -94,7 +96,7 @@ defineSuite({
       const warmupItems = generateItems(Math.min(itemCount, 10_000));
       container.innerHTML = "";
       const warmupRoot = createRoot(container);
-      warmupRoot.render(<BenchmarkList items={warmupItems} />);
+      warmupRoot.render(<BenchmarkList items={warmupItems} target={container} />);
       await waitFrames(15); // React needs extra frames to settle
 
       const vp = findViewport(container);
@@ -126,7 +128,7 @@ defineSuite({
     // =====================================================================
     container.innerHTML = "";
     const root = createRoot(container);
-    root.render(<BenchmarkList items={items} />);
+    root.render(<BenchmarkList items={items} target={container} />);
     await waitFrames(15); // React needs extra frames to settle
 
     const viewport = findViewport(container);

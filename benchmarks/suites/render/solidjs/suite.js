@@ -38,6 +38,7 @@ defineSuite({
       destroyFn: (instance) => instance.destroy(),
       label: "vlist-solidjs",
       onStatus,
+      hideContainer: false,
     });
 
     // Rating thresholds (similar to vanilla JavaScript - no framework overhead in benchmarks)

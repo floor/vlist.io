@@ -22,6 +22,7 @@ import { measureMemoryProfile } from "../../../engine/memory.js";
 const BenchmarkList = {
   props: {
     items: Array,
+    target: Object,
   },
   setup(props) {
     const { containerRef } = useVList({
@@ -32,9 +33,10 @@ const BenchmarkList = {
       },
     });
 
-    return { containerRef };
+    containerRef.value = props.target;
+
+    return () => null;
   },
-  template: `<div ref="containerRef"></div>`,
 };
 
 // =============================================================================
@@ -54,7 +56,7 @@ defineSuite({
     const result = await measureMemoryProfile({
       container,
       createFn: async () => {
-        const app = createApp(BenchmarkList, { items });
+        const app = createApp(BenchmarkList, { items, target: container });
         app.mount(container);
         return { instance: app };
       },

@@ -27,6 +27,7 @@ let listApiRef = null;
 const BenchmarkList = {
   props: {
     items: Array,
+    target: Object,
   },
   setup(props) {
     const vlistApi = useVList({
@@ -37,12 +38,11 @@ const BenchmarkList = {
       },
     });
 
-    // Store API reference for external access
+    vlistApi.containerRef.value = props.target;
     listApiRef = vlistApi;
 
-    return { containerRef: vlistApi.containerRef };
+    return () => null;
   },
-  template: `<div ref="containerRef"></div>`,
 };
 
 // =============================================================================
@@ -63,7 +63,7 @@ defineSuite({
     container.innerHTML = "";
     listApiRef = null;
 
-    const app = createApp(BenchmarkList, { items });
+    const app = createApp(BenchmarkList, { items, target: container });
     app.mount(container);
 
     // Let initial render settle (Vue needs extra frames)
