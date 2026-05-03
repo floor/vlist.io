@@ -67,7 +67,7 @@
     justify-content: center;
     background: var(--vlist-placeholder-bg);
     color: var(--text);
-    font-weight: var(--fw-bold);
+    font-weight: 600;
     font-size: 13px;
     border-radius: var(--radius-xs);
 }
@@ -83,7 +83,7 @@
 }
 
 .item-title {
-    font-weight: var(--fw-bold);
+    font-weight: 500;
     font-size: var(--fs-sm);
     color: var(--text);
     white-space: nowrap;
@@ -218,7 +218,7 @@
     align-items: center;
     justify-content: center;
     color: var(--text);
-    font-weight: var(--fw-bold);
+    font-weight: 700;
     font-size: 28px;
     letter-spacing: 1px;
 }
@@ -232,7 +232,7 @@
 }
 
 .grid-card__title {
-    font-weight: var(--fw-bold);
+    font-weight: 500;
     font-size: var(--fs-sm);
     color: var(--text);
     white-space: nowrap;
@@ -269,7 +269,7 @@
    ============================================================================ */
 
 .table-cell--title {
-    font-weight: var(--fw-bold);
+    font-weight: 500;
 }
 
 /* Table mode: let vlist's default --vlist-bg-selected (blue) apply */
