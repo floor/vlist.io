@@ -1,7 +1,7 @@
 ---
 created: 2026-02-10
 updated: 2026-04-25
-status: draft
+status: published
 ---
 
 # Accessibility
