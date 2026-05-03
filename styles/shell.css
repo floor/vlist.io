@@ -273,7 +273,6 @@ samp {
     font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: var(--accent-text);
     padding: 0 20px;
     margin-bottom: 6px;
 }
@@ -508,6 +507,7 @@ samp {
 .overview__card-title {
     font-size: var(--fs-lg);
     font-weight: var(--fw-bold);
+    line-height: 1.2em;
     color: var(--text);
     margin-bottom: 4px;
 }

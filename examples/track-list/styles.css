@@ -193,7 +193,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--accent);
+    background: var(--vlist-placeholder-bg);
 }
 
 /* Cover image (grid mode) */
