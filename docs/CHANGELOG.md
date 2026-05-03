@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-05-01
+status: draft
+---
+
 # Changelog
 
 All notable changes to this project will be documented in this file.

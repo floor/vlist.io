@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-30
+status: published
+---
+
 # Page Feature
 
 > Document-level scrolling - use the browser's native scrollbar instead of container scrolling.

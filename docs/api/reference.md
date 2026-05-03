@@ -1,3 +1,9 @@
+---
+created: 2026-02-20
+updated: 2026-04-30
+status: published
+---
+
 # vlist API Reference
 
 > Complete reference for the core vlist API — factory, configuration, properties, and methods.

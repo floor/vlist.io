@@ -1,3 +1,9 @@
+---
+created: 2026-03-03
+updated: 2026-04-04
+status: draft
+---
+
 # vlist.io — UI Components Extraction Plan
 
 > Extract reusable UI primitives from `examples/styles.css` into `styles/ui.css`,

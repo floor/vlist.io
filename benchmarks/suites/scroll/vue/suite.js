@@ -39,6 +39,7 @@ import {
 const BenchmarkList = {
   props: {
     items: Array,
+    target: Object,
   },
   setup(props) {
     const { containerRef } = useVList({
@@ -49,9 +50,10 @@ const BenchmarkList = {
       },
     });
 
-    return { containerRef };
+    containerRef.value = props.target;
+
+    return () => null;
   },
-  template: `<div ref="containerRef"></div>`,
 };
 
 // =============================================================================
@@ -99,7 +101,7 @@ defineSuite({
     {
       const warmupItems = generateItems(Math.min(itemCount, 10_000));
       container.innerHTML = "";
-      const warmupApp = createApp(BenchmarkList, { items: warmupItems });
+      const warmupApp = createApp(BenchmarkList, { items: warmupItems, target: container });
       warmupApp.mount(container);
       await waitFrames(15);
 
@@ -131,7 +133,7 @@ defineSuite({
     // Phase 4: Create Vue vlist and measure scroll performance
     // =====================================================================
     container.innerHTML = "";
-    const app = createApp(BenchmarkList, { items });
+    const app = createApp(BenchmarkList, { items, target: container });
     app.mount(container);
     await waitFrames(10);
     await waitFrames(5); // Vue needs extra frames to settle

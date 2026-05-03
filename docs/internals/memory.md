@@ -1,3 +1,9 @@
+---
+created: 2026-03-10
+updated: 2026-04-15
+status: published
+---
+
 # Memory Efficiency
 
 > How vlist achieves 98-99% lower memory usage than competing virtual list libraries

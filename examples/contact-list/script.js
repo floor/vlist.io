@@ -2,7 +2,7 @@
 // Demonstrates withGroups plugin with sticky/inline toggle
 // and withSelection for click-to-select with detail panel
 
-import { vlist, withGroups, withSelection } from "vlist";
+import { vlist, withGroups, withSelection, withSnapshots } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -92,10 +92,12 @@ const updateInfo = createInfoUpdater(stats);
 // Create / Recreate list
 // =============================================================================
 
-let firstVisibleIndex = 0;
-
 export function createList() {
+  let snapshot = null;
   if (list) {
+    try {
+      snapshot = list.getScrollSnapshot();
+    } catch {}
     list.destroy();
     list = null;
   }
@@ -128,12 +130,12 @@ export function createList() {
   }
 
   builder.use(withSelection({ mode: "single" }));
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
 
   list.on("scroll", updateInfo);
-  list.on("range:change", ({ range }) => {
-    firstVisibleIndex = range.start;
+  list.on("range:change", () => {
     updateInfo();
   });
   list.on("velocity:change", ({ velocity }) => {
@@ -148,11 +150,6 @@ export function createList() {
       clearContactDetail();
     }
   });
-
-  // Restore scroll position
-  if (firstVisibleIndex > 0) {
-    list.scrollToIndex(firstVisibleIndex, "start");
-  }
 
   updateInfo();
   updateContext();

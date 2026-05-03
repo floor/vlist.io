@@ -1,3 +1,9 @@
+---
+created: 2026-04-16
+updated: 2026-04-16
+status: draft
+---
+
 # vlist Launch Plan v2
 
 **Goal:** Take vlist from hidden gem to the go-to virtual list for non-React developers.

@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-04
+status: published
+---
+
 # Benchmarks
 
 The benchmark page (`/benchmarks/`) runs two categories of live performance suites directly in the browser:

@@ -1,3 +1,9 @@
+---
+created: 2026-04-03
+updated: 2026-04-03
+status: draft
+---
+
 # Scale + Scrollbar: dragging to the end doesn't scroll to the last items
 
 > When `withScale({ force: true })` is active and the user drags the custom scrollbar thumb to the very bottom (or very end in horizontal mode), the content does not scroll all the way to the last items. The last rows remain partially or fully hidden.

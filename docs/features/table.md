@@ -1,3 +1,9 @@
+---
+created: 2026-03-01
+updated: 2026-04-16
+status: published
+---
+
 # Table Layout
 
 > Data table with resizable columns, sortable headers, and cell-based rendering — powered by vlist's core virtualization.

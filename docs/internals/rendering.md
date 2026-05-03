@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-16
+status: published
+---
+
 # Rendering Module
 
 > DOM rendering, virtualization, and compression for vlist.

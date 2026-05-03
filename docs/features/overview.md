@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-30
+status: published
+---
+
 # Features
 
 > All features are tree-shaken — you only pay for what you import and use.
@@ -8,6 +14,7 @@
 |---|---|---|
 | `withAsync()` | +{{size:withAsync:delta}} KB | Lazy loading via adapter with placeholders |
 | `withSelection()` | +{{size:withSelection:delta}} KB | Single / multiple item selection with keyboard nav |
+| `withSortable()` | +{{size:withSortable:delta}} KB | Drag-and-drop reordering with smooth item shifting |
 | `withGrid()` | +{{size:withGrid:delta}} KB | 2D grid layout (virtualises by row) |
 | `withTable()` | +{{size:withTable:delta}} KB | Data table with resizable columns, sortable headers |
 | `withMasonry()` | +{{size:withMasonry:delta}} KB | Pinterest-style shortest-lane placement |
@@ -16,12 +23,11 @@
 | `withPage()` | +{{size:withPage:delta}} KB | Document-level (window) scrolling |
 | `withScale()` | +{{size:withScale:delta}} KB | Compress scroll space for 1M+ items |
 | `withAutoSize()` | +{{size:withAutoSize:delta}} KB | Auto-measure items via ResizeObserver (Mode B) |
-| `withSortable()` | +{{size:withSortable:delta}} KB | Drag-and-drop reordering with smooth item shifting |
 | `withSnapshots()` | +{{size:withSnapshots:delta}} KB | Scroll position save/restore |
 
 ---
 
-## withAsync() — Lazy Loading
+## Async — Lazy Loading
 
 ```typescript
 import { vlist, withAsync } from 'vlist';
@@ -52,7 +58,7 @@ const feed = vlist({
 
 ---
 
-## withSelection() — Item Selection
+## Selection — Item Selection
 
 ```typescript
 import { vlist, withSelection } from 'vlist';
@@ -82,7 +88,7 @@ list.getSelectedItems();   // → [{ id: 2, ... }, { id: 5, ... }]
 
 ---
 
-## withSortable() — Drag & Drop Reorder
+## Sortable — Drag & Drop Reorder
 
 ```typescript
 import { vlist, withSortable } from 'vlist';
@@ -117,7 +123,7 @@ Items shift out of the way as you drag — like iOS. Cannot combine with `withGr
 
 ---
 
-## withGrid() — 2D Grid Layout
+## Grid — 2D Grid Layout
 
 ```typescript
 import { vlist, withGrid } from 'vlist';
@@ -139,7 +145,7 @@ const gallery = vlist({
 
 ---
 
-## withTable() — Data Table
+## Table — Data Table
 
 ```typescript
 import { vlist, withTable, withSelection } from 'vlist';
@@ -169,7 +175,7 @@ Leverages all of vlist's core — virtualization, element pooling, size caching,
 
 ---
 
-## withMasonry() — Pinterest Layout
+## Masonry — Pinterest Layout
 
 ```typescript
 import { vlist, withMasonry } from 'vlist';
@@ -192,7 +198,7 @@ Items flow into the shortest column, creating an organic packed layout with no w
 
 ---
 
-## withGroups() — Grouped Lists
+## Groups — Grouped Lists
 
 ```typescript
 import { vlist, withGroups } from 'vlist';
@@ -216,7 +222,7 @@ const contacts = vlist({
 
 ---
 
-## withScrollbar() — Custom Scrollbar
+## Scrollbar — Custom Scrollbar
 
 ```typescript
 import { vlist, withScrollbar } from 'vlist';
@@ -241,7 +247,7 @@ const list = vlist({
 
 ---
 
-## withPage() — Document Scrolling
+## Page — Document Scrolling
 
 ```typescript
 import { vlist, withPage, withAsync } from 'vlist';
@@ -263,7 +269,7 @@ Cannot combine with `withScrollbar()` or `orientation: 'horizontal'`.
 
 ---
 
-## withScale() — 1M+ Items
+## Scale — 1M+ Items
 
 ```typescript
 import { vlist, withScale, withScrollbar } from 'vlist';
@@ -282,7 +288,7 @@ const bigList = vlist({
 
 ---
 
-## withAutoSize() — Auto-Measurement
+## AutoSize — Auto-Measurement
 
 Measure items via `ResizeObserver` for content with unpredictable sizes.
 
@@ -307,7 +313,7 @@ Items render at the estimated size, then snap to their measured height. Each ite
 
 ---
 
-## withSnapshots() — Scroll Save/Restore
+## Snapshots — Scroll Save/Restore
 
 ```typescript
 import { vlist, withSnapshots } from 'vlist';

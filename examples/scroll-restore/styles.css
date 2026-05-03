@@ -33,7 +33,7 @@
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 16px;
     flex-shrink: 0;
 }
@@ -44,7 +44,7 @@
 }
 
 .item-name {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text);
     white-space: nowrap;
     overflow: hidden;
@@ -111,7 +111,7 @@
 
 .detail-card h2 {
     font-size: 24px;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     color: var(--text);
     margin-bottom: 10px;
 }
@@ -144,7 +144,7 @@
 
 .saved-snapshot .snapshot-label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-dim);
@@ -162,7 +162,7 @@
     padding: 8px 18px;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     border: none;
     transition: all 0.15s ease;

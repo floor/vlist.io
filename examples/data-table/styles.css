@@ -68,14 +68,14 @@
     border-radius: 3px;
     color: var(--text-muted, #6b7280);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: 0.04em;
     flex-shrink: 0;
     border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.06));
 }
 
 .table-name__text {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -94,12 +94,12 @@
 }
 
 .table-pop--mega {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text, #111827);
 }
 
 .table-pop--large {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text, #111827);
 }
 
@@ -128,7 +128,7 @@
     background: var(--bg-subtle, #f3f4f6);
     color: var(--text-muted, #6b7280);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: 0.04em;
     flex-shrink: 0;
     border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.06));
@@ -151,7 +151,7 @@
 }
 
 .sort-info__key {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text, #111827);
     text-transform: capitalize;
 }

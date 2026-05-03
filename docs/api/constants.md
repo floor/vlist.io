@@ -1,3 +1,9 @@
+---
+created: 2026-02-24
+updated: 2026-04-16
+status: published
+---
+
 # Constants
 
 > Default values, thresholds, and magic numbers for vlist configuration.

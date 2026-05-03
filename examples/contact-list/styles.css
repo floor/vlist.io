@@ -45,7 +45,7 @@
 
 .group-header__letter {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     color: var(--accent-text);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -79,7 +79,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 13px;
     flex-shrink: 0;
 }
@@ -93,7 +93,7 @@
 }
 
 .contact__name {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 14px;
     color: var(--vlist-text, #111827);
     white-space: nowrap;
@@ -143,7 +143,7 @@
     background: var(--bg);
     color: var(--text-muted);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     transition: all 0.15s ease;
     padding: 0;
@@ -200,7 +200,7 @@
 
 .dist-letter {
     font-size: 9px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text-dim);
     text-transform: uppercase;
 }
@@ -216,7 +216,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 13px;
     flex-shrink: 0;
 }

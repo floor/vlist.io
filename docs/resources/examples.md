@@ -1,3 +1,9 @@
+---
+created: 2026-02-21
+updated: 2026-04-15
+status: published
+---
+
 # Examples
 
 The examples is an interactive development environment for exploring vlist examples and browsing the source code.

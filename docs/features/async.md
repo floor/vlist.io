@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-20
+status: published
+---
+
 # Async Module
 
 > Asynchronous data loading with lazy loading and placeholders.
@@ -16,7 +22,7 @@ The async module handles all data-related operations in vlist, designed for effi
 ```
 src/features/async/
 ├── index.ts       # Module exports
-├── feature.ts      # withAsync() feature
+├── feature.ts     # withAsync() feature
 ├── manager.ts     # Data manager (main coordinator)
 ├── sparse.ts      # Sparse storage implementation
 └── placeholder.ts # Placeholder generation

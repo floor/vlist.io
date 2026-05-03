@@ -1,3 +1,9 @@
+---
+created: 2026-03-09
+updated: 2026-04-15
+status: draft
+---
+
 # Issue: Reduce Public Exports — Internal Symbols Leak Through Entry Point
 
 > The top-level `vlist` entry point re-exports ~50 internal symbols

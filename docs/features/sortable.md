@@ -1,3 +1,9 @@
+---
+created: 2026-04-29
+updated: 2026-04-30
+status: published
+---
+
 # Sortable Feature
 
 > Drag-and-drop reordering with smooth item shifting.

@@ -24,7 +24,7 @@ import { measureScrollToPerformance } from "../../../engine/scrollto.js";
 
 let listApiRef = null;
 
-function BenchmarkList({ items }) {
+function BenchmarkList({ items, target }) {
   const vlistApi = useVList({
     items,
     item: {
@@ -33,10 +33,10 @@ function BenchmarkList({ items }) {
     },
   });
 
-  // Store API reference for external access
+  vlistApi.containerRef.current = target;
   listApiRef = vlistApi;
 
-  return <div ref={vlistApi.containerRef} />;
+  return null;
 }
 
 // =============================================================================
@@ -58,7 +58,7 @@ defineSuite({
     listApiRef = null;
 
     const root = createRoot(container);
-    root.render(<BenchmarkList items={items} />);
+    root.render(<BenchmarkList items={items} target={container} />);
 
     // Let initial render settle — React needs extra frames
     await waitFrames(15);

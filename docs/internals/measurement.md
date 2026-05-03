@@ -1,3 +1,9 @@
+---
+created: 2026-02-24
+updated: 2026-04-16
+status: published
+---
+
 # Item Size Measurement
 
 > How vlist handles item sizes — from consumer-provided constants to automatic DOM measurement with scroll correction.

@@ -206,7 +206,7 @@
     color: var(--text-dim);
     font-family: var(--font-sans);
     font-size: var(--fs-xs);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     letter-spacing: 0.03em;
     text-transform: uppercase;
 }
@@ -246,7 +246,7 @@
     color: var(--text);
     font-family: var(--font-sans);
     font-size: var(--fs-ui);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;

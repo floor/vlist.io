@@ -54,7 +54,7 @@ h1 .ui-badge {
     margin: 0;
     padding: 10px 20px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text-muted);
     letter-spacing: 0.2px;
 }
@@ -110,7 +110,7 @@ h1 .ui-badge {
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     font-size: 12px;
     flex-shrink: 0;
     letter-spacing: -0.3px;
@@ -124,7 +124,7 @@ h1 .ui-badge {
 }
 
 .post__user {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 14px;
     color: var(--vlist-text);
 }
@@ -140,7 +140,7 @@ h1 .ui-badge {
 
 .post__title {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text);
     line-height: 1.4;
     word-break: break-word;
@@ -162,7 +162,7 @@ h1 .ui-badge {
 .post__body a {
     color: var(--accent);
     text-decoration: none;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
 }
 
 .post__body a:hover {
@@ -209,7 +209,7 @@ h1 .ui-badge {
 
 .post__tag {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--accent);
     opacity: 0.8;
 }
@@ -231,7 +231,7 @@ h1 .ui-badge {
     background: transparent;
     color: var(--vlist-text-muted);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     transition: all 0.12s ease;
 }
@@ -327,14 +327,14 @@ h1 .ui-badge {
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     font-size: 9px;
     flex-shrink: 0;
     letter-spacing: -0.3px;
 }
 
 .rpost__user {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text);
     font-size: 12px;
 }
@@ -365,7 +365,7 @@ h1 .ui-badge {
 
 .rpost__title {
     font-size: 17px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text);
     line-height: 1.35;
     margin: 0;
@@ -446,7 +446,7 @@ h1 .ui-badge {
     border-radius: 20px;
     background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.08));
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text-muted);
     cursor: pointer;
     transition: background 0.12s ease;
@@ -488,7 +488,7 @@ h1 .ui-badge {
 
 .rpost__count {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
 }
 
 /* --- Compact layout: skeleton placeholders --- */
@@ -565,7 +565,7 @@ h1 .ui-badge {
     background: var(--vlist-bg);
     color: var(--vlist-text);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     cursor: pointer;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
@@ -581,13 +581,13 @@ h1 .ui-badge {
 }
 
 .ui-select optgroup {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 12px;
     color: var(--vlist-text-muted);
 }
 
 .ui-select option {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text);
 }
 
@@ -611,7 +611,7 @@ h1 .ui-badge {
 
 .post-end__label {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text-muted);
     white-space: nowrap;
     letter-spacing: 0.3px;

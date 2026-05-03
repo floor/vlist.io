@@ -1,3 +1,9 @@
+---
+created: 2026-03-03
+updated: 2026-04-04
+status: draft
+---
+
 # vlist.io — CSS Refactoring Plan
 
 > Comprehensive audit and enhancement plan for all stylesheets in the vlist.io project.

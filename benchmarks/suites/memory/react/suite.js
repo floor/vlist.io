@@ -21,7 +21,7 @@ import { measureMemoryProfile } from "../../../engine/memory.js";
 // React Component
 // =============================================================================
 
-function BenchmarkList({ items }) {
+function BenchmarkList({ items, target }) {
   const { containerRef } = useVList({
     items,
     item: {
@@ -30,7 +30,9 @@ function BenchmarkList({ items }) {
     },
   });
 
-  return <div ref={containerRef} />;
+  containerRef.current = target;
+
+  return null;
 }
 
 // =============================================================================
@@ -51,7 +53,7 @@ defineSuite({
       container,
       createFn: async () => {
         const root = createRoot(container);
-        root.render(<BenchmarkList items={items} />);
+        root.render(<BenchmarkList items={items} target={container} />);
         await waitFrames(5); // React needs extra frames to settle
         return { instance: root };
       },

@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-05-01
+status: published
+---
+
 # Scrollbar Module
 
 > Custom scrollbar UI with auto-hide and smooth dragging.

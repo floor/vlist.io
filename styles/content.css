@@ -4,6 +4,48 @@
    Covers: markdown body, code blocks, tables, syntax highlighting, errors.
    ============================================================================= */
 
+/* ─── Page metadata ─────────────────────────────────────────────────────── */
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    letter-spacing: 0.2px;
+}
+
+.meta__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--radius-xs);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.5px;
+}
+
+.meta__badge--draft {
+    color: var(--badge-warning);
+    background: var(--badge-warning-bg);
+}
+
+.meta__badge--review {
+    color: var(--badge-info);
+    background: var(--badge-info-bg);
+}
+
+.meta__badge--published {
+    color: var(--badge-success);
+    background: var(--badge-success-bg);
+}
+
+.meta__item {
+    color: var(--text-dim);
+}
+
 /* ─── Markdown body ──────────────────────────────────────────────────────── */
 
 .md {
@@ -16,7 +58,7 @@
 
 .md h1 {
     font-size: var(--fs-4xl);
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: -0.5px;
     margin-bottom: 8px;
     padding-bottom: 12px;
@@ -25,7 +67,7 @@
 
 .md h2 {
     font-size: var(--fs-3xl);
-    font-weight: 650;
+    font-weight: var(--fw-bold);
     margin-top: 48px;
     margin-bottom: 16px;
     padding-bottom: 8px;
@@ -35,14 +77,14 @@
 
 .md h3 {
     font-size: var(--fs-xl);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     margin-top: 32px;
     margin-bottom: 12px;
 }
 
 .md h4 {
     font-size: var(--fs-lg);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     margin-top: 24px;
     margin-bottom: 8px;
     color: var(--text-muted);
@@ -67,7 +109,7 @@
     margin-left: 6px;
     opacity: 0;
     transition: opacity 0.15s;
-    font-weight: 400;
+    font-weight: var(--fw-normal);
 }
 
 .md h1:hover .anchor,
@@ -102,7 +144,7 @@
 }
 
 .md strong {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text);
 }
 
@@ -143,7 +185,7 @@
     background: var(--bg-code-inline);
     padding: 2px 7px;
     border-radius: 4px;
-    color: #c8cedc;
+    color: #abb2bf;
 }
 
 [data-theme-mode="light"] .md code {
@@ -177,8 +219,8 @@
     background: none;
     padding: 0;
     border-radius: 0;
-    font-size: var(--fs-md);
-    color: #c8cedc;
+    font-size: var(--fs-base);
+    color: #abb2bf;
 }
 
 .md pre code [class^="hljs-"] {
@@ -204,7 +246,7 @@
 
 .md thead th {
     text-align: left;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text);
     padding: 8px 12px;
     border-bottom: 2px solid var(--border);
@@ -244,7 +286,7 @@
 
 .error__title {
     font-size: var(--fs-2xl);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text-muted);
     margin-bottom: 8px;
 }

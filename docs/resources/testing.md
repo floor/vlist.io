@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-16
+status: published
+---
+
 # Testing
 
 > Test suite, coverage configuration, and testing patterns for vlist.

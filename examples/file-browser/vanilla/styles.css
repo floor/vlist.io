@@ -95,7 +95,7 @@
 }
 
 .file-name__text {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -130,7 +130,7 @@
     background: transparent;
     color: var(--text-muted);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     font-family: inherit;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -144,7 +144,7 @@
 
 .breadcrumb__item:last-child {
     color: var(--text);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
 }
 
 .breadcrumb__sep {
@@ -193,7 +193,7 @@
     background: var(--bg);
     color: var(--text);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     font-family: inherit;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -320,7 +320,7 @@
 }
 
 .file-card__name {
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text);
     text-align: center;
     width: 100%;
@@ -387,7 +387,7 @@
 
 .group-header__label {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text);
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -426,7 +426,7 @@
 
 .file-detail__name {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text);
     word-break: break-all;
 }
@@ -456,7 +456,7 @@
 }
 
 .sort-info__key {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--vlist-text, #111827);
     text-transform: capitalize;
 }

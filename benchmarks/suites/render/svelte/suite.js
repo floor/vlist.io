@@ -42,6 +42,7 @@ defineSuite({
       },
       label: "vlist-svelte",
       onStatus,
+      hideContainer: false,
     });
 
     // Rating thresholds depend on item count

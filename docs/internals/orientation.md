@@ -1,3 +1,9 @@
+---
+created: 2026-02-24
+updated: 2026-04-16
+status: published
+---
+
 # Orientation
 
 > How vlist uses a single code path for both vertical and horizontal scrolling — and why every internal API speaks "size" and "position" instead of "height" and "scrollTop".

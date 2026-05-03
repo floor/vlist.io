@@ -1,7 +1,7 @@
 // Sortable — Drag-and-drop reordering
 // Demonstrates withSortable plugin with configurable drag handles
 
-import { vlist, withSortable, withSelection } from "vlist";
+import { vlist, withSortable, withSelection, withSnapshots } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -144,7 +144,11 @@ const updateInfo = createInfoUpdater(stats);
 // =============================================================================
 
 export function createList() {
+  let snapshot = null;
   if (list) {
+    try {
+      snapshot = list.getScrollSnapshot();
+    } catch {}
     list.destroy();
     list = null;
   }
@@ -167,6 +171,7 @@ export function createList() {
   builder.use(withSortable(sortableConfig));
 
   builder.use(withSelection({ mode: "single" }));
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
 
   list = builder.build();
 

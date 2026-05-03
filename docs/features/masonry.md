@@ -1,3 +1,9 @@
+---
+created: 2026-02-26
+updated: 2026-04-16
+status: published
+---
+
 # Masonry Layout
 
 Transform your virtual list into a Pinterest-style masonry layout with the `withMasonry` feature.

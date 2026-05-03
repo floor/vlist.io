@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-16
+status: published
+---
+
 # Builder Context
 
 > The internal interface that features receive during setup — provides access to core components, mutable state, and registration points.
@@ -77,6 +83,7 @@ interface BuilderContext<T extends VListItem = VListItem> {
   afterScroll:         Array<(scrollPosition: number, direction: string) => void>
   idleHandlers:        Array<() => void>
   clickHandlers:       Array<(event: MouseEvent) => void>
+  contextMenuHandlers: Array<(event: MouseEvent) => void>
   keydownHandlers:     Array<(event: KeyboardEvent) => void>
   resizeHandlers:      Array<(width: number, height: number) => void>
   contentSizeHandlers: Array<() => void>
@@ -241,7 +248,7 @@ ctx.afterScroll.push((scrollPosition, direction) => {
 
 ### clickHandlers
 
-DOM click events on the items container.
+DOM click events on the items container. Handlers run before `item:click` is emitted.
 
 ```typescript
 ctx.clickHandlers.push((event) => {
@@ -250,6 +257,21 @@ ctx.clickHandlers.push((event) => {
   if (itemEl) {
     const index = Number(itemEl.dataset.index)
     // ... handle item click
+  }
+})
+```
+
+### contextMenuHandlers
+
+DOM contextmenu (right-click) events on the items container. Handlers run before `item:contextmenu` is emitted.
+
+```typescript
+ctx.contextMenuHandlers.push((event) => {
+  const target = event.target as HTMLElement
+  const itemEl = target.closest('[data-index]')
+  if (itemEl) {
+    const index = Number(itemEl.dataset.index)
+    // ... handle right-click
   }
 })
 ```
@@ -384,13 +406,15 @@ Velocity reset, '.vlist--scrolling' class removed
 ```
 
 ```
-Click event
+Click / Contextmenu event
     ↓
-All clickHandlers run in registration order
+All clickHandlers / contextMenuHandlers run in registration order
     ↓
-Feature handler identifies clicked item
+Features settle state (e.g. selection updates)
     ↓
-Emitter fires 'item:click'
+Emitter fires 'item:click' / 'item:contextmenu'
+    ↓
+App sees settled state
 ```
 
 ```

@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-04-25
+status: draft
+---
+
 # Accessibility
 
 > WAI-ARIA listbox implementation, keyboard navigation, screen reader support, and focus management for vlist.

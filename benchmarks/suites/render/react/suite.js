@@ -5,12 +5,12 @@
 // rating thresholds (slightly more lenient for React overhead).
 
 import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
 import { useVList } from "vlist-react";
 import {
   defineSuite,
   generateItems,
   benchmarkTemplate,
-  nextFrame,
   rateLower,
 } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
@@ -20,7 +20,7 @@ import { measureRenderPerformance } from "../../../engine/render.js";
 // React Component
 // =============================================================================
 
-function BenchmarkList({ items }) {
+function BenchmarkList({ items, target }) {
   const { containerRef } = useVList({
     items,
     item: {
@@ -29,7 +29,9 @@ function BenchmarkList({ items }) {
     },
   });
 
-  return <div ref={containerRef} />;
+  containerRef.current = target;
+
+  return null;
 }
 
 // =============================================================================
@@ -49,13 +51,15 @@ defineSuite({
       container,
       createFn: async (c) => {
         const root = createRoot(c);
-        root.render(<BenchmarkList items={items} />);
-        await nextFrame(); // React needs an extra frame to commit
+        flushSync(() => {
+          root.render(<BenchmarkList items={items} target={c} />);
+        });
         return root;
       },
       destroyFn: (root) => root.unmount(),
       label: "vlist-react",
       onStatus,
+      hideContainer: false,
     });
 
     // Rating thresholds (slightly more lenient for React overhead)

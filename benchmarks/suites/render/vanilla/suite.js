@@ -34,6 +34,7 @@ defineSuite({
       destroyFn: (list) => list.destroy(),
       label: "vlist-vanilla",
       onStatus,
+      hideContainer: false,
     });
 
     // Rating thresholds depend on item count

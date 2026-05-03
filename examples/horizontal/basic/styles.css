@@ -63,7 +63,7 @@
 }
 
 .card-title {
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     font-size: 15px;
     white-space: nowrap;
     overflow: hidden;

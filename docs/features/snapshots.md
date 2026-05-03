@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-05-02
+status: published
+---
+
 # Snapshots Feature
 
 > Save and restore scroll position for SPA navigation and tab switching.
@@ -114,9 +120,12 @@ list.getScrollSnapshot(): ScrollSnapshot
 **Returns:**
 ```typescript
 interface ScrollSnapshot {
-  index: number;                        // First visible item index
+  index: number;                        // First visible item index (layout-level)
   offsetInItem: number;                 // Pixels scrolled into that item
-  total?: number;                       // Total item count at snapshot time
+  total?: number;                       // Virtual total at snapshot time
+  dataIndex?: number;                   // Data-level index (stable across layouts)
+  dataTotal?: number;                   // Actual item count (not virtual rows)
+  offsetRatio?: number;                 // Offset as 0–1 fraction of item size
   selectedIds?: Array<string | number>; // Selected IDs (if withSelection is active)
   focusedId?: string | number;          // Focused item ID (if withSelection is active)
 }
@@ -129,6 +138,8 @@ const snapshot = list.getScrollSnapshot();
 ```
 
 The `total` field is included automatically so that the snapshot is self-contained — useful when restoring with `withAsync()` where you need to set the initial total. The `focusedId` field is only present when an item has keyboard focus.
+
+When `withGrid()` or `withGroups()` is active, the snapshot also includes `dataIndex`, `dataTotal`, and `offsetRatio` — these enable cross-mode restore (e.g., a snapshot taken in grid mode can be restored in list mode). See [Cross-Mode Restore](#cross-mode-restore-listgridtable).
 
 ### `restoreScroll(snapshot)`
 
@@ -336,21 +347,81 @@ function navigateAway() {
 }
 ```
 
+### Cross-Mode Restore (List/Grid/Table)
+
+When toggling between layout modes (list ↔ grid ↔ table), snapshots survive the transition automatically. Capture a snapshot before destroying the old list, then pass it to the new layout:
+
+```typescript
+import { vlist, withAsync, withGrid, withTable, withSnapshots } from 'vlist';
+
+let list = null;
+let currentMode = 'list';
+
+function switchLayout(mode) {
+  // 1. Capture snapshot from current layout
+  let snapshot = null;
+  if (list) {
+    snapshot = list.getScrollSnapshot();
+    list.destroy();
+  }
+
+  currentMode = mode;
+
+  // 2. Build new layout with the snapshot
+  const builder = vlist({
+    container: '#list',
+    item: { height: mode === 'grid' ? 200 : 56, template: renderItem },
+  });
+
+  builder.use(withAsync({ adapter }));
+
+  if (mode === 'grid')  builder.use(withGrid({ columns: 4, gap: 8 }));
+  if (mode === 'table') builder.use(withTable({ columns, rowHeight: 36 }));
+
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
+
+  list = builder.build();
+}
+```
+
+**How it works under the hood:**
+
+When `withGrid()` or `withGroups()` is active, `getScrollSnapshot()` stores three extra fields:
+
+- **`dataIndex`** — The data-level item index (e.g., grid row 3 with 4 columns → data index 12). This is stable across layout changes because it refers to the actual item, not a virtual row or group-offset index.
+- **`dataTotal`** — The actual item count (e.g., 100 items, not the 25 grid rows that `total` would report). Used to bootstrap the data manager correctly when restoring in a different mode.
+- **`offsetRatio`** — The scroll offset within the item as a 0–1 fraction (e.g., 60px into a 200px grid row = 0.3). When restoring in list mode (56px items), this becomes `0.3 × 56 = 16.8px` — much more accurate than using the raw 60px.
+
+On restore, `restoreScroll()` resolves the correct layout index using whichever conversion methods are available:
+
+| Saved in | Restored in | How it resolves |
+|----------|-------------|-----------------|
+| Grid/Groups | Grid/Groups | `dataIndex` → `_dataToLayoutIndex()` → layout index |
+| Grid/Groups | List/Table | `dataIndex` used directly (1:1 mapping) |
+| List/Table | Grid/Groups | `index` → `_dataToLayoutIndex()` → layout index |
+| List/Table | List/Table | `index` used as-is |
+
+This is fully automatic — no special handling needed in your code. Just pass the snapshot.
+
 ## How It Works
 
 ### Snapshot Structure
 
 Instead of saving raw `scrollTop` pixels, snapshots save:
 
-1. **Item index** — Which item is at the top of the viewport
+1. **Item index** — Which item is at the top of the viewport (layout-level)
 2. **Offset within item** — How many pixels into that item
-3. **Total** — Total item count at snapshot time
-4. **Selected IDs** — Selection state (if `withSelection()` is active)
-5. **Focused item ID** — Keyboard focus position (if `withSelection()` is active)
+3. **Total** — Virtual total at snapshot time
+4. **Data index** — Data-level index, stable across layout changes (when grid/groups active)
+5. **Data total** — Actual item count, not virtual rows (when grid/groups active)
+6. **Offset ratio** — Offset as a 0–1 fraction of item size (for cross-mode restore)
+7. **Selected IDs** — Selection state (if `withSelection()` is active)
+8. **Focused item ID** — Keyboard focus position (if `withSelection()` is active)
 
 **Why this approach?**
 
 ✅ **Survives list recreation** — Index-based, not pixel-based
+✅ **Survives layout mode changes** — Data-level fields adapt across list/grid/table
 ✅ **Works with compression** — Independent of virtual height
 ✅ **Handles data changes** — Restores to same item even if list changed
 ✅ **Works with variable heights** — Doesn't depend on total height
@@ -497,8 +568,9 @@ list.on('scroll', () => {
 
 ### Works With All Features
 
-✅ `withGrid()` — Saves first visible row
-✅ `withGroups()` — Saves data index (not layout index)
+✅ `withGrid()` — Saves data index and offset ratio; restores correctly in list or table mode
+✅ `withGroups()` — Saves data index (excludes headers); restores correctly when group structure changes
+✅ `withTable()` — 1:1 index mapping; snapshots are compatible with list mode out of the box
 ✅ `withAsync()` — `autoSave` cancels autoLoad and bootstraps total automatically
 ✅ `withScale()` — Compression-aware save/restore
 ✅ `withPage()` — Works with page-level scrolling
@@ -639,7 +711,7 @@ await list.reload({ snapshot: savedSnapshot });
 
 ## See Also
 
-- [Types — `ScrollSnapshot`](../api/types.md#scrollsnapshot) — `index`, `offsetInItem`, `total`, `selectedIds`, `focusedId`
+- [Types — `ScrollSnapshot`](../api/types.md#scrollsnapshot) — `index`, `offsetInItem`, `total`, `dataIndex`, `dataTotal`, `offsetRatio`, `selectedIds`, `focusedId`
 - [Types — `ReloadOptions`](../api/types.md#reloadoptions) — `snapshot` option for `reload()`
 - [Types — `ScrollToOptions`](../api/types.md#scrolltooptions) — `align`, `behavior`, `duration`
 - [Selection](./selection.md) — Selection state included in snapshots automatically
@@ -648,4 +720,5 @@ await list.reload({ snapshot: savedSnapshot });
 ## Examples
 
 - [Scroll Restore](/examples/scroll-restore) — Save and restore scroll position across navigations
+- [Track List](/examples/track-list) — Cross-mode restore across list, grid, and table layouts
 - [Velocity Loading](/examples/velocity-loading) — `autoSave` with async loading, scale, and selection

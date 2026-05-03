@@ -3,7 +3,7 @@
 // All sorting and filtering happens server-side via /api/cities.
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
-import { vlist, withTable, withSelection, withAsync } from "vlist";
+import { vlist, withTable, withSelection, withAsync, withSnapshots } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -337,10 +337,12 @@ const updateInfo = createInfoUpdater(stats);
 // Create / Recreate list
 // =============================================================================
 
-let firstVisibleIndex = 0;
-
 export function createList() {
+  let snapshot = null;
   if (list) {
+    try {
+      snapshot = list.getScrollSnapshot();
+    } catch {}
     list.destroy();
     list = null;
   }
@@ -399,12 +401,13 @@ export function createList() {
 
   builder.use(withSelection({ mode: "single" }));
 
+  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
+
   list = builder.build();
 
   // Wire events
   list.on("scroll", updateInfo);
-  list.on("range:change", ({ range }) => {
-    firstVisibleIndex = range.start;
+  list.on("range:change", () => {
     updateInfo();
   });
   list.on("velocity:change", ({ velocity }) => {
@@ -437,11 +440,6 @@ export function createList() {
     updateInfo();
     updateContext();
   });
-
-  // Restore scroll position if recreating (e.g. after column preset change)
-  if (firstVisibleIndex > 0) {
-    list.scrollToIndex(firstVisibleIndex, "start");
-  }
 
   updateInfo();
   updateContext();

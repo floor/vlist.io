@@ -1,3 +1,9 @@
+---
+created: 2026-03-01
+updated: 2026-03-01
+status: draft
+---
+
 # Table Feature — Optimization Plan
 
 > **Current cost:** +4.4 KB gzipped (heaviest single feature)

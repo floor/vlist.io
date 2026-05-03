@@ -21,6 +21,7 @@ import { measureRenderPerformance } from "../../../engine/render.js";
 const BenchmarkList = {
   props: {
     items: Array,
+    target: Object,
   },
   setup(props) {
     const { containerRef } = useVList({
@@ -31,9 +32,10 @@ const BenchmarkList = {
       },
     });
 
-    return { containerRef };
+    containerRef.value = props.target;
+
+    return () => null;
   },
-  template: `<div ref="containerRef"></div>`,
 };
 
 // =============================================================================
@@ -52,13 +54,14 @@ defineSuite({
     const result = await measureRenderPerformance({
       container,
       createFn: async (c) => {
-        const app = createApp(BenchmarkList, { items });
+        const app = createApp(BenchmarkList, { items, target: c });
         app.mount(c);
         return app;
       },
       destroyFn: (app) => app.unmount(),
       label: "vlist-vue",
       onStatus,
+      hideContainer: false,
     });
 
     // Rating thresholds (slightly more lenient for Vue overhead)

@@ -1,3 +1,9 @@
+---
+created: 2026-02-24
+updated: 2026-04-15
+status: published
+---
+
 # Placeholders
 
 > Realistic skeleton loading states with zero template duplication.

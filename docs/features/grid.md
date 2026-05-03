@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-16
+status: published
+---
+
 # Grid Layout
 
 Transform your virtual list into a responsive 2D grid with the `withGrid` feature.
@@ -300,7 +306,7 @@ Grid layouts render rows, not individual items:
 
 Changing columns or gap recreates the grid layout but reuses existing DOM nodes where possible.
 
-## Examples
+## Usage Examples
 
 ### Photo Gallery with Responsive Columns
 

@@ -1,3 +1,9 @@
+---
+created: 2026-02-22
+updated: 2026-04-25
+status: published
+---
+
 # Selection Module
 
 > Single, multi, and keyboard-navigated item selection.
@@ -92,6 +98,7 @@ const list = vlist({
 | `followFocus` | `boolean` | `false` | When `true`, arrow keys also select in single mode (WAI-ARIA selection-follows-focus). Ignored in multiple mode. |
 | `shiftArrowToggle` | `'origin' \| 'destination'` | `'origin'` | Which item Shift+Arrow toggles in multiple mode. `'origin'` toggles the item being left (macOS-style). `'destination'` toggles the item being moved to (WAI-ARIA APG literal). |
 | `focusOnClick` | `boolean` | `false` | Show focus ring on mouse click. By default, clicking hides the focus ring (`:focus-visible` convention). Enable for file-manager or spreadsheet-style UIs where the focus indicator doubles as a "current item" marker. |
+| `contextMenu` | `'select' \| 'keep' \| false` | `'select'` | How right-click affects selection. `'select'`: if the item is not selected, clear selection and select it; if already selected, keep current selection (file explorer behavior). `'keep'`: never change selection on right-click. `false`: don't register a contextmenu handler at all. |
 
 ### Selection Modes
 
@@ -137,6 +144,10 @@ list.selectPrevious();
 
 ## Events
 
+### selection:change
+
+Fires on every selection change:
+
 ```typescript
 list.on('selection:change', ({ selected, items }) => {
   console.log(`Selected: ${selected.join(', ')}`);
@@ -144,12 +155,47 @@ list.on('selection:change', ({ selected, items }) => {
 });
 ```
 
-The `selection:change` event fires on every selection change with:
-
 | Field | Type | Description |
 |-------|------|-------------|
 | `selected` | `Array<string \| number>` | Currently selected IDs |
 | `items` | `T[]` | Currently selected item objects |
+
+### item:contextmenu
+
+Fires when an item is right-clicked. When `contextMenu` is `'select'` (the default), selection state is updated before this event — the right-clicked item is guaranteed to be selected:
+
+```typescript
+list.on('item:contextmenu', ({ item, index, event }) => {
+  event.preventDefault();
+  showContextMenu(item, event);
+});
+```
+
+The `contextMenu` option controls how right-click affects selection:
+
+| Value | Behavior |
+|-------|----------|
+| `'select'` | If the item is not selected, clear selection and select it. If already selected, keep current selection. File explorer semantics. |
+| `'keep'` | Never change selection on right-click. Context menu applies to whatever is currently selected. |
+| `false` | Selection feature ignores right-clicks entirely. |
+
+### delete
+
+Fires when Delete or Backspace is pressed with items selected. vlist does not remove items — the app handles deletion:
+
+```typescript
+list.on('delete', ({ selected, items }) => {
+  if (confirm(`Delete ${items.length} items?`)) {
+    items.forEach(item => api.remove(item.id));
+    list.setItems(currentItems.filter(i => !selected.includes(i.id)));
+  }
+});
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `selected` | `Array<string \| number>` | IDs of the selected items |
+| `items` | `T[]` | The selected item objects |
 
 ## Template State
 

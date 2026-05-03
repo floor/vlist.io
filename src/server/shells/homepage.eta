@@ -83,6 +83,8 @@
         }
         </script>
 
+        <link rel="preload" href="/fonts/DIN-Alternate-Regular.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/DIN-Alternate-Bold.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="stylesheet" href="/styles/tokens.css" />
         <link rel="stylesheet" href="/styles/syntax.css" />
         <link rel="stylesheet" href="/styles/shell.css" />
@@ -503,7 +505,7 @@
                     <% } %>
                     <% }); %>
                 </div>
-                <p>
+                <p class="footer__built">
                     Built by <a href="https://floor.io" target="_blank">Floor IO</a>
                 </p>
             </div>

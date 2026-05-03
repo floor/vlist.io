@@ -1,3 +1,9 @@
+---
+created: 2026-03-05
+updated: 2026-04-04
+status: draft
+---
+
 # Issue: withTable + withGroups Compatibility
 
 > Add group header support to the table feature, enabling sectioned data tables

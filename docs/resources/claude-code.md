@@ -1,3 +1,9 @@
+---
+created: 2026-04-09
+updated: 2026-04-09
+status: published
+---
+
 # Claude Code Integration
 
 > Custom agents and skills for AI-assisted development with Claude Code.

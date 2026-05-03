@@ -22,7 +22,7 @@ pre,
 
 .hero__title {
     font-size: var(--fs-4xl);
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: -0.5px;
     margin-bottom: 8px;
 }
@@ -55,7 +55,7 @@ pre,
 
 .base-url__label {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-dim);
@@ -71,7 +71,7 @@ pre,
 
 .section-label {
     font-size: var(--fs-sm);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     color: var(--text-dim);
@@ -97,7 +97,7 @@ pre,
 
 .endpoint__method {
     font-size: var(--fs-base);
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     padding: 3px 12px;
     border-radius: var(--radius-xs);
     letter-spacing: 0.5px;
@@ -110,7 +110,7 @@ pre,
 
 .endpoint__path {
     font-size: var(--fs-lg);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
     color: var(--text);
 }
 
@@ -130,7 +130,7 @@ pre,
 
 .endpoint__sub {
     font-size: var(--fs-base);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.6px;
     color: var(--text-dim);
@@ -152,7 +152,7 @@ pre,
 
 .params th {
     text-align: left;
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--text-dim);
     padding: 6px 12px 6px 0;
     font-size: var(--fs-sm);
@@ -173,7 +173,7 @@ pre,
 
 .params__name {
     color: var(--text);
-    font-weight: 500;
+    font-weight: var(--fw-bold);
 }
 
 .params__name code {
@@ -222,7 +222,7 @@ pre,
 
 .code__label {
     font-size: var(--fs-sm);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--text-dim);
@@ -328,7 +328,7 @@ pre,
     border-radius: var(--radius-xs);
     padding: 6px 16px;
     font-size: var(--fs-base);
-    font-weight: 600;
+    font-weight: var(--fw-bold);
     color: var(--accent-text);
     cursor: pointer;
     transition: all 0.15s;
@@ -378,7 +378,7 @@ pre,
 }
 
 .try-it__status {
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: 0.3px;
 }
 
@@ -422,7 +422,7 @@ pre,
 
 .type-def__title {
     font-size: var(--fs-2xl);
-    font-weight: 650;
+    font-weight: var(--fw-bold);
     margin-bottom: 12px;
 }
 
@@ -441,7 +441,7 @@ pre,
 
 .notes__title {
     font-size: var(--fs-2xl);
-    font-weight: 650;
+    font-weight: var(--fw-bold);
     margin-bottom: 16px;
 }
 

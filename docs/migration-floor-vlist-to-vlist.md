@@ -1,3 +1,9 @@
+---
+created: 2026-04-14
+updated: 2026-04-14
+status: draft
+---
+
 # npm Migration Plan: `@floor/vlist` → `vlist`
 
 The deprecated `vlist` npm package (last published 2017, Angular virtual scroll) is being transferred to us by its original owner, Alexander Klaiber. This document outlines the transition plan to migrate from `@floor/vlist` to `vlist` without breaking existing users.

@@ -1,3 +1,9 @@
+---
+created: 2026-04-03
+updated: 2026-04-16
+status: published
+---
+
 # Framework Adapters
 
 > Thin wrappers that connect vlist to Vue, Svelte, SolidJS, and React — same engine, idiomatic API per framework.

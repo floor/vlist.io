@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-04-16
+status: published
+---
+
 # Bundle Size & Tree-Shaking
 
 > How vlist achieves smaller bundles through explicit feature imports and perfect tree-shaking.

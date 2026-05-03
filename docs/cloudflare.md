@@ -1,3 +1,9 @@
+---
+created: 2026-04-16
+updated: 2026-04-16
+status: draft
+---
+
 # Cloudflare Pro setup — vlist.io
 
 **Date:** 2026-04-16
