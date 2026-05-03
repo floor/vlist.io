@@ -306,7 +306,7 @@ Grid layouts render rows, not individual items:
 
 Changing columns or gap recreates the grid layout but reuses existing DOM nodes where possible.
 
-## Examples
+## Usage Examples
 
 ### Photo Gallery with Responsive Columns
 

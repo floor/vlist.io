@@ -358,7 +358,7 @@ return scrollPosition;
 
 The `coreRenderIfNeeded` early-return path (when the render range is unchanged but scroll position changed) now always updates `viewportState.scrollPosition` and `viewportState.visibleRange`. This prevents stale state during rapid keyboard navigation where consecutive keypresses may fall within the same overscan buffer.
 
-## Examples
+## Usage Examples
 
 ### Basic Usage (Million Items)
 

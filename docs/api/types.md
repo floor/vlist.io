@@ -1,6 +1,6 @@
 ---
 created: 2026-02-17
-updated: 2026-04-28
+updated: 2026-05-02
 status: published
 ---
 
@@ -371,6 +371,9 @@ interface ScrollSnapshot {
   index:        number
   offsetInItem: number
   total?:       number
+  dataIndex?:   number
+  dataTotal?:   number
+  offsetRatio?: number
   selectedIds?: Array<string | number>
   focusedId?:   string | number
 }
@@ -378,9 +381,12 @@ interface ScrollSnapshot {
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `index` | `number` | First visible item index. |
+| `index` | `number` | First visible item index (layout-level — may be a grid row or include group headers). |
 | `offsetInItem` | `number` | Pixel offset within the first visible item. |
-| `total` | `number` | Total item count at snapshot time (used by restore to set sizeCache). |
+| `total` | `number` | Virtual total at snapshot time (may be row count in grid mode). |
+| `dataIndex` | `number` | Data-level index, stable across layout changes. Present when `withGrid` or `withGroups` is active. |
+| `dataTotal` | `number` | Actual item count (not virtual rows/layout count). Used to bootstrap correctly when restoring in a different layout mode. |
+| `offsetRatio` | `number` | Offset as a 0–1 fraction of item size. Adapts to different item heights across layout modes (e.g., 200px grid row → 56px list item). Falls back to raw `offsetInItem` when absent. |
 | `selectedIds` | `Array<string \| number>` | Selected item IDs (optional, requires `withSelection`). |
 | `focusedId` | `string \| number` | Focused item ID (optional, requires `withSelection`). Restored without showing the focus ring until the user tabs into the list. |
 
