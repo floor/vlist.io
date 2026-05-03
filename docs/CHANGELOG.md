@@ -1,7 +1,7 @@
 ---
 created: 2026-02-10
 updated: 2026-05-01
-status: draft
+status: published
 ---
 
 # Changelog
