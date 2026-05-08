@@ -1,6 +1,6 @@
 ---
 created: 2026-02-22
-updated: 2026-05-02
+updated: 2026-05-08
 status: published
 ---
 
@@ -569,7 +569,7 @@ list.on('scroll', () => {
 ### Works With All Features
 
 ✅ `withGrid()` — Saves data index and offset ratio; restores correctly in list or table mode
-✅ `withGroups()` — Saves data index (excludes headers); restores correctly when group structure changes
+✅ `withGroups()` — Saves data index (excludes headers); restores correctly when group structure changes. Scroll drift correction prevents jumps when async group headers are discovered after restore (v1.7.5+)
 ✅ `withTable()` — 1:1 index mapping; snapshots are compatible with list mode out of the box
 ✅ `withAsync()` — `autoSave` cancels autoLoad and bootstraps total automatically
 ✅ `withScale()` — Compression-aware save/restore

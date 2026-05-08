@@ -1,6 +1,6 @@
 ---
 created: 2026-03-01
-updated: 2026-04-16
+updated: 2026-05-08
 status: published
 ---
 
@@ -101,7 +101,7 @@ const contacts = vlist({
 ```typescript
 interface GroupsFeatureConfig {
   /** Returns group key for item at index (required) */
-  getGroupForIndex: (index: number) => string
+  getGroupForIndex: (index: number, item?: T) => string
 
   /** Group header configuration — mirrors the item config shape */
   header: {
@@ -121,13 +121,17 @@ interface GroupsFeatureConfig {
 
 **Purpose:** Determines which group an item belongs to.
 
+**Signature:** `(index: number, item?: T) => string`
+
+The second `item` argument was added in v1.7.5 for async compatibility — when items are loaded asynchronously, the callback receives the item directly instead of requiring external array access. Existing callbacks that only use `index` continue to work unchanged.
+
 **Requirements:**
 - ✅ Must be deterministic (same index always returns same group)
 - ✅ Items must be **pre-sorted** by group
 - ✅ Returns a string (group key)
 
 ```typescript
-// Alphabetical grouping
+// Alphabetical grouping (static — index into external array)
 getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase()
 
 // Date grouping (chat messages)
@@ -138,6 +142,9 @@ getGroupForIndex: (i) => {
 
 // Category grouping
 getGroupForIndex: (i) => products[i].category
+
+// Async-compatible — use the item parameter directly
+getGroupForIndex: (i, item) => item.category
 ```
 
 ### header.height
@@ -605,12 +612,67 @@ As you scroll up through history, older section headers stick at the top - perfe
 | `reverse: true` + `sticky: true` | ✅ **Yes** | Sticky header shows current section while scrolling |
 | `orientation: 'horizontal'` + groups | ✅ **Yes** | Horizontal carousels with category headers (sticky headers stick to left edge) |
 | `withTable()` + `withGroups()` | ✅ **Yes** | Grouped data tables with full-width section headers |
+| `withAsync()` + `withGroups()` | ✅ **Yes** | Async paginated data with group headers (v1.7.5+) |
 
 **Choose based on your UI:**
 - `sticky: false` - iMessage, WhatsApp style (headers scroll with content)
 - `sticky: true` - Telegram style (current section header sticks at top/left for navigation)
 - `orientation: 'horizontal'` - Photo galleries, product carousels (headers stick to left edge in horizontal mode)
 - `withTable()` - Sectioned data tables (sticky group header sits below column header)
+- `withAsync()` - Paginated API data with incremental group discovery (v1.7.5+)
+
+## Async Data (v1.7.5+)
+
+`withGroups()` works with `withAsync()` for paginated APIs. Groups are discovered incrementally as pages load — no need to know all groups upfront.
+
+```typescript
+import { vlist, withAsync, withGroups } from 'vlist'
+
+const list = vlist({
+  container: '#app',
+  item: {
+    height: 48,
+    template: (item) => `<div class="track">${item.title}</div>`,
+  },
+})
+.use(withGroups({
+  // Use the item parameter (2nd arg) — async items aren't in an external array
+  getGroupForIndex: (i, item) => item.uploadDate,
+  header: {
+    height: 32,
+    template: (date) => `<div class="date-header">${date}</div>`,
+  },
+}))
+.use(withAsync({
+  adapter: {
+    read: async ({ offset, limit, signal }) => {
+      const res = await fetch(`/api/tracks?offset=${offset}&limit=${limit}`, { signal })
+      const data = await res.json()
+      return { items: data.items, total: data.total }
+    },
+  },
+}))
+.build()
+```
+
+### How It Works
+
+The groups feature detects `withAsync` at setup time and activates an **async group bridge** — a virtual group layer between the async data manager and the renderer:
+
+- **Incremental discovery** — Group boundaries are computed from loaded data. As new pages load, new groups appear and cross-page groups merge automatically.
+- **Virtual headers** — Headers are not physically inserted into the data array. Instead, the bridge maps between data indices and layout indices at render time.
+- **Scroll drift correction** — When new headers are discovered while the user is scrolled, the scroll position is adjusted to prevent content from jumping.
+- **Sticky headers** — Work as expected; the bridge provides group layout information to the sticky header system.
+
+### Compatibility with Other Features
+
+| Combination | Status |
+|---|---|
+| `withAsync` + `withGroups` | ✅ |
+| `withAsync` + `withGroups` + `withScale` | ✅ |
+| `withAsync` + `withGroups` + `withSelection` | ✅ (headers are not selectable) |
+| `withAsync` + `withGroups` + `withSnapshots` | ✅ (scroll restore with drift correction) |
+| `withAsync` + `withGroups` + `withTable` | ✅ |
 
 ## API Reference
 

@@ -1,6 +1,6 @@
 ---
 created: 2026-02-22
-updated: 2026-04-20
+updated: 2026-05-08
 status: published
 ---
 
@@ -750,6 +750,24 @@ function calculateMissingRanges(
 ): Range[];
 ```
 
+## Feature Compatibility
+
+### Groups (v1.7.5+)
+
+`withAsync()` combines with `withGroups()` for paginated data with section headers. Use the `item` parameter in `getGroupForIndex` to derive group keys from async-loaded items:
+
+```typescript
+const list = vlist({ container: '#app', item: { height: 48, template: renderTrack } })
+.use(withGroups({
+  getGroupForIndex: (i, item) => item.uploadDate,
+  header: { height: 32, template: (date) => `<div>${date}</div>` },
+}))
+.use(withAsync({ adapter }))
+.build()
+```
+
+Groups are discovered incrementally as pages load. Sticky headers, scroll drift correction, and cross-page group merging are handled automatically. See [Groups — Async Data](./groups.md#async-data-v175) for details.
+
 ## See Also
 
 - [Types — Adapter](../api/types.md#adapter-types) — `VListAdapter`, `AdapterParams`, `AdapterResponse`
@@ -759,6 +777,7 @@ function calculateMissingRanges(
 - [Placeholders](./placeholders.md) — Placeholder configuration, CSS styling, and per-item length profiles
 - [Scale](./scale.md) — Scroll compression for large async datasets
 - [Snapshots](./snapshots.md) — Save/restore scroll position with async `total`
+- [Groups](./groups.md) — Sticky/inline group headers with async group discovery (v1.7.5+)
 
 ## Examples
 
