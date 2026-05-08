@@ -366,6 +366,7 @@ Most features compose freely. This matrix shows the known constraints:
 - **Sortable ↔ Scale** — Drag calculations require uncompressed scroll positions
 - **Table + Groups** — ✅ Full-width group headers in data tables, sticky headers sit below column header
 - **Grid + Groups** — ✅ Full-width group headers span the grid
+- **Async + Groups** — ✅ Incremental group discovery with async pagination (v1.7.5+). See [Groups — Async Data](/docs/features/groups#async-data-v175)
 - **Masonry ↔ Groups** — Masonry doesn't support grouped layouts
 - **Masonry + reverse** — Not supported
 - **Page ↔ Scrollbar** — Page uses the native browser scrollbar; builder throws if both are active

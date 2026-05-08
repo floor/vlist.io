@@ -1,6 +1,6 @@
 ---
 created: 2026-02-22
-updated: 2026-04-25
+updated: 2026-05-08
 status: published
 ---
 
@@ -141,6 +141,8 @@ list.selectNext();
 // Move focus to previous item and select it
 list.selectPrevious();
 ```
+
+`select()` also syncs `focusedIndex` to the first selected item's position. This ensures keyboard navigation (Arrow keys) continues from the selected item rather than jumping to an unrelated position.
 
 ## Events
 
