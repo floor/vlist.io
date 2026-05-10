@@ -62,6 +62,14 @@ div.vlist [tabindex="0"]
                  ├── div.vlist-item [role="option"] [id="vlist-0-item-4"]
                  │     [aria-selected="true"]
                  │     ...
+                 │
+                 │   With withGroups:
+                 ├── div.vlist-group-header [role="presentation"] [id="vlist-0-item-5"]
+                 │     (no aria-selected, aria-setsize, or aria-posinset)
+                 ├── div.vlist-item [role="option"] [id="vlist-0-item-6"]
+                 │     [aria-setsize="229"]       ← data total (excludes headers)
+                 │     [aria-posinset="3"]         ← data-space position (excludes headers)
+                 │     ...
                  └── ...
   └── div.vlist-live [aria-live="polite"] [aria-atomic="true"] [role="status"]
        (visually hidden — announces viewport range on scroll settle)
@@ -90,15 +98,27 @@ The `.vlist-items` element receives:
 
 ### Item Elements
 
-Each rendered item receives:
+Each rendered **data item** receives:
 
 | Attribute | Value | Purpose |
 |-----------|-------|---------|
 | `role` | `"option"` | Identifies the element as a selectable option |
 | `id` | `"vlist-{n}-item-{index}"` | Unique ID referenced by `aria-activedescendant` |
 | `aria-selected` | `"true"` / `"false"` | Reflects selection state |
-| `aria-setsize` | Total item count | Enables "item X of Y" announcements |
-| `aria-posinset` | 1-based position | Enables "item X of Y" announcements |
+| `aria-setsize` | Data item count | Enables "item X of Y" announcements (excludes group headers) |
+| `aria-posinset` | 1-based data position | Enables "item X of Y" announcements (excludes group headers from count) |
+
+### Group Header Elements
+
+When using `withGroups`, group header pseudo-items receive a distinct set of attributes:
+
+| Attribute | Value | Purpose |
+|-----------|-------|---------|
+| `role` | `"presentation"` | Marks the header as a structural element, not a navigable option |
+| `class` | `"vlist-group-header"` | Distinct class (instead of `"vlist-item"`) for styling and identification |
+| `id` | `"vlist-{n}-item-{index}"` | Unique ID (same scheme as data items) |
+
+Group headers do **not** receive `aria-selected`, `aria-setsize`, or `aria-posinset` — they are invisible to screen reader option navigation. Screen readers skip `role="presentation"` elements when navigating the listbox, so users move directly between data items.
 
 ---
 
@@ -288,7 +308,7 @@ Applies to both the baseline single-select and `withSelection` (regular clicks a
 
 ### Positional Context
 
-Without `aria-setsize` and `aria-posinset`, a screen reader navigating a virtual list would have no idea how many items exist or where the current item falls in the sequence. vlist sets these on every rendered item:
+Without `aria-setsize` and `aria-posinset`, a screen reader navigating a virtual list would have no idea how many items exist or where the current item falls in the sequence. vlist sets these on every rendered data item:
 
 ```
 Screen reader output:
@@ -297,6 +317,8 @@ Screen reader output:
 ```
 
 When the total item count changes (e.g., after `appendItems()` or `setItems()`), `aria-setsize` is updated on all visible items during the next render cycle.
+
+**With groups:** `aria-setsize` reports the **data total** (excluding group headers), and `aria-posinset` reports the **data-space position** (excluding headers from the count). For example, in a grouped list with 229 contacts and 26 letter headers (total layout items: 255), a screen reader announces "item 5 of 229" — not "item 5 of 255". This ensures the count reflects items the user can actually navigate to and interact with.
 
 ### Active Descendant
 
@@ -686,6 +708,8 @@ The total bundle size cost for all accessibility features is **+1.4 KB minified*
 
 The element pool sets `role="option"` once when creating a new element. This attribute persists through recycles since the pool's `release()` function only clears styling and data attributes. When a recycled element is rendered for a new item, `id`, `aria-setsize`, `aria-posinset`, and `aria-selected` are all overwritten with the correct values.
 
+When `withGroups` is active, group header elements receive `role="presentation"` and class `vlist-group-header` instead — the renderer detects header pseudo-items and applies the appropriate role and class at render time.
+
 ### Compression Mode
 
 In compressed mode (1M+ items), all ARIA attributes work identically. The `aria-setsize` reflects the true total item count (e.g., 1,000,000), and `aria-posinset` reflects the true position — even though the scroll height is compressed to fit within browser limits.
@@ -698,6 +722,15 @@ Grid and masonry layouts register navigation hints via `ctx.methods` that the co
 - **Masonry** registers `_navigate` — a custom function that uses per-lane index arrays (`laneItems`, `itemLanePos`, `laneYCenters`) for O(1) same-lane and O(log k) adjacent-lane navigation
 - Both register `_getNavTotal` with the flat item count (not the virtual row count used by the size cache)
 - Masonry registers `_scrollItemIntoView` for placement-based focus scrolling (the core size cache has no meaningful per-item offsets in masonry mode)
+
+### ARIA Data-Space Resolution
+
+When `withGroups` is active, the groups feature registers two methods on `ctx.methods` that renderers resolve lazily via `createAriaResolvers`:
+
+- **`_getTotal`** — returns the data item count (excluding group headers)
+- **`_layoutToDataIndex`** — maps a layout index to its data-space index (skipping header positions)
+
+Each renderer resolves these once on first use and caches the references. Without groups, renderers fall back to the layout total and `layoutIndex + 1` — zero overhead for non-grouped lists.
 
 ---
 
