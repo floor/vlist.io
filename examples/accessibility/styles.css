@@ -53,12 +53,47 @@
     text-overflow: ellipsis;
 }
 
-.item__index {
-    font-size: 12px;
-    color: var(--text-muted);
-    min-width: 48px;
-    text-align: right;
-    font-variant-numeric: tabular-nums;
+/* ============================================================================
+   Group Header (inline & sticky)
+   ============================================================================ */
+
+#list-container .vlist-item[data-id^="__group_header_"]:hover {
+    background-color: var(--vlist-group-header-bg, #f3f4f6);
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    height: 100%;
+    background: var(--vlist-group-header-bg, #f3f4f6);
+}
+
+.vlist-sticky-header {
+    display: flex;
+    align-items: center;
+}
+
+.vlist-sticky-header .group-header {
+    width: 100%;
+}
+
+.group-header__letter {
+    font-size: 13px;
+    font-weight: var(--fw-bold);
+    color: var(--accent-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.group-header__line {
+    flex: 1;
+    height: 1px;
+    background: var(--vlist-border, #e5e7eb);
 }
 
 /* ============================================================================

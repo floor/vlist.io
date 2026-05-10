@@ -189,17 +189,15 @@
 /* ============================================================================
    vlist item overrides
    ============================================================================ */
-#list-container .vlist--grouped .vlist-item[data-id^="__group_header_"] {
+#list-container .vlist--grouped .vlist-group-header {
     background-color: transparent;
+    border-bottom: 0;
 }
 .vlist-sticky-header {
     border-bottom: 0;
     background-color: var(--vlist-bg);
 }
-#list-container
-    .vlist--grouped
-    .vlist-item[data-id^="__group_header_"]
-    .date-sep {
+#list-container .vlist--grouped .vlist-group-header .date-sep {
     width: 100%;
 }
 #list-container .vlist-item {
