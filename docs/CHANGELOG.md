@@ -11,6 +11,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Groups: End key on async grouped lists** — Pressing End in an async grouped list with a known total now correctly focuses the last data item. The End key handler was using the layout total (which includes group headers) instead of the data total, causing it to overshoot.
+- **Groups: distinct class and role for group header elements** — Group header pseudo-items now receive `class="vlist-group-header"` and `role="presentation"` instead of inheriting `class="vlist-item"` and `role="option"` from the element pool. This prevents screen readers from announcing headers as selectable options and allows CSS to target headers independently from data items.
+- **Groups: ARIA setsize and posinset use data-space values** — `aria-setsize` now reports the data item count (excluding group headers) and `aria-posinset` reports the data-space position. Previously, a grouped list with 229 contacts and 26 letter headers would announce "item 5 of 255" — now correctly announces "item 5 of 229". Applies to all renderer paths: core, context, grid, and masonry.
+
 ## [1.4.5] — 2026-04-12
 
 ### Added

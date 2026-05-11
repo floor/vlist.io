@@ -4,8 +4,8 @@
 // The ARIA inspector updates live as you interact.
 // Toggle "interactive" off to disable all built-in keyboard navigation.
 
-import { vlist } from "vlist";
-import { makeUsers } from "../../src/data/people.js";
+import { vlist, withGroups } from "vlist";
+import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import "./controls.js";
@@ -16,12 +16,15 @@ import "./controls.js";
 
 export const TOTAL = 500;
 export const ITEM_HEIGHT = 56;
+export const HEADER_HEIGHT = 36;
 
 // =============================================================================
-// Data
+// Data — sorted by last name for A–Z grouping
 // =============================================================================
 
-export const users = makeUsers(TOTAL);
+export const users = makeContacts(TOTAL).sort((a, b) =>
+  a.lastName.localeCompare(b.lastName),
+);
 
 // =============================================================================
 // State — exported so controls.js can read
@@ -34,13 +37,19 @@ export let interactiveEnabled = true;
 // Template
 // =============================================================================
 
-export const itemTemplate = (user, index) => `
+export const itemTemplate = (user) => `
   <div class="item__avatar" style="background:${user.color};color:${user.textColor}">${user.initials}</div>
   <div class="item__text">
-    <div class="item__name">${user.name}</div>
+    <div class="item__name">${user.firstName} ${user.lastName}</div>
     <div class="item__email">${user.email}</div>
   </div>
-  <span class="item__index">#${index + 1}</span>
+`;
+
+const renderGroupHeader = (group) => `
+  <div class="group-header">
+    <span class="group-header__letter">${group}</span>
+    <span class="group-header__line"></span>
+  </div>
 `;
 
 // =============================================================================
@@ -137,7 +146,18 @@ export function createList() {
     },
     items: users,
     accessible: interactiveEnabled,
-  }).build();
+  })
+    .use(
+      withGroups({
+        getGroupForIndex: (index) => users[index].lastName[0].toUpperCase(),
+        header: {
+          height: HEADER_HEIGHT,
+          template: (group) => renderGroupHeader(group),
+        },
+        sticky: true,
+      }),
+    )
+    .build();
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);

@@ -760,6 +760,41 @@ The feature adds `.vlist--grouped` to the root element:
 }
 ```
 
+## Accessibility
+
+Group headers receive special ARIA treatment to ensure screen readers handle grouped lists correctly.
+
+### Group Header ARIA
+
+| Attribute | Data Items | Group Headers |
+|-----------|-----------|---------------|
+| `role` | `"option"` | `"presentation"` |
+| `class` | `vlist-item` | `vlist-group-header` |
+| `aria-selected` | `"true"` / `"false"` | *(not set)* |
+| `aria-setsize` | Data total (excludes headers) | *(not set)* |
+| `aria-posinset` | Data-space position (excludes headers) | *(not set)* |
+
+**Why `role="presentation"`?** Group headers are structural separators, not selectable options. Setting `role="presentation"` tells screen readers to skip them during listbox navigation — users move directly between data items with ArrowUp/Down.
+
+### Data-Space Counts
+
+`aria-setsize` and `aria-posinset` use **data-space values** that exclude group headers from the count:
+
+```
+Layout:  [A-header, Alice, Amy, B-header, Bob]   ← 5 layout items
+Data:    [Alice, Amy, Bob]                         ← 3 data items
+
+Alice:  aria-setsize="3"  aria-posinset="1"
+Amy:    aria-setsize="3"  aria-posinset="2"
+Bob:    aria-setsize="3"  aria-posinset="3"
+```
+
+Screen readers announce "Alice, item 1 of 3" — not "item 2 of 5".
+
+### Keyboard Navigation
+
+Group headers are transparent to keyboard navigation. Arrow keys skip headers and move directly between data items. Home/End jump to the first/last data item. See [Accessibility — Keyboard Navigation](/docs/accessibility#keyboard-navigation) for the full key reference.
+
 ## Performance
 
 ### Benchmark: 10,000 Contacts with Groups
