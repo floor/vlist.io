@@ -580,7 +580,6 @@ export const LAST_NAMES = [
   "Sy",
   "Ndiaye",
   "Bello",
-  "Abubakar",
   "Mwangi",
   "Kipchoge",
   "Moyo",
