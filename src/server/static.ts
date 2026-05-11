@@ -6,6 +6,7 @@ import { join, extname, resolve } from "path";
 import { ROOT, VLIST_ROOT, IS_PROD } from "./config";
 import { CACHE_IMMUTABLE, CACHE_STATIC, CACHE_NOCACHE } from "./cache";
 
+
 // =============================================================================
 // Dev Mode: vlist source CSS
 // =============================================================================
@@ -75,6 +76,8 @@ export const getMimeType = (filePath: string): string => {
  *   - Everything else (HTML, markdown, source .ts/.js, images)
  */
 function getCacheControl(pathname: string): string {
+  if (!IS_PROD) return CACHE_NOCACHE;
+
   // Build output directories (contain pre-compressed .br/.gz siblings)
   if (/\/dist\//.test(pathname)) return CACHE_IMMUTABLE;
 
