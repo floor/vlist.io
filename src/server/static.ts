@@ -4,7 +4,7 @@
 import { existsSync, statSync } from "fs";
 import { join, extname, resolve } from "path";
 import { ROOT, VLIST_ROOT, IS_PROD } from "./config";
-import { CACHE_IMMUTABLE, CACHE_STATIC, CACHE_NOCACHE } from "./cache";
+import { CACHE_IMMUTABLE, CACHE_STATIC } from "./cache";
 
 
 // =============================================================================
@@ -76,7 +76,7 @@ export const getMimeType = (filePath: string): string => {
  *   - Everything else (HTML, markdown, source .ts/.js, images)
  */
 function getCacheControl(pathname: string): string {
-  if (!IS_PROD) return CACHE_NOCACHE;
+  if (!IS_PROD) return "no-cache, no-store";
 
   // Build output directories (contain pre-compressed .br/.gz siblings)
   if (/\/dist\//.test(pathname)) return CACHE_IMMUTABLE;
@@ -93,7 +93,7 @@ function getCacheControl(pathname: string): string {
   // Non-hashed static assets that only change on deploy
   if (pathname.startsWith("/styles/")) return CACHE_STATIC;
 
-  return CACHE_NOCACHE;
+  return "no-cache, no-store";
 }
 
 // =============================================================================

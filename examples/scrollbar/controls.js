@@ -189,7 +189,13 @@ paddingSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
   paddingValue.textContent = px + "px";
   app.setPadding(px);
-  app.createList();
+  const root = document.querySelector("#list-container > .vlist");
+  if (root) {
+    root.style.setProperty("--vlist-custom-scrollbar-padding-top", px + "px");
+    root.style.setProperty("--vlist-custom-scrollbar-padding-right", px + "px");
+    root.style.setProperty("--vlist-custom-scrollbar-padding-bottom", px + "px");
+    root.style.setProperty("--vlist-custom-scrollbar-padding-left", px + "px");
+  }
   save();
 });
 
