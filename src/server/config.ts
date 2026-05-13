@@ -4,8 +4,9 @@
 import { existsSync, realpathSync, readFileSync } from "fs";
 import { join, resolve } from "path";
 
-/** True when NODE_ENV is explicitly set to "production". */
-export const IS_PROD = process.env.NODE_ENV === "production";
+/** True when running on production/staging servers (Linux + NODE_ENV=production).
+ *  On macOS (local dev), always false — even with NODE_ENV=production from pm2. */
+export const IS_PROD = process.env.NODE_ENV === "production" && process.platform !== "darwin";
 
 export const PORT = parseInt(process.env.PORT || "3338", 10);
 export const ROOT = resolve(".");

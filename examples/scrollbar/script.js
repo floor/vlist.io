@@ -124,6 +124,8 @@ const updateInfo = createInfoUpdater(stats);
 // =============================================================================
 
 export function createList() {
+  const savedPos = list?.getScrollPosition() ?? 0;
+
   if (list) {
     list.destroy();
     list = null;
@@ -162,6 +164,10 @@ export function createList() {
   builder.use(withSnapshots({ autoSave: STORAGE_KEY }));
 
   list = builder.build();
+
+  if (savedPos > 0) {
+    list.scrollTo(savedPos);
+  }
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);

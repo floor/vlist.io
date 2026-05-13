@@ -1,6 +1,6 @@
 ---
 created: 2026-02-10
-updated: 2026-04-25
+updated: 2026-05-13
 status: published
 ---
 
@@ -51,10 +51,11 @@ Every accessibility feature works in all vlist configurations:
 vlist produces the following accessible DOM hierarchy:
 
 ```
-div.vlist [tabindex="0"]
+div.vlist
   └── div.vlist-viewport
        └── div.vlist-content
-            └── div.vlist-items [role="listbox"] [aria-label="..."]
+            └── div.vlist-items [role="listbox"] [tabindex="0"] [aria-label="..."]
+                 │               [aria-activedescendant="vlist-0-item-3"]
                  ├── div.vlist-item [role="option"] [id="vlist-0-item-3"]
                  │     [aria-selected="false"]
                  │     [aria-setsize="10000"]
@@ -72,29 +73,34 @@ div.vlist [tabindex="0"]
                  │     ...
                  └── ...
   └── div.vlist-live [aria-live="polite"] [aria-atomic="true"] [role="status"]
-       (visually hidden — announces viewport range on scroll settle)
+       (visually hidden — announces viewport range when enabled)
   └── div.vlist-live-region [aria-live="polite"] [aria-atomic="true"]
        (visually hidden — announces selection changes, added by withSelection)
 ```
 
 ### Root Element
 
-The root `.vlist` element receives:
+The root `.vlist` element has no ARIA role or `tabindex` by default. In table mode (`withTable`), it is promoted to `role="grid"` with `tabindex="0"` and receives `aria-activedescendant`.
 
-| Attribute | Value | Purpose |
-|-----------|-------|---------|
-| `tabindex` | `"0"` | Makes the list focusable via Tab key |
-| `aria-activedescendant` | Element ID | Points to the currently focused item (set on keyboard/click) |
-| `aria-busy` | `"true"` | Present only during async data loading |
+| Attribute | Value | When |
+|-----------|-------|------|
+| `role` | `"grid"` | Table mode only |
+| `tabindex` | `"0"` | Table mode only |
+| `aria-activedescendant` | Element ID | Table mode only |
+| `aria-busy` | `"true"` | During async data loading |
 
 ### Items Container (`.vlist-items`)
 
-The `.vlist-items` element receives:
+The `.vlist-items` element is the focusable ARIA role owner in list, grid, and masonry modes:
 
 | Attribute | Value | Purpose |
 |-----------|-------|---------|
 | `role` | `"listbox"` | Identifies the widget as a list of selectable items |
+| `tabindex` | `"0"` | Makes the list focusable via Tab key |
+| `aria-activedescendant` | Element ID | Points to the currently focused item (set on keyboard/click) |
 | `aria-label` | User-provided | Describes the list's purpose to screen readers |
+
+> **Note:** In table mode, `tabindex` and `aria-activedescendant` move to the root element (which becomes `role="grid"`), and `.vlist-items` becomes `role="rowgroup"`.
 
 ### Item Elements
 
@@ -169,6 +175,18 @@ const list = vlist({
 ```
 
 > **Note:** `withSelection` accepts `{ mode: 'single' | 'multiple' }`. Without this feature, the list provides a baseline single-select via ArrowUp/Down, Home/End, PageUp/Down, and Space/Enter with `aria-activedescendant` — but no multi-select and no selection live region.
+
+### `accessibility`
+
+**Type:** `{ announceVisibleRange?: boolean; rangeAnnouncementDebounce?: number }`
+**Default:** `{ announceVisibleRange: false, rangeAnnouncementDebounce: 750 }`
+
+Controls screen reader announcements for visible range changes. See [Live Regions](#live-regions) for details.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `announceVisibleRange` | `boolean` | `false` | Announce "Showing items X to Y of Z" on scroll settle |
+| `rangeAnnouncementDebounce` | `number` | `750` | Debounce delay in ms for range announcements |
 
 ### `classPrefix`
 
@@ -322,11 +340,15 @@ When the total item count changes (e.g., after `appendItems()` or `setItems()`),
 
 ### Active Descendant
 
-When keyboard focus moves, the root element's `aria-activedescendant` is updated to point to the focused item's `id`. The screen reader follows this reference and announces the item's content without the item needing actual DOM focus.
+When keyboard focus moves, `aria-activedescendant` is updated to point to the focused item's `id`. The screen reader follows this reference and announces the item's content without the item needing actual DOM focus.
+
+The attribute is set on the element that owns the composite ARIA role:
+- **List, grid, masonry modes:** `.vlist-items` (`role="listbox"`)
+- **Table mode:** `.vlist` root (`role="grid"`)
 
 ```typescript
-// After pressing ↓ twice:
-// root.getAttribute('aria-activedescendant') === 'vlist-0-item-1'
+// After pressing ↓ twice in list mode:
+// items.getAttribute('aria-activedescendant') === 'vlist-0-item-1'
 // The element with id="vlist-0-item-1" has role="option"
 // Screen reader reads its text content
 ```
@@ -337,7 +359,7 @@ vlist uses **two** visually-hidden live regions for different purposes:
 
 #### Core Live Region (`vlist-live`)
 
-Created by the core builder in all modes. Announces viewport range information when scrolling settles:
+Created by the core builder in all modes. When enabled, announces viewport range information when scrolling settles:
 
 ```html
 <div class="vlist-live" role="status"
@@ -347,7 +369,24 @@ Created by the core builder in all modes. Announces viewport range information w
 </div>
 ```
 
-This gives screen reader users positional context during scrolling without interrupting navigation.
+Range announcements are **opt-in** via the `accessibility` config:
+
+```typescript
+const list = vlist({
+  container: '#app',
+  ariaLabel: 'Search results',
+  item: { height: 48, template },
+  items: results,
+  accessibility: {
+    announceVisibleRange: true,        // default: false
+    rangeAnnouncementDebounce: 750,    // default: 750ms
+  },
+}).build()
+```
+
+By default, range announcements are disabled because they can be noisy during keyboard navigation, touchpad scrolling, and repeated scroll pauses. Screen readers already receive positional context through `aria-posinset` and `aria-setsize` on each item. Enable range announcements for apps where "where am I in the dataset" is important (e.g., data dashboards, paginated reports).
+
+The live region element is always created regardless of this setting — other features (`withSelection`, `withSortable`) use it for action-feedback announcements.
 
 #### Selection Live Region (`vlist-live-region`)
 

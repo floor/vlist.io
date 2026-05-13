@@ -79,3 +79,12 @@ jobs:
             pm2 reload staging.vlist.io --update-env || pm2 start ecosystem.staging.config.cjs
 
             echo "✅ Staging deployed successfully"
+
+      - name: Purge Cloudflare cache
+        run: |
+          curl -sf -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CF_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+          echo "🧹 Cloudflare cache purged"
