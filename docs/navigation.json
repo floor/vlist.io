@@ -185,6 +185,11 @@
         "slug": "resources/claude-code",
         "name": "Claude Code",
         "desc": "Custom agents and skills for AI-assisted development"
+      },
+      {
+        "slug": "resources/ai-reviews",
+        "name": "What AI Thinks",
+        "desc": "6 AI models review vlist — uncoached, unedited"
       }
     ]
   }
