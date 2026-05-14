@@ -10,6 +10,7 @@
   "scrollSpeed": 7200,
   "stressMs": 0,
   "outputDir": "benchmarks/results",
+  "databasePath": "data/benchmarks.db",
   "budgets": {
     "render-vanilla": {
       "Median": { "maxRegressionPct": 10 },

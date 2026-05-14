@@ -5,6 +5,7 @@
 // Two separate table pairs:
 //   - benchmark_runs + benchmark_metrics    → vlist suite results (render, scroll, memory, scrollto)
 //   - comparison_runs + comparison_metrics  → library comparison results (react-window, virtua, etc.)
+//   - ci_benchmark_runs + ci_benchmark_metrics → automated CI/nightly results
 //
 // The POST endpoint auto-routes to the correct tables based on suite ID.
 // GET endpoints accept a `type=comparison|suite` param (defaults to "comparison" for history page).
@@ -17,6 +18,9 @@
 //   GET  /api/benchmarks/suites         — list all known suite IDs
 //   GET  /api/benchmarks/browsers       — browser breakdown
 //   GET  /api/benchmarks/summary        — high-level overview
+//   GET  /api/benchmarks/ci/summary     — CI benchmark overview
+//   GET  /api/benchmarks/ci/runs        — latest CI benchmark runs
+//   GET  /api/benchmarks/ci/history     — CI metric trend data
 
 import { Database } from "bun:sqlite";
 import { resolve } from "path";
@@ -181,6 +185,44 @@ interface BrowserInfo {
   browser: string;
   totalRuns: number;
   lastSeen: string;
+}
+
+interface CiRunMetric {
+  label: string;
+  value: number;
+  unit: string;
+  better: string;
+  rating: string | null;
+}
+
+interface CiRun {
+  id: number;
+  createdAt: string;
+  generatedAt: string | null;
+  version: string;
+  suiteId: string;
+  itemCount: number;
+  gitSha: string | null;
+  branch: string | null;
+  prNumber: number | null;
+  workflowRunId: string | null;
+  workflowName: string | null;
+  runnerOs: string | null;
+  baselineSha: string | null;
+  duration: number | null;
+  success: number;
+  error: string | null;
+  stressMs: number;
+  scrollSpeed: number;
+  metrics: CiRunMetric[];
+}
+
+interface CiHistoryPoint {
+  date: string;
+  mean: number;
+  min: number;
+  max: number;
+  sampleCount: number;
 }
 
 // =============================================================================
@@ -843,6 +885,278 @@ function getSummary(type: TableType): {
 }
 
 // =============================================================================
+// CI Queries
+// =============================================================================
+
+function hasCiTables(): boolean {
+  const database = getDb();
+  const row = database
+    .prepare(
+      `
+    SELECT name
+    FROM sqlite_master
+    WHERE type = 'table' AND name = 'ci_benchmark_runs'
+  `,
+    )
+    .get() as { name: string } | null;
+  return Boolean(row);
+}
+
+function getCiSummary(): {
+  totalRuns: number;
+  totalMetrics: number;
+  successfulRuns: number;
+  failedRuns: number;
+  uniqueBranches: number;
+  uniqueSuites: number;
+  oldestRun: string | null;
+  newestRun: string | null;
+  branches: { branch: string; runs: number; lastRun: string }[];
+  suites: { suiteId: string; runs: number; lastRun: string }[];
+  itemCounts: number[];
+} {
+  if (!hasCiTables()) {
+    return {
+      totalRuns: 0,
+      totalMetrics: 0,
+      successfulRuns: 0,
+      failedRuns: 0,
+      uniqueBranches: 0,
+      uniqueSuites: 0,
+      oldestRun: null,
+      newestRun: null,
+      branches: [],
+      suites: [],
+      itemCounts: [],
+    };
+  }
+
+  const database = getDb();
+  const counts = database
+    .prepare(
+      `
+    SELECT
+      COUNT(*) as totalRuns,
+      SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successfulRuns,
+      SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failedRuns,
+      COUNT(DISTINCT branch) as uniqueBranches,
+      COUNT(DISTINCT suite_id) as uniqueSuites,
+      MIN(created_at) as oldestRun,
+      MAX(created_at) as newestRun
+    FROM ci_benchmark_runs
+  `,
+    )
+    .get() as {
+    totalRuns: number;
+    successfulRuns: number | null;
+    failedRuns: number | null;
+    uniqueBranches: number;
+    uniqueSuites: number;
+    oldestRun: string | null;
+    newestRun: string | null;
+  };
+
+  const metricCount = database
+    .prepare(`SELECT COUNT(*) as count FROM ci_benchmark_metrics`)
+    .get() as { count: number };
+
+  const branches = database
+    .prepare(
+      `
+    SELECT COALESCE(branch, 'unknown') as branch, COUNT(*) as runs, MAX(created_at) as lastRun
+    FROM ci_benchmark_runs
+    GROUP BY COALESCE(branch, 'unknown')
+    ORDER BY datetime(MAX(created_at)) DESC
+    LIMIT 30
+  `,
+    )
+    .all() as { branch: string; runs: number; lastRun: string }[];
+
+  const suites = database
+    .prepare(
+      `
+    SELECT suite_id as suiteId, COUNT(*) as runs, MAX(created_at) as lastRun
+    FROM ci_benchmark_runs
+    GROUP BY suite_id
+    ORDER BY suite_id ASC
+  `,
+    )
+    .all() as { suiteId: string; runs: number; lastRun: string }[];
+
+  const itemCounts = database
+    .prepare(
+      `
+    SELECT DISTINCT item_count as itemCount
+    FROM ci_benchmark_runs
+    ORDER BY item_count ASC
+  `,
+    )
+    .all()
+    .map((row) => (row as { itemCount: number }).itemCount);
+
+  return {
+    ...counts,
+    totalMetrics: metricCount.count,
+    successfulRuns: counts.successfulRuns ?? 0,
+    failedRuns: counts.failedRuns ?? 0,
+    branches,
+    suites,
+    itemCounts,
+  };
+}
+
+function getCiRuns(options: {
+  branch?: string;
+  suiteId?: string;
+  itemCount?: number;
+  status?: string;
+  limit?: number;
+}): CiRun[] {
+  if (!hasCiTables()) return [];
+
+  const database = getDb();
+  const conditions: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (options.branch) {
+    conditions.push("COALESCE(branch, 'unknown') = ?");
+    params.push(options.branch);
+  }
+  if (options.suiteId) {
+    conditions.push("suite_id = ?");
+    params.push(options.suiteId);
+  }
+  if (options.itemCount) {
+    conditions.push("item_count = ?");
+    params.push(options.itemCount);
+  }
+  if (options.status === "success") {
+    conditions.push("success = 1");
+  } else if (options.status === "failed") {
+    conditions.push("success = 0");
+  }
+
+  const where =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const limit = Math.min(options.limit ?? 50, 200);
+
+  const runs = database
+    .prepare(
+      `
+    SELECT
+      id,
+      created_at as createdAt,
+      generated_at as generatedAt,
+      version,
+      suite_id as suiteId,
+      item_count as itemCount,
+      git_sha as gitSha,
+      branch,
+      pr_number as prNumber,
+      workflow_run_id as workflowRunId,
+      workflow_name as workflowName,
+      runner_os as runnerOs,
+      baseline_sha as baselineSha,
+      duration_ms as duration,
+      success,
+      error,
+      stress_ms as stressMs,
+      scroll_speed as scrollSpeed
+    FROM ci_benchmark_runs
+    ${where}
+    ORDER BY datetime(created_at) DESC, id DESC
+    LIMIT ?
+  `,
+    )
+    .all(...params, limit) as Omit<CiRun, "metrics">[];
+
+  if (runs.length === 0) return [];
+
+  const placeholders = runs.map(() => "?").join(", ");
+  const metrics = database
+    .prepare(
+      `
+    SELECT run_id as runId, label, value, unit, better, rating
+    FROM ci_benchmark_metrics
+    WHERE run_id IN (${placeholders})
+    ORDER BY run_id ASC, id ASC
+  `,
+    )
+    .all(...runs.map((run) => run.id)) as (CiRunMetric & {
+    runId: number;
+  })[];
+
+  const metricsByRun = new Map<number, CiRunMetric[]>();
+  for (const metric of metrics) {
+    const list = metricsByRun.get(metric.runId) ?? [];
+    list.push({
+      label: metric.label,
+      value: metric.value,
+      unit: metric.unit,
+      better: metric.better,
+      rating: metric.rating,
+    });
+    metricsByRun.set(metric.runId, list);
+  }
+
+  return runs.map((run) => ({
+    ...run,
+    metrics: metricsByRun.get(run.id) ?? [],
+  }));
+}
+
+function getCiHistory(options: {
+  suiteId: string;
+  itemCount?: number;
+  metricLabel: string;
+  branch?: string;
+  days?: number;
+}): CiHistoryPoint[] {
+  if (!hasCiTables()) return [];
+
+  const database = getDb();
+  const days = Math.min(options.days ?? 30, 365);
+  const conditions: string[] = [
+    "r.success = 1",
+    "r.suite_id = ?",
+    "m.label = ?",
+    `r.created_at >= datetime('now', ?)`,
+  ];
+  const params: (string | number)[] = [
+    options.suiteId,
+    options.metricLabel,
+    `-${days} days`,
+  ];
+
+  if (options.itemCount) {
+    conditions.push("r.item_count = ?");
+    params.push(options.itemCount);
+  }
+  if (options.branch) {
+    conditions.push("COALESCE(r.branch, 'unknown') = ?");
+    params.push(options.branch);
+  }
+
+  return database
+    .prepare(
+      `
+    SELECT
+      date(r.created_at) as date,
+      ROUND(AVG(m.value), 2) as mean,
+      MIN(m.value) as min,
+      MAX(m.value) as max,
+      COUNT(*) as sampleCount
+    FROM ci_benchmark_metrics m
+    JOIN ci_benchmark_runs r ON r.id = m.run_id
+    WHERE ${conditions.join(" AND ")}
+    GROUP BY date(r.created_at)
+    ORDER BY date ASC
+  `,
+    )
+    .all(...params) as CiHistoryPoint[];
+}
+
+// =============================================================================
 // Helpers
 // =============================================================================
 
@@ -933,6 +1247,43 @@ export async function routeBenchmarks(
     // GET endpoints
     if (req.method !== "GET") {
       return jsonResponse({ error: "Method not allowed" }, 405);
+    }
+
+    // CI-owned read-only endpoints.
+    if (sub === "/ci/summary") {
+      return jsonResponse(getCiSummary());
+    }
+
+    if (sub === "/ci/runs") {
+      const runs = getCiRuns({
+        branch: url.searchParams.get("branch") ?? undefined,
+        suiteId: url.searchParams.get("suiteId") ?? undefined,
+        itemCount: intParam(url, "itemCount"),
+        status: url.searchParams.get("status") ?? undefined,
+        limit: intParam(url, "limit") ?? 50,
+      });
+      return jsonResponse({ items: runs, total: runs.length });
+    }
+
+    if (sub === "/ci/history") {
+      const suiteId = url.searchParams.get("suiteId");
+      const metricLabel = url.searchParams.get("metric");
+
+      if (!suiteId || !metricLabel) {
+        return jsonResponse(
+          { error: "suiteId and metric query params are required" },
+          400,
+        );
+      }
+
+      const history = getCiHistory({
+        suiteId,
+        metricLabel,
+        itemCount: intParam(url, "itemCount"),
+        branch: url.searchParams.get("branch") ?? undefined,
+        days: intParam(url, "days") ?? 30,
+      });
+      return jsonResponse({ items: history, total: history.length });
     }
 
     // Resolve table type from ?type=comparison|suite (defaults to "comparison")

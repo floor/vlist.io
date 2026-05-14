@@ -35,6 +35,18 @@ const externalServer = args.has("url") || process.env.BENCH_URL;
 const scrollSpeed = Number(args.get("scroll-speed") ?? process.env.BENCH_SCROLL_SPEED ?? config.scrollSpeed ?? 0);
 const stressMs = Number(args.get("stress-ms") ?? process.env.BENCH_STRESS_MS ?? config.stressMs ?? 0);
 
+const metadata = {
+  gitSha: process.env.GITHUB_SHA ?? process.env.BENCH_GIT_SHA ?? null,
+  branch: process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || process.env.BENCH_BRANCH || null,
+  prNumber: process.env.GITHUB_EVENT_NAME === "pull_request"
+    ? Number(process.env.GITHUB_REF_NAME?.split("/")?.[0]) || null
+    : Number(process.env.BENCH_PR_NUMBER) || null,
+  workflowRunId: process.env.GITHUB_RUN_ID ?? null,
+  workflowName: process.env.GITHUB_WORKFLOW ?? null,
+  runnerOs: process.env.RUNNER_OS ?? null,
+  baselineSha: process.env.BENCH_BASELINE_SHA ?? null,
+};
+
 const run = async (cmd, cmdArgs, options = {}) => {
   console.log(`$ ${[cmd, ...cmdArgs].join(" ")}`);
   const proc = Bun.spawn([cmd, ...cmdArgs], {
@@ -186,6 +198,7 @@ try {
     generatedAt: now,
     baseUrl,
     config: { suiteIds, itemCounts, scrollSpeed, stressMs },
+    metadata,
     environment: {
       vlistVersion: results.version,
       userAgent: results.userAgent,

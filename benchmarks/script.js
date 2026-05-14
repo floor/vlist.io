@@ -15,6 +15,7 @@ import {
 
 import { buildHistoryPage } from "./history.js";
 import { buildSuiteHistoryPage } from "./suite-history.js";
+import { buildCiResultsPage } from "./ci-results.js";
 
 // Import data files
 import BUNDLE_DATA from "./data/bundle.json";
@@ -839,6 +840,8 @@ if (root) {
     buildHistoryPage(root);
   } else if (page === "suite-history") {
     buildSuiteHistoryPage(root);
+  } else if (page === "ci-results") {
+    buildCiResultsPage(root);
   } else {
     // Suite page (render, scroll, memory, scrollto)
     const variants = detectVariants(page);

@@ -17,6 +17,8 @@
     "build:bench:watch": "bun run benchmarks/build.ts --watch",
     "bench:ci": "bun run benchmarks/ci/runner.mjs",
     "bench:compare": "bun run benchmarks/ci/compare.mjs",
+    "bench:comment": "bun run benchmarks/ci/pr-comment.mjs",
+    "bench:store": "bun run benchmarks/ci/store.mjs",
     "seed:benchmarks": "bun run scripts/seed-benchmarks.ts",
     "seed:books": "bun run scripts/seed-books.ts",
     "test": "bun test test/",

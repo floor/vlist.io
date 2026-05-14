@@ -27,6 +27,18 @@ Compare the latest run against an optional baseline:
 bun run bench:compare -- --baseline=benchmarks/baselines/main.json
 ```
 
+Store the latest run in the CI-owned SQLite tables:
+
+```sh
+bun run bench:store
+```
+
+Build the sticky PR comment body:
+
+```sh
+bun run bench:comment
+```
+
 ## Output
 
 Generated files are ignored by git:
@@ -35,11 +47,17 @@ Generated files are ignored by git:
 - `benchmarks/results/<timestamp>.json`
 - `benchmarks/results/summary.md`
 - `benchmarks/results/comparison.md`
+- `benchmarks/results/pr-comment.md`
+
+CI storage writes to `data/benchmarks.db` by default, using
+`ci_benchmark_runs` and `ci_benchmark_metrics`. These tables are separate from
+the public crowdsourced benchmark tables.
 
 ## CI Shape
 
-The GitHub workflow is intentionally non-blocking at first. It uploads artifacts
-so we can observe benchmark noise before turning any budget into a hard gate.
+The GitHub workflow is intentionally non-blocking at first. It posts a sticky PR
+comment and uploads artifacts so we can observe benchmark noise before turning
+any budget into a hard gate.
 
 The current PR smoke job runs:
 
