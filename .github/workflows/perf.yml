@@ -1,0 +1,52 @@
+name: Performance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "benchmarks/**"
+      - "src/**"
+      - "package.json"
+      - "bun.lock"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Checkout sibling vlist package
+        run: git clone --depth=1 https://github.com/floor/vlist.git ../vlist
+
+      - name: Install dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+        run: bun install
+
+      - name: Install Chrome for Puppeteer
+        run: bunx puppeteer browsers install chrome
+
+      - name: Run perf smoke benchmark
+        continue-on-error: true
+        run: bun run bench:ci -- --item-counts=10000 --suites=render-vanilla,scrollto-vanilla
+
+      - name: Build comparison summary
+        if: hashFiles('benchmarks/results/latest.json') != ''
+        run: |
+          if [ -f benchmarks/baselines/main.json ]; then
+            bun run bench:compare -- --baseline=benchmarks/baselines/main.json
+          else
+            bun run bench:compare
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-results
+          path: |
+            benchmarks/results/latest.json
+            benchmarks/results/summary.md
+            benchmarks/results/comparison.md

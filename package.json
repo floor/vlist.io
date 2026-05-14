@@ -15,6 +15,8 @@
     "build:examples:watch": "bun run examples/build.ts --watch",
     "build:bench": "bun run benchmarks/build.ts",
     "build:bench:watch": "bun run benchmarks/build.ts --watch",
+    "bench:ci": "bun run benchmarks/ci/runner.mjs",
+    "bench:compare": "bun run benchmarks/ci/compare.mjs",
     "seed:benchmarks": "bun run scripts/seed-benchmarks.ts",
     "seed:books": "bun run scripts/seed-books.ts",
     "test": "bun test test/",
@@ -53,6 +55,7 @@
     "@babel/core": "^7.29.0",
     "@types/bun": "latest",
     "babel-preset-solid": "^1.9.10",
+    "puppeteer": "^24.43.1",
     "sass": "^1.85.0",
     "typescript": "^5.8.0"
   }
