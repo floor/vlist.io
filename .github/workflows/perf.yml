@@ -93,13 +93,24 @@ jobs:
               });
             }
 
+      - name: Prepare perf artifacts
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/perf-results/benchmarks/results"
+          mkdir -p "$RUNNER_TEMP/perf-results/data"
+
+          for file in latest.json summary.md comparison.md pr-comment.md; do
+            if [ -f "benchmarks/results/$file" ]; then
+              cp "benchmarks/results/$file" "$RUNNER_TEMP/perf-results/benchmarks/results/$file"
+            fi
+          done
+
+          if [ -f data/benchmarks.db ]; then
+            cp data/benchmarks.db "$RUNNER_TEMP/perf-results/data/benchmarks.db"
+          fi
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: perf-results
-          path: |
-            benchmarks/results/latest.json
-            benchmarks/results/summary.md
-            benchmarks/results/comparison.md
-            benchmarks/results/pr-comment.md
-            data/benchmarks.db
+          path: ${{ runner.temp }}/perf-results
