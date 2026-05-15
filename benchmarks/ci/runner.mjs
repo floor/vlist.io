@@ -45,6 +45,10 @@ const metadata = {
   workflowName: process.env.GITHUB_WORKFLOW ?? null,
   runnerOs: process.env.RUNNER_OS ?? null,
   baselineSha: process.env.BENCH_BASELINE_SHA ?? null,
+  vlistRepository: process.env.BENCH_VLIST_REPOSITORY ?? null,
+  vlistRef: process.env.BENCH_VLIST_REF ?? null,
+  sourceRepository: process.env.BENCH_SOURCE_REPOSITORY ?? null,
+  sourcePrNumber: Number(process.env.BENCH_SOURCE_PR_NUMBER) || null,
 };
 
 const run = async (cmd, cmdArgs, options = {}) => {

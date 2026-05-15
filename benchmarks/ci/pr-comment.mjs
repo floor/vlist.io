@@ -31,6 +31,7 @@ const stripTitle = (markdown) =>
 const latest = await readJSON(latestPath);
 const summary = await readText(summaryPath);
 const comparison = await readText(comparisonPath);
+const metadata = latest?.metadata ?? {};
 
 const hasRegression = /## Potential Regressions/.test(comparison);
 const hasFailures = (latest?.results ?? []).some((result) => !result.success);
@@ -53,6 +54,12 @@ const lines = [
     ? `**vlist:** ${latest.environment.vlistVersion}`
     : null,
   latest?.generatedAt ? `**Generated:** ${latest.generatedAt}` : null,
+  metadata.vlistRepository || metadata.vlistRef
+    ? `**Benchmarked vlist:** ${metadata.vlistRepository ?? "floor/vlist"}@${metadata.vlistRef ?? "unknown"}`
+    : null,
+  metadata.sourceRepository
+    ? `**Source:** ${metadata.sourceRepository}${metadata.sourcePrNumber ? `#${metadata.sourcePrNumber}` : ""}`
+    : null,
   runUrl ? `**Workflow:** [View run](${runUrl})` : null,
   "",
   "> CI performance checks are currently non-blocking while benchmark noise is being observed.",

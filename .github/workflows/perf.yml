@@ -2,6 +2,23 @@ name: Performance
 
 on:
   workflow_dispatch:
+    inputs:
+      vlist_repository:
+        description: "Repository containing the vlist package to benchmark"
+        required: false
+        default: "floor/vlist"
+      vlist_ref:
+        description: "Branch, tag, or SHA from vlist_repository to benchmark"
+        required: false
+        default: "main"
+      source_repository:
+        description: "Repository that requested this benchmark run"
+        required: false
+        default: ""
+      source_pr_number:
+        description: "Pull request number in source_repository"
+        required: false
+        default: ""
   pull_request:
     paths:
       - "benchmarks/**"
@@ -18,13 +35,23 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     continue-on-error: true
+    env:
+      VLIST_REPOSITORY: ${{ github.event.inputs.vlist_repository || 'floor/vlist' }}
+      VLIST_REF: ${{ github.event.inputs.vlist_ref || 'main' }}
+      SOURCE_REPOSITORY: ${{ github.event.inputs.source_repository || github.repository }}
+      SOURCE_PR_NUMBER: ${{ github.event.inputs.source_pr_number || github.event.pull_request.number || '' }}
     steps:
       - uses: actions/checkout@v6
 
       - uses: oven-sh/setup-bun@v2
 
       - name: Checkout sibling vlist package
-        run: git clone --depth=1 https://github.com/floor/vlist.git ../vlist
+        run: |
+          git init ../vlist
+          git -C ../vlist remote add origin "https://github.com/${VLIST_REPOSITORY}.git"
+          git -C ../vlist fetch --depth=1 origin "${VLIST_REF}"
+          git -C ../vlist checkout --detach FETCH_HEAD
+          git -C ../vlist log -1 --oneline
 
       - name: Install dependencies
         env:
@@ -36,6 +63,11 @@ jobs:
 
       - name: Run perf smoke benchmark
         continue-on-error: true
+        env:
+          BENCH_VLIST_REPOSITORY: ${{ env.VLIST_REPOSITORY }}
+          BENCH_VLIST_REF: ${{ env.VLIST_REF }}
+          BENCH_SOURCE_REPOSITORY: ${{ env.SOURCE_REPOSITORY }}
+          BENCH_SOURCE_PR_NUMBER: ${{ env.SOURCE_PR_NUMBER }}
         run: bun run bench:ci -- --item-counts=10000 --suites=render-vanilla,scrollto-vanilla
 
       - name: Build comparison summary

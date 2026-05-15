@@ -93,11 +93,26 @@ In local development, `vlist.io` depends on `vlist` through `file:../vlist`.
 The GitHub Actions workflow mirrors that layout by checking out `floor/vlist.io`
 and cloning `floor/vlist` into `../vlist` before installing dependencies.
 
-This means a `vlist.io` performance PR currently benchmarks the latest default
-branch of `floor/vlist`, unless the workflow is changed to check out a specific
-`vlist` branch, SHA, or PR head. That is intentional for the first workflow: the
-automation validates the harness and website integration before adding
-cross-repository branch selection.
+By default, a `vlist.io` pull request benchmarks `floor/vlist@main`. Manual
+runs can override the library repository and ref, which is the bridge we need
+for future `floor/vlist` pull requests.
+
+For example:
+
+```bash
+gh workflow run Performance \
+  --repo floor/vlist.io \
+  --ref feat/perf-automation \
+  -f vlist_repository=floor/vlist \
+  -f vlist_ref=my-vlist-branch \
+  -f source_repository=floor/vlist \
+  -f source_pr_number=123
+```
+
+The workflow comment and JSON result metadata record the requested
+`vlist_repository`, `vlist_ref`, `source_repository`, and `source_pr_number`.
+The next step, once this workflow is merged, is a tiny `floor/vlist` workflow
+that calls this `vlist.io` workflow for library PRs.
 
 ---
 
@@ -302,6 +317,15 @@ The workflow file is `.github/workflows/perf.yml`. It runs in two cases:
    ```bash
    gh workflow run Performance --ref feat/perf-automation
    ```
+
+   Manual dispatch accepts optional inputs for cross-repository benchmarking:
+
+   | Input | Default | Purpose |
+   |-------|---------|---------|
+   | `vlist_repository` | `floor/vlist` | Repository containing the package to benchmark |
+   | `vlist_ref` | `main` | Branch, tag, or SHA to check out into `../vlist` |
+   | `source_repository` | empty | Repository that requested the benchmark |
+   | `source_pr_number` | empty | PR number in the source repository |
 
 2. **Pull requests** that change benchmark-relevant files:
 
