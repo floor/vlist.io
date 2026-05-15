@@ -1,9 +1,10 @@
 // scripts/seed-benchmarks.ts
 // Creates the SQLite database for storing crowdsourced benchmark results.
 //
-// Two separate table pairs:
+// Three separate table pairs:
 //   - benchmark_runs + benchmark_metrics     → vlist suite results (render, scroll, memory, scrollto)
 //   - comparison_runs + comparison_metrics   → library comparison results (react-window, virtua, etc.)
+//   - ci_benchmark_runs + ci_benchmark_metrics → automated CI/nightly results
 //
 // Usage:
 //   bun run scripts/seed-benchmarks.ts
@@ -54,7 +55,7 @@ db.run("PRAGMA synchronous = NORMAL");
 // Shared column definitions (used by both table pairs)
 // =============================================================================
 //
-// The two table pairs are intentionally identical in structure.
+// The public table pairs are intentionally identical in structure.
 // They are separate so that:
 //   - Queries on comparison data never scan suite rows (and vice versa)
 //   - Each can evolve independently if needed
@@ -95,6 +96,40 @@ const METRICS_COLUMNS = (fk_table: string) => `
     unit          TEXT    NOT NULL,
     better        TEXT    NOT NULL,
     rating        TEXT
+`;
+
+const CI_RUNS_COLUMNS = `
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now')),
+    generated_at  TEXT,
+
+    -- Identity
+    version       TEXT    NOT NULL,
+    suite_id      TEXT    NOT NULL,
+    item_count    INTEGER NOT NULL,
+
+    -- CI metadata
+    git_sha       TEXT,
+    branch        TEXT,
+    pr_number     INTEGER,
+    workflow_run_id TEXT,
+    workflow_name TEXT,
+    runner_os     TEXT,
+    baseline_sha  TEXT,
+
+    -- Environment
+    user_agent    TEXT,
+    hardware_concurrency INTEGER,
+    device_memory REAL,
+
+    -- Run metadata
+    duration_ms   INTEGER,
+    success       INTEGER NOT NULL DEFAULT 1,
+    error         TEXT,
+
+    -- Config
+    stress_ms     INTEGER DEFAULT 0,
+    scroll_speed  INTEGER DEFAULT 0
 `;
 
 // =============================================================================
@@ -154,6 +189,31 @@ db.run(
 );
 
 // =============================================================================
+// Schema — CI benchmark tables (automated workflow results)
+// =============================================================================
+
+db.run(`CREATE TABLE IF NOT EXISTS ci_benchmark_runs (${CI_RUNS_COLUMNS})`);
+db.run(
+  `CREATE TABLE IF NOT EXISTS ci_benchmark_metrics (${METRICS_COLUMNS("ci_benchmark_runs")})`,
+);
+
+db.run(`CREATE INDEX idx_ci_runs_sha          ON ci_benchmark_runs(git_sha)`);
+db.run(`CREATE INDEX idx_ci_runs_branch       ON ci_benchmark_runs(branch)`);
+db.run(
+  `CREATE INDEX idx_ci_runs_suite        ON ci_benchmark_runs(suite_id, item_count)`,
+);
+db.run(
+  `CREATE INDEX idx_ci_runs_created      ON ci_benchmark_runs(created_at)`,
+);
+db.run(`CREATE INDEX idx_ci_runs_success      ON ci_benchmark_runs(success)`);
+db.run(
+  `CREATE INDEX idx_ci_metrics_run       ON ci_benchmark_metrics(run_id)`,
+);
+db.run(
+  `CREATE INDEX idx_ci_metrics_label     ON ci_benchmark_metrics(run_id, label)`,
+);
+
+// =============================================================================
 // Verify
 // =============================================================================
 
@@ -162,6 +222,8 @@ const tables = [
   { name: "benchmark_metrics", label: "Suite metrics" },
   { name: "comparison_runs", label: "Comparison runs" },
   { name: "comparison_metrics", label: "Comparison metrics" },
+  { name: "ci_benchmark_runs", label: "CI benchmark runs" },
+  { name: "ci_benchmark_metrics", label: "CI benchmark metrics" },
 ];
 
 console.log(`  ✅ Tables created:\n`);

@@ -538,6 +538,75 @@ export function buildSuiteHistoryPageHTML() {
   `;
 }
 
+// =============================================================================
+// CI Results Page Template
+// =============================================================================
+
+export function buildCiResultsPageHTML() {
+  const version = vlistPackage.version;
+
+  return `
+    <div class="bench-page bench-history bench-ci-results">
+      <header class="bench-header">
+        <h1 class="bench-header__title">CI Results</h1>
+        <p class="bench-header__desc">
+          Automated benchmark runs from the CI workflow. This view is intended
+          for contributors tracking performance changes by branch, commit, suite,
+          and item count before results become public benchmark claims.
+        </p>
+      </header>
+
+      <div class="ui-card ui-card--xl bench-history__summary" id="ci-results-summary">
+        <div class="bench-history__loading">Loading CI summary…</div>
+      </div>
+
+      <div class="bench-history__filters" id="ci-results-filters">
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Branch</label>
+          <select class="bench-history__select" id="ci-results-branch">
+            <option value="">All branches</option>
+          </select>
+        </div>
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Suite</label>
+          <select class="bench-history__select" id="ci-results-suite">
+            <option value="">All suites</option>
+          </select>
+        </div>
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Item Count</label>
+          <select class="bench-history__select" id="ci-results-item-count">
+            <option value="">All counts</option>
+          </select>
+        </div>
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Status</label>
+          <select class="bench-history__select" id="ci-results-status">
+            <option value="">All statuses</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ui-card ui-card--xl bench-history__stats-card" id="ci-results-runs">
+        <h2 class="bench-history__section-title">Latest Runs</h2>
+        <p class="bench-history__section-desc">Most recent automated benchmark results stored by the CI workflow.</p>
+        <div id="ci-results-runs-content">
+          <div class="bench-history__loading">Loading runs…</div>
+        </div>
+      </div>
+
+      <footer class="bench-footer">
+        <p>
+          CI data is stored separately from crowdsourced benchmark history.
+          <br>Current version: <strong>vlist ${escapeHtml(version)}</strong>
+        </p>
+      </footer>
+    </div>
+  `;
+}
+
 export function buildPerformanceComparisonHTML(performanceData) {
   const rows = performanceData
     .map((row) => {

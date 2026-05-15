@@ -11,6 +11,7 @@ import {
   withScrollbar,
   withScale,
   withSnapshots,
+  withTransition,
 } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -49,6 +50,9 @@ let currentScaleEnabled = false;
 let currentFocusOnClick = false;
 let loadRequests = 0;
 let loadedCount = 0;
+
+// Recycle bin — removed tracks are kept here for re-adding
+let deletedTracks = [];
 
 let currentSort = { key: "id", direction: "desc" };
 let currentColumnWidths = null; // persists across rebuilds
@@ -199,6 +203,7 @@ function createList(selectionMode) {
   bindListEvents();
   updateInfo();
   updateContext();
+  updateAddButton();
 }
 
 // =============================================================================
@@ -247,6 +252,7 @@ function createListView(selectionMode, snapshot) {
   builder.use(withAsync(getAsyncConfig()));
   applyScale(builder);
   applyScrollbar(builder);
+  builder.use(withTransition({ duration: 200 }));
   builder.use(
     withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
@@ -279,6 +285,7 @@ function createGridView(selectionMode, snapshot) {
   builder.use(withGrid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
   applyScale(builder);
   applyScrollbar(builder);
+  builder.use(withTransition({ duration: 200 }));
   builder.use(
     withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
@@ -322,6 +329,7 @@ function createTableView(selectionMode, snapshot) {
   );
   applyScale(builder);
   applyScrollbar(builder);
+  builder.use(withTransition({ duration: 200 }));
   builder.use(
     withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
@@ -475,40 +483,35 @@ function updateSelectionCount(selected) {
 // =============================================================================
 
 btnAddTrack.addEventListener("click", async () => {
-  const title = prompt("Track title:");
-  if (!title) return;
+  if (deletedTracks.length === 0) return;
 
-  const artist = prompt("Artist name:");
-  if (!artist) return;
-
-  const year = prompt("Year (optional):");
-  const country = prompt("Country code (optional, e.g., USA):");
-
-  const trackData = {
-    title,
-    artist,
-    year: year ? parseInt(year, 10) : null,
-    country: country || null,
-  };
+  const { id, index } = deletedTracks.pop();
 
   try {
-    const response = await fetch(API_BASE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(trackData),
-    });
+    const res = await fetch(`${API_BASE}/${id}/restore`, { method: "PATCH" });
+    if (!res.ok) throw new Error(`Restore failed: ${res.status}`);
+    const track = await res.json();
 
-    if (!response.ok) throw new Error("Failed to create track");
-
-    alert("Track created successfully!");
-    loadedCount = 0;
-    await list.reload();
-  } catch (error) {
-    alert("Failed to create track: " + error.message);
+    const insertAt = Math.min(index, list.total);
+    list.addItem(track, insertAt);
+    totalTracks = list.total;
+  } catch (err) {
+    console.error("[track-list] restore failed:", err);
   }
+
+  updateInfo();
+  updateAddButton();
 });
 
 const MAX_DELETE = 25;
+
+function updateAddButton() {
+  const count = deletedTracks.length;
+  btnAddTrack.disabled = count === 0;
+  btnAddTrack.textContent = count > 0
+    ? `Restore Track (${count})`
+    : "Restore Track";
+}
 
 async function deleteSelected() {
   const selected = list.getSelected();
@@ -523,19 +526,10 @@ async function deleteSelected() {
 
   const items = list.getSelectedItems();
 
-  // Delete from server
-  const promises = items.map((track) =>
-    fetch(`${API_BASE}/${track.id}`, { method: "DELETE" }),
-  );
-
-  await Promise.all(promises);
-
-  // Remove each item from the list, tracking the lowest index for auto-select.
-  // We delete from highest index to lowest so earlier deletions don't shift
-  // the indices of later ones.
+  // Build id→index map before any deletion, sort highest index first
+  // so earlier deletions don't shift the indices of later ones.
   let lowestDeletedIndex = Infinity;
 
-  // Build id→index map before any deletion
   const deleteOrder = items
     .map((track) => {
       const container = list.element;
@@ -544,20 +538,28 @@ async function deleteSelected() {
       return { track, index };
     })
     .filter((e) => e.index >= 0)
-    .sort((a, b) => b.index - a.index); // highest index first
+    .sort((a, b) => b.index - a.index);
 
+  // Soft-delete on server (fire-and-forget, don't block the animation)
+  for (const { track } of deleteOrder) {
+    fetch(`${API_BASE}/${track.id}`, { method: "DELETE" }).catch(() => {});
+  }
+
+  // Remove from list with animation + push to recycle bin
   deleteOrder.forEach(({ track, index }) => {
     const result = list.removeItem(track.id);
-    if (result && index < lowestDeletedIndex) {
-      lowestDeletedIndex = index;
+    if (result) {
+      deletedTracks.push({ id: track.id, index });
+      if (index < lowestDeletedIndex) lowestDeletedIndex = index;
     }
   });
 
   totalTracks = list.total;
   list.clearSelection();
   updateInfo();
+  updateAddButton();
 
-  // Auto-select the item that is now at the deleted position
+  // Auto-select the item that is now at the deleted position after animation ends
   if (
     list.total > 0 &&
     currentSelectionMode !== "none" &&
@@ -565,7 +567,8 @@ async function deleteSelected() {
   ) {
     const targetIndex = Math.min(lowestDeletedIndex, list.total - 1);
 
-    requestAnimationFrame(() => {
+    const unsub = list.on("remove:end", () => {
+      unsub();
       const container = list.element;
       const el = container?.querySelector(`[data-index="${targetIndex}"]`);
       const id = el?.dataset.id;
@@ -620,6 +623,15 @@ function bindListEvents() {
 // =============================================================================
 
 async function init() {
+  // Load previously soft-deleted tracks into the recycle bin
+  try {
+    const res = await fetch(`${API_BASE}/deleted`);
+    if (res.ok) {
+      const tracks = await res.json();
+      deletedTracks = tracks.map((t) => ({ id: t.id, index: 0 }));
+    }
+  } catch {}
+
   createList(currentSelectionMode);
 }
 

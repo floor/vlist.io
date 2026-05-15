@@ -36,6 +36,8 @@ import {
   createTrack,
   updateTrack,
   deleteTrack,
+  restoreTrack,
+  getDeletedTracks,
   getCountries as getTrackCountries,
   getDecades,
   getCategories,
@@ -564,6 +566,23 @@ const handleDeleteTrack = (id: number): Response => {
 };
 
 /**
+ * PATCH /api/tracks/:id/restore
+ *
+ * Restores a soft-deleted track. Returns the restored track.
+ */
+const handleRestoreTrack = (id: number): Response => {
+  try {
+    const track = restoreTrack(id);
+    if (!track) return error("Track not found or not deleted", 404);
+
+    return json(track, 200, CACHE_API_MUTABLE);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return error(message, 500);
+  }
+};
+
+/**
  * GET /api/tracks/countries
  *
  * Returns distinct country codes with track counts.
@@ -846,9 +865,9 @@ export const routeApi = async (
     if (benchResponse) return benchResponse;
   }
 
-  // Allow GET, POST, PUT, DELETE for tracks API
+  // Allow GET, POST, PUT, PATCH, DELETE for tracks API
   const isMutationMethod =
-    req.method === "POST" || req.method === "PUT" || req.method === "DELETE";
+    req.method === "POST" || req.method === "PUT" || req.method === "PATCH" || req.method === "DELETE";
   const isTracksPath = path.startsWith("/api/tracks");
 
   if (!isTracksPath && req.method !== "GET") {
@@ -972,6 +991,16 @@ export const routeApi = async (
     return handleGetBooks(url);
   }
 
+  // GET /api/tracks/deleted
+  if (path === "/api/tracks/deleted" && req.method === "GET") {
+    try {
+      return json(getDeletedTracks());
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      return error(message, 500);
+    }
+  }
+
   // GET /api/tracks/countries
   if (path === "/api/tracks/countries") {
     return handleGetTrackCountries();
@@ -990,6 +1019,13 @@ export const routeApi = async (
   // GET /api/tracks/stats
   if (path === "/api/tracks/stats") {
     return handleGetTracksStats();
+  }
+
+  // PATCH /api/tracks/:id/restore
+  const restoreMatch = path.match(/^\/api\/tracks\/(\d+)\/restore$/);
+  if (restoreMatch && req.method === "PATCH") {
+    const id = parseInt(restoreMatch[1], 10);
+    return handleRestoreTrack(id);
   }
 
   // GET /api/tracks/:id

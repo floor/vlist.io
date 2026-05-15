@@ -1346,6 +1346,107 @@ html[data-theme] .vlist-item {
     background: rgba(59, 130, 246, 0.1);
 }
 
+/* ─── CI Results ───────────────────────────────────────────────── */
+
+.bench-ci-results {
+    max-width: 1040px;
+}
+
+.bench-ci-results__table th:nth-child(6),
+.bench-ci-results__table td:nth-child(6) {
+    min-width: 260px;
+}
+
+.bench-ci-results__primary {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.bench-ci-results__meta {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.bench-ci-results__status {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.bench-ci-results__status--success {
+    color: #15803d;
+    background: rgba(34, 197, 94, 0.12);
+}
+
+.bench-ci-results__status--failed {
+    color: #b91c1c;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.bench-ci-results__error {
+    max-width: 220px;
+    margin-top: 6px;
+    color: #b91c1c;
+    font-size: 12px;
+    white-space: normal;
+}
+
+.bench-ci-results__metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.bench-ci-results__metric {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 7px;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 6px;
+    background: var(--surface, #f9fafb);
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.bench-ci-results__metric strong {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.bench-ci-results__metric--good {
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+.bench-ci-results__metric--ok,
+.bench-ci-results__metric--info {
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+.bench-ci-results__metric--bad {
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+[data-theme-mode="dark"] .bench-ci-results__status--success {
+    color: #86efac;
+}
+
+[data-theme-mode="dark"] .bench-ci-results__status--failed,
+[data-theme-mode="dark"] .bench-ci-results__error {
+    color: #fca5a5;
+}
+
+[data-theme-mode="dark"] .bench-ci-results__metric {
+    background: rgba(255, 255, 255, 0.03);
+}
+
 /* ─── Responsive: new components ───────────────────────────────── */
 
 @media (max-width: 720px) {
