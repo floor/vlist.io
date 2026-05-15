@@ -62,6 +62,24 @@ globalThis.__vlistBenchmarks.runBenchmarks(...)
         v
 benchmarks/results/latest.json
 benchmarks/results/summary.md
+        |
+        +-----------------------------+
+        |                             |
+        v                             v
+bun run bench:compare          bun run bench:store
+        |                             |
+        v                             v
+benchmarks/results/            data/benchmarks.db
+comparison.md                  ci_benchmark_runs
+        |                      ci_benchmark_metrics
+        v
+bun run bench:comment
+        |
+        v
+benchmarks/results/pr-comment.md
+        |
+        v
+sticky PR comment + uploaded perf-results artifact
 ```
 
 The browser page exposes a small automation API:
