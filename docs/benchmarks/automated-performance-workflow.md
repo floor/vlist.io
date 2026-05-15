@@ -1,6 +1,6 @@
 ---
 created: 2026-05-14
-updated: 2026-05-14
+updated: 2026-05-15
 status: draft
 ---
 
@@ -77,6 +77,27 @@ globalThis.__vlistBenchmarks = {
 
 This keeps the automated path honest: it does not reimplement benchmark logic in
 Node. Puppeteer only drives Chrome and collects results.
+
+---
+
+## Repositories
+
+The workflow involves two repositories:
+
+| Repository | Role |
+|------------|------|
+| `floor/vlist.io` | Hosts the website, benchmark pages, CI workflow, SQLite schema, baseline file, and result UI |
+| `floor/vlist` | Provides the actual `vlist` package being benchmarked |
+
+In local development, `vlist.io` depends on `vlist` through `file:../vlist`.
+The GitHub Actions workflow mirrors that layout by checking out `floor/vlist.io`
+and cloning `floor/vlist` into `../vlist` before installing dependencies.
+
+This means a `vlist.io` performance PR currently benchmarks the latest default
+branch of `floor/vlist`, unless the workflow is changed to check out a specific
+`vlist` branch, SHA, or PR head. That is intentional for the first workflow: the
+automation validates the harness and website integration before adding
+cross-repository branch selection.
 
 ---
 
@@ -271,6 +292,37 @@ noisy even with `--enable-precise-memory-info` and exposed `gc()`.
 ---
 
 ## GitHub Actions
+
+### Triggers
+
+The workflow file is `.github/workflows/perf.yml`. It runs in two cases:
+
+1. **Manual dispatch** from GitHub Actions:
+
+   ```bash
+   gh workflow run Performance --ref feat/perf-automation
+   ```
+
+2. **Pull requests** that change benchmark-relevant files:
+
+   ```yaml
+   pull_request:
+     paths:
+       - "benchmarks/**"
+       - "src/**"
+       - "package.json"
+       - "bun.lock"
+   ```
+
+It does not currently run for docs-only changes. Workflow-only edits may not
+trigger the PR workflow unless another watched path changes or the workflow is
+started manually.
+
+The trigger set is intentionally narrow so docs and content changes do not spend
+CI time on performance benchmarks. Add paths only when they can plausibly affect
+runtime behavior, benchmark code, or dependency resolution.
+
+### PR Workflow
 
 The PR workflow:
 
