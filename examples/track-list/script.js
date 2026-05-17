@@ -290,7 +290,6 @@ function createGridView(selectionMode, snapshot) {
   builder.use(withGrid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
   applyScale(builder);
   applyScrollbar(builder);
-  builder.use(withTransition({ duration: 200 }));
   builder.use(
     withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
@@ -335,7 +334,6 @@ function createTableView(selectionMode, snapshot) {
   );
   applyScale(builder);
   applyScrollbar(builder);
-  builder.use(withTransition({ duration: 200 }));
   builder.use(
     withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
