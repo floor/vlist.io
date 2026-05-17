@@ -426,8 +426,8 @@ function buildExtraBody(
   if (!link) return;
   link.addEventListener('click', function(e) {
     var container = document.getElementById('list-container');
-    var vlist = container && container.querySelector('.vlist');
-    if (vlist) { e.preventDefault(); vlist.focus({ focusVisible: true }); }
+    var items = container && container.querySelector('.vlist-items');
+    if (items) { e.preventDefault(); items.focus({ focusVisible: true }); }
   });
 })();
 </script>`;

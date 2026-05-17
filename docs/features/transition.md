@@ -1,12 +1,12 @@
 ---
 created: 2026-05-15
-updated: 2026-05-15
+updated: 2026-05-17
 status: published
 ---
 
 # Transition Feature
 
-> FLIP-based enter/exit animations for `insertItem` and `removeItem`.
+> FLIP-based enter/exit animations for `insertItem`, `removeItem`, and `removeItems`.
 
 ## Overview
 
@@ -25,6 +25,8 @@ import { vlist, withTransition } from 'vlist';
 - **Off-screen awareness** — skips element animation when the target is outside the viewport, but still animates visible siblings that shift
 - **Scroll clamp compensation** — handles bottom-of-list edge case where content shrinks and the browser clamps scroll position
 - **Per-animation config** — insert and remove can have independent duration/easing, or be disabled individually
+- **Batch removal** — `removeItems()` animates all deleted items simultaneously with overlapping FLIP animations
+- **Duration cap** — duration is clamped to 1000ms to prevent visual artifacts when scrolling during long animations
 - **Conflict-safe** — automatically skipped when combined with Grid or Table (warns in dev)
 
 ## Quick Start
@@ -46,6 +48,9 @@ const list = vlist({
 // Animated removal — item collapses, siblings slide up
 list.removeItem(itemId);
 
+// Batch removal — all items animate simultaneously
+list.removeItems([id1, id2, id3]);
+
 // Animated insertion — item expands in, siblings slide down
 list.insertItem({ id: 42, name: 'New item' }, 0);
 ```
@@ -54,7 +59,7 @@ list.insertItem({ id: 42, name: 'New item' }, 0);
 
 ```typescript
 interface TransitionConfig {
-  /** Shared duration in ms (default: 150) */
+  /** Shared duration in ms (default: 200, max: 1000) */
   duration?: number;
   /** Shared CSS easing (default: cubic-bezier(0.2, 0, 0, 1) — MD3 emphasized) */
   easing?: string;
@@ -72,7 +77,7 @@ interface TransitionTiming {
 
 ### Examples
 
-**Default (150ms, MD3 easing):**
+**Default (200ms, MD3 easing):**
 ```typescript
 .use(withTransition())
 ```
@@ -126,6 +131,19 @@ The feature uses the [FLIP technique](https://aerotwist.com/blog/flip-your-anima
 5. Animate siblings to their new positions
 6. Clean up clone after transition ends
 
+### Batch Remove Animation
+
+When `removeItems()` is called with multiple IDs:
+
+1. Clone all visible target elements and capture sibling positions
+2. Also capture positions of items just below the viewport (they will slide into view)
+3. Remove all items from data in one pass, single re-render
+4. Animate all clones simultaneously — each clone shifts up to account for removed items above it
+5. Animate all siblings (including newly visible ones) to their new positions
+6. Clean up all clones after transitions end
+
+If only one ID is passed, it falls back to the single `removeItem` animation.
+
 ### Insert Animation
 
 1. Capture positions of elements that will shift
@@ -162,4 +180,5 @@ Grid and Table use multi-column layouts that are incompatible with the 1D `scale
 
 - **[API Reference — insertItem](../api/reference.md)** — Insert method docs
 - **[API Reference — removeItem](../api/reference.md)** — Remove method docs
+- **[API Reference — removeItems](../api/reference.md)** — Batch remove method docs
 - **[Events](../api/events.md)** — `data:change` and `remove:end` events
