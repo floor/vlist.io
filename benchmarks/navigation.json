@@ -95,6 +95,12 @@
         "name": "Comparison History",
         "icon": "📈",
         "desc": "Crowdsourced library comparison results over time, by version and browser"
+      },
+      {
+        "slug": "ci-results",
+        "name": "CI Results",
+        "icon": "",
+        "desc": "Automated benchmark results from CI runs by branch, commit, and suite"
       }
     ]
   }

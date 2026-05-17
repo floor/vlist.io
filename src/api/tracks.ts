@@ -35,8 +35,19 @@ function getDb(): Database {
     db.run("PRAGMA journal_mode = WAL");
     db.run("PRAGMA cache_size = -8000"); // 8 MB cache
     db.run("PRAGMA foreign_keys = ON");
+    ensureDeletedColumn(db);
   }
   return db;
+}
+
+function ensureDeletedColumn(database: Database): void {
+  const cols = database
+    .query("PRAGMA table_info(tracks)")
+    .all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === "deleted")) {
+    database.run("ALTER TABLE tracks ADD COLUMN deleted INTEGER NOT NULL DEFAULT 0");
+    database.run("CREATE INDEX IF NOT EXISTS idx_tracks_deleted ON tracks(deleted)");
+  }
 }
 
 // =============================================================================
@@ -130,7 +141,7 @@ interface QueryOptions extends QueryFilters {
  * Returns [clause, params] — clause includes leading WHERE if non-empty.
  */
 function buildWhere(filters: QueryFilters): [string, SQLQueryBindings[]] {
-  const conditions: string[] = [];
+  const conditions: string[] = ["deleted = 0"];
   const params: SQLQueryBindings[] = [];
 
   if (filters.search) {
@@ -359,14 +370,45 @@ export function updateTrack(
 // =============================================================================
 
 /**
- * DELETE /api/tracks/:id
+ * DELETE /api/tracks/:id — soft-delete (sets deleted = 1)
  */
 export function deleteTrack(id: number): boolean {
   const database = getDb();
 
-  const result = database.prepare("DELETE FROM tracks WHERE id = ?").run(id);
+  const result = database
+    .prepare("UPDATE tracks SET deleted = 1 WHERE id = ? AND deleted = 0")
+    .run(id);
 
   return result.changes > 0;
+}
+
+/**
+ * PATCH /api/tracks/:id/restore — undo soft-delete
+ */
+export function restoreTrack(id: number): Track | null {
+  const database = getDb();
+
+  const result = database
+    .prepare("UPDATE tracks SET deleted = 0 WHERE id = ? AND deleted = 1")
+    .run(id);
+
+  if (result.changes === 0) return null;
+  return getTrackById(id);
+}
+
+/**
+ * GET /api/tracks/deleted — list soft-deleted tracks
+ */
+export function getDeletedTracks(): Track[] {
+  const database = getDb();
+  return database
+    .query(
+      `SELECT id, mongo_id, title, artist, country, year, decade, category, duration, cover_url, cover_color, created_at
+       FROM tracks
+       WHERE deleted = 1
+       ORDER BY id DESC`,
+    )
+    .all() as Track[];
 }
 
 // =============================================================================
@@ -384,7 +426,7 @@ export function getCountries(): { code: string; count: number }[] {
     .query(
       `SELECT country as code, COUNT(*) as count
        FROM tracks
-       WHERE country IS NOT NULL
+       WHERE country IS NOT NULL AND deleted = 0
        GROUP BY country
        ORDER BY count DESC`,
     )
@@ -402,7 +444,7 @@ export function getDecades(): { decade: number; count: number }[] {
     .query(
       `SELECT decade, COUNT(*) as count
        FROM tracks
-       WHERE decade IS NOT NULL
+       WHERE decade IS NOT NULL AND deleted = 0
        GROUP BY decade
        ORDER BY decade DESC`,
     )
@@ -420,7 +462,7 @@ export function getCategories(): { category: string; count: number }[] {
     .query(
       `SELECT category, COUNT(*) as count
        FROM tracks
-       WHERE category IS NOT NULL
+       WHERE category IS NOT NULL AND deleted = 0
        GROUP BY category
        ORDER BY count DESC`,
     )
@@ -436,7 +478,7 @@ export function getStats(): TracksStatsResponse {
   const database = getDb();
 
   const total = (
-    database.query("SELECT COUNT(*) as count FROM tracks").get() as {
+    database.query("SELECT COUNT(*) as count FROM tracks WHERE deleted = 0").get() as {
       count: number;
     }
   ).count;
@@ -444,7 +486,7 @@ export function getStats(): TracksStatsResponse {
   const countries = (
     database
       .query(
-        "SELECT COUNT(DISTINCT country) as count FROM tracks WHERE country IS NOT NULL",
+        "SELECT COUNT(DISTINCT country) as count FROM tracks WHERE country IS NOT NULL AND deleted = 0",
       )
       .get() as { count: number }
   ).count;
@@ -453,7 +495,7 @@ export function getStats(): TracksStatsResponse {
     .query(
       `SELECT decade, COUNT(*) as count
        FROM tracks
-       WHERE decade IS NOT NULL
+       WHERE decade IS NOT NULL AND deleted = 0
        GROUP BY decade
        ORDER BY decade DESC`,
     )
@@ -463,7 +505,7 @@ export function getStats(): TracksStatsResponse {
     .query(
       `SELECT category, COUNT(*) as count
        FROM tracks
-       WHERE category IS NOT NULL
+       WHERE category IS NOT NULL AND deleted = 0
        GROUP BY category
        ORDER BY count DESC
        LIMIT 10`,
@@ -474,6 +516,7 @@ export function getStats(): TracksStatsResponse {
     .query(
       `SELECT artist, COUNT(*) as count
        FROM tracks
+       WHERE deleted = 0
        GROUP BY artist
        ORDER BY count DESC
        LIMIT 10`,
@@ -482,7 +525,7 @@ export function getStats(): TracksStatsResponse {
 
   const yearRange = database
     .query(
-      "SELECT MIN(year) as min, MAX(year) as max FROM tracks WHERE year IS NOT NULL",
+      "SELECT MIN(year) as min, MAX(year) as max FROM tracks WHERE year IS NOT NULL AND deleted = 0",
     )
     .get() as { min: number | null; max: number | null };
 

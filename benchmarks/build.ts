@@ -11,7 +11,7 @@ import {
   watch,
   readdirSync,
 } from "fs";
-import { join } from "path";
+import { join, resolve } from "path";
 import { preCompress, formatKB, gzipSize } from "../scripts/build-utils";
 
 const isWatch = process.argv.includes("--watch");
@@ -19,11 +19,29 @@ const BENCHMARKS_DIR = "./benchmarks";
 const OUT_DIR = "./dist/benchmarks";
 
 const PROJECT_ROOT = "./";
+const VLIST_ROOT = resolve(PROJECT_ROOT, "../vlist");
 
 const BUILD_OPTIONS = {
   format: "esm" as const,
   target: "browser" as const,
 };
+
+function resolveVlistFallback(path: string): string | null {
+  const subpath = path.replace(/^vlist\/?/, "");
+  const candidates: Record<string, string> = {
+    "": resolve(VLIST_ROOT, "dist/index.js"),
+    internals: resolve(VLIST_ROOT, "dist/internals.js"),
+    "package.json": resolve(VLIST_ROOT, "package.json"),
+    styles: resolve(VLIST_ROOT, "dist/vlist.css"),
+    "styles/grid": resolve(VLIST_ROOT, "dist/vlist-grid.css"),
+    "styles/masonry": resolve(VLIST_ROOT, "dist/vlist-masonry.css"),
+    "styles/table": resolve(VLIST_ROOT, "dist/vlist-table.css"),
+    "styles/extras": resolve(VLIST_ROOT, "dist/vlist-extras.css"),
+  };
+
+  const candidate = candidates[subpath];
+  return candidate && existsSync(candidate) ? candidate : null;
+}
 
 // =============================================================================
 // Framework dedupe plugin
@@ -53,7 +71,8 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         });
         return { path: resolved };
       } catch {
-        return undefined;
+        const fallback = resolveVlistFallback(args.path);
+        return fallback ? { path: fallback } : undefined;
       }
     });
 

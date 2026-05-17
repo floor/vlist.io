@@ -115,6 +115,11 @@
         "slug": "features/snapshots",
         "name": "Snapshots",
         "desc": "Scroll save/restore (withSnapshots)"
+      },
+      {
+        "slug": "features/transition",
+        "name": "Transition",
+        "desc": "FLIP-based insert/remove animations (withTransition)"
       }
     ]
   },
@@ -180,6 +185,11 @@
         "slug": "resources/roadmap",
         "name": "Architecture",
         "desc": "Architecture and competitive position"
+      },
+      {
+        "slug": "resources/debugging",
+        "name": "Debugging",
+        "desc": "Puppeteer debug harness for browser-level inspection"
       },
       {
         "slug": "resources/claude-code",

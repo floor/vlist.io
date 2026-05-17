@@ -1,0 +1,33 @@
+{
+  "baseUrl": "http://127.0.0.1:3348",
+  "itemCounts": [10000],
+  "suiteIds": [
+    "render-vanilla",
+    "scroll-vanilla",
+    "scrollto-vanilla",
+    "memory-vanilla"
+  ],
+  "scrollSpeed": 7200,
+  "stressMs": 0,
+  "outputDir": "benchmarks/results",
+  "databasePath": "data/benchmarks.db",
+  "budgets": {
+    "render-vanilla": {
+      "Median": { "maxRegressionPct": 10 },
+      "p95": { "maxRegressionPct": 15 }
+    },
+    "scroll-vanilla": {
+      "Avg FPS": { "maxRegressionPct": -8 },
+      "Frame budget": { "maxRegressionPct": 15 },
+      "Budget p95": { "maxRegressionPct": 20 }
+    },
+    "scrollto-vanilla": {
+      "Median": { "maxRegressionPct": 15 },
+      "p95": { "maxRegressionPct": 20 }
+    },
+    "memory-vanilla": {
+      "After render": { "maxRegressionPct": 15 },
+      "Scroll delta": { "maxRegressionAbs": 3 }
+    }
+  }
+}

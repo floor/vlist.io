@@ -24,6 +24,7 @@ status: published
 | `withScale()` | +{{size:withScale:delta}} KB | Compress scroll space for 1M+ items |
 | `withAutoSize()` | +{{size:withAutoSize:delta}} KB | Auto-measure items via ResizeObserver (Mode B) |
 | `withSnapshots()` | +{{size:withSnapshots:delta}} KB | Scroll position save/restore |
+| `withTransition()` | +{{size:withTransition:delta}} KB | FLIP-based insert/remove animations |
 
 ---
 
@@ -335,24 +336,48 @@ if (saved) list.restoreScroll(saved);
 
 ---
 
+## Transition — Insert/Remove Animations
+
+```typescript
+import { vlist, withTransition } from 'vlist';
+
+const list = vlist({
+  container: '#list',
+  items,
+  item: { height: 56, template: (item) => `<div>${item.name}</div>` },
+})
+  .use(withTransition({ duration: 150 }))
+  .build();
+
+list.removeItem(id);              // collapses + fades out
+list.insertItem(newItem, index);  // expands + fades in
+```
+
+Cannot combine with `withGrid()` or `withTable()` (silently skipped with dev warning).
+
+→ [Full docs](./transition.md)
+
+---
+
 ## Feature Compatibility
 
 Most features compose freely. This matrix shows the known constraints:
 
-| | Table | Grid | Masonry | Groups | Async | Selection | Sortable | Scale | Scrollbar | Page | Snapshots | AutoSize |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Table** | — | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
-| **Grid** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ | ❌ |
-| **Masonry** | ❌ | ❌ | — | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
-| **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Sortable** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | — | ✅ | ❌ | ✅ | ✅ |
-| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ |
-| **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ | ✅ |
-| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
-| **AutoSize** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| | Table | Grid | Masonry | Groups | Async | Selection | Sortable | Scale | Scrollbar | Page | Snapshots | AutoSize | Transition |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Table** | — | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ | ❌ | ❌ |
+| **Grid** | ❌ | — | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ⚠️ | ✅ | ❌ | ❌ |
+| **Masonry** | ❌ | ❌ | — | ❌ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ |
+| **Groups** | ✅ | ✅ | ❌ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Async** | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Selection** | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Sortable** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Scale** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | — | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **Scrollbar** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ❌ | ✅ | ✅ | ✅ |
+| **Page** | ⚠️ | ⚠️ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | — | ✅ | ✅ | ✅ |
+| **Snapshots** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ | ✅ |
+| **AutoSize** | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| **Transition** | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 
 | Symbol | Meaning |
 |--------|---------|
@@ -362,6 +387,7 @@ Most features compose freely. This matrix shows the known constraints:
 
 **Key constraints:**
 
+- **Transition ↔ Table ↔ Grid** — Transition uses 1D scaleY collapse, incompatible with multi-column layouts
 - **Table ↔ Grid ↔ Masonry ↔ Sortable** — Mutually exclusive layout modes; sortable is for flat lists only
 - **Sortable ↔ Scale** — Drag calculations require uncompressed scroll positions
 - **Table + Groups** — ✅ Full-width group headers in data tables, sticky headers sit below column header

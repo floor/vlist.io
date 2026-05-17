@@ -1,0 +1,148 @@
+name: Performance
+
+on:
+  workflow_dispatch:
+    inputs:
+      vlist_repository:
+        description: "Repository containing the vlist package to benchmark"
+        required: false
+        default: "floor/vlist"
+      vlist_ref:
+        description: "Branch, tag, or SHA from vlist_repository to benchmark"
+        required: false
+        default: "main"
+      source_repository:
+        description: "Repository that requested this benchmark run"
+        required: false
+        default: ""
+      source_pr_number:
+        description: "Pull request number in source_repository"
+        required: false
+        default: ""
+  pull_request:
+    paths:
+      - "benchmarks/**"
+      - "src/**"
+      - "package.json"
+      - "bun.lock"
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      VLIST_REPOSITORY: ${{ github.event.inputs.vlist_repository || 'floor/vlist' }}
+      VLIST_REF: ${{ github.event.inputs.vlist_ref || 'main' }}
+      SOURCE_REPOSITORY: ${{ github.event.inputs.source_repository || github.repository }}
+      SOURCE_PR_NUMBER: ${{ github.event.inputs.source_pr_number || github.event.pull_request.number || '' }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Checkout sibling vlist package
+        run: |
+          git init ../vlist
+          git -C ../vlist remote add origin "https://github.com/${VLIST_REPOSITORY}.git"
+          git -C ../vlist fetch --depth=1 origin "${VLIST_REF}"
+          git -C ../vlist checkout --detach FETCH_HEAD
+          git -C ../vlist log -1 --oneline
+
+      - name: Install dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+        run: bun install
+
+      - name: Install Chrome for Puppeteer
+        run: bunx puppeteer browsers install chrome
+
+      - name: Run perf smoke benchmark
+        continue-on-error: true
+        env:
+          BENCH_VLIST_REPOSITORY: ${{ env.VLIST_REPOSITORY }}
+          BENCH_VLIST_REF: ${{ env.VLIST_REF }}
+          BENCH_SOURCE_REPOSITORY: ${{ env.SOURCE_REPOSITORY }}
+          BENCH_SOURCE_PR_NUMBER: ${{ env.SOURCE_PR_NUMBER }}
+        run: bun run bench:ci -- --item-counts=10000 --suites=render-vanilla,scrollto-vanilla
+
+      - name: Build comparison summary
+        if: hashFiles('benchmarks/results/latest.json') != ''
+        run: |
+          if [ -f benchmarks/baselines/main.json ]; then
+            bun run bench:compare -- --baseline=benchmarks/baselines/main.json
+          else
+            bun run bench:compare
+          fi
+
+      - name: Store CI benchmark results
+        if: hashFiles('benchmarks/results/latest.json') != ''
+        run: bun run bench:store
+
+      - name: Build PR comment
+        if: github.event_name == 'pull_request' && hashFiles('benchmarks/results/latest.json') != ''
+        run: bun run bench:comment
+
+      - name: Post PR benchmark comment
+        if: github.event_name == 'pull_request' && hashFiles('benchmarks/results/pr-comment.md') != ''
+        continue-on-error: true
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require("fs");
+            const marker = "<!-- vlist-perf-comment -->";
+            const body = fs.readFileSync("benchmarks/results/pr-comment.md", "utf8");
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const previous = comments.find((comment) =>
+              comment.user.type === "Bot" && comment.body?.includes(marker)
+            );
+
+            if (previous) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: previous.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+      - name: Prepare perf artifacts
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/perf-results/benchmarks/results"
+          mkdir -p "$RUNNER_TEMP/perf-results/data"
+
+          for file in latest.json summary.md comparison.md pr-comment.md; do
+            if [ -f "benchmarks/results/$file" ]; then
+              cp "benchmarks/results/$file" "$RUNNER_TEMP/perf-results/benchmarks/results/$file"
+            fi
+          done
+
+          if [ -f data/benchmarks.db ]; then
+            cp data/benchmarks.db "$RUNNER_TEMP/perf-results/data/benchmarks.db"
+          fi
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: perf-results
+          path: ${{ runner.temp }}/perf-results

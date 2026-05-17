@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-05-14T17:53:23.307Z",
+  "baseUrl": "http://127.0.0.1:3348",
+  "config": {
+    "suiteIds": [
+      "render-vanilla",
+      "scrollto-vanilla"
+    ],
+    "itemCounts": [
+      10000
+    ],
+    "scrollSpeed": 7200,
+    "stressMs": 0
+  },
+  "metadata": {
+    "gitSha": "82f451146d730d79627c05143e5a76bf5366f3e9",
+    "branch": "codex/perf-automation",
+    "prNumber": 17,
+    "workflowRunId": "25876142833",
+    "workflowName": "Performance",
+    "runnerOs": "Linux",
+    "baselineSha": null
+  },
+  "environment": {
+    "vlistVersion": "1.8.3",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+    "hardwareConcurrency": 4,
+    "deviceMemory": 16
+  },
+  "results": [
+    {
+      "suiteId": "render-vanilla",
+      "itemCount": 10000,
+      "metrics": [
+        {
+          "label": "Median",
+          "value": 16.6,
+          "unit": "ms",
+          "better": "lower",
+          "rating": "good"
+        },
+        {
+          "label": "Min",
+          "value": 16.6,
+          "unit": "ms",
+          "better": "lower",
+          "rating": "good"
+        },
+        {
+          "label": "p95",
+          "value": 16.7,
+          "unit": "ms",
+          "better": "lower",
+          "rating": "good"
+        }
+      ],
+      "duration": 2084,
+      "success": true
+    },
+    {
+      "suiteId": "scrollto-vanilla",
+      "itemCount": 10000,
+      "metrics": [
+        {
+          "label": "Median",
+          "value": 83.3,
+          "unit": "ms",
+          "better": "lower",
+          "rating": "good"
+        },
+        {
+          "label": "Min",
+          "value": 83.1,
+          "unit": "ms",
+          "better": "lower",
+          "rating": "good"
+        },
+        {
+          "label": "p95",
+          "value": 83.3,
+          "unit": "ms",
+          "better": "lower",
+          "rating": "good"
+        },
+        {
+          "label": "Max",
+          "value": 83.3,
+          "unit": "ms",
+          "better": "lower",
+          "rating": "good"
+        }
+      ],
+      "duration": 2533,
+      "success": true
+    }
+  ]
+}
