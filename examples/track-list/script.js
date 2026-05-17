@@ -55,6 +55,7 @@ let loadedCount = 0;
 let deletedTracks = [];
 
 let currentInsertPosition = "original";
+let removeEndUnsub = null;
 let currentSort = { key: "id", direction: "desc" };
 let currentColumnWidths = null; // persists across rebuilds
 
@@ -256,7 +257,7 @@ function createListView(selectionMode, snapshot) {
   builder.use(withAsync(getAsyncConfig()));
   applyScale(builder);
   applyScrollbar(builder);
-  builder.use(withTransition({ duration: 2000 }));
+  builder.use(withTransition({ duration: 200 }));
   builder.use(
     withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
@@ -522,6 +523,10 @@ btnAddTrack.addEventListener("click", async () => {
     }
     insertAt = Math.min(insertAt, list.total);
 
+    if (removeEndUnsub) {
+      removeEndUnsub();
+      removeEndUnsub = null;
+    }
     list.addItem(track, insertAt);
     totalTracks = list.total;
   } catch (err) {
@@ -595,8 +600,10 @@ async function deleteSelected() {
   ) {
     const targetIndex = Math.min(lowestDeletedIndex, list.total - 1);
 
-    const unsub = list.on("remove:end", () => {
-      unsub();
+    if (removeEndUnsub) removeEndUnsub();
+    removeEndUnsub = list.on("remove:end", () => {
+      removeEndUnsub();
+      removeEndUnsub = null;
       const container = list.element;
       const el = container?.querySelector(`[data-index="${targetIndex}"]`);
       const id = el?.dataset.id;
