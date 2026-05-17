@@ -579,13 +579,15 @@ async function deleteSelected() {
   }
 
   // Remove from list with animation + push to recycle bin
-  deleteOrder.forEach(({ track, index }) => {
-    const result = list.removeItem(track.id);
-    if (result) {
+  const idsToRemove = deleteOrder.map(({ track }) => track.id);
+  const removedCount = list.removeItems(idsToRemove);
+
+  if (removedCount > 0) {
+    for (const { track, index } of deleteOrder) {
       deletedTracks.push({ id: track.id, index });
       if (index < lowestDeletedIndex) lowestDeletedIndex = index;
     }
-  });
+  }
 
   totalTracks = list.total;
   list.clearSelection();
@@ -646,14 +648,6 @@ function updateInsertPositionOptions(hasSelection) {
   );
   beforeOpt.disabled = !hasSelection;
   afterOpt.disabled = !hasSelection;
-  if (
-    !hasSelection &&
-    (currentInsertPosition === "before-selection" ||
-      currentInsertPosition === "after-selection")
-  ) {
-    currentInsertPosition = "original";
-    insertPositionSelect.value = "original";
-  }
 }
 
 // =============================================================================
