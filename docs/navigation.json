@@ -187,6 +187,11 @@
         "desc": "Architecture and competitive position"
       },
       {
+        "slug": "resources/debugging",
+        "name": "Debugging",
+        "desc": "Puppeteer debug harness for browser-level inspection"
+      },
+      {
         "slug": "resources/claude-code",
         "name": "Claude Code",
         "desc": "Custom agents and skills for AI-assisted development"
