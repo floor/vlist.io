@@ -115,6 +115,11 @@
         "slug": "features/snapshots",
         "name": "Snapshots",
         "desc": "Scroll save/restore (withSnapshots)"
+      },
+      {
+        "slug": "features/transition",
+        "name": "Transition",
+        "desc": "FLIP-based insert/remove animations (withTransition)"
       }
     ]
   },
