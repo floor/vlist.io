@@ -54,6 +54,7 @@ let loadedCount = 0;
 // Recycle bin — removed tracks are kept here for re-adding
 let deletedTracks = [];
 
+let currentInsertPosition = "original";
 let currentSort = { key: "id", direction: "desc" };
 let currentColumnWidths = null; // persists across rebuilds
 
@@ -151,6 +152,9 @@ const selectionCountEl = document.getElementById("selection-count");
 // Actions
 const btnAddTrack = document.getElementById("btn-add-track");
 const btnDeleteSelected = document.getElementById("btn-delete-selected");
+
+// Insert Position
+const insertPositionSelect = document.getElementById("insert-position");
 
 // =============================================================================
 // Async plugin config (shared across all modes)
@@ -252,7 +256,7 @@ function createListView(selectionMode, snapshot) {
   builder.use(withAsync(getAsyncConfig()));
   applyScale(builder);
   applyScrollbar(builder);
-  builder.use(withTransition({ duration: 200 }));
+  builder.use(withTransition({ duration: 2000 }));
   builder.use(
     withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
@@ -322,9 +326,10 @@ function createTableView(selectionMode, snapshot) {
       columnBorders: false,
       rowBorders: false,
       minColumnWidth: 50,
-      sort: currentSort.key !== "id"
-        ? { key: currentSort.key, direction: currentSort.direction }
-        : undefined,
+      sort:
+        currentSort.key !== "id"
+          ? { key: currentSort.key, direction: currentSort.direction }
+          : undefined,
     }),
   );
   applyScale(builder);
@@ -476,6 +481,7 @@ btnClear.addEventListener("click", () => {
 function updateSelectionCount(selected) {
   selectionCountEl.textContent = formatSelectionCount(selected.length);
   btnDeleteSelected.disabled = selected.length === 0;
+  updateInsertPositionOptions(selected.length > 0);
 }
 
 // =============================================================================
@@ -485,14 +491,37 @@ function updateSelectionCount(selected) {
 btnAddTrack.addEventListener("click", async () => {
   if (deletedTracks.length === 0) return;
 
-  const { id, index } = deletedTracks.pop();
+  const entry = deletedTracks.pop();
 
   try {
-    const res = await fetch(`${API_BASE}/${id}/restore`, { method: "PATCH" });
+    const res = await fetch(`${API_BASE}/${entry.id}/restore`, {
+      method: "PATCH",
+    });
     if (!res.ok) throw new Error(`Restore failed: ${res.status}`);
     const track = await res.json();
 
-    const insertAt = Math.min(index, list.total);
+    let insertAt = 0;
+    if (currentInsertPosition === "before-selection") {
+      const selected = list.getSelected();
+      if (selected.length > 0) {
+        const el = list.element?.querySelector(`[data-id="${selected[0]}"]`);
+        if (el) insertAt = parseInt(el.dataset.index, 10);
+      }
+    } else if (currentInsertPosition === "after-selection") {
+      const selected = list.getSelected();
+      if (selected.length > 0) {
+        const el = list.element?.querySelector(
+          `[data-id="${selected[selected.length - 1]}"]`,
+        );
+        if (el) insertAt = parseInt(el.dataset.index, 10) + 1;
+      }
+    } else if (currentInsertPosition === "original") {
+      insertAt = entry.index ?? 0;
+    } else if (currentInsertPosition === "bottom") {
+      insertAt = list.total;
+    }
+    insertAt = Math.min(insertAt, list.total);
+
     list.addItem(track, insertAt);
     totalTracks = list.total;
   } catch (err) {
@@ -508,9 +537,8 @@ const MAX_DELETE = 25;
 function updateAddButton() {
   const count = deletedTracks.length;
   btnAddTrack.disabled = count === 0;
-  btnAddTrack.textContent = count > 0
-    ? `Restore Track (${count})`
-    : "Restore Track";
+  btnAddTrack.textContent =
+    count > 0 ? `Restore Track (${count})` : "Restore Track";
 }
 
 async function deleteSelected() {
@@ -593,6 +621,33 @@ document.addEventListener("keydown", (e) => {
     deleteSelected();
   }
 });
+
+// =============================================================================
+// Insert Position
+// =============================================================================
+
+insertPositionSelect.addEventListener("change", () => {
+  currentInsertPosition = insertPositionSelect.value;
+});
+
+function updateInsertPositionOptions(hasSelection) {
+  const beforeOpt = insertPositionSelect.querySelector(
+    '[value="before-selection"]',
+  );
+  const afterOpt = insertPositionSelect.querySelector(
+    '[value="after-selection"]',
+  );
+  beforeOpt.disabled = !hasSelection;
+  afterOpt.disabled = !hasSelection;
+  if (
+    !hasSelection &&
+    (currentInsertPosition === "before-selection" ||
+      currentInsertPosition === "after-selection")
+  ) {
+    currentInsertPosition = "original";
+    insertPositionSelect.value = "original";
+  }
+}
 
 // =============================================================================
 // Event Bindings
