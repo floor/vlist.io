@@ -4,7 +4,7 @@
 // Defines the vlist create/destroy lifecycle and formats results with
 // rating thresholds.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -34,14 +34,14 @@ defineSuite({
     // ── Create vlist ───────────────────────────────────────────────────
     container.innerHTML = "";
 
-    const list = vlist({
+    const list = createVList({
       container,
       item: {
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
       items,
-    }).build();
+    });
 
     // Let initial render settle
     await waitFrames(10);

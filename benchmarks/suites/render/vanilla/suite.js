@@ -3,7 +3,7 @@
 // Thin wrapper around engine/render.js measureRenderPerformance.
 // Defines the vlist create/destroy lifecycle and formats results with rating thresholds.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -25,11 +25,11 @@ defineSuite({
     const result = await measureRenderPerformance({
       container,
       createFn: async (c) => {
-        return vlist({
+        return createVList({
           container: c,
           item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
           items,
-        }).build();
+        });
       },
       destroyFn: (list) => list.destroy(),
       label: "vlist-vanilla",
