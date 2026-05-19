@@ -306,10 +306,7 @@ export function createList() {
   if (firstVisibleIndex > 0) {
     list.scrollToIndex(firstVisibleIndex, "start");
   } else {
-    requestAnimationFrame(() => {
-      const vp = container.querySelector(".vlist-viewport");
-      if (vp) vp.scrollTop = vp.scrollHeight;
-    });
+    list.scrollToIndex(currentItems.length - 1, "end");
   }
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
@@ -347,12 +344,12 @@ const sendMessage = () => {
   };
 
   measureHeights([msg], getMeasureWidth());
-  const insertAt = list.total;
+  const insertAt = currentItems.length;
   currentItems = [...currentItems, msg];
   list.insertItem(msg, insertAt);
 
   // Always scroll to bottom when sending
-  list.scrollToIndex(list.total - 1, {
+  list.scrollToIndex(currentItems.length - 1, {
     align: "start",
     behavior: "smooth",
     duration: 300,
@@ -400,7 +397,7 @@ const generateRandomMessage = () => {
   };
 
   measureHeights([msg], getMeasureWidth());
-  const insertAt = list.total;
+  const insertAt = currentItems.length;
   currentItems = [...currentItems, msg];
   list.insertItem(msg, insertAt);
 
@@ -409,7 +406,7 @@ const generateRandomMessage = () => {
   if (!atBottom) {
     showNewMessages(unreadCount + 1);
   } else {
-    list.scrollToIndex(list.total - 1, {
+    list.scrollToIndex(currentItems.length - 1, {
       align: "start",
       behavior: "smooth",
       duration: 300,

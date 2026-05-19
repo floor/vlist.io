@@ -4,7 +4,7 @@
 // The ARIA inspector updates live as you interact.
 // Toggle "interactive" off to disable all built-in keyboard navigation.
 
-import { createVList, groups } from "vlist";
+import { createVList, groups, selection } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -155,6 +155,7 @@ export function createList() {
       },
       sticky: true,
     }),
+    selection({ mode: "single", followFocus: true }),
   ]);
 
   list.on("scroll", updateInfo);
