@@ -2,12 +2,12 @@
 // Demonstrates smart loading that adapts to scroll velocity
 
 import {
-  vlist,
-  withSelection,
-  withAsync,
-  withScale,
-  withScrollbar,
-  withSnapshots,
+  createVList,
+  selection,
+  async as asyncPlugin,
+  scale,
+  scrollbar,
+  snapshots,
 } from "vlist";
 import {
   LOAD_VELOCITY_THRESHOLD,
@@ -100,45 +100,43 @@ function updateContext() {
   if (infoLoadedEl) infoLoadedEl.textContent = formatLoadedCount(loadedCount);
 }
 
-// Build list — withSnapshots({ autoSave }) handles save/restore automatically.
+// Build list — snapshots({ autoSave }) handles save/restore automatically.
 // On first visit, autoLoad fetches data. On return visits, the snapshot provides
 // the total and scroll position, and autoLoad is cancelled automatically.
-const list = vlist({
+const list = createVList({
   container: "#list-container",
   ariaLabel: "Virtual user list with velocity-based loading",
   item: {
     height: ITEM_HEIGHT,
     template: itemTemplate,
   },
-})
-  .use(withSelection({ mode: "single" }))
-  .use(
-    withAsync({
-      adapter: {
-        read: async ({ offset, limit }) => {
-          loadRequests++;
-          isLoading = true;
-          updateControls();
-          updateContext();
-          const result = await fetchItems(offset, limit);
-          isLoading = false;
-          updateControls();
-          updateContext();
-          return result;
-        },
+}, [
+  selection({ mode: "single" }),
+  asyncPlugin({
+    adapter: {
+      read: async ({ offset, limit }) => {
+        loadRequests++;
+        isLoading = true;
+        updateControls();
+        updateContext();
+        const result = await fetchItems(offset, limit);
+        isLoading = false;
+        updateControls();
+        updateContext();
+        return result;
       },
-      storage: {
-        chunkSize: 25,
-      },
-      loading: {
-        cancelThreshold: LOAD_VELOCITY_THRESHOLD,
-      },
-    }),
-  )
-  .use(withScale())
-  .use(withScrollbar({ autoHide: true }))
-  .use(withSnapshots({ autoSave: STORAGE_KEY }))
-  .build();
+    },
+    storage: {
+      chunkSize: 25,
+    },
+    loading: {
+      cancelThreshold: LOAD_VELOCITY_THRESHOLD,
+    },
+  }),
+  scale(),
+  scrollbar({ autoHide: true }),
+  snapshots({ autoSave: STORAGE_KEY }),
+]);
 
 // =============================================================================
 // Shared footer stats (left side — progress, velocity, items)

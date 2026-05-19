@@ -1,9 +1,9 @@
 // Data Table — Virtualized table with server-side sorting, filtering, and search
-// Demonstrates withTable + withAsync backed by a real SQLite database (33K cities).
+// Demonstrates table + async plugins backed by a real SQLite database (33K cities).
 // All sorting and filtering happens server-side via /api/cities.
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
-import { vlist, withTable, withSelection, withAsync, withSnapshots } from "vlist";
+import { createVList, table, selection, async as asyncPlugin, snapshots } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -359,51 +359,44 @@ export function createList() {
   const columnBorders = currentBorderMode === "both";
   const rowBorders = !isStriped && currentBorderMode !== "none";
 
-  const builder = vlist({
-    container: "#list-container",
-    ariaLabel: "World cities data table",
-    item: {
-      height: currentRowHeight,
-      template: fallbackTemplate,
-      striped: isStriped,
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "World cities data table",
+      item: {
+        height: currentRowHeight,
+        template: fallbackTemplate,
+        striped: isStriped,
+      },
     },
-  });
-
-  // Async adapter — lazy chunk-based loading from /api/cities
-  builder.use(
-    withAsync({
-      adapter: citiesAdapter,
-      autoLoad: true,
-      storage: {
-        chunkSize: CHUNK_SIZE,
-        maxCachedItems: 10000,
-      },
-      loading: {
-        cancelThreshold: 8,
-        preloadThreshold: 2,
-        preloadAhead: 50,
-      },
-    }),
+    [
+      asyncPlugin({
+        adapter: citiesAdapter,
+        autoLoad: true,
+        storage: {
+          chunkSize: CHUNK_SIZE,
+          maxCachedItems: 10000,
+        },
+        loading: {
+          cancelThreshold: 8,
+          preloadThreshold: 2,
+          preloadAhead: 50,
+        },
+      }),
+      table({
+        columns,
+        rowHeight: currentRowHeight,
+        headerHeight: HEADER_HEIGHT,
+        resizable: true,
+        columnBorders,
+        rowBorders,
+        minColumnWidth: 50,
+        sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
+      }),
+      selection({ mode: "single" }),
+      snapshots(snapshot ? { restore: snapshot } : undefined),
+    ],
   );
-
-  builder.use(
-    withTable({
-      columns,
-      rowHeight: currentRowHeight,
-      headerHeight: HEADER_HEIGHT,
-      resizable: true,
-      columnBorders,
-      rowBorders,
-      minColumnWidth: 50,
-      sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
-    }),
-  );
-
-  builder.use(withSelection({ mode: "single" }));
-
-  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
-
-  list = builder.build();
 
   // Wire events
   list.on("scroll", updateInfo);

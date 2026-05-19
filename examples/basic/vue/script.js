@@ -2,7 +2,7 @@
 // Demonstrates core vlist with 100,000 items.
 
 import { createApp, ref, watch, onUnmounted } from "vue";
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
@@ -19,7 +19,7 @@ const App = {
     watch(containerRef, (el) => {
       if (!el) return;
 
-      instance = vlist({
+      instance = createVList({
         container: el,
         ariaLabel: "Orders",
         items,
@@ -28,7 +28,7 @@ const App = {
           striped: true,
           template: itemTemplate,
         },
-      }).build();
+      });
     });
 
     onUnmounted(() => {

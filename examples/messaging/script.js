@@ -1,8 +1,8 @@
 // Messaging — Chat UI with reverse mode + date headers
-// Demonstrates reverse: true, withGroups, DOM measurement,
+// Demonstrates reverse: true, groups plugin, DOM measurement,
 // auto-scroll, incoming messages, send input.
 
-import { vlist, withGroups, withTransition } from "vlist";
+import { createVList, groups, transition } from "vlist";
 import {
   getChatUser,
   pickMessage,
@@ -252,7 +252,21 @@ export function createList() {
   // Measure all items at actual container width
   measureHeights(currentItems, container.clientWidth);
 
-  const builder = vlist({
+  const plugins = [];
+  if (currentHeaderMode !== "off") {
+    plugins.push(groups({
+      getGroupForIndex: (index) => {
+        const item = currentItems[index];
+        return item ? DATE_LABELS[item.dateSection] : "Unknown";
+      },
+      header: { height: DATE_HEADER_HEIGHT, template: renderDateHeader },
+      sticky: currentHeaderMode === "sticky",
+    }));
+  }
+
+  plugins.push(transition({ remove: false }));
+
+  list = createVList({
     container: "#list-container",
     ariaLabel: "Chat messages",
     interactive: false,
@@ -269,24 +283,7 @@ export function createList() {
       },
     },
     items: currentItems,
-  });
-
-  if (currentHeaderMode !== "off") {
-    builder.use(
-      withGroups({
-        getGroupForIndex: (index) => {
-          const item = currentItems[index];
-          return item ? DATE_LABELS[item.dateSection] : "Unknown";
-        },
-        header: { height: DATE_HEADER_HEIGHT, template: renderDateHeader },
-        sticky: currentHeaderMode === "sticky",
-      }),
-    );
-  }
-
-  builder.use(withTransition({ remove: false }));
-
-  list = builder.build();
+  }, plugins);
 
   // Wire events
   list.on("scroll", updateInfo);

@@ -4,7 +4,7 @@
 // The ARIA inspector updates live as you interact.
 // Toggle "interactive" off to disable all built-in keyboard navigation.
 
-import { vlist, withGroups } from "vlist";
+import { createVList, groups } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -137,7 +137,7 @@ export function createList() {
   const container = document.getElementById("list-container");
   container.innerHTML = "";
 
-  list = vlist({
+  list = createVList({
     container: "#list-container",
     ariaLabel: "Employee directory",
     item: {
@@ -145,19 +145,17 @@ export function createList() {
       template: itemTemplate,
     },
     items: users,
-    accessible: interactiveEnabled,
-  })
-    .use(
-      withGroups({
-        getGroupForIndex: (index) => users[index].lastName[0].toUpperCase(),
-        header: {
-          height: HEADER_HEIGHT,
-          template: (group) => renderGroupHeader(group),
-        },
-        sticky: true,
-      }),
-    )
-    .build();
+    interactive: interactiveEnabled,
+  }, [
+    groups({
+      getGroupForIndex: (index) => users[index].lastName[0].toUpperCase(),
+      header: {
+        height: HEADER_HEIGHT,
+        template: (group) => renderGroupHeader(group),
+      },
+      sticky: true,
+    }),
+  ]);
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);

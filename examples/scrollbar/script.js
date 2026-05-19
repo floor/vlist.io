@@ -1,7 +1,7 @@
-// Scrollbar — showcase all withScrollbar options
+// Scrollbar — showcase all scrollbar plugin options
 // Uses a contact list as the canvas to demonstrate native, custom, and none modes.
 
-import { vlist, withScrollbar, withSelection, withSnapshots } from "vlist";
+import { createVList, scrollbar, selection, snapshots } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -137,33 +137,30 @@ export function createList() {
   const scrollConfig = {};
   if (mode === "none") scrollConfig.scrollbar = "none";
 
-  const builder = vlist({
+  const plugins = [];
+  if (mode === "custom") {
+    plugins.push(scrollbar({
+      autoHide,
+      autoHideDelay,
+      gutter: gutterEnabled,
+      showOnHover,
+      showOnViewportEnter,
+      padding,
+      clickBehavior,
+      minThumbSize,
+    }));
+  }
+
+  plugins.push(selection());
+  plugins.push(snapshots({ autoSave: STORAGE_KEY }));
+
+  list = createVList({
     container: "#list-container",
     ariaLabel: "Scrollbar demo — contact list",
     scroll: scrollConfig,
     item: { height: ITEM_HEIGHT, template: renderContact },
     items: contacts,
-  });
-
-  if (mode === "custom") {
-    builder.use(
-      withScrollbar({
-        autoHide,
-        autoHideDelay,
-        gutter: gutterEnabled,
-        showOnHover,
-        showOnViewportEnter,
-        padding,
-        clickBehavior,
-        minThumbSize,
-      }),
-    );
-  }
-
-  builder.use(withSelection());
-  builder.use(withSnapshots({ autoSave: STORAGE_KEY }));
-
-  list = builder.build();
+  }, plugins);
 
   if (savedPos > 0) {
     list.scrollTo(savedPos);

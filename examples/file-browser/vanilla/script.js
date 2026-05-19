@@ -1,8 +1,8 @@
 // File Browser — Finder-like file browser with grid/list views
-// Grid view uses withGrid, list view uses withTable for resizable/sortable columns
+// Grid view uses grid plugin, list view uses table plugin for resizable/sortable columns
 // Demonstrates switching between two layout modes with shared navigation
 
-import { vlist, withGrid, withGroups, withTable, withSelection } from "vlist";
+import { createVList, grid, groups, table, selection } from "vlist";
 
 // =============================================================================
 // File Type Icons
@@ -329,7 +329,7 @@ const gridItemTemplate = (item) => {
   `;
 };
 
-// Fallback template for table (withTable uses cell renderers instead)
+// Fallback template for table (table plugin uses cell renderers instead)
 const tableRowTemplate = () => "";
 
 // =============================================================================
@@ -442,7 +442,7 @@ async function createBrowser(view = "list") {
 }
 
 // =============================================================================
-// Grid View (withGrid + withGroups)
+// Grid View (grid + groups plugins)
 // =============================================================================
 
 function createGridView() {
@@ -467,19 +467,10 @@ function createGridView() {
     });
   }
 
-  let builder = vlist({
-    container: "#browser-container",
-    ariaLabel: "File browser",
-    item: {
-      height,
-      template: gridItemTemplate,
-    },
-    items: sorted,
-  }).use(withGrid({ columns: currentColumns, gap: currentGap }));
-
+  const plugins = [grid({ columns: currentColumns, gap: currentGap })];
   if (groupMap) {
-    builder = builder.use(
-      withGroups({
+    plugins.push(
+      groups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
         header: {
           height: 40,
@@ -500,8 +491,15 @@ function createGridView() {
       }),
     );
   }
-
-  list = builder.build();
+  list = createVList({
+    container: "#browser-container",
+    ariaLabel: "File browser",
+    item: {
+      height,
+      template: gridItemTemplate,
+    },
+    items: sorted,
+  }, plugins);
 
   list.on("item:click", ({ item, index }) => {
     handleItemClick(item, index);
@@ -515,7 +513,7 @@ function createGridView() {
 }
 
 // =============================================================================
-// List View (withTable + withSelection)
+// List View (table + selection plugins)
 // =============================================================================
 
 function createTableList() {
@@ -552,20 +550,8 @@ function createTableList() {
     });
   }
 
-  let builder = vlist({
-    container: "#browser-container",
-    ariaLabel: "File browser",
-    padding: [2, 6],
-    item: {
-      height: rowHeight,
-      striped: "odd",
-      template: tableRowTemplate,
-    },
-    items: sortedItems,
-  });
-
-  builder = builder.use(
-    withTable({
+  const plugins = [
+    table({
       columns: FILE_COLUMNS,
       rowHeight,
       headerHeight,
@@ -575,11 +561,10 @@ function createTableList() {
       minColumnWidth: 50,
       sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
     }),
-  );
-
+  ];
   if (groupMap) {
-    builder = builder.use(
-      withGroups({
+    plugins.push(
+      groups({
         getGroupForIndex: (index) => groupMap.get(index) || "",
         header: {
           height: 32,
@@ -600,10 +585,19 @@ function createTableList() {
       }),
     );
   }
+  plugins.push(selection({ mode: "single" }));
 
-  builder = builder.use(withSelection({ mode: "single" }));
-
-  list = builder.build();
+  list = createVList({
+    container: "#browser-container",
+    ariaLabel: "File browser",
+    padding: [2, 6],
+    item: {
+      height: rowHeight,
+      striped: "odd",
+      template: tableRowTemplate,
+    },
+    items: sortedItems,
+  }, plugins);
 
   // Column sort — user clicks a sortable header
   list.on("column:sort", ({ key, direction }) => {

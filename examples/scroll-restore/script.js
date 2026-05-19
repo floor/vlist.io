@@ -1,7 +1,7 @@
 // Scroll Save/Restore Example
-// Demonstrates getScrollSnapshot() and withSnapshots({ restore }) for SPA navigation
+// Demonstrates getScrollSnapshot() and snapshots({ restore }) for SPA navigation
 
-import { vlist, withSelection, withSnapshots } from "vlist";
+import { createVList, selection, snapshots } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -87,12 +87,12 @@ let snapshotUpdateId = null;
  *
  * @param {import('vlist').ScrollSnapshot} [snapshot]
  *   Optional snapshot to restore automatically after build().
- *   When provided it is passed to `withSnapshots({ restore })` which
+ *   When provided it is passed to `snapshots({ restore })` which
  *   schedules `restoreScroll()` via `queueMicrotask` — the user never
  *   sees position 0.
  */
 function createList(snapshot) {
-  list = vlist({
+  list = createVList({
     container: listContainer,
     ariaLabel: "Employee list",
     item: {
@@ -112,10 +112,10 @@ function createList(snapshot) {
       },
     },
     items,
-  })
-    .use(withSelection({ mode: "multiple" }))
-    .use(withSnapshots(snapshot ? { restore: snapshot } : undefined))
-    .build();
+  }, [
+    selection({ mode: "multiple" }),
+    snapshots(snapshot ? { restore: snapshot } : undefined),
+  ]);
 
   // Info bar updates
   list.on("scroll", updateInfo);
@@ -229,7 +229,7 @@ function goBack() {
   const raw = sessionStorage.getItem(STORAGE_KEY);
   const snapshot = raw ? JSON.parse(raw) : undefined;
 
-  // 3. Recreate the list — snapshot is passed to withSnapshots({ restore })
+  // 3. Recreate the list — snapshot is passed to snapshots({ restore })
   //    so scroll + selection are restored automatically after build().
   createList(snapshot);
 }
@@ -260,7 +260,7 @@ function init() {
   }
 
   // Create the list — if a snapshot exists it is passed directly to
-  // withSnapshots({ restore }) for automatic restoration.
+  // snapshots({ restore }) for automatic restoration.
   createList(snapshot);
 
   // Pre-select a handful of items to make the demo more interesting

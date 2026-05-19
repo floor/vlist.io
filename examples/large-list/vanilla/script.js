@@ -1,5 +1,5 @@
 // Builder Million Items — Composable entry point
-// Uses vlist/builder with withScale + withScrollbar plugins
+// Uses scale + scrollbar plugins
 // Demonstrates handling 1M+ items with automatic scroll scaling
 
 import { createVList, scale, scrollbar } from "vlist";

@@ -1,15 +1,15 @@
 // Books — Virtualized table with server-side sorting, filtering, and search
-// Demonstrates withTable + withAsync backed by a real SQLite database (40.8M books).
+// Demonstrates table + async plugins backed by a real SQLite database (40.8M books).
 // All sorting and filtering happens server-side via /api/books.
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
 import {
-  vlist,
-  withTable,
-  withSelection,
-  withAsync,
-  withScale,
-  withScrollbar,
+  createVList,
+  table,
+  selection,
+  async as asyncPlugin,
+  scale,
+  scrollbar,
 } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -607,53 +607,44 @@ export function createList() {
   const columnBorders = false;
   const rowBorders = true;
 
-  const builder = vlist({
-    container: "#list-container",
-    ariaLabel: "Open Library books data table",
-    item: {
-      height: currentRowHeight,
-      template: fallbackTemplate,
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Open Library books data table",
+      item: {
+        height: currentRowHeight,
+        template: fallbackTemplate,
+      },
     },
-  });
-
-  // Async adapter — lazy chunk-based loading from /api/books
-  builder.use(
-    withAsync({
-      adapter: booksAdapter,
-      autoLoad: true,
-      storage: {
-        chunkSize: CHUNK_SIZE,
-        maxCachedItems: 10000,
-      },
-      loading: {
-        cancelThreshold: 8,
-        preloadThreshold: 2,
-        preloadAhead: 50,
-      },
-    }),
+    [
+      asyncPlugin({
+        adapter: booksAdapter,
+        autoLoad: true,
+        storage: {
+          chunkSize: CHUNK_SIZE,
+          maxCachedItems: 10000,
+        },
+        loading: {
+          cancelThreshold: 8,
+          preloadThreshold: 2,
+          preloadAhead: 50,
+        },
+      }),
+      table({
+        columns,
+        rowHeight: currentRowHeight,
+        headerHeight: HEADER_HEIGHT,
+        resizable: true,
+        columnBorders,
+        rowBorders,
+        minColumnWidth: 50,
+        sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
+      }),
+      selection({ mode: "single" }),
+      scale(),
+      scrollbar({ autoHide: true }),
+    ],
   );
-
-  builder.use(
-    withTable({
-      columns,
-      rowHeight: currentRowHeight,
-      headerHeight: HEADER_HEIGHT,
-      resizable: true,
-      columnBorders,
-      rowBorders,
-      minColumnWidth: 50,
-      sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
-    }),
-  );
-
-  builder.use(withSelection({ mode: "single" }));
-
-  // Scale + custom scrollbar — required for 40M+ items where total height
-  // far exceeds the browser's ~16.7M pixel limit.
-  builder.use(withScale());
-  builder.use(withScrollbar({ autoHide: true }));
-
-  list = builder.build();
 
   // Wire events
   list.on("scroll", updateInfo);
