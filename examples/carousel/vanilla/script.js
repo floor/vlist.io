@@ -2,7 +2,7 @@
 // Horizontal scrolling with toggle between fixed and variable item widths.
 // Uses split-layout + panel + shared info bar stats (same pattern as basic).
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import { items, buildConfig, getDetailHtml, ASPECT_RATIO } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
@@ -93,10 +93,10 @@ function createList() {
   listContainerEl.style.setProperty("--item-gap", currentGap + "px");
   listContainerEl.style.setProperty("--item-radius", currentRadius + "px");
 
-  list = vlist({
+  list = createVList({
     container: "#list-container",
     ...buildConfig(variableWidth, currentHeight, currentGap, showScrollbar),
-  }).build();
+  });
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);
