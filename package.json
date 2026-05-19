@@ -45,7 +45,7 @@
     "react-window": "1.8.10",
     "solid-js": "^1.9.11",
     "virtua": "^0.48.6",
-    "vlist": "file:../vlist",
+    "vlist": "file:../vlist.v2",
     "vlist-react": "^1.6.0",
     "vlist-solidjs": "^1.6.0",
     "vlist-svelte": "^1.6.0",

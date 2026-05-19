@@ -231,7 +231,7 @@ let _vlistHash: string | null = null;
 function getVlistHash(): string {
   if (_vlistHash) return _vlistHash;
   const vlistDistDir = isVlistLinked()
-    ? resolve("../vlist/dist")
+    ? join(getVlistDir(), "dist")
     : resolve("node_modules/vlist/dist");
   const vlistDist = join(vlistDistDir, "index.js");
   if (existsSync(vlistDist)) {
@@ -253,24 +253,31 @@ function getVlistHash(): string {
  *  The real bundle is 100+ KB. A corrupted re-export stub is ~1.5 KB. */
 const MIN_VALID_DIST_SIZE = 10_240;
 
-/** True when vlist is a local file: link (dev), not an npm install (deploy). */
-function isVlistLinked(): boolean {
+/** Resolve the vlist directory from package.json dependency spec. */
+function getVlistDir(): string {
   const pkg = JSON.parse(readFileSync("package.json", "utf-8"));
   const spec = pkg.dependencies?.["vlist"] ?? "";
-  return spec.startsWith("file:");
+  if (!spec.startsWith("file:")) return "";
+  return resolve(spec.slice(5));
+}
+
+/** True when vlist is a local file: link (dev), not an npm install (deploy). */
+function isVlistLinked(): boolean {
+  return getVlistDir() !== "";
 }
 
 /** Check if vlist dist is missing, corrupted, or stale. */
 function isVlistDistStale(): boolean {
-  if (!isVlistLinked()) return false; // npm install — local dist irrelevant
-  const distFile = resolve("../vlist/dist/index.js");
+  const vlistDir = getVlistDir();
+  if (!vlistDir) return false; // npm install — local dist irrelevant
+  const distFile = join(vlistDir, "dist/index.js");
   if (!existsSync(distFile)) return true;
 
   const distStat = statSync(distFile);
   if (distStat.size < MIN_VALID_DIST_SIZE) return true;
 
   const distMtime = distStat.mtimeMs;
-  const srcDir = resolve("../vlist/src");
+  const srcDir = join(vlistDir, "src");
   if (!existsSync(srcDir)) return false;
 
   const checkDir = (dir: string): boolean => {
@@ -301,7 +308,8 @@ function isVlistDistStale(): boolean {
 function ensureVlistDist(): void {
   if (!isVlistDistStale()) return;
 
-  const vlistDir = resolve("../vlist");
+  const vlistDir = getVlistDir();
+  if (!vlistDir) return;
   const distFile = join(vlistDir, "dist/index.js");
   const missing = !existsSync(distFile);
   const corrupt = !missing && statSync(distFile).size < MIN_VALID_DIST_SIZE;
@@ -317,7 +325,7 @@ function ensureVlistDist(): void {
   if (result.status !== 0) {
     console.error("\n  ❌  vlist build failed (exit code %d)", result.status);
     console.error("  Fix the issue and retry, or build manually:");
-    console.error("\n    cd ../vlist && bun run build\n");
+    console.error(`\n    cd ${vlistDir} && bun run build\n`);
     process.exit(1);
   }
 
@@ -768,7 +776,7 @@ async function watchMode() {
   // Watch vlist dist directory for changes (not src — vlist has its own
   // watcher that rebuilds dist, so we react to the build output to avoid
   // racing with a mid-write dist).
-  const vlistDistDir = resolve("../vlist/dist");
+  const vlistDistDir = join(getVlistDir() || resolve("../vlist"), "dist");
   if (existsSync(vlistDistDir)) {
     let debounce: ReturnType<typeof setTimeout> | null = null;
     console.log("👀 Watching vlist/dist for changes...\n");

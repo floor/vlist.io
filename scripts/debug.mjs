@@ -89,7 +89,7 @@ export async function debug(path, opts = {}) {
 
   const SEL = {
     viewport: `.${prefix}-viewport`,
-    items: `.${prefix}-items`,
+    items: `.${prefix}-content`,
     item: `.${prefix}-item`,
   };
 
