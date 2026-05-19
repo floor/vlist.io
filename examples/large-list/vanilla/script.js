@@ -2,7 +2,7 @@
 // Uses vlist/builder with withScale + withScrollbar plugins
 // Demonstrates handling 1M+ items with automatic scroll scaling
 
-import { vlist, withScale, withScrollbar } from "vlist";
+import { createVList, scale, scrollbar } from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -123,7 +123,11 @@ function createList(sizeKey) {
   const count = SIZES[sizeKey];
   const items = generateItems(count);
 
-  const builder = vlist({
+  const plugins = count > 100_000
+    ? [scale(), scrollbar({ autoHide: true })]
+    : [];
+
+  list = createVList({
     container: "#list-container",
     ariaLabel: `${count.toLocaleString()} items list`,
     item: {
@@ -131,13 +135,7 @@ function createList(sizeKey) {
       template: itemTemplate,
     },
     items,
-  });
-
-  if (count > 100_000) {
-    builder.use(withScale()).use(withScrollbar({ autoHide: true }));
-  }
-
-  list = builder.build();
+  }, plugins);
 
   // Bind events
   list.on("scroll", ({ scrollPosition, direction }) => {
