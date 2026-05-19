@@ -4,7 +4,7 @@
 // Uses the core vlist library directly (no SolidJS runtime in benchmarks).
 // Defines the vlist create/destroy lifecycle and formats results with rating thresholds.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -26,14 +26,14 @@ defineSuite({
     const result = await measureRenderPerformance({
       container,
       createFn: async (c) => {
-        return vlist({
+        return createVList({
           container: c,
           items,
           item: {
             height: ITEM_HEIGHT,
             template: benchmarkTemplate,
           },
-        }).build();
+        });
       },
       destroyFn: (instance) => instance.destroy(),
       label: "vlist-solidjs",

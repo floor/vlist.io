@@ -6,7 +6,7 @@
 //
 // Uses the core vlist library directly (no SolidJS runtime in benchmarks).
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -78,14 +78,14 @@ defineSuite({
     {
       const warmupItems = generateItems(Math.min(itemCount, 10_000));
       container.innerHTML = "";
-      const warmupInstance = vlist({
+      const warmupInstance = createVList({
         container,
         items: warmupItems,
         item: {
           height: ITEM_HEIGHT,
           template: benchmarkTemplate,
         },
-      }).build();
+      });
 
       await waitFrames(15);
 
@@ -117,14 +117,14 @@ defineSuite({
     // Phase 4: Create vlist and measure scroll performance
     // =====================================================================
     container.innerHTML = "";
-    const instance = vlist({
+    const instance = createVList({
       container,
       items,
       item: {
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
-    }).build();
+    });
     await waitFrames(10);
 
     const viewport = findViewport(container);
