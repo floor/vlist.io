@@ -36,6 +36,7 @@ const GRID_COLUMNS = 4;
 const GRID_GAP = 8;
 const TABLE_ROW_HEIGHT = 36;
 const TABLE_HEADER_HEIGHT = 36;
+const SNAPSHOT_KEY = "track-list-scroll";
 
 // =============================================================================
 // State
@@ -183,10 +184,10 @@ function getAsyncConfig() {
 
 function createList(selectionMode) {
   // Capture snapshot before destroying so we can restore scroll + selection
-  let snapshot = null;
   if (list) {
     try {
-      snapshot = list.getScrollSnapshot();
+      const snapshot = list.getScrollSnapshot();
+      sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot));
     } catch {}
     list.destroy();
   }
@@ -198,11 +199,11 @@ function createList(selectionMode) {
   container.innerHTML = "";
 
   if (currentLayoutMode === "grid") {
-    createGridView(selectionMode, snapshot);
+    createGridView(selectionMode);
   } else if (currentLayoutMode === "table") {
-    createTableView(selectionMode, snapshot);
+    createTableView(selectionMode);
   } else {
-    createListView(selectionMode, snapshot);
+    createListView(selectionMode);
   }
 
   bindListEvents();
@@ -242,7 +243,7 @@ function applyScale(plugins) {
 // List View (default — vertical list with 80px rows)
 // =============================================================================
 
-function createListView(selectionMode, snapshot) {
+function createListView(selectionMode) {
   const plugins = [
     asyncPlugin(getAsyncConfig()),
   ];
@@ -252,7 +253,7 @@ function createListView(selectionMode, snapshot) {
   plugins.push(
     selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
-  plugins.push(snapshots(snapshot ? { restore: snapshot } : undefined));
+  plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
   list = createVList({
     container: "#list-container",
@@ -268,7 +269,7 @@ function createListView(selectionMode, snapshot) {
 // Grid View (grid plugin — card layout)
 // =============================================================================
 
-function createGridView(selectionMode, snapshot) {
+function createGridView(selectionMode) {
   const container = document.getElementById("list-container");
   const innerWidth = container.clientWidth - 2;
   const colWidth = (innerWidth - (GRID_COLUMNS - 1) * GRID_GAP) / GRID_COLUMNS;
@@ -283,7 +284,7 @@ function createGridView(selectionMode, snapshot) {
   plugins.push(
     selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
-  plugins.push(snapshots(snapshot ? { restore: snapshot } : undefined));
+  plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
   list = createVList({
     container: "#list-container",
@@ -296,7 +297,7 @@ function createGridView(selectionMode, snapshot) {
   }, plugins);
 }
 
-function createTableView(selectionMode, snapshot) {
+function createTableView(selectionMode) {
   const plugins = [asyncPlugin(getAsyncConfig())];
   const columns = currentColumnWidths
     ? trackTableColumns.map((col) => ({
@@ -325,7 +326,7 @@ function createTableView(selectionMode, snapshot) {
   plugins.push(
     selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
-  plugins.push(snapshots(snapshot ? { restore: snapshot } : undefined));
+  plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
   list = createVList({
     container: "#list-container",
@@ -521,7 +522,7 @@ btnAddTrack.addEventListener("click", async () => {
       removeEndUnsub();
       removeEndUnsub = null;
     }
-    list.addItem(track, insertAt);
+    list.insertItem(track, insertAt);
     totalTracks = list.total;
   } catch (err) {
     console.error("[track-list] restore failed:", err);
