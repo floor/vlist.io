@@ -145,7 +145,7 @@ const renderDateHeader = (dateLabel) => {
 const contentCache = new Map();
 
 const measureHeights = (items, width) => {
-  const parent = container.querySelector(".vlist-items") || container;
+  const parent = container.querySelector(".vlist-content") || container.querySelector(".vlist-items") || container;
   const measurer = document.createElement("div");
   measurer.style.cssText = `
     position: absolute;
