@@ -90,7 +90,7 @@ export const itemTemplate = (item, index) => {
     <div class="item-content">
       <div class="item-avatar">${avatarText}</div>
       <div class="item-details">
-        <div class="item-name">${displayName} (#${index + 1})</div>
+        <strong class="item-name">${displayName} (#${index + 1})</strong>
         <div class="item-email">${item.email || ""}</div>
         <div class="item-role">${item.role || ""}</div>
       </div>
