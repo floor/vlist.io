@@ -16,7 +16,6 @@ import {
   nextFrame,
   waitFrames,
   tryGC,
-  settleHeap,
   getHeapUsed,
   measureMemoryDelta,
   bytesToMB,
