@@ -1,7 +1,7 @@
 ---
 created: 2026-05-14
-updated: 2026-05-15
-status: draft
+updated: 2026-05-23
+status: active
 ---
 
 # Automated Performance Workflow
@@ -13,73 +13,46 @@ memory efficiency, scroll behavior, and regression tracking.
 The short public overview lives in [Benchmarks](../resources/benchmarks.md). This
 document is the operational guide.
 
+Design decisions are recorded in [ADR: Normalized Benchmark Workflow](https://github.com/floor/vlist/discussions/81).
+
 ---
 
-## Goals
+## Principles
 
-The automated workflow should:
+One engine, one storage, one baseline.
 
-- reuse the same benchmark engine as the interactive `/benchmarks/*` pages
-- run from a single command locally and in GitHub Actions
-- produce machine-readable JSON and human-readable Markdown
-- compare current results against a known-good baseline
-- avoid blocking PRs until benchmark noise is understood
-- support a small PR smoke set and a larger nightly/manual matrix
-
-The workflow is not only about bundle size. It covers:
-
-- initial render latency
-- scroll throughput and frame budget
-- `scrollToIndex()` latency
-- memory after render
-- memory delta after sustained scrolling
+- **One engine:** `benchmarks/ci/runner.mjs` — uses `globalThis.__vlistBenchmarks.runBenchmarks()`, the same code path as interactive pages and CI.
+- **One storage:** SQLite `ci_benchmark_runs` / `ci_benchmark_metrics` tables. Both local and CI runs use the same schema.
+- **One baseline:** `benchmarks/baselines/main.json` — refreshed on version releases.
+- **One entry point from vlist:** `bun run bench` in the vlist repo — wraps the CI runner.
 
 ---
 
 ## Architecture
 
 ```text
-bun run bench:ci
-        |
-        v
-benchmarks/ci/runner.mjs
-        |
-        v
-build vlist + vlist.io benchmarks
-        |
-        v
-start local vlist.io server
-        |
-        v
-launch Chrome with Puppeteer
-        |
-        v
-open /benchmarks/render?variant=vanilla
-        |
-        v
-globalThis.__vlistBenchmarks.runBenchmarks(...)
-        |
-        v
-benchmarks/results/latest.json
-benchmarks/results/summary.md
-        |
-        +-----------------------------+
-        |                             |
-        v                             v
-bun run bench:compare          bun run bench:store
-        |                             |
-        v                             v
-benchmarks/results/            data/benchmarks.db
-comparison.md                  ci_benchmark_runs
-        |                      ci_benchmark_metrics
-        v
-bun run bench:comment
-        |
-        v
-benchmarks/results/pr-comment.md
-        |
-        v
-sticky PR comment + uploaded perf-results artifact
+bun run bench (vlist repo)          bun run bench:ci (vlist.io)
+        │                                    │
+        └──────────┬─────────────────────────┘
+                   ▼
+         benchmarks/ci/runner.mjs
+                   │
+                   ▼
+         Puppeteer → Chrome → /benchmarks/{suite}?variant=vanilla
+                   │
+                   ▼
+         globalThis.__vlistBenchmarks.runBenchmarks(...)
+                   │
+                   ▼
+         benchmarks/results/latest.json + summary.md
+                   │
+         ┌─────────┼──────────┐
+         ▼         ▼          ▼
+    bench:compare  bench:store  bench:comment
+         │         │          │
+         ▼         ▼          ▼
+    comparison.md  SQLite     pr-comment.md
+                   (ci_*)     → sticky PR comment
 ```
 
 The browser page exposes a small automation API:
@@ -93,83 +66,87 @@ globalThis.__vlistBenchmarks = {
 };
 ```
 
-This keeps the automated path honest: it does not reimplement benchmark logic in
-Node. Puppeteer only drives Chrome and collects results.
+Puppeteer drives Chrome and collects results. It does not reimplement benchmark
+logic in Node.
 
 ---
 
 ## Repositories
 
-The workflow involves two repositories:
-
 | Repository | Role |
 |------------|------|
-| `floor/vlist.io` | Hosts the website, benchmark pages, CI workflow, SQLite schema, baseline file, and result UI |
-| `floor/vlist` | Provides the actual `vlist` package being benchmarked |
+| `floor/vlist.io` | Benchmark engine, CI workflow, SQLite schema, baseline, result UI |
+| `floor/vlist` | Library being benchmarked, `bun run bench` wrapper, cross-repo CI trigger |
 
 In local development, `vlist.io` depends on `vlist` through `file:../vlist`.
-The GitHub Actions workflow mirrors that layout by checking out `floor/vlist.io`
-and cloning `floor/vlist` into `../vlist` before installing dependencies.
+GitHub Actions mirrors this by cloning `floor/vlist` into `../vlist`.
 
-By default, a `vlist.io` pull request benchmarks `floor/vlist@main`. Manual
-runs can override the library repository and ref, which is the bridge we need
-for future `floor/vlist` pull requests.
+### Cross-repo trigger
 
-For example:
+`floor/vlist` has `.github/workflows/bench.yml` which calls `floor/vlist.io`'s
+`perf.yml` as a reusable workflow via `workflow_call`:
+
+```yaml
+# floor/vlist/.github/workflows/bench.yml
+jobs:
+  benchmark:
+    uses: floor/vlist.io/.github/workflows/perf.yml@main
+    with:
+      vlist_repository: ${{ github.repository }}
+      vlist_ref: ${{ github.head_ref }}
+      source_repository: ${{ github.repository }}
+      source_pr_number: ${{ github.event.pull_request.number }}
+```
+
+This triggers automatically on vlist PRs that change `src/**` or `package.json`.
+
+Manual dispatch from the vlist repo is also supported:
 
 ```bash
 gh workflow run Performance \
   --repo floor/vlist.io \
-  --ref feat/perf-automation \
   -f vlist_repository=floor/vlist \
-  -f vlist_ref=my-vlist-branch \
+  -f vlist_ref=my-branch \
   -f source_repository=floor/vlist \
   -f source_pr_number=123
 ```
-
-The workflow comment and JSON result metadata record the requested
-`vlist_repository`, `vlist_ref`, `source_repository`, and `source_pr_number`.
-The next step, once this workflow is merged, is a tiny `floor/vlist` workflow
-that calls this `vlist.io` workflow for library PRs.
 
 ---
 
 ## Commands
 
-Run the default CI set:
+### From the vlist repo (recommended for developers)
 
 ```bash
-bun run bench:ci
+bun run bench                    # full suite (render, scroll, scrollto, memory) @ 10K
+bun run bench --quick            # smoke (render + scrollto) @ 10K — matches CI smoke
+bun run bench --compare          # run + compare against baseline
+bun run bench --store            # run + store to SQLite (opt-in)
+bun run bench --suite=render     # single suite
+bun run bench --items=100000     # custom item count
+bun run bench --dry-run          # validate environment only
 ```
 
-Run the fast PR smoke set:
+The wrapper auto-starts the vlist.io server if not running. Set `VLIST_IO_DIR`
+to override the sibling path (default: `../vlist.io`).
+
+### From vlist.io (CI runner directly)
 
 ```bash
-bun run bench:ci -- --item-counts=10000 --suites=render-vanilla,scrollto-vanilla
+bun run bench:ci                                                          # default config
+bun run bench:ci -- --item-counts=10000 --suites=render-vanilla,scrollto-vanilla  # PR smoke
+bun run bench:ci -- --skip-build --item-counts=1000 --suites=render-vanilla       # quick test
+bun run bench:ci -- --url=http://127.0.0.1:3338 --skip-build                     # external server
+bun run bench:compare -- --baseline=benchmarks/baselines/main.json               # compare
+bun run bench:store                                                              # store to SQLite
+bun run bench:comment                                                            # generate PR comment
 ```
 
-Run a tiny local smoke test without rebuilding:
-
-```bash
-bun run bench:ci -- --skip-build --item-counts=1000 --suites=render-vanilla
-```
-
-Compare the latest run against the checked-in baseline:
-
-```bash
-bun run bench:compare -- --baseline=benchmarks/baselines/main.json
-```
-
-Use a running external server:
-
-```bash
-bun run bench:ci -- --url=http://127.0.0.1:3338 --skip-build
-```
-
-Useful environment variables:
+### Environment variables
 
 | Variable | Purpose |
 |----------|---------|
+| `VLIST_IO_DIR` | Override vlist.io sibling path (vlist wrapper) |
 | `BENCH_URL` | Use an existing server instead of starting one |
 | `BENCH_SUITES` | Comma-separated suite IDs |
 | `BENCH_ITEM_COUNTS` | Comma-separated item counts |
@@ -188,12 +165,13 @@ Useful environment variables:
 |------|---------|
 | `benchmarks/ci/runner.mjs` | Puppeteer runner and artifact writer |
 | `benchmarks/ci/compare.mjs` | Baseline comparison report |
-| `benchmarks/ci/store.mjs` | Stores CI runs in SQLite |
+| `benchmarks/ci/store.mjs` | Stores runs in SQLite |
+| `benchmarks/ci/pr-comment.mjs` | Generates sticky PR comment |
 | `benchmarks/ci/config.json` | Default suites, item counts, and budget thresholds |
 | `benchmarks/ci/README.md` | Short command reference |
-| `benchmarks/baselines/main.json` | Checked-in known-good baseline |
+| `benchmarks/baselines/main.json` | Checked-in known-good baseline (v2.0.1) |
 | `benchmarks/results/.gitignore` | Keeps generated artifacts out of git |
-| `.github/workflows/perf.yml` | Non-blocking PR smoke workflow |
+| `.github/workflows/perf.yml` | CI workflow (PR, manual dispatch, reusable workflow) |
 
 Generated artifacts:
 
@@ -203,6 +181,17 @@ Generated artifacts:
 | `benchmarks/results/<timestamp>.json` | Local history copy |
 | `benchmarks/results/summary.md` | Current run summary |
 | `benchmarks/results/comparison.md` | Current vs baseline report |
+| `benchmarks/results/pr-comment.md` | PR comment body |
+
+### Deprecated
+
+The following scripts are deprecated and will be removed in a future release.
+Use `bun run bench` (vlist) or `bun run bench:ci` (vlist.io) instead.
+
+| File | Replacement |
+|------|-------------|
+| `scripts/debug/tests/bench-suite.mjs` | `bun run bench:ci` |
+| `scripts/debug/tests/memory-bench.mjs` | `bun run bench:ci --suites=memory-vanilla` |
 
 ---
 
@@ -210,86 +199,72 @@ Generated artifacts:
 
 CI results are stored in separate SQLite tables:
 
-- `ci_benchmark_runs`
-- `ci_benchmark_metrics`
+- `ci_benchmark_runs` — one row per suite/itemCount execution
+- `ci_benchmark_metrics` — individual metric rows (FK to runs)
 
 They intentionally do not mix with the public `benchmark_*` or `comparison_*`
 tables used by crowdsourced browser runs.
 
-Store the latest artifact:
+Each run stores:
 
-```bash
-bun run bench:store
-```
-
-Use a temporary database for local testing:
-
-```bash
-bun run bench:store -- --db=benchmarks/results/ci-test.db
-```
-
-Each CI run stores:
-
-- vlist version
-- suite ID and item count
-- metric values
+- vlist version, suite ID, item count
+- metric values (label, value, unit, rating)
 - benchmark config (`stressMs`, `scrollSpeed`)
-- browser environment
-- git SHA, branch, PR number, workflow run ID, runner OS, and baseline SHA when available
+- browser environment (userAgent, hardwareConcurrency, deviceMemory)
+- git SHA, branch, PR number, workflow run ID, runner OS, baseline SHA
+- `source` — `"ci"` for GitHub Actions runs, `"local"` for `--store` runs
 
-Stored runs are visible at `/benchmarks/ci-results`, a contributor-facing view over the CI tables. It shows the latest runs, branch/suite/item-count filters, workflow metadata when available, and the metric values captured for each run.
+Local runs require `--store` to persist to SQLite. CI stores by default.
+The `source` column separates local from CI data in trend analysis.
 
-Artifacts remain useful for PR review. SQLite is the long-term trend store.
+Stored runs are visible at `/benchmarks/ci-results`.
 
 ---
 
 ## Current Smoke Set
 
-The PR workflow currently runs:
+The PR workflow and `bun run bench --quick` both run:
 
 - `render-vanilla`
 - `scrollto-vanilla`
 - `10_000` items
 
 This is intentionally small. It confirms the harness works and catches obvious
-render/scrollTo regressions without turning every PR into a long performance
-job.
+regressions without turning every PR into a long performance job. Local quick
+mode matches CI smoke exactly so developers can reproduce PR failures.
 
-The default local config also includes:
-
-- `scroll-vanilla`
-- `memory-vanilla`
-
-These are more sensitive to browser and machine noise, so they are better suited
-to nightly or manual runs until we have enough samples.
+The full local config also includes `scroll-vanilla` and `memory-vanilla`,
+which are more sensitive to machine noise.
 
 ---
 
 ## Baseline Policy
 
 `benchmarks/baselines/main.json` is the known-good comparison point.
+Currently pinned to vlist v2.0.1.
 
 Refresh it only when:
 
-- measuring from a clean, known-good branch
+- a new vlist version is released
 - the benchmark methodology changed intentionally
-- an accepted optimization legitimately improves or changes the baseline
+- an accepted optimization legitimately changes the numbers
 - the baseline is stale after dependency/runtime changes
 
 Do not refresh it just to hide a regression.
+
+The baseline should include metadata: vlist version, commit SHA, Chrome version,
+and timestamp, so future comparisons are interpretable.
 
 Recommended refresh flow:
 
 ```bash
 git switch staging
-bun run build:bench
 bun run bench:ci -- --skip-build --item-counts=10000 --suites=render-vanilla,scrollto-vanilla
 cp benchmarks/results/latest.json benchmarks/baselines/main.json
 bun run bench:compare -- --baseline=benchmarks/baselines/main.json
 ```
 
-Commit the baseline update separately from unrelated performance changes when
-possible.
+Commit the baseline update separately from unrelated performance changes.
 
 ---
 
@@ -328,15 +303,18 @@ noisy even with `--enable-precise-memory-info` and exposed `gc()`.
 
 ### Triggers
 
-The workflow file is `.github/workflows/perf.yml`. It runs in two cases:
+The workflow file is `.github/workflows/perf.yml`. It runs in three cases:
 
-1. **Manual dispatch** from GitHub Actions:
+1. **Reusable workflow** — called by `floor/vlist/.github/workflows/bench.yml`
+   for library PRs. This is the primary cross-repo trigger.
+
+2. **Manual dispatch** from GitHub Actions:
 
    ```bash
-   gh workflow run Performance --ref feat/perf-automation
+   gh workflow run Performance --ref staging
    ```
 
-   Manual dispatch accepts optional inputs for cross-repository benchmarking:
+   Accepts optional inputs for cross-repository benchmarking:
 
    | Input | Default | Purpose |
    |-------|---------|---------|
@@ -345,7 +323,7 @@ The workflow file is `.github/workflows/perf.yml`. It runs in two cases:
    | `source_repository` | empty | Repository that requested the benchmark |
    | `source_pr_number` | empty | PR number in the source repository |
 
-2. **Pull requests** that change benchmark-relevant files:
+3. **Pull requests** to vlist.io that change benchmark-relevant files:
 
    ```yaml
    pull_request:
@@ -356,44 +334,20 @@ The workflow file is `.github/workflows/perf.yml`. It runs in two cases:
        - "bun.lock"
    ```
 
-It does not currently run for docs-only changes. Workflow-only edits may not
-trigger the PR workflow unless another watched path changes or the workflow is
-started manually.
+### PR Workflow Steps
 
-The trigger set is intentionally narrow so docs and content changes do not spend
-CI time on performance benchmarks. Add paths only when they can plausibly affect
-runtime behavior, benchmark code, or dependency resolution.
+1. Checks out `vlist.io`
+2. Clones sibling `floor/vlist` into `../vlist`
+3. Installs dependencies (Puppeteer browser download skipped)
+4. Installs Chrome explicitly
+5. Runs the PR smoke benchmark
+6. Generates comparison Markdown
+7. Stores CI results in SQLite
+8. Posts or updates a sticky PR comment
+9. Uploads artifacts
 
-### PR Workflow
-
-The PR workflow:
-
-1. checks out `vlist.io`
-2. clones sibling `floor/vlist` into `../vlist`
-3. installs dependencies with Puppeteer browser download skipped
-4. installs Chrome explicitly
-5. runs the PR smoke benchmark
-6. generates comparison Markdown
-7. stores CI results in SQLite
-8. posts or updates a sticky PR comment
-9. uploads artifacts
-
-It is intentionally non-blocking while the team observes variance. The sticky PR
-comment is generated with:
-
-```bash
-bun run bench:comment
-```
-
-The comment body is written to `benchmarks/results/pr-comment.md` and includes a
-hidden marker so the workflow updates the existing performance comment instead
-of creating a new comment on every push.
-
-Next CI steps:
-
-- add a nightly workflow for broader suite coverage
-- store nightly artifacts for trend analysis
-- optionally open/update GitHub issues when regressions persist
+Non-blocking while the team observes variance. The sticky PR comment includes a
+hidden marker (`<!-- vlist-perf-comment -->`) so it updates in place.
 
 ---
 
@@ -420,13 +374,13 @@ Near-term:
 - add nightly workflow with `render`, `scroll`, `scrollto`, and `memory`
 - run 10K and 100K item counts nightly
 - collect several runs before enforcing budgets
+- remove deprecated debug scripts after one release cycle
 
 Medium-term:
 
 - add bundle-size artifacts to the same perf report
 - compare against previous successful workflow artifact
 - track memory metrics separately from speed metrics
-- add persistent trend storage for CI-owned runs
 
 Long-term:
 
