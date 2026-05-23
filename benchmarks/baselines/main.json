@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-05-14T17:53:23.307Z",
-  "baseUrl": "http://127.0.0.1:3348",
+  "generatedAt": "2026-05-23T10:01:37.952Z",
+  "baseUrl": "http://127.0.0.1:3338",
   "config": {
     "suiteIds": [
       "render-vanilla",
@@ -14,19 +14,23 @@
     "stressMs": 0
   },
   "metadata": {
-    "gitSha": "82f451146d730d79627c05143e5a76bf5366f3e9",
-    "branch": "codex/perf-automation",
-    "prNumber": 17,
-    "workflowRunId": "25876142833",
-    "workflowName": "Performance",
-    "runnerOs": "Linux",
-    "baselineSha": null
+    "gitSha": null,
+    "branch": null,
+    "prNumber": null,
+    "workflowRunId": null,
+    "workflowName": null,
+    "runnerOs": null,
+    "baselineSha": null,
+    "vlistRepository": null,
+    "vlistRef": null,
+    "sourceRepository": null,
+    "sourcePrNumber": null
   },
   "environment": {
-    "vlistVersion": "1.8.3",
-    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
-    "hardwareConcurrency": 4,
-    "deviceMemory": 16
+    "vlistVersion": "2.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+    "hardwareConcurrency": 10,
+    "deviceMemory": 32
   },
   "results": [
     {
@@ -35,27 +39,27 @@
       "metrics": [
         {
           "label": "Median",
-          "value": 16.6,
+          "value": 16.7,
           "unit": "ms",
           "better": "lower",
           "rating": "good"
         },
         {
           "label": "Min",
-          "value": 16.6,
+          "value": 16.5,
           "unit": "ms",
           "better": "lower",
           "rating": "good"
         },
         {
           "label": "p95",
-          "value": 16.7,
+          "value": 16.77,
           "unit": "ms",
           "better": "lower",
           "rating": "good"
         }
       ],
-      "duration": 2084,
+      "duration": 2167,
       "success": true
     },
     {
@@ -71,7 +75,7 @@
         },
         {
           "label": "Min",
-          "value": 83.1,
+          "value": 82.9,
           "unit": "ms",
           "better": "lower",
           "rating": "good"

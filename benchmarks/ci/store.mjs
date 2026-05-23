@@ -58,7 +58,8 @@ const ensureSchema = (db) => {
       error         TEXT,
 
       stress_ms     INTEGER DEFAULT 0,
-      scroll_speed  INTEGER DEFAULT 0
+      scroll_speed  INTEGER DEFAULT 0,
+      source        TEXT    NOT NULL DEFAULT 'ci'
     )
   `);
 
@@ -84,8 +85,8 @@ const insertRun = db.prepare(`
     git_sha, branch, pr_number, workflow_run_id, workflow_name, runner_os, baseline_sha,
     user_agent, hardware_concurrency, device_memory,
     duration_ms, success, error,
-    stress_ms, scroll_speed
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    stress_ms, scroll_speed, source
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
 const insertMetric = db.prepare(`
@@ -120,6 +121,7 @@ const write = db.transaction(() => {
       result.error ?? null,
       runConfig.stressMs ?? 0,
       runConfig.scrollSpeed ?? 0,
+      metadata.source ?? "ci",
     );
 
     const runId = Number(info.lastInsertRowid);

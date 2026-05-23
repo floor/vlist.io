@@ -129,7 +129,8 @@ const CI_RUNS_COLUMNS = `
 
     -- Config
     stress_ms     INTEGER DEFAULT 0,
-    scroll_speed  INTEGER DEFAULT 0
+    scroll_speed  INTEGER DEFAULT 0,
+    source        TEXT    NOT NULL DEFAULT 'ci'
 `;
 
 // =============================================================================

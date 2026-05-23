@@ -19,6 +19,28 @@ on:
         description: "Pull request number in source_repository"
         required: false
         default: ""
+  workflow_call:
+    inputs:
+      vlist_repository:
+        description: "Repository containing the vlist package to benchmark"
+        required: false
+        type: string
+        default: "floor/vlist"
+      vlist_ref:
+        description: "Branch, tag, or SHA from vlist_repository to benchmark"
+        required: false
+        type: string
+        default: "main"
+      source_repository:
+        description: "Repository that requested this benchmark run"
+        required: false
+        type: string
+        default: ""
+      source_pr_number:
+        description: "Pull request number in source_repository"
+        required: false
+        type: string
+        default: ""
   pull_request:
     paths:
       - "benchmarks/**"

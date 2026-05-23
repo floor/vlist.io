@@ -12,6 +12,10 @@
  *   bun scripts/debug/tests/memory-bench.mjs --base=http://...    # custom URL
  */
 
+console.warn("\n⚠️  DEPRECATED: memory-bench.mjs is deprecated.");
+console.warn("   Use 'bun run bench:ci' (vlist.io) or 'bun run bench' (vlist.v2) instead.");
+console.warn("   See: https://github.com/floor/vlist/discussions/81\n");
+
 import { findChrome, parseArgs, delay } from "../core.mjs";
 import puppeteer from "puppeteer-core";
 
