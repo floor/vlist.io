@@ -25,7 +25,7 @@ defineSuite({
     "Heap usage after render and after 10s of scrolling — reveals leaks and GC pressure",
   icon: "🧠",
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, intensity }) => {
     const items = generateItems(itemCount);
 
     const result = await measureMemoryProfile({
@@ -43,6 +43,7 @@ defineSuite({
       },
       destroyFn: (list) => list.destroy(),
       onStatus,
+      ...(intensity?.memoryScrollMs && { scrollDurationMs: intensity.memoryScrollMs }),
     });
 
     // ── Handle unavailable API ─────────────────────────────────────────

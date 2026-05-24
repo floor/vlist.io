@@ -19,7 +19,7 @@ defineSuite({
   description: "Time from vlist() to first painted frame",
   icon: "⚡",
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, intensity }) => {
     const items = generateItems(itemCount);
 
     const result = await measureRenderPerformance({
@@ -35,6 +35,7 @@ defineSuite({
       label: "vlist-vanilla",
       onStatus,
       hideContainer: false,
+      ...(intensity?.renderIterations && { measureIterations: intensity.renderIterations }),
     });
 
     // Rating thresholds depend on item count

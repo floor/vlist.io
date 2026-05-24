@@ -28,7 +28,7 @@ defineSuite({
     "Latency of smooth scrollToIndex() — time from call to scroll settled",
   icon: "🎯",
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, intensity }) => {
     const items = generateItems(itemCount);
 
     // ── Create vlist ───────────────────────────────────────────────────
@@ -60,6 +60,7 @@ defineSuite({
       scrollToFn: (index, align) => list.scrollToIndex(index, align),
       itemCount,
       onStatus,
+      ...(intensity?.scrollToJumps && { measureJumps: intensity.scrollToJumps }),
     });
 
     // ── Clean up ───────────────────────────────────────────────────────

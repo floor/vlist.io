@@ -34,6 +34,14 @@ const skipBuild = args.has("skip-build") || process.env.BENCH_SKIP_BUILD === "1"
 const externalServer = args.has("url") || process.env.BENCH_URL;
 const scrollSpeed = Number(args.get("scroll-speed") ?? process.env.BENCH_SCROLL_SPEED ?? config.scrollSpeed ?? 0);
 const stressMs = Number(args.get("stress-ms") ?? process.env.BENCH_STRESS_MS ?? config.stressMs ?? 0);
+const intensityMode = args.get("intensity") ?? process.env.BENCH_INTENSITY ?? null;
+
+const INTENSITY_PRESETS = {
+  quick: { renderIterations: 3, scrollToJumps: 3, memoryScrollMs: 3000 },
+  default: { renderIterations: 5, scrollToJumps: 5, memoryScrollMs: 5000 },
+  full: { renderIterations: 7, scrollToJumps: 7, memoryScrollMs: 7000 },
+};
+const intensity = intensityMode ? INTENSITY_PRESETS[intensityMode] ?? null : null;
 
 const metadata = {
   gitSha: process.env.GITHUB_SHA ?? process.env.BENCH_GIT_SHA ?? null,
@@ -177,6 +185,7 @@ try {
       suiteIds: options.suiteIds,
       scrollSpeed: options.scrollSpeed,
       stressMs: options.stressMs,
+      intensity: options.intensity,
       container: host,
       getContainer: () => host,
       onStatus: (suiteId, itemCount, message) => {
@@ -194,14 +203,14 @@ try {
       statusLog,
       results,
     };
-  }, { suiteIds, itemCounts, scrollSpeed, stressMs });
+  }, { suiteIds, itemCounts, scrollSpeed, stressMs, intensity });
 
   const now = new Date().toISOString();
   const payload = {
     schemaVersion: 1,
     generatedAt: now,
     baseUrl,
-    config: { suiteIds, itemCounts, scrollSpeed, stressMs },
+    config: { suiteIds, itemCounts, scrollSpeed, stressMs, intensity: intensityMode },
     metadata,
     environment: {
       vlistVersion: results.version,
