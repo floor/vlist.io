@@ -63,6 +63,12 @@ const ensureSchema = (db) => {
     )
   `);
 
+  // Migrate existing tables: add source column if missing
+  const columns = db.prepare("PRAGMA table_info(ci_benchmark_runs)").all();
+  if (columns.length > 0 && !columns.some((c) => c.name === "source")) {
+    db.run(`ALTER TABLE ci_benchmark_runs ADD COLUMN source TEXT NOT NULL DEFAULT 'ci'`);
+  }
+
   db.run(`CREATE TABLE IF NOT EXISTS ci_benchmark_metrics (${METRICS_COLUMNS})`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_ci_runs_sha     ON ci_benchmark_runs(git_sha)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_ci_runs_branch  ON ci_benchmark_runs(branch)`);
