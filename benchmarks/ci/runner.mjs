@@ -158,17 +158,19 @@ try {
     const text = msg.text();
     if (!text.startsWith("[bench:ci]")) return;
 
-    // In CI, print every line normally (no TTY)
-    if (isCI) { console.log(text); return; }
-
-    // Extract suite/itemCount prefix, e.g. "[bench:ci] render-vanilla/10000:"
     const match = text.match(/^\[bench:ci\] ([^:]+): (.+)$/);
-    if (!match) { console.log(text); return; }
+    if (!match) return;
 
     const [, prefix, message] = match;
-    const isProgress = /^(Iteration|Jump|Scrolling)/.test(message);
+    const isProgress = /^(Iteration|Jump|Scrolling|Measuring|Warming)/.test(message);
 
-    // New suite or transition from progress to status: print on new line
+    if (isCI) {
+      // CI: only print suite start (Preparing/Running), skip all progress noise
+      if (!isProgress) console.log(text);
+      return;
+    }
+
+    // Local TTY: overwrite progress lines in place
     if (prefix !== lastSuite || (!isProgress && lastWasProgress)) {
       if (lastWasProgress) process.stdout.write("\n");
       lastSuite = prefix;
