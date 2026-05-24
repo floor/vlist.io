@@ -150,9 +150,38 @@ try {
   browser = await launchBrowser();
   const page = await browser.newPage();
 
+  let lastSuite = "";
+  let lastWasProgress = false;
+  const isCI = !!process.env.CI;
+
   page.on("console", (msg) => {
     const text = msg.text();
-    if (text.startsWith("[bench:ci]")) console.log(text);
+    if (!text.startsWith("[bench:ci]")) return;
+
+    // In CI, print every line normally (no TTY)
+    if (isCI) { console.log(text); return; }
+
+    // Extract suite/itemCount prefix, e.g. "[bench:ci] render-vanilla/10000:"
+    const match = text.match(/^\[bench:ci\] ([^:]+): (.+)$/);
+    if (!match) { console.log(text); return; }
+
+    const [, prefix, message] = match;
+    const isProgress = /^(Iteration|Jump|Scrolling)/.test(message);
+
+    // New suite or transition from progress to status: print on new line
+    if (prefix !== lastSuite || (!isProgress && lastWasProgress)) {
+      if (lastWasProgress) process.stdout.write("\n");
+      lastSuite = prefix;
+    }
+
+    if (isProgress) {
+      process.stdout.write(`\r\x1b[K[bench:ci] ${prefix}: ${message}`);
+      lastWasProgress = true;
+    } else {
+      if (lastWasProgress) process.stdout.write("\n");
+      console.log(text);
+      lastWasProgress = false;
+    }
   });
 
   await page.goto(`${baseUrl}/benchmarks/render?variant=vanilla`, {
@@ -204,6 +233,8 @@ try {
       results,
     };
   }, { suiteIds, itemCounts, scrollSpeed, stressMs, intensity });
+
+  if (lastWasProgress) process.stdout.write("\n");
 
   const now = new Date().toISOString();
   const payload = {
