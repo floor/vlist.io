@@ -87,6 +87,7 @@
     background-color: rgba(102, 126, 234, 0.9);
     color: transparent;
     width: 40px;
+    transform: initial;
 }
 
 /* ============================================================================

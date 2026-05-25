@@ -233,16 +233,8 @@ function getVlistHash(): string {
   const vlistDistDir = isVlistLinked()
     ? join(getVlistDir(), "dist")
     : resolve("node_modules/vlist/dist");
-  const vlistDist = join(vlistDistDir, "index.js");
-  if (existsSync(vlistDist)) {
-    const h = createHash("sha1");
-    h.update(readFileSync(vlistDist));
-    // Also hash the CSS files that get copied
-    for (const css of ["vlist.css", "vlist-table.css", "vlist-extras.css"]) {
-      const p = join(vlistDistDir, css);
-      if (existsSync(p)) h.update(readFileSync(p));
-    }
-    _vlistHash = h.digest("hex");
+  if (existsSync(vlistDistDir)) {
+    _vlistHash = hashFiles(vlistDistDir);
   } else {
     _vlistHash = "none";
   }
@@ -780,7 +772,7 @@ async function watchMode() {
   if (existsSync(vlistDistDir)) {
     let debounce: ReturnType<typeof setTimeout> | null = null;
     console.log("👀 Watching vlist/dist for changes...\n");
-    watch(vlistDistDir, { recursive: false }, async (_event, filename) => {
+    watch(vlistDistDir, { recursive: true }, async (_event, filename) => {
       if (filename && (filename.endsWith(".js") || filename.endsWith(".css"))) {
         // Debounce: vlist build writes multiple files in quick succession
         if (debounce) clearTimeout(debounce);

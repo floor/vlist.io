@@ -25,6 +25,13 @@ import {
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
+const elasticOut = (t) => {
+  if (t === 0 || t === 1) return t;
+  return (
+    Math.pow(2, -10 * t) * Math.sin(((t - 0.075) * (2 * Math.PI)) / 0.3) + 1
+  );
+};
+
 // Storage key for snapshots
 const STORAGE_KEY = "vlist-velocity-loading-snapshot";
 
@@ -103,40 +110,43 @@ function updateContext() {
 // Build list — snapshots({ autoSave }) handles save/restore automatically.
 // On first visit, autoLoad fetches data. On return visits, the snapshot provides
 // the total and scroll position, and autoLoad is cancelled automatically.
-const list = createVList({
-  container: "#list-container",
-  ariaLabel: "Virtual user list with velocity-based loading",
-  item: {
-    height: ITEM_HEIGHT,
-    template: itemTemplate,
+const list = createVList(
+  {
+    container: "#list-container",
+    ariaLabel: "Virtual user list with velocity-based loading",
+    item: {
+      height: ITEM_HEIGHT,
+      template: itemTemplate,
+    },
   },
-}, [
-  selection({ mode: "single" }),
-  asyncPlugin({
-    adapter: {
-      read: async ({ offset, limit }) => {
-        loadRequests++;
-        isLoading = true;
-        updateControls();
-        updateContext();
-        const result = await fetchItems(offset, limit);
-        isLoading = false;
-        updateControls();
-        updateContext();
-        return result;
+  [
+    selection({ mode: "single" }),
+    asyncPlugin({
+      adapter: {
+        read: async ({ offset, limit }) => {
+          loadRequests++;
+          isLoading = true;
+          updateControls();
+          updateContext();
+          const result = await fetchItems(offset, limit);
+          isLoading = false;
+          updateControls();
+          updateContext();
+          return result;
+        },
       },
-    },
-    storage: {
-      chunkSize: 25,
-    },
-    loading: {
-      cancelThreshold: LOAD_VELOCITY_THRESHOLD,
-    },
-  }),
-  scale(),
-  scrollbar({ autoHide: true }),
-  snapshots({ autoSave: STORAGE_KEY }),
-]);
+      storage: {
+        chunkSize: 25,
+      },
+      loading: {
+        cancelThreshold: LOAD_VELOCITY_THRESHOLD,
+      },
+    }),
+    scale(),
+    scrollbar({ autoHide: true }),
+    snapshots({ autoSave: STORAGE_KEY }),
+  ],
+);
 
 // =============================================================================
 // Shared footer stats (left side — progress, velocity, items)

@@ -48,14 +48,15 @@ modeToggleEl.addEventListener("click", (e) => {
 // =============================================================================
 
 document.getElementById("jump-top").addEventListener("click", () => {
-  app.list?.scrollToIndex(0, { behavior: "smooth", duration: 300 });
+  app.list?.scrollToIndex(0, {
+    behavior: "smooth",
+  });
 });
 
 document.getElementById("jump-middle").addEventListener("click", () => {
   app.list?.scrollToIndex(Math.floor(app.items.length / 2), {
     align: "center",
     behavior: "smooth",
-    duration: 500,
   });
 });
 
@@ -63,11 +64,10 @@ document.getElementById("jump-bottom").addEventListener("click", () => {
   app.list?.scrollToIndex(app.items.length - 1, {
     align: "end",
     behavior: "smooth",
-    duration: 500,
   });
 });
 
 document.getElementById("jump-random").addEventListener("click", () => {
   const idx = Math.floor(Math.random() * app.items.length);
-  app.list?.scrollToIndex(idx, { behavior: "smooth", duration: 400 });
+  app.list?.scrollToIndex(idx, { behavior: "smooth" });
 });

@@ -145,7 +145,10 @@ const renderDateHeader = (dateLabel) => {
 const contentCache = new Map();
 
 const measureHeights = (items, width) => {
-  const parent = container.querySelector(".vlist-content") || container.querySelector(".vlist-items") || container;
+  const parent =
+    container.querySelector(".vlist-content") ||
+    container.querySelector(".vlist-items") ||
+    container;
   const measurer = document.createElement("div");
   measurer.style.cssText = `
     position: absolute;
@@ -254,36 +257,41 @@ export function createList() {
 
   const plugins = [];
   if (currentHeaderMode !== "off") {
-    plugins.push(groups({
-      getGroupForIndex: (index) => {
-        const item = currentItems[index];
-        return item ? DATE_LABELS[item.dateSection] : "Unknown";
-      },
-      header: { height: DATE_HEADER_HEIGHT, template: renderDateHeader },
-      sticky: currentHeaderMode === "sticky",
-    }));
+    plugins.push(
+      groups({
+        getGroupForIndex: (index) => {
+          const item = currentItems[index];
+          return item ? DATE_LABELS[item.dateSection] : "Unknown";
+        },
+        header: { height: DATE_HEADER_HEIGHT, template: renderDateHeader },
+        sticky: currentHeaderMode === "sticky",
+      }),
+    );
   }
 
   plugins.push(transition({ remove: false }));
 
-  list = createVList({
-    container: "#list-container",
-    ariaLabel: "Chat messages",
-    interactive: false,
-    reverse: true,
-    item: {
-      height: (index) => {
-        const item = currentItems[index];
-        return (item && item.height) || MSG_HEIGHT;
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Chat messages",
+      interactive: false,
+      reverse: true,
+      item: {
+        height: (index) => {
+          const item = currentItems[index];
+          return (item && item.height) || MSG_HEIGHT;
+        },
+        template: (item) => {
+          const el = document.createElement("div");
+          el.innerHTML = renderMessage(item);
+          return el.firstElementChild;
+        },
       },
-      template: (item) => {
-        const el = document.createElement("div");
-        el.innerHTML = renderMessage(item);
-        return el.firstElementChild;
-      },
+      items: currentItems,
     },
-    items: currentItems,
-  }, plugins);
+    plugins,
+  );
 
   // Wire events
   list.on("scroll", updateInfo);

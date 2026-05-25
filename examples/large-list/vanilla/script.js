@@ -123,19 +123,21 @@ function createList(sizeKey) {
   const count = SIZES[sizeKey];
   const items = generateItems(count);
 
-  const plugins = count > 100_000
-    ? [scale(), scrollbar({ autoHide: true })]
-    : [];
+  const plugins =
+    count > 100_000 ? [scale(), scrollbar({ autoHide: true })] : [];
 
-  list = createVList({
-    container: "#list-container",
-    ariaLabel: `${count.toLocaleString()} items list`,
-    item: {
-      height: ITEM_HEIGHT,
-      template: itemTemplate,
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: `${count.toLocaleString()} items list`,
+      item: {
+        height: ITEM_HEIGHT,
+        template: itemTemplate,
+      },
+      items,
     },
-    items,
-  }, plugins);
+    plugins,
+  );
 
   // Bind events
   list.on("scroll", ({ scrollPosition, direction }) => {
@@ -206,7 +208,7 @@ const smoothToggle = document.getElementById("smooth-toggle");
 
 /** Build scrollToIndex options respecting the smooth toggle */
 const scrollOpts = (align) =>
-  smoothToggle.checked ? { align, behavior: "smooth", duration: 800 } : align;
+  smoothToggle.checked ? { align, behavior: "smooth", duration: 500 } : align;
 
 document.getElementById("btn-first").addEventListener("click", () => {
   list.scrollToIndex(0, scrollOpts("start"));
