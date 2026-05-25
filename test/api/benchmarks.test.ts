@@ -1136,21 +1136,20 @@ describe("benchmarks API", () => {
   // ---------------------------------------------------------------------------
 
   describe("cache control", () => {
-    test("successful GET responses have public cache header", async () => {
+    test("successful GET responses have private no-store cache header", async () => {
       const { req, url } = get("/api/benchmarks/summary");
       const result = await routeBenchmarks(req, url);
 
       const cc = result!.headers.get("Cache-Control");
-      expect(cc).toContain("public");
-      expect(cc).toContain("s-maxage=60");
+      expect(cc).toBe("private, no-store");
     });
 
-    test("error responses have no-cache header", async () => {
+    test("error responses have private no-store cache header", async () => {
       const { req, url } = post("/api/benchmarks", { invalid: true });
       const result = await routeBenchmarks(req, url);
 
       const cc = result!.headers.get("Cache-Control");
-      expect(cc).toContain("no-cache");
+      expect(cc).toBe("private, no-store");
     });
   });
 

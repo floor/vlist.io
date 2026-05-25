@@ -298,7 +298,7 @@ describe("tracks", () => {
   describe("CRUD operations", () => {
     let createdId: number;
 
-    test("createTrack creates a new track", () => {
+    test.serial("createTrack creates a new track", () => {
       const track = createTrack({
         title: "Test Track",
         artist: "Test Artist",
@@ -322,7 +322,7 @@ describe("tracks", () => {
       createdId = track.id;
     });
 
-    test("createTrack with minimal fields", () => {
+    test.serial("createTrack with minimal fields", () => {
       const track = createTrack({
         title: "Minimal Track",
         artist: "Minimal Artist",
@@ -337,7 +337,7 @@ describe("tracks", () => {
       deleteTrack(track.id);
     });
 
-    test("updateTrack updates specific fields", () => {
+    test.serial("updateTrack updates specific fields", () => {
       const updated = updateTrack(createdId, {
         title: "Updated Title",
         year: 2025,
@@ -350,7 +350,7 @@ describe("tracks", () => {
       expect(updated!.artist).toBe("Test Artist");
     });
 
-    test("updateTrack with all fields", () => {
+    test.serial("updateTrack with all fields", () => {
       const updated = updateTrack(createdId, {
         title: "Fully Updated",
         artist: "New Artist",
@@ -367,7 +367,7 @@ describe("tracks", () => {
       expect(updated!.country).toBe("GB");
     });
 
-    test("updateTrack with empty input returns existing track", () => {
+    test.serial("updateTrack with empty input returns existing track", () => {
       const existing = getTrackById(createdId);
       const updated = updateTrack(createdId, {});
 
@@ -375,12 +375,12 @@ describe("tracks", () => {
       expect(updated!.id).toBe(existing!.id);
     });
 
-    test("updateTrack returns null for non-existent ID", () => {
+    test.serial("updateTrack returns null for non-existent ID", () => {
       const updated = updateTrack(999_999_999, { title: "Nope" });
       expect(updated).toBeNull();
     });
 
-    test("deleteTrack removes the track", () => {
+    test.serial("deleteTrack removes the track", () => {
       const deleted = deleteTrack(createdId);
       expect(deleted).toBe(true);
 
@@ -388,7 +388,7 @@ describe("tracks", () => {
       expect(track).toBeNull();
     });
 
-    test("deleteTrack returns false for non-existent ID", () => {
+    test.serial("deleteTrack returns false for non-existent ID", () => {
       const deleted = deleteTrack(999_999_999);
       expect(deleted).toBe(false);
     });

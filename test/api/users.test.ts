@@ -61,7 +61,7 @@ describe("users", () => {
 
     test("email includes suffix for indices > 1000", () => {
       const user = generateUser(1001);
-      expect(user.email).toMatch(/^[a-z]+\.[a-z]+[a-z0-9]+@/);
+      expect(user.email).toMatch(/^[\p{Ll}]+\.[\p{Ll}]+[a-z0-9]+@/u);
     });
 
     test("joinedYear is between 2015 and 2026", () => {
