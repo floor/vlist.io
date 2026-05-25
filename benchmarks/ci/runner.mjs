@@ -37,9 +37,9 @@ const stressMs = Number(args.get("stress-ms") ?? process.env.BENCH_STRESS_MS ?? 
 const intensityMode = args.get("intensity") ?? process.env.BENCH_INTENSITY ?? null;
 
 const INTENSITY_PRESETS = {
-  quick: { renderIterations: 3, scrollToJumps: 3, memoryScrollMs: 3000 },
-  default: { renderIterations: 5, scrollToJumps: 5, memoryScrollMs: 5000 },
-  full: { renderIterations: 7, scrollToJumps: 7, memoryScrollMs: 7000 },
+  quick: { renderIterations: 3, scrollToJumps: 2, memoryScrollMs: 3000 },
+  default: { renderIterations: 3, scrollToJumps: 3, memoryScrollMs: 5000 },
+  full: { renderIterations: 5, scrollToJumps: 5, memoryScrollMs: 5000 },
 };
 const intensity = intensityMode ? INTENSITY_PRESETS[intensityMode] ?? null : null;
 
@@ -195,6 +195,7 @@ try {
     timeout: 30_000,
   });
 
+  const benchStart = Date.now();
   const results = await page.evaluate(async (options) => {
     const host = document.createElement("div");
     host.id = "bench-ci-host";
@@ -238,6 +239,7 @@ try {
 
   if (lastWasProgress) process.stdout.write("\n");
 
+  const totalDurationMs = Date.now() - benchStart;
   const now = new Date().toISOString();
   const payload = {
     schemaVersion: 1,
@@ -252,6 +254,7 @@ try {
       deviceMemory: results.deviceMemory,
     },
     results: results.results,
+    durationMs: totalDurationMs,
   };
 
   await mkdir(outputDir, { recursive: true });
@@ -261,10 +264,14 @@ try {
   await writeFile(datedPath, `${JSON.stringify(payload, null, 2)}\n`);
 
   const summaryPath = resolve(outputDir, "summary.md");
+  const durationStr = totalDurationMs < 60_000
+    ? `${(totalDurationMs / 1000).toFixed(2)}s`
+    : `${Math.floor(totalDurationMs / 60_000)}m ${((totalDurationMs % 60_000) / 1000).toFixed(0)}s`;
+
   const lines = [
     "# vlist Performance Benchmark",
     "",
-    `Generated: ${now}`,
+    `Generated: ${now} in ${durationStr}`,
     `vlist: ${results.version}`,
     "",
     "| Suite | Items | Metric | Value | Rating |",
@@ -281,7 +288,8 @@ try {
   }
   await writeFile(summaryPath, `${lines.join("\n")}\n`);
 
-  console.log(`\nWrote ${latestPath}`);
+  console.log(`\nDone in ${durationStr}`);
+  console.log(`Wrote ${latestPath}`);
   console.log(`Wrote ${summaryPath}`);
 } finally {
   stopping = true;
