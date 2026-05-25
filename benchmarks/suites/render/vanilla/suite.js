@@ -16,7 +16,7 @@ import { measureRenderPerformance } from "../../../engine/render.js";
 defineSuite({
   id: "render-vanilla",
   name: "Initial Render (Vanilla)",
-  description: "Time from vlist() to first painted frame",
+  description: "JS execution time of vlist() initial render",
   icon: "⚡",
 
   run: async ({ itemCount, container, onStatus, intensity }) => {
@@ -38,12 +38,10 @@ defineSuite({
       ...(intensity?.renderIterations && { measureIterations: intensity.renderIterations }),
     });
 
-    // Rating thresholds depend on item count
-    // Includes ~16ms of rAF overhead at 60fps
     const goodThreshold =
-      itemCount <= 10_000 ? 20 : itemCount <= 100_000 ? 30 : 80;
+      itemCount <= 10_000 ? 5 : itemCount <= 100_000 ? 10 : 50;
     const okThreshold =
-      itemCount <= 10_000 ? 40 : itemCount <= 100_000 ? 60 : 200;
+      itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 30 : 120;
 
     return [
       {

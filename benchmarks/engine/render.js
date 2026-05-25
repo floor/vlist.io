@@ -57,12 +57,11 @@ export const measureSingleRender = async ({
 
   const { duration, result: instance } = await measureDuration(
     `${label}-${iteration}`,
-    async () => {
-      const inst = await createFn(container);
-      await nextFrame();
-      return inst;
-    },
+    () => createFn(container),
   );
+
+  await nextFrame();
+  await waitFrames(2);
 
   // Clean up
   await destroyFn(instance);

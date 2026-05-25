@@ -41,11 +41,10 @@ defineSuite({
       hideContainer: false,
     });
 
-    // Rating thresholds (similar to vanilla JavaScript - no framework overhead in benchmarks)
     const goodThreshold =
-      itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 30 : 80;
+      itemCount <= 10_000 ? 5 : itemCount <= 100_000 ? 10 : 50;
     const okThreshold =
-      itemCount <= 10_000 ? 40 : itemCount <= 100_000 ? 65 : 200;
+      itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 30 : 120;
 
     return [
       {
