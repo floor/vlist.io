@@ -9,6 +9,7 @@ import { routeApi } from "../api/router";
 import {
   renderDocsPage,
   renderTutorialPage,
+  renderBlogPage,
   renderExamplesPage,
   renderBenchmarkPage,
 } from "./renderers";
@@ -49,6 +50,15 @@ function resolveTutorials(pathname: string): Response | null {
   }
   const match = pathname.match(/^\/tutorials\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
   if (match) return renderTutorialPage(match[1]);
+  return null;
+}
+
+function resolveBlog(pathname: string): Response | null {
+  if (pathname === "/blog" || pathname === "/blog/") {
+    return renderBlogPage(null);
+  }
+  const match = pathname.match(/^\/blog\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
+  if (match) return renderBlogPage(match[1]);
   return null;
 }
 
@@ -95,6 +105,7 @@ export function handleRequest(req: Request): Response | Promise<Response> {
     resolveExamples(pathname, url) ??
     resolveDocs(pathname) ??
     resolveTutorials(pathname) ??
+    resolveBlog(pathname) ??
     resolveBenchmarks(pathname, url) ??
     resolveStatic(pathname);
 

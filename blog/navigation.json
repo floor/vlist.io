@@ -1,0 +1,52 @@
+[
+  {
+    "label": "AI Reviews",
+    "items": [
+      {
+        "slug": "ai-review-questions",
+        "name": "Interview Questions",
+        "desc": "The questions given to all AI models"
+      },
+      {
+        "slug": "review-claude",
+        "name": "Claude Review",
+        "desc": "Claude Opus analysis of vlist"
+      },
+      {
+        "slug": "review-deepseek",
+        "name": "DeepSeek Review",
+        "desc": "DeepSeek analysis of vlist"
+      },
+      {
+        "slug": "review-gemini",
+        "name": "Gemini Review",
+        "desc": "Google Gemini analysis of vlist"
+      },
+      {
+        "slug": "review-gpt5",
+        "name": "GPT-5 Review",
+        "desc": "OpenAI GPT-5 analysis of vlist"
+      },
+      {
+        "slug": "review-grok",
+        "name": "Grok Review",
+        "desc": "xAI Grok analysis of vlist"
+      },
+      {
+        "slug": "review-mistral",
+        "name": "Mistral Review",
+        "desc": "Mistral analysis of vlist"
+      }
+    ]
+  },
+  {
+    "label": "Discussions",
+    "items": [
+      {
+        "slug": "discussion-with-antigravity",
+        "name": "Discussion with Antigravity",
+        "desc": "When we asked an AI to review vlist — it wanted to join the team"
+      }
+    ]
+  }
+]

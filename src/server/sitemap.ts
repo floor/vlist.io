@@ -10,6 +10,7 @@ import { CACHE_META } from "./cache";
 import {
   DOC_GROUPS,
   TUTORIAL_GROUPS,
+  BLOG_GROUPS,
   EXAMPLE_GROUPS,
   BENCH_GROUPS,
 } from "./renderers";
@@ -150,6 +151,25 @@ function buildLastmodMap(): Map<string, string> {
     }
   }
 
+  // Blog overview
+  map.set(
+    "/blog/",
+    resolveDate(
+      allDates,
+      "blog/navigation.json",
+      "src/server/shells/content.html",
+      "styles/content.css",
+    ),
+  );
+
+  // Blog pages → markdown files
+  for (const group of BLOG_GROUPS) {
+    for (const item of group.items) {
+      const file = `blog/${item.slug}.md`;
+      map.set(`/blog/${item.slug}`, resolveDate(allDates, file));
+    }
+  }
+
   // Examples overview → navigation config
   map.set("/examples/", resolveDate(allDates, "examples/navigation.json"));
 
@@ -222,6 +242,14 @@ export function renderSitemap(): Response {
   for (const group of TUTORIAL_GROUPS) {
     for (const item of group.items) {
       urls.push({ loc: `/tutorials/${item.slug}`, priority: "0.7" });
+    }
+  }
+
+  // Blog
+  urls.push({ loc: "/blog/", priority: "0.8" });
+  for (const group of BLOG_GROUPS) {
+    for (const item of group.items) {
+      urls.push({ loc: `/blog/${item.slug}`, priority: "0.6" });
     }
   }
 

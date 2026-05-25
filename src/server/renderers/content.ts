@@ -752,9 +752,22 @@ export const tutorialsRenderer = createContentRenderer({
     "Step-by-step guides to learn vlist from beginner to advanced.",
 });
 
+export const blogRenderer = createContentRenderer({
+  contentDir: "./blog",
+  urlPrefix: "/blog",
+  sectionName: "Blog",
+  titleSuffix: "vlist Blog",
+  defaultTitle: "Blog — vlist",
+  defaultDescription: "Articles, AI reviews, and discussions about vlist",
+  overviewTitle: "vlist Blog",
+  overviewTagline:
+    "Articles, uncoached AI reviews, and in-depth discussions about vlist.",
+});
+
 // Convenience exports for backward compatibility
 export const DOC_GROUPS = docsRenderer.loadNavigation();
 export const TUTORIAL_GROUPS = tutorialsRenderer.loadNavigation();
+export const BLOG_GROUPS = blogRenderer.loadNavigation();
 
 export function renderDocsPage(slug: string | null): Response | null {
   return docsRenderer.render(slug);
@@ -774,4 +787,16 @@ export function clearDocsCache(): void {
 
 export function clearTutorialsCache(): void {
   tutorialsRenderer.clearCache();
+}
+
+export function renderBlogPage(slug: string | null): Response {
+  const response = blogRenderer.render(slug);
+  if (!response) {
+    return new Response("Blog post not found", { status: 404 });
+  }
+  return response;
+}
+
+export function clearBlogCache(): void {
+  blogRenderer.clearCache();
 }
