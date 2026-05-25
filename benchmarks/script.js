@@ -9,17 +9,13 @@ import {
   buildSuitePageHTML,
   buildBundlePageHTML,
   buildFeaturesPageHTML,
-  buildComparisonsOverviewHTML,
-  buildPerformanceComparisonHTML,
 } from "./templates.js";
 
-import { buildHistoryPage } from "./history.js";
 import { buildSuiteHistoryPage } from "./suite-history.js";
 import { buildCiResultsPage } from "./ci-results.js";
 
 // Import data files
 import BUNDLE_DATA from "./data/bundle.json";
-import PERFORMANCE_DATA from "./data/performance.json";
 import FEATURES_DATA from "./data/features.json";
 import vlistPackage from "vlist/package.json";
 
@@ -96,16 +92,6 @@ import "./suites/scrollto/react/suite.js";
 import "./suites/scrollto/solidjs/suite.js";
 import "./suites/scrollto/vue/suite.js";
 import "./suites/scrollto/svelte/suite.js";
-
-// Comparison suites
-import "./comparison/react-window.js";
-import "./comparison/react-virtuoso.js";
-import "./comparison/tanstack-virtual.js";
-import "./comparison/virtua.js";
-import "./comparison/vue-virtual-scroller.js";
-import "./comparison/solidjs.js";
-import "./comparison/legend-list.js";
-import "./comparison/clusterize.js";
 
 import { SCROLL_SPEEDS } from "./suites/scroll/constants.js";
 
@@ -187,12 +173,6 @@ import {
   runBenchmarks,
   formatItemCount,
 } from "./runner.js";
-
-// Import comparison constants for progress tracking
-import {
-  SCROLL_DURATION_MS as COMP_SCROLL_DURATION_MS,
-  COMPARISON_SCROLL_SPEEDS,
-} from "./comparison/shared.js";
 
 // =============================================================================
 // Constants
@@ -294,22 +274,6 @@ function buildSuitePage(root, suite) {
 
 function buildBundlePage(root) {
   root.innerHTML = buildBundlePageHTML(BUNDLE_DATA);
-}
-
-// =============================================================================
-// Comparisons Overview Page
-// =============================================================================
-
-function buildComparisonsOverviewPage(root) {
-  root.innerHTML = buildComparisonsOverviewHTML();
-}
-
-// =============================================================================
-// Performance Comparison Page
-// =============================================================================
-
-function buildPerformanceComparisonPage(root) {
-  root.innerHTML = buildPerformanceComparisonHTML(PERFORMANCE_DATA);
 }
 
 // =============================================================================
@@ -484,10 +448,6 @@ const handleSuiteRunClick = async (suiteId) => {
 
   let currentStepProgress = 0;
 
-  // Track which comparison library we're on (0 = first, 1 = second)
-  let compLibIndex = -1;
-  let lastCompLib = "";
-
   // Timer to animate progress during scroll phases (no status updates during scroll)
   let scrollProgressTimer = null;
   const SCROLL_TICK = 200; // update every 200ms
@@ -527,79 +487,7 @@ const handleSuiteRunClick = async (suiteId) => {
       onStatus: (sid, itemCount, message) => {
         updateSuiteStatus(sid, message);
 
-        // ── Comparison benchmarks ──────────────────────────────────
-        // Messages follow: "Testing {lib} - {phase}..."
-        // Two libraries × (prepare + memory + N scroll speeds) each
-        // Progress: lib1 maps to 0→0.48, lib2 maps to 0.50→0.98
-        const compMatch = message.match(
-          /^Testing (.+?) - (preparing|measuring memory|scrolling)/,
-        );
-        if (compMatch) {
-          const lib = compMatch[1];
-          const phase = compMatch[2];
-
-          // Detect library switch
-          if (lib !== lastCompLib) {
-            compLibIndex++;
-            lastCompLib = lib;
-          }
-
-          // Stop any running scroll timer when phase changes
-          stopScrollProgressTimer();
-
-          // Base offset: first lib 0→0.48, second lib 0.50→0.98
-          const libBase = compLibIndex === 0 ? 0 : 0.5;
-
-          const numSpeeds = COMPARISON_SCROLL_SPEEDS.length; // 3
-
-          // Phase offsets within each library's half (0→0.48)
-          // Prepare + render: 0.00→0.08  (fast, no per-iteration status)
-          // Memory:           0.08→0.20  (X/Y parsed from status message)
-          // Scroll speeds:    0.20→0.48  (split evenly across N speeds)
-          if (phase === "preparing") {
-            currentStepProgress = libBase + 0.02;
-          } else if (phase === "measuring memory") {
-            // Parse attempt number if available: "measuring memory (X/Y)"
-            const memMatch = message.match(/measuring memory \((\d+)\/(\d+)\)/);
-            if (memMatch) {
-              const current = parseInt(memMatch[1], 10);
-              const total = parseInt(memMatch[2], 10);
-              // Memory spans from 0.08 to 0.20 within the lib's half
-              currentStepProgress = libBase + 0.08 + (current / total) * 0.12;
-            } else {
-              currentStepProgress = libBase + 0.08;
-            }
-          } else if (phase === "scrolling") {
-            // Detect which scroll speed we're on from the label (e.g. "scrolling 7,200 px/s...")
-            const speedMatch = message.match(/scrolling ([\d,.]+ px\/s)/);
-            let speedIndex = 0;
-            if (speedMatch) {
-              const label = speedMatch[1];
-              const idx = COMPARISON_SCROLL_SPEEDS.findIndex(
-                (s) => s.label === label,
-              );
-              if (idx >= 0) speedIndex = idx;
-            }
-
-            // Each speed gets an equal slice of the scroll range (0.20→0.48)
-            const scrollRange = 0.28; // total scroll band within the half
-            const sliceSize = scrollRange / numSpeeds;
-            const sliceStart = libBase + 0.2 + speedIndex * sliceSize;
-            const sliceEnd = sliceStart + sliceSize;
-
-            currentStepProgress = sliceStart;
-            startScrollProgressTimer(
-              sliceStart,
-              sliceEnd,
-              COMP_SCROLL_DURATION_MS,
-            );
-          }
-
-          setProgress(suiteId, currentStepProgress);
-          return;
-        }
-
-        // ── Solo benchmarks ────────────────────────────────────────
+        // ── Progress tracking ──────────────────────────────────────
         // Phase-based progress (scroll benchmark)
         if (message.includes("Waking up display")) {
           currentStepProgress = 0.1;
@@ -742,12 +630,10 @@ const updateSuiteStatus = (suiteId, message) => {
   const ref = dom.suiteCards.get(suiteId);
   if (!ref) return;
 
-  // Strip redundant "Testing " prefix from comparison status messages
-  const cleaned = message.replace(/^Testing /, "");
-  ref.statusEl.textContent = cleaned;
+  ref.statusEl.textContent = message;
   ref.statusEl.classList.toggle(
     "bench-suite__status--running",
-    cleaned !== "Final results",
+    message !== "Final results",
   );
 };
 
@@ -832,12 +718,6 @@ if (root) {
     buildBundlePage(root);
   } else if (page === "features") {
     buildFeaturesPage(root);
-  } else if (page === "comparisons") {
-    buildComparisonsOverviewPage(root);
-  } else if (page === "performance-comparison") {
-    buildPerformanceComparisonPage(root);
-  } else if (page === "history") {
-    buildHistoryPage(root);
   } else if (page === "suite-history") {
     buildSuiteHistoryPage(root);
   } else if (page === "ci-results") {

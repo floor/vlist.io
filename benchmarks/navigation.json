@@ -6,7 +6,7 @@
         "slug": "render",
         "name": "Initial Render",
         "icon": "⚡",
-        "desc": "Time to create a vlist and paint the first frame"
+        "desc": "JS execution time of vlist() initial render"
       },
       {
         "slug": "scroll",
@@ -29,59 +29,6 @@
     ]
   },
   {
-    "label": "Comparisons",
-    "items": [
-      {
-        "slug": "react-window",
-        "name": "react-window",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs react-window"
-      },
-      {
-        "slug": "react-virtuoso",
-        "name": "react-virtuoso",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs react-virtuoso"
-      },
-      {
-        "slug": "tanstack-virtual",
-        "name": "TanStack Virtual",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs TanStack Virtual"
-      },
-      {
-        "slug": "legend-list",
-        "name": "Legend List",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs Legend List"
-      },
-      {
-        "slug": "solidjs",
-        "name": "SolidJS",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs TanStack Virtual (SolidJS)"
-      },
-      {
-        "slug": "virtua",
-        "name": "Virtua",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs Virtua"
-      },
-      {
-        "slug": "vue-virtual-scroller",
-        "name": "vue-virtual-scroller",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs vue-virtual-scroller"
-      },
-      {
-        "slug": "clusterize",
-        "name": "Clusterize.js",
-        "icon": "",
-        "desc": "Head-to-head performance: vlist vs Clusterize.js"
-      }
-    ]
-  },
-  {
     "label": "Results",
     "items": [
       {
@@ -89,12 +36,6 @@
         "name": "Suite History",
         "icon": "📊",
         "desc": "Crowdsourced vlist suite results over time, by version and browser"
-      },
-      {
-        "slug": "history",
-        "name": "Comparison History",
-        "icon": "📈",
-        "desc": "Crowdsourced library comparison results over time, by version and browser"
       },
       {
         "slug": "ci-results",

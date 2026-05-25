@@ -742,47 +742,6 @@ html[data-theme] .vlist-item {
     }
 }
 
-/* =============================================================================
-   Comparison Overview Styles
-   ============================================================================= */
-
-.section-title {
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.comparison-grid {
-    display: grid;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.comparison-card {
-    display: block;
-    padding: 1rem;
-    background: var(--surface);
-    border-radius: 8px;
-    text-decoration: none;
-    color: inherit;
-    border: 1px solid var(--border);
-    transition: border-color 0.2s;
-}
-
-.comparison-card:hover {
-    border-color: var(--primary);
-}
-
-.comparison-card__title {
-    color: var(--primary);
-    font-weight: 600;
-}
-
-.comparison-card__desc {
-    font-size: 0.9rem;
-    color: var(--text-dim);
-    margin-top: 0.25rem;
-}
 
 .info-box {
     background: var(--surface);
