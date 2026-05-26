@@ -1,6 +1,9 @@
 // test/benchmarks/history-utils.test.ts
 import { describe, test, expect } from "bun:test";
 import {
+  SUITE_DISPLAY_NAMES,
+  deriveRating,
+  deriveMeta,
   confidenceLabel,
   formatMetricValue,
   round,
@@ -8,6 +11,318 @@ import {
   niceDateTicks,
   formatTickValue,
 } from "../../benchmarks/history-utils.js";
+
+// =============================================================================
+// SUITE_DISPLAY_NAMES
+// =============================================================================
+
+describe("SUITE_DISPLAY_NAMES", () => {
+  test("contains all known comparison suites", () => {
+    const expectedIds = [
+      "react-window",
+      "react-virtuoso",
+      "tanstack-virtual",
+      "virtua",
+      "vue-virtual-scroller",
+      "solidjs",
+      "legend-list",
+      "clusterize",
+    ];
+    for (const id of expectedIds) {
+      expect(SUITE_DISPLAY_NAMES).toHaveProperty(id);
+      expect(typeof SUITE_DISPLAY_NAMES[id]).toBe("string");
+      expect(SUITE_DISPLAY_NAMES[id].length).toBeGreaterThan(0);
+    }
+  });
+
+  test("maps suite IDs to friendly names", () => {
+    expect(SUITE_DISPLAY_NAMES["tanstack-virtual"]).toBe("TanStack Virtual");
+    expect(SUITE_DISPLAY_NAMES["virtua"]).toBe("Virtua");
+    expect(SUITE_DISPLAY_NAMES["solidjs"]).toBe("SolidJS");
+    expect(SUITE_DISPLAY_NAMES["clusterize"]).toBe("Clusterize.js");
+    expect(SUITE_DISPLAY_NAMES["legend-list"]).toBe("Legend List");
+  });
+
+  test("keeps hyphenated names as-is when they are already readable", () => {
+    expect(SUITE_DISPLAY_NAMES["react-window"]).toBe("react-window");
+    expect(SUITE_DISPLAY_NAMES["react-virtuoso"]).toBe("react-virtuoso");
+    expect(SUITE_DISPLAY_NAMES["vue-virtual-scroller"]).toBe(
+      "vue-virtual-scroller",
+    );
+  });
+});
+
+// =============================================================================
+// deriveRating
+// =============================================================================
+
+describe("deriveRating", () => {
+  describe("difference rows (lower is better)", () => {
+    test("returns 'good' when vlist wins (negative value)", () => {
+      expect(deriveRating("Render Time Difference", "lower", -14.6)).toBe(
+        "good",
+      );
+      expect(deriveRating("Memory Difference", "lower", -88.3)).toBe("good");
+    });
+
+    test("returns 'ok' when tied (zero)", () => {
+      expect(deriveRating("Render Time Difference", "lower", 0)).toBe("ok");
+      expect(deriveRating("Memory Difference", "lower", 0)).toBe("ok");
+    });
+
+    test("returns 'bad' when vlist loses (positive value)", () => {
+      expect(deriveRating("Render Time Difference", "lower", 15)).toBe("bad");
+      expect(deriveRating("Memory Difference", "lower", 5)).toBe("bad");
+    });
+  });
+
+  describe("difference rows (higher is better)", () => {
+    test("returns 'good' when vlist wins (positive value)", () => {
+      expect(deriveRating("FPS Difference", "higher", 10)).toBe("good");
+    });
+
+    test("returns 'ok' when tied (zero)", () => {
+      expect(deriveRating("FPS Difference", "higher", 0)).toBe("ok");
+    });
+
+    test("returns 'bad' when vlist loses (negative value)", () => {
+      expect(deriveRating("FPS Difference", "higher", -5)).toBe("bad");
+    });
+  });
+
+  describe("difference rows with unknown better direction", () => {
+    test("returns null for unrecognized better direction", () => {
+      expect(deriveRating("Some Difference", "none", -10)).toBeNull();
+    });
+  });
+
+  describe("render time metrics", () => {
+    test("returns 'good' for fast renders (< 30ms)", () => {
+      expect(deriveRating("vlist Render Time", "lower", 8.5)).toBe("good");
+      expect(deriveRating("react-window Render Time", "lower", 29.9)).toBe(
+        "good",
+      );
+    });
+
+    test("returns 'ok' for moderate renders (30-50ms)", () => {
+      expect(deriveRating("vlist Render Time", "lower", 30)).toBe("ok");
+      expect(deriveRating("vlist Render Time", "lower", 49.9)).toBe("ok");
+    });
+
+    test("returns 'bad' for slow renders (>= 50ms)", () => {
+      expect(deriveRating("vlist Render Time", "lower", 50)).toBe("bad");
+      expect(deriveRating("Clusterize.js Render Time", "lower", 93)).toBe(
+        "bad",
+      );
+    });
+  });
+
+  describe("memory metrics", () => {
+    test("returns 'good' for low memory (< 5 MB)", () => {
+      expect(deriveRating("vlist Memory Usage", "lower", 0.24)).toBe("good");
+      expect(deriveRating("react-window Memory Usage", "lower", 2.26)).toBe(
+        "good",
+      );
+    });
+
+    test("returns 'ok' for moderate memory (5-30 MB)", () => {
+      expect(deriveRating("Virtua Memory Usage", "lower", 14.3)).toBe("ok");
+    });
+
+    test("returns 'bad' for high memory (>= 30 MB)", () => {
+      expect(deriveRating("vlist Memory Usage", "lower", 30)).toBe("bad");
+      expect(deriveRating("vlist Memory Usage", "lower", 100)).toBe("bad");
+    });
+  });
+
+  describe("FPS metrics", () => {
+    test("returns 'good' for smooth scrolling (>= 55 fps)", () => {
+      expect(deriveRating("vlist Scroll FPS", "higher", 120.5)).toBe("good");
+      expect(deriveRating("react-window Scroll FPS", "higher", 55)).toBe(
+        "good",
+      );
+    });
+
+    test("returns 'ok' for acceptable scrolling (50-55 fps)", () => {
+      expect(deriveRating("vlist Scroll FPS", "higher", 50)).toBe("ok");
+      expect(deriveRating("vlist Scroll FPS", "higher", 54)).toBe("ok");
+    });
+
+    test("returns 'bad' for poor scrolling (< 50 fps)", () => {
+      expect(deriveRating("vlist Scroll FPS", "higher", 30)).toBe("bad");
+      expect(deriveRating("vlist Scroll FPS", "higher", 49.9)).toBe("bad");
+    });
+  });
+
+  describe("P95 frame time metrics", () => {
+    test("returns 'good' for low frame time (< 20ms)", () => {
+      expect(deriveRating("vlist P95 Frame Time", "lower", 9.1)).toBe("good");
+      expect(deriveRating("react-window P95 Frame Time", "lower", 19.9)).toBe(
+        "good",
+      );
+    });
+
+    test("returns 'ok' for moderate frame time (20-30ms)", () => {
+      expect(deriveRating("vlist P95 Frame Time", "lower", 20)).toBe("ok");
+      expect(deriveRating("vlist P95 Frame Time", "lower", 29.9)).toBe("ok");
+    });
+
+    test("returns 'bad' for high frame time (>= 30ms)", () => {
+      expect(deriveRating("vlist P95 Frame Time", "lower", 30)).toBe("bad");
+      expect(deriveRating("vlist P95 Frame Time", "lower", 50)).toBe("bad");
+    });
+  });
+
+  describe("execution order", () => {
+    test("returns 'info' for execution order", () => {
+      expect(deriveRating("Execution Order", "none", 0)).toBe("info");
+    });
+
+    test("is case-sensitive for exact match", () => {
+      expect(deriveRating("execution order", "none", 0)).toBe("info");
+    });
+  });
+
+  describe("unrecognized metrics", () => {
+    test("returns null for unknown labels", () => {
+      expect(deriveRating("Something Else", "lower", 10)).toBeNull();
+      expect(deriveRating("Custom Metric", "higher", 50)).toBeNull();
+    });
+  });
+
+  describe("case insensitivity", () => {
+    test("handles uppercase labels", () => {
+      expect(deriveRating("VLIST RENDER TIME", "lower", 8)).toBe("good");
+      expect(deriveRating("MEMORY DIFFERENCE", "lower", -10)).toBe("good");
+      expect(deriveRating("FPS DIFFERENCE", "higher", 5)).toBe("good");
+    });
+
+    test("handles mixed case labels", () => {
+      expect(deriveRating("Vlist Scroll FPS", "higher", 120)).toBe("good");
+      expect(deriveRating("vlist P95 Frame Time", "lower", 9)).toBe("good");
+    });
+  });
+});
+
+// =============================================================================
+// deriveMeta
+// =============================================================================
+
+describe("deriveMeta", () => {
+  describe("render time difference", () => {
+    test("returns 'vlist is faster' when negative", () => {
+      expect(
+        deriveMeta("Render Time Difference", "lower", -14.6, "react-window"),
+      ).toBe("vlist is faster");
+    });
+
+    test("returns '{library} is faster' when positive", () => {
+      expect(
+        deriveMeta("Render Time Difference", "lower", 5, "react-window"),
+      ).toBe("react-window is faster");
+    });
+
+    test("returns null when zero", () => {
+      expect(
+        deriveMeta("Render Time Difference", "lower", 0, "react-window"),
+      ).toBeNull();
+    });
+  });
+
+  describe("memory difference", () => {
+    test("returns 'vlist uses less' when negative", () => {
+      expect(
+        deriveMeta("Memory Difference", "lower", -88.3, "react-window"),
+      ).toBe("vlist uses less");
+    });
+
+    test("returns '{library} uses less' when positive", () => {
+      expect(deriveMeta("Memory Difference", "lower", 10, "virtua")).toBe(
+        "Virtua uses less",
+      );
+    });
+
+    test("returns null when zero", () => {
+      expect(
+        deriveMeta("Memory Difference", "lower", 0, "react-window"),
+      ).toBeNull();
+    });
+  });
+
+  describe("FPS difference", () => {
+    test("returns 'vlist is smoother' when positive", () => {
+      expect(deriveMeta("FPS Difference", "higher", 10, "react-window")).toBe(
+        "vlist is smoother",
+      );
+    });
+
+    test("returns '{library} is smoother' when negative", () => {
+      expect(deriveMeta("FPS Difference", "higher", -5, "virtua")).toBe(
+        "Virtua is smoother",
+      );
+    });
+
+    test("returns null when zero", () => {
+      expect(
+        deriveMeta("FPS Difference", "higher", 0, "react-window"),
+      ).toBeNull();
+    });
+  });
+
+  describe("friendly library names", () => {
+    test("uses SUITE_DISPLAY_NAMES for known suites", () => {
+      expect(
+        deriveMeta("Render Time Difference", "lower", 5, "tanstack-virtual"),
+      ).toBe("TanStack Virtual is faster");
+      expect(deriveMeta("Memory Difference", "lower", 5, "clusterize")).toBe(
+        "Clusterize.js uses less",
+      );
+      expect(deriveMeta("FPS Difference", "higher", -5, "solidjs")).toBe(
+        "SolidJS is smoother",
+      );
+      expect(
+        deriveMeta("Render Time Difference", "lower", 5, "legend-list"),
+      ).toBe("Legend List is faster");
+    });
+
+    test("falls back to raw suiteId for unknown suites", () => {
+      expect(
+        deriveMeta("Render Time Difference", "lower", 5, "unknown-lib"),
+      ).toBe("unknown-lib is faster");
+    });
+  });
+
+  describe("non-difference metrics", () => {
+    test("returns null for absolute metric labels", () => {
+      expect(
+        deriveMeta("vlist Render Time", "lower", 8.5, "react-window"),
+      ).toBeNull();
+      expect(
+        deriveMeta("react-window Memory Usage", "lower", 2.26, "react-window"),
+      ).toBeNull();
+      expect(
+        deriveMeta("vlist Scroll FPS", "higher", 120, "react-window"),
+      ).toBeNull();
+      expect(
+        deriveMeta("Execution Order", "none", 0, "react-window"),
+      ).toBeNull();
+    });
+  });
+
+  describe("case insensitivity", () => {
+    test("handles mixed case", () => {
+      expect(
+        deriveMeta("render time difference", "lower", -5, "react-window"),
+      ).toBe("vlist is faster");
+      expect(deriveMeta("MEMORY DIFFERENCE", "lower", -5, "react-window")).toBe(
+        "vlist uses less",
+      );
+      expect(deriveMeta("Fps Difference", "higher", 5, "react-window")).toBe(
+        "vlist is smoother",
+      );
+    });
+  });
+});
 
 // =============================================================================
 // confidenceLabel
@@ -393,3 +708,92 @@ describe("formatTickValue", () => {
   });
 });
 
+// =============================================================================
+// Integration: deriveRating + deriveMeta work together
+// =============================================================================
+
+describe("deriveRating and deriveMeta integration", () => {
+  // Simulates what the history page does: for each metric, derive both rating and meta
+
+  const typicalComparisonMetrics = [
+    {
+      label: "vlist Render Time",
+      better: "lower",
+      value: 8.5,
+      expectedRating: "good",
+      expectedMeta: null,
+    },
+    {
+      label: "react-window Render Time",
+      better: "lower",
+      value: 9.1,
+      expectedRating: "good",
+      expectedMeta: null,
+    },
+    {
+      label: "Render Time Difference",
+      better: "lower",
+      value: -6.6,
+      expectedRating: "good",
+      expectedMeta: "vlist is faster",
+    },
+    {
+      label: "vlist Memory Usage",
+      better: "lower",
+      value: 0.24,
+      expectedRating: "good",
+      expectedMeta: null,
+    },
+    {
+      label: "react-window Memory Usage",
+      better: "lower",
+      value: 2.26,
+      expectedRating: "good",
+      expectedMeta: null,
+    },
+    {
+      label: "Memory Difference",
+      better: "lower",
+      value: -89.4,
+      expectedRating: "good",
+      expectedMeta: "vlist uses less",
+    },
+    {
+      label: "vlist Scroll FPS",
+      better: "higher",
+      value: 120.5,
+      expectedRating: "good",
+      expectedMeta: null,
+    },
+    {
+      label: "react-window Scroll FPS",
+      better: "higher",
+      value: 120.5,
+      expectedRating: "good",
+      expectedMeta: null,
+    },
+    {
+      label: "FPS Difference",
+      better: "higher",
+      value: 0,
+      expectedRating: "ok",
+      expectedMeta: null,
+    },
+    {
+      label: "Execution Order",
+      better: "none",
+      value: 0,
+      expectedRating: "info",
+      expectedMeta: null,
+    },
+  ];
+
+  for (const m of typicalComparisonMetrics) {
+    test(`${m.label}: rating=${m.expectedRating}, meta=${m.expectedMeta ?? "null"}`, () => {
+      expect(deriveRating(m.label, m.better, m.value)).toBe(m.expectedRating);
+      expect(deriveMeta(m.label, m.better, m.value, "react-window")).toBe(
+        m.expectedMeta,
+      );
+    });
+  }
+});
