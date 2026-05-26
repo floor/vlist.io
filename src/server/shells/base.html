@@ -138,6 +138,7 @@
                 <% } else { %>
                 <span class="header__section"><%= it.SECTION %></span>
                 <% } %>
+
                 <nav class="header__nav" id="header-nav">
                     <% it.NAV_ITEMS.forEach(function(item) { %>
                     <a href="<%= item.href %>"<% if (item.key && item.key === it.SECTION_KEY) { %> class="active"<% } %><% if (item.external) { %> target="_blank"<% } %>

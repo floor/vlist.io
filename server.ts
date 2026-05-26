@@ -41,11 +41,24 @@ ${packages.join("\n")}
   Press Ctrl+C to stop
 `);
 
-Bun.serve({
+const server = Bun.serve({
   port: PORT,
   fetch: handleRequest,
   reusePort: true,
 });
 
-// Signal PM2 cluster that this instance is ready to accept connections
+// Signal PM2 that this instance is ready to accept connections
 if (process.send) process.send("ready");
+
+// Graceful shutdown — PM2 reload sends SIGINT to the old process.
+// Without this handler Bun keeps the process alive, creating orphans
+// that share the port via SO_REUSEPORT and serve stale code.
+process.on("SIGINT", () => {
+  server.stop();
+  process.exit(0);
+});
+
+process.on("SIGTERM", () => {
+  server.stop();
+  process.exit(0);
+});

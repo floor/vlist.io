@@ -10,6 +10,8 @@ import { CACHE_META } from "./cache";
 import {
   DOC_GROUPS,
   TUTORIAL_GROUPS,
+  DOC_V1_GROUPS,
+  TUTORIAL_V1_GROUPS,
   BLOG_GROUPS,
   EXAMPLE_GROUPS,
   BENCH_GROUPS,
@@ -132,6 +134,27 @@ function buildLastmodMap(): Map<string, string> {
     }
   }
 
+  // Docs v1 overview
+  map.set(
+    "/docs/v1/",
+    resolveDate(
+      allDates,
+      "docs/v1/navigation.json",
+      "docs/v1/overview.json",
+      "src/server/shells/content.html",
+      "styles/content.css",
+    ),
+  );
+
+  // Docs v1 pages
+  for (const group of DOC_V1_GROUPS) {
+    for (const item of group.items) {
+      if (item.slug === "") continue;
+      const file = `docs/v1/${item.slug}.md`;
+      map.set(`/docs/v1/${item.slug}`, resolveDate(allDates, file));
+    }
+  }
+
   // Tutorials overview → navigation config, plus shared shell
   map.set(
     "/tutorials/",
@@ -148,6 +171,25 @@ function buildLastmodMap(): Map<string, string> {
     for (const item of group.items) {
       const file = `tutorials/${item.slug}.md`;
       map.set(`/tutorials/${item.slug}`, resolveDate(allDates, file));
+    }
+  }
+
+  // Tutorials v1 overview
+  map.set(
+    "/tutorials/v1/",
+    resolveDate(
+      allDates,
+      "tutorials/v1/navigation.json",
+      "src/server/shells/content.html",
+      "styles/content.css",
+    ),
+  );
+
+  // Tutorials v1 pages
+  for (const group of TUTORIAL_V1_GROUPS) {
+    for (const item of group.items) {
+      const file = `tutorials/v1/${item.slug}.md`;
+      map.set(`/tutorials/v1/${item.slug}`, resolveDate(allDates, file));
     }
   }
 
@@ -237,11 +279,28 @@ export function renderSitemap(): Response {
     }
   }
 
+  // Docs v1
+  urls.push({ loc: "/docs/v1/", priority: "0.5" });
+  for (const group of DOC_V1_GROUPS) {
+    for (const item of group.items) {
+      if (item.slug === "") continue;
+      urls.push({ loc: `/docs/v1/${item.slug}`, priority: "0.4" });
+    }
+  }
+
   // Tutorials
   urls.push({ loc: "/tutorials/", priority: "0.9" });
   for (const group of TUTORIAL_GROUPS) {
     for (const item of group.items) {
       urls.push({ loc: `/tutorials/${item.slug}`, priority: "0.7" });
+    }
+  }
+
+  // Tutorials v1
+  urls.push({ loc: "/tutorials/v1/", priority: "0.5" });
+  for (const group of TUTORIAL_V1_GROUPS) {
+    for (const item of group.items) {
+      urls.push({ loc: `/tutorials/v1/${item.slug}`, priority: "0.4" });
     }
   }
 
@@ -274,8 +333,10 @@ export function renderSitemap(): Response {
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
     ...urls.map((u) => {
       const lastmod = LASTMOD.get(u.loc) ?? FALLBACK_DATE;
-      const changefreq =
-        u.priority === "1.0"
+      const isV1 = u.loc.includes("/v1/") || u.loc.endsWith("/v1");
+    const changefreq = isV1
+        ? "yearly"
+        : u.priority === "1.0"
           ? "weekly"
           : u.priority === "0.9"
             ? "weekly"
