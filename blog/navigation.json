@@ -1,5 +1,15 @@
 [
   {
+    "label": "Releases",
+    "items": [
+      {
+        "slug": "v2",
+        "name": "vlist v2",
+        "desc": "Zero-allocation architecture, new API, 55% smaller bundle"
+      }
+    ]
+  },
+  {
     "label": "AI Reviews",
     "items": [
       {
