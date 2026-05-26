@@ -24,7 +24,7 @@ const gallery = vlist({ ... })
 // NOT included: withGroups, withAsync, withScale, withScrollbar, withPage, etc.
 ```
 
-**Result:** {{size:base:gz}}–{{size:withTable:gz}} KB gzipped depending on features used (vs 20-23 KB for traditional virtual lists).
+**Result:** 11.1–16.9 KB gzipped depending on features used (vs 20-23 KB for traditional virtual lists).
 
 ## Actual Bundle Sizes
 
@@ -36,18 +36,18 @@ Each feature adds incrementally to the base bundle:
 
 | Feature | Minified | Gzipped | Incremental (gz) | Description |
 |---------|----------|---------|-------------------|-------------|
-| **Base** | {{size:base:min}} KB | {{size:base:gz}} KB | — | Core virtualization |
-| `withGrid()` | {{size:withGrid:min}} KB | {{size:withGrid:gz}} KB | +{{size:withGrid:delta}} KB | 2D grid layout |
-| `withMasonry()` | {{size:withMasonry:min}} KB | {{size:withMasonry:gz}} KB | +{{size:withMasonry:delta}} KB | Masonry layout |
-| `withGroups()` | {{size:withGroups:min}} KB | {{size:withGroups:gz}} KB | +{{size:withGroups:delta}} KB | Grouped lists with headers |
-| `withAsync()` | {{size:withAsync:min}} KB | {{size:withAsync:gz}} KB | +{{size:withAsync:delta}} KB | Async data loading |
-| `withSelection()` | {{size:withSelection:min}} KB | {{size:withSelection:gz}} KB | +{{size:withSelection:delta}} KB | Item selection & keyboard nav |
-| `withScale()` | {{size:withScale:min}} KB | {{size:withScale:gz}} KB | +{{size:withScale:delta}} KB | Handle 1M+ items |
-| `withScrollbar()` | {{size:withScrollbar:min}} KB | {{size:withScrollbar:gz}} KB | +{{size:withScrollbar:delta}} KB | Custom scrollbar UI |
-| `withPage()` | {{size:withPage:min}} KB | {{size:withPage:gz}} KB | +{{size:withPage:delta}} KB | Document-level scrolling |
-| `withSnapshots()` | {{size:withSnapshots:min}} KB | {{size:withSnapshots:gz}} KB | +{{size:withSnapshots:delta}} KB | Scroll save/restore |
-| `withTable()` | {{size:withTable:min}} KB | {{size:withTable:gz}} KB | +{{size:withTable:delta}} KB | Table layout with columns |
-| `withAutoSize()` | {{size:withAutoSize:min}} KB | {{size:withAutoSize:gz}} KB | +{{size:withAutoSize:delta}} KB | Automatic item sizing |
+| **Base** | 29.9 KB | 11.1 KB | — | Core virtualization |
+| `withGrid()` | 42.6 KB | 15.2 KB | +4.1 KB | 2D grid layout |
+| `withMasonry()` | 40.0 KB | 14.6 KB | +3.5 KB | Masonry layout |
+| `withGroups()` | 45.0 KB | 15.8 KB | +4.7 KB | Grouped lists with headers |
+| `withAsync()` | 42.8 KB | 15.7 KB | +4.6 KB | Async data loading |
+| `withSelection()` | 40.2 KB | 14.0 KB | +2.9 KB | Item selection & keyboard nav |
+| `withScale()` | 42.2 KB | 14.8 KB | +3.6 KB | Handle 1M+ items |
+| `withScrollbar()` | 36.1 KB | 12.9 KB | +1.8 KB | Custom scrollbar UI |
+| `withPage()` | 32.0 KB | 11.8 KB | +0.7 KB | Document-level scrolling |
+| `withSnapshots()` | 33.6 KB | 12.3 KB | +1.2 KB | Scroll save/restore |
+| `withTable()` | 48.6 KB | 16.9 KB | +5.8 KB | Table layout with columns |
+| `withAutoSize()` | 32.4 KB | 12.0 KB | +0.9 KB | Automatic item sizing |
 
 > **Note:** The "Minified" and "Gzipped" columns show the **total** bundle size when that feature is used with the base. The "Incremental" column shows the additional gzipped cost of adding that single feature on top of the base.
 
