@@ -142,12 +142,31 @@ const updateInfo = createInfoUpdater(stats);
 // Create / recreate list
 // =============================================================================
 
-export function createList() {
-  const savedPos = list?.getScrollPosition() ?? 0;
+let savedSnapshot = null;
 
+export function createList() {
   if (list) {
+    const vp = list.element.querySelector(".vlist-viewport");
+    const actualTop = vp ? vp.scrollTop : 0;
+    // Only update savedSnapshot when state has caught up with the viewport.
+    // During rapid recreations, the async restore sets viewport.scrollTop but
+    // state.scrollPosition (used by getScrollSnapshot) lags behind.
+    if (actualTop > 0) {
+      const snap = list.getScrollSnapshot();
+      if (snap.scrollTop > 0) {
+        savedSnapshot = snap;
+      }
+    }
     list.destroy();
     list = null;
+  }
+
+  // Write the good snapshot to sessionStorage so the snapshots plugin's
+  // autoSave read picks it up (it ignores config.restore when autoSave is set)
+  if (savedSnapshot) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(savedSnapshot));
+    } catch {}
   }
 
   const container = document.getElementById("list-container");
@@ -185,11 +204,6 @@ export function createList() {
     },
     plugins,
   );
-
-  if (savedPos > 0) {
-    const vp = list.element.querySelector(".vlist-viewport");
-    if (vp) vp.scrollTop = savedPos;
-  }
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);
