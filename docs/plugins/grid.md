@@ -25,12 +25,56 @@ const list = createVList({
 | `columns` | `number` | required | Number of columns (>= 1) |
 | `gap` | `number` | `0` | Space between cells (px) |
 
+### Aspect Ratios
+
+Use the `columnWidth` context to create responsive aspect ratios that adapt when the container resizes:
+
+```ts
+const list = createVList({
+  container: "#app",
+  item: {
+    height: (_index, { columnWidth }) => Math.round(columnWidth * 0.75), // 4:3
+    template: renderCard,
+  },
+  items: photos,
+}, [grid({ columns: 3, gap: 8 })]);
+```
+
+Common ratios: `* 1` (square), `* 0.75` (4:3), `* (9/16)` (16:9), `* (4/3)` (3:4 portrait).
+
+Static `height: 120` values break aspect ratios on resize — always use the function form for responsive grids.
+
+### Responsive Columns
+
+Update the column count dynamically based on viewport width:
+
+```ts
+const updateColumns = () => {
+  const w = window.innerWidth;
+  const cols = w < 480 ? 2 : w < 768 ? 3 : w < 1200 ? 4 : 5;
+  list.updateGrid({ columns: cols });
+};
+
+window.addEventListener("resize", updateColumns);
+```
+
 ### Methods
 
-| Method | Description |
-|--------|-------------|
-| `getGridLayout()` | Returns grid layout instance |
-| `updateGrid(config)` | Update columns and/or gap dynamically |
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getGridLayout()` | `GridLayout` | Grid layout instance (see below) |
+| `updateGrid(config)` | `void` | Update columns and/or gap dynamically |
+
+**`GridLayout`** properties and methods:
+
+| Member | Type | Description |
+|--------|------|-------------|
+| `columns` | `number` | Current column count |
+| `gap` | `number` | Current gap |
+| `getRow(index)` | `number` | Row for item index |
+| `getCol(index)` | `number` | Column for item index |
+| `getTotalRows(total)` | `number` | Total row count |
+| `getColumnWidth(containerWidth)` | `number` | Computed column width |
 
 ### CSS Classes
 

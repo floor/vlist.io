@@ -97,6 +97,24 @@ createVList({
 
 Set `interactive: false` for presentation-only lists (e.g. dashboards, decorative feeds). This removes keyboard handling, changes `role` to `"list"`, and removes `tabindex`. Click events still fire.
 
+### Built-in vs. Plugin
+
+The core provides full WAI-ARIA compliance out of the box. Plugins extend it:
+
+| Capability | Source |
+|------------|--------|
+| ARIA roles, `aria-setsize`, `aria-posinset` | Built-in (core) |
+| `aria-activedescendant` focus tracking | Built-in (core) |
+| Arrow/Home/End/PageUp/PageDown navigation | Built-in (core) |
+| Single-select via Space/Enter + Click | `a11y()` or `selection()` plugin |
+| Multi-select, range select, Ctrl+A | `selection()` plugin |
+| 2D grid navigation (left/right between columns) | `grid()` plugin |
+| Lane-aware masonry navigation | `masonry()` plugin |
+| Live region announcements ("Item N of M") | `a11y()` or `selection()` plugin |
+| Drag-and-drop announcements | `sortable()` plugin |
+
+If you only need keyboard navigation without selection, set `interactive: true` (the default) — no plugins required. Add `a11y()` for single-select with screen reader announcements, or `selection()` for full multi-select.
+
 ### Screen Reader Tips
 
 - Always set `ariaLabel` for a meaningful listbox announcement
