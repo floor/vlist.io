@@ -5,7 +5,7 @@
 import {
   createVList,
   selection,
-  async as asyncPlugin,
+  data as dataPlugin,
   grid,
   table,
   scrollbar,
@@ -245,7 +245,7 @@ function applyScale(plugins) {
 
 function createListView(selectionMode) {
   const plugins = [
-    asyncPlugin(getAsyncConfig()),
+    dataPlugin(getAsyncConfig()),
   ];
   applyScale(plugins);
   applyScrollbar(plugins);
@@ -276,7 +276,7 @@ function createGridView(selectionMode) {
   const cardHeight = Math.round(colWidth * 1.3);
 
   const plugins = [
-    asyncPlugin(getAsyncConfig()),
+    dataPlugin(getAsyncConfig()),
     grid({ columns: GRID_COLUMNS, gap: GRID_GAP }),
   ];
   applyScale(plugins);
@@ -298,7 +298,7 @@ function createGridView(selectionMode) {
 }
 
 function createTableView(selectionMode) {
-  const plugins = [asyncPlugin(getAsyncConfig())];
+  const plugins = [dataPlugin(getAsyncConfig())];
   const columns = currentColumnWidths
     ? trackTableColumns.map((col) => ({
         ...col,

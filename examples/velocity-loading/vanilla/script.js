@@ -4,7 +4,7 @@
 import {
   createVList,
   selection,
-  async as asyncPlugin,
+  data as dataPlugin,
   scale,
   scrollbar,
   snapshots,
@@ -121,7 +121,7 @@ const list = createVList(
   },
   [
     selection({ mode: "single" }),
-    asyncPlugin({
+    dataPlugin({
       adapter: {
         read: async ({ offset, limit }) => {
           loadRequests++;

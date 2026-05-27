@@ -85,7 +85,7 @@ function MyList() {
   const { ref } = createVList({
     item: { height: 48, template: renderItem },
     items: data(),
-    plugins: [async({ adapter: myAdapter })],
+    plugins: [data({ adapter: myAdapter })],
   });
 
   return <div ref={ref} />;

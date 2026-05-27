@@ -304,7 +304,7 @@ chat.removeItem(messageId)
 The data adapter automatically triggers "load more" near the **top** in reverse mode:
 
 ```typescript
-import { createVList, async } from 'vlist'
+import { createVList, data } from 'vlist'
 
 const chat = createVList({
   container: '#messages',
@@ -313,7 +313,7 @@ const chat = createVList({
     height: 60,
     template: renderMessage
   }
-}, [async({
+}, [data({
   adapter: {
     read: async ({ offset, limit }) => {
       const response = await fetch(`/api/messages?offset=${offset}&limit=${limit}`)
@@ -845,6 +845,6 @@ const messages = [...originalMessages].reverse() // Don't do this!
 ## Further Reading
 
 - [Groups Plugin](/docs/plugins/groups) — Add date headers to chat UIs
-- [Async Plugin](/docs/plugins/async) — Infinite scrolling with async loading
+- [Data Plugin](/docs/plugins/data) — Infinite scrolling with async loading
 - [Selection Plugin](/docs/plugins/selection) — Add message selection
 - [API Reference](/docs/api) — Full API documentation

@@ -62,7 +62,7 @@ No `.build()` step — `createVList` returns the instance directly. Plugin order
 |---|---|---|
 | `grid()` | `vlist` | 2D grid layout (virtualises by row) |
 | `groups()` | `vlist` | Grouped lists with sticky or inline headers |
-| `async()` | `vlist` | Lazy loading via adapter |
+| `data()` | `vlist` | Lazy loading via adapter |
 | `selection()` | `vlist` | Single / multiple item selection |
 | `scale()` | `vlist` | 1M+ item compression |
 | `scrollbar()` | `vlist` | Custom scrollbar UI |
@@ -84,8 +84,8 @@ No `.build()` step — `createVList` returns the instance directly. Plugin order
 | `grid()` + `groups()` | ✅ | Grouped grid |
 | `grid()` + `selection()` | ✅ | Selectable gallery |
 | `groups()` + `selection()` | ✅ | Selectable grouped list |
-| `async()` + `scale()` | ✅ | Large async dataset |
-| `page()` + `async()` | ✅ | Infinite scroll feed |
+| `data()` + `scale()` | ✅ | Large async dataset |
+| `page()` + `data()` | ✅ | Infinite scroll feed |
 | `grid()` + `masonry()` | ❌ | Layout plugins are mutually exclusive |
 | `grid()` + `table()` | ❌ | Layout plugins are mutually exclusive |
 | `masonry()` + `table()` | ❌ | Layout plugins are mutually exclusive |
@@ -179,6 +179,6 @@ const list = createVList(
 
 - **[Quick Start](./quick-start)** — Copy-paste examples for every use case
 - **[Plugins Overview](/docs/plugins/overview)** — All plugins with correct API
-- **[Grid](/docs/plugins/grid)** · **[Groups](/docs/plugins/groups)** · **[Async](/docs/plugins/async)**
+- **[Grid](/docs/plugins/grid)** · **[Groups](/docs/plugins/groups)** · **[Data](/docs/plugins/data)**
 - **[Selection](/docs/plugins/selection)** · **[Scale](/docs/plugins/scale)** · **[Scrollbar](/docs/plugins/scrollbar)**
 - **[API Reference](/docs/api)** — Complete method reference

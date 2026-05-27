@@ -26,7 +26,7 @@ Mapping is defined in `src/server/version-map.ts`. Examples:
 | v1 URL | Canonical (v2) |
 |--------|---------------|
 | `/docs/v1/features/grid` | `/docs/plugins/grid` |
-| `/docs/v1/features/async` | `/docs/plugins/async` |
+| `/docs/v1/features/async` | `/docs/plugins/data` |
 | `/docs/v1/api/reference` | `/docs/api` |
 | `/docs/v1/api/types` | `/docs/api` |
 | `/docs/v1/resources/bundle-size` | `/docs/bundle-size` |

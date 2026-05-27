@@ -10,7 +10,7 @@ Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 |--------|--------|---------------|-------------|
 | a11y | `a11y()` | +{{size:a11y:delta}} KB | Baseline keyboard nav + single-select |
 | selection | `selection()` | +{{size:selection:delta}} KB | Single/multi selection + keyboard nav |
-| async | `async()` | +{{size:async:delta}} KB | Async data loading + pagination |
+| data | `data()` | +{{size:data:delta}} KB | Async data loading + pagination |
 | scrollbar | `scrollbar()` | +{{size:scrollbar:delta}} KB | Custom scrollbar UI |
 | sortable | `sortable()` | +{{size:sortable:delta}} KB | Drag-and-drop reordering |
 | groups | `groups()` | +{{size:groups:delta}} KB | Grouped lists with sticky headers |

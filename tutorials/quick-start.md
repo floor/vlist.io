@@ -146,7 +146,7 @@ chat.prependItems(olderMessages);
 ### 6. Infinite Scroll Feed
 
 ```typescript
-import { createVList, page, async } from 'vlist';
+import { createVList, page, data } from 'vlist';
 
 const feed = createVList({
   container: '#feed',
@@ -159,7 +159,7 @@ const feed = createVList({
   },
 }, [
   page(),
-  async({
+  data({
     adapter: {
       read: async ({ offset, limit }) => {
         const res = await fetch(`/api/posts?offset=${offset}&limit=${limit}`);
@@ -261,7 +261,7 @@ list.removeItem(5);
 | `grid()` | 2D grid layout with WAI-ARIA keyboard nav |
 | `masonry()` | Pinterest-style layout with lane-aware nav |
 | `groups()` | Grouped lists with sticky/inline headers |
-| `async()` | Async data loading |
+| `data()` | Async data loading |
 | `selection()` | Single/multiple selection + 2D keyboard nav |
 | `scale()` | Handle 1M+ items |
 | `scrollbar()` | Custom scrollbar |

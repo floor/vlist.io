@@ -56,7 +56,7 @@ const list = createVList({
 | `withAutoSize()` | `autosize()` |
 | `withTable()` | `table()` |
 | `withGroups()` | `groups()` |
-| `withAsync()` | `async()` |
+| `withAsync()` | `data()` |
 | `withMasonry()` | `masonry()` |
 | `withSortable()` | `sortable()` |
 

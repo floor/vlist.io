@@ -37,7 +37,7 @@
         "slug": "social-feed",
         "name": "Social Feed",
         "desc": "Social feed with real posts — variable heights measured automatically",
-        "features": ["autosize", "async"]
+        "features": ["autosize", "data"]
       },
       {
         "slug": "carousel",
@@ -49,13 +49,13 @@
         "slug": "window-scroll",
         "name": "Window Scroll",
         "desc": "Document-level scrolling with async data loading — no inner scrollbar",
-        "features": ["page", "async"]
+        "features": ["page", "data"]
       },
       {
         "slug": "track-list",
         "name": "Track List",
         "desc": "Music library with async loading — toggle between list, grid, and table views",
-        "features": ["async", "selection", "table", "grid"]
+        "features": ["data", "selection", "table", "grid"]
       },
       {
         "slug": "accessibility",
@@ -72,7 +72,7 @@
         "slug": "velocity-loading",
         "name": "Velocity Loading",
         "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
-        "features": ["async", "scale", "scrollbar", "snapshots", "selection"]
+        "features": ["data", "scale", "scrollbar", "snapshots", "selection"]
       },
       {
         "slug": "large-list",

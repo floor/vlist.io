@@ -7,7 +7,7 @@ import {
   createVList,
   table,
   selection,
-  async as asyncPlugin,
+  data as dataPlugin,
   scale,
   scrollbar,
 } from "vlist";
@@ -617,7 +617,7 @@ export function createList() {
       },
     },
     [
-      asyncPlugin({
+      dataPlugin({
         adapter: booksAdapter,
         autoLoad: true,
         storage: {

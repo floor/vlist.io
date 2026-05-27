@@ -2,7 +2,7 @@
 // Demonstrates scrollElement: window for document-level scrolling
 // Uses adapter pattern with placeholders for async data loading
 
-import { createVList, page, async as asyncPlugin } from "vlist";
+import { createVList, page, data as dataPlugin } from "vlist";
 
 // Constants
 const TOTAL_ITEMS = 10000;
@@ -84,7 +84,7 @@ const list = createVList(
         bottom: 56,
       },
     }),
-    asyncPlugin({
+    dataPlugin({
       adapter: {
         read: async ({ offset, limit }) => {
           return fetchItems(offset, limit);

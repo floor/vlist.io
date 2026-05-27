@@ -45,7 +45,7 @@ The following optimizations are already implemented in vlist:
 
 ### Loading Behavior
 
-Control velocity-based loading and preloading via the `async` plugin:
+Control velocity-based loading and preloading via the `data` plugin:
 
 ```typescript
 const list = createVList({
@@ -55,7 +55,7 @@ const list = createVList({
     template: myTemplate,
   },
 }, [
-  async({
+  data({
     adapter: myAdapter,
     loading: {
       // Velocity above which loading is skipped entirely (px/ms)
@@ -97,7 +97,7 @@ const list = createVList({
   item: { height: 50, template: myTemplate },
   scroll: { idleTimeout: 200 }, // ms (default: 150)
 }, [
-  async({ adapter: myAdapter }),
+  data({ adapter: myAdapter }),
 ]);
 ```
 
@@ -213,7 +213,7 @@ Core styles split from optional presets. `dist/vlist.css` (~7.5 KB) contains tok
 
 **Problem:** `createPlaceholderManager()` is always instantiated in the data manager, even for static lists with `items: [...]` that never need placeholders. The placeholder module includes structure analysis, field detection, and masked text generation (~300 lines).
 
-**File:** `src/features/async/manager.ts` — `createDataManager`
+**File:** `src/plugins/async/manager.ts` — `createDataManager`
 
 **Fix:** Create the placeholder manager lazily, only when the first unloaded item is requested:
 
@@ -400,7 +400,7 @@ With all optimizations enabled:
 ## Related Documentation
 
 - [Scale](/docs/plugins/scale) - How large list scaling works
-- [Async Management](/docs/plugins/async) - Sparse storage and chunking
+- [Data Plugin](/docs/plugins/data) - Sparse storage and chunking
 - [Scroll Controller](/docs/plugins/scrollbar) - Velocity tracking and scroll handling
 - [Rendering](/docs/api) - Element pooling and DOM management
 - [Types](/docs/api) - Configuration interfaces including `LoadingConfig`

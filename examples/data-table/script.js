@@ -3,7 +3,7 @@
 // All sorting and filtering happens server-side via /api/cities.
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
-import { createVList, table, selection, async as asyncPlugin, snapshots } from "vlist";
+import { createVList, table, selection, data as dataPlugin, snapshots } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -370,7 +370,7 @@ export function createList() {
       },
     },
     [
-      asyncPlugin({
+      dataPlugin({
         adapter: citiesAdapter,
         autoLoad: true,
         storage: {

@@ -1,14 +1,14 @@
-# Async
+# Data
 
 Async data loading with pagination, placeholders, and infinite scroll.
 
 ```ts
-import { createVList, async as asyncPlugin } from "vlist";
+import { createVList, data } from "vlist";
 
 const list = createVList({
   container: "#app",
   item: { height: 48, template: renderItem },
-}, [asyncPlugin({
+}, [data({
   adapter: {
     read: async ({ offset, limit }) => {
       const res = await fetch(`/api/items?offset=${offset}&limit=${limit}`);

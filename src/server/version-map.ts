@@ -15,7 +15,7 @@ export const V2_TO_V1_DOCS: Record<string, string> = {
   "adapters": "api/adapters",
   "plugins/overview": "features/overview",
   "plugins/selection": "features/selection",
-  "plugins/async": "features/async",
+  "plugins/data": "features/async",
   "plugins/scrollbar": "features/scrollbar",
   "plugins/sortable": "features/sortable",
   "plugins/groups": "features/groups",
