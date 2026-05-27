@@ -91,3 +91,7 @@ window.addEventListener("resize", updateColumns);
 - Layout recalculates on data changes
 - Keyboard nav: up/down within a lane, left/right to adjacent lane (by nearest Y position)
 - Conflicts with: grid, table
+
+## Examples
+
+- [Photo Album](/examples/photo-album) — responsive gallery with grid and masonry toggle

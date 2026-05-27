@@ -65,3 +65,8 @@ Style the scrollbar via CSS custom properties:
 - Used internally by the scale plugin for compressed scroll
 - `gutter: true` reserves layout space so content doesn't shift when the scrollbar appears — useful for tables and grids where the last column shouldn't be clipped
 - The custom scrollbar is an overlay — it does not consume layout space (unlike native scrollbars on Windows/Linux). This avoids the ~17px width discrepancy that affects `autosize()` measurement
+
+## Examples
+
+- [Scrollbar](/examples/scrollbar) — native, custom, and none with configuration options
+- [Large Dataset](/examples/large-list) — custom scrollbar with compressed scroll

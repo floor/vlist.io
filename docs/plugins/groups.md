@@ -87,3 +87,8 @@ getGroupForIndex: (index, item) => item.category
 
 - Headers are excluded from `aria-setsize` / `aria-posinset` counts
 - Group headers are skipped during keyboard navigation
+
+## Examples
+
+- [Contact List](/examples/contact-list) — A–Z grouped contacts with sticky headers
+- [Messaging](/examples/messaging) — chat UI with date group headers

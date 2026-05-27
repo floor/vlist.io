@@ -62,3 +62,7 @@ Functions are re-evaluated on each scroll frame, so they track resize/collapse c
 - Use `scrollPadding` to account for fixed headers/footers
 - Useful for infinite feeds, full-page lists, and document-integrated layouts
 - If `scroll-behavior: smooth` is set on `html`, it may conflict — remove it or use `scroll-behavior: auto`
+
+## Examples
+
+- [Window Scroll](/examples/window-scroll) — document-level scrolling with async data loading

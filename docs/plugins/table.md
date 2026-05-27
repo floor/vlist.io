@@ -72,3 +72,8 @@ list.on("column:sort", ({ key, index, direction }) => {
 - Sorting is visual only — the plugin emits `column:sort`, you re-sort data and call `setItems()`
 - Sticky header row
 - Conflicts with: grid, masonry
+
+## Examples
+
+- [Data Table](/examples/data-table) — resizable columns, sortable headers, and row selection
+- [File Browser](/examples/file-browser) — Finder-like table with resizable columns

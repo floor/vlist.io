@@ -81,3 +81,9 @@ interface VListAdapter<T> {
 - Deduplicates concurrent requests for the same range
 - Supports cursor-based pagination via `cursor` in adapter response
 - Sets `aria-busy` on root during loading
+
+## Examples
+
+- [Velocity Loading](/examples/velocity-loading) — smart async loading with scroll-speed awareness
+- [Window Scroll](/examples/window-scroll) — document-level scrolling with async data
+- [Data Table](/examples/data-table) — async-loaded table with 10K rows

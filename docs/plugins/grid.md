@@ -85,3 +85,8 @@ window.addEventListener("resize", updateColumns);
 
 - Keyboard nav: arrows move in 2D (left/right between columns, up/down between rows)
 - Conflicts with: masonry, table
+
+## Examples
+
+- [Photo Album](/examples/photo-album) — responsive gallery with grid and masonry toggle
+- [File Browser](/examples/file-browser) — Finder-like grid and table views

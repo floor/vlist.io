@@ -53,3 +53,8 @@ When compression is not active (list is small enough), `scrollToIndex` falls thr
 - Activates automatically when total content size exceeds browser limits
 - Transparent to the rest of the API — `scrollToIndex()`, events, etc. work as normal
 - Conflicts with: sortable
+
+## Examples
+
+- [Large Dataset](/examples/large-list) — 100K–5M items with scroll compression
+- [Velocity Loading](/examples/velocity-loading) — large async dataset with compression

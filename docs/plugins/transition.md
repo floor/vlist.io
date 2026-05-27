@@ -70,3 +70,8 @@ const list = createVList({
 - Overrides `insertItem()` and `removeItem()` with animated versions
 - Batch removals animate simultaneously with overlapping FLIP
 - Conflicts with: grid, table, masonry (only works with flat lists)
+
+## Examples
+
+- [Messaging](/examples/messaging) — animated message insertion in a chat UI
+- [Track List](/examples/track-list) — animated add/remove in a music library

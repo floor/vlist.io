@@ -65,3 +65,9 @@ list.on("selection:change", ({ selected, items }) => {
 
 - The item template receives `state.selected` and `state.focused` booleans
 - CSS class `.vlist--selectable` added to root
+
+## Examples
+
+- [Contact List](/examples/contact-list) — single and multi-select with keyboard navigation
+- [Data Table](/examples/data-table) — row selection in a data table
+- [Accessibility](/examples/accessibility) — selection with live ARIA attributes

@@ -61,3 +61,7 @@ list.on("sort:end", ({ fromIndex, toIndex }) => {
 - Auto-scroll at viewport edges
 - Full ARIA support (`aria-roledescription`, grab/drop announcements)
 - Conflicts with: grid, masonry, table, scale
+
+## Examples
+
+- [Sortable](/examples/sortable) — drag-and-drop reordering with handle and full-item drag

@@ -49,3 +49,8 @@ const list = createVList(config, [snapshots({ restore: saved })]);
 - Captures: scroll position, first visible item index, sub-pixel offset, selection state, focus
 - Survives compression mode changes (scale plugin)
 - Works with async data — polls until container is ready, then restores
+
+## Examples
+
+- [Scroll Restore](/examples/scroll-restore) — save and restore scroll position across navigations
+- [Contact List](/examples/contact-list) — snapshot with grouped selection

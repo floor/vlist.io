@@ -59,3 +59,8 @@ The closer `estimatedHeight` is to the real average, the less the scrollbar jump
 - Scroll position is corrected when items above the viewport measure differently than estimated
 - Auto-snaps to bottom if user was already scrolled there
 - On Windows/Linux, native scrollbars consume ~17px inside the viewport — if your items are width-sensitive (e.g. text wrapping), measured heights may differ from production layout. The custom `scrollbar()` plugin avoids this by using an overlay scrollbar
+
+## Examples
+
+- [Social Feed](/examples/social-feed) — variable-height posts measured automatically
+- [Variable Sizes](/examples/variable-sizes) — per-item height functions and auto-measured DOM sizing
