@@ -19,6 +19,7 @@ import { renderHomepage } from "./renderers/homepage";
 import { resolveStatic } from "./static";
 import { compressResponse } from "./compression";
 import { renderSitemap, renderRobots } from "./sitemap";
+import { V1_TO_V2_DOCS, V1_TO_V2_TUTORIALS } from "./version-map";
 
 // =============================================================================
 // Section Resolvers
@@ -60,9 +61,20 @@ function resolveTutorialsV1(pathname: string): Response | null {
 const DOCS_REDIRECTS: Record<string, string> = {
   "/docs/plugins/async": "/docs/plugins/data",
 };
+for (const [v1Slug, v2Slug] of Object.entries(V1_TO_V2_DOCS)) {
+  DOCS_REDIRECTS[`/docs/${v1Slug}`] = `/docs/${v2Slug}`;
+}
+
+const TUTORIAL_REDIRECTS: Record<string, string> = {};
+for (const [v1Slug, v2Slug] of Object.entries(V1_TO_V2_TUTORIALS)) {
+  if (v1Slug !== v2Slug) {
+    TUTORIAL_REDIRECTS[`/tutorials/${v1Slug}`] = `/tutorials/${v2Slug}`;
+  }
+}
 
 function resolveDocs(pathname: string): Response | null {
-  const redirect = DOCS_REDIRECTS[pathname];
+  const normalized = pathname.replace(/\/+$/, "");
+  const redirect = DOCS_REDIRECTS[normalized];
   if (redirect) {
     return new Response(null, { status: 301, headers: { Location: redirect } });
   }
@@ -75,6 +87,11 @@ function resolveDocs(pathname: string): Response | null {
 }
 
 function resolveTutorials(pathname: string): Response | null {
+  const normalized = pathname.replace(/\/+$/, "");
+  const redirect = TUTORIAL_REDIRECTS[normalized];
+  if (redirect) {
+    return new Response(null, { status: 301, headers: { Location: redirect } });
+  }
   if (pathname === "/tutorials" || pathname === "/tutorials/") {
     return renderTutorialPage(null);
   }
