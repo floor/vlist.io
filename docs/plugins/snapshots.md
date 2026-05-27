@@ -18,21 +18,21 @@ const list = createVList({
 }, [snapshots({ autoSave: "my-list-scroll" })]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `autoSave` | `string` | — | Session storage key for auto-save/restore |
 | `restore` | `ScrollSnapshot` | — | Restore from a snapshot object |
 
-### Methods
+## Methods
 
 | Method | Description |
 |--------|-------------|
 | `getScrollSnapshot()` | Capture current scroll and selection state |
 | `restoreScroll(snapshot, restoreSelection?)` | Restore from a snapshot |
 
-### Manual Save/Restore
+## Manual Save/Restore
 
 ```ts
 // Save before navigating away
@@ -44,7 +44,7 @@ const saved = JSON.parse(sessionStorage.getItem("scroll"));
 const list = createVList(config, [snapshots({ restore: saved })]);
 ```
 
-### Notes
+## Notes
 
 - Captures: scroll position, first visible item index, sub-pixel offset, selection state, focus
 - Survives compression mode changes (scale plugin)

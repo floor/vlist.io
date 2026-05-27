@@ -18,13 +18,13 @@ const list = createVList({
 }, [scale()]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `force` | `boolean` | `false` | Force compression even for smaller lists |
 
-### How it works
+## How it works
 
 When total content exceeds the browser's pixel limit (~16.7M px), the plugin compresses the scroll space by a ratio (e.g. 0.33 for 1M items at 48px). In compressed mode:
 
@@ -34,7 +34,7 @@ When total content exceeds the browser's pixel limit (~16.7M px), the plugin com
 - Items positioned relative to viewport via `onCalculate` hook
 - Built-in scrollbar (uses scrollbar plugin internally)
 
-### scrollToIndex in compressed mode
+## scrollToIndex in compressed mode
 
 The scale plugin takes over `scrollToIndex` entirely when compressed — it computes the target position in virtual (compressed) space and animates directly, avoiding any coordinate round-trip through native scroll. The `easing` and `duration` options work the same:
 
@@ -48,7 +48,7 @@ list.scrollToIndex(999999, {
 
 When compression is not active (list is small enough), `scrollToIndex` falls through to the default implementation.
 
-### Notes
+## Notes
 
 - Activates automatically when total content size exceeds browser limits
 - Transparent to the rest of the API — `scrollToIndex()`, events, etc. work as normal

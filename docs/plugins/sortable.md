@@ -26,7 +26,7 @@ list.on("sort:end", ({ fromIndex, toIndex }) => {
 });
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -38,7 +38,7 @@ list.on("sort:end", ({ fromIndex, toIndex }) => {
 | `dragThreshold` | `number` | `5` | Pixels to move before drag starts |
 | `ghostContainer` | `HTMLElement` | — | Custom container for ghost element |
 
-### Events
+## Events
 
 | Event | Payload |
 |-------|---------|
@@ -47,14 +47,14 @@ list.on("sort:end", ({ fromIndex, toIndex }) => {
 | `sort:end` | `{ fromIndex, toIndex }` |
 | `sort:cancel` | `{ originalItems }` |
 
-### CSS Classes
+## CSS Classes
 
 - `.vlist--sorting` on root during drag
 - `.vlist--settling` on root during drop animation
 - `.vlist-item--drag-source` on dragged item
 - `.vlist-item--kb-sorting` on keyboard-grabbed item
 
-### Notes
+## Notes
 
 - Visual only — reordering emits `sort:end`, you reorder data and call `setItems()`
 - Pointer drag with ghost element, or keyboard via Space + Arrow keys

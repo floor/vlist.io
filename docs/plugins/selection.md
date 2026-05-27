@@ -22,7 +22,7 @@ list.on("selection:change", ({ selected, items }) => {
 });
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -31,7 +31,7 @@ list.on("selection:change", ({ selected, items }) => {
 | `followFocus` | `boolean` | `false` | Auto-select focused item (single mode) |
 | `focusOnClick` | `boolean` | `false` | Show focus indicator on click |
 
-### Methods
+## Methods
 
 | Method | Description |
 |--------|-------------|
@@ -45,7 +45,7 @@ list.on("selection:change", ({ selected, items }) => {
 | `selectNext()` | Select next item |
 | `selectPrevious()` | Select previous item |
 
-### Events
+## Events
 
 | Event | Payload |
 |-------|---------|
@@ -53,7 +53,7 @@ list.on("selection:change", ({ selected, items }) => {
 | `focus:change` | `{ id, index }` |
 | `delete` | `{ selected, items }` — fired on Delete/Backspace |
 
-### Keyboard
+## Keyboard
 
 - Arrow keys: navigate
 - Space: toggle selection
@@ -61,7 +61,7 @@ list.on("selection:change", ({ selected, items }) => {
 - Shift+Click: range select
 - Ctrl/Cmd+Click: toggle single item
 
-### Notes
+## Notes
 
 - The item template receives `state.selected` and `state.focused` booleans
 - CSS class `.vlist--selectable` added to root

@@ -21,7 +21,7 @@ const list = createVList({
 }, [masonry({ columns: 3, gap: 8 })]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -29,7 +29,7 @@ const list = createVList({
 | `gap` | `number` | `0` | Space between items (px) |
 | `size` | `(index, context: MasonryContext) => number` | — | Responsive item height function. Context: `{ columnWidth, columns, gap, containerWidth }` |
 
-### Heights Must Be Deterministic
+## Heights Must Be Deterministic
 
 Masonry pre-calculates all item positions before rendering. Heights must be known upfront — `estimatedHeight` / `autosize()` cannot be used.
 
@@ -53,7 +53,7 @@ const list = createVList({
 
 Using `columnWidth` makes heights responsive — they recompute automatically when the container resizes.
 
-### Responsive Columns
+## Responsive Columns
 
 ```ts
 const updateColumns = () => {
@@ -63,7 +63,7 @@ const updateColumns = () => {
 window.addEventListener("resize", updateColumns);
 ```
 
-### Methods
+## Methods
 
 | Method | Returns | Description |
 |--------|---------|-------------|
@@ -81,11 +81,11 @@ window.addEventListener("resize", updateColumns);
 | `getTotalSize(placements)` | `number` | Total content height |
 | `getVisibleItems(placements, start, end)` | `ItemPlacement[]` | Items in viewport range |
 
-### CSS Classes
+## CSS Classes
 
 - `.vlist--masonry` on root
 
-### Notes
+## Notes
 
 - Each item is placed in the shortest column
 - Layout recalculates on data changes

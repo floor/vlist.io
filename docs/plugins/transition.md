@@ -24,7 +24,7 @@ list.insertItem({ id: "new", name: "New Item" }, 0);
 list.removeItem("some-id");
 ```
 
-### How It Works (FLIP)
+## How It Works (FLIP)
 
 1. **First** — capture current positions of all visible items
 2. **Last** — mutate the data and re-render (items jump to final positions)
@@ -33,7 +33,7 @@ list.removeItem("some-id");
 
 On **remove**, a clone of the removed element collapses via `scaleY(0)` + fade while siblings slide up. On **insert**, the new element expands from `scaleY(0)` + fades in while siblings slide down.
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -42,14 +42,14 @@ On **remove**, a clone of the removed element collapses via `scaleY(0)` + fade w
 | `insert` | `{ duration, easing } \| false` | inherits base | Insert animation config, or `false` to disable |
 | `remove` | `{ duration, easing } \| false` | inherits base | Remove animation config, or `false` to disable |
 
-### Events
+## Events
 
 | Event | Payload |
 |-------|---------|
 | `remove:end` | `{ id }` — after exit animation completes and clone is removed from DOM |
 | `data:change` | `{ type: "insert" \| "remove", id }` |
 
-### Reduced Motion
+## Reduced Motion
 
 The transition plugin uses `element.animate()` (Web Animations API) directly and does not check `prefers-reduced-motion`. To respect the user's preference:
 
@@ -65,7 +65,7 @@ const list = createVList({
 ].filter(Boolean));
 ```
 
-### Notes
+## Notes
 
 - Overrides `insertItem()` and `removeItem()` with animated versions
 - Batch removals animate simultaneously with overlapping FLIP

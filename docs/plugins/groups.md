@@ -25,7 +25,7 @@ const list = createVList({
 })]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -34,7 +34,7 @@ const list = createVList({
 | `header.template` | `(key, groupIndex) => string \| HTMLElement` | — | Header render function |
 | `sticky` | `boolean` | `true` | Sticky headers |
 
-### Pre-Sort Requirement
+## Pre-Sort Requirement
 
 Data **must** be sorted by group before passing to vlist. The plugin detects group boundaries by comparing adjacent items — unsorted data produces duplicate/broken headers.
 
@@ -42,7 +42,7 @@ Data **must** be sorted by group before passing to vlist. The plugin detects gro
 const sorted = [...contacts].sort((a, b) => a.lastName.localeCompare(b.lastName));
 ```
 
-### Updating Data
+## Updating Data
 
 All data methods use **data indices** (your array positions), not layout indices:
 
@@ -53,7 +53,7 @@ list.setItems(newSortedContacts);     // All groups rebuild
 list.scrollToIndex(2, "start");       // Scrolls to 3rd contact, not 3rd layout entry
 ```
 
-### Async Data
+## Async Data
 
 With the `data()` plugin, use the `item` parameter in `getGroupForIndex` instead of looking up by index (the item may not be in your local array):
 
@@ -61,7 +61,7 @@ With the `data()` plugin, use the `item` parameter in `getGroupForIndex` instead
 getGroupForIndex: (index, item) => item.category
 ```
 
-### Methods
+## Methods
 
 | Method | Returns | Description |
 |--------|---------|-------------|
@@ -78,12 +78,12 @@ getGroupForIndex: (index, item) => item.category
 | `layoutToDataIndex(layoutIndex)` | `number` | Convert layout index to data index |
 | `dataToLayoutIndex(dataIndex)` | `number` | Convert data index to layout index |
 
-### CSS Classes
+## CSS Classes
 
 - `.vlist--grouped` on root
 - `.vlist-groups-item` on items and headers
 
-### Notes
+## Notes
 
 - Headers are excluded from `aria-setsize` / `aria-posinset` counts
 - Group headers are skipped during keyboard navigation

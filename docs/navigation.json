@@ -9,7 +9,8 @@
       {
         "slug": "api",
         "name": "API Reference",
-        "desc": "createVList, config, properties, and methods"
+        "desc": "createVList, config, properties, and methods",
+        "depth": 2
       },
       {
         "slug": "types",
@@ -19,7 +20,8 @@
       {
         "slug": "exports",
         "name": "Exports",
-        "desc": "Low-level utilities from vlist/internals"
+        "desc": "Low-level utilities from vlist/internals",
+        "depth": 2
       },
       {
         "slug": "adapters",

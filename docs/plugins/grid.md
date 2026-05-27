@@ -18,14 +18,14 @@ const list = createVList({
 }, [grid({ columns: 3, gap: 8 })]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `columns` | `number` | required | Number of columns (>= 1) |
 | `gap` | `number` | `0` | Space between cells (px) |
 
-### Aspect Ratios
+## Aspect Ratios
 
 Use the `columnWidth` context to create responsive aspect ratios that adapt when the container resizes:
 
@@ -44,7 +44,7 @@ Common ratios: `* 1` (square), `* 0.75` (4:3), `* (9/16)` (16:9), `* (4/3)` (3:4
 
 Static `height: 120` values break aspect ratios on resize — always use the function form for responsive grids.
 
-### Responsive Columns
+## Responsive Columns
 
 Update the column count dynamically based on viewport width:
 
@@ -58,7 +58,7 @@ const updateColumns = () => {
 window.addEventListener("resize", updateColumns);
 ```
 
-### Methods
+## Methods
 
 | Method | Returns | Description |
 |--------|---------|-------------|
@@ -76,12 +76,12 @@ window.addEventListener("resize", updateColumns);
 | `getTotalRows(total)` | `number` | Total row count |
 | `getColumnWidth(containerWidth)` | `number` | Computed column width |
 
-### CSS Classes
+## CSS Classes
 
 - `.vlist--grid` on root
 - `.vlist-grid-item` on items
 
-### Notes
+## Notes
 
 - Keyboard nav: arrows move in 2D (left/right between columns, up/down between rows)
 - Conflicts with: masonry, table

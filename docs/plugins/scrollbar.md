@@ -18,7 +18,7 @@ const list = createVList({
 }, [scrollbar()]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -30,7 +30,7 @@ const list = createVList({
 | `showOnViewportEnter` | `boolean` | `true` | Show when mouse enters viewport |
 | `hoverZoneWidth` | `number` | — | Width of hover detection zone (px) |
 
-### CSS Customisation
+## CSS Customisation
 
 Style the scrollbar via CSS custom properties:
 
@@ -47,7 +47,7 @@ Style the scrollbar via CSS custom properties:
 }
 ```
 
-### CSS Classes
+## CSS Classes
 
 | Class | Element |
 |-------|---------|
@@ -59,7 +59,7 @@ Style the scrollbar via CSS custom properties:
 | `.vlist-scrollbar--dragging` | While thumb is being dragged |
 | `.vlist-scrollbar__thumb` | Thumb element |
 
-### Notes
+## Notes
 
 - Provides consistent cross-browser scrollbar appearance
 - Used internally by the scale plugin for compressed scroll
