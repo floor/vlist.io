@@ -2,7 +2,7 @@
 // Shows: role="listbox" / role="option", aria-setsize, aria-posinset,
 // aria-activedescendant, aria-selected, keyboard navigation.
 // The ARIA inspector updates live as you interact.
-// Toggle "interactive" off to disable all built-in keyboard navigation.
+// Toggle "a11y" off to disable all built-in keyboard navigation.
 
 import { createVList, groups, selection } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
@@ -31,7 +31,7 @@ export const users = makeContacts(TOTAL).sort((a, b) =>
 // =============================================================================
 
 export let list = null;
-export let interactiveEnabled = true;
+export let a11yEnabled = true;
 
 // =============================================================================
 // Template
@@ -67,7 +67,7 @@ export const stats = createStats({
 const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
-// ARIA Inspector — reads live attribute values from the vlist root element
+// ARIA Inspector — reads live attribute values from the vlist content element
 // =============================================================================
 
 const attrRole = document.getElementById("attr-role");
@@ -80,24 +80,24 @@ const attrPosinset = document.getElementById("attr-posinset");
 
 function updateInspector() {
   const container = document.getElementById("list-container");
-  const root = container && container.querySelector(".vlist");
-  if (!root) return;
+  const content = container && container.querySelector(".vlist-content");
+  if (!content) return;
 
-  attrRole.textContent = root.getAttribute("role") ?? "—";
-  attrLabel.textContent = root.getAttribute("aria-label") ?? "—";
-  attrTabindex.textContent = root.getAttribute("tabindex") ?? "—";
+  attrRole.textContent = content.getAttribute("role") ?? "—";
+  attrLabel.textContent = content.getAttribute("aria-label") ?? "—";
+  attrTabindex.textContent = content.getAttribute("tabindex") ?? "—";
 
-  const activeId = root.getAttribute("aria-activedescendant");
+  const activeId = content.getAttribute("aria-activedescendant");
   attrActiveDesc.textContent = activeId ?? "none";
 
-  const focusedEl = activeId
-    ? root.querySelector(`#${CSS.escape(activeId)}`)
-    : null;
+  const targetEl = activeId
+    ? content.querySelector(`#${CSS.escape(activeId)}`)
+    : content.querySelector('[aria-selected="true"]');
 
-  if (focusedEl) {
-    attrSelected.textContent = focusedEl.getAttribute("aria-selected") ?? "—";
-    attrSetsize.textContent = focusedEl.getAttribute("aria-setsize") ?? "—";
-    attrPosinset.textContent = focusedEl.getAttribute("aria-posinset") ?? "—";
+  if (targetEl) {
+    attrSelected.textContent = targetEl.getAttribute("aria-selected") ?? "—";
+    attrSetsize.textContent = targetEl.getAttribute("aria-setsize") ?? "—";
+    attrPosinset.textContent = targetEl.getAttribute("aria-posinset") ?? "—";
   } else {
     attrSelected.textContent = "—";
     attrSetsize.textContent = "—";
@@ -109,11 +109,11 @@ function updateInspector() {
 // Accessible-dependent UI visibility
 // =============================================================================
 
-const interactiveUi = document.querySelectorAll("[data-requires-interactive]");
+const a11yUi = document.querySelectorAll("[data-requires-a11y]");
 
-function updateInteractiveUi() {
-  for (const el of interactiveUi) {
-    el.classList.toggle("is-disabled", !interactiveEnabled);
+function updateA11yUi() {
+  for (const el of a11yUi) {
+    el.classList.toggle("is-disabled", !a11yEnabled);
   }
 }
 
@@ -121,21 +121,29 @@ function updateInteractiveUi() {
 // Create list
 // =============================================================================
 
-let activeDescObserver = null;
-
 export function createList() {
   if (list) {
     list.destroy();
     list = null;
   }
 
-  if (activeDescObserver) {
-    activeDescObserver.disconnect();
-    activeDescObserver = null;
-  }
-
   const container = document.getElementById("list-container");
   container.innerHTML = "";
+
+  const plugins = [
+    groups({
+      getGroupForIndex: (index) => users[index].lastName[0].toUpperCase(),
+      header: {
+        height: HEADER_HEIGHT,
+        template: (group) => renderGroupHeader(group),
+      },
+      sticky: true,
+    }),
+  ];
+
+  if (a11yEnabled) {
+    plugins.push(selection({ mode: "single" }));
+  }
 
   list = createVList({
     container: "#list-container",
@@ -145,18 +153,8 @@ export function createList() {
       template: itemTemplate,
     },
     items: users,
-    interactive: interactiveEnabled,
-  }, [
-    groups({
-      getGroupForIndex: (index) => users[index].lastName[0].toUpperCase(),
-      header: {
-        height: HEADER_HEIGHT,
-        template: (group) => renderGroupHeader(group),
-      },
-      sticky: true,
-    }),
-    selection({ mode: "single", followFocus: true }),
-  ]);
+    interactive: a11yEnabled,
+  }, plugins);
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);
@@ -164,22 +162,11 @@ export function createList() {
     stats.onVelocity(velocity);
     updateInfo();
   });
-
-  // Watch aria-activedescendant on the root → update inspector + footer
-  const root = container.querySelector(".vlist");
-  if (root) {
-    activeDescObserver = new MutationObserver(() => {
-      updateInspector();
-      updateContext();
-    });
-    activeDescObserver.observe(root, {
-      attributes: true,
-      attributeFilter: ["aria-activedescendant"],
-    });
-  }
+  list.on("selection:change", () => { updateInspector(); updateContext(); });
+  list.on("focus:change", () => { updateInspector(); updateContext(); });
 
   updateInspector();
-  updateInteractiveUi();
+  updateA11yUi();
   updateInfo();
   updateContext();
 }
@@ -193,12 +180,12 @@ const infoPosinset = document.getElementById("info-posinset");
 
 export function updateContext() {
   const container = document.getElementById("list-container");
-  const root = container && container.querySelector(".vlist");
-  if (!root) return;
+  const content = container && container.querySelector(".vlist-content");
+  if (!content) return;
 
-  const activeId = root.getAttribute("aria-activedescendant");
+  const activeId = content.getAttribute("aria-activedescendant");
   if (activeId) {
-    const el = root.querySelector(`#${CSS.escape(activeId)}`);
+    const el = content.querySelector(`#${CSS.escape(activeId)}`);
     infoFocused.textContent = activeId;
     infoPosinset.textContent = el?.getAttribute("aria-posinset") ?? "—";
   } else {
@@ -208,11 +195,11 @@ export function updateContext() {
 }
 
 // =============================================================================
-// Interactive toggle
+// A11y toggle
 // =============================================================================
 
-export function setInteractive(enabled) {
-  interactiveEnabled = enabled;
+export function setA11y(enabled) {
+  a11yEnabled = enabled;
   createList();
 }
 
