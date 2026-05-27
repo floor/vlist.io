@@ -1,7 +1,7 @@
 // Wizard — Step-by-step recipe viewer
 // Demonstrates scroll.wheel: false, wrap, button-only navigation
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import "./controls.js";
@@ -104,7 +104,7 @@ export function createList() {
   // In horizontal mode, item width = container width so one card fills the view
   const containerWidth = isH ? container.clientWidth : undefined;
 
-  const builder = vlist({
+  list = createVList({
     container: "#list-container",
     orientation: currentOrientation,
     scroll: { wheel: false, scrollbar: "none", wrap: currentWrap },
@@ -116,8 +116,6 @@ export function createList() {
     },
     items: recipes,
   });
-
-  list = builder.build();
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);

@@ -4,7 +4,7 @@
 // Defines the vlist create/destroy lifecycle and formats results with
 // rating thresholds.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -28,20 +28,20 @@ defineSuite({
     "Latency of smooth scrollToIndex() — time from call to scroll settled",
   icon: "🎯",
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, intensity }) => {
     const items = generateItems(itemCount);
 
     // ── Create vlist ───────────────────────────────────────────────────
     container.innerHTML = "";
 
-    const list = vlist({
+    const list = createVList({
       container,
       item: {
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
       items,
-    }).build();
+    });
 
     // Let initial render settle
     await waitFrames(10);
@@ -60,6 +60,7 @@ defineSuite({
       scrollToFn: (index, align) => list.scrollToIndex(index, align),
       itemCount,
       onStatus,
+      ...(intensity?.scrollToJumps && { measureJumps: intensity.scrollToJumps }),
     });
 
     // ── Clean up ───────────────────────────────────────────────────────

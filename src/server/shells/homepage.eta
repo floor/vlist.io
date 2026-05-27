@@ -255,7 +255,7 @@
                     <div class="ui-card ui-card--xl feature">
                         <div class="feature__name">Fast Renders</div>
                         <div class="feature__desc">
-                            Initial render in ~8.5ms, optimized for instant user feedback
+                            Initial render in ~2ms, optimized for instant user feedback
                         </div>
                     </div>
                     <div class="ui-card ui-card--xl feature">
@@ -439,8 +439,8 @@
                         <a href="/examples/<%= item.slug %>" class="ui-card ui-card--interactive overview__card">
                             <div class="overview__card-title"><%= item.name %></div>
                             <div class="overview__card-desc"><%= item.desc %></div>
-                            <% if (item.features && item.features.length > 0) { %>
-                            <div class="overview__chips"><% item.features.forEach(function(f) { %><span class="overview__chip"><%= f %></span><% }); %></div>
+                            <% if (item.plugins && item.plugins.length > 0) { %>
+                            <div class="overview__chips"><% item.plugins.forEach(function(f) { %><span class="overview__chip"><%= f %></span><% }); %></div>
                             <% } %>
                         </a>
                         <% }); %>
@@ -576,7 +576,7 @@
             }
         </style>
         <script type="module">
-            import { vlist } from "/dist/index.js";
+            import { createVList } from "/dist/index.js";
 
             const FIRST = ["James","Mary","Robert","Patricia","John","Jennifer","Michael","Linda","David","Elizabeth","William","Barbara","Richard","Susan","Joseph","Jessica","Thomas","Sarah","Christopher","Karen","Charles","Lisa","Daniel","Nancy","Matthew","Betty","Anthony","Margaret","Mark","Sandra","Donald","Ashley","Steven","Dorothy","Paul","Kimberly","Andrew","Emily","Joshua","Donna","Kenneth","Michelle","Kevin","Carol","Brian","Amanda","George","Melissa","Timothy","Deborah"];
             const LAST = ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Hernandez","Lopez","Gonzalez","Wilson","Anderson","Thomas","Taylor","Moore","Jackson","Martin","Lee","Perez","Thompson","White","Harris","Sanchez","Clark","Ramirez","Lewis","Robinson","Walker","Young","Allen","King","Wright","Scott","Torres","Nguyen","Hill","Flores"];
@@ -615,9 +615,10 @@
                 });
             }
 
-            const list = vlist({
+            createVList({
                 container: "#quickstart-list",
                 ariaLabel: "Users",
+                items: generateUsers(100_000),
                 item: {
                     height: 56,
                     template: (item) => `
@@ -629,9 +630,7 @@
                             </div>
                         </div>`,
                 },
-            }).build();
-
-            list.setItems(generateUsers(100_000));
+            });
         </script>
         <%~ it.SEARCH_HTML %>
     </body>

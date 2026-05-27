@@ -37,7 +37,7 @@ The following optimizations are already implemented in vlist:
 - **CSS-Only Static Positioning** - Items use `.vlist-item` CSS for `position:absolute;top:0;left:0;right:0`; only dynamic `height` set via JS
 - **Split Core/Extras CSS** - Core styles (6.7 KB) separated from optional variants, loading/empty states, and animations (3.4 KB extras)
 - **Re-exported Range Functions** - `calculateVisibleRange` and `calculateRenderRange` are direct re-exports from compression, eliminating pass-through wrappers
-- **Configurable Idle Timeout** - `scroll.idleTimeout` option on `BuilderConfig` (default: 150ms) for tuning scroll idle detection per device
+- **Configurable Idle Timeout** - `scroll.idleTimeout` option on config (default: 150ms) for tuning scroll idle detection per device
 
 ---
 
@@ -45,33 +45,33 @@ The following optimizations are already implemented in vlist:
 
 ### Loading Behavior
 
-Control velocity-based loading and preloading via the `loading` config:
+Control velocity-based loading and preloading via the `data` plugin:
 
 ```typescript
-const list = vlist({
+const list = createVList({
   container: '#list',
   item: {
     height: 50,
     template: myTemplate,
   },
-})
-.use(withAsync({
-  adapter: myAdapter,
-  loading: {
-    // Velocity above which loading is skipped entirely (px/ms)
-    // Default: 12
-    cancelThreshold: 12,
+}, [
+  data({
+    adapter: myAdapter,
+    loading: {
+      // Velocity above which loading is skipped entirely (px/ms)
+      // Default: 12
+      cancelThreshold: 12,
 
-    // Velocity above which preloading kicks in (px/ms)
-    // Default: 2
-    preloadThreshold: 2,
+      // Velocity above which preloading kicks in (px/ms)
+      // Default: 2
+      preloadThreshold: 2,
 
-    // Number of items to preload ahead of scroll direction
-    // Default: 50
-    preloadAhead: 50,
-  },
-}))
-.build();
+      // Number of items to preload ahead of scroll direction
+      // Default: 50
+      preloadAhead: 50,
+    },
+  }),
+]);
 ```
 
 **Velocity-based loading strategy:**
@@ -92,13 +92,13 @@ const list = vlist({
 Control how long after the last scroll event before the list is considered "idle":
 
 ```typescript
-const list = vlist({
+const list = createVList({
   container: '#list',
   item: { height: 50, template: myTemplate },
   scroll: { idleTimeout: 200 }, // ms (default: 150)
-})
-.use(withAsync({ adapter: myAdapter }))
-.build();
+}, [
+  data({ adapter: myAdapter }),
+]);
 ```
 
 When idle is detected, vlist:
@@ -195,7 +195,7 @@ Arrow key navigation now uses `renderer.updateItemClasses()` on just the 2 affec
 
 #### ~~M2. Make idle timeout configurable~~ ✅ Implemented
 
-Added `scroll.idleTimeout` option to `BuilderConfig`. Defaults to 150ms. Consumers can tune for mobile/slower devices.
+Added `scroll.idleTimeout` option to config. Defaults to 150ms. Consumers can tune for mobile/slower devices.
 
 ---
 
@@ -213,7 +213,7 @@ Core styles split from optional presets. `dist/vlist.css` (~7.5 KB) contains tok
 
 **Problem:** `createPlaceholderManager()` is always instantiated in the data manager, even for static lists with `items: [...]` that never need placeholders. The placeholder module includes structure analysis, field detection, and masked text generation (~300 lines).
 
-**File:** `src/features/async/manager.ts` — `createDataManager`
+**File:** `src/plugins/async/manager.ts` — `createDataManager`
 
 **Fix:** Create the placeholder manager lazily, only when the first unloaded item is requested:
 
@@ -399,8 +399,8 @@ With all optimizations enabled:
 
 ## Related Documentation
 
-- [Scale](/docs/features/scale) - How large list scaling works
-- [Async Management](/docs/features/async) - Sparse storage and chunking
-- [Scroll Controller](/docs/features/scrollbar) - Velocity tracking and scroll handling
-- [Rendering](/docs/internals/rendering) - Element pooling and DOM management
-- [Types](/docs/api/types) - Configuration interfaces including `LoadingConfig`
+- [Scale](/docs/plugins/scale) - How large list scaling works
+- [Data Plugin](/docs/plugins/data) - Sparse storage and chunking
+- [Scroll Controller](/docs/plugins/scrollbar) - Velocity tracking and scroll handling
+- [Rendering](/docs/api) - Element pooling and DOM management
+- [Types](/docs/api) - Configuration interfaces including `LoadingConfig`

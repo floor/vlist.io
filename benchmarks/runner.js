@@ -417,10 +417,18 @@ export const rateHigher = (value, goodThreshold, okThreshold) => {
 // =============================================================================
 
 /**
+ * @typedef {Object} IntensityConfig
+ * @property {number} [renderIterations] - Measured render iterations (default: 7)
+ * @property {number} [scrollToJumps] - Measured scrollTo jumps (default: 7)
+ * @property {number} [memoryScrollMs] - Memory scroll duration in ms (default: 10000)
+ */
+
+/**
  * @typedef {Object} RunOptions
  * @property {number[]} [itemCounts] - Item counts to test (default: [10_000, 100_000, 1_000_000])
  * @property {string[]} [suiteIds] - Which suites to run (default: all)
  * @property {number} [stressMs=0] - CPU burn per frame during scroll (comparison suites only)
+ * @property {IntensityConfig} [intensity] - Override iteration/duration counts per mode
  * @property {HTMLElement} container - Offscreen container element
  * @property {(result: BenchmarkResult) => void} [onResult] - Called after each suite+itemCount
  * @property {(suiteId: string, itemCount: number, message: string) => void} [onStatus] - Progress updates
@@ -443,6 +451,7 @@ export const runBenchmarks = async (options) => {
     suiteIds,
     stressMs = 0,
     scrollSpeed = 0,
+    intensity,
     container,
     getContainer,
     onResult,
@@ -501,6 +510,7 @@ export const runBenchmarks = async (options) => {
           onStatus: status,
           stressMs,
           scrollSpeed,
+          intensity,
         });
 
         result = {

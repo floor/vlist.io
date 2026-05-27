@@ -3,7 +3,7 @@
 // Thin wrapper around engine/memory.js measureMemoryProfile.
 // Defines the vlist create/destroy lifecycle and formats results with ratings.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -25,24 +25,25 @@ defineSuite({
     "Heap usage after render and after 10s of scrolling — reveals leaks and GC pressure",
   icon: "🧠",
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, intensity }) => {
     const items = generateItems(itemCount);
 
     const result = await measureMemoryProfile({
       container,
       createFn: async () => {
-        const list = vlist({
+        const list = createVList({
           container,
           item: {
             height: ITEM_HEIGHT,
             template: benchmarkTemplate,
           },
           items,
-        }).build();
+        });
         return { instance: list };
       },
       destroyFn: (list) => list.destroy(),
       onStatus,
+      ...(intensity?.memoryScrollMs && { scrollDurationMs: intensity.memoryScrollMs }),
     });
 
     // ── Handle unavailable API ─────────────────────────────────────────

@@ -2,7 +2,7 @@
 // Demonstrates scrollElement: window for document-level scrolling
 // Uses adapter pattern with placeholders for async data loading
 
-import { vlist, withPage, withAsync } from "vlist";
+import { createVList, page, data as dataPlugin } from "vlist";
 
 // Constants
 const TOTAL_ITEMS = 10000;
@@ -68,32 +68,31 @@ const itemTemplate = (item, index) => `
   `;
 
 // Create the virtual list with window scrolling + adapter
-const list = vlist({
-  container: "#list-container",
-  ariaLabel: "User directory",
-  item: {
-    height: 88,
-    template: itemTemplate,
+const list = createVList(
+  {
+    container: "#list-container",
+    ariaLabel: "User directory",
+    item: {
+      height: 88,
+      template: itemTemplate,
+    },
   },
-})
-  .use(
-    withPage({
+  [
+    page({
       scrollPadding: {
         top: 112,
         bottom: 56,
       },
     }),
-  )
-  .use(
-    withAsync({
+    dataPlugin({
       adapter: {
         read: async ({ offset, limit }) => {
           return fetchItems(offset, limit);
         },
       },
     }),
-  )
-  .build();
+  ],
+);
 
 // Navigation buttons
 document.getElementById("btn-top").addEventListener("click", () => {

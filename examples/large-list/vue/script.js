@@ -245,7 +245,7 @@ const App = {
         <h1>Large List</h1>
         <p class="description">
           Vue implementation with <code>useVList</code> composable +
-          <code>withScale</code> + <code>withScrollbar</code> plugins.
+          <code>scale</code> + <code>scrollbar</code> plugins.
           Handles 100K–5M items with automatic scroll scaling when total height
           exceeds the browser's 16.7M pixel limit.
         </p>

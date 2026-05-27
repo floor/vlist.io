@@ -9,38 +9,38 @@ Reverse mode flips the list upside-down — starting scrolled to the bottom with
 ### What It Does
 
 Reverse mode:
-- ✅ **Starts at bottom** — List initializes scrolled to the bottom
-- ✅ **Auto-scrolls on append** — New messages appear at bottom automatically
-- ✅ **Preserves scroll on prepend** — Loading older content doesn't cause jumps
-- ✅ **Load more at top** — With data adapter, triggers loading near the top
-- ✅ **Chronological order maintained** — Items stay oldest-first in data array
+- **Starts at bottom** — List initializes scrolled to the bottom
+- **Auto-scrolls on append** — New messages appear at bottom automatically
+- **Preserves scroll on prepend** — Loading older content doesn't cause jumps
+- **Load more at top** — With data adapter, triggers loading near the top
+- **Chronological order maintained** — Items stay oldest-first in data array
 
 ### Visual Behavior
 
 **Normal Mode (Default):**
 ```
-┌─────────────────────────┐ ← Starts here (top)
-│ Item 0 (oldest)         │
-│ Item 1                  │
-│ Item 2                  │
-│ Item 3                  │
-│ Item 4                  │
-│ ...                     │
-│ Item 99 (newest)        │
-└─────────────────────────┘
++-------------------------+ <- Starts here (top)
+| Item 0 (oldest)         |
+| Item 1                  |
+| Item 2                  |
+| Item 3                  |
+| Item 4                  |
+| ...                     |
+| Item 99 (newest)        |
++-------------------------+
 ```
 
 **Reverse Mode:**
 ```
-┌─────────────────────────┐
-│ Item 0 (oldest)         │
-│ ...                     │
-│ Item 95                 │
-│ Item 96                 │
-│ Item 97                 │
-│ Item 98                 │
-│ Item 99 (newest)        │
-└─────────────────────────┘ ← Starts here (bottom)
++-------------------------+
+| Item 0 (oldest)         |
+| ...                     |
+| Item 95                 |
+| Item 96                 |
+| Item 97                 |
+| Item 98                 |
+| Item 99 (newest)        |
++-------------------------+ <- Starts here (bottom)
 ```
 
 ### Use Cases
@@ -60,11 +60,11 @@ Reverse mode:
 ### Basic Chat UI
 
 ```typescript
-import { vlist } from 'vlist'
+import { createVList } from 'vlist'
 
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
-  reverse: true, // Enable reverse mode
+  reverse: true,
   item: {
     height: 60,
     template: (msg) => `
@@ -76,7 +76,6 @@ const chat = vlist({
   },
   items: messages // Chronological: oldest first
 })
-.build()
 
 // New message arrives
 chat.appendItems([newMessage]) // Auto-scrolls to bottom if user was there
@@ -85,7 +84,7 @@ chat.appendItems([newMessage]) // Auto-scrolls to bottom if user was there
 ### With Variable Heights
 
 ```typescript
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,
   item: {
@@ -99,7 +98,6 @@ const chat = vlist({
   },
   items: messages
 })
-.build()
 ```
 
 
@@ -111,15 +109,14 @@ const chat = vlist({
 On creation, the list automatically scrolls to the bottom:
 
 ```typescript
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,
   item: { height: 60, template: renderMessage },
   items: messages
 })
-.build()
 
-// Immediately after build():
+// Immediately after creation:
 // - Scrolled to bottom
 // - Newest messages visible
 // - Older messages above (off-screen)
@@ -132,11 +129,11 @@ When you append items, the list auto-scrolls to the bottom **if the user was alr
 ```typescript
 // User is at bottom (viewing newest messages)
 chat.appendItems([newMessage])
-// → Auto-scrolls to show new message
+// -> Auto-scrolls to show new message
 
 // User scrolled up (reading older messages)
 chat.appendItems([newMessage])
-// → Does NOT scroll (preserves reading position)
+// -> Does NOT scroll (preserves reading position)
 ```
 
 **Detection threshold:** User is considered "at bottom" if within 50px of the bottom.
@@ -189,7 +186,7 @@ const messages = [
 ### reverse Option
 
 ```typescript
-interface BuilderConfig {
+interface VListConfig {
   /**
    * Reverse mode for chat-style UIs.
    * When enabled:
@@ -211,14 +208,14 @@ interface BuilderConfig {
 
 | Combination | Allowed? | Notes |
 |-------------|----------|-------|
-| `reverse: true` + vertical | ✅ **Yes** | Default use case |
-| `reverse: true` + horizontal | ❌ **No** | Throws error |
-| `reverse: true` + `groups` (sticky) | ✅ **Yes** | Sticky header shows current section |
-| `reverse: true` + `groups` (inline) | ✅ **Yes** | Set `sticky: false` |
-| `reverse: true` + `grid` | ❌ **No** | Not supported |
-| `reverse: true` + variable heights | ✅ **Yes** | Fully supported |
-| `reverse: true` + selection | ✅ **Yes** | Works seamlessly |
-| `reverse: true` + data adapter | ✅ **Yes** | Load more triggers at top |
+| `reverse: true` + vertical | **Yes** | Default use case |
+| `reverse: true` + horizontal | **No** | Throws error |
+| `reverse: true` + `groups` (sticky) | **Yes** | Sticky header shows current section |
+| `reverse: true` + `groups` (inline) | **Yes** | Set `sticky: false` |
+| `reverse: true` + `grid` | **No** | Not supported |
+| `reverse: true` + variable heights | **Yes** | Fully supported |
+| `reverse: true` + selection | **Yes** | Works seamlessly |
+| `reverse: true` + data adapter | **Yes** | Load more triggers at top |
 
 ## Data Operations
 
@@ -231,9 +228,9 @@ Adds items to the end of the array (newest messages):
 const newMessage = { id: 100, text: 'Hello!', timestamp: Date.now() }
 
 chat.appendItems([newMessage])
-// → Added to array at index 99
-// → Appears at bottom of chat
-// → Auto-scrolls if user was at bottom
+// -> Added to array at index 99
+// -> Appears at bottom of chat
+// -> Auto-scrolls if user was at bottom
 ```
 
 **Auto-scroll behavior:**
@@ -241,12 +238,12 @@ chat.appendItems([newMessage])
 ```typescript
 // User at bottom (within 50px)
 chat.appendItems([msg1, msg2, msg3])
-// → Scrolls to show msg3 at bottom
+// -> Scrolls to show msg3 at bottom
 
 // User scrolled up (reading history)
 chat.appendItems([msg1, msg2, msg3])
-// → No scroll, user keeps reading
-// → New messages available below when they scroll down
+// -> No scroll, user keeps reading
+// -> New messages available below when they scroll down
 ```
 
 ### prependItems (Load Older)
@@ -258,9 +255,9 @@ Adds items to the beginning of the array (older messages):
 const olderMessages = await fetch('/api/messages?before=123')
 
 chat.prependItems(olderMessages)
-// → Added to array at index 0-99
-// → Previous index 0 now at index 100
-// → Scroll position preserved (no jump)
+// -> Added to array at index 0-99
+// -> Previous index 0 now at index 100
+// -> Scroll position preserved (no jump)
 ```
 
 **Scroll preservation:**
@@ -284,9 +281,9 @@ Replaces all items and resets scroll to bottom:
 
 ```typescript
 chat.setItems(newMessages)
-// → All items replaced
-// → Scrolls to bottom
-// → Use for filters, searches, or complete refreshes
+// -> All items replaced
+// -> Scrolls to bottom
+// -> Use for filters, searches, or complete refreshes
 ```
 
 ### removeItem (Delete Message)
@@ -295,33 +292,30 @@ Removes a single item:
 
 ```typescript
 chat.removeItem(messageId)
-// → Item removed
-// → Scroll position preserved
-// → Gap disappears smoothly
+// -> Item removed
+// -> Scroll position preserved
+// -> Gap disappears smoothly
 ```
 
-## Combining with Other Features
+## Combining with Plugins
 
 ### With Data Adapter
 
 The data adapter automatically triggers "load more" near the **top** in reverse mode:
 
 ```typescript
-import { vlist } from 'vlist'
-import { withAsync } from 'vlist'
+import { createVList, data } from 'vlist'
 
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,
   item: {
     height: 60,
     template: renderMessage
   }
-})
-.use(withAsync({
+}, [data({
   adapter: {
     read: async ({ offset, limit }) => {
-      // Load older messages
       const response = await fetch(`/api/messages?offset=${offset}&limit=${limit}`)
       const data = await response.json()
       return {
@@ -331,10 +325,9 @@ const chat = vlist({
       }
     }
   }
-}))
-.build()
+})])
 
-// User scrolls to top → automatically loads older messages
+// User scrolls to top -> automatically loads older messages
 ```
 
 **Behavior:**
@@ -349,10 +342,9 @@ Groups work seamlessly with reverse mode - both sticky and inline headers are su
 #### Inline Headers (iMessage Style)
 
 ```typescript
-import { vlist } from 'vlist'
-import { withGroups } from 'vlist'
+import { createVList, groups } from 'vlist'
 
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,
   item: {
@@ -360,8 +352,7 @@ const chat = vlist({
     template: renderMessage
   },
   items: messages
-})
-.use(withGroups({
+}, [groups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date) // "Today", "Yesterday", "Jan 15"
@@ -371,21 +362,20 @@ const chat = vlist({
     template: (label) => `<div class="date-divider">${label}</div>`,
   },
   sticky: false // Inline headers (iMessage style)
-}))
-.build()
+})])
 ```
 
 **Result:**
 ```
-┌─────────────────────────┐
-│ January 14              │
-│ Bob: Hi there           │
-│ Alice: Hello!           │
-│ January 15 (Today)      │
-│ Bob: How are you?       │
-│ Alice: Great, thanks!   │
-│ Bob: Awesome!           │
-└─────────────────────────┘ ← Bottom
++-------------------------+
+| January 14              |
+| Bob: Hi there           |
+| Alice: Hello!           |
+| January 15 (Today)      |
+| Bob: How are you?       |
+| Alice: Great, thanks!   |
+| Bob: Awesome!           |
++-------------------------+ <- Bottom
 ```
 
 #### Sticky Headers (Telegram Style)
@@ -393,10 +383,9 @@ const chat = vlist({
 Sticky headers also work with reverse mode! As you scroll UP through chat history, the current section header sticks at the top - useful for navigation:
 
 ```typescript
-import { vlist } from 'vlist'
-import { withGroups } from 'vlist'
+import { createVList, groups } from 'vlist'
 
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,
   item: {
@@ -404,8 +393,7 @@ const chat = vlist({
     template: renderMessage
   },
   items: messages
-})
-.use(withGroups({
+}, [groups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
@@ -415,23 +403,22 @@ const chat = vlist({
     template: (label) => `<div class="date-divider">${label}</div>`,
   },
   sticky: true // Sticky header shows current section as you scroll up
-}))
-.build()
+})])
 ```
 
 **Visual behavior:**
 ```
-┌─────────────────────────┐
-│ 🔒 Dec 12 (sticky top)  │ ← Shows current section
-├─────────────────────────┤
-│ Alice: Message          │
-│ Bob: Another message    │
-│ ...scroll down...       │
-│ Dec 14                  │ ← Next header
-│ ...more messages...     │
-│ Today                   │
-│ You: Latest message     │
-└─────────────────────────┘ ← Started here (bottom)
++-------------------------+
+| Dec 12 (sticky top)     | <- Shows current section
++-------------------------+
+| Alice: Message           |
+| Bob: Another message     |
+| ...scroll down...        |
+| Dec 14                   | <- Next header
+| ...more messages...      |
+| Today                    |
+| You: Latest message      |
++-------------------------+ <- Started here (bottom)
 ```
 
 As you scroll up through history, older section headers stick at the top - perfect for orientation.
@@ -445,10 +432,9 @@ As you scroll up through history, older section headers stick at the top - perfe
 Selection works normally in reverse mode:
 
 ```typescript
-import { vlist } from 'vlist'
-import { withSelection } from 'vlist'
+import { createVList, selection } from 'vlist'
 
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,
   item: {
@@ -456,11 +442,7 @@ const chat = vlist({
     template: renderMessage
   },
   items: messages
-})
-.use(withSelection({
-  mode: 'multiple'
-}))
-.build()
+}, [selection({ mode: 'multiple' })])
 
 // User can select messages with click/keyboard
 chat.on('selection:change', ({ selected }) => {
@@ -473,13 +455,13 @@ chat.on('selection:change', ({ selected }) => {
 Fully supported with efficient height caching:
 
 ```typescript
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,
   item: {
     height: (index) => {
       const msg = messages[index]
-      
+
       // Different heights based on content
       if (msg.type === 'system') return 40
       if (msg.type === 'image') return 200
@@ -487,14 +469,13 @@ const chat = vlist({
         const lines = Math.ceil(msg.text.length / 50)
         return 40 + lines * 20
       }
-      
+
       return 60
     },
     template: renderMessage
   },
   items: messages
 })
-.build()
 ```
 
 ## API Reference
@@ -541,7 +522,7 @@ Returns currently visible data indices.
 ```typescript
 chat.on('scroll', ({ scrollTop, direction }) => {
   console.log(`Scrolled to ${scrollTop}px, direction: ${direction}`)
-  
+
   if (direction === 'up' && scrollTop < 100) {
     console.log('Near top - load older messages')
   }
@@ -561,7 +542,7 @@ chat.on('render', ({ range, direction }) => {
 ### Simple Chat
 
 ```typescript
-import { vlist } from 'vlist'
+import { createVList } from 'vlist'
 
 const messages = [
   { id: 1, sender: 'Alice', text: 'Hey there!', timestamp: 1000 },
@@ -569,7 +550,7 @@ const messages = [
   { id: 3, sender: 'Alice', text: 'How are you?', timestamp: 3000 }
 ]
 
-const chat = vlist({
+const chat = createVList({
   container: '#chat',
   reverse: true,
   item: {
@@ -586,7 +567,6 @@ const chat = vlist({
   },
   items: messages
 })
-.build()
 
 // Send new message
 function sendMessage(text) {
@@ -596,7 +576,7 @@ function sendMessage(text) {
     text: text,
     timestamp: Date.now()
   }
-  
+
   messages.push(newMsg)
   chat.appendItems([newMsg])
 }
@@ -605,12 +585,12 @@ function sendMessage(text) {
 ### Chat with Load More
 
 ```typescript
-import { vlist } from 'vlist'
+import { createVList } from 'vlist'
 
 let messages = []
 let oldestTimestamp = Date.now()
 
-const chat = vlist({
+const chat = createVList({
   container: '#chat',
   reverse: true,
   item: {
@@ -619,7 +599,6 @@ const chat = vlist({
   },
   items: messages
 })
-.build()
 
 // Load initial messages
 async function init() {
@@ -635,7 +614,7 @@ chat.on('scroll', async ({ scrollTop }) => {
     const olderMessages = await fetch(
       `/api/messages/before/${oldestTimestamp}`
     ).then(r => r.json())
-    
+
     if (olderMessages.length > 0) {
       messages.unshift(...olderMessages)
       oldestTimestamp = olderMessages[0].timestamp
@@ -650,24 +629,23 @@ init()
 ### Chat with Date Headers
 
 ```typescript
-import { vlist } from 'vlist'
-import { withGroups } from 'vlist'
+import { createVList, groups } from 'vlist'
 
 function formatDateLabel(date) {
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
-  
+
   if (date.toDateString() === today.toDateString()) return 'Today'
   if (date.toDateString() === yesterday.toDateString()) return 'Yesterday'
-  
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
   })
 }
 
-const chat = vlist({
+const chat = createVList({
   container: '#chat',
   reverse: true,
   item: {
@@ -678,7 +656,7 @@ const chat = vlist({
     },
     template: (msg) => `
       <div class="message bubble--${msg.sender}">
-        ${msg.type === 'image' 
+        ${msg.type === 'image'
           ? `<img src="${msg.imageUrl}" alt="">`
           : `<p>${msg.text}</p>`
         }
@@ -686,8 +664,7 @@ const chat = vlist({
     `
   },
   items: messages
-})
-.use(withGroups({
+}, [groups({
   getGroupForIndex: (i) => {
     const date = new Date(messages[i].timestamp)
     return formatDateLabel(date)
@@ -697,19 +674,18 @@ const chat = vlist({
     template: (label) => `<div class="date-divider"><span>${label}</span></div>`,
   },
   sticky: false
-}))
-.build()
+})])
 ```
 
 ### Live Feed with Auto-Scroll
 
 ```typescript
-import { vlist } from 'vlist'
+import { createVList } from 'vlist'
 
 let posts = []
 let isAtBottom = true
 
-const feed = vlist({
+const feed = createVList({
   container: '#feed',
   reverse: true,
   item: {
@@ -718,7 +694,6 @@ const feed = vlist({
   },
   items: posts
 })
-.build()
 
 // Track if user is at bottom
 feed.on('scroll', ({ scrollTop }) => {
@@ -729,11 +704,11 @@ feed.on('scroll', ({ scrollTop }) => {
 // Poll for new posts
 setInterval(async () => {
   const newPosts = await fetch('/api/posts/latest').then(r => r.json())
-  
+
   if (newPosts.length > 0) {
     posts.push(...newPosts)
     feed.appendItems(newPosts)
-    
+
     // Show notification if user not at bottom
     if (!isAtBottom) {
       showNotification(`${newPosts.length} new posts`)
@@ -744,7 +719,7 @@ setInterval(async () => {
 
 ## Best Practices
 
-### Do ✅
+### Do
 
 - **Keep chronological order** — Oldest at index 0, newest at end
 - **Use appendItems for new content** — Adds to end, auto-scrolls
@@ -753,7 +728,7 @@ setInterval(async () => {
 - **Track "at bottom" state** — For showing "new messages" notifications
 - **Use data adapter** — Automatic load-more at top
 
-### Don't ❌
+### Don't
 
 - **Don't reverse the array** — Keep chronological order
 - **Don't use with horizontal mode** — Not supported
@@ -771,7 +746,7 @@ setInterval(async () => {
 **Solution:**
 
 ```typescript
-const chat = vlist({
+const chat = createVList({
   container: '#chat',
   reverse: true, // Add this
   item: { height: 60, template: render },
@@ -820,7 +795,7 @@ chat.scrollToIndex(before.start + olderMessages.length)
 **Solution:** Remove `orientation: 'horizontal'`:
 
 ```typescript
-const chat = vlist({
+const chat = createVList({
   container: '#chat',
   // orientation: 'horizontal', // Remove this
   reverse: true,
@@ -838,14 +813,14 @@ const chat = vlist({
 **Solution:** Keep chronological order:
 
 ```typescript
-// ✅ Correct: Chronological order
+// Correct: Chronological order
 const messages = [
   { id: 1, text: 'First', timestamp: 1000 },
   { id: 2, text: 'Second', timestamp: 2000 },
   { id: 3, text: 'Third', timestamp: 3000 }
 ]
 
-// ❌ Wrong: Don't reverse the array
+// Wrong: Don't reverse the array
 const messages = [...originalMessages].reverse() // Don't do this!
 ```
 
@@ -857,19 +832,19 @@ const messages = [...originalMessages].reverse() // Don't do this!
 | **appendItems** | Auto-scroll if at bottom |
 | **prependItems** | Preserve scroll (no jump) |
 | **Data order** | Chronological (oldest first) |
-| **Variable heights** | ✅ Fully supported |
-| **Groups (inline)** | ✅ Set `sticky: false` |
-| **Groups (sticky)** | ✅ Supported |
-| **Grid layout** | ❌ Not supported |
-| **Horizontal** | ❌ Not supported |
-| **Data adapter** | ✅ Load more at top |
-| **Selection** | ✅ Works seamlessly |
+| **Variable heights** | Fully supported |
+| **Groups (inline)** | Set `sticky: false` |
+| **Groups (sticky)** | Supported |
+| **Grid layout** | Not supported |
+| **Horizontal** | Not supported |
+| **Data adapter** | Load more at top |
+| **Selection** | Works seamlessly |
 
 **Bottom line:** Reverse mode is perfect for chat UIs, message threads, and live feeds where newest content matters most. Keep items in chronological order and let reverse mode handle the rest.
 
 ## Further Reading
 
-- [Groups Feature](/docs/features/groups) — Add date headers to chat UIs
-- [Async Feature](/docs/features/async) — Infinite scrolling with async loading
-- [Selection Feature](/docs/features/selection) — Add message selection
-- [API Reference](/docs/api/reference) — Full API documentation
+- [Groups Plugin](/docs/plugins/groups) — Add date headers to chat UIs
+- [Data Plugin](/docs/plugins/data) — Infinite scrolling with async loading
+- [Selection Plugin](/docs/plugins/selection) — Add message selection
+- [API Reference](/docs/api) — Full API documentation

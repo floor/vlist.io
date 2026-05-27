@@ -6,7 +6,7 @@
 //
 // Any combination works — you can pre-measure Reddit posts or auto-size RSS items.
 
-import { vlist, withAutoSize } from "vlist";
+import { createVList, autosize } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -411,7 +411,7 @@ function createList() {
     }
     initTime = performance.now() - start;
 
-    list = vlist({
+    list = createVList({
       container: containerEl,
       ariaLabel,
       items,
@@ -419,20 +419,23 @@ function createList() {
         height: (index) => getActiveItems()[index]?.size ?? estimatedSize,
         template: renderPost,
       },
-    }).build();
+    });
   } else {
     // Mode B: estimated size, auto-measured by ResizeObserver
     const start = performance.now();
 
-    list = vlist({
-      container: containerEl,
-      ariaLabel,
-      items,
-      item: {
-        estimatedHeight: estimatedSize,
-        template: renderPost,
+    list = createVList(
+      {
+        container: containerEl,
+        ariaLabel,
+        items,
+        item: {
+          estimatedHeight: estimatedSize,
+          template: renderPost,
+        },
       },
-    }).use(withAutoSize()).build();
+      [autosize()],
+    );
 
     initTime = performance.now() - start;
   }

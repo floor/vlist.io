@@ -25,7 +25,7 @@ interface NavItem {
   slug: string;
   name: string;
   desc: string;
-  features?: string[];
+  plugins?: string[];
   icon?: string;
 }
 
@@ -176,6 +176,26 @@ function buildDocuments(): IndexDocument[] {
     }
   }
 
+  // -- Docs v1 ---------------------------------------------------------------
+
+  const docV1Groups = readJSON<NavGroup[]>("docs/v1/navigation.json");
+  for (const group of docV1Groups) {
+    const groupLabel = group.label ?? "";
+    for (const item of group.items) {
+      const md = readMarkdown(`docs/v1/${item.slug}.md`);
+      documents.push({
+        id: `docs-v1:${item.slug}`,
+        title: `${item.name} (v1)`,
+        section: SECTION_DOCS,
+        group: groupLabel,
+        description: item.desc,
+        body: md ? stripMarkdown(md) : "",
+        url: `/docs/v1/${item.slug}`,
+        keywords: "",
+      });
+    }
+  }
+
   // -- Tutorials -------------------------------------------------------------
 
   const tutorialGroups = readJSON<NavGroup[]>("tutorials/navigation.json");
@@ -196,6 +216,26 @@ function buildDocuments(): IndexDocument[] {
     }
   }
 
+  // -- Tutorials v1 ----------------------------------------------------------
+
+  const tutorialV1Groups = readJSON<NavGroup[]>("tutorials/v1/navigation.json");
+  for (const group of tutorialV1Groups) {
+    const groupLabel = group.label ?? "";
+    for (const item of group.items) {
+      const md = readMarkdown(`tutorials/v1/${item.slug}.md`);
+      documents.push({
+        id: `tutorials-v1:${item.slug}`,
+        title: `${item.name} (v1)`,
+        section: SECTION_TUTORIALS,
+        group: groupLabel,
+        description: item.desc,
+        body: md ? stripMarkdown(md) : "",
+        url: `/tutorials/v1/${item.slug}`,
+        keywords: "",
+      });
+    }
+  }
+
   // -- Examples --------------------------------------------------------------
 
   const exampleGroups = readJSON<NavGroup[]>("examples/navigation.json");
@@ -210,7 +250,7 @@ function buildDocuments(): IndexDocument[] {
         description: item.desc,
         body: "",
         url: `/examples/${item.slug}`,
-        keywords: item.features ? item.features.join(" ") : "",
+        keywords: item.plugins ? item.plugins.join(" ") : "",
       });
     }
   }
@@ -352,19 +392,28 @@ function extractSnippet(
 /**
  * Search all site content and return ranked results with snippets.
  *
- * @param query  - The search query string.
- * @param limit  - Maximum number of results to return (default 10).
- * @returns        Array of SearchResult objects, ranked by relevance.
+ * @param query   - The search query string.
+ * @param limit   - Maximum number of results to return (default 10).
+ * @param version - "v1" to only show v1 results, "v2" (default) to exclude v1.
+ * @returns         Array of SearchResult objects, ranked by relevance.
  */
 export function searchSite(
   query: string,
   limit: number = DEFAULT_LIMIT,
+  version: "v1" | "v2" = "v2",
 ): SearchResult[] {
   if (!query || !query.trim()) return [];
 
   const raw = index.search(query.trim());
 
-  return raw.slice(0, limit).map((hit) => ({
+  const isV1Url = (url: string): boolean =>
+    url.startsWith("/docs/v1/") || url.startsWith("/tutorials/v1/");
+
+  const filtered = version === "v1"
+    ? raw.filter((hit) => isV1Url(hit.url as string))
+    : raw.filter((hit) => !isV1Url(hit.url as string));
+
+  return filtered.slice(0, limit).map((hit) => ({
     title: hit.title as string,
     url: hit.url as string,
     section: hit.section as string,

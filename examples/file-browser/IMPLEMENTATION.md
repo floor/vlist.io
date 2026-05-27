@@ -2,15 +2,15 @@
 
 ## Overview
 
-A Finder-like file browser built with **vlist** using the `withGrid` plugin. This example demonstrates virtualized file browsing with switchable grid/list views and an integrated backend API for real filesystem access.
+A Finder-like file browser built with **vlist** using the `grid` plugin. This example demonstrates virtualized file browsing with switchable grid/list views and an integrated backend API for real filesystem access.
 
 ## Architecture
 
-### Frontend (vlist/builder + withGrid)
+### Frontend (createVList + grid plugin)
 
 **Location**: `examples/file-browser/javascript/`
 
-- **Grid View**: Uses `withGrid` plugin for 2D virtualized layout with configurable columns (3-6) and gap (4-16px)
+- **Grid View**: Uses `grid` plugin for 2D virtualized layout with configurable columns (3-6) and gap (4-16px)
 - **List View**: Standard vlist with fixed 40px row height and columnar layout
 - **Dynamic Templates**: `gridItemTemplate()` for icon-based cards, `listItemTemplate()` for rows
 - **Navigation**: Breadcrumb, back/up buttons, double-click to enter folders
@@ -120,7 +120,7 @@ Real-time display:
 ```javascript
 // Grid view
 currentView = "grid"
-→ withGrid({ columns, gap })
+→ grid({ columns, gap })
 → Dynamic height: colWidth * 0.8
 → gridItemTemplate()
 

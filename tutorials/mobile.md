@@ -10,12 +10,12 @@ vlist works excellently on mobile devices through native browser scrolling capab
 
 | Feature | Mobile Support | Notes |
 |---------|----------------|-------|
-| **Touch scrolling** | ✅ Native | Momentum, bounce, all standard gestures |
-| **Performance** | ✅ Optimized | Virtual rendering, passive listeners, RAF throttling |
-| **Responsive layout** | ✅ Automatic | Works at any viewport size |
-| **Custom scrollbar drag** | ⚠️ Mouse only | Native scroll still works perfectly |
-| **Keyboard navigation** | ❌ N/A | Not applicable on mobile |
-| **Browser support** | ✅ Excellent | iOS Safari 12+, Chrome, Firefox, Edge |
+| **Touch scrolling** | Native | Momentum, bounce, all standard gestures |
+| **Performance** | Optimized | Virtual rendering, passive listeners, RAF throttling |
+| **Responsive layout** | Automatic | Works at any viewport size |
+| **Custom scrollbar drag** | Mouse only | Native scroll still works perfectly |
+| **Keyboard navigation** | N/A | Not applicable on mobile |
+| **Browser support** | Excellent | iOS Safari 12+, Chrome, Firefox, Edge |
 
 ---
 
@@ -43,14 +43,14 @@ This ensures the browser can immediately handle touch events without waiting for
 
 Rather than implementing custom touch handlers (`touchstart`, `touchmove`, `touchend`), vlist delegates to the browser's highly-optimized native scrolling:
 
-**✅ Advantages:**
+**Advantages:**
 - Better performance (hardware-accelerated)
 - Platform-consistent behavior (iOS bounce, Android overscroll glow)
 - Automatic handling of edge cases (interrupted gestures, multi-touch, etc.)
 - Accessibility features (VoiceOver/TalkBack scrolling)
 - Less code to maintain
 
-**❌ Custom touch handling would require:**
+**Custom touch handling would require:**
 - Manual velocity calculation
 - Momentum simulation
 - Platform-specific behavior replication
@@ -178,7 +178,7 @@ On iOS Safari, the viewport height changes when the address bar shows/hides. Use
 ```css
 .vlist {
   height: 100dvh; /* Dynamic - adjusts to visible area */
-  /* height: 100vh; ← Static - may cause layout shifts */
+  /* height: 100vh; <- Static - may cause layout shifts */
 }
 ```
 
@@ -199,27 +199,28 @@ document.addEventListener('mouseup', handleThumbMouseUp);
 ```
 
 **This means:**
-- ⚠️ Dragging the scrollbar thumb **does not work** on touch devices
-- ✅ Native content scrolling **still works perfectly**
-- ✅ The scrollbar **appears** and **auto-hides** correctly
-- ⚠️ Hover-based scrollbar visibility **does not work** (no hover state on touch)
+- Dragging the scrollbar thumb **does not work** on touch devices
+- Native content scrolling **still works perfectly**
+- The scrollbar **appears** and **auto-hides** correctly
+- Hover-based scrollbar visibility **does not work** (no hover state on touch)
 
 ### Workaround for Mobile
 
 Configure the scrollbar for mobile-friendly behavior:
 
 ```javascript
-import { vlist } from 'vlist';
-import { withScrollbar } from 'vlist';
+import { createVList, scrollbar } from 'vlist';
 
-const list = vlist({ /* ... */ })
-  .use(withScrollbar({
-    autoHide: true,           // Auto-hide after scroll stops
-    autoHideDelay: 800,       // Shorter delay for mobile (default: 1000)
-    showOnHover: false,       // No hover on touch devices
-    showOnViewportEnter: false // No mouse enter on touch devices
-  }))
-  .build();
+const list = createVList({
+  container: '#list',
+  items: data,
+  item: { height: 60, template: renderItem },
+}, [scrollbar({
+  autoHide: true,
+  autoHideDelay: 800,
+  showOnHover: false,
+  showOnViewportEnter: false
+})]);
 ```
 
 ### Detection-Based Configuration
@@ -227,6 +228,8 @@ const list = vlist({ /* ... */ })
 Detect touch capability and adjust config:
 
 ```javascript
+import { createVList, scrollbar } from 'vlist';
+
 const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
 const scrollbarConfig = isTouchDevice
@@ -243,9 +246,11 @@ const scrollbarConfig = isTouchDevice
       showOnViewportEnter: true
     };
 
-const list = vlist({ /* ... */ })
-  .use(withScrollbar(scrollbarConfig))
-  .build();
+const list = createVList({
+  container: '#list',
+  items: data,
+  item: { height: 60, template: renderItem },
+}, [scrollbar(scrollbarConfig)]);
 ```
 
 ---
@@ -255,9 +260,9 @@ const list = vlist({ /* ... */ })
 ### Recommended Settings
 
 ```javascript
-import { vlist } from 'vlist';
+import { createVList } from 'vlist';
 
-const list = vlist({
+const list = createVList({
   container: '#list',
   item: {
     height: 60,  // Taller items are easier to tap
@@ -272,8 +277,7 @@ const list = vlist({
   scroll: {
     wheel: true,        // Still useful for desktop/trackpads
   }
-})
-.build();
+});
 ```
 
 ### Touch Target Sizing
@@ -282,9 +286,9 @@ Follow platform guidelines for minimum tap target sizes:
 
 | Platform | Minimum Size | Recommended |
 |----------|--------------|-------------|
-| iOS | 44×44 px | 48×48 px |
-| Android | 48×48 dp | 48×48 dp |
-| Web (WCAG) | 44×44 px | 48×48 px |
+| iOS | 44x44 px | 48x48 px |
+| Android | 48x48 dp | 48x48 dp |
+| Web (WCAG) | 44x44 px | 48x48 px |
 
 ```css
 .vlist-item {
@@ -315,10 +319,10 @@ From the main README, vlist supports:
 
 | Browser | Version | Mobile | Notes |
 |---------|---------|--------|-------|
-| **Chrome** | 60+ | ✅ Android | Excellent support |
-| **Safari** | 12+ | ✅ iOS | Includes iOS Safari |
-| **Firefox** | 55+ | ✅ Android | Full support |
-| **Edge** | 79+ | ✅ Android | Chromium-based |
+| **Chrome** | 60+ | Android | Excellent support |
+| **Safari** | 12+ | iOS | Includes iOS Safari |
+| **Firefox** | 55+ | Android | Full support |
+| **Edge** | 79+ | Android | Chromium-based |
 
 ### iOS-Specific Considerations
 
@@ -370,7 +374,7 @@ height: 100dvh;
 5. Test rapid flicking (momentum scrolling)
 
 **Remote Debugging:**
-- **iOS Safari:** Use Safari on Mac → Develop → [Your iPhone]
+- **iOS Safari:** Use Safari on Mac > Develop > [Your iPhone]
 - **Android Chrome:** Use `chrome://inspect` on desktop Chrome
 
 ### Performance Profiling
@@ -379,16 +383,16 @@ height: 100dvh;
 ```
 1. Connect device via USB
 2. Enable USB debugging
-3. chrome://inspect → Inspect device
-4. Performance tab → Record while scrolling
+3. chrome://inspect > Inspect device
+4. Performance tab > Record while scrolling
 ```
 
 **Safari Web Inspector (iOS):**
 ```
 1. Connect device via USB
 2. Enable Web Inspector on device
-3. Safari → Develop → [Device] → [Page]
-4. Timelines tab → Record
+3. Safari > Develop > [Device] > [Page]
+4. Timelines tab > Record
 ```
 
 ### Lighthouse Mobile Audit
@@ -441,63 +445,14 @@ npx lighthouse https://your-vlist-app.com \
 
 ---
 
-## Future Enhancements
-
-Potential improvements for mobile support:
-
-### 1. Touch Events for Custom Scrollbar
-
-Add touch event handlers to enable scrollbar drag on mobile:
-
-```javascript
-thumb.addEventListener('touchstart', handleThumbTouchStart, { passive: false });
-thumb.addEventListener('touchmove', handleThumbTouchMove, { passive: false });
-thumb.addEventListener('touchend', handleThumbTouchEnd);
-```
-
-### 2. Pull-to-Refresh Support
-
-Optional feature for pull-to-refresh on mobile:
-
-```javascript
-.use(withPullToRefresh({
-  onRefresh: async () => {
-    await loadNewItems();
-  }
-}))
-```
-
-### 3. Swipe Actions
-
-Swipe-to-delete or swipe-to-reveal actions (iOS Mail style):
-
-```javascript
-.use(withSwipeActions({
-  left: [{ label: 'Delete', action: (item) => { /* ... */ } }],
-  right: [{ label: 'Archive', action: (item) => { /* ... */ } }]
-}))
-```
-
-### 4. Haptic Feedback
-
-Vibration feedback on selection or actions:
-
-```javascript
-if ('vibrate' in navigator) {
-  navigator.vibrate(10); // 10ms haptic feedback
-}
-```
-
----
-
 ## Examples
 
 ### Full-Screen Mobile List
 
 ```javascript
-import { vlist } from 'vlist';
+import { createVList } from 'vlist';
 
-const list = vlist({
+const list = createVList({
   container: '#app',
   item: {
     height: 60,
@@ -512,8 +467,7 @@ const list = vlist({
     `
   },
   items: users
-})
-.build();
+});
 ```
 
 ```css
@@ -550,9 +504,9 @@ const list = vlist({
 ### Chat UI (Reverse Mode)
 
 ```javascript
-import { vlist } from 'vlist';
+import { createVList } from 'vlist';
 
-const chat = vlist({
+const chat = createVList({
   container: '#chat',
   reverse: true, // Start at bottom (newest messages)
   item: {
@@ -564,8 +518,7 @@ const chat = vlist({
     `
   },
   items: messages
-})
-.build();
+});
 ```
 
 ```css
@@ -602,11 +555,11 @@ const chat = vlist({
 
 vlist provides **excellent mobile support** through native browser scrolling:
 
-✅ **Native touch scrolling** — All standard gestures work perfectly  
-✅ **High performance** — Virtual rendering, passive listeners, optimized rendering  
-✅ **Responsive** — Works at any viewport size  
-✅ **Cross-browser** — iOS Safari 12+, Android Chrome, Firefox, Edge  
-⚠️ **Minor limitation** — Custom scrollbar drag requires mouse (but native scroll works)
+- **Native touch scrolling** — All standard gestures work perfectly
+- **High performance** — Virtual rendering, passive listeners, optimized rendering
+- **Responsive** — Works at any viewport size
+- **Cross-browser** — iOS Safari 12+, Android Chrome, Firefox, Edge
+- **Minor limitation** — Custom scrollbar drag requires mouse (but native scroll works)
 
 The library's reliance on native scrolling rather than custom touch handling results in better performance, platform consistency, and less code complexity — making it an excellent choice for mobile applications with large lists.
 
@@ -616,7 +569,7 @@ The library's reliance on native scrolling rather than custom touch handling res
 
 - [Accessibility](/docs/accessibility) — Screen reader support, ARIA attributes
 - [Performance](/tutorials/optimization) — Optimization strategies and benchmarks
-- [Scroll](/docs/features/scrollbar) — Scroll controller and configuration
+- [Scrollbar Plugin](/docs/plugins/scrollbar) — Scroll controller and configuration
 
 ---
 

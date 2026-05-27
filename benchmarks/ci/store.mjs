@@ -58,9 +58,16 @@ const ensureSchema = (db) => {
       error         TEXT,
 
       stress_ms     INTEGER DEFAULT 0,
-      scroll_speed  INTEGER DEFAULT 0
+      scroll_speed  INTEGER DEFAULT 0,
+      source        TEXT    NOT NULL DEFAULT 'ci'
     )
   `);
+
+  // Migrate existing tables: add source column if missing
+  const columns = db.prepare("PRAGMA table_info(ci_benchmark_runs)").all();
+  if (columns.length > 0 && !columns.some((c) => c.name === "source")) {
+    db.run(`ALTER TABLE ci_benchmark_runs ADD COLUMN source TEXT NOT NULL DEFAULT 'ci'`);
+  }
 
   db.run(`CREATE TABLE IF NOT EXISTS ci_benchmark_metrics (${METRICS_COLUMNS})`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_ci_runs_sha     ON ci_benchmark_runs(git_sha)`);
@@ -84,8 +91,8 @@ const insertRun = db.prepare(`
     git_sha, branch, pr_number, workflow_run_id, workflow_name, runner_os, baseline_sha,
     user_agent, hardware_concurrency, device_memory,
     duration_ms, success, error,
-    stress_ms, scroll_speed
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    stress_ms, scroll_speed, source
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
 const insertMetric = db.prepare(`
@@ -120,6 +127,7 @@ const write = db.transaction(() => {
       result.error ?? null,
       runConfig.stressMs ?? 0,
       runConfig.scrollSpeed ?? 0,
+      metadata.source ?? "ci",
     );
 
     const runId = Number(info.lastInsertRowid);

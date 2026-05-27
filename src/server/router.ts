@@ -8,7 +8,9 @@
 import { routeApi } from "../api/router";
 import {
   renderDocsPage,
+  renderDocsV1Page,
   renderTutorialPage,
+  renderTutorialV1Page,
   renderBlogPage,
   renderExamplesPage,
   renderBenchmarkPage,
@@ -17,6 +19,7 @@ import { renderHomepage } from "./renderers/homepage";
 import { resolveStatic } from "./static";
 import { compressResponse } from "./compression";
 import { renderSitemap, renderRobots } from "./sitemap";
+import { V1_TO_V2_DOCS, V1_TO_V2_TUTORIALS } from "./version-map";
 
 // =============================================================================
 // Section Resolvers
@@ -35,7 +38,48 @@ function resolveHomepage(pathname: string): Response | null {
   return null;
 }
 
+function resolveDocsV1(pathname: string): Response | null {
+  if (pathname === "/docs/v1" || pathname === "/docs/v1/") {
+    return renderDocsV1Page(null);
+  }
+  const match = pathname.match(/^\/docs\/v1\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
+  if (match) return renderDocsV1Page(match[1]);
+  return null;
+}
+
+function resolveTutorialsV1(pathname: string): Response | null {
+  if (pathname === "/tutorials/v1" || pathname === "/tutorials/v1/") {
+    return renderTutorialV1Page(null);
+  }
+  const match = pathname.match(
+    /^\/tutorials\/v1\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/,
+  );
+  if (match) return renderTutorialV1Page(match[1]);
+  return null;
+}
+
+const DOCS_REDIRECTS: Record<string, string> = {
+  "/docs/plugins/async": "/docs/plugins/data",
+};
+for (const [v1Slug, v2Slug] of Object.entries(V1_TO_V2_DOCS)) {
+  if (v1Slug !== v2Slug) {
+    DOCS_REDIRECTS[`/docs/${v1Slug}`] = `/docs/${v2Slug}`;
+  }
+}
+
+const TUTORIAL_REDIRECTS: Record<string, string> = {};
+for (const [v1Slug, v2Slug] of Object.entries(V1_TO_V2_TUTORIALS)) {
+  if (v1Slug !== v2Slug) {
+    TUTORIAL_REDIRECTS[`/tutorials/${v1Slug}`] = `/tutorials/${v2Slug}`;
+  }
+}
+
 function resolveDocs(pathname: string): Response | null {
+  const normalized = pathname.replace(/\/+$/, "");
+  const redirect = DOCS_REDIRECTS[normalized];
+  if (redirect) {
+    return new Response(null, { status: 301, headers: { Location: redirect } });
+  }
   if (pathname === "/docs" || pathname === "/docs/") {
     return renderDocsPage(null);
   }
@@ -45,6 +89,11 @@ function resolveDocs(pathname: string): Response | null {
 }
 
 function resolveTutorials(pathname: string): Response | null {
+  const normalized = pathname.replace(/\/+$/, "");
+  const redirect = TUTORIAL_REDIRECTS[normalized];
+  if (redirect) {
+    return new Response(null, { status: 301, headers: { Location: redirect } });
+  }
   if (pathname === "/tutorials" || pathname === "/tutorials/") {
     return renderTutorialPage(null);
   }
@@ -103,6 +152,8 @@ export function handleRequest(req: Request): Response | Promise<Response> {
     routeSystem(pathname) ??
     resolveHomepage(pathname) ??
     resolveExamples(pathname, url) ??
+    resolveDocsV1(pathname) ??
+    resolveTutorialsV1(pathname) ??
     resolveDocs(pathname) ??
     resolveTutorials(pathname) ??
     resolveBlog(pathname) ??

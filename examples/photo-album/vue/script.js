@@ -102,21 +102,20 @@ const App = {
 
       // Import and build manually since useVList is designed for single mount
       import("vlist").then(
-        ({ vlist, withGrid, withMasonry, withScrollbar }) => {
-          let builder = vlist({
-            ...config,
-            container: containerRef.value,
-          });
-
+        ({ createVList, grid, masonry, scrollbar }) => {
+          const plugins = [];
           if (config.layout === "grid" && config.grid) {
-            builder = builder.use(withGrid(config.grid));
+            plugins.push(grid(config.grid));
           }
           if (config.layout === "masonry" && config.masonry) {
-            builder = builder.use(withMasonry(config.masonry));
+            plugins.push(masonry(config.masonry));
           }
-          builder = builder.use(withScrollbar({ autoHide: true }));
+          plugins.push(scrollbar({ autoHide: true }));
 
-          const inst = builder.build();
+          const inst = createVList({
+            ...config,
+            container: containerRef.value,
+          }, plugins);
           instance.value = inst;
 
           // Stats

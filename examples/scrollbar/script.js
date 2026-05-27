@@ -1,7 +1,7 @@
-// Scrollbar — showcase all withScrollbar options
+// Scrollbar — showcase all scrollbar plugin options
 // Uses a contact list as the canvas to demonstrate native, custom, and none modes.
 
-import { vlist, withScrollbar, withSelection, withSnapshots } from "vlist";
+import { createVList, scrollbar, selection, snapshots } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -13,7 +13,7 @@ import { restoreFromStorage } from "./controls.js";
 
 const STORAGE_KEY = "scrollbar-list";
 const CONFIG_KEY = "scrollbar-config";
-const TOTAL = 1_000;
+const TOTAL = 100_000;
 const ITEM_HEIGHT = 64;
 
 // =============================================================================
@@ -73,14 +73,31 @@ export function setClickBehavior(v) {
 
 export function saveConfig() {
   const config = {
-    mode, autoHide, autoHideDelay, gutterEnabled, showOnHover,
-    showOnViewportEnter, padding, minThumbSize, clickBehavior,
-    width: parseInt(getComputedStyle(document.documentElement)
-      .getPropertyValue("--vlist-custom-scrollbar-width")) || 8,
-    radius: parseInt(getComputedStyle(document.documentElement)
-      .getPropertyValue("--vlist-custom-scrollbar-radius")) || 4,
+    mode,
+    autoHide,
+    autoHideDelay,
+    gutterEnabled,
+    showOnHover,
+    showOnViewportEnter,
+    padding,
+    minThumbSize,
+    clickBehavior,
+    width:
+      parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--vlist-custom-scrollbar-width",
+        ),
+      ) || 8,
+    radius:
+      parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue(
+          "--vlist-custom-scrollbar-radius",
+        ),
+      ) || 4,
   };
-  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(config)); } catch {}
+  try {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  } catch {}
 }
 
 export function restoreConfig() {
@@ -88,7 +105,9 @@ export function restoreConfig() {
     const raw = localStorage.getItem(CONFIG_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // =============================================================================
@@ -137,17 +156,10 @@ export function createList() {
   const scrollConfig = {};
   if (mode === "none") scrollConfig.scrollbar = "none";
 
-  const builder = vlist({
-    container: "#list-container",
-    ariaLabel: "Scrollbar demo — contact list",
-    scroll: scrollConfig,
-    item: { height: ITEM_HEIGHT, template: renderContact },
-    items: contacts,
-  });
-
+  const plugins = [];
   if (mode === "custom") {
-    builder.use(
-      withScrollbar({
+    plugins.push(
+      scrollbar({
         autoHide,
         autoHideDelay,
         gutter: gutterEnabled,
@@ -160,13 +172,23 @@ export function createList() {
     );
   }
 
-  builder.use(withSelection());
-  builder.use(withSnapshots({ autoSave: STORAGE_KEY }));
+  plugins.push(selection());
+  plugins.push(snapshots({ autoSave: STORAGE_KEY }));
 
-  list = builder.build();
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Scrollbar demo — contact list",
+      scroll: scrollConfig,
+      item: { height: ITEM_HEIGHT, template: renderContact },
+      items: contacts,
+    },
+    plugins,
+  );
 
   if (savedPos > 0) {
-    list.scrollTo(savedPos);
+    const vp = list.element.querySelector(".vlist-viewport");
+    if (vp) vp.scrollTop = savedPos;
   }
 
   list.on("scroll", updateInfo);

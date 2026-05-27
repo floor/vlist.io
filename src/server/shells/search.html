@@ -189,11 +189,17 @@
             }, 150);
         });
 
+        function getSearchVersion() {
+            var p = window.location.pathname;
+            if (p.startsWith("/docs/v1") || p.startsWith("/tutorials/v1")) return "v1";
+            return "v2";
+        }
+
         function doSearch(q) {
             if (abortCtrl) abortCtrl.abort();
             abortCtrl = new AbortController();
 
-            fetch("/api/search?q=" + encodeURIComponent(q), {
+            fetch("/api/search?q=" + encodeURIComponent(q) + "&version=" + getSearchVersion(), {
                 signal: abortCtrl.signal,
             })
                 .then(function (r) {

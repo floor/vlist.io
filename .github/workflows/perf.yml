@@ -19,6 +19,28 @@ on:
         description: "Pull request number in source_repository"
         required: false
         default: ""
+  workflow_call:
+    inputs:
+      vlist_repository:
+        description: "Repository containing the vlist package to benchmark"
+        required: false
+        type: string
+        default: "floor/vlist"
+      vlist_ref:
+        description: "Branch, tag, or SHA from vlist_repository to benchmark"
+        required: false
+        type: string
+        default: "main"
+      source_repository:
+        description: "Repository that requested this benchmark run"
+        required: false
+        type: string
+        default: ""
+      source_pr_number:
+        description: "Pull request number in source_repository"
+        required: false
+        type: string
+        default: ""
   pull_request:
     paths:
       - "benchmarks/**"
@@ -84,20 +106,43 @@ jobs:
         run: bun run bench:store
 
       - name: Build PR comment
-        if: github.event_name == 'pull_request' && hashFiles('benchmarks/results/latest.json') != ''
+        if: hashFiles('benchmarks/results/latest.json') != '' && (github.event_name == 'pull_request' || env.SOURCE_PR_NUMBER != '')
         run: bun run bench:comment
 
       - name: Post PR benchmark comment
-        if: github.event_name == 'pull_request' && hashFiles('benchmarks/results/pr-comment.md') != ''
+        if: hashFiles('benchmarks/results/pr-comment.md') != '' && (github.event_name == 'pull_request' || env.SOURCE_PR_NUMBER != '')
         continue-on-error: true
         uses: actions/github-script@v8
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require("fs");
             const marker = "<!-- vlist-perf-comment -->";
             const body = fs.readFileSync("benchmarks/results/pr-comment.md", "utf8");
-            const { owner, repo } = context.repo;
-            const issue_number = context.payload.pull_request.number;
+
+            // Determine target repo and PR number
+            const sourceRepo = process.env.SOURCE_REPOSITORY;
+            const sourcePr = process.env.SOURCE_PR_NUMBER;
+            let owner, repo, issue_number;
+
+            if (sourcePr && sourceRepo && sourceRepo !== context.repo.owner + "/" + context.repo.repo) {
+              // Cross-repo call: comment on the source PR
+              [owner, repo] = sourceRepo.split("/");
+              issue_number = parseInt(sourcePr, 10);
+            } else if (context.payload.pull_request) {
+              // Direct PR trigger
+              owner = context.repo.owner;
+              repo = context.repo.repo;
+              issue_number = context.payload.pull_request.number;
+            } else if (sourcePr) {
+              // workflow_call/dispatch with source PR in same org
+              owner = context.repo.owner;
+              repo = sourceRepo ? sourceRepo.split("/")[1] : context.repo.repo;
+              issue_number = parseInt(sourcePr, 10);
+            } else {
+              console.log("No PR to comment on");
+              return;
+            }
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner,

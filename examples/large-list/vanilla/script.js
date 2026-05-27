@@ -1,8 +1,8 @@
 // Builder Million Items — Composable entry point
-// Uses vlist/builder with withScale + withScrollbar plugins
+// Uses scale + scrollbar plugins
 // Demonstrates handling 1M+ items with automatic scroll scaling
 
-import { vlist, withScale, withScrollbar } from "vlist";
+import { createVList, scale, scrollbar } from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -123,21 +123,21 @@ function createList(sizeKey) {
   const count = SIZES[sizeKey];
   const items = generateItems(count);
 
-  const builder = vlist({
-    container: "#list-container",
-    ariaLabel: `${count.toLocaleString()} items list`,
-    item: {
-      height: ITEM_HEIGHT,
-      template: itemTemplate,
+  const plugins =
+    count > 100_000 ? [scale(), scrollbar({ autoHide: true })] : [];
+
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: `${count.toLocaleString()} items list`,
+      item: {
+        height: ITEM_HEIGHT,
+        template: itemTemplate,
+      },
+      items,
     },
-    items,
-  });
-
-  if (count > 100_000) {
-    builder.use(withScale()).use(withScrollbar({ autoHide: true }));
-  }
-
-  list = builder.build();
+    plugins,
+  );
 
   // Bind events
   list.on("scroll", ({ scrollPosition, direction }) => {
@@ -208,7 +208,7 @@ const smoothToggle = document.getElementById("smooth-toggle");
 
 /** Build scrollToIndex options respecting the smooth toggle */
 const scrollOpts = (align) =>
-  smoothToggle.checked ? { align, behavior: "smooth", duration: 800 } : align;
+  smoothToggle.checked ? { align, behavior: "smooth", duration: 500 } : align;
 
 document.getElementById("btn-first").addEventListener("click", () => {
   list.scrollToIndex(0, scrollOpts("start"));

@@ -8,9 +8,9 @@
         "desc": "Get started in under 5 minutes"
       },
       {
-        "slug": "builder-pattern",
-        "name": "Builder Pattern",
-        "desc": "Understanding the feature system"
+        "slug": "plugin-system",
+        "name": "Plugin System",
+        "desc": "Understanding the plugin system"
       }
     ]
   },

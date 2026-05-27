@@ -34,6 +34,14 @@ const skipBuild = args.has("skip-build") || process.env.BENCH_SKIP_BUILD === "1"
 const externalServer = args.has("url") || process.env.BENCH_URL;
 const scrollSpeed = Number(args.get("scroll-speed") ?? process.env.BENCH_SCROLL_SPEED ?? config.scrollSpeed ?? 0);
 const stressMs = Number(args.get("stress-ms") ?? process.env.BENCH_STRESS_MS ?? config.stressMs ?? 0);
+const intensityMode = args.get("intensity") ?? process.env.BENCH_INTENSITY ?? null;
+
+const INTENSITY_PRESETS = {
+  quick: { renderIterations: 3, scrollToJumps: 2, memoryScrollMs: 3000 },
+  default: { renderIterations: 3, scrollToJumps: 3, memoryScrollMs: 5000 },
+  full: { renderIterations: 5, scrollToJumps: 5, memoryScrollMs: 5000 },
+};
+const intensity = intensityMode ? INTENSITY_PRESETS[intensityMode] ?? null : null;
 
 const metadata = {
   gitSha: process.env.GITHUB_SHA ?? process.env.BENCH_GIT_SHA ?? null,
@@ -142,9 +150,40 @@ try {
   browser = await launchBrowser();
   const page = await browser.newPage();
 
+  let lastSuite = "";
+  let lastWasProgress = false;
+  const isCI = !!process.env.CI;
+
   page.on("console", (msg) => {
     const text = msg.text();
-    if (text.startsWith("[bench:ci]")) console.log(text);
+    if (!text.startsWith("[bench:ci]")) return;
+
+    const match = text.match(/^\[bench:ci\] ([^:]+): (.+)$/);
+    if (!match) return;
+
+    const [, prefix, message] = match;
+    const isProgress = /^(Iteration|Jump|Scrolling|Measuring|Warming)/.test(message);
+
+    if (isCI) {
+      // CI: only print suite start (Preparing/Running), skip all progress noise
+      if (!isProgress) console.log(text);
+      return;
+    }
+
+    // Local TTY: overwrite progress lines in place
+    if (prefix !== lastSuite || (!isProgress && lastWasProgress)) {
+      if (lastWasProgress) process.stdout.write("\n");
+      lastSuite = prefix;
+    }
+
+    if (isProgress) {
+      process.stdout.write(`\r\x1b[K[bench:ci] ${prefix}: ${message}`);
+      lastWasProgress = true;
+    } else {
+      if (lastWasProgress) process.stdout.write("\n");
+      console.log(text);
+      lastWasProgress = false;
+    }
   });
 
   await page.goto(`${baseUrl}/benchmarks/render?variant=vanilla`, {
@@ -156,6 +195,7 @@ try {
     timeout: 30_000,
   });
 
+  const benchStart = Date.now();
   const results = await page.evaluate(async (options) => {
     const host = document.createElement("div");
     host.id = "bench-ci-host";
@@ -177,6 +217,7 @@ try {
       suiteIds: options.suiteIds,
       scrollSpeed: options.scrollSpeed,
       stressMs: options.stressMs,
+      intensity: options.intensity,
       container: host,
       getContainer: () => host,
       onStatus: (suiteId, itemCount, message) => {
@@ -194,14 +235,17 @@ try {
       statusLog,
       results,
     };
-  }, { suiteIds, itemCounts, scrollSpeed, stressMs });
+  }, { suiteIds, itemCounts, scrollSpeed, stressMs, intensity });
 
+  if (lastWasProgress) process.stdout.write("\n");
+
+  const totalDurationMs = Date.now() - benchStart;
   const now = new Date().toISOString();
   const payload = {
     schemaVersion: 1,
     generatedAt: now,
     baseUrl,
-    config: { suiteIds, itemCounts, scrollSpeed, stressMs },
+    config: { suiteIds, itemCounts, scrollSpeed, stressMs, intensity: intensityMode },
     metadata,
     environment: {
       vlistVersion: results.version,
@@ -210,6 +254,7 @@ try {
       deviceMemory: results.deviceMemory,
     },
     results: results.results,
+    durationMs: totalDurationMs,
   };
 
   await mkdir(outputDir, { recursive: true });
@@ -219,10 +264,14 @@ try {
   await writeFile(datedPath, `${JSON.stringify(payload, null, 2)}\n`);
 
   const summaryPath = resolve(outputDir, "summary.md");
+  const durationStr = totalDurationMs < 60_000
+    ? `${(totalDurationMs / 1000).toFixed(2)}s`
+    : `${Math.floor(totalDurationMs / 60_000)}m ${((totalDurationMs % 60_000) / 1000).toFixed(0)}s`;
+
   const lines = [
     "# vlist Performance Benchmark",
     "",
-    `Generated: ${now}`,
+    `Generated: ${now} in ${durationStr}`,
     `vlist: ${results.version}`,
     "",
     "| Suite | Items | Metric | Value | Rating |",
@@ -239,7 +288,8 @@ try {
   }
   await writeFile(summaryPath, `${lines.join("\n")}\n`);
 
-  console.log(`\nWrote ${latestPath}`);
+  console.log(`\nDone in ${durationStr}`);
+  console.log(`Wrote ${latestPath}`);
   console.log(`Wrote ${summaryPath}`);
 } finally {
   stopping = true;

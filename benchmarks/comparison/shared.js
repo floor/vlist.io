@@ -6,7 +6,7 @@
 // Measurement functions are imported from the shared engine modules so that
 // comparison benchmarks use the exact same methodology as suite benchmarks.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   benchmarkTemplate,
   nextFrame,
@@ -223,7 +223,7 @@ export const benchmarkVList = async (
   const renderResult = await measureRenderPerformance({
     container,
     createFn: async (c) => {
-      return vlist({
+      return createVList({
         container: c,
         overscan: VLIST_OVERSCAN,
         item: {
@@ -231,7 +231,7 @@ export const benchmarkVList = async (
           template: benchmarkTemplate,
         },
         items,
-      }).build();
+      });
     },
     destroyFn: (list) => list.destroy(),
     label: "vlist",
@@ -246,7 +246,7 @@ export const benchmarkVList = async (
   const { memoryUsedMB, instance: list } = await measureMemoryWithRetries({
     container,
     createFn: () => {
-      return vlist({
+      return createVList({
         container,
         overscan: VLIST_OVERSCAN,
         item: {
@@ -254,7 +254,7 @@ export const benchmarkVList = async (
           template: benchmarkTemplate,
         },
         items,
-      }).build();
+      });
     },
     destroyFn: (l) => l.destroy(),
     onStatus,

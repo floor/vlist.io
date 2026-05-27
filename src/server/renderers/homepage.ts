@@ -30,7 +30,7 @@ interface ExampleItem {
   slug: string;
   name: string;
   desc: string;
-  features?: string[];
+  plugins?: string[];
 }
 
 interface ExampleGroup {
@@ -54,10 +54,11 @@ const eta = new Eta({
 // Quick Start Code Block (preserved outside Eta to avoid rmWhitespace stripping)
 // =============================================================================
 
-const QUICKSTART_CODE = `<span class="kw">import</span> { <span class="fn">vlist</span> } <span class="kw">from</span> <span class="str">"vlist"</span>
+const QUICKSTART_CODE = `<span class="kw">import</span> { <span class="fn">createVList</span> } <span class="kw">from</span> <span class="str">"vlist"</span>
 
-<span class="kw">const</span> list <span class="op">=</span> <span class="fn">vlist</span>({
+<span class="kw">const</span> list <span class="op">=</span> <span class="fn">createVList</span>({
   <span class="prop">container</span><span class="par">:</span> <span class="str">"#list"</span>,
+  <span class="prop">items</span><span class="par">:</span> <span class="fn">generateUsers</span>(<span class="num">100_000</span>),
   <span class="prop">item</span><span class="par">:</span> {
     <span class="prop">height</span><span class="par">:</span> <span class="num">56</span>,
     <span class="prop">template</span><span class="par">:</span> (item) <span class="op">=&gt;</span> <span class="str">\`
@@ -69,9 +70,7 @@ const QUICKSTART_CODE = `<span class="kw">import</span> { <span class="fn">vlist
         &lt;/div&gt;
       &lt;/div&gt;\`</span>
   }
-}).<span class="fn">build</span>()
-
-list.<span class="fn">setItems</span>(<span class="fn">generateUsers</span>(<span class="num">100_000</span>))`;
+})`;
 
 // =============================================================================
 // Template & Navigation Loading

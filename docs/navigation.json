@@ -4,162 +4,112 @@
       {
         "slug": "getting-started",
         "name": "Getting Started",
-        "desc": "Complete guide to installation and configuration"
+        "desc": "Installation, configuration, and first virtual list"
+      },
+      {
+        "slug": "api",
+        "name": "API Reference",
+        "desc": "createVList, config, properties, and methods"
+      },
+      {
+        "slug": "adapters",
+        "name": "Adapters",
+        "desc": "React, Vue, Svelte, and SolidJS integration"
       },
       {
         "slug": "accessibility",
         "name": "Accessibility",
-        "desc": "WAI-ARIA, keyboard navigation, screen readers, and focus management"
+        "desc": "WAI-ARIA, keyboard navigation, and screen readers"
+      },
+      {
+        "slug": "migration",
+        "name": "Migration (v1 → v2)",
+        "desc": "Builder pattern to factory function migration guide"
       }
     ]
   },
   {
-    "label": "API Reference",
+    "label": "Plugins",
     "items": [
       {
-        "slug": "api/reference",
-        "name": "Reference",
-        "desc": "Config, properties, and methods"
-      },
-      {
-        "slug": "api/types",
-        "name": "Types",
-        "desc": "TypeScript type definitions"
-      },
-      {
-        "slug": "api/events",
-        "name": "Events",
-        "desc": "Event system"
-      },
-      {
-        "slug": "api/constants",
-        "name": "Constants",
-        "desc": "Default values and thresholds"
-      },
-      {
-        "slug": "api/exports",
-        "name": "Exports",
-        "desc": "Low-level utilities and feature authoring"
-      },
-      {
-        "slug": "api/adapters",
-        "name": "Adapters",
-        "desc": "React, Vue, Svelte, and SolidJS integration"
-      }
-    ]
-  },
-  {
-    "label": "Features",
-    "items": [
-      {
-        "slug": "features/overview",
+        "slug": "plugins/overview",
         "name": "Overview",
-        "desc": "All features with examples and costs"
+        "desc": "All 14 plugins with bundle costs"
       },
       {
-        "slug": "features/async",
-        "name": "Async",
-        "desc": "Lazy data loading (withAsync)"
+        "slug": "plugins/a11y",
+        "name": "a11y",
+        "desc": "Enhanced ARIA and focus management"
       },
       {
-        "slug": "features/selection",
+        "slug": "plugins/selection",
         "name": "Selection",
-        "desc": "Item selection & keyboard nav (withSelection)"
+        "desc": "Item selection and keyboard navigation"
       },
       {
-        "slug": "features/sortable",
-        "name": "Sortable",
-        "desc": "Drag-and-drop reordering (withSortable)"
+        "slug": "plugins/data",
+        "name": "Data",
+        "desc": "Lazy data loading"
       },
       {
-        "slug": "features/grid",
-        "name": "Grid",
-        "desc": "2D grid layout (withGrid)"
-      },
-      {
-        "slug": "features/table",
-        "name": "Table",
-        "desc": "Data table with columns (withTable)"
-      },
-      {
-        "slug": "features/masonry",
-        "name": "Masonry",
-        "desc": "Pinterest-style layout (withMasonry)"
-      },
-      {
-        "slug": "features/groups",
-        "name": "Groups",
-        "desc": "Grouped lists with headers (withGroups)"
-      },
-      {
-        "slug": "features/autosize",
-        "name": "AutoSize",
-        "desc": "Auto-measure items via ResizeObserver (withAutoSize)"
-      },
-      {
-        "slug": "features/scrollbar",
+        "slug": "plugins/scrollbar",
         "name": "Scrollbar",
-        "desc": "Custom scrollbar UI (withScrollbar)"
+        "desc": "Custom scrollbar UI"
       },
       {
-        "slug": "features/page",
-        "name": "Page",
-        "desc": "Document scrolling (withPage)"
+        "slug": "plugins/sortable",
+        "name": "Sortable",
+        "desc": "Drag-and-drop reordering"
       },
       {
-        "slug": "features/scale",
+        "slug": "plugins/groups",
+        "name": "Groups",
+        "desc": "Grouped lists with sticky headers"
+      },
+      {
+        "slug": "plugins/scale",
         "name": "Scale",
-        "desc": "1M+ items (withScale)"
+        "desc": "1M+ items support"
       },
       {
-        "slug": "features/snapshots",
+        "slug": "plugins/page",
+        "name": "Page",
+        "desc": "Document-level scrolling"
+      },
+      {
+        "slug": "plugins/snapshots",
         "name": "Snapshots",
-        "desc": "Scroll save/restore (withSnapshots)"
+        "desc": "Scroll position save/restore"
       },
       {
-        "slug": "features/transition",
+        "slug": "plugins/transition",
         "name": "Transition",
-        "desc": "FLIP-based insert/remove animations (withTransition)"
+        "desc": "FLIP-based insert/remove animations"
+      },
+      {
+        "slug": "plugins/autosize",
+        "name": "AutoSize",
+        "desc": "Auto-measure items via ResizeObserver"
       }
     ]
   },
   {
-    "label": "Under the Hood",
+    "label": "Layout Plugins",
     "items": [
       {
-        "slug": "internals/structure",
-        "name": "Structure",
-        "desc": "Complete source code map"
+        "slug": "plugins/grid",
+        "name": "Grid",
+        "desc": "2D grid layout"
       },
       {
-        "slug": "internals/context",
-        "name": "Context",
-        "desc": "BuilderContext and feature system"
+        "slug": "plugins/table",
+        "name": "Table",
+        "desc": "Data table with columns"
       },
       {
-        "slug": "internals/rendering",
-        "name": "Rendering",
-        "desc": "DOM rendering and virtualization"
-      },
-      {
-        "slug": "internals/scrollbar",
-        "name": "Scroll",
-        "desc": "Scroll controller, custom scrollbar, and velocity tracking"
-      },
-      {
-        "slug": "internals/orientation",
-        "name": "Orientation",
-        "desc": "How vertical and horizontal share one code path"
-      },
-      {
-        "slug": "internals/measurement",
-        "name": "Measurement",
-        "desc": "Item Auto-Size Measurement"
-      },
-      {
-        "slug": "internals/stats",
-        "name": "Stats Module",
-        "desc": "Pure computation module for scroll statistics"
+        "slug": "plugins/masonry",
+        "name": "Masonry",
+        "desc": "Pinterest-style layout"
       }
     ]
   },
@@ -167,39 +117,14 @@
     "label": "Resources",
     "items": [
       {
-        "slug": "resources/benchmarks",
+        "slug": "benchmarks",
         "name": "Benchmarks",
-        "desc": "Performance metrics and live suites"
+        "desc": "Performance metrics and test suites"
       },
       {
-        "slug": "resources/bundle-size",
+        "slug": "bundle-size",
         "name": "Bundle Size",
-        "desc": "Bundle analysis and optimization"
-      },
-      {
-        "slug": "resources/testing",
-        "name": "Testing",
-        "desc": "Test suite and patterns"
-      },
-      {
-        "slug": "resources/roadmap",
-        "name": "Architecture",
-        "desc": "Architecture and competitive position"
-      },
-      {
-        "slug": "resources/debugging",
-        "name": "Debugging",
-        "desc": "Puppeteer debug harness for browser-level inspection"
-      },
-      {
-        "slug": "resources/claude-code",
-        "name": "Claude Code",
-        "desc": "Custom agents and skills for AI-assisted development"
-      },
-      {
-        "slug": "resources/ai-reviews",
-        "name": "What AI Thinks",
-        "desc": "6 AI models review vlist — uncoached, unedited"
+        "desc": "Per-plugin size analysis"
       }
     ]
   }
