@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Table
 
 Virtualized data table with columns, sorting, and resizable columns.
@@ -23,7 +29,7 @@ list.on("column:sort", ({ key, index, direction }) => {
 });
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -38,7 +44,7 @@ list.on("column:sort", ({ key, index, direction }) => {
 | `columnBorders` | `boolean` | `false` | Show column borders |
 | `sort` | `{ key, direction }` | — | Initial sort state |
 
-### Methods
+## Methods
 
 | Method | Description |
 |--------|-------------|
@@ -48,21 +54,26 @@ list.on("column:sort", ({ key, index, direction }) => {
 | `setSort(key, direction?)` | Set sort state |
 | `getSort()` | Get current sort: `{ key, direction }` |
 
-### Events
+## Events
 
 | Event | Payload |
 |-------|---------|
 | `column:resize` | `{ key, index, previousWidth, width }` |
 | `column:sort` | `{ key, index, direction: "asc" \| "desc" \| null }` |
 
-### CSS Classes
+## CSS Classes
 
 - `.vlist--table` on root
 - `.vlist--table-row-borders` if rowBorders enabled
 - `.vlist--table-col-borders` if columnBorders enabled
 
-### Notes
+## Notes
 
 - Sorting is visual only — the plugin emits `column:sort`, you re-sort data and call `setItems()`
 - Sticky header row
 - Conflicts with: grid, masonry
+
+## Examples
+
+- [Data Table](/examples/data-table) — resizable columns, sortable headers, and row selection
+- [File Browser](/examples/file-browser) — Finder-like table with resizable columns

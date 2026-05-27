@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: implemented
+---
+
 # RFC-002: vlist v2 Core Architecture
 
 **Status:** Approved (Unanimous 3/3) — **Do not modify.** This is the original approved RFC. Amendments go in `RFC-002-Core-Architecture-v2.md`.  

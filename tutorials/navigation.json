@@ -11,6 +11,11 @@
         "slug": "plugin-system",
         "name": "Plugin System",
         "desc": "Understanding the plugin system"
+      },
+      {
+        "slug": "plugin-authoring",
+        "name": "Plugin Authoring",
+        "desc": "Writing custom plugins with PluginContext and hooks"
       }
     ]
   },

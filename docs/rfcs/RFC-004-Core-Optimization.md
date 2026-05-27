@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: implemented
+---
+
 # RFC-004: vlist v2 Core Optimization
 
 **Status:** Completed (Tier 1 shipped, Tier 2–4 shelved)  

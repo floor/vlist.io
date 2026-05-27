@@ -1,10 +1,16 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Framework Adapters
 
 vlist has official adapters for React, Vue, Svelte, and SolidJS. Each adapter wraps `createVList` with framework-idiomatic APIs.
 
 Note: adapters are in separate packages and will be updated for v2. The core `vlist` package is framework-agnostic (vanilla JS).
 
-### React
+## React
 
 ```bash
 npm install vlist-react
@@ -27,7 +33,7 @@ function MyList({ items }) {
 
 Note: React adapter auto-manages lifecycle — `destroy()` is called on unmount.
 
-### Vue
+## Vue
 
 ```bash
 npm install vlist-vue
@@ -50,7 +56,7 @@ const { containerRef } = useVList({
 </template>
 ```
 
-### Svelte
+## Svelte
 
 ```bash
 npm install vlist-svelte
@@ -71,7 +77,7 @@ let items = [...];
 }} />
 ```
 
-### SolidJS
+## SolidJS
 
 ```bash
 npm install vlist-solidjs
@@ -92,11 +98,11 @@ function MyList() {
 }
 ```
 
-### Auto-Wiring
+## Auto-Wiring
 
 Adapters automatically detect plugin configs and add the corresponding plugins. For example, passing `grid: { columns: 3 }` in the config automatically adds the grid plugin — no explicit plugin import needed.
 
-### Events
+## Events
 
 Each framework uses its native event pattern:
 - **React**: callback props or `useEffect` with `instance.on()`
@@ -104,7 +110,7 @@ Each framework uses its native event pattern:
 - **Svelte**: action returns `on()`, or use event forwarding
 - **SolidJS**: `onCleanup` auto-destroys
 
-### Vanilla JS
+## Vanilla JS
 
 No adapter needed — use `createVList()` directly:
 

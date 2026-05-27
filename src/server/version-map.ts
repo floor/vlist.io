@@ -10,9 +10,11 @@ export const MATCH_VERSION_SLUGS = true;
 // v2 slug → v1 slug (docs)
 export const V2_TO_V1_DOCS: Record<string, string> = {
   "getting-started": "getting-started",
-  "accessibility": "accessibility",
-  "api": "api/reference",
-  "adapters": "api/adapters",
+  accessibility: "accessibility",
+  api: "api/reference",
+  types: "api/types",
+  exports: "api/exports",
+  adapters: "api/adapters",
   "plugins/overview": "features/overview",
   "plugins/selection": "features/selection",
   "plugins/data": "features/async",
@@ -28,7 +30,7 @@ export const V2_TO_V1_DOCS: Record<string, string> = {
   "plugins/table": "features/table",
   "plugins/masonry": "features/masonry",
   "bundle-size": "resources/bundle-size",
-  "benchmarks": "resources/benchmarks",
+  benchmarks: "resources/benchmarks",
 };
 
 // v1 slug → v2 slug (reverse + many-to-one for consolidated API page)
@@ -46,9 +48,9 @@ export const V2_TO_V1_TUTORIALS: Record<string, string> = {
   "quick-start": "quick-start",
   "plugin-system": "builder-pattern",
   "chat-interface": "chat-interface",
-  "mobile": "mobile",
-  "optimization": "optimization",
-  "styling": "styling",
+  mobile: "mobile",
+  optimization: "optimization",
+  styling: "styling",
 };
 
 // v1 slug → v2 slug (tutorials, reverse)

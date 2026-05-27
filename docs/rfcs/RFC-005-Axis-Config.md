@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: draft
+---
+
 # RFC-005: Axis-Based Internal Model
 
 **Status:** Draft  

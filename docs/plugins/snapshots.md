@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-05-27
+status: published
+---
+
 # Snapshots
 
 Save and restore scroll position across SPA navigation and list recreation.
@@ -12,21 +18,21 @@ const list = createVList({
 }, [snapshots({ autoSave: "my-list-scroll" })]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `autoSave` | `string` | — | Session storage key for auto-save/restore |
 | `restore` | `ScrollSnapshot` | — | Restore from a snapshot object |
 
-### Methods
+## Methods
 
 | Method | Description |
 |--------|-------------|
 | `getScrollSnapshot()` | Capture current scroll and selection state |
 | `restoreScroll(snapshot, restoreSelection?)` | Restore from a snapshot |
 
-### Manual Save/Restore
+## Manual Save/Restore
 
 ```ts
 // Save before navigating away
@@ -38,8 +44,13 @@ const saved = JSON.parse(sessionStorage.getItem("scroll"));
 const list = createVList(config, [snapshots({ restore: saved })]);
 ```
 
-### Notes
+## Notes
 
 - Captures: scroll position, first visible item index, sub-pixel offset, selection state, focus
 - Survives compression mode changes (scale plugin)
 - Works with async data — polls until container is ready, then restores
+
+## Examples
+
+- [Scroll Restore](/examples/scroll-restore) — save and restore scroll position across navigations
+- [Contact List](/examples/contact-list) — snapshot with grouped selection

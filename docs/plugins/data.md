@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-05-27
+status: published
+---
+
 # Data
 
 Async data loading with pagination, placeholders, and infinite scroll.
@@ -20,7 +26,7 @@ const list = createVList({
 })]);
 ```
 
-### Config
+## Config
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -34,7 +40,7 @@ const list = createVList({
 | `loading.preloadThreshold` | `number` | `2` | Velocity above which preloading kicks in (px/ms) |
 | `loading.preloadAhead` | `number` | `50` | Items to preload ahead of scroll direction |
 
-### Adapter Interface
+## Adapter Interface
 
 ```ts
 interface VListAdapter<T> {
@@ -52,7 +58,7 @@ interface VListAdapter<T> {
 }
 ```
 
-### Methods
+## Methods
 
 | Method | Description |
 |--------|-------------|
@@ -61,7 +67,7 @@ interface VListAdapter<T> {
 | `getTotal()` | Get total item count |
 | `setTotal(n)` | Set total item count |
 
-### Events
+## Events
 
 | Event | Payload |
 |-------|---------|
@@ -69,9 +75,15 @@ interface VListAdapter<T> {
 | `load:end` | `{ items, total }` |
 | `error` | `{ error, context }` |
 
-### Notes
+## Notes
 
 - Velocity-aware: skips loads during fast scroll, loads on idle
 - Deduplicates concurrent requests for the same range
 - Supports cursor-based pagination via `cursor` in adapter response
 - Sets `aria-busy` on root during loading
+
+## Examples
+
+- [Velocity Loading](/examples/velocity-loading) — smart async loading with scroll-speed awareness
+- [Window Scroll](/examples/window-scroll) — document-level scrolling with async data
+- [Data Table](/examples/data-table) — async-loaded table with 10K rows

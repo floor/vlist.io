@@ -1,8 +1,14 @@
+---
+created: 2026-02-10
+updated: 2026-05-27
+status: published
+---
+
 # Accessibility
 
 vlist implements the WAI-ARIA Listbox pattern with full keyboard navigation and screen reader support. The core provides single-select and focus management out of the box — no plugins required.
 
-### ARIA Structure
+## ARIA Structure
 
 ```
 div                                        ← root
@@ -26,7 +32,7 @@ div                                        ← root
 - `aria-busy="true"` during async loading
 - `interactive: false` switches `role="listbox"` to `role="list"`, items to `role="listitem"`, and removes `tabindex`
 
-### Keyboard Navigation
+## Keyboard Navigation
 
 **Baseline (built-in):**
 
@@ -71,7 +77,7 @@ The selection plugin replaces baseline behavior entirely, adding multi-select, r
 | Arrow Up/Down | Move grabbed item |
 | Escape | Cancel reorder |
 
-### Focus vs. Selection
+## Focus vs. Selection
 
 Focus and selection are separate:
 - **Focus** = which item has the keyboard cursor (visual ring, via `:focus-visible`)
@@ -79,7 +85,7 @@ Focus and selection are separate:
 
 Arrow keys move focus. Space/Enter toggles selection on the focused item. Click selects without showing the focus ring.
 
-### Configuration
+## Configuration
 
 ```ts
 createVList({
@@ -91,7 +97,25 @@ createVList({
 
 Set `interactive: false` for presentation-only lists (e.g. dashboards, decorative feeds). This removes keyboard handling, changes `role` to `"list"`, and removes `tabindex`. Click events still fire.
 
-### Screen Reader Tips
+## Built-in vs. Plugin
+
+The core provides full WAI-ARIA compliance out of the box. Plugins extend it:
+
+| Capability | Source |
+|------------|--------|
+| ARIA roles, `aria-setsize`, `aria-posinset` | Built-in (core) |
+| `aria-activedescendant` focus tracking | Built-in (core) |
+| Arrow/Home/End/PageUp/PageDown navigation | Built-in (core) |
+| Single-select via Space/Enter + Click | `a11y()` or `selection()` plugin |
+| Multi-select, range select, Ctrl+A | `selection()` plugin |
+| 2D grid navigation (left/right between columns) | `grid()` plugin |
+| Lane-aware masonry navigation | `masonry()` plugin |
+| Live region announcements ("Item N of M") | `a11y()` or `selection()` plugin |
+| Drag-and-drop announcements | `sortable()` plugin |
+
+If you only need keyboard navigation without selection, set `interactive: true` (the default) — no plugins required. Add `a11y()` for single-select with screen reader announcements, or `selection()` for full multi-select.
+
+## Screen Reader Tips
 
 - Always set `ariaLabel` for a meaningful listbox announcement
 - Items should contain meaningful text content for screen reader navigation

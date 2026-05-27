@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: draft
+---
+
 # Test Enhancement Plan
 
 **Context:** v2 has ~900 fewer tests than v1 (2589 vs 3486). Some are legitimately gone (builder pattern removed), but integration tests, end-to-end tests, and several plugin coverage gaps need to be filled.
