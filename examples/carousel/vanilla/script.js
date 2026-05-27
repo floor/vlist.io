@@ -85,10 +85,7 @@ function createList() {
   }
 
   listContainerEl.innerHTML = "";
-  // When the scrollbar is visible, vlist sizes its own root to item.height +
-  // scrollbar-width. Clear the inline height so the container auto-expands.
-  // When the scrollbar is hidden, pin to currentHeight explicitly.
-  listContainerEl.style.height = showScrollbar ? "" : currentHeight + "px";
+  listContainerEl.style.height = currentHeight + "px";
   listContainerEl.style.setProperty("--card-scale", getScale(currentHeight));
   listContainerEl.style.setProperty("--item-gap", currentGap + "px");
   listContainerEl.style.setProperty("--item-radius", currentRadius + "px");
