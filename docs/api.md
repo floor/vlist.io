@@ -126,7 +126,7 @@ When `easing` is omitted, a default easeInOutQuad curve is used.
 | `range:change` | `{ range: { start, end } }` | Visible range changed |
 | `resize` | `{ width, height }` | Container resized |
 | `data:change` | `{ type: "insert" \| "add" \| "remove" \| "update", id }` | Data mutated |
-| `error` | `{ error: Error, context: string, viewport?: ErrorViewportSnapshot }` | Error occurred |
+| `error` | `{ error, context, viewport? }` | Error occurred (see [ErrorViewportSnapshot](./types.md#errorviewportsnapshot)) |
 | `destroy` | — | Instance destroyed |
 
 ### Selection Plugin
@@ -281,3 +281,9 @@ interface VListPlugin<T extends VListItem = VListItem> {
   destroy?(): void;
 }
 ```
+
+See the [Plugin Authoring tutorial](/tutorials/plugin-authoring) for the full `PluginContext` interface and working examples, or [Exports](./exports.md) for all `vlist/internals` utilities.
+
+### Complete Type Reference
+
+For additional types (`ViewportState`, `SelectionState`, `EngineState`, `GridSizeContext`, etc.), see [Types](./types.md).

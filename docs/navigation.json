@@ -12,6 +12,16 @@
         "desc": "createVList, config, properties, and methods"
       },
       {
+        "slug": "types",
+        "name": "Types",
+        "desc": "TypeScript interfaces and type definitions"
+      },
+      {
+        "slug": "exports",
+        "name": "Exports",
+        "desc": "Low-level utilities from vlist/internals"
+      },
+      {
         "slug": "adapters",
         "name": "Adapters",
         "desc": "React, Vue, Svelte, and SolidJS integration"
