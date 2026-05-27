@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-05-27
+status: published
+---
+
 # Accessibility
 
 vlist implements the WAI-ARIA Listbox pattern with full keyboard navigation and screen reader support. The core provides single-select and focus management out of the box — no plugins required.

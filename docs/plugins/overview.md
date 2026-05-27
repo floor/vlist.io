@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Plugin Overview
 
 vlist v2 ships 14 plugins. Each plugin is tree-shaken — only what you import is bundled.

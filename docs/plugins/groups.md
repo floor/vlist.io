@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Groups
 
 Grouped lists with sticky headers.

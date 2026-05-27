@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Autosize
 
 Dynamic item measurement via ResizeObserver for items with unknown heights.

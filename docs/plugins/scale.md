@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-05-27
+status: published
+---
+
 # Scale
 
 Enables lists with 1M+ items by compressing scroll space when content exceeds the browser's maximum element height (~16.7M pixels).

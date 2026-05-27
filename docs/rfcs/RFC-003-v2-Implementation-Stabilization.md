@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: implemented
+---
+
 # RFC-003: vlist v2 Implementation Stabilization
 
 **Status:** Resolved  

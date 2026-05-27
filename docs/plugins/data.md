@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-05-27
+status: published
+---
+
 # Data
 
 Async data loading with pagination, placeholders, and infinite scroll.

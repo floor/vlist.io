@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Framework Adapters
 
 vlist has official adapters for React, Vue, Svelte, and SolidJS. Each adapter wraps `createVList` with framework-idiomatic APIs.

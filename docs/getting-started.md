@@ -1,3 +1,9 @@
+---
+created: 2026-02-10
+updated: 2026-05-27
+status: published
+---
+
 # Getting Started
 
 vlist v2 is a high-performance virtual scrolling library with zero dependencies and a plugin architecture.

@@ -1,3 +1,9 @@
+---
+created: 2026-02-14
+updated: 2026-05-27
+status: published
+---
+
 # Grid
 
 Converts a vertical list into a 2D grid layout.

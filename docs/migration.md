@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Migration: v1 to v2
 
 The core change in v2 is replacing the builder pattern with a factory function that accepts a plugins array.

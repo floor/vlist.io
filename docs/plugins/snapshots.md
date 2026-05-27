@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-05-27
+status: published
+---
+
 # Snapshots
 
 Save and restore scroll position across SPA navigation and list recreation.

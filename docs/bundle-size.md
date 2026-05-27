@@ -1,3 +1,9 @@
+---
+created: 2026-02-12
+updated: 2026-05-27
+status: published
+---
+
 # Bundle Size
 
 All measurements are for ESM output with minification enabled. Gzipped delta is the cost of adding that plugin on top of the base bundle.

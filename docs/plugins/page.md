@@ -1,3 +1,9 @@
+---
+created: 2026-02-17
+updated: 2026-05-27
+status: published
+---
+
 # Page
 
 Window/document scroll mode — the list scrolls with the page instead of inside a viewport.

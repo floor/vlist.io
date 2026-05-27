@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # Transition
 
 FLIP-based enter/exit animations for item insertion and removal.

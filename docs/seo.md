@@ -1,3 +1,9 @@
+---
+created: 2026-05-27
+updated: 2026-05-27
+status: published
+---
+
 # SEO Strategy
 
 Internal reference for vlist.io search engine optimization. Not served on the site.
