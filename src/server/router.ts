@@ -62,7 +62,9 @@ const DOCS_REDIRECTS: Record<string, string> = {
   "/docs/plugins/async": "/docs/plugins/data",
 };
 for (const [v1Slug, v2Slug] of Object.entries(V1_TO_V2_DOCS)) {
-  DOCS_REDIRECTS[`/docs/${v1Slug}`] = `/docs/${v2Slug}`;
+  if (v1Slug !== v2Slug) {
+    DOCS_REDIRECTS[`/docs/${v1Slug}`] = `/docs/${v2Slug}`;
+  }
 }
 
 const TUTORIAL_REDIRECTS: Record<string, string> = {};
