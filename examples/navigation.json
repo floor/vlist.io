@@ -6,7 +6,7 @@
         "slug": "basic",
         "name": "Basic List",
         "desc": "Interactive control panel — item count, sizing strategies, overscan, scroll-to, data operations",
-        "plugins": ["core"]
+        "plugins": ["a11y"]
       },
       {
         "slug": "photo-album",
@@ -18,32 +18,31 @@
         "slug": "messaging",
         "name": "Messaging",
         "desc": "Chat UI — reverse mode, date headers, auto-scroll, incoming messages",
-        "plugins": ["reverse", "groups"]
+        "plugins": ["groups", "transition"]
       },
       {
         "slug": "contact-list",
         "name": "Contact List",
         "desc": "A–Z grouped contacts with sticky headers and selection",
-        "plugins": ["groups", "selection"]
+        "plugins": ["groups", "selection", "snapshots"]
       },
       {
         "slug": "data-table",
         "name": "Data Table",
         "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 120 FPS",
-        "plugins": ["table", "selection"]
+        "plugins": ["table", "selection", "data", "snapshots"]
       },
-
       {
         "slug": "social-feed",
         "name": "Social Feed",
         "desc": "Social feed with real posts — variable heights measured automatically",
-        "plugins": ["autosize", "data"]
+        "plugins": ["autosize"]
       },
       {
         "slug": "carousel",
         "name": "Carousel",
         "desc": "Horizontal scrolling with fixed or variable item widths — toggle to compare",
-        "plugins": ["horizontal"]
+        "plugins": []
       },
       {
         "slug": "window-scroll",
@@ -55,13 +54,13 @@
         "slug": "track-list",
         "name": "Track List",
         "desc": "Music library with async loading — toggle between list, grid, and table views",
-        "plugins": ["data", "selection", "table", "grid"]
+        "plugins": ["data", "selection", "grid", "table", "scrollbar", "scale", "snapshots", "transition"]
       },
       {
         "slug": "accessibility",
         "name": "Accessibility",
         "desc": "WAI-ARIA listbox — role, aria-setsize, aria-posinset, and aria-activedescendant updating live in the inspector",
-        "plugins": ["aria"]
+        "plugins": ["groups", "selection"]
       }
     ]
   },
@@ -72,7 +71,7 @@
         "slug": "velocity-loading",
         "name": "Velocity Loading",
         "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
-        "plugins": ["data", "scale", "scrollbar", "snapshots", "selection"]
+        "plugins": ["data", "selection", "scale", "scrollbar", "snapshots"]
       },
       {
         "slug": "large-list",
@@ -84,7 +83,7 @@
         "slug": "variable-sizes",
         "name": "Variable Sizes",
         "desc": "Per-item height functions and auto-measured DOM sizing",
-        "plugins": ["autosize", "invert"]
+        "plugins": ["autosize"]
       },
       {
         "slug": "scroll-restore",
@@ -96,13 +95,13 @@
         "slug": "scrollbar",
         "name": "Scrollbar",
         "desc": "Native, custom, and none — configure auto-hide, gutter, hover behavior, and track width",
-        "plugins": ["scrollbar"]
+        "plugins": ["scrollbar", "selection", "snapshots"]
       },
       {
         "slug": "sortable",
         "name": "Sortable",
         "desc": "Drag-and-drop reordering with handle or full-item drag — task list demo",
-        "plugins": ["sortable", "selection"],
+        "plugins": ["sortable", "selection", "snapshots"],
         "badge": "new"
       }
     ]
@@ -114,13 +113,13 @@
         "slug": "file-browser",
         "name": "File Browser",
         "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
-        "plugins": ["table", "grid", "selection", "groups", "scrollbar"]
+        "plugins": ["table", "grid", "selection", "groups"]
       },
       {
         "slug": "wizard-nav",
         "name": "Wizard",
         "desc": "Button-only step navigation — wheel scrolling disabled",
-        "plugins": ["scroll.wheel", "selection"]
+        "plugins": []
       }
     ]
   }
