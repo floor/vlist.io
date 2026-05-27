@@ -7,7 +7,7 @@
 
 export const MATCH_VERSION_SLUGS = true;
 
-// v2 slug → v1 slug (docs only — tutorials v2 is empty)
+// v2 slug → v1 slug (docs)
 export const V2_TO_V1_DOCS: Record<string, string> = {
   "getting-started": "getting-started",
   "accessibility": "accessibility",
@@ -40,3 +40,19 @@ V1_TO_V2_DOCS["api/types"] = "api";
 V1_TO_V2_DOCS["api/events"] = "api";
 V1_TO_V2_DOCS["api/constants"] = "api";
 V1_TO_V2_DOCS["api/exports"] = "api";
+
+// v2 slug → v1 slug (tutorials)
+export const V2_TO_V1_TUTORIALS: Record<string, string> = {
+  "quick-start": "quick-start",
+  "plugin-system": "builder-pattern",
+  "chat-interface": "chat-interface",
+  "mobile": "mobile",
+  "optimization": "optimization",
+  "styling": "styling",
+};
+
+// v1 slug → v2 slug (tutorials, reverse)
+export const V1_TO_V2_TUTORIALS: Record<string, string> = {};
+for (const [v2, v1] of Object.entries(V2_TO_V1_TUTORIALS)) {
+  if (!(v1 in V1_TO_V2_TUTORIALS)) V1_TO_V2_TUTORIALS[v1] = v2;
+}

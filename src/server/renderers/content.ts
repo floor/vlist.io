@@ -24,6 +24,8 @@ import {
   MATCH_VERSION_SLUGS,
   V2_TO_V1_DOCS,
   V1_TO_V2_DOCS,
+  V2_TO_V1_TUTORIALS,
+  V1_TO_V2_TUTORIALS,
 } from "../version-map";
 
 // =============================================================================
@@ -591,12 +593,14 @@ export function createContentRenderer(config: ContentConfig) {
     let v1Url = `${sectionBase}/v1/`;
     let v2Url = `${sectionBase}/`;
 
-    if (MATCH_VERSION_SLUGS && slug && sectionBase === "/docs") {
+    if (MATCH_VERSION_SLUGS && slug) {
+      const v2ToV1 = sectionBase === "/docs" ? V2_TO_V1_DOCS : V2_TO_V1_TUTORIALS;
+      const v1ToV2 = sectionBase === "/docs" ? V1_TO_V2_DOCS : V1_TO_V2_TUTORIALS;
       if (isV1) {
-        const mapped = V1_TO_V2_DOCS[slug];
+        const mapped = v1ToV2[slug];
         if (mapped) v2Url = `${sectionBase}/${mapped}`;
       } else {
-        const mapped = V2_TO_V1_DOCS[slug];
+        const mapped = v2ToV1[slug];
         if (mapped) v1Url = `${sectionBase}/v1/${mapped}`;
       }
     }
@@ -634,8 +638,9 @@ export function createContentRenderer(config: ContentConfig) {
       : "";
 
     let canonicalUrl: string | null = null;
-    if (isV1 && slug && sectionBase === "/docs") {
-      const v2Slug = V1_TO_V2_DOCS[slug];
+    if (isV1 && slug && sectionBase) {
+      const v1ToV2 = sectionBase === "/docs" ? V1_TO_V2_DOCS : V1_TO_V2_TUTORIALS;
+      const v2Slug = v1ToV2[slug];
       if (v2Slug) canonicalUrl = `${SITE}${sectionBase}/${v2Slug}`;
     }
 

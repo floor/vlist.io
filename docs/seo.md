@@ -11,7 +11,8 @@ Internal reference for vlist.io search engine optimization. Not served on the si
 | `/docs/v1/*` (with v2 match) | 0.3 | yearly | Canonical points to v2 equivalent |
 | `/docs/v1/*` (v1-only) | 0.4 | yearly | Canonical points to self |
 | `/tutorials/*` (v2) | 0.7–0.9 | weekly/monthly | Primary tutorials |
-| `/tutorials/v1/*` | 0.4 | yearly | No v2 tutorials yet |
+| `/tutorials/v1/*` (with v2 match) | 0.3 | yearly | Canonical points to v2 equivalent |
+| `/tutorials/v1/*` (v1-only) | 0.4 | yearly | Canonical points to self |
 | `/blog/*` | 0.6–0.8 | monthly | |
 | `/examples/*` | 0.6–0.9 | monthly | |
 | `/benchmarks/*` | 0.5–0.8 | monthly | |
@@ -29,8 +30,11 @@ Mapping is defined in `src/server/version-map.ts`. Examples:
 | `/docs/v1/api/reference` | `/docs/api` |
 | `/docs/v1/api/types` | `/docs/api` |
 | `/docs/v1/resources/bundle-size` | `/docs/bundle-size` |
+| `/tutorials/v1/quick-start` | `/tutorials/quick-start` |
+| `/tutorials/v1/builder-pattern` | `/tutorials/plugin-system` |
+| `/tutorials/v1/chat-interface` | `/tutorials/chat-interface` |
 
-v1 pages without a v2 equivalent (internals, optimization, refactoring) keep canonical pointing to themselves.
+v1 pages without a v2 equivalent (internals, refactoring) keep canonical pointing to themselves.
 
 ## Search Isolation
 
