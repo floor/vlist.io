@@ -255,7 +255,7 @@
                     <div class="ui-card ui-card--xl feature">
                         <div class="feature__name">Fast Renders</div>
                         <div class="feature__desc">
-                            Initial render in ~8.5ms, optimized for instant user feedback
+                            Initial render in ~2ms, optimized for instant user feedback
                         </div>
                     </div>
                     <div class="ui-card ui-card--xl feature">

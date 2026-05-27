@@ -38,7 +38,7 @@
       },
       {
         "slug": "plugins/a11y",
-        "name": "Accessibility",
+        "name": "a11y",
         "desc": "Enhanced ARIA and focus management"
       },
       {
