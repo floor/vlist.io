@@ -6,62 +6,62 @@
         "slug": "basic",
         "name": "Basic List",
         "desc": "Interactive control panel — item count, sizing strategies, overscan, scroll-to, data operations",
-        "features": ["core"]
+        "plugins": ["core"]
       },
       {
         "slug": "photo-album",
         "name": "Photo Album",
         "desc": "Responsive image gallery — toggle between grid and masonry layouts",
-        "features": ["grid", "masonry", "selection", "scrollbar"]
+        "plugins": ["grid", "masonry", "selection", "scrollbar"]
       },
       {
         "slug": "messaging",
         "name": "Messaging",
         "desc": "Chat UI — reverse mode, date headers, auto-scroll, incoming messages",
-        "features": ["reverse", "groups"]
+        "plugins": ["reverse", "groups"]
       },
       {
         "slug": "contact-list",
         "name": "Contact List",
         "desc": "A–Z grouped contacts with sticky headers and selection",
-        "features": ["groups", "selection"]
+        "plugins": ["groups", "selection"]
       },
       {
         "slug": "data-table",
         "name": "Data Table",
         "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 120 FPS",
-        "features": ["table", "selection"]
+        "plugins": ["table", "selection"]
       },
 
       {
         "slug": "social-feed",
         "name": "Social Feed",
         "desc": "Social feed with real posts — variable heights measured automatically",
-        "features": ["autosize", "data"]
+        "plugins": ["autosize", "data"]
       },
       {
         "slug": "carousel",
         "name": "Carousel",
         "desc": "Horizontal scrolling with fixed or variable item widths — toggle to compare",
-        "features": ["horizontal"]
+        "plugins": ["horizontal"]
       },
       {
         "slug": "window-scroll",
         "name": "Window Scroll",
         "desc": "Document-level scrolling with async data loading — no inner scrollbar",
-        "features": ["page", "data"]
+        "plugins": ["page", "data"]
       },
       {
         "slug": "track-list",
         "name": "Track List",
         "desc": "Music library with async loading — toggle between list, grid, and table views",
-        "features": ["data", "selection", "table", "grid"]
+        "plugins": ["data", "selection", "table", "grid"]
       },
       {
         "slug": "accessibility",
         "name": "Accessibility",
         "desc": "WAI-ARIA listbox — role, aria-setsize, aria-posinset, and aria-activedescendant updating live in the inspector",
-        "features": ["aria"]
+        "plugins": ["aria"]
       }
     ]
   },
@@ -72,37 +72,37 @@
         "slug": "velocity-loading",
         "name": "Velocity Loading",
         "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
-        "features": ["data", "scale", "scrollbar", "snapshots", "selection"]
+        "plugins": ["data", "scale", "scrollbar", "snapshots", "selection"]
       },
       {
         "slug": "large-list",
         "name": "Large Dataset",
         "desc": "100K–5M items with scroll compression",
-        "features": ["scale", "scrollbar"]
+        "plugins": ["scale", "scrollbar"]
       },
       {
         "slug": "variable-sizes",
         "name": "Variable Sizes",
         "desc": "Per-item height functions and auto-measured DOM sizing",
-        "features": ["autosize", "invert"]
+        "plugins": ["autosize", "invert"]
       },
       {
         "slug": "scroll-restore",
         "name": "Scroll Restore",
         "desc": "Save and restore scroll position across navigations",
-        "features": ["snapshots", "selection"]
+        "plugins": ["snapshots", "selection"]
       },
       {
         "slug": "scrollbar",
         "name": "Scrollbar",
         "desc": "Native, custom, and none — configure auto-hide, gutter, hover behavior, and track width",
-        "features": ["scrollbar"]
+        "plugins": ["scrollbar"]
       },
       {
         "slug": "sortable",
         "name": "Sortable",
         "desc": "Drag-and-drop reordering with handle or full-item drag — task list demo",
-        "features": ["sortable", "selection"],
+        "plugins": ["sortable", "selection"],
         "badge": "new"
       }
     ]
@@ -114,13 +114,13 @@
         "slug": "file-browser",
         "name": "File Browser",
         "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
-        "features": ["table", "grid", "selection", "groups", "scrollbar"]
+        "plugins": ["table", "grid", "selection", "groups", "scrollbar"]
       },
       {
         "slug": "wizard-nav",
         "name": "Wizard",
         "desc": "Button-only step navigation — wheel scrolling disabled",
-        "features": ["scroll.wheel", "selection"]
+        "plugins": ["scroll.wheel", "selection"]
       }
     ]
   }

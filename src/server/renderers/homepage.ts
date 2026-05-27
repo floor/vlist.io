@@ -30,7 +30,7 @@ interface ExampleItem {
   slug: string;
   name: string;
   desc: string;
-  features?: string[];
+  plugins?: string[];
 }
 
 interface ExampleGroup {

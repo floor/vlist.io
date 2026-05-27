@@ -24,7 +24,7 @@ export interface ExampleItem {
   slug: string;
   name: string;
   desc: string;
-  features?: string[];
+  plugins?: string[];
 }
 
 export interface ExampleGroup {
@@ -342,8 +342,8 @@ function buildOverviewContent(): string {
         sections.push(
           `        <div class="overview__card-desc">${item.desc}</div>`,
         );
-        if (item.features && item.features.length > 0) {
-          const chips = item.features
+        if (item.plugins && item.plugins.length > 0) {
+          const chips = item.plugins
             .map((f) => `<span class="overview__chip">${f}</span>`)
             .join("");
           sections.push(`        <div class="overview__chips">${chips}</div>`);
@@ -377,8 +377,8 @@ function buildExtraHead(
     `<link rel="stylesheet" href="/dist/vlist.css?v=${VLIST_VERSION}" />`,
   );
 
-  // Table styles — only for examples that use the table feature
-  if (example?.features?.includes("table")) {
+  // Table styles — only for examples that use the table plugin
+  if (example?.plugins?.includes("table")) {
     tags.push(
       `<link rel="stylesheet" href="/dist/vlist-table.css?v=${VLIST_VERSION}" />`,
     );
@@ -617,10 +617,10 @@ export function renderExamplesPage(
     ? buildVariantSwitcher(slug, variant, queryString)
     : "";
 
-  // Build feature chips bar
-  const featureChips =
-    example.features && example.features.length > 0
-      ? `<div class="ui-chips">${example.features.map((f) => `<span class="ui-chip">${f}</span>`).join("")}</div>`
+  // Build plugin chips bar
+  const pluginChips =
+    example.plugins && example.plugins.length > 0
+      ? `<div class="ui-chips">${example.plugins.map((f) => `<span class="ui-chip">${f}</span>`).join("")}</div>`
       : "";
 
   // Build source tabs for the selected variant
@@ -631,7 +631,7 @@ export function renderExamplesPage(
   const html = assemblePage(
     slug,
     example,
-    variantSwitcher + featureChips + content + sourceTabs,
+    variantSwitcher + pluginChips + content + sourceTabs,
     hasVariants ? variant : undefined,
     queryString,
   );

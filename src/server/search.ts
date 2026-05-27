@@ -25,7 +25,7 @@ interface NavItem {
   slug: string;
   name: string;
   desc: string;
-  features?: string[];
+  plugins?: string[];
   icon?: string;
 }
 
@@ -250,7 +250,7 @@ function buildDocuments(): IndexDocument[] {
         description: item.desc,
         body: "",
         url: `/examples/${item.slug}`,
-        keywords: item.features ? item.features.join(" ") : "",
+        keywords: item.plugins ? item.plugins.join(" ") : "",
       });
     }
   }
