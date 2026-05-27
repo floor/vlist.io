@@ -7,7 +7,7 @@
         <title><%= it.TITLE %></title>
 
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="canonical" href="<%= it.URL %>" />
+        <link rel="canonical" href="<%= it.CANONICAL_URL || it.URL %>" />
 
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="<%= it.OG_TYPE %>" />

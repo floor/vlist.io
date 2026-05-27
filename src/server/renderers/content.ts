@@ -20,6 +20,11 @@ import {
   type BaseNavGroup,
 } from "./base";
 import { htmlHeaders } from "../cache";
+import {
+  MATCH_VERSION_SLUGS,
+  V2_TO_V1_DOCS,
+  V1_TO_V2_DOCS,
+} from "../version-map";
 
 // =============================================================================
 // Types
@@ -582,12 +587,25 @@ export function createContentRenderer(config: ContentConfig) {
   // Version Switcher
   // ===========================================================================
 
-  function buildVersionSwitcher(sectionBase: string, isV1: boolean): string {
+  function buildVersionSwitcher(sectionBase: string, isV1: boolean, slug: string | null): string {
+    let v1Url = `${sectionBase}/v1/`;
+    let v2Url = `${sectionBase}/`;
+
+    if (MATCH_VERSION_SLUGS && slug && sectionBase === "/docs") {
+      if (isV1) {
+        const mapped = V1_TO_V2_DOCS[slug];
+        if (mapped) v2Url = `${sectionBase}/${mapped}`;
+      } else {
+        const mapped = V2_TO_V1_DOCS[slug];
+        if (mapped) v1Url = `${sectionBase}/v1/${mapped}`;
+      }
+    }
+
     const v1Active = isV1 ? " ui-segmented__btn--active" : "";
     const v2Active = isV1 ? "" : " ui-segmented__btn--active";
     return `<div class="ui-segmented version-switcher">`
-      + `<a href="${sectionBase}/v1/" class="ui-segmented__btn${v1Active}">v1</a>`
-      + `<a href="${sectionBase}/" class="ui-segmented__btn${v2Active}">v2</a>`
+      + `<a href="${v1Url}" class="ui-segmented__btn${v1Active}">v1</a>`
+      + `<a href="${v2Url}" class="ui-segmented__btn${v2Active}">v2</a>`
       + `</div>`;
   }
 
@@ -610,15 +628,23 @@ export function createContentRenderer(config: ContentConfig) {
       : urlPrefix.startsWith("/tutorials")
         ? "/tutorials"
         : null;
+    const isV1 = urlPrefix.includes("/v1");
     const versionSwitcher = sectionBase
-      ? buildVersionSwitcher(sectionBase, urlPrefix.includes("/v1"))
+      ? buildVersionSwitcher(sectionBase, isV1, slug)
       : "";
+
+    let canonicalUrl: string | null = null;
+    if (isV1 && slug && sectionBase === "/docs") {
+      const v2Slug = V1_TO_V2_DOCS[slug];
+      if (v2Slug) canonicalUrl = `${SITE}${sectionBase}/${v2Slug}`;
+    }
 
     return renderEta(shell, {
       // Page content
       TITLE: title,
       DESCRIPTION: description,
       URL: url,
+      CANONICAL_URL: canonicalUrl,
       SECTION: sectionName,
       SECTION_LINK: `${urlPrefix}/`,
       SECTION_KEY: urlPrefix.startsWith("/docs")

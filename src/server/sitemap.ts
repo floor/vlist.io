@@ -7,6 +7,7 @@
 import { execSync } from "child_process";
 import { ROOT, SITE } from "./config";
 import { CACHE_META } from "./cache";
+import { V1_TO_V2_DOCS } from "./version-map";
 import {
   DOC_GROUPS,
   TUTORIAL_GROUPS,
@@ -279,12 +280,13 @@ export function renderSitemap(): Response {
     }
   }
 
-  // Docs v1
+  // Docs v1 — pages with a v2 equivalent get lower priority (canonical points to v2)
   urls.push({ loc: "/docs/v1/", priority: "0.5" });
   for (const group of DOC_V1_GROUPS) {
     for (const item of group.items) {
       if (item.slug === "") continue;
-      urls.push({ loc: `/docs/v1/${item.slug}`, priority: "0.4" });
+      const hasV2 = item.slug in V1_TO_V2_DOCS;
+      urls.push({ loc: `/docs/v1/${item.slug}`, priority: hasV2 ? "0.3" : "0.4" });
     }
   }
 

@@ -56,6 +56,7 @@ export interface TemplateData {
   TITLE: string;
   DESCRIPTION: string;
   URL: string;
+  CANONICAL_URL?: string | null;
   SECTION: string;
   SECTION_LINK: string | null;
   SECTION_KEY: string | null; // Key to match against NavItem.key for active state
