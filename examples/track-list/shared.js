@@ -83,7 +83,7 @@ export const trackGridTemplate = (track, index) => {
   `;
 };
 
-// Track table — column definitions for withTable
+// Track table — column definitions for table plugin
 export const trackTableColumns = [
   {
     key: "title",
@@ -138,7 +138,7 @@ export const trackTableColumns = [
   },
 ];
 
-// Fallback template for table mode (withTable uses cell renderers)
+// Fallback template for table mode (table plugin uses cell renderers)
 export const trackTableRowTemplate = () => "";
 
 // =============================================================================

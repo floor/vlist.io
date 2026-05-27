@@ -7,7 +7,7 @@
         <title><%= it.TITLE %></title>
 
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="canonical" href="<%= it.URL %>" />
+        <link rel="canonical" href="<%= it.CANONICAL_URL || it.URL %>" />
 
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="<%= it.OG_TYPE %>" />
@@ -138,6 +138,7 @@
                 <% } else { %>
                 <span class="header__section"><%= it.SECTION %></span>
                 <% } %>
+
                 <nav class="header__nav" id="header-nav">
                     <% it.NAV_ITEMS.forEach(function(item) { %>
                     <a href="<%= item.href %>"<% if (item.key && item.key === it.SECTION_KEY) { %> class="active"<% } %><% if (item.external) { %> target="_blank"<% } %>

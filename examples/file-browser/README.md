@@ -1,6 +1,6 @@
 # File Browser Example
 
-A Finder-like file browser built with **vlist** using the `withGrid` plugin. This example demonstrates virtualized file browsing with switchable grid/list views and a backend API for real filesystem access.
+A Finder-like file browser built with **vlist** using the `grid` plugin. This example demonstrates virtualized file browsing with switchable grid/list views and a backend API for real filesystem access.
 
 ## Features
 
@@ -15,9 +15,9 @@ A Finder-like file browser built with **vlist** using the `withGrid` plugin. Thi
 
 ## Architecture
 
-### Frontend (vlist/builder + withGrid)
+### Frontend (createVList + grid plugin)
 
-- **Grid View**: Uses `withGrid` plugin for 2D virtualized layout
+- **Grid View**: Uses `grid` plugin for 2D virtualized layout
 - **List View**: Standard vlist with fixed row height
 - **Dynamic Templates**: Different item templates for grid vs list
 - **Event Handling**: Click to select, double-click to navigate folders

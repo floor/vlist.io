@@ -253,7 +253,7 @@ export function getTrackById(id: number): Track | null {
   const track = database
     .query(
       `SELECT id, mongo_id, title, artist, country, year, decade, category, duration, cover_url, cover_color, created_at
-       FROM tracks WHERE id = ?`,
+       FROM tracks WHERE id = ? AND deleted = 0`,
     )
     .get(id) as Track | null;
   return track;

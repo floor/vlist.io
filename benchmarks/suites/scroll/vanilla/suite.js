@@ -4,7 +4,7 @@
 // Defines the vlist create/destroy lifecycle, calls engine functions,
 // and formats results with rating thresholds.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -77,11 +77,11 @@ defineSuite({
     {
       const warmupItems = generateItems(Math.min(itemCount, 10_000));
       container.innerHTML = "";
-      const warmupList = vlist({
+      const warmupList = createVList({
         container,
         item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
         items: warmupItems,
-      }).build();
+      });
       await waitFrames(10);
 
       const vp = findViewport(container);
@@ -113,11 +113,11 @@ defineSuite({
     // Phase 4: Create vlist and measure scroll performance
     // =====================================================================
     container.innerHTML = "";
-    const list = vlist({
+    const list = createVList({
       container,
       item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
       items,
-    }).build();
+    });
     await waitFrames(10);
 
     const viewport = findViewport(container);

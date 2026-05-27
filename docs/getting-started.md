@@ -1,452 +1,183 @@
----
-created: 2026-02-22
-updated: 2026-04-16
-status: published
----
-
 # Getting Started
 
-> Install vlist, configure your first list, and understand the core API.
+vlist v2 is a high-performance virtual scrolling library with zero dependencies and a plugin architecture.
 
-## Installation
+## Install
 
 ```bash
+# npm
 npm install vlist
-# or: bun add vlist  |  pnpm add vlist  |  yarn add vlist
+
+# bun
+bun add vlist
+
+# pnpm
+pnpm add vlist
+```
+
+Import styles:
+
+```ts
+import "vlist/styles";
+```
+
+Or via link tag:
+
+```html
+<link rel="stylesheet" href="node_modules/vlist/dist/vlist.css" />
 ```
 
 ## Basic Usage
 
-A container element with a defined height is required — virtual scrolling needs a fixed viewport to calculate which items are visible.
+```ts
+import { createVList } from "vlist";
+import "vlist/styles";
 
-```html
-<div id="list" style="height: 500px;"></div>
-```
-
-```typescript
-import { vlist } from 'vlist';
-import 'vlist/styles';
-
-const list = vlist({
-  container: '#list',
+const list = createVList({
+  container: "#my-list",
+  item: {
+    height: 48,
+    template: (item) => `<div class="my-item">${item.name}</div>`,
+  },
   items: [
-    { id: 1, name: 'Alice' },
-    { id: 2, name: 'Bob' },
-    { id: 3, name: 'Charlie' },
+    { id: 1, name: "Item 1" },
+    { id: 2, name: "Item 2" },
+    // ...
   ],
-  item: {
-    height: 48,
-    template: (item) => `<div class="row">${item.name}</div>`,
-  },
-}).build();
-```
-
-That's a working virtual list. Thousands of items, only ~20 DOM nodes.
-
----
-
-## Item Configuration
-
-### Fixed height
-
-```typescript
-item: {
-  height: 48,
-  template: (item) => `<div>${item.name}</div>`,
-}
-```
-
-Fixed height is the fast path — O(1) scroll math, no caching needed.
-
-### Variable height
-
-```typescript
-item: {
-  height: (index) => items[index].expanded ? 120 : 48,
-  template: (item) => `<div>${item.name}</div>`,
-}
-```
-
-The function receives the **index** (not the item) so you can look up any data. Heights are cached via a prefix-sum array for O(1) offset lookups and O(log n) binary search for reverse lookups.
-
-### Item gap
-
-```typescript
-item: {
-  height: 48,
-  gap: 8,       // 8px between each item
-  template: (item) => `<div>${item.name}</div>`,
-}
-```
-
-The `gap` property adds consistent spacing between items along the main axis. It's baked into the size cache (`slot = itemSize + gap`) and subtracted from the DOM element height — no CSS margin hacks needed. The trailing gap after the last item is automatically removed. Works with fixed sizes, variable sizes, and auto-measurement (Mode B). Ignored when `withGrid` or `withMasonry` is active (they manage their own gap).
-
-### Template function
-
-```typescript
-type ItemTemplate<T> = (
-  item: T,
-  index: number,
-  state: { selected: boolean; focused: boolean }
-) => string | HTMLElement;
-```
-
-The third argument `state` carries selection and focus state. Return either an HTML string or a DOM element.
-
-```typescript
-item: {
-  height: 56,
-  template: (user, index, { selected }) => `
-    <div class="user-row ${selected ? 'user-row--selected' : ''}">
-      <img src="${user.avatar}" />
-      <span>${user.name}</span>
-    </div>
-  `,
-}
-```
-
-> **Items must have an `id` field** (`string | number`). It's used internally for identity during updates and selection.
-
----
-
-## Core Config Options
-
-```typescript
-interface BuilderConfig<T> {
-  container: HTMLElement | string;  // Required: selector or element
-  item: {
-    height?: number | ((index: number) => number);  // Size for vertical (or use estimatedHeight)
-    width?: number | ((index: number) => number);   // Size for horizontal
-    estimatedHeight?: number;           // Auto-measure mode (requires withAutoSize)
-    estimatedWidth?: number;            // Auto-measure mode for horizontal
-    gap?: number;                       // Spacing between items (default: 0)
-    striped?: boolean | 'data' | 'even' | 'odd'; // Zebra-stripe styling (default: false)
-    template: (item: T, index: number, state: ItemState) => string | HTMLElement;
-  };
-  items?: T[];                          // Static items (omit when using withAsync)
-  overscan?: number;                    // Extra items rendered outside viewport (default: 3)
-  orientation?: 'vertical' | 'horizontal'; // Default: 'vertical'
-  padding?: number | [number, number] | [number, number, number, number]; // Content inset (default: 0)
-  reverse?: boolean;                    // Bottom-anchored content (default: false)
-  interactive?: boolean;                // Enable keyboard navigation (default: true)
-  classPrefix?: string;                 // CSS class prefix (default: 'vlist')
-  ariaLabel?: string;                   // Accessible label for the list element
-}
-```
-
----
-
-## Content Padding
-
-The top-level `padding` property adds inset space between the viewport edge and the items, exactly like CSS `padding`. It follows the CSS shorthand convention:
-
-```typescript
-padding: 16                   // 16px all sides
-padding: [16, 12]             // 16px top/bottom, 12px left/right
-padding: [16, 12, 20, 8]     // top, right, bottom, left
-```
-
-Applied as CSS `padding` + `border-box` on `.vlist-content`, so it works identically for list, grid, and masonry layouts with zero positioning overhead. Grid and masonry automatically subtract cross-axis padding from the container width so columns/lanes size correctly. `scrollToIndex` accounts for padding so the last item scrolls fully into view.
-
-```typescript
-const list = vlist({
-  container: '#list',
-  padding: [24, 16],       // 24px top/bottom, 16px left/right
-  items: data,
-  item: {
-    height: 48,
-    gap: 8,                // combine with gap for full spacing control
-    template: (item) => `<div>${item.name}</div>`,
-  },
-}).build()
-```
-
----
-
-## Scroll Configuration
-
-The `scroll` key controls the scroll system behaviour. All fields are optional.
-
-```typescript
-scroll?: {
-  element?: Window;                  // Override scroll container (use window for page-level scroll)
-  wheel?: boolean;                   // Enable mouse wheel (default: true)
-  wrap?: boolean;                    // Circular navigation (default: false)
-  gutter?: 'auto' | 'stable';       // Native scrollbar space reservation (default: 'auto')
-  idleTimeout?: number;              // ms of no-scroll before 'idle' event fires (default: 150)
-}
-```
-
-### Scrollbar gutter
-
-On macOS with "When scrolling" or "Automatically" overlay scrollbars, the native scrollbar takes zero width. On **Windows, Linux, and macOS with "Always" scrollbars**, the classic scrollbar takes ~15-17px from the content area and can cause layout shift when it appears or disappears.
-
-`gutter: 'stable'` applies [`scrollbar-gutter: stable`](https://developer.mozilla.org/en-US/docs/Web/CSS/scrollbar-gutter) to the viewport, permanently reserving space for the scrollbar:
-
-```typescript
-const list = vlist({
-  container: '#list',
-  items: contacts,
-  item: { height: 64, template: renderContact },
-  scroll: { gutter: 'stable' },
-}).build();
-```
-
-| Value | Behavior |
-|-------|----------|
-| `'auto'` (default) | Native browser behavior — overlay on macOS, classic on Windows/Linux |
-| `'stable'` | Always reserves scrollbar space — no layout shift when content grows |
-
-> **Note:** Has no effect when `withScrollbar()` is active — the custom scrollbar is `position: absolute` and doesn't affect layout.
-
-### Window / page scrolling
-
-Pass `window` as the scroll element to let the whole page scroll instead of the container. This is also what `withPage()` does — use the feature when you want to avoid configuring it manually.
-
-```typescript
-const list = vlist({
-  container: '#list',
-  items: articles,
-  item: { height: 300, template: renderArticle },
-  scroll: { element: window },
-}).build();
-```
-
-### Disabling the mouse wheel
-
-Useful for wizard-style interfaces where navigation is button-driven:
-
-```typescript
-const wizard = vlist({
-  container: '#steps',
-  items: steps,
-  item: { height: 600, template: renderStep },
-  scroll: { wheel: false },
-}).build();
-
-// Drive navigation programmatically
-document.querySelector('#next').addEventListener('click', () => {
-  wizard.scrollToIndex(currentStep + 1, { align: 'start', behavior: 'smooth' });
 });
 ```
 
-### Circular navigation
+## Configuration
 
-`wrap: true` makes `scrollToIndex` wrap around — handy for carousels:
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `container` | `HTMLElement \| string` | required | DOM element or CSS selector |
+| `item.height` | `number \| (index) => number` | — | Fixed or per-index height (Mode A) |
+| `item.estimatedHeight` | `number` | — | Auto-measure with ResizeObserver (Mode B) |
+| `item.template` | `(item, index, state) => string \| HTMLElement` | required | Render function |
+| `item.gap` | `number` | `0` | Spacing between items |
+| `item.striped` | `boolean \| "data" \| "even" \| "odd"` | `false` | Zebra stripe classes |
+| `items` | `T[]` | `[]` | Initial data |
+| `overscan` | `number` | `3` | Extra items rendered offscreen |
+| `orientation` | `"vertical" \| "horizontal"` | `"vertical"` | Scroll axis |
+| `padding` | `number \| [top, bottom] \| [t, r, b, l]` | `0` | Container padding |
+| `classPrefix` | `string` | `"vlist"` | CSS class prefix |
+| `interactive` | `boolean` | `true` | Enable click/keyboard |
+| `reverse` | `boolean` | `false` | Reverse scroll direction |
+| `ariaLabel` | `string` | — | Container aria-label |
+| `scroll.idleTimeout` | `number` | `150` | Idle detection timeout (ms) |
 
-```typescript
-const carousel = vlist({
-  container: '#carousel',
-  orientation: 'horizontal',
-  items: slides,
-  item: { width: 800, height: 400, template: renderSlide },
-  scroll: { wheel: false, wrap: true },
-}).build();
+## Sizing Modes
+
+**Mode A — fixed height:** Pass `item.height` as a number or a function. Position math is O(1) — use this when possible.
+
+```ts
+// Uniform height
+item: { height: 48, template: renderItem }
+
+// Per-index height
+item: { height: (i) => sizes[i], template: renderItem }
 ```
 
----
+**Mode B — auto-measure:** Pass `item.estimatedHeight` instead. vlist uses ResizeObserver to measure each item once after first render. Use when item height varies by content.
 
-## Keyboard Navigation & Selection
-
-vlist provides built-in keyboard navigation and single-select behavior out of the box — no features needed. This follows the [WAI-ARIA Listbox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/listbox/):
-
-| Key | Action |
-|-----|--------|
-| **Tab** | Focus the list (activates first or last-focused item) |
-| **↑ / ↓** | Move focus ring (no selection change) |
-| **Page Up / Page Down** | Move focus by one page |
-| **Home / End** | Move focus to first / last item |
-| **Space / Enter** | Toggle selection on the focused item |
-| **Click** | Select + focus the clicked item |
-
-**Smart edge-scroll** — the viewport only scrolls when the focused item is outside the visible area, aligning to the nearest edge.
-
-**Focus ring** — the outline only appears during keyboard navigation. Mouse clicks show the selection highlight but no focus ring.
-
-For multi-select, programmatic selection API, or `selection:change` events, add `withSelection()`:
-
-```typescript
-import { vlist, withSelection } from 'vlist'
-
-const list = vlist({ ... })
-  .use(withSelection({ mode: 'multiple' }))
-  .build()
-
-list.on('selection:change', ({ selected }) => {
-  console.log('Selected:', selected)
-})
-```
-
-See [Selection](./features/selection.md) for the full feature documentation.
-
----
-
-## Horizontal Scrolling
-
-Set `orientation: 'horizontal'` and provide `width` instead of (or alongside) `height`:
-
-```typescript
-const timeline = vlist({
-  container: '#timeline',
-  orientation: 'horizontal',
-  items: events,
+```ts
+const list = createVList({
+  container: "#my-list",
   item: {
-    width: (i) => events[i].duration * 40,  // variable width
-    height: 200,
-    template: (event) => `<div class="event">${event.title}</div>`,
+    estimatedHeight: 60,
+    template: (item) => `<div class="my-item">${item.body}</div>`,
   },
-}).build();
+  items: data,
+});
 ```
 
-All features — `withGrid()`, `withGroups()`, `withMasonry()` — work in both vertical and horizontal orientations.
+## Item Template
 
----
+The template function receives `(item, index, state)`. `state` carries `selected` and `focused` booleans (populated by the selection plugin when active).
 
-## Reverse Mode
+```ts
+// Return an HTML string
+template: (item, index, state) =>
+  `<div class="row${state.selected ? " row--selected" : ""}">${item.name}</div>`
 
-`reverse: true` anchors the scroll position to the **bottom** of the list. `appendItems` auto-scrolls if the user is already at the bottom; `prependItems` preserves the current scroll position. Useful for any bottom-anchored content: chat, logs, activity feeds, timelines.
-
-```typescript
-import { vlist } from 'vlist';
-
-const chat = vlist({
-  container: '#messages',
-  reverse: true,
-  items: messages,  // oldest first
-  item: {
-    height: (i) => messages[i].height || 60,
-    template: (msg) => `
-      <div class="message message--${msg.sender}">
-        <p>${msg.text}</p>
-      </div>
-    `,
-  },
-}).build();
-
-// New message: auto-scrolls to bottom if user was already there
-chat.appendItems([newMessage]);
-
-// Load history: preserves the user's scroll position
-chat.prependItems(olderMessages);
+// Return an HTMLElement
+template: (item, index, state) => {
+  const el = document.createElement("div");
+  el.className = "row";
+  if (state.selected) el.classList.add("row--selected");
+  el.textContent = item.name;
+  return el;
+}
 ```
 
-See [Chat Interface Tutorial](/tutorials/chat-interface) for the full scrolling contract and edge cases.
+## Methods
 
----
-
-## Data Methods
-
-```typescript
-list.setItems(items)              // Replace entire dataset
-list.appendItems(items)           // Add to end
-list.prependItems(items)          // Add to start (preserves scroll)
-list.updateItem(index, partial)   // Merge update by index
-list.removeItem(id)               // Remove by ID → boolean
-list.getItemAt(index)             // Get item at index → T | undefined
-list.getIndexById(id)             // Get index by item ID → number
-```
-
----
-
-## Scroll Methods
-
-```typescript
-// Jump (instant)
-list.scrollToIndex(100)
-list.scrollToIndex(100, 'center')         // 'start' | 'center' | 'end'
-
-// Animated
-list.scrollToIndex(100, { align: 'center', behavior: 'smooth', duration: 300 })
-
-// Cancel in-progress smooth scroll
-list.cancelScroll()
-
-// Read position
-list.getScrollPosition()                  // pixels from top (or left)
-
-// Properties (readonly)
-list.element                              // root DOM element
-list.items                                // current items array
-list.total                                // total item count
-
-// Snapshots — requires withSnapshots()
-const snapshot = list.getScrollSnapshot() // { index, offsetInItem }
-list.restoreScroll(snapshot)
-```
-
----
+| Method | Description |
+|---|---|
+| `setItems(items)` | Replace the full dataset |
+| `appendItems(items)` | Add items to the end |
+| `prependItems(items)` | Add items to the beginning |
+| `insertItem(item, index?)` | Insert at position (appends if omitted) |
+| `updateItem(id, updates)` | Partial update by ID |
+| `removeItem(id)` | Remove a single item by ID |
+| `removeItems(ids)` | Bulk remove by IDs |
+| `getItemAt(index)` | Get item at index |
+| `getIndexById(id)` | Get index by ID |
+| `scrollToIndex(index, align?)` | Scroll to item (`"start"`, `"center"`, `"end"`) |
+| `getScrollPosition()` | Current scroll offset in pixels |
+| `on(event, handler)` | Subscribe to an event — returns an unsubscribe function |
+| `off(event, handler)` | Unsubscribe a specific handler |
+| `destroy()` | Teardown — removes DOM, listeners, and observers |
 
 ## Events
 
-```typescript
-const off = list.on('scroll', ({ scrollPosition, direction }) => { ... })
-list.on('item:click', ({ item, index, event }) => { ... })
-list.on('range:change', ({ range }) => { ... })  // range = { start, end }
-
-off()  // unsubscribe
-list.off('scroll', handler)  // or unsubscribe by reference
-```
-
-See [API Reference](/docs/api/reference) for all events.
-
----
-
-## TypeScript
-
-Pass your item type as a generic — all methods and events are fully typed:
-
-```typescript
-import { vlist, type VList } from 'vlist';
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'me' | 'them';
-  height: number;
-}
-
-const chat: VList<Message> = vlist<Message>({
-  container: '#chat',
-  reverse: true,
-  items: [] as Message[],
-  item: {
-    height: (i) => messages[i].height,
-    template: (msg: Message) => `<div>${msg.text}</div>`,
-  },
-}).build();
-
-// Fully typed:
-chat.on('item:click', ({ item }) => {
-  console.log(item.sender);  // TypeScript knows this is 'me' | 'them'
+```ts
+const unsub = list.on("item:click", ({ item, index, event }) => {
+  console.log("Clicked", item.id);
 });
+
+// Stop listening
+unsub();
 ```
 
----
-
-## Lifecycle
-
-```typescript
-list.destroy()  // Removes DOM, unbinds all listeners, cleans up features
-```
-
-Always call `destroy()` when unmounting (SPA route changes, component teardown).
-
----
-
-## Next Steps
-
-| I want to… | Go to |
+| Event | Payload |
 |---|---|
-| Add spacing between items or padding around the list | [Gap & Padding](/docs/api/reference#gap-padding) |
-| Use React, Vue, Svelte, or SolidJS | [Framework Adapters](/docs/api/adapters) |
-| Add a grid layout | [Grid Feature](/docs/features/grid) |
-| Group items with headers | [Groups Feature](/docs/features/groups) |
-| Load data from an API | [Async Feature](/docs/features/async) |
-| Add item selection | [Selection Feature](/docs/features/selection) |
-| Handle 1M+ items | [Scale Feature](/docs/features/scale) |
-| Use a custom scrollbar | [Scrollbar Feature](/docs/features/scrollbar) |
-| Scroll the whole page | [Page Feature](/docs/features/page) |
-| Build a chat UI | [Chat Interface](/tutorials/chat-interface) |
-| Tune for performance | [Optimization](/tutorials/optimization) |
-| Customise styles | [Styling](/tutorials/styling) |
-| Complete API | [API Reference](/docs/api/reference) |
+| `item:click` | `{ item, index, event }` |
+| `item:dblclick` | `{ item, index, event }` |
+| `item:contextmenu` | `{ item, index, event }` |
+| `scroll` | `{ scrollPosition, direction }` |
+| `scroll:idle` | `{ scrollPosition }` |
+| `range:change` | `{ range: { start, end } }` |
+| `resize` | `{ width, height }` |
+| `data:change` | `{ type, id }` |
+| `destroy` | — |
+
+Plugins add their own events (`selection:change`, `sort:start`, etc.) — see the plugin docs.
+
+## Plugins
+
+Pass plugins as a second argument to `createVList`. They are tree-shakeable — only imported plugins are included in your bundle.
+
+```ts
+import { createVList, grid, selection } from "vlist";
+
+const list = createVList({
+  container: "#app",
+  item: { height: 80, template: renderItem },
+  items: data,
+}, [
+  grid({ columns: 3, gap: 8 }),
+  selection({ mode: "multiple" }),
+]);
+```
+
+See [plugins/overview.md](./plugins/overview.md) for the full list of available plugins and their options.
+
+## Cleanup
+
+```ts
+list.destroy();
+```
+
+Call `destroy()` when removing the list from the DOM — it clears all event listeners, ResizeObservers, and DOM nodes created by vlist.

@@ -21,7 +21,7 @@
         "react-window": "1.8.10",
         "solid-js": "^1.9.11",
         "virtua": "^0.48.6",
-        "vlist": "file:../vlist",
+        "vlist": "file:../vlist.v2",
         "vlist-react": "^1.6.0",
         "vlist-solidjs": "^1.6.0",
         "vlist-svelte": "^1.6.0",
@@ -524,7 +524,7 @@
 
     "virtua": ["virtua@0.48.6", "", { "peerDependencies": { "react": ">=16.14.0", "react-dom": ">=16.14.0", "solid-js": ">=1.0", "svelte": ">=5.0", "vue": ">=3.2" }, "optionalPeers": ["react", "react-dom", "solid-js", "svelte", "vue"] }, "sha512-Cl4uMvMV5c9RuOy9zhkFMYwx/V4YLBMYLRSWkO8J46opQZ3P7KMq0CqCVOOAKUckjl/r//D2jWTBGYWzmgtzrQ=="],
 
-    "vlist": ["vlist@file:../vlist", { "devDependencies": { "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "jsdom": "^28.0.0", "typescript": "^5.0.0" } }],
+    "vlist": ["vlist@file:../vlist.v2", { "devDependencies": { "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "jsdom": "^28.0.0", "typescript": "^5.0.0" } }],
 
     "vlist-react": ["vlist-react@1.6.0", "", { "peerDependencies": { "react": ">=17.0.0", "vlist": "^1.5.0" } }, "sha512-qCDeonRjj/ewZLfNRYlOQOQoPoK5lA76QesIcLVbEZvLh+gJnigI6dVd01zhwhjG89kp5TdQeCo7ug3kRnK0Yg=="],
 

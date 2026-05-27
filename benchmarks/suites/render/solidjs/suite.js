@@ -4,7 +4,7 @@
 // Uses the core vlist library directly (no SolidJS runtime in benchmarks).
 // Defines the vlist create/destroy lifecycle and formats results with rating thresholds.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -26,14 +26,14 @@ defineSuite({
     const result = await measureRenderPerformance({
       container,
       createFn: async (c) => {
-        return vlist({
+        return createVList({
           container: c,
           items,
           item: {
             height: ITEM_HEIGHT,
             template: benchmarkTemplate,
           },
-        }).build();
+        });
       },
       destroyFn: (instance) => instance.destroy(),
       label: "vlist-solidjs",
@@ -41,11 +41,10 @@ defineSuite({
       hideContainer: false,
     });
 
-    // Rating thresholds (similar to vanilla JavaScript - no framework overhead in benchmarks)
     const goodThreshold =
-      itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 30 : 80;
+      itemCount <= 10_000 ? 5 : itemCount <= 100_000 ? 10 : 50;
     const okThreshold =
-      itemCount <= 10_000 ? 40 : itemCount <= 100_000 ? 65 : 200;
+      itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 30 : 120;
 
     return [
       {

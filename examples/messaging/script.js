@@ -1,8 +1,8 @@
 // Messaging — Chat UI with reverse mode + date headers
-// Demonstrates reverse: true, withGroups, DOM measurement,
+// Demonstrates reverse: true, groups plugin, DOM measurement,
 // auto-scroll, incoming messages, send input.
 
-import { vlist, withGroups, withTransition } from "vlist";
+import { createVList, groups, transition } from "vlist";
 import {
   getChatUser,
   pickMessage,
@@ -145,7 +145,10 @@ const renderDateHeader = (dateLabel) => {
 const contentCache = new Map();
 
 const measureHeights = (items, width) => {
-  const parent = container.querySelector(".vlist-items") || container;
+  const parent =
+    container.querySelector(".vlist-content") ||
+    container.querySelector(".vlist-items") ||
+    container;
   const measurer = document.createElement("div");
   measurer.style.cssText = `
     position: absolute;
@@ -252,28 +255,10 @@ export function createList() {
   // Measure all items at actual container width
   measureHeights(currentItems, container.clientWidth);
 
-  const builder = vlist({
-    container: "#list-container",
-    ariaLabel: "Chat messages",
-    interactive: false,
-    reverse: true,
-    item: {
-      height: (index) => {
-        const item = currentItems[index];
-        return (item && item.height) || MSG_HEIGHT;
-      },
-      template: (item) => {
-        const el = document.createElement("div");
-        el.innerHTML = renderMessage(item);
-        return el.firstElementChild;
-      },
-    },
-    items: currentItems,
-  });
-
+  const plugins = [];
   if (currentHeaderMode !== "off") {
-    builder.use(
-      withGroups({
+    plugins.push(
+      groups({
         getGroupForIndex: (index) => {
           const item = currentItems[index];
           return item ? DATE_LABELS[item.dateSection] : "Unknown";
@@ -284,9 +269,29 @@ export function createList() {
     );
   }
 
-  builder.use(withTransition({ remove: false }));
+  plugins.push(transition({ remove: false }));
 
-  list = builder.build();
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Chat messages",
+      interactive: false,
+      reverse: true,
+      item: {
+        height: (index) => {
+          const item = currentItems[index];
+          return (item && item.height) || MSG_HEIGHT;
+        },
+        template: (item) => {
+          const el = document.createElement("div");
+          el.innerHTML = renderMessage(item);
+          return el.firstElementChild;
+        },
+      },
+      items: currentItems,
+    },
+    plugins,
+  );
 
   // Wire events
   list.on("scroll", updateInfo);
@@ -309,10 +314,7 @@ export function createList() {
   if (firstVisibleIndex > 0) {
     list.scrollToIndex(firstVisibleIndex, "start");
   } else {
-    requestAnimationFrame(() => {
-      const vp = container.querySelector(".vlist-viewport");
-      if (vp) vp.scrollTop = vp.scrollHeight;
-    });
+    list.scrollToIndex(currentItems.length - 1, "end");
   }
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
@@ -350,12 +352,12 @@ const sendMessage = () => {
   };
 
   measureHeights([msg], getMeasureWidth());
-  const insertAt = list.total;
+  const insertAt = currentItems.length;
   currentItems = [...currentItems, msg];
   list.insertItem(msg, insertAt);
 
   // Always scroll to bottom when sending
-  list.scrollToIndex(list.total - 1, {
+  list.scrollToIndex(currentItems.length - 1, {
     align: "start",
     behavior: "smooth",
     duration: 300,
@@ -403,7 +405,7 @@ const generateRandomMessage = () => {
   };
 
   measureHeights([msg], getMeasureWidth());
-  const insertAt = list.total;
+  const insertAt = currentItems.length;
   currentItems = [...currentItems, msg];
   list.insertItem(msg, insertAt);
 
@@ -412,7 +414,7 @@ const generateRandomMessage = () => {
   if (!atBottom) {
     showNewMessages(unreadCount + 1);
   } else {
-    list.scrollToIndex(list.total - 1, {
+    list.scrollToIndex(currentItems.length - 1, {
       align: "start",
       behavior: "smooth",
       duration: 300,

@@ -62,11 +62,10 @@ defineSuite({
       hideContainer: false,
     });
 
-    // Rating thresholds (slightly more lenient for React overhead)
     const goodThreshold =
-      itemCount <= 10_000 ? 25 : itemCount <= 100_000 ? 40 : 100;
+      itemCount <= 10_000 ? 10 : itemCount <= 100_000 ? 20 : 80;
     const okThreshold =
-      itemCount <= 10_000 ? 50 : itemCount <= 100_000 ? 80 : 250;
+      itemCount <= 10_000 ? 30 : itemCount <= 100_000 ? 50 : 180;
 
     return [
       {

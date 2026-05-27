@@ -3,15 +3,15 @@
 // Layout mode toggle: List ↔ Grid ↔ Table
 
 import {
-  vlist,
-  withSelection,
-  withAsync,
-  withGrid,
-  withTable,
-  withScrollbar,
-  withScale,
-  withSnapshots,
-  withTransition,
+  createVList,
+  selection,
+  async as asyncPlugin,
+  grid,
+  table,
+  scrollbar,
+  scale,
+  snapshots,
+  transition,
 } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -36,6 +36,7 @@ const GRID_COLUMNS = 4;
 const GRID_GAP = 8;
 const TABLE_ROW_HEIGHT = 36;
 const TABLE_HEADER_HEIGHT = 36;
+const SNAPSHOT_KEY = "track-list-scroll";
 
 // =============================================================================
 // State
@@ -183,10 +184,10 @@ function getAsyncConfig() {
 
 function createList(selectionMode) {
   // Capture snapshot before destroying so we can restore scroll + selection
-  let snapshot = null;
   if (list) {
     try {
-      snapshot = list.getScrollSnapshot();
+      const snapshot = list.getScrollSnapshot();
+      sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot));
     } catch {}
     list.destroy();
   }
@@ -198,11 +199,11 @@ function createList(selectionMode) {
   container.innerHTML = "";
 
   if (currentLayoutMode === "grid") {
-    createGridView(selectionMode, snapshot);
+    createGridView(selectionMode);
   } else if (currentLayoutMode === "table") {
-    createTableView(selectionMode, snapshot);
+    createTableView(selectionMode);
   } else {
-    createListView(selectionMode, snapshot);
+    createListView(selectionMode);
   }
 
   bindListEvents();
@@ -215,10 +216,10 @@ function createList(selectionMode) {
 // Apply scrollbar feature to builder if enabled
 // =============================================================================
 
-function applyScrollbar(builder) {
+function applyScrollbar(plugins) {
   if (currentScrollbarEnabled) {
-    builder.use(
-      withScrollbar({
+    plugins.push(
+      scrollbar({
         autoHide: true,
         autoHideDelay: 1000,
         showOnHover: true,
@@ -226,57 +227,66 @@ function applyScrollbar(builder) {
       }),
     );
   }
-  return builder;
 }
 
 // =============================================================================
 // Apply scale feature to builder if enabled
 // =============================================================================
 
-function applyScale(builder) {
+function applyScale(plugins) {
   if (currentScaleEnabled) {
-    builder.use(withScale({ force: true }));
+    plugins.push(scale({ force: true }));
   }
-  return builder;
 }
 
 // =============================================================================
 // List View (default — vertical list with 80px rows)
 // =============================================================================
 
-function createListView(selectionMode, snapshot) {
-  const builder = vlist({
+function createListView(selectionMode) {
+  const plugins = [
+    asyncPlugin(getAsyncConfig()),
+  ];
+  applyScale(plugins);
+  applyScrollbar(plugins);
+  plugins.push(transition({ duration: 200 }));
+  plugins.push(
+    selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+  );
+  plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
+
+  list = createVList({
     container: "#list-container",
     ariaLabel: "Track list",
     item: {
       height: ITEM_HEIGHT,
       template: trackTemplate,
     },
-  });
-
-  builder.use(withAsync(getAsyncConfig()));
-  applyScale(builder);
-  applyScrollbar(builder);
-  builder.use(withTransition({ duration: 200 }));
-  builder.use(
-    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
-  );
-  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
-
-  list = builder.build();
+  }, plugins);
 }
 
 // =============================================================================
-// Grid View (withGrid — card layout)
+// Grid View (grid plugin — card layout)
 // =============================================================================
 
-function createGridView(selectionMode, snapshot) {
+function createGridView(selectionMode) {
   const container = document.getElementById("list-container");
   const innerWidth = container.clientWidth - 2;
   const colWidth = (innerWidth - (GRID_COLUMNS - 1) * GRID_GAP) / GRID_COLUMNS;
   const cardHeight = Math.round(colWidth * 1.3);
 
-  const builder = vlist({
+  const plugins = [
+    asyncPlugin(getAsyncConfig()),
+    grid({ columns: GRID_COLUMNS, gap: GRID_GAP }),
+  ];
+  applyScale(plugins);
+  applyScrollbar(plugins);
+  plugins.push(
+    selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+  );
+  plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
+
+  list = createVList({
     container: "#list-container",
     ariaLabel: "Track list",
     item: {
@@ -284,32 +294,11 @@ function createGridView(selectionMode, snapshot) {
         ctx ? Math.round(ctx.columnWidth * 1.3) : cardHeight,
       template: trackGridTemplate,
     },
-  });
-
-  builder.use(withAsync(getAsyncConfig()));
-  builder.use(withGrid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
-  applyScale(builder);
-  applyScrollbar(builder);
-  builder.use(
-    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
-  );
-  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
-
-  list = builder.build();
+  }, plugins);
 }
 
-function createTableView(selectionMode, snapshot) {
-  const builder = vlist({
-    container: "#list-container",
-    ariaLabel: "Track list",
-    item: {
-      height: TABLE_ROW_HEIGHT,
-      striped: "odd",
-      template: trackTableRowTemplate,
-    },
-  });
-
-  builder.use(withAsync(getAsyncConfig()));
+function createTableView(selectionMode) {
+  const plugins = [asyncPlugin(getAsyncConfig())];
   const columns = currentColumnWidths
     ? trackTableColumns.map((col) => ({
         ...col,
@@ -317,8 +306,8 @@ function createTableView(selectionMode, snapshot) {
       }))
     : trackTableColumns;
 
-  builder.use(
-    withTable({
+  plugins.push(
+    table({
       columns,
       rowHeight: TABLE_ROW_HEIGHT,
       headerHeight: TABLE_HEADER_HEIGHT,
@@ -332,14 +321,22 @@ function createTableView(selectionMode, snapshot) {
           : undefined,
     }),
   );
-  applyScale(builder);
-  applyScrollbar(builder);
-  builder.use(
-    withSelection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
+  applyScale(plugins);
+  applyScrollbar(plugins);
+  plugins.push(
+    selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
   );
-  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
+  plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = builder.build();
+  list = createVList({
+    container: "#list-container",
+    ariaLabel: "Track list",
+    item: {
+      height: TABLE_ROW_HEIGHT,
+      striped: "odd",
+      template: trackTableRowTemplate,
+    },
+  }, plugins);
 
   list.on("column:resize", ({ key, width }) => {
     if (!currentColumnWidths) currentColumnWidths = {};
@@ -525,7 +522,7 @@ btnAddTrack.addEventListener("click", async () => {
       removeEndUnsub();
       removeEndUnsub = null;
     }
-    list.addItem(track, insertAt);
+    list.insertItem(track, insertAt);
     totalTracks = list.total;
   } catch (err) {
     console.error("[track-list] restore failed:", err);

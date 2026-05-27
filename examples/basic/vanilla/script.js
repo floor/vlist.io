@@ -1,7 +1,7 @@
 // Basic List — Minimal vanilla example
 // Demonstrates core vlist with 100,000 items.
 
-import { vlist } from "vlist";
+import { createVList, a11y } from "vlist";
 import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
@@ -10,7 +10,7 @@ import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 const items = makeItems(COUNT);
 
-const list = vlist({
+const list = createVList({
   container: "#list-container",
   ariaLabel: "Orders",
   items,
@@ -20,4 +20,4 @@ const list = vlist({
     striped: true,
     template: itemTemplate,
   },
-}).build();
+}, [a11y()]);

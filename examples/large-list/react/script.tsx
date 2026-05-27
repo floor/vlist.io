@@ -233,7 +233,7 @@ function App() {
         <h1>Large List</h1>
         <p className="description">
           React implementation with <code>useVList</code> hook +{" "}
-          <code>withScale</code> + <code>withScrollbar</code> plugins. Handles
+          <code>scale</code> + <code>scrollbar</code> plugins. Handles
           100K–5M items with automatic scroll scaling when total height exceeds
           the browser's 16.7M pixel limit.
         </p>

@@ -1,8 +1,8 @@
 // Contact List — A–Z grouped contacts with sticky section headers
-// Demonstrates withGroups plugin with sticky/inline toggle
-// and withSelection for click-to-select with detail panel
+// Demonstrates groups plugin with sticky/inline toggle
+// and selection for click-to-select with detail panel
 
-import { vlist, withGroups, withSelection, withSnapshots } from "vlist";
+import { createVList, groups, selection, snapshots } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -105,7 +105,22 @@ export function createList() {
   const container = document.getElementById("list-container");
   container.innerHTML = "";
 
-  const builder = vlist({
+  const plugins = [];
+  if (currentHeaderMode !== "off") {
+    plugins.push(groups({
+      getGroupForIndex: (index) => contacts[index].lastName[0].toUpperCase(),
+      header: {
+        height: HEADER_HEIGHT,
+        template: (group) => renderGroupHeader(group),
+      },
+      sticky: currentHeaderMode === "sticky",
+    }));
+  }
+
+  plugins.push(selection({ mode: "single" }));
+  plugins.push(snapshots(snapshot ? { restore: snapshot } : undefined));
+
+  list = createVList({
     container: "#list-container",
     ariaLabel: "Contact list",
     scroll: { gutter: currentGutter },
@@ -114,25 +129,7 @@ export function createList() {
       template: renderContact,
     },
     items: contacts,
-  });
-
-  if (currentHeaderMode !== "off") {
-    builder.use(
-      withGroups({
-        getGroupForIndex: (index) => contacts[index].lastName[0].toUpperCase(),
-        header: {
-          height: HEADER_HEIGHT,
-          template: (group) => renderGroupHeader(group),
-        },
-        sticky: currentHeaderMode === "sticky",
-      }),
-    );
-  }
-
-  builder.use(withSelection({ mode: "single" }));
-  builder.use(withSnapshots(snapshot ? { restore: snapshot } : undefined));
-
-  list = builder.build();
+  }, plugins);
 
   list.on("scroll", updateInfo);
   list.on("range:change", () => {

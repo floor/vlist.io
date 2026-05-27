@@ -1,13 +1,13 @@
 // Photo Album — Virtualized 2D photo gallery
-// Demonstrates withGrid + withMasonry + withScrollbar plugins
+// Demonstrates grid + masonry + scrollbar plugins
 // Layout mode toggle: Grid ↔ Masonry
 
 import {
-  vlist,
-  withGrid,
-  withMasonry,
-  withScrollbar,
-  withSelection,
+  createVList,
+  grid,
+  masonry,
+  scrollbar,
+  selection,
 } from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
@@ -118,7 +118,7 @@ function createGridView(container, orientation, columns, gap) {
     const height = Math.round(colWidth);
 
     setList(
-      vlist({
+      createVList({
         padding: PADDING,
         container: "#list-container",
         ariaLabel: "Photo gallery",
@@ -130,15 +130,15 @@ function createGridView(container, orientation, columns, gap) {
           template: itemTemplate,
         },
         items,
-      })
-        .use(withGrid({ columns, gap }))
-        .use(withSelection({ mode: "single" }))
-        .use(withScrollbar({ autoHide: true }))
-        .build(),
+      }, [
+        grid({ columns, gap }),
+        selection({ mode: "single" }),
+        scrollbar({ autoHide: true }),
+      ]),
     );
   } else {
     setList(
-      vlist({
+      createVList({
         padding: PADDING,
         container: "#list-container",
         ariaLabel: "Photo gallery",
@@ -149,18 +149,18 @@ function createGridView(container, orientation, columns, gap) {
           template: itemTemplate,
         },
         items,
-      })
-        .use(withGrid({ columns, gap }))
-        .use(withSelection({ mode: "single" }))
-        .use(withScrollbar({ autoHide: true }))
-        .build(),
+      }, [
+        grid({ columns, gap }),
+        selection({ mode: "single" }),
+        scrollbar({ autoHide: true }),
+      ]),
     );
   }
 }
 
 function createMasonryView(container, orientation, columns, gap) {
   setList(
-    vlist({
+    createVList({
       container: "#list-container",
       ariaLabel: "Photo gallery",
       orientation,
@@ -178,11 +178,11 @@ function createMasonryView(container, orientation, columns, gap) {
         template: itemTemplate,
       },
       items,
-    })
-      .use(withMasonry({ columns, gap }))
-      .use(withSelection({ mode: "single" }))
-      .use(withScrollbar({ autoHide: true }))
-      .build(),
+    }, [
+      masonry({ columns, gap }),
+      selection({ mode: "single" }),
+      scrollbar({ autoHide: true }),
+    ]),
   );
 }
 

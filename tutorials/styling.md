@@ -19,10 +19,10 @@ vlist uses a CSS custom properties (design tokens) system that provides:
 ### Import Styles
 
 ```typescript
-import { vlist } from 'vlist';
+import { createVList } from 'vlist';
 import 'vlist/styles';
 
-const list = vlist({
+const list = createVList({
   container: '#app',
   item: {
     height: 48,
@@ -48,10 +48,10 @@ CSS is split into **core** + **feature modules** so you only load what you use:
 // Core styles (always required)
 import 'vlist/styles';
 
-// Feature styles — import alongside the matching feature
-import 'vlist/styles/grid';     // when using withGrid()
-import 'vlist/styles/masonry';  // when using withMasonry()
-import 'vlist/styles/table';    // when using withTable()
+// Feature styles — import alongside the matching plugin
+import 'vlist/styles/grid';     // when using grid()
+import 'vlist/styles/masonry';  // when using masonry()
+import 'vlist/styles/table';    // when using table()
 
 // Optional extras (variants, loading states, animations)
 import 'vlist/styles/extras';
@@ -148,11 +148,11 @@ These are set once and never change between light/dark modes:
   --vlist-scrollbar-track-color: transparent;
   --vlist-scrollbar-radius: 4px;
 
-  /* Custom overlay scrollbar (withScrollbar feature) */
+  /* Custom overlay scrollbar (scrollbar plugin) */
   --vlist-custom-scrollbar-width: 8px;
   --vlist-custom-scrollbar-track-color: transparent;
   --vlist-custom-scrollbar-radius: 8px;
-  --vlist-custom-scrollbar-padding-top: 2px;    /* per-side inset */
+  --vlist-custom-scrollbar-padding-top: 2px;
   --vlist-custom-scrollbar-padding-right: 2px;
   --vlist-custom-scrollbar-padding-bottom: 2px;
   --vlist-custom-scrollbar-padding-left: 2px;
@@ -165,22 +165,22 @@ Light mode colors are the `:root` defaults — they apply with no setup:
 
 ```css
 :root {
-  --vlist-bg: #ffffff;                              /* Item background */
-  --vlist-bg-striped: rgba(0, 0, 0, 0.02);         /* Zebra stripe (subtle) */
-  --vlist-bg-hover: rgba(0, 0, 0, 0.04);           /* Hover state */
-  --vlist-bg-selected: rgba(59, 130, 246, 0.12);   /* Selected state (blue tint) */
-  --vlist-bg-selected-hover: rgba(59, 130, 246, 0.18); /* Selected + hover (stronger) */
-  --vlist-border: #e5e7eb;                          /* Borders / dividers */
-  --vlist-border-selected: #3b82f6;                 /* Selected accent */
-  --vlist-text: #111827;                            /* Primary text */
-  --vlist-text-muted: #6b7280;                      /* Secondary text */
-  --vlist-focus-ring: #3b82f6;                      /* Keyboard focus outline */
-  --vlist-group-header-bg: #f3f4f6;                 /* Group header background */
-  --vlist-scrollbar-thumb-color: #d1d5db;                           /* Native scrollbar thumb */
-  --vlist-scrollbar-thumb-hover-color: #9ca3af;                     /* Native scrollbar hover */
-  --vlist-custom-scrollbar-thumb-color: rgba(0, 0, 0, 0.3);        /* Custom overlay thumb */
-  --vlist-custom-scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.5);  /* Custom overlay hover */
-  --vlist-placeholder-bg: rgba(0, 0, 0, 0.2);      /* Placeholder skeleton */
+  --vlist-bg: #ffffff;
+  --vlist-bg-striped: rgba(0, 0, 0, 0.02);
+  --vlist-bg-hover: rgba(0, 0, 0, 0.04);
+  --vlist-bg-selected: rgba(59, 130, 246, 0.12);
+  --vlist-bg-selected-hover: rgba(59, 130, 246, 0.18);
+  --vlist-border: #e5e7eb;
+  --vlist-border-selected: #3b82f6;
+  --vlist-text: #111827;
+  --vlist-text-muted: #6b7280;
+  --vlist-focus-ring: #3b82f6;
+  --vlist-group-header-bg: #f3f4f6;
+  --vlist-scrollbar-thumb-color: #d1d5db;
+  --vlist-scrollbar-thumb-hover-color: #9ca3af;
+  --vlist-custom-scrollbar-thumb-color: rgba(0, 0, 0, 0.3);
+  --vlist-custom-scrollbar-thumb-hover-color: rgba(0, 0, 0, 0.5);
+  --vlist-placeholder-bg: rgba(0, 0, 0, 0.2);
 }
 ```
 
@@ -268,10 +268,11 @@ Apply different styles to specific lists:
 Change the default `vlist` prefix:
 
 ```typescript
-const list = vlist({
+const list = createVList({
   container: '#app',
   classPrefix: 'mylist',  // Uses .mylist, .mylist-item, etc.
-  // ...
+  items: data,
+  item: { height: 48, template: renderItem },
 });
 ```
 
@@ -292,7 +293,7 @@ Virtual lists recycle DOM elements out of document order, so CSS `:nth-child(eve
 ### Enable Striping
 
 ```typescript
-const list = vlist({
+const list = createVList({
   container: '#app',
   item: {
     height: 48,
@@ -407,7 +408,9 @@ document.documentElement.dataset.themeMode = 'light'; // or 'dark'
 Style items directly in your template function:
 
 ```typescript
-const list = vlist({
+import { createVList, selection } from 'vlist';
+
+const list = createVList({
   container: '#app',
   item: {
     height: 64,
@@ -426,9 +429,7 @@ const list = vlist({
   `,
   },
   items: users,
-})
-.use(withSelection({ mode: 'single' }))
-.build();
+}, [selection({ mode: 'single' })]);
 ```
 
 ### Template Context
@@ -472,7 +473,9 @@ No extra configuration needed. Tailwind and vlist share the same `.dark` class c
 Use Tailwind classes directly in your item templates:
 
 ```typescript
-const list = vlist({
+import { createVList, selection } from 'vlist';
+
+const list = createVList({
   container: '#app',
   item: {
     height: 64,
@@ -488,9 +491,7 @@ const list = vlist({
     `,
   },
   items: users,
-})
-.use(withSelection({ mode: 'single' }))
-.build();
+}, [selection({ mode: 'single' })]);
 ```
 
 > **Tip:** Tailwind's `dark:` variants work inside templates because the `.dark` class is on an ancestor element.
@@ -585,7 +586,7 @@ The loading overlay adapts to light/dark mode automatically via `color-mix()`:
 
 ## Animations
 
-### Placeholder → Real Data
+### Placeholder to Real Data
 
 When async-loaded items replace placeholders, a subtle fade-in is applied automatically via core CSS:
 
@@ -673,12 +674,12 @@ When scrolling stops (idle detected), the class is removed and transitions are r
 Always use CSS custom properties instead of hardcoding values:
 
 ```css
-/* ✅ Good */
+/* Good */
 .my-item {
   background: var(--vlist-bg-selected);
 }
 
-/* ❌ Avoid */
+/* Avoid */
 .my-item {
   background: #dbeafe;
 }
@@ -689,12 +690,12 @@ Always use CSS custom properties instead of hardcoding values:
 Use specific selectors to avoid conflicts:
 
 ```css
-/* ✅ Good — scoped */
+/* Good — scoped */
 #my-list .vlist-item {
   font-size: 14px;
 }
 
-/* ❌ Avoid — too broad */
+/* Avoid — too broad */
 .vlist-item {
   font-size: 14px;
 }
@@ -705,12 +706,12 @@ Use specific selectors to avoid conflicts:
 If you style `.vlist-item--odd` or other item states, use `background-color` (longhand) so the library's selected/hover states can properly override via the `background` shorthand:
 
 ```css
-/* ✅ Good — longhand, won't fight with selected state */
+/* Good — longhand, won't fight with selected state */
 .my-list .vlist-item--odd {
   background-color: rgba(0, 0, 0, 0.03);
 }
 
-/* ❌ Avoid — shorthand can override selected state */
+/* Avoid — shorthand can override selected state */
 .my-list .vlist-item--odd {
   background: rgba(0, 0, 0, 0.03);
 }
@@ -721,7 +722,7 @@ If you style `.vlist-item--odd` or other item states, use `background-color` (lo
 For best performance, keep template CSS minimal:
 
 ```typescript
-// ✅ Good — uses existing classes
+// Good — uses existing classes
 item: {
   height: 48,
   template: (item) => `
@@ -731,7 +732,7 @@ item: {
   `,
 }
 
-// ❌ Avoid — complex inline styles
+// Avoid — complex inline styles
 item: {
   height: 48,
   template: (item) => `
@@ -748,4 +749,4 @@ Always verify your customizations work in both light and dark modes. Use your br
 
 ---
 
-*See also: [Getting Started](/docs/getting-started) | [API Reference](/docs/api/reference)*
+*See also: [Getting Started](/docs/getting-started) | [API Reference](/docs/api)*

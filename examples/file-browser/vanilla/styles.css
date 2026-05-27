@@ -19,7 +19,7 @@
 }
 
 /* ============================================================================
-   Table Header Overrides (List View — withTable)
+   Table Header Overrides (List View — table plugin)
    ============================================================================ */
 
 #browser-container .vlist-table-header {
@@ -39,7 +39,7 @@
 }
 
 /* ============================================================================
-   Table Row & Cell Overrides (List View — withTable)
+   Table Row & Cell Overrides (List View — table plugin)
    ============================================================================ */
 
 #browser-container .vlist-table-row {
@@ -78,7 +78,7 @@
 }
 
 /* ============================================================================
-   Name Cell — icon + name inline (used by withTable cell renderer)
+   Name Cell — icon + name inline (used by table plugin cell renderer)
    ============================================================================ */
 
 .file-name {

@@ -25,15 +25,28 @@ type SizeData = Record<string, SizeEntry>;
 
 let sizeData: SizeData | null = null;
 
-if (VLIST_ROOT) {
-  const filePath = join(VLIST_ROOT, "dist", "size.json");
+function loadSizeJson(filePath: string): SizeData | null {
   try {
-    sizeData = JSON.parse(readFileSync(filePath, "utf-8"));
+    return JSON.parse(readFileSync(filePath, "utf-8"));
   } catch {
-    console.warn(`[size-data] Could not read ${filePath} — size placeholders will not be replaced.`);
+    console.warn(`[size-data] Could not read ${filePath}`);
+    return null;
   }
+}
+
+// v2 sizes from the vlist package
+if (VLIST_ROOT) {
+  sizeData = loadSizeJson(join(VLIST_ROOT, "dist", "size.json"));
 } else {
-  console.warn("[size-data] VLIST_ROOT is not resolved — size placeholders will not be replaced.");
+  console.warn("[size-data] VLIST_ROOT is not resolved — v2 size placeholders will not be replaced.");
+}
+
+// v1 sizes from vlist/dist/size-v1.json — keys use withX prefix so no overlap with v2
+if (VLIST_ROOT) {
+  const v1Data = loadSizeJson(join(VLIST_ROOT, "dist", "size-v1.json"));
+  if (v1Data) {
+    sizeData = { ...sizeData, ...v1Data };
+  }
 }
 
 // ---------------------------------------------------------------------------

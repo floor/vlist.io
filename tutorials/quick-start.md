@@ -13,10 +13,10 @@ npm install vlist
 ### 1. Simple List
 
 ```typescript
-import { vlist } from 'vlist';
+import { createVList } from 'vlist';
 import 'vlist/styles';
 
-const list = vlist({
+const list = createVList({
   container: '#app',
   items: [
     { id: 1, name: 'Alice' },
@@ -27,19 +27,17 @@ const list = vlist({
     height: 48,
     template: (item) => `<div>${item.name}</div>`,
   },
-}).build();
+});
 ```
-
-**Bundle:** 10.5 KB gzipped
 
 ---
 
 ### 2. With Selection
 
 ```typescript
-import { vlist, withSelection } from 'vlist';
+import { createVList, selection } from 'vlist';
 
-const list = vlist({
+const list = createVList({
   container: '#app',
   items: users,
   item: {
@@ -49,9 +47,9 @@ const list = vlist({
       return `<div class="${cls}">${user.name}</div>`;
     },
   },
-})
-  .use(withSelection({ mode: 'single' }))
-  .build();
+}, [
+  selection({ mode: 'single' })
+]);
 
 // Selection API
 list.select(5);
@@ -59,16 +57,14 @@ list.getSelected();       // [5]
 list.getSelectedItems();  // [{ id: 5, ... }]
 ```
 
-**Bundle:** ~13.2 KB gzipped
-
 ---
 
 ### 3. Photo Gallery (Grid)
 
 ```typescript
-import { vlist, withGrid, withScrollbar } from 'vlist';
+import { createVList, grid, scrollbar } from 'vlist';
 
-const gallery = vlist({
+const gallery = createVList({
   container: '#gallery',
   items: photos,
   item: {
@@ -80,50 +76,46 @@ const gallery = vlist({
       </div>
     `,
   },
-})
-  .use(withGrid({ columns: 4, gap: 16 }))
-  .use(withScrollbar({ autoHide: true }))
-  .build();
+}, [
+  grid({ columns: 4, gap: 16 }),
+  scrollbar({ autoHide: true })
+]);
 ```
-
-**Bundle:** ~15.4 KB gzipped
 
 ---
 
 ### 4. Contact List (A-Z Sections)
 
 ```typescript
-import { vlist, withGroups } from 'vlist';
+import { createVList, groups } from 'vlist';
 
-const contacts = vlist({
+const contacts = createVList({
   container: '#contacts',
   items: sortedContacts,  // Pre-sorted by lastName!
   item: {
     height: 56,
     template: (contact) => `<div>${contact.name}</div>`,
   },
-})
-  .use(withGroups({
-    getGroupForIndex: (i) => contacts[i].lastName[0].toUpperCase(),
+}, [
+  groups({
+    getGroupForIndex: (i) => sortedContacts[i].lastName[0].toUpperCase(),
     header: {
       height: 36,
       template: (letter) => `<div class="header">${letter}</div>`,
     },
     sticky: true,
-  }))
-  .build();
+  })
+]);
 ```
-
-**Bundle:** ~13.5 KB gzipped
 
 ---
 
 ### 5. Chat UI (Reverse Mode)
 
 ```typescript
-import { vlist, withGroups } from 'vlist';
+import { createVList, groups } from 'vlist';
 
-const chat = vlist({
+const chat = createVList({
   container: '#messages',
   reverse: true,   // Start at bottom
   items: messages, // Oldest first
@@ -131,16 +123,16 @@ const chat = vlist({
     height: (i) => messages[i].height || 60,
     template: (msg) => `<div class="msg">${msg.text}</div>`,
   },
-})
-  .use(withGroups({
+}, [
+  groups({
     getGroupForIndex: (i) => formatDate(messages[i].timestamp),
     header: {
       height: 32,
       template: (date) => `<div class="date">${date}</div>`,
     },
     sticky: false,  // Inline headers (iMessage style)
-  }))
-  .build();
+  })
+]);
 
 // New messages auto-scroll to bottom
 chat.appendItems([newMessage]);
@@ -149,16 +141,14 @@ chat.appendItems([newMessage]);
 chat.prependItems(olderMessages);
 ```
 
-**Bundle:** ~13.5 KB gzipped
-
 ---
 
 ### 6. Infinite Scroll Feed
 
 ```typescript
-import { vlist, withPage, withAsync } from 'vlist';
+import { createVList, page, async } from 'vlist';
 
-const feed = vlist({
+const feed = createVList({
   container: '#feed',
   item: {
     height: 300,
@@ -167,9 +157,9 @@ const feed = vlist({
       return `<article>${post.content}</article>`;
     },
   },
-})
-  .use(withPage())   // Document-level scrolling
-  .use(withAsync({
+}, [
+  page(),
+  async({
     adapter: {
       read: async ({ offset, limit }) => {
         const res = await fetch(`/api/posts?offset=${offset}&limit=${limit}`);
@@ -177,33 +167,29 @@ const feed = vlist({
       },
     },
     loading: { cancelThreshold: 15 },
-  }))
-  .build();
+  })
+]);
 ```
-
-**Bundle:** ~15.2 KB gzipped
 
 ---
 
 ### 7. Large Dataset (1M+ Items)
 
 ```typescript
-import { vlist, withScale, withScrollbar } from 'vlist';
+import { createVList, scale, scrollbar } from 'vlist';
 
-const bigList = vlist({
+const bigList = createVList({
   container: '#list',
   items: generateItems(5_000_000),
   item: {
     height: 48,
     template: (item) => `<div>#${item.id}: ${item.name}</div>`,
   },
-})
-  .use(withScale())   // Auto-activates scaling for large datasets
-  .use(withScrollbar({ autoHide: true }))
-  .build();
+}, [
+  scale(),
+  scrollbar({ autoHide: true })
+]);
 ```
-
-**Bundle:** ~13.5 KB gzipped
 
 ---
 
@@ -212,20 +198,20 @@ const bigList = vlist({
 ### Variable Heights
 
 ```typescript
-const list = vlist({
+const list = createVList({
   container: '#list',
   items: messages,
   item: {
     height: (index) => messages[index].measuredHeight || 60,
     template: (msg) => `<div>${msg.text}</div>`,
   },
-}).build();
+});
 ```
 
 ### Horizontal Scrolling
 
 ```typescript
-const carousel = vlist({
+const carousel = createVList({
   container: '#carousel',
   orientation: 'horizontal',
   items: cards,
@@ -234,7 +220,7 @@ const carousel = vlist({
     height: 400,
     template: (card) => `<div>${card.content}</div>`,
   },
-}).build();
+});
 ```
 
 ### Scroll to Item
@@ -268,24 +254,28 @@ list.removeItem(5);
 
 ---
 
-## Available Features
+## Available Plugins
 
-| Feature | Cost | Description |
-|--------|------|-------------|
-| `withGrid()` | +3.8 KB | 2D grid layout with WAI-ARIA keyboard nav |
-| `withMasonry()` | +3.3 KB | Pinterest-style layout with lane-aware nav |
-| `withGroups()` | +2.7 KB | Grouped lists with sticky/inline headers |
-| `withAsync()` | +4.3 KB | Async data loading |
-| `withSelection()` | +2.7 KB | Single/multiple selection + 2D keyboard nav |
-| `withScale()` | +3.0 KB | Handle 1M+ items |
-| `withScrollbar()` | +1.1 KB | Custom scrollbar |
-| `withPage()` | +0.4 KB | Page-level scrolling |
-| `withSnapshots()` | +0.7 KB | Scroll save/restore |
+| Plugin | Description |
+|--------|-------------|
+| `grid()` | 2D grid layout with WAI-ARIA keyboard nav |
+| `masonry()` | Pinterest-style layout with lane-aware nav |
+| `groups()` | Grouped lists with sticky/inline headers |
+| `async()` | Async data loading |
+| `selection()` | Single/multiple selection + 2D keyboard nav |
+| `scale()` | Handle 1M+ items |
+| `scrollbar()` | Custom scrollbar |
+| `page()` | Page-level scrolling |
+| `snapshots()` | Scroll save/restore |
+| `autosize()` | Automatic item height measurement |
+| `sortable()` | Drag-and-drop reordering |
+| `transition()` | Smooth animations |
+| `table()` | Table layout with headers |
+| `a11y()` | Accessibility (keyboard nav, ARIA) |
 
 ## Next Steps
 
 - **[Getting Started](/docs/getting-started)** — Installation, configuration, TypeScript
-- **[Builder Pattern](./builder-pattern)** — Features, composition, bundle costs
-- **[Feature Docs](/docs/features/overview)** — All features with examples
-- **[API Reference](/docs/api/reference)** — Complete method and event reference
-- **[Examples](/examples/)** — 16 interactive examples
+- **[Plugins](/docs/plugins/overview)** — All plugins with examples
+- **[API Reference](/docs/api)** — Complete method and event reference
+- **[Examples](/examples/)** — Interactive examples

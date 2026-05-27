@@ -1,5 +1,8 @@
 # Bun configuration for vlist.io
 
+[test]
+concurrent = true
+
 [install]
 # Ensure React is deduplicated across all packages
 # This prevents "Invalid hook call" errors when using linked packages

@@ -426,7 +426,7 @@ function buildExtraBody(
   if (!link) return;
   link.addEventListener('click', function(e) {
     var container = document.getElementById('list-container');
-    var items = container && container.querySelector('.vlist-items');
+    var items = container && (container.querySelector('.vlist-content') || container.querySelector('.vlist-items'));
     if (items) { e.preventDefault(); items.focus({ focusVisible: true }); }
   });
 })();

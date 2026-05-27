@@ -3,7 +3,7 @@
 // Thin wrapper around engine/render.js measureRenderPerformance.
 // Defines the vlist create/destroy lifecycle and formats results with rating thresholds.
 
-import { vlist } from "vlist";
+import { createVList } from "vlist";
 import {
   defineSuite,
   generateItems,
@@ -16,33 +16,32 @@ import { measureRenderPerformance } from "../../../engine/render.js";
 defineSuite({
   id: "render-vanilla",
   name: "Initial Render (Vanilla)",
-  description: "Time from vlist() to first painted frame",
+  description: "JS execution time of vlist() initial render",
   icon: "⚡",
 
-  run: async ({ itemCount, container, onStatus }) => {
+  run: async ({ itemCount, container, onStatus, intensity }) => {
     const items = generateItems(itemCount);
 
     const result = await measureRenderPerformance({
       container,
       createFn: async (c) => {
-        return vlist({
+        return createVList({
           container: c,
           item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
           items,
-        }).build();
+        });
       },
       destroyFn: (list) => list.destroy(),
       label: "vlist-vanilla",
       onStatus,
       hideContainer: false,
+      ...(intensity?.renderIterations && { measureIterations: intensity.renderIterations }),
     });
 
-    // Rating thresholds depend on item count
-    // Includes ~16ms of rAF overhead at 60fps
     const goodThreshold =
-      itemCount <= 10_000 ? 20 : itemCount <= 100_000 ? 30 : 80;
+      itemCount <= 10_000 ? 5 : itemCount <= 100_000 ? 10 : 50;
     const okThreshold =
-      itemCount <= 10_000 ? 40 : itemCount <= 100_000 ? 60 : 200;
+      itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 30 : 120;
 
     return [
       {

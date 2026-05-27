@@ -8,7 +8,7 @@
             positional context, <code>aria-activedescendant</code> for focus
             tracking, and <code>aria-selected</code> for selection state. Tab
             into the list and use arrow keys, Space, or Enter to interact.
-            Disable <code>interactive</code> to remove all keyboard navigation.
+            Disable <code>a11y</code> to remove all keyboard navigation.
         </p>
     </header>
 
@@ -23,17 +23,17 @@
             <section class="ui-section">
                 <h3 class="ui-title">Keyboard Navigation</h3>
                 <div class="ui-row">
-                    <span class="ui-label">interactive</span>
+                    <span class="ui-label">a11y</span>
                     <label class="ui-switch">
                         <input
                             type="checkbox"
-                            id="toggle-interactive"
+                            id="toggle-a11y"
                             checked
                         />
                         <span class="ui-switch__track"></span>
                     </label>
                 </div>
-                <p class="ui-hint" id="interactive-hint">
+                <p class="ui-hint" id="a11y-hint">
                     Arrow keys move focus between items
                 </p>
             </section>
@@ -80,7 +80,7 @@
             <!-- Keyboard reference -->
             <section class="ui-section">
                 <h3 class="ui-title">Keyboard</h3>
-                <div data-requires-interactive>
+                <div data-requires-a11y>
                     <div class="ui-row no-margin">
                         <span class="ui-label">Tab</span>
                         <span class="ui-value">Focus list</span>

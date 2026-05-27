@@ -641,11 +641,13 @@ const handleGetTracksStats = (): Response => {
   }
 };
 
-// GET /api/search?q=...&limit=...
+// GET /api/search?q=...&limit=...&version=v1|v2
 const handleSearch = (url: URL) => {
   const q = url.searchParams.get("q") || "";
   const limit = intParam(url, "limit", 10, 1, 50);
-  const results = searchSite(q, limit);
+  const v = url.searchParams.get("version");
+  const version: "v1" | "v2" = v === "v1" ? "v1" : "v2";
+  const results = searchSite(q, limit, version);
   return json({ query: q, results });
 };
 
