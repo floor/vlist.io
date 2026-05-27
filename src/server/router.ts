@@ -57,7 +57,15 @@ function resolveTutorialsV1(pathname: string): Response | null {
   return null;
 }
 
+const DOCS_REDIRECTS: Record<string, string> = {
+  "/docs/plugins/async": "/docs/plugins/data",
+};
+
 function resolveDocs(pathname: string): Response | null {
+  const redirect = DOCS_REDIRECTS[pathname];
+  if (redirect) {
+    return new Response(null, { status: 301, headers: { Location: redirect } });
+  }
   if (pathname === "/docs" || pathname === "/docs/") {
     return renderDocsPage(null);
   }
