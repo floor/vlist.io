@@ -15,7 +15,7 @@ All measurements are for ESM output with minification enabled. Gzipped delta is 
 | Base (`createVList`) | {{size:base:min}} KB | {{size:base:gz}} KB | — |
 | a11y | {{size:a11y:min}} KB | {{size:a11y:gz}} KB | +{{size:a11y:delta}} KB |
 | selection | {{size:selection:min}} KB | {{size:selection:gz}} KB | +{{size:selection:delta}} KB |
-| async | {{size:async:min}} KB | {{size:async:gz}} KB | +{{size:async:delta}} KB |
+| data | {{size:data:min}} KB | {{size:data:gz}} KB | +{{size:data:delta}} KB |
 | scrollbar | {{size:scrollbar:min}} KB | {{size:scrollbar:gz}} KB | +{{size:scrollbar:delta}} KB |
 | sortable | {{size:sortable:min}} KB | {{size:sortable:gz}} KB | +{{size:sortable:delta}} KB |
 | groups | {{size:groups:min}} KB | {{size:groups:gz}} KB | +{{size:groups:delta}} KB |
