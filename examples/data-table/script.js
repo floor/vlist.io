@@ -15,6 +15,7 @@ import { initControls } from "./controls.js";
 export const ROW_HEIGHT = 36;
 export const HEADER_HEIGHT = 36;
 export const CHUNK_SIZE = 100;
+const STORAGE_KEY = "data-table-list";
 const API_BASE =
   typeof location !== "undefined" ? location.origin : "http://localhost:3338";
 
@@ -338,11 +339,13 @@ const updateInfo = createInfoUpdater(stats);
 // =============================================================================
 
 export function createList() {
-  let snapshot = null;
   if (list) {
-    try {
-      snapshot = list.getScrollSnapshot();
-    } catch {}
+    const vp = list.element.querySelector(".vlist-viewport");
+    const actualTop = vp ? vp.scrollTop : 0;
+    const snap = list.getScrollSnapshot();
+    if (actualTop > 0 && snap.scrollTop > 0) {
+      try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snap)); } catch {}
+    }
     list.destroy();
     list = null;
   }
@@ -394,7 +397,7 @@ export function createList() {
         sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
       }),
       selection({ mode: "single" }),
-      snapshots(snapshot ? { restore: snapshot } : undefined),
+      snapshots({ autoSave: STORAGE_KEY }),
     ],
   );
 
