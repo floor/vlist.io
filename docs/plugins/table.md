@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-28
 status: published
 ---
 
@@ -67,10 +67,22 @@ list.on("column:sort", ({ key, index, direction }) => {
 - `.vlist--table-row-borders` if rowBorders enabled
 - `.vlist--table-col-borders` if columnBorders enabled
 
+## Large datasets
+
+Combine with [scale](/docs/plugins/scale) for tables with 1M+ rows. Compression is handled automatically — the table switches to compressed range calculation and viewport-relative row positioning when content exceeds the browser limit.
+
+```ts
+const list = createVList({
+  container: "#app",
+  items: millionRows,
+}, [table({ columns, rowHeight: 36 }), scale(), scrollbar()]);
+```
+
 ## Notes
 
 - Sorting is visual only — the plugin emits `column:sort`, you re-sort data and call `setItems()`
 - Sticky header row
+- Works with scale plugin for 1M+ row tables
 - Conflicts with: grid, masonry
 
 ## Examples

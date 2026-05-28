@@ -1,6 +1,6 @@
 ---
 created: 2026-02-10
-updated: 2026-05-27
+updated: 2026-05-28
 status: published
 ---
 
@@ -48,10 +48,26 @@ list.scrollToIndex(999999, {
 
 When compression is not active (list is small enough), `scrollToIndex` falls through to the default implementation.
 
+## Layout plugin support
+
+Scale works with all three layout plugins — grid, table, and masonry. Layout plugins detect the scale plugin automatically via cross-plugin method registration and use compressed range calculation and viewport-relative positioning when compression is active.
+
+```ts
+// 1M items in a 4-column grid with scroll compression
+const list = createVList({
+  container: "#app",
+  item: { height: 120, template: renderCard },
+  items: millionItems,
+}, [grid({ columns: 4, gap: 8 }), scale(), scrollbar()]);
+```
+
+`scrollToIndex()`, smooth scroll, and all navigation work correctly in compressed mode across all layouts.
+
 ## Notes
 
 - Activates automatically when total content size exceeds browser limits
 - Transparent to the rest of the API — `scrollToIndex()`, events, etc. work as normal
+- Works with grid, table, and masonry layout plugins
 - Conflicts with: sortable
 
 ## Examples

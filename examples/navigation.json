@@ -54,7 +54,16 @@
         "slug": "track-list",
         "name": "Track List",
         "desc": "Music library with async loading — toggle between list, grid, and table views",
-        "plugins": ["data", "selection", "grid", "table", "scrollbar", "scale", "snapshots", "transition"]
+        "plugins": [
+          "data",
+          "selection",
+          "grid",
+          "table",
+          "scrollbar",
+          "scale",
+          "snapshots",
+          "transition"
+        ]
       },
       {
         "slug": "accessibility",
@@ -77,7 +86,7 @@
         "slug": "large-list",
         "name": "Large Dataset",
         "desc": "100K–5M items with scroll compression",
-        "plugins": ["scale", "scrollbar"]
+        "plugins": ["scale", "scrollbar", "table", "grid"]
       },
       {
         "slug": "variable-sizes",

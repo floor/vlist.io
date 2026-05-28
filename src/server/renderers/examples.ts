@@ -377,10 +377,15 @@ function buildExtraHead(
     `<link rel="stylesheet" href="/dist/vlist.css?v=${VLIST_VERSION}" />`,
   );
 
-  // Table styles — only for examples that use the table plugin
+  // Plugin-specific styles
   if (example?.plugins?.includes("table")) {
     tags.push(
       `<link rel="stylesheet" href="/dist/vlist-table.css?v=${VLIST_VERSION}" />`,
+    );
+  }
+  if (example?.plugins?.includes("grid")) {
+    tags.push(
+      `<link rel="stylesheet" href="/dist/vlist-grid.css?v=${VLIST_VERSION}" />`,
     );
   }
 
