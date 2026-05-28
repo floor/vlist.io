@@ -59,7 +59,7 @@ The `ctx` object passed to `setup()` — your gateway to the list internals.
 | Member | Type | Description |
 |--------|------|-------------|
 | `ctx.dom` | `DOMStructure` | `{ root, viewport, content, liveRegion }` |
-| `ctx.config` | `ResolvedConfig` | Resolved config (overscan, horizontal, reverse, gap, padding, etc.) |
+| `ctx.config` | `ResolvedConfig` | Resolved config (axis, hasCrossAxis, overscan, reverse, gap, padding, etc.) |
 | `ctx.sizeCache` | `SizeCache` | Item size storage |
 | `ctx.pool` | `ElementPool` | DOM element pool (`acquire()`, `release()`) |
 | `ctx.template` | `ItemTemplate<T>` | The user's item template function |

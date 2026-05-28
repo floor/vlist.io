@@ -172,7 +172,7 @@ interface VListEvents<T extends VListItem = VListItem> {
   "item:contextmenu": { item: T; index: number; event: MouseEvent };
 
   // Scroll
-  scroll: { scrollPosition: number; direction: "up" | "down" };
+  scroll: { scrollPosition: number; direction: "up" | "down" | "left" | "right" };
   "scroll:idle": { scrollPosition: number };
   "velocity:change": { velocity: number; reliable: boolean };
   "range:change": { range: Range };

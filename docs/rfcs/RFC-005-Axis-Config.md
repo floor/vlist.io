@@ -1,12 +1,12 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
-status: accepted (Phase 1)
+updated: 2026-05-28
+status: implemented (Phase 1)
 ---
 
 # RFC-005: Axis-Based Internal Model
 
-**Status:** Accepted (Phase 1)  
+**Status:** Implemented (Phase 1)  
 **Author:** floor  
 **Type:** API Design  
 **Created:** 2026-05-27  
@@ -47,9 +47,11 @@ This RFC is scoped to **Phase 1: internal model + scroll direction fix**. No pub
 
 | Phase | Scope | Status |
 |---|---|---|
-| **Phase 1** (this RFC) | Internal `AxisConfig` on `ResolvedConfig`, derive `horizontal` and `isGrid`, fix scroll event direction labels | **Accepted** |
-| **Phase 2** (separate RFC) | Whether/how grid config gets a shorthand on `CreateVListConfig` | Deferred |
+| **Phase 1** (this RFC) | Internal `AxisConfig` on `ResolvedConfig`, derive `hasCrossAxis`, remove `horizontal` boolean, fix scroll event direction labels | **Implemented** |
+| **Phase 2** (separate RFC) | Whether/how grid config gets a shorthand on `CreateVListConfig` | **Declined** — see note below |
 | **Phase 3** (future) | `z`-axis / zoom vocabulary — only when a zoom plugin motivates it | Deferred |
+
+**Phase 2 disposition:** Declined. The v2 API (`createVList(config, [grid({ columns: 3 })])`) is already a single explicit call — there is no builder ceremony to shortcut around. Promoting grid config to `CreateVListConfig` would either break plugin isolation (core knows about grid) or require auto-detection that obscures what's happening. The original deferral reasons still hold: `gap` precedence confusion with `item.gap`, asymmetry with masonry/table column semantics, and no user demand. If users want shorter syntax, the right place is framework adapters — React/Vue/Svelte/Solid wrappers already translate convenience props into plugin arrays. A `<VList grid={3} scrollbar />` prop is natural in JSX/templates without polluting the core config. The core stays explicit; each adapter provides the DX its community expects.
 
 ---
 
@@ -110,7 +112,7 @@ interface CreateVListConfig<T> {
 
 ### Resolved Config (internal)
 
-Internally, the resolved config adds `axis` and `isGrid`:
+Internally, the resolved config adds `axis` and `hasCrossAxis`. The `horizontal` boolean is **not** kept — all code derives axis information from `config.axis.primary` via a local `const isX = config.axis.primary === "x"`:
 
 ```typescript
 type Axis = 'x' | 'y';
@@ -122,8 +124,7 @@ interface AxisConfig {
 
 interface ResolvedConfig {
   readonly axis: AxisConfig;
-  readonly horizontal: boolean;   // axis.primary === 'x' (shorthand for hot path)
-  readonly isGrid: boolean;       // axis.cross !== undefined
+  readonly hasCrossAxis: boolean;  // axis.cross !== undefined
   readonly overscan: number;
   readonly reverse: boolean;
   readonly classPrefix: string;
@@ -140,25 +141,35 @@ function resolveAxis(
   plugins: VListPlugin[],
 ): AxisConfig {
   const primary: Axis = orientation === 'horizontal' ? 'x' : 'y';
-  const cross: Axis = orientation === 'horizontal' ? 'y' : 'x';
 
   const hasGridPlugin = plugins.some(p => p.name === 'grid');
-  return hasGridPlugin ? { primary, cross } : { primary };
+  if (hasGridPlugin) {
+    const cross: Axis = primary === 'x' ? 'y' : 'x';
+    return { primary, cross };
+  }
+  return { primary };
 }
 
 function resolveConfig(raw: CreateVListConfig, plugins: VListPlugin[]): ResolvedConfig {
   const axis = resolveAxis(raw.orientation, plugins);
-  const horizontal = axis.primary === 'x';
-  const isGrid = axis.cross !== undefined;
 
   return {
     axis,
-    horizontal,
-    isGrid,
+    hasCrossAxis: axis.cross !== undefined,
     // ...other fields unchanged
   };
 }
 ```
+
+Consumers derive axis booleans locally where needed:
+
+```typescript
+const isX = config.axis.primary === "x";
+```
+
+**Why `hasCrossAxis` over `isGrid`:** The field describes what it means (a cross-axis layout dimension exists), not where it comes from (the grid plugin). This is more accurate — if a future plugin also sets a cross axis, the name still holds.
+
+**Why no `horizontal` shorthand:** An earlier draft kept `horizontal: boolean` on `ResolvedConfig` as a hot-path shorthand. During implementation, this was removed — having both `axis` and `horizontal` creates two sources of truth for the same concept. The `isX` local variable pattern is just as fast (the JIT inlines it) and eliminates the redundancy.
 
 **Why a named object over an array:** An earlier draft used `axis: ['x', 'y']` with positional semantics (primary first). Reviewers correctly identified this as error-prone — reading `axis[0]` vs `axis.primary` in plugin code is a meaningful clarity difference. The named shape is self-documenting and eliminates ordering bugs.
 
@@ -248,9 +259,11 @@ scroll: { scrollPosition: number; direction: "up" | "down" | "left" | "right" }
 The internal `scrollDirection` stays as `1 | -1 | 0`. Only the emitted event label changes based on the primary axis:
 
 ```typescript
+const isX = config.axis.primary === "x";
+
 function emitScrollEvents(): void {
   _scrollEvt.scrollPosition = state.scrollPosition;
-  if (config.horizontal) {
+  if (isX) {
     _scrollEvt.direction = state.scrollDirection > 0 ? "right" : "left";
   } else {
     _scrollEvt.direction = state.scrollDirection > 0 ? "down" : "up";
@@ -275,7 +288,7 @@ The internal `AfterScrollHook` signature stays numeric:
 type AfterScrollHook = (scrollPosition: number, direction: number) => void;
 ```
 
-Plugins that need the label can derive it from `config.horizontal` + the numeric direction. No hook signature change needed.
+Plugins that need the label can derive it from `config.axis.primary` + the numeric direction. No hook signature change needed.
 
 ---
 
@@ -307,17 +320,18 @@ The only user-visible change is the scroll event `direction` label: horizontal l
 
 ### Internal Migration
 
-Files that reference `horizontal: boolean` or `orientation`:
+The `horizontal` boolean was fully removed from `ResolvedConfig` and all internal code. Every reference was replaced with `config.axis.primary === "x"` (aliased as `isX` locally). This affected 37 files (+347/−304 lines):
 
-- `src/core/types.ts` — Add `AxisConfig` type, add `axis` and `isGrid` to `ResolvedConfig`
-- `src/core/create.ts` — Add `resolveAxis()`, resolve `orientation` + grid plugin presence into `AxisConfig`; fix `emitScrollEvents()` direction labels
-- `src/core/pipeline.ts` — Uses `horizontal` (unchanged, derived from `axis.primary`)
-- `src/core/dom.ts` — Uses `horizontal` (unchanged)
-- `src/core/scroll.ts` — Uses `horizontal` (unchanged)
-- `src/plugins/*/plugin.ts` — ~12 plugins reference `horizontal` (unchanged)
-- `src/rendering/*.ts` — Renderer uses `horizontal` (unchanged)
+- `src/core/types.ts` — Add `Axis`, `AxisConfig` types; add `axis` and `hasCrossAxis` to `ResolvedConfig`; remove `horizontal`
+- `src/core/create.ts` — Add `resolveAxis()`; fix `emitScrollEvents()` direction labels; rename `horizontal` → `isX`
+- `src/core/pipeline.ts` — Replace `horizontal: boolean` with `sizeProp: "width" | "height"` on `RenderConfig` (pre-resolved at init, zero branching on hot path)
+- `src/core/dom.ts` — Rename parameter `horizontal` → `isX` (CSS class strings `--horizontal` and `aria-orientation="horizontal"` preserved)
+- `src/core/scroll.ts` — Rename `ScrollHandlerConfig.horizontal` → `isX`
+- `src/plugins/*/plugin.ts` — All 12 plugins: `ctx.config.horizontal` → `ctx.config.axis.primary === "x"`
+- `src/rendering/*.ts` — Renderer params renamed `horizontal` → `isX`
 - `src/types.ts` — Widen scroll event `direction` type to `"up" | "down" | "left" | "right"`
-- `src/plugins/scrollbar/controller.ts` — Update `ScrollDirection` type
+- `src/plugins/scrollbar/controller.ts` — Direction assignments made axis-aware; rename `horizontal` → `isX`
+- `src/index.ts`, `src/core/index.ts` — Export `Axis` and `AxisConfig` types
 
 ---
 
@@ -333,10 +347,12 @@ Files that reference `horizontal: boolean` or `orientation`:
 
 ## Decision
 
-**Phase 1 accepted** following [discussion #84](https://github.com/floor/vlist/discussions/84) review.
+**Phase 1 implemented** on branch `feat/axis-config` (3 commits, 37 files, all 3326 tests pass, typecheck clean).
 
-Key decisions from the review:
+Key decisions from the review and implementation:
 - **Named `AxisConfig` object** over array-based axis ordering (consensus from all reviewers)
 - **No public config changes** in Phase 1 — `columns`/`gap` stay off `CreateVListConfig` to avoid config pollution and preserve plugin symmetry
 - **"Adds a cross-axis layout dimension"** over "virtualizes both axes" — the grid does not independently viewport the cross-axis
 - **Phased rollout** — Phase 1 is internal model + scroll direction fix; public API shorthand deferred to Phase 2
+- **`hasCrossAxis` over `isGrid`** — describes the semantic (cross-axis exists) rather than the source (grid plugin). Decided during implementation.
+- **Full `horizontal` removal** — the RFC originally proposed keeping `horizontal: boolean` as a hot-path shorthand. During implementation, this was dropped in favor of local `isX` derivation to avoid two sources of truth. No performance cost (JIT inlines the comparison).
