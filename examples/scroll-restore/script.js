@@ -82,16 +82,7 @@ const updateInfo = createInfoUpdater(stats);
 let list = null;
 let snapshotUpdateId = null;
 
-/**
- * Create (or recreate) the list.
- *
- * @param {import('vlist').ScrollSnapshot} [snapshot]
- *   Optional snapshot to restore automatically after build().
- *   When provided it is passed to `snapshots({ restore })` which
- *   schedules `restoreScroll()` via `queueMicrotask` — the user never
- *   sees position 0.
- */
-function createList(snapshot) {
+function createList() {
   list = createVList({
     container: listContainer,
     ariaLabel: "Employee list",
@@ -114,7 +105,7 @@ function createList(snapshot) {
     items,
   }, [
     selection({ mode: "multiple" }),
-    snapshots(snapshot ? { restore: snapshot } : undefined),
+    snapshots({ autoSave: STORAGE_KEY }),
   ]);
 
   // Info bar updates
@@ -225,13 +216,8 @@ function goBack() {
   detailPage.classList.add("hidden");
   listPage.classList.remove("hidden");
 
-  // 2. Read saved snapshot
-  const raw = sessionStorage.getItem(STORAGE_KEY);
-  const snapshot = raw ? JSON.parse(raw) : undefined;
-
-  // 3. Recreate the list — snapshot is passed to snapshots({ restore })
-  //    so scroll + selection are restored automatically after build().
-  createList(snapshot);
+  // 2. Recreate the list — autoSave reads from sessionStorage automatically
+  createList();
 }
 
 // ---------------------------------------------------------------------------
@@ -246,27 +232,14 @@ goBackBtn.addEventListener("click", goBack);
 // ---------------------------------------------------------------------------
 
 function init() {
-  // Check for a previously saved snapshot (e.g. hard page refresh)
-  const raw = sessionStorage.getItem(STORAGE_KEY);
-  let snapshot;
+  const hasSaved = !!sessionStorage.getItem(STORAGE_KEY);
 
-  if (raw) {
-    try {
-      snapshot = JSON.parse(raw);
-    } catch {
-      // Ignore corrupted data
-    }
-    sessionStorage.removeItem(STORAGE_KEY);
-  }
-
-  // Create the list — if a snapshot exists it is passed directly to
-  // snapshots({ restore }) for automatic restoration.
-  createList(snapshot);
+  // autoSave reads from sessionStorage automatically on create
+  createList();
 
   // Pre-select a handful of items to make the demo more interesting
-  // (only when there's no snapshot to restore — otherwise the snapshot
-  // already carries its own selectedIds).
-  if (!snapshot) {
+  // (only on first visit — saved snapshots carry their own selectedIds)
+  if (!hasSaved) {
     list.select(3, 7, 12, 25, 42);
   }
 }

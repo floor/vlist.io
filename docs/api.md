@@ -120,7 +120,7 @@ When `easing` is omitted, a default easeInOutQuad curve is used.
 | `item:click` | `{ item, index, event: MouseEvent }` | Item clicked |
 | `item:dblclick` | `{ item, index, event: MouseEvent }` | Item double-clicked |
 | `item:contextmenu` | `{ item, index, event: MouseEvent }` | Item right-clicked |
-| `scroll` | `{ scrollPosition, direction: "up" \| "down" }` | Scroll position changed |
+| `scroll` | `{ scrollPosition, direction: "up" \| "down" \| "left" \| "right" }` | Scroll position changed |
 | `scroll:idle` | `{ scrollPosition }` | Scrolling stopped |
 | `velocity:change` | `{ velocity, reliable }` | Scroll velocity changed |
 | `range:change` | `{ range: { start, end } }` | Visible range changed |
