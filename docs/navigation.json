@@ -137,6 +137,11 @@
         "slug": "bundle-size",
         "name": "Bundle Size",
         "desc": "Per-plugin size analysis"
+      },
+      {
+        "slug": "rfcs",
+        "name": "RFCs",
+        "desc": "Design proposals and architecture decisions"
       }
     ]
   }
