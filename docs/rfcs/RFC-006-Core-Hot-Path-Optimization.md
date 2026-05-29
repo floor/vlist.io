@@ -1,15 +1,16 @@
 ---
 created: 2026-05-28
-updated: 2026-05-28
-status: draft
+updated: 2026-05-29
+status: implemented
 ---
 
 # RFC-006: Core Hot-Path Optimization Pass
 
-**Status:** Draft  
+**Status:** Implemented  
 **Author:** GPT (Codex)  
 **Type:** Performance / Bundle Size  
 **Created:** 2026-05-28  
+**Revised:** 2026-05-29 — Status updated, implementation notes added  
 **Related:** RFC-002 Core Architecture, RFC-004 Core Optimization, RFC-005 Axis-Based Internal Model
 
 ## Summary
@@ -214,12 +215,23 @@ This RFC can move from draft to implemented when:
 - the base bundle has no unjustified size regression;
 - benchmark results are neutral or better.
 
-## Open Questions
+## Open Questions (Resolved)
 
-1. Should contiguity be represented explicitly on internal engine state, or detected locally in `phase2Commit`?
-2. Should no-plugin hook paths use shared empty arrays or simple null checks?
-3. Should listener-aware events become RFC-007 if profiling supports the work?
+1. ~~Should contiguity be represented explicitly on internal engine state, or detected locally in `phase2Commit`?~~ **Answered:** Detected locally via `isContiguousWindow()` in `pipeline.ts`. No explicit state flag needed.
+2. ~~Should no-plugin hook paths use shared empty arrays or simple null checks?~~ **Answered:** Heavy plugin setup is gated by `plugins.length > 0`. Scaffolding arrays are still allocated unconditionally — the cold-path cost is negligible.
+3. ~~Should listener-aware events become RFC-007 if profiling supports the work?~~ **Answered:** No. RFC-007 was allocated to the Tree Plugin. Listener-aware events remain deferred until profiling shows meaningful cost.
 
 ## Conclusion
 
 This RFC revives only the small, measurable part of core optimization work. The intent is to keep v2's now-stable architecture intact while shaving cost from the most common paths.
+
+---
+
+## Implementation Notes
+
+| Proposal | Status | Notes |
+|---|---|---|
+| 1. Contiguous release fast path | ✅ Implemented | `pipeline.ts:171-392` — `isContiguousWindow()` enables O(1) range check; `isInVisible()` scan fallback for non-contiguous layouts |
+| 2. Lazy plugin scaffolding | ⚠️ Partial | `create.ts:296` — heavy plugin setup gated by `plugins.length > 0`. Handler arrays/maps still allocated unconditionally (negligible cold-path cost) |
+| 3. Cheaper pool cleanup | ✅ Implemented | `pool.ts:36` — `textContent = ""` replaces `innerHTML = ""` |
+| 4. Listener-aware events | Deferred | Intentionally out of scope — no profiling evidence of meaningful cost |

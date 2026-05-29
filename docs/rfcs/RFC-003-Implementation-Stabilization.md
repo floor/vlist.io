@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-29
 status: implemented
 ---
 
@@ -11,6 +11,7 @@ status: implemented
 **Type:** Implementation Review / Stabilization Plan  
 **Created:** 2026-05-22  
 **Resolved:** 2026-05-23 — [Discussion #75](https://github.com/floor/vlist/discussions/75)  
+**Revised:** 2026-05-29 — Implementation notes added  
 **Related:** RFC-002 Core Architecture
 
 ---
@@ -264,4 +265,12 @@ RFC-003 is complete when:
 2. ~~Should non-contiguous membership marking live in `EngineState`, or should it be a private renderer structure?~~ **Answered:** Private renderer structure (`isInVisible()` scan). No typed-array marking needed — scan is bounded by `visibleCount`.
 3. ~~Should the old `feature.ts` files be moved to an archive path, removed entirely, or migrated incrementally?~~ **Answered:** Removed entirely. Clean break.
 4. ~~What is the minimum acceptable allocation measurement harness for CI?~~ **Answered:** No CI harness added. Manual audit completed. Possible future addition, not blocking.
+
+---
+
+## 9. Implementation Notes
+
+All stabilization items are resolved. One known optimization opportunity remains:
+
+- **Grid grouped-mode hot path** — `buildTransform()` in `grid/renderer.ts` contains an O(n) inner loop over items before the current index when `groupsActive` is true, plus a per-frame string allocation for transform values. Masonry and table renderers are clean. This is a minor concern limited to the grouped-grid path, not a blocking issue.
 
