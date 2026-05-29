@@ -3,7 +3,7 @@
 // All sorting and filtering happens server-side via /api/cities.
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
-import { createVList, table, selection, data as dataPlugin, snapshots } from "vlist";
+import { createVList, table, selection, data as dataPlugin, snapshots, scrollbar } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -34,6 +34,7 @@ export let searchQuery = "";
 export let filterContinent = "";
 export let loadRequests = 0;
 export let loadedCount = 0;
+export let useCustomScrollbar = false;
 
 export function setCurrentRowHeight(v) {
   currentRowHeight = v;
@@ -49,6 +50,9 @@ export function setSearchQuery(v) {
 }
 export function setFilterContinent(v) {
   filterContinent = v;
+}
+export function setUseCustomScrollbar(v) {
+  useCustomScrollbar = v;
 }
 
 // =============================================================================
@@ -398,6 +402,7 @@ export function createList() {
       }),
       selection({ mode: "single" }),
       snapshots({ autoSave: STORAGE_KEY }),
+      ...(useCustomScrollbar ? [scrollbar()] : []),
     ],
   );
 

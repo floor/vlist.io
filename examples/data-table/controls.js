@@ -142,6 +142,19 @@ if (continentSelect) {
 }
 
 // =============================================================================
+// Scrollbar Toggle — native ↔ custom (rebuilds list)
+// =============================================================================
+
+const scrollbarToggle = document.getElementById("scrollbar-toggle");
+
+if (scrollbarToggle) {
+  scrollbarToggle.addEventListener("change", () => {
+    app.setUseCustomScrollbar(scrollbarToggle.checked);
+    app.createList();
+  });
+}
+
+// =============================================================================
 // Navigation
 // =============================================================================
 

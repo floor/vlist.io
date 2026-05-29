@@ -179,23 +179,32 @@ radiusSlider.addEventListener("input", (e) => {
 });
 
 // =============================================================================
-// Padding slider
+// Padding X slider (left + right)
 // =============================================================================
 
-const paddingSlider = document.getElementById("padding-slider");
-const paddingValue = document.getElementById("padding-value");
+const paddingXSlider = document.getElementById("padding-x-slider");
+const paddingXValue = document.getElementById("padding-x-value");
 
-paddingSlider.addEventListener("input", (e) => {
+paddingXSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
-  paddingValue.textContent = px + "px";
-  app.setPadding(px);
-  const root = document.querySelector("#list-container > .vlist");
-  if (root) {
-    root.style.setProperty("--vlist-custom-scrollbar-padding-top", px + "px");
-    root.style.setProperty("--vlist-custom-scrollbar-padding-right", px + "px");
-    root.style.setProperty("--vlist-custom-scrollbar-padding-bottom", px + "px");
-    root.style.setProperty("--vlist-custom-scrollbar-padding-left", px + "px");
-  }
+  paddingXValue.textContent = px + "px";
+  app.setPaddingX(px);
+  app.createList();
+  save();
+});
+
+// =============================================================================
+// Padding Y slider (top + bottom)
+// =============================================================================
+
+const paddingYSlider = document.getElementById("padding-y-slider");
+const paddingYValue = document.getElementById("padding-y-value");
+
+paddingYSlider.addEventListener("input", (e) => {
+  const px = parseInt(e.target.value, 10);
+  paddingYValue.textContent = px + "px";
+  app.setPaddingY(px);
+  app.createList();
   save();
 });
 
@@ -284,7 +293,9 @@ export function restoreFromStorage() {
     if (saved.gutterEnabled !== undefined) app.setGutterEnabled(saved.gutterEnabled);
     if (saved.showOnHover !== undefined) app.setShowOnHover(saved.showOnHover);
     if (saved.showOnViewportEnter !== undefined) app.setShowOnViewportEnter(saved.showOnViewportEnter);
-    if (saved.padding !== undefined) app.setPadding(saved.padding);
+    if (saved.paddingX !== undefined) app.setPaddingX(saved.paddingX);
+    if (saved.paddingY !== undefined) app.setPaddingY(saved.paddingY);
+    if (saved.padding !== undefined) { app.setPaddingX(saved.padding); app.setPaddingY(saved.padding); }
     if (saved.minThumbSize !== undefined) app.setMinThumbSize(saved.minThumbSize);
     if (saved.clickBehavior) app.setClickBehavior(saved.clickBehavior);
 
@@ -313,8 +324,10 @@ export function restoreFromStorage() {
 
   delaySlider.value = app.autoHideDelay;
   delayValue.textContent = app.autoHideDelay + "ms";
-  paddingSlider.value = app.padding;
-  paddingValue.textContent = app.padding + "px";
+  paddingXSlider.value = app.paddingX;
+  paddingXValue.textContent = app.paddingX + "px";
+  paddingYSlider.value = app.paddingY;
+  paddingYValue.textContent = app.paddingY + "px";
   minThumbSlider.value = app.minThumbSize;
   minThumbValue.textContent = app.minThumbSize + "px";
 
