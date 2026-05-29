@@ -153,7 +153,6 @@ export function createList() {
       template: itemTemplate,
     },
     items: users,
-    interactive: a11yEnabled,
   }, plugins);
 
   list.on("scroll", updateInfo);

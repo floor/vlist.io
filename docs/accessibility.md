@@ -6,9 +6,24 @@ status: published
 
 # Accessibility
 
-vlist implements the WAI-ARIA Listbox pattern with full keyboard navigation and screen reader support. The core provides single-select and focus management out of the box — no plugins required.
+vlist implements the WAI-ARIA composite widget pattern with full keyboard navigation and screen reader support. ARIA semantics are **plugin-driven** — the `a11y()` or `selection()` plugin upgrades the list from a static `role="list"` to an interactive `role="listbox"`.
 
 ## ARIA Structure
+
+**Default (no interaction plugin):**
+
+```
+div                                        ← root
+  div[tabindex="-1"]                       ← viewport
+    div[role="list"]                       ← content
+      [aria-label]
+      [aria-orientation]                   (horizontal mode only)
+      div[role="listitem"]                 ← item
+        [aria-setsize]
+        [aria-posinset]
+```
+
+**With `a11y()` or `selection()` plugin:**
 
 ```
 div                                        ← root
@@ -27,16 +42,24 @@ div                                        ← root
 
 - `aria-setsize` and `aria-posinset` on every rendered item — screen readers announce "item 5 of 200"
 - `aria-activedescendant` pattern (not roving tabindex) because items are virtual and recycled
-- Item `id` attributes are set automatically when `interactive: true`
-- `aria-selected` reflects selection state (baseline or selection plugin)
+- Item `id` attributes are set automatically when `a11y()` or `selection()` is active
+- `aria-selected` reflects selection state
 - `aria-busy="true"` during async loading
-- `interactive: false` switches `role="listbox"` to `role="list"`, items to `role="listitem"`, and removes `tabindex`
+- The `a11y()` and `selection()` plugins call `enableListboxRole()` during setup, which upgrades `role="list"` to `role="listbox"` and items from `role="listitem"` to `role="option"`
+
+## Focusable Descendant Neutralization
+
+vlist automatically sets `tabindex="-1"` on all natively focusable elements inside rendered items (`<a href>`, `<button>`, `<input>`, `<select>`, `<textarea>`, `[tabindex]`). This follows the WAI-ARIA composite widget pattern: the list container owns the single tab stop, and internal focusable elements are removed from sequential tab order.
+
+Elements remain clickable, programmatically focusable, and visible to screen readers — only their participation in `Tab`/`Shift+Tab` navigation is removed. This prevents focus from jumping into the middle of a virtualized list, which would break both keyboard navigation and scroll position.
+
+Neutralization is applied automatically in all render paths (initial render, scroll updates, `setItems()`, plugin renderers).
 
 ## Keyboard Navigation
 
-**Baseline (built-in):**
+**With `a11y()` plugin:**
 
-Single-select and focus management are built into the core when `interactive: true` (the default). No plugins needed for WAI-ARIA compliant keyboard navigation.
+Single-select and focus management. Add `a11y()` for WAI-ARIA compliant keyboard navigation.
 
 | Key | Action |
 |-----|--------|
@@ -53,9 +76,9 @@ Events emitted:
 - `focus:change` — `{ id, index }` when the focused item changes
 - `selection:change` — `{ selected: [id], items: [item] }` when selection changes (empty arrays on deselect)
 
-**With selection plugin:**
+**With `selection()` plugin:**
 
-The selection plugin replaces baseline behavior entirely, adding multi-select, range selection, and additional keybindings.
+The selection plugin replaces a11y behavior entirely, adding multi-select, range selection, and additional keybindings.
 
 | Key | Action |
 |-----|--------|
@@ -69,7 +92,7 @@ The selection plugin replaces baseline behavior entirely, adding multi-select, r
 | Delete/Backspace | Emit `delete` event |
 | Escape | Clear selection |
 
-**With sortable plugin:**
+**With `sortable()` plugin:**
 
 | Key | Action |
 |-----|--------|
@@ -90,22 +113,21 @@ Arrow keys move focus. Space/Enter toggles selection on the focused item. Click 
 ```ts
 createVList({
   ariaLabel: "Contact list",
-  interactive: true, // default — enables keyboard + a11y
   // ...
-});
+}, [a11y()]); // or selection() for multi-select
 ```
 
-Set `interactive: false` for presentation-only lists (e.g. dashboards, decorative feeds). This removes keyboard handling, changes `role` to `"list"`, and removes `tabindex`. Click events still fire.
+Without `a11y()` or `selection()`, the list uses `role="list"` with no keyboard handling — suitable for presentation-only lists (e.g. dashboards, decorative feeds). Click events still fire.
 
-## Built-in vs. Plugin
-
-The core provides full WAI-ARIA compliance out of the box. Plugins extend it:
+## Plugins and ARIA
 
 | Capability | Source |
 |------------|--------|
-| ARIA roles, `aria-setsize`, `aria-posinset` | Built-in (core) |
-| `aria-activedescendant` focus tracking | Built-in (core) |
-| Arrow/Home/End/PageUp/PageDown navigation | Built-in (core) |
+| `role="list"`, `aria-setsize`, `aria-posinset` | Built-in (core) |
+| Focusable descendant neutralization | Built-in (core) |
+| `role="listbox"` upgrade, `tabindex="0"` | `a11y()` or `selection()` plugin |
+| `aria-activedescendant` focus tracking | `a11y()` or `selection()` plugin |
+| Arrow/Home/End/PageUp/PageDown navigation | `a11y()` or `selection()` plugin |
 | Single-select via Space/Enter + Click | `a11y()` or `selection()` plugin |
 | Multi-select, range select, Ctrl+A | `selection()` plugin |
 | 2D grid navigation (left/right between columns) | `grid()` plugin |
@@ -113,7 +135,7 @@ The core provides full WAI-ARIA compliance out of the box. Plugins extend it:
 | Live region announcements ("Item N of M") | `a11y()` or `selection()` plugin |
 | Drag-and-drop announcements | `sortable()` plugin |
 
-If you only need keyboard navigation without selection, set `interactive: true` (the default) — no plugins required. Add `a11y()` for single-select with screen reader announcements, or `selection()` for full multi-select.
+Add `a11y()` for single-select with screen reader announcements, or `selection()` for full multi-select. You don't need both — `a11y()` is a no-op when `selection()` is active.
 
 ## Screen Reader Tips
 

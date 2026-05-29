@@ -83,4 +83,25 @@ All plugin deltas are the same or smaller than in v1.
 - All `withX` plugin functions renamed to bare names (see table above)
 - Plugin priorities are set by each plugin — custom plugins can still set `priority` in the `VListPlugin` interface to control execution order
 
-Instance methods, events, and config options are largely unchanged. Framework adapters (React, Vue, Svelte, Solid) will be updated in their respective packages.
+### `interactive` config removed
+
+The `interactive` config option has been removed. ARIA semantics are now plugin-driven:
+
+- **Before:** `interactive: true` (default) set `role="listbox"` and enabled keyboard handling. `interactive: false` switched to `role="list"`.
+- **After:** The core always uses `role="list"`. Adding `a11y()` or `selection()` upgrades it to `role="listbox"` with full keyboard navigation.
+
+```ts
+// v2 (before)
+createVList({ interactive: true, ... });
+
+// v2 (after) — add a11y() or selection() plugin instead
+createVList({ ... }, [a11y()]);
+```
+
+Lists without `a11y()` or `selection()` use `role="list"` with no keyboard handling — equivalent to the old `interactive: false`.
+
+### Focusable descendant neutralization
+
+vlist now automatically sets `tabindex="-1"` on all natively focusable elements (`<a href>`, `<button>`, `<input>`, etc.) inside rendered items. This follows the WAI-ARIA composite widget pattern where the list container owns the tab stop. Elements remain clickable and visible to screen readers.
+
+Instance methods, events, and remaining config options are unchanged. Framework adapters (React, Vue, Svelte, Solid) will be updated in their respective packages.

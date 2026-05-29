@@ -1,7 +1,7 @@
 // Scrollbar — showcase all scrollbar plugin options
 // Uses a contact list as the canvas to demonstrate native, custom, and none modes.
 
-import { createVList, scrollbar, selection, snapshots } from "vlist";
+import { createVList, scrollbar, selection, rebuild } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -147,68 +147,52 @@ const updateInfo = createInfoUpdater(stats);
 // Create / recreate list
 // =============================================================================
 
-let savedSnapshot = null;
+let listVersion = 0;
 
-export function createList() {
-  if (list) {
-    const vp = list.element.querySelector(".vlist-viewport");
-    const actualTop = vp ? vp.scrollTop : 0;
-    // Only update savedSnapshot when state has caught up with the viewport.
-    // During rapid recreations, the async restore sets viewport.scrollTop but
-    // state.scrollPosition (used by getScrollSnapshot) lags behind.
-    if (actualTop > 0) {
-      const snap = list.getScrollSnapshot();
-      if (snap.scrollTop > 0) {
-        savedSnapshot = snap;
-      }
-    }
-    list.destroy();
-    list = null;
-  }
-
-  // Write the good snapshot to sessionStorage so the snapshots plugin's
-  // autoSave read picks it up (it ignores config.restore when autoSave is set)
-  if (savedSnapshot) {
-    try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(savedSnapshot));
-    } catch {}
-  }
-
-  const container = document.getElementById("list-container");
-  container.innerHTML = "";
+export async function createList() {
+  const version = ++listVersion;
 
   const scrollConfig = {};
   if (mode === "none") scrollConfig.scrollbar = "none";
 
-  const plugins = [];
-  if (mode === "custom") {
-    plugins.push(
-      scrollbar({
-        autoHide,
-        autoHideDelay,
-        gutter: gutterEnabled,
-        showOnHover,
-        showOnViewportEnter,
-        padding: { top: paddingY, right: paddingX, bottom: paddingY, left: paddingX },
-        clickBehavior,
-        minThumbSize,
-      }),
+  const newList = await rebuild(list, (snap) => {
+    const plugins = [];
+    if (mode === "custom") {
+      plugins.push(
+        scrollbar({
+          autoHide,
+          autoHideDelay,
+          gutter: gutterEnabled,
+          showOnHover,
+          showOnViewportEnter,
+          padding: { top: paddingY, right: paddingX, bottom: paddingY, left: paddingX },
+          clickBehavior,
+          minThumbSize,
+        }),
+      );
+    }
+
+    plugins.push(selection());
+    plugins.push(snap);
+
+    return createVList(
+      {
+        container: "#list-container",
+        ariaLabel: "Scrollbar demo — contact list",
+        scroll: scrollConfig,
+        item: { height: ITEM_HEIGHT, template: renderContact },
+        items: contacts,
+      },
+      plugins,
     );
+  }, { key: STORAGE_KEY, transition: 120 });
+
+  if (version !== listVersion) {
+    newList.destroy();
+    return;
   }
 
-  plugins.push(selection());
-  plugins.push(snapshots({ autoSave: STORAGE_KEY }));
-
-  list = createVList(
-    {
-      container: "#list-container",
-      ariaLabel: "Scrollbar demo — contact list",
-      scroll: scrollConfig,
-      item: { height: ITEM_HEIGHT, template: renderContact },
-      items: contacts,
-    },
-    plugins,
-  );
+  list = newList;
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);

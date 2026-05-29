@@ -5,14 +5,29 @@
 import * as app from "./shared.js";
 
 // =============================================================================
+// Debounced rebuild
+// =============================================================================
+
+let rebuildTimer = 0;
+function debouncedRebuild() {
+  clearTimeout(rebuildTimer);
+  rebuildTimer = setTimeout(() => app.createView(), 150);
+}
+
+// =============================================================================
 // DOM References
 // =============================================================================
 
 const layoutMode = document.getElementById("layout-mode");
 const orientationButtons = document.getElementById("orientation-buttons");
-const columnsButtons = document.getElementById("columns-buttons");
+const columnsSlider = document.getElementById("columns-slider");
+const columnsValue = document.getElementById("columns-value");
 const columnsLabel = document.getElementById("columns-label");
-const gapButtons = document.getElementById("gap-buttons");
+const gapSlider = document.getElementById("gap-slider");
+const gapValue = document.getElementById("gap-value");
+const radiusSlider = document.getElementById("radius-slider");
+const radiusValue = document.getElementById("radius-value");
+const ratioButtons = document.getElementById("ratio-buttons");
 
 // =============================================================================
 // Layout Mode — Grid ↔ Masonry
@@ -61,38 +76,57 @@ orientationButtons.addEventListener("click", (e) => {
 // Columns
 // =============================================================================
 
-columnsButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-cols]");
-  if (!btn) return;
-
-  const cols = parseInt(btn.dataset.cols, 10);
+columnsSlider.addEventListener("input", () => {
+  const cols = parseInt(columnsSlider.value, 10);
   if (cols === app.currentColumns) return;
   app.setCurrentColumns(cols);
-
-  columnsButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle(
-      "ui-ctrl-btn--active",
-      parseInt(b.dataset.cols) === cols,
-    );
-  });
-
-  app.createView();
+  columnsValue.textContent = cols;
+  debouncedRebuild();
 });
 
 // =============================================================================
 // Gap
 // =============================================================================
 
-gapButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-gap]");
-  if (!btn) return;
-
-  const gap = parseInt(btn.dataset.gap, 10);
+gapSlider.addEventListener("input", () => {
+  const gap = parseInt(gapSlider.value, 10);
   if (gap === app.currentGap) return;
   app.setCurrentGap(gap);
+  gapValue.textContent = gap + "px";
+  debouncedRebuild();
+});
 
-  gapButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ui-ctrl-btn--active", parseInt(b.dataset.gap) === gap);
+// =============================================================================
+// Radius
+// =============================================================================
+
+radiusSlider.addEventListener("input", () => {
+  const radius = parseInt(radiusSlider.value, 10);
+  if (radius === app.currentRadius) return;
+  app.setCurrentRadius(radius);
+  radiusValue.textContent = radius + "px";
+  document
+    .getElementById("list-container")
+    .style.setProperty("--item-radius", radius + "px");
+});
+
+// =============================================================================
+// Aspect Ratio
+// =============================================================================
+
+ratioButtons.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-ratio]");
+  if (!btn) return;
+
+  const ratio = parseFloat(btn.dataset.ratio);
+  if (ratio === app.ASPECT_RATIO) return;
+  app.setAspectRatio(ratio);
+
+  ratioButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle(
+      "ui-ctrl-btn--active",
+      parseFloat(b.dataset.ratio) === ratio,
+    );
   });
 
   app.createView();
@@ -125,4 +159,13 @@ document.getElementById("btn-last").addEventListener("click", () => {
 document.getElementById("btn-random").addEventListener("click", () => {
   const idx = Math.floor(Math.random() * app.ITEM_COUNT);
   app.list?.scrollToIndex(idx, { behavior: "smooth", duration: 500 });
+});
+
+// =============================================================================
+// Follow Focus
+// =============================================================================
+
+document.getElementById("follow-focus-toggle").addEventListener("change", (e) => {
+  app.setFollowFocus(e.target.checked);
+  app.createView();
 });

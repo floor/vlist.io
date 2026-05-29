@@ -427,8 +427,10 @@
     border-radius: var(--radius);
     background: var(--bg);
     padding: 2px;
-    flex: 1;
     gap: 4px;
+}
+.ui-segmented--flex-1 {
+    flex: 1;
 }
 
 .ui-segmented__btn {
