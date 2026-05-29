@@ -122,6 +122,11 @@
         "slug": "plugins/masonry",
         "name": "Masonry",
         "desc": "Pinterest-style layout"
+      },
+      {
+        "slug": "plugins/tree",
+        "name": "Tree",
+        "desc": "Virtualized hierarchical tree view"
       }
     ]
   },

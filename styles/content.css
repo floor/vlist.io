@@ -12,12 +12,26 @@
     right: 12px;
     flex: none;
     z-index: 1;
+    font-family: var(--font-mono);
 }
 
 .version-switcher .ui-segmented__btn {
     padding: 3px 10px;
     font-size: var(--fs-xs);
     text-decoration: none;
+}
+
+.version-switcher .ui-segmented__btn {
+    padding: 3px 10px;
+    font-size: var(--fs-xs);
+    text-decoration: none;
+    border: 2px solid transparent;
+}
+
+.version-switcher .ui-segmented__btn--active {
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
 }
 
 /* ─── Page metadata ─────────────────────────────────────────────────────── */

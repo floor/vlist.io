@@ -1,0 +1,156 @@
+/* Tree View — example styles */
+
+/* ============================================================================
+   vlist overrides
+   ============================================================================ */
+
+#list-container {
+    height: 580px;
+    width: 320px;
+}
+
+#list-container .vlist-item {
+    padding: 0;
+    border-bottom: none;
+}
+
+/* ============================================================================
+   Tree Node (32px)
+   ============================================================================ */
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    width: 100%;
+    padding-right: 12px;
+    cursor: default;
+    user-select: none;
+}
+
+/* ── Chevron ── */
+
+.tree-node__chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    color: var(--text-dim, #9ca3af);
+    flex-shrink: 0;
+    border-radius: 3px;
+    transition:
+        color 0.12s ease,
+        transform 0.15s ease;
+}
+
+.tree-node__chevron:hover {
+    color: var(--text, #111827);
+    background: var(--bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+.tree-node__chevron--expanded {
+    transform: rotate(90deg);
+}
+
+.tree-node__chevron--leaf {
+    visibility: hidden;
+}
+
+/* ── Icon ── */
+
+.tree-node__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* ── Label ── */
+
+.tree-node__label {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--text, #111827);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+}
+
+/* ── Meta (file size / item count) ── */
+
+.tree-node__meta {
+    font-size: 11px;
+    color: var(--text-dim, #9ca3af);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+/* ============================================================================
+   Selection + Focus
+   ============================================================================ */
+
+#list-container .vlist-item--selected {
+    background: var(--accent-bg, rgba(102, 126, 234, 0.12));
+}
+
+#list-container .vlist-item--focused {
+    outline: 2px solid var(--accent, #667eea);
+    outline-offset: -2px;
+    border-radius: 4px;
+}
+
+#list-container .vlist-item--focused .tree-node {
+    outline: none;
+}
+
+/* ============================================================================
+   Loading state
+   ============================================================================ */
+
+.vlist-tree-node--loading .tree-node__chevron {
+    animation: tree-spin 0.8s linear infinite;
+    color: var(--accent, #667eea);
+}
+
+@keyframes tree-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   Sidebar tree state
+   ============================================================================ */
+
+.tree-state {
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tree-state__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tree-state__label {
+    color: var(--text-muted, #6b7280);
+}
+
+.tree-state__row strong {
+    font-variant-numeric: tabular-nums;
+    color: var(--text, #111827);
+}

@@ -6,7 +6,7 @@ status: published
 
 # Plugin Overview
 
-vlist v2 ships 14 plugins. Each plugin is tree-shaken — only what you import is bundled.
+vlist v2 ships 15 plugins. Each plugin is tree-shaken — only what you import is bundled.
 
 Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 
@@ -29,6 +29,7 @@ Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 | grid | `grid()` | +{{size:grid:delta}} KB | 2D grid layout |
 | table | `table()` | +{{size:table:delta}} KB | Virtualized data table |
 | masonry | `masonry()` | +{{size:masonry:delta}} KB | Pinterest-style layout |
+| tree | `tree()` | +{{size:tree:delta}} KB | Virtualized tree view |
 
 ## Usage
 
@@ -48,20 +49,22 @@ Plugins are passed as the second argument to `createVList`. Order in the array d
 
 Not all plugins can be combined. Layout plugins are mutually exclusive, and some plugins only support flat lists.
 
-| | grid | masonry | table | scale | transition | sortable |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **grid** | — | ❌ | ❌ | — | ❌ | ❌ |
-| **masonry** | ❌ | — | ❌ | — | ❌ | ❌ |
-| **table** | ❌ | ❌ | — | — | ❌ | ❌ |
-| **scale** | — | — | — | — | — | ❌ |
-| **transition** | ❌ | ❌ | ❌ | — | — | — |
-| **sortable** | ❌ | ❌ | ❌ | ❌ | — | — |
+| | grid | masonry | table | tree | scale | transition | sortable |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **grid** | — | ❌ | ❌ | ❌ | — | ❌ | ❌ |
+| **masonry** | ❌ | — | ❌ | ❌ | — | ❌ | ❌ |
+| **table** | ❌ | ❌ | — | ❌ | — | ❌ | ❌ |
+| **tree** | ❌ | ❌ | ❌ | — | — | — | — |
+| **scale** | — | — | — | — | — | — | ❌ |
+| **transition** | ❌ | ❌ | ❌ | — | — | — | — |
+| **sortable** | ❌ | ❌ | ❌ | — | ❌ | — | — |
 
 All combinations not listed above are ✅ compatible.
 
 Incompatibility reasons:
 
-- **grid + masonry / grid + table / masonry + table** — only one layout plugin can be active at a time.
+- **grid + masonry / grid + table / masonry + table / tree + any layout** — only one layout plugin can be active at a time.
+- **tree + groups** — tree manages its own hierarchy; groups is for flat grouped lists.
 - **transition + grid/table/masonry** — transition uses FLIP animations designed for flat lists only.
 - **sortable + grid/masonry/table/scale** — drag-and-drop reordering requires a flat, fixed-height list.
 
