@@ -61,6 +61,11 @@ list.on("selection:change", ({ selected, items }) => {
 - Shift+Click: range select
 - Ctrl/Cmd+Click: toggle single item
 
+## ARIA
+
+- Calls `enableListboxRole()` during setup — upgrades `role="list"` to `role="listbox"` and sets `tabindex="0"` on the content element
+- Items are upgraded from `role="listitem"` to `role="option"` with `aria-selected` attributes
+
 ## Notes
 
 - The item template receives `state.selected` and `state.focused` booleans

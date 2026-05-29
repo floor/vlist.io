@@ -6,7 +6,7 @@
 //
 // Any combination works — you can pre-measure Reddit posts or auto-size RSS items.
 
-import { createVList, autosize } from "vlist";
+import { createVList, autosize, a11y } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -338,6 +338,10 @@ const infoRssCountEl = document.getElementById("info-rss-count");
 const modeToggleEl = document.getElementById("mode-toggle");
 const sectionMeasurementEl = document.getElementById("section-measurement");
 
+// A11y panel
+const a11yToggleEl = document.getElementById("toggle-a11y");
+const a11yHintEl = document.getElementById("a11y-hint");
+
 // Measurement info
 const infoStrategyEl = document.getElementById("info-strategy");
 const infoInitEl = document.getElementById("info-init");
@@ -372,6 +376,7 @@ const prefs = loadPrefs();
 let currentSource = prefs.source === "reddit" ? "reddit" : "rss";
 let currentMode = prefs.mode || "a";
 let currentLayout = prefs.layout || "card";
+let a11yEnabled = prefs.a11y === true;
 let list = null;
 
 /** Return the items array for the active source */
@@ -403,6 +408,10 @@ function createList() {
   let initTime = 0;
   let uniqueSizes = 0;
 
+  const plugins = [];
+  if (currentMode === "b") plugins.push(autosize());
+  if (a11yEnabled) plugins.push(a11y());
+
   if (currentMode === "a") {
     // Mode A: pre-measure all items, then use size function
     const start = performance.now();
@@ -411,15 +420,18 @@ function createList() {
     }
     initTime = performance.now() - start;
 
-    list = createVList({
-      container: containerEl,
-      ariaLabel,
-      items,
-      item: {
-        height: (index) => getActiveItems()[index]?.size ?? estimatedSize,
-        template: renderPost,
+    list = createVList(
+      {
+        container: containerEl,
+        ariaLabel,
+        items,
+        item: {
+          height: (index) => getActiveItems()[index]?.size ?? estimatedSize,
+          template: renderPost,
+        },
       },
-    });
+      plugins,
+    );
   } else {
     // Mode B: estimated size, auto-measured by ResizeObserver
     const start = performance.now();
@@ -434,7 +446,7 @@ function createList() {
           template: renderPost,
         },
       },
-      [autosize()],
+      plugins,
     );
 
     initTime = performance.now() - start;
@@ -755,6 +767,19 @@ modeToggleEl.addEventListener("click", (e) => {
 });
 
 // =============================================================================
+// A11y toggle
+// =============================================================================
+
+a11yToggleEl.addEventListener("change", () => {
+  a11yEnabled = a11yToggleEl.checked;
+  savePrefs({ a11y: a11yEnabled });
+  a11yHintEl.textContent = a11yEnabled
+    ? "Arrow keys navigate between items"
+    : "No keyboard navigation";
+  createList();
+});
+
+// =============================================================================
 // Reddit controls — subreddit picker
 // =============================================================================
 
@@ -858,6 +883,12 @@ modeToggleEl.querySelectorAll("button").forEach((b) => {
 
 // Restore layout toggle UI
 updateLayoutToggle();
+
+// Restore a11y toggle UI
+a11yToggleEl.checked = a11yEnabled;
+a11yHintEl.textContent = a11yEnabled
+  ? "Arrow keys navigate between items"
+  : "No keyboard navigation";
 
 // Update badge / info bar to match restored state
 modeBadgeEl.textContent = currentMode === "a" ? "Mode A" : "Mode B";

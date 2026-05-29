@@ -2,13 +2,7 @@
 // Demonstrates grid + masonry + scrollbar plugins
 // Layout mode toggle: Grid ↔ Masonry
 
-import {
-  createVList,
-  grid,
-  masonry,
-  scrollbar,
-  selection,
-} from "vlist";
+import { createVList, grid, masonry, scrollbar, selection } from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 import {
@@ -26,7 +20,7 @@ import {
 } from "../shared.js";
 import "../controls.js";
 
-const PADDING = 0;
+const PADDING = 2;
 
 // =============================================================================
 // Stats — shared info bar (progress, velocity, visible/total)
@@ -118,71 +112,80 @@ function createGridView(container, orientation, columns, gap) {
     const height = Math.round(colWidth);
 
     setList(
-      createVList({
-        padding: PADDING,
-        container: "#list-container",
-        ariaLabel: "Photo gallery",
-        orientation,
-        item: {
-          height,
-          width: (_index, ctx) =>
-            ctx ? Math.round(ctx.columnWidth * (4 / 3)) : 200,
-          template: itemTemplate,
+      createVList(
+        {
+          padding: PADDING,
+          container: "#list-container",
+          ariaLabel: "Photo gallery",
+          orientation,
+          item: {
+            height,
+            width: (_index, ctx) =>
+              ctx ? Math.round(ctx.columnWidth * (4 / 3)) : 200,
+            template: itemTemplate,
+          },
+          items,
         },
-        items,
-      }, [
-        grid({ columns, gap }),
-        selection({ mode: "single" }),
-        scrollbar({ autoHide: true }),
-      ]),
+        [
+          grid({ columns, gap }),
+          selection({ mode: "single" }),
+          scrollbar({ autoHide: true }),
+        ],
+      ),
     );
   } else {
     setList(
-      createVList({
-        padding: PADDING,
-        container: "#list-container",
-        ariaLabel: "Photo gallery",
-        orientation,
-        item: {
-          height: (_index, ctx) =>
-            ctx ? Math.round(ctx.columnWidth * ASPECT_RATIO) : 200,
-          template: itemTemplate,
+      createVList(
+        {
+          padding: PADDING,
+          container: "#list-container",
+          ariaLabel: "Photo gallery",
+          orientation,
+          item: {
+            height: (_index, ctx) =>
+              ctx ? Math.round(ctx.columnWidth * ASPECT_RATIO) : 200,
+            template: itemTemplate,
+          },
+          items,
         },
-        items,
-      }, [
-        grid({ columns, gap }),
-        selection({ mode: "single" }),
-        scrollbar({ autoHide: true }),
-      ]),
+        [
+          grid({ columns, gap }),
+          selection({ mode: "single" }),
+          scrollbar({ autoHide: true }),
+        ],
+      ),
     );
   }
 }
 
 function createMasonryView(container, orientation, columns, gap) {
   setList(
-    createVList({
-      container: "#list-container",
-      ariaLabel: "Photo gallery",
-      orientation,
-      padding: PADDING,
-      item: {
-        height: (_index, ctx) =>
-          ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
-        width:
-          orientation === "horizontal"
-            ? (_index, ctx) =>
-                ctx
-                  ? Math.round(ctx.columnWidth * items[_index].aspectRatio)
-                  : 200
-            : undefined,
-        template: itemTemplate,
+    createVList(
+      {
+        container: "#list-container",
+        ariaLabel: "Photo gallery",
+        orientation,
+        padding: PADDING,
+        item: {
+          height: (_index, ctx) =>
+            ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
+          width:
+            orientation === "horizontal"
+              ? (_index, ctx) =>
+                  ctx
+                    ? Math.round(ctx.columnWidth * items[_index].aspectRatio)
+                    : 200
+              : undefined,
+          template: itemTemplate,
+        },
+        items,
       },
-      items,
-    }, [
-      masonry({ columns, gap }),
-      selection({ mode: "single" }),
-      scrollbar({ autoHide: true }),
-    ]),
+      [
+        masonry({ columns, gap }),
+        selection({ mode: "single" }),
+        scrollbar({ autoHide: true }),
+      ],
+    ),
   );
 }
 

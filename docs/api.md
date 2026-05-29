@@ -33,7 +33,6 @@ const list = createVList(config, [plugin1(), plugin2()]);
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` | Scroll axis |
 | `padding` | `number \| [number, number] \| [t, r, b, l]` | `0` | Container padding (px) |
 | `classPrefix` | `string` | `"vlist"` | CSS class prefix |
-| `interactive` | `boolean` | `true` | Enable click/keyboard handling |
 | `reverse` | `boolean` | `false` | Reverse scroll direction |
 | `ariaLabel` | `string` | — | Container `aria-label` |
 | `scroll.wheel` | `boolean` | `true` | Mouse wheel scrolling |

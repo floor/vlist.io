@@ -68,7 +68,6 @@ const list = createVList({
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` | Scroll axis |
 | `padding` | `number \| [top, bottom] \| [t, r, b, l]` | `0` | Container padding |
 | `classPrefix` | `string` | `"vlist"` | CSS class prefix |
-| `interactive` | `boolean` | `true` | Enable click/keyboard |
 | `reverse` | `boolean` | `false` | Reverse scroll direction |
 | `ariaLabel` | `string` | — | Container aria-label |
 | `scroll.idleTimeout` | `number` | `150` | Idle detection timeout (ms) |

@@ -275,7 +275,6 @@ export function createList() {
     {
       container: "#list-container",
       ariaLabel: "Chat messages",
-      interactive: false,
       reverse: true,
       item: {
         height: (index) => {
