@@ -163,6 +163,7 @@ export function createContentRenderer(config: ContentConfig) {
   const CONTENT_DIR = resolve(contentDir);
   const SHELL_PATH = resolve("./src/server/shells/base.html");
   const NAV_PATH = join(CONTENT_DIR, "navigation.json");
+  const SLUGS_PATH = join(CONTENT_DIR, "slugs.json");
   const OVERVIEW_PATH = overviewSectionsPath
     ? join(CONTENT_DIR, overviewSectionsPath)
     : null;
@@ -206,7 +207,12 @@ export function createContentRenderer(config: ContentConfig) {
   }
 
   function getValidSlugs(): Set<string> {
-    return getValidSlugsBase(loadNavigation() as BaseNavGroup[]);
+    const slugs = getValidSlugsBase(loadNavigation() as BaseNavGroup[]);
+    if (existsSync(SLUGS_PATH)) {
+      const extra = JSON.parse(readFileSync(SLUGS_PATH, "utf-8")) as string[];
+      for (const s of extra) slugs.add(s);
+    }
+    return slugs;
   }
 
   function clearCache(): void {

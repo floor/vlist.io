@@ -1,15 +1,16 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-05-29
 status: implemented
 ---
 
 # RFC-002: vlist v2 Core Architecture
 
-**Status:** Approved (Unanimous 3/3) — **Do not modify.** This is the original approved RFC. Amendments go in `RFC-002-Core-Architecture-v2.md`.  
+**Status:** Approved (Unanimous 3/3)  
 **Authors:** Committee — Claude (Opus), Gemini (3.1 Pro), GPT (Codex)  
 **Type:** Architecture  
 **Approved:** 2026-05-18  
+**Revised:** 2026-05-29 — Acquire-first rationale, implementation notes  
 **Discussion:** [github.com/floor/vlist/discussions/68](https://github.com/floor/vlist/discussions/68)
 
 ---
@@ -98,9 +99,9 @@ Phase 2 executes four sub-operations in strict order:
 | **1. Node Acquisition** | Borrow elements from the DOM pool. No element creation unless pool is empty. |
 | **2. Identity Binding** | Run `render()` callback only if the item data reference changed (reference equality, not deep comparison). |
 | **3. Positioning** | Apply `translateY`/`translateX` transform from `state.visibleOffsets[i]`. |
-| **4. Node Release** | Return nodes no longer in the visible window back to the pool. |
+| **4. Node Release** | Return nodes no longer in the visible window back to the pool. Releasing after acquisition ensures new elements are in the DOM before stale ones are removed, preventing single-frame visual gaps. |
 
-This mirrors `src/builder/core.ts:731-943` but actively enforces zero-allocation and strict sub-operation ordering.
+Acquire-first ordering ensures no visual gaps during fast scrolling: all new elements are placed in the DOM before any stale elements are removed. Pool pressure is not a concern because the pool is pre-allocated with sufficient capacity.
 
 ---
 
@@ -203,3 +204,12 @@ The specification went through four major revisions based on committee feedback:
 | Claude (Opus) | **Approve** | No conditions. Full v1 behavioral compliance confirmed. |
 | Gemini (3.1 Pro) | **Approve** | Author. |
 | GPT (Codex) | **Approve** | With two acceptance criteria (incorporated into Section 7). |
+
+---
+
+## 9. Implementation Notes
+
+The v2 implementation deviates from this specification in two areas:
+
+- **LayoutWindow** — No separate `LayoutWindow` interface exists. `count` and `startIndex` live directly on `EngineState`, and Phase 1 returns a boolean changed-flag. Semantically equivalent.
+- **Phase 2 sub-operations** — Acquire, Bind, and Position are interleaved per-item in a single loop, followed by a batch DOM flush, then Release. The critical invariant (Release after Acquire) is preserved. Interleaving is more cache-friendly than four separate passes.

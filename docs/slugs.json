@@ -1,0 +1,10 @@
+[
+  "rfcs/RFC-009-Configuration-Immutability",
+  "rfcs/RFC-008-Search-Plugin",
+  "rfcs/RFC-007-Tree-Plugin",
+  "rfcs/RFC-006-Core-Hot-Path-Optimization",
+  "rfcs/RFC-005-Axis-Config",
+  "rfcs/RFC-004-Core-Optimization",
+  "rfcs/RFC-003-Implementation-Stabilization",
+  "rfcs/RFC-002-Core-Architecture"
+]
