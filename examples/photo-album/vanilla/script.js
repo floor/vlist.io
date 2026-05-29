@@ -2,7 +2,13 @@
 // Demonstrates grid + masonry + scrollbar plugins
 // Layout mode toggle: Grid ↔ Masonry
 
-import { createVList, grid, masonry, scrollbar, selection } from "vlist";
+import {
+  createVList,
+  grid,
+  masonry,
+  scrollbar,
+  selection,
+} from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 import {
@@ -14,9 +20,11 @@ import {
   currentOrientation,
   currentColumns,
   currentGap,
+  followFocus,
   list,
-  setList,
-  setCreateView,
+  setFactory,
+  onReady,
+  createView,
 } from "../shared.js";
 import "../controls.js";
 
@@ -56,136 +64,111 @@ const updateInfo = createInfoUpdater(stats);
 // Create / Recreate
 // =============================================================================
 
-let firstVisibleIndex = 0;
+setFactory(
+  (snap) => {
+    const container = document.getElementById("list-container");
 
-function createView() {
-  if (list) {
-    list.destroy();
-    setList(null);
-  }
+    if (currentMode === "grid") {
+      return createGridView(container, currentOrientation, currentColumns, currentGap, snap);
+    }
+    return createMasonryView(container, currentOrientation, currentColumns, currentGap, snap);
+  },
+  { key: "photo-album", transition: { fadeIn: 300, fadeOut: 200, fadeOutDelay: 100 } },
+);
 
-  const container = document.getElementById("list-container");
-  container.innerHTML = "";
-
-  const orientation = currentOrientation;
-  const columns = currentColumns;
-  const gap = currentGap;
-
-  if (currentMode === "grid") {
-    createGridView(container, orientation, columns, gap);
-  } else {
-    createMasonryView(container, orientation, columns, gap);
-  }
-
-  // Wire events
+onReady((list) => {
   list.on("scroll", updateInfo);
-  list.on("range:change", ({ range }) => {
-    firstVisibleIndex =
-      currentMode === "grid" ? range.start * currentColumns : range.start;
-    updateInfo();
-  });
+  list.on("range:change", updateInfo);
   list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
     updateInfo();
   });
-
   list.on("selection:change", ({ items: selected }) => {
     if (selected.length > 0) showDetail(selected[0]);
   });
 
-  // Restore scroll position to first visible item
-  if (firstVisibleIndex > 0) {
-    list.scrollToIndex(firstVisibleIndex, "start");
-  }
-
   updateInfo();
   updateContext();
-}
+});
 
-// Register createView so controls.js can call it
-setCreateView(createView);
-
-function createGridView(container, orientation, columns, gap) {
+function createGridView(container, orientation, columns, gap, snap) {
   if (orientation === "horizontal") {
     const innerHeight = container.clientHeight - PADDING * 2;
     const colWidth = (innerHeight - (columns - 1) * gap) / columns;
     const height = Math.round(colWidth);
 
-    setList(
-      createVList(
-        {
-          padding: PADDING,
-          container: "#list-container",
-          ariaLabel: "Photo gallery",
-          orientation,
-          item: {
-            height,
-            width: (_index, ctx) =>
-              ctx ? Math.round(ctx.columnWidth * (4 / 3)) : 200,
-            template: itemTemplate,
-          },
-          items,
-        },
-        [
-          grid({ columns, gap }),
-          selection({ mode: "single" }),
-          scrollbar({ autoHide: true }),
-        ],
-      ),
-    );
-  } else {
-    setList(
-      createVList(
-        {
-          padding: PADDING,
-          container: "#list-container",
-          ariaLabel: "Photo gallery",
-          orientation,
-          item: {
-            height: (_index, ctx) =>
-              ctx ? Math.round(ctx.columnWidth * ASPECT_RATIO) : 200,
-            template: itemTemplate,
-          },
-          items,
-        },
-        [
-          grid({ columns, gap }),
-          selection({ mode: "single" }),
-          scrollbar({ autoHide: true }),
-        ],
-      ),
-    );
-  }
-}
-
-function createMasonryView(container, orientation, columns, gap) {
-  setList(
-    createVList(
+    return createVList(
       {
+        padding: PADDING,
         container: "#list-container",
         ariaLabel: "Photo gallery",
         orientation,
-        padding: PADDING,
         item: {
-          height: (_index, ctx) =>
-            ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
-          width:
-            orientation === "horizontal"
-              ? (_index, ctx) =>
-                  ctx
-                    ? Math.round(ctx.columnWidth * items[_index].aspectRatio)
-                    : 200
-              : undefined,
+          height,
+          width: (_index, ctx) =>
+            ctx ? Math.round(ctx.columnWidth / ASPECT_RATIO) : 200,
           template: itemTemplate,
         },
         items,
       },
       [
-        masonry({ columns, gap }),
-        selection({ mode: "single" }),
+        grid({ columns, gap }),
+        selection({ mode: "single", followFocus }),
         scrollbar({ autoHide: true }),
+        snap,
       ],
-    ),
+    );
+  }
+
+  return createVList(
+    {
+      padding: PADDING,
+      container: "#list-container",
+      ariaLabel: "Photo gallery",
+      orientation,
+      item: {
+        height: (_index, ctx) =>
+          ctx ? Math.round(ctx.columnWidth * ASPECT_RATIO) : 200,
+        template: itemTemplate,
+      },
+      items,
+    },
+    [
+      grid({ columns, gap }),
+      selection({ mode: "single", followFocus }),
+      scrollbar({ autoHide: true }),
+      snap,
+    ],
+  );
+}
+
+function createMasonryView(container, orientation, columns, gap, snap) {
+  return createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Photo gallery",
+      orientation,
+      padding: PADDING,
+      item: {
+        height: (_index, ctx) =>
+          ctx ? Math.round(ctx.columnWidth * items[_index].aspectRatio) : 200,
+        width:
+          orientation === "horizontal"
+            ? (_index, ctx) =>
+                ctx
+                  ? Math.round(ctx.columnWidth * items[_index].aspectRatio)
+                  : 200
+            : undefined,
+        template: itemTemplate,
+      },
+      items,
+    },
+    [
+      masonry({ columns, gap }),
+      selection({ mode: "single", followFocus }),
+      scrollbar({ autoHide: true }),
+      snap,
+    ],
   );
 }
 
@@ -218,7 +201,7 @@ const infoOrientation = document.getElementById("info-orientation");
 
 function updateContext() {
   infoMode.textContent = currentMode;
-  infoOrientation.textContent = currentOrientation;
+  infoOrientation.textContent = currentOrientation === "vertical" ? "Y" : "X";
 }
 
 // =============================================================================

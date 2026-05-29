@@ -126,6 +126,21 @@
     ]
   },
   {
+    "label": "Utilities",
+    "items": [
+      {
+        "slug": "utils/rebuild",
+        "name": "Rebuild",
+        "desc": "Seamless list recreation with scroll continuity"
+      },
+      {
+        "slug": "utils/stats",
+        "name": "Stats",
+        "desc": "Scroll progress, velocity, and item count"
+      }
+    ]
+  },
+  {
     "label": "Resources",
     "items": [
       {

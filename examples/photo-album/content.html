@@ -35,53 +35,77 @@
                 </div>
 
                 <div class="ui-row">
-                    <label class="ui-label">Orientation</label>
+                    <label class="ui-label">Primary axis</label>
                     <div class="ui-segmented" id="orientation-buttons">
                         <button
                             class="ui-segmented__btn ui-segmented__btn--active"
                             data-orientation="vertical"
                         >
-                            Vertical
+                            Y
                         </button>
                         <button
                             class="ui-segmented__btn"
                             data-orientation="horizontal"
                         >
-                            Horizontal
+                            X
                         </button>
+                    </div>
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Aspect ratio</label>
+                    <div class="ui-btn-group" id="ratio-buttons">
+                        <button
+                            class="ui-ctrl-btn ui-ctrl-btn--active"
+                            data-ratio="0.75"
+                        >
+                            4:3
+                        </button>
+                        <button class="ui-ctrl-btn" data-ratio="1">1:1</button>
+                        <button class="ui-ctrl-btn" data-ratio="1.33">3:4</button>
                     </div>
                 </div>
 
                 <div class="ui-row">
                     <label class="ui-label" id="columns-label">Columns</label>
-                    <div class="ui-btn-group" id="columns-buttons">
-                        <button class="ui-ctrl-btn" data-cols="3">3</button>
-                        <button
-                            class="ui-ctrl-btn ui-ctrl-btn--active"
-                            data-cols="4"
-                        >
-                            4
-                        </button>
-                        <button class="ui-ctrl-btn" data-cols="5">5</button>
-                        <button class="ui-ctrl-btn" data-cols="6">6</button>
-                        <button class="ui-ctrl-btn" data-cols="10">10</button>
-                    </div>
+                    <span class="ui-value" id="columns-value">4</span>
+                    <input
+                        type="range"
+                        id="columns-slider"
+                        class="ui-slider"
+                        min="2"
+                        max="12"
+                        step="1"
+                        value="4"
+                    />
                 </div>
 
                 <div class="ui-row">
                     <label class="ui-label">Gap</label>
-                    <div class="ui-btn-group" id="gap-buttons">
-                        <button class="ui-ctrl-btn" data-gap="0">0</button>
-                        <button class="ui-ctrl-btn" data-gap="2">2</button>
-                        <button class="ui-ctrl-btn" data-gap="4">4</button>
-                        <button
-                            class="ui-ctrl-btn ui-ctrl-btn--active"
-                            data-gap="8"
-                        >
-                            8
-                        </button>
-                        <button class="ui-ctrl-btn" data-gap="12">12</button>
-                    </div>
+                    <span class="ui-value" id="gap-value">8px</span>
+                    <input
+                        type="range"
+                        id="gap-slider"
+                        class="ui-slider"
+                        min="0"
+                        max="24"
+                        step="2"
+                        value="8"
+                    />
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Radius</label>
+                    <span class="ui-value" id="radius-value">8px</span>
+                    <input
+                        type="range"
+                        id="radius-slider"
+                        class="ui-slider"
+                        min="0"
+                        max="32"
+                        step="2"
+                        value="8"
+                    />
                 </div>
             </section>
 
@@ -119,6 +143,15 @@
                             <i class="icon icon--shuffle"></i>
                         </button>
                     </div>
+                    <label class="ui-label">Follow focus</label>
+                    <label class="ui-switch">
+                        <input
+                            type="checkbox"
+                            id="follow-focus-toggle"
+                            checked
+                        />
+                        <span class="ui-switch__track"></span>
+                    </label>
                 </div>
             </section>
 
@@ -155,7 +188,7 @@
                 <strong id="info-mode">grid</strong>
             </span>
             <span class="example-info__stat">
-                <strong id="info-orientation">vertical</strong>
+                <strong id="info-orientation">Y</strong>
             </span>
         </div>
     </div>

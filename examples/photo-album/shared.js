@@ -1,12 +1,14 @@
 // Photo Album — Shared data, constants, template, and state
 // Imported by all framework implementations to avoid duplication
 
+import { rebuild } from "vlist";
+
 // =============================================================================
 // Constants
 // =============================================================================
 
 export const ITEM_COUNT = 900;
-export const ASPECT_RATIO = 0.75; // 4:3 landscape
+export let ASPECT_RATIO = 0.75; // 4:3 landscape
 
 const CATEGORIES = [
   "Nature",
@@ -92,6 +94,8 @@ export let currentMode = "grid";
 export let currentOrientation = "vertical";
 export let currentColumns = 4;
 export let currentGap = 8;
+export let currentRadius = 8;
+export let followFocus = true;
 export let list = null;
 
 export function setCurrentMode(v) {
@@ -106,20 +110,53 @@ export function setCurrentColumns(v) {
 export function setCurrentGap(v) {
   currentGap = v;
 }
+export function setCurrentRadius(v) {
+  currentRadius = v;
+}
+export function setFollowFocus(v) {
+  followFocus = v;
+}
+export function setAspectRatio(v) {
+  ASPECT_RATIO = v;
+}
 export function setList(v) {
   list = v;
 }
 
 // =============================================================================
-// View lifecycle — set by each variant's script.js
+// View lifecycle
 // =============================================================================
 
-let _createView = () => {};
+let _factory = null;
+let _rebuildOptions = {};
+let _readyCallbacks = [];
+let _createViewFn = null;
+let _viewVersion = 0;
 
-export function createView() {
-  _createView();
+export function setFactory(fn, options) {
+  _factory = fn;
+  _rebuildOptions = options || {};
+}
+
+export function onReady(fn) {
+  _readyCallbacks.push(fn);
 }
 
 export function setCreateView(fn) {
-  _createView = fn;
+  _createViewFn = fn;
+}
+
+export async function createView() {
+  if (_factory) {
+    const version = ++_viewVersion;
+    const newList = await rebuild(list, _factory, _rebuildOptions);
+    if (version !== _viewVersion) {
+      newList.destroy();
+      return;
+    }
+    list = newList;
+    for (const fn of _readyCallbacks) fn(list);
+  } else if (_createViewFn) {
+    _createViewFn();
+  }
 }
