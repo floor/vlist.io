@@ -67,52 +67,52 @@ const renderItem = (item) => renderPostHTML(item);
  * measurement. For 5 000 items with ~12 unique body texts this means
  * ~12 actual DOM measurements instead of 5 000.
  */
-const getScrollbarWidth = () => {
-  const outer = document.createElement("div");
-  outer.style.cssText =
-    "position:absolute;top:-9999px;width:100px;height:100px;overflow:scroll;";
-  document.body.appendChild(outer);
-  const width = outer.offsetWidth - outer.clientWidth;
-  outer.remove();
-  return width;
-};
-
 const measureSizes = (itemList, container, vlistPadding = 0) => {
-  // Items render inside the vlist content div which applies vlistPadding on all
-  // sides (border-box). The cross-axis (left + right) padding narrows each item,
-  // so the measurer must use that exact inner width — otherwise text wraps at a
-  // different point and measured heights diverge from actual rendered heights.
-  //
-  // The vlist viewport has overflow:auto, so on platforms with classic
-  // (non-overlay) scrollbars (e.g. Windows) the scrollbar consumes space
-  // and narrows the content area. We must subtract that width here so
-  // measurements match the actual rendered width.
-  const scrollbarW = getScrollbarWidth();
-  const innerWidth = container.offsetWidth - scrollbarW - vlistPadding * 2;
-  const measurer = document.createElement("div");
-  measurer.style.cssText =
-    "position:absolute;top:0;left:0;visibility:hidden;pointer-events:none;" +
-    `width:${innerWidth}px;box-sizing:border-box;`;
-  document.body.appendChild(measurer);
+  // Build a temporary DOM structure that mirrors vlist's actual layout so the
+  // measurement context (scrollbar width, CSS variables, inherited styles) is
+  // identical. The item element uses left/right padding offsets just like the
+  // real pipeline, so text wraps at exactly the same width.
+  const root = document.createElement("div");
+  root.className = "vlist";
+  root.style.cssText = `position:absolute;top:0;left:0;width:${container.offsetWidth}px;height:${container.offsetHeight}px;visibility:hidden;pointer-events:none;`;
+
+  const viewport = document.createElement("div");
+  viewport.className = "vlist-viewport";
+
+  const content = document.createElement("div");
+  content.className = "vlist-content";
+  content.style.height = "10000px";
+
+  const item = document.createElement("div");
+  item.className = "vlist-item";
+  if (vlistPadding > 0) {
+    item.style.left = `${vlistPadding}px`;
+    item.style.right = `${vlistPadding}px`;
+  }
+
+  content.appendChild(item);
+  viewport.appendChild(content);
+  root.appendChild(viewport);
+  container.appendChild(root);
 
   const cache = new Map();
   let uniqueCount = 0;
 
-  for (const item of itemList) {
-    const key = item.body;
+  for (const it of itemList) {
+    const key = it.body;
     if (cache.has(key)) {
-      item.size = cache.get(key);
+      it.size = cache.get(key);
       continue;
     }
 
-    measurer.innerHTML = renderPostHTML(item);
-    const measured = measurer.firstElementChild.offsetHeight;
-    item.size = measured;
+    item.innerHTML = renderPostHTML(it);
+    const measured = item.firstElementChild.offsetHeight;
+    it.size = measured;
     cache.set(key, measured);
     uniqueCount++;
   }
 
-  measurer.remove();
+  root.remove();
   return uniqueCount;
 };
 

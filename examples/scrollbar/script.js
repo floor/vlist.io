@@ -34,7 +34,8 @@ export let autoHideDelay = 1000;
 export let gutterEnabled = false;
 export let showOnHover = true;
 export let showOnViewportEnter = true;
-export let padding = 2;
+export let paddingX = 2;
+export let paddingY = 2;
 export let minThumbSize = 15;
 export let clickBehavior = "scroll"; // "jump" | "scroll"
 export let list = null;
@@ -57,8 +58,11 @@ export function setShowOnHover(v) {
 export function setShowOnViewportEnter(v) {
   showOnViewportEnter = v;
 }
-export function setPadding(v) {
-  padding = v;
+export function setPaddingX(v) {
+  paddingX = v;
+}
+export function setPaddingY(v) {
+  paddingY = v;
 }
 export function setMinThumbSize(v) {
   minThumbSize = v;
@@ -79,7 +83,8 @@ export function saveConfig() {
     gutterEnabled,
     showOnHover,
     showOnViewportEnter,
-    padding,
+    paddingX,
+    paddingY,
     minThumbSize,
     clickBehavior,
     width:
@@ -184,7 +189,7 @@ export function createList() {
         gutter: gutterEnabled,
         showOnHover,
         showOnViewportEnter,
-        padding,
+        padding: { top: paddingY, right: paddingX, bottom: paddingY, left: paddingX },
         clickBehavior,
         minThumbSize,
       }),

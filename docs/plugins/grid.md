@@ -1,6 +1,6 @@
 ---
 created: 2026-02-14
-updated: 2026-05-27
+updated: 2026-05-28
 status: published
 ---
 
@@ -81,12 +81,26 @@ window.addEventListener("resize", updateColumns);
 - `.vlist--grid` on root
 - `.vlist-grid-item` on items
 
+## Large datasets
+
+Combine with [scale](/docs/plugins/scale) for grids with 1M+ items. Compression is handled automatically — range calculation and item positioning switch to viewport-relative mode when the total content height exceeds the browser limit.
+
+```ts
+const list = createVList({
+  container: "#app",
+  item: { height: 120, template: renderCard },
+  items: millionItems,
+}, [grid({ columns: 4, gap: 8 }), scale(), scrollbar()]);
+```
+
 ## Notes
 
 - Keyboard nav: arrows move in 2D (left/right between columns, up/down between rows)
+- Works with scale plugin for 1M+ item grids
 - Conflicts with: masonry, table
 
 ## Examples
 
 - [Photo Album](/examples/photo-album) — responsive gallery with grid and masonry toggle
+- [Large Dataset](/examples/large-list) — 1M+ items with grid + scale compression
 - [File Browser](/examples/file-browser) — Finder-like grid and table views

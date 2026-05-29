@@ -1,8 +1,9 @@
 // Builder Million Items — Composable entry point
 // Uses scale + scrollbar plugins
 // Demonstrates handling 1M+ items with automatic scroll scaling
+// Supports List and Table layout modes
 
-import { createVList, scale, scrollbar } from "vlist";
+import { createVList, scale, scrollbar, table, grid } from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -11,6 +12,10 @@ import { createInfoUpdater } from "../../info.js";
 // =============================================================================
 
 const ITEM_HEIGHT = 48;
+const TABLE_ROW_HEIGHT = 36;
+const GRID_ITEM_HEIGHT = 120;
+const GRID_COLUMNS = 4;
+const GRID_GAP = 8;
 const SIZES = {
   "100k": 100_000,
   "500k": 500_000,
@@ -45,7 +50,7 @@ const generateItems = (count) =>
   Array.from({ length: count }, (_, i) => ({ id: i + 1 }));
 
 // =============================================================================
-// Item template
+// Item template (list mode)
 // =============================================================================
 
 const itemTemplate = (_item, index) => {
@@ -69,6 +74,63 @@ const itemTemplate = (_item, index) => {
 `;
 };
 
+const gridTemplate = (_item, index) => {
+  const h = hash(index);
+  const value = h % 100;
+  const hex = h.toString(16).slice(0, 8).toUpperCase();
+  const color = COLORS[index % COLORS.length];
+
+  return `
+  <div class="grid-card">
+    <div class="grid-card__accent" style="background:${color}"></div>
+    <span class="grid-card__index">#${(index + 1).toLocaleString()}</span>
+    <code class="grid-card__hash">${hex}</code>
+    <div class="grid-card__bar-wrap">
+      <div class="grid-card__bar" style="width:${value}%;background:${color}"></div>
+    </div>
+    <span class="grid-card__value">${value}%</span>
+  </div>
+`;
+};
+
+// =============================================================================
+// Table columns + cell formatters
+// =============================================================================
+
+const colorDot = (_val, _item, index) => {
+  const color = COLORS[index % COLORS.length];
+  return `<span class="ll-dot" style="background:${color}"></span>`;
+};
+
+const indexCell = (_val, _item, index) =>
+  `<span class="ll-index">#${(index + 1).toLocaleString()}</span>`;
+
+const hashCell = (_val, _item, index) => {
+  const hex = hash(index).toString(16).slice(0, 8).toUpperCase();
+  return `<code class="ll-hash">${hex}</code>`;
+};
+
+const valueCell = (_val, _item, index) => {
+  const value = hash(index) % 100;
+  return `<span class="ll-value">${value}%</span>`;
+};
+
+const barCell = (_val, _item, index) => {
+  const value = hash(index) % 100;
+  const color = COLORS[index % COLORS.length];
+  return `<div class="ll-bar-wrap"><div class="ll-bar" style="width:${value}%;background:${color}"></div></div>`;
+};
+
+const TABLE_COLUMNS = [
+  { key: "id", label: "#", width: 80, minWidth: 60, align: "right", cell: indexCell },
+  { key: "color", label: "", width: 44, minWidth: 44, maxWidth: 44, align: "center", cell: colorDot, resizable: false },
+  { key: "hash", label: "Hash", width: 130, minWidth: 80, cell: hashCell },
+  { key: "value", label: "Value", width: 90, minWidth: 60, align: "right", cell: valueCell },
+  { key: "bar", label: "Progress", width: 200, minWidth: 100, flex: 1, cell: barCell },
+];
+
+const fallbackTemplate = () => "";
+
 // =============================================================================
 // DOM references
 // =============================================================================
@@ -77,6 +139,7 @@ const scrollPosEl = document.getElementById("scroll-position");
 const scrollDirEl = document.getElementById("scroll-direction");
 const rangeEl = document.getElementById("visible-range");
 const sizeButtons = document.getElementById("size-buttons");
+const layoutButtons = document.getElementById("layout-buttons");
 
 // Info bar right-side elements
 const infoVirtualizedEl = document.getElementById("info-virtualized");
@@ -88,10 +151,17 @@ const infoModeStatEl = document.getElementById("info-mode-stat");
 // Shared info bar stats (left side — progress, velocity, items)
 // =============================================================================
 
+const getItemSize = () => {
+  if (currentLayout === "table") return TABLE_ROW_HEIGHT;
+  if (currentLayout === "grid") return GRID_ITEM_HEIGHT;
+  return ITEM_HEIGHT;
+};
+
 const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => SIZES[currentSize],
-  getItemSize: () => ITEM_HEIGHT,
+  getItemSize: getItemSize,
+  getColumns: () => currentLayout === "grid" ? GRID_COLUMNS : 1,
   getContainerSize: () =>
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
@@ -103,6 +173,7 @@ const updateInfo = createInfoUpdater(stats);
 // =============================================================================
 
 let currentSize = "1m";
+let currentLayout = "list";
 let list = null;
 
 // =============================================================================
@@ -123,16 +194,39 @@ function createList(sizeKey) {
   const count = SIZES[sizeKey];
   const items = generateItems(count);
 
-  const plugins =
-    count > 100_000 ? [scale(), scrollbar({ autoHide: true })] : [];
+  const plugins = [];
+  if (count > 100_000) plugins.push(scale(), scrollbar({ autoHide: true }));
+
+  const isTable = currentLayout === "table";
+  const isGrid = currentLayout === "grid";
+  let rowHeight = ITEM_HEIGHT;
+  let template = itemTemplate;
+
+  if (isTable) {
+    rowHeight = TABLE_ROW_HEIGHT;
+    template = fallbackTemplate;
+    plugins.push(
+      table({
+        columns: TABLE_COLUMNS,
+        rowHeight: TABLE_ROW_HEIGHT,
+        headerHeight: TABLE_ROW_HEIGHT,
+        rowBorders: true,
+        columnBorders: true,
+      }),
+    );
+  } else if (isGrid) {
+    rowHeight = GRID_ITEM_HEIGHT;
+    template = gridTemplate;
+    plugins.push(grid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
+  }
 
   list = createVList(
     {
       container: "#list-container",
-      ariaLabel: `${count.toLocaleString()} items list`,
+      ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
       item: {
-        height: ITEM_HEIGHT,
-        template: itemTemplate,
+        height: rowHeight,
+        template,
       },
       items,
     },
@@ -166,11 +260,15 @@ function createList(sizeKey) {
 // =============================================================================
 
 function updateContext(count) {
-  const totalHeight = count * ITEM_HEIGHT;
+  const itemHeight = getItemSize();
+  const effectiveRows = currentLayout === "grid" ? Math.ceil(count / GRID_COLUMNS) : count;
+  const totalHeight = effectiveRows * (itemHeight + (currentLayout === "grid" ? GRID_GAP : 0));
   const maxHeight = 16_777_216; // browser limit ~16.7M px
   const isScaled = totalHeight > maxHeight;
   const ratio = isScaled ? (totalHeight / maxHeight).toFixed(1) : "1.0";
-  const domNodes = document.querySelectorAll(".vlist-item").length;
+  const selector = currentLayout === "table" ? ".vlist-table-row"
+    : currentLayout === "grid" ? ".vlist-grid-item" : ".vlist-item";
+  const domNodes = document.querySelectorAll(selector).length;
   const virtualized = ((1 - domNodes / count) * 100).toFixed(2);
 
   infoVirtualizedEl.textContent = `${virtualized}%`;
@@ -178,6 +276,26 @@ function updateContext(count) {
   infoModeEl.textContent = isScaled ? "SCALED" : "NATIVE";
   infoModeStatEl.className = `example-info__stat ${isScaled ? "example-info__stat--warn" : "example-info__stat--ok"}`;
 }
+
+// =============================================================================
+// Layout selector buttons
+// =============================================================================
+
+layoutButtons.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-layout]");
+  if (!btn) return;
+
+  const layout = btn.dataset.layout;
+  if (layout === currentLayout) return;
+
+  currentLayout = layout;
+
+  layoutButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.layout === layout);
+  });
+
+  createList(currentSize);
+});
 
 // =============================================================================
 // Size selector buttons
