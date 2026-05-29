@@ -29,7 +29,7 @@ const PADDING = 2;
 function getEffectiveItemHeight() {
   const container = document.getElementById("list-container");
   if (!container || !list) return 200;
-  const innerWidth = container.clientWidth - 2;
+  const innerWidth = container.clientWidth - PADDING * 2;
   const colWidth =
     (innerWidth - (currentColumns - 1) * currentGap) / currentColumns;
   if (currentMode === "masonry") return Math.round(colWidth * 1.05);
@@ -107,7 +107,7 @@ setCreateView(createView);
 
 function createGridView(container, orientation, columns, gap) {
   if (orientation === "horizontal") {
-    const innerHeight = container.clientHeight - 2;
+    const innerHeight = container.clientHeight - PADDING * 2;
     const colWidth = (innerHeight - (columns - 1) * gap) / columns;
     const height = Math.round(colWidth);
 
