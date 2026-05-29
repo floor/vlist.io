@@ -59,6 +59,7 @@ let currentInsertPosition = "original";
 let removeEndUnsub = null;
 let currentSort = { key: "id", direction: "desc" };
 let currentColumnWidths = null; // persists across rebuilds
+let savedSnapshot = null;
 
 let currentFilters = {
   search: "",
@@ -183,13 +184,22 @@ function getAsyncConfig() {
 // =============================================================================
 
 function createList(selectionMode) {
-  // Capture snapshot before destroying so we can restore scroll + selection
   if (list) {
-    try {
-      const snapshot = list.getScrollSnapshot();
-      sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshot));
-    } catch {}
+    const vp = list.element.querySelector(".vlist-viewport");
+    const actualTop = vp ? vp.scrollTop : 0;
+    if (actualTop > 0) {
+      const snap = list.getScrollSnapshot();
+      if (snap.scrollTop > 0) {
+        savedSnapshot = snap;
+      }
+    }
     list.destroy();
+  }
+
+  if (savedSnapshot) {
+    try {
+      sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify(savedSnapshot));
+    } catch {}
   }
 
   loadRequests = 0;
