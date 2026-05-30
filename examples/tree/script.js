@@ -4,6 +4,7 @@
 import { createVList, tree, selection } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
+import { getIcon, getChevron } from "./icons.js";
 
 // =============================================================================
 // Constants
@@ -15,31 +16,6 @@ const API_BASE = "/api/files";
 // =============================================================================
 // Data — Filesystem
 // =============================================================================
-
-const FILE_ICONS = {
-  folder: "📁",
-  ts: "🟦",
-  tsx: "🟦",
-  js: "🟨",
-  jsx: "🟨",
-  css: "🟣",
-  html: "🟠",
-  json: "⚙️",
-  md: "📝",
-  cjs: "🟨",
-  mjs: "🟨",
-  yaml: "⚙️",
-  yml: "⚙️",
-  toml: "⚙️",
-  sh: "🔧",
-  default: "📄",
-};
-
-function getIcon(name, isFolder) {
-  if (isFolder) return FILE_ICONS.folder;
-  const ext = name.split(".").pop()?.toLowerCase();
-  return FILE_ICONS[ext] || FILE_ICONS.default;
-}
 
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + " B";
@@ -74,17 +50,10 @@ let rootItems = [];
 const itemTemplate = (item, _index, state) => {
   const t = state.tree;
   const isFolder = item.isDir;
-  const icon = getIcon(item.name, isFolder);
-
-  let chevronClass = "tree-node__chevron";
-  let chevronContent = "▶";
-  if (t.loading) {
-    chevronContent = "◎";
-  } else if (!isFolder) {
-    chevronClass += " tree-node__chevron--leaf";
-  } else if (t.expanded) {
-    chevronClass += " tree-node__chevron--expanded";
-  }
+  const icon = getIcon(item.name, isFolder, t.expanded);
+  const chevron = t.loading
+    ? '<span class="tree-node__chevron tree-node__chevron--loading">◎</span>'
+    : getChevron(isFolder || t.hasChildren, t.expanded);
 
   const meta = isFolder
     ? item.children?.length != null
@@ -94,7 +63,7 @@ const itemTemplate = (item, _index, state) => {
 
   return `
     <div class="tree-node">
-      <span class="${chevronClass}">${chevronContent}</span>
+      ${chevron}
       <span class="tree-node__icon">${icon}</span>
       <span class="tree-node__label">${item.name}</span>
       <span class="tree-node__meta">${meta}</span>
