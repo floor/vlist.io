@@ -1,0 +1,117 @@
+<div class="container">
+    <header>
+        <h1>Tree View</h1>
+        <p class="description">
+            Real filesystem tree with <code>tree</code> + async
+            <code>loadChildren</code>. Folders load on first expand via
+            <code>/api/files</code>. <kbd>Right</kbd> expand ·
+            <kbd>Left</kbd> collapse · type to jump.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <h2 class="sr-only">Files</h2>
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Tree state -->
+            <section class="ui-section">
+                <h3 class="ui-title">Tree</h3>
+                <div class="ui-card ui-card--compact tree-state">
+                    <div class="tree-state__row">
+                        <span class="tree-state__label">Items</span>
+                        <strong id="info-visible">0</strong>
+                    </div>
+                    <div class="tree-state__row">
+                        <span class="tree-state__label">Rendered</span>
+                        <strong id="info-rendered">0</strong>
+                    </div>
+                    <div class="tree-state__row">
+                        <span class="tree-state__label">Expanded</span>
+                        <strong id="info-expanded">0</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="ui-section">
+                <h3 class="ui-title">Actions</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
+                        <button id="btn-expand-all" class="ui-btn">
+                            Expand all
+                        </button>
+                        <button id="btn-collapse-all" class="ui-btn">
+                            Collapse all
+                        </button>
+                        <button id="btn-reset" class="ui-btn">Reset</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Display -->
+            <section class="ui-section">
+                <h3 class="ui-title">Display</h3>
+                <div class="ui-row tree-toggle-row">
+                    <span>Chevrons</span>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-chevrons" />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+                <div class="ui-row tree-toggle-row">
+                    <span>Branches</span>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-branches" />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Keyboard -->
+            <section class="ui-section">
+                <h3 class="ui-title">Keyboard</h3>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">&rarr;</span>
+                    <span class="ui-value">Expand</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">&larr;</span>
+                    <span class="ui-value">Collapse / parent</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">&uarr; / &darr;</span>
+                    <span class="ui-value">Navigate</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">*</span>
+                    <span class="ui-value">Expand siblings</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">Home / End</span>
+                    <span class="ui-value">First / Last</span>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">items</span>
+            </span>
+        </div>
+    </div>
+</div>

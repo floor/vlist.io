@@ -1,0 +1,162 @@
+/* Tree View — example styles */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+#list-container {
+    height: 580px;
+    width: 360px;
+}
+
+#list-container .vlist {
+    border-radius: 0;
+}
+
+/* ============================================================================
+   Tree Node
+   ============================================================================ */
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    width: 100%;
+    padding-right: 16px;
+    cursor: default;
+    user-select: none;
+}
+
+/* ── Chevron ── */
+
+.tree-node__chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 2px;
+    flex-shrink: 0;
+    border-radius: 3px;
+}
+
+.tree-node__chevron:hover {
+    color: var(--text, #111827);
+    background: var(--bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+.tree-node__chevron--leaf {
+    visibility: hidden;
+}
+
+/* ── Icon ── */
+
+.tree-node__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.tree-node__icon svg {
+    overflow: visible;
+}
+
+/* ── Label ── */
+
+.tree-node__label {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text, #111827);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+}
+
+/* ── Meta (file size / item count) ── */
+
+.tree-node__meta {
+    font-size: 11px;
+    color: var(--text-dim, #9ca3af);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+/* ============================================================================
+   Selection + Focus
+   ============================================================================ */
+
+#list-container .vlist-item--selected {
+    background: var(--accent-bg, rgba(102, 126, 234, 0.12));
+}
+
+#list-container .vlist-item--focused {
+    outline: 1px solid var(--accent, #667eea);
+    outline-offset: -1px;
+}
+
+#list-container .vlist-item--focused .tree-node {
+    outline: none;
+}
+
+/* ============================================================================
+   Display toggles
+   ============================================================================ */
+
+.hide-chevrons .tree-node__chevron {
+    display: none;
+}
+
+.hide-chevrons .tree-node {
+    padding-left: 6px;
+}
+
+.hide-chevrons .vlist--tree-lines {
+    --vlist-tree-guide-start: 14px;
+}
+
+.hide-branches .vlist-tree-node::after {
+    display: none !important;
+}
+
+.tree-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted, #6b7280);
+}
+
+/* ============================================================================
+   Sidebar
+   ============================================================================ */
+
+.tree-state {
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+}
+
+.tree-state__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tree-state__label {
+    color: var(--text-muted, #6b7280);
+}
+
+.tree-state__row strong {
+    font-variant-numeric: tabular-nums;
+    color: var(--text, #111827);
+}

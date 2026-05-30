@@ -110,7 +110,13 @@
         "slug": "sortable",
         "name": "Sortable",
         "desc": "Drag-and-drop reordering with handle or full-item drag — task list demo",
-        "plugins": ["sortable", "selection", "snapshots"],
+        "plugins": ["sortable", "selection", "snapshots"]
+      },
+      {
+        "slug": "tree",
+        "name": "Tree View",
+        "desc": "Collapsible file tree — expand/collapse, keyboard navigation, type-ahead search",
+        "plugins": ["tree", "selection", "scrollbar"],
         "badge": "new"
       }
     ]

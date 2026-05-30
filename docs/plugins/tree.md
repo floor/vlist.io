@@ -1,7 +1,7 @@
 ---
-created: 2026-05-28
-updated: 2026-05-28
-status: draft
+created: 2026-05-29
+updated: 2026-05-29
+status: published
 rfc: RFC-007
 ---
 
@@ -10,56 +10,48 @@ rfc: RFC-007
 Virtualized tree view with expand/collapse, async children, and WAI-ARIA treeview keyboard navigation.
 
 ```ts
-import { createVList, tree } from "vlist";
+import { createVList, tree, selection } from "vlist";
 
 const list = createVList({
   container: "#app",
   item: { height: 32, template: renderNode },
   items: files,
-}, [tree({
-  children: "children",
-  indent: 24,
-})]);
+}, [
+  tree({ children: "children", indent: 24, expandOnClick: true }),
+  selection({ mode: "single" }),
+]);
 ```
 
 ## Data Model
 
-Two data formats are supported.
+Two data formats are supported. In both modes, every node must have a unique `id`.
 
 ### Nested children
 
-Items are root nodes with nested `children` arrays:
+Items have a `children` array (or custom accessor):
 
 ```ts
 const files = [
   { id: "src", name: "src", children: [
     { id: "core", name: "core", children: [
-      { id: "create", name: "create.ts" },
-      { id: "pipeline", name: "pipeline.ts" },
+      { id: "create", name: "create.ts", children: [] },
+      { id: "pipeline", name: "pipeline.ts", children: [] },
     ]},
-    { id: "plugins", name: "plugins", children: [
-      { id: "tree", name: "tree", children: [
-        { id: "plugin", name: "plugin.ts" },
-        { id: "index", name: "index.ts" },
-      ]},
-    ]},
-    { id: "index", name: "index.ts" },
   ]},
-  { id: "pkg", name: "package.json" },
-  { id: "readme", name: "README.md" },
+  { id: "pkg", name: "package.json", children: [] },
+  { id: "readme", name: "README.md", children: [] },
 ];
 ```
 
 ### Flat with parentId
 
-Flat arrays with a `parentId` field — common when data comes from a database or API:
+Flat arrays with a `parentId` field — common for database-backed data:
 
 ```ts
 const nodes = [
   { id: "src", name: "src", parentId: null },
   { id: "core", name: "core", parentId: "src" },
   { id: "create", name: "create.ts", parentId: "core" },
-  { id: "pipeline", name: "pipeline.ts", parentId: "core" },
   { id: "pkg", name: "package.json", parentId: null },
 ];
 
@@ -70,7 +62,9 @@ const list = createVList({
 }, [tree({ parentId: "parentId" })]);
 ```
 
-The plugin builds and flattens the tree internally based on expand/collapse state — you work with your original data, not layout indices.
+Orphaned nodes (non-null `parentId` referencing a missing node) are silently dropped with a console warning.
+
+The plugin flattens the tree internally based on expand state — you work with your original data structure, not layout indices.
 
 ## Config
 
@@ -78,32 +72,32 @@ The plugin builds and flattens the tree internally based on expand/collapse stat
 |--------|------|---------|-------------|
 | `children` | `string \| (item) => T[]` | `"children"` | Key or accessor for child nodes (nested mode) |
 | `parentId` | `string \| (item) => string \| number \| null` | — | Key or accessor for parent ID (flat mode) |
-| `indent` | `number` | `24` | Indentation per depth level (px) |
-| `expanded` | `boolean \| (string \| number)[] \| (item) => boolean` | `false` | Initial expanded state — `true` for all, array of IDs, or predicate |
+| `indent` | `number` | `24` | Indentation per depth level in pixels |
+| `expanded` | `boolean \| ID[] \| (item) => boolean` | `false` | Initial expand state |
 | `expandOnClick` | `boolean` | `false` | Toggle expand/collapse on row click |
-| `loadChildren` | `(item) => Promise<T[]>` | — | Async child loader (see [Async Children](#async-children)) |
-| `label` | `string \| (item) => string` | auto | Label accessor for type-ahead and rename |
-| `checkbox` | `boolean` | `false` | Enable tri-state checkbox selection *(Phase 2)* |
-| `connectorLines` | `boolean` | `false` | Show tree connector lines *(Phase 2)* |
-| `compress` | `boolean` | `false` | Compress single-child chains *(Phase 2)* |
+| `loadChildren` | `(item) => Promise<T[]>` | — | Async child loader (see below) |
+| `label` | `string \| (item) => string` | auto | Label accessor for type-ahead search |
+
+One of `children` or `parentId` is required. If neither is set, defaults to `children: "children"`.
+
+The `label` accessor defaults to `item.name ?? item.label ?? item.title ?? String(item.id)`.
 
 ## Template
 
-The template receives tree context via `state`:
+The template receives tree context via `state.tree`:
 
 ```ts
 const renderNode = (item, index, state) => {
-  const { depth, expanded, hasChildren, isLeaf } = state.tree;
-  const indent = depth * 24;
-  const icon = isLeaf ? "file" : expanded ? "folder-open" : "folder";
-  const toggle = hasChildren
-    ? `<span class="toggle">${expanded ? "▼" : "▶"}</span>`
-    : `<span class="toggle-spacer"></span>`;
+  const { depth, expanded, hasChildren, isLeaf, loading } = state.tree;
+  const icon = loading ? "⏳" : isLeaf ? "📄" : expanded ? "📂" : "📁";
+  const chevron = hasChildren
+    ? `<span class="chevron${expanded ? " open" : ""}">▶</span>`
+    : `<span class="chevron-spacer"></span>`;
 
   return `
-    <div class="tree-node" style="padding-left: ${indent}px">
-      ${toggle}
-      <span class="icon icon-${icon}"></span>
+    <div class="tree-node">
+      ${chevron}
+      <span class="icon">${icon}</span>
       <span class="label">${item.name}</span>
     </div>
   `;
@@ -113,32 +107,30 @@ const renderNode = (item, index, state) => {
 | Property | Type | Description |
 |----------|------|-------------|
 | `state.tree.depth` | `number` | Nesting depth (0 = root) |
-| `state.tree.expanded` | `boolean` | Whether this node is expanded |
-| `state.tree.hasChildren` | `boolean` | Whether this node has children |
+| `state.tree.expanded` | `boolean` | Whether this node is currently expanded |
+| `state.tree.hasChildren` | `boolean` | Whether this node has child nodes |
 | `state.tree.isLeaf` | `boolean` | `true` if no children |
-| `state.tree.loading` | `boolean` | `true` while async children load |
-| `state.tree.checked` | `true \| false \| "mixed"` | Checkbox state *(Phase 2)* |
-| `state.tree.compressedPath` | `string \| null` | Compressed path *(Phase 2)* |
+| `state.tree.loading` | `boolean` | `true` while async children are loading |
+
+The plugin also applies `paddingLeft` automatically based on `depth * indent`, and sets a `--vlist-tree-depth` CSS custom property on each element for advanced styling.
 
 ## Async Children
 
 Load children on demand when a node is first expanded:
 
 ```ts
-const list = createVList({
-  container: "#app",
-  item: { height: 32, template: renderNode },
-  items: rootNodes,
-}, [tree({
+tree({
   children: "children",
   loadChildren: async (item) => {
     const res = await fetch(`/api/files/${item.id}/children`);
     return res.json();
   },
-})]);
+})
 ```
 
-While loading, `state.tree.loading` is `true` — use it to show a spinner. Loaded children are cached on the item.
+When `loadChildren` is configured, nodes without loaded children can still be expanded via click or ArrowRight — the plugin triggers the load automatically. While loading, `state.tree.loading` is `true` and the node gets the `.vlist-tree-node--loading` CSS class.
+
+Loaded children are cached on the item's `children` property — subsequent expand/collapse is instant.
 
 ## Methods
 
@@ -147,22 +139,16 @@ While loading, `state.tree.loading` is `true` — use it to show a spinner. Load
 | `expand(id)` | Expand a node |
 | `collapse(id)` | Collapse a node |
 | `toggle(id)` | Toggle expand/collapse |
-| `expandAll()` | Expand all nodes |
-| `collapseAll()` | Collapse all nodes |
-| `expandTo(id)` | Expand all ancestors of a node (reveal it) |
-| `getExpanded()` | Get array of expanded node IDs |
+| `expandAll()` | Expand every node in the tree |
+| `collapseAll()` | Collapse everything to root level |
+| `expandTo(id)` | Expand all ancestors to reveal a node, then scroll to it |
+| `getExpanded()` | Returns array of currently expanded node IDs |
 | `isExpanded(id)` | Check if a node is expanded |
-| `getDepth(id)` | Get nesting depth of a node |
-| `getParent(id)` | Get parent node |
-| `getChildren(id)` | Get direct children of a node |
 | `addChild(parentId, item, index?)` | Insert a child under a parent |
-| `moveNode(id, newParentId, index?)` | Reparent a node |
-| `getTreeLayout()` | Get tree layout instance |
-| `checkNode(id)` | Check a node *(Phase 2)* |
-| `uncheckNode(id)` | Uncheck a node *(Phase 2)* |
-| `getChecked()` | Get checked node IDs *(Phase 2)* |
-| `filterTree(predicate)` | Filter visible nodes, `null` to clear *(Phase 2)* |
-| `renameNode(id)` | Enter rename mode on a node *(Phase 3)* |
+| `moveNode(id, newParentId, index?)` | Reparent a node (cycle detection built in) |
+| `getTreeLayout()` | Returns `{ totalVisible, flatNodes }` |
+
+`addChild` and `moveNode` validate constraints: duplicate IDs throw, cycles throw, missing parents throw.
 
 ## Events
 
@@ -172,10 +158,6 @@ While loading, `state.tree.loading` is `true` — use it to show a spinner. Load
 | `tree:collapse` | `{ id, item, depth }` |
 | `tree:load` | `{ id, item, children }` — async children loaded |
 | `tree:load:error` | `{ id, item, error }` — async load failed |
-| `tree:check` | `{ checked, unchecked, mixed }` *(Phase 2)* |
-| `tree:filter` | `{ matches, total }` *(Phase 2)* |
-| `tree:rename` | `{ id, item, value, previousValue }` *(Phase 3)* |
-| `tree:rename:cancel` | `{ id, item }` *(Phase 3)* |
 
 ## Keyboard
 
@@ -183,47 +165,57 @@ Follows the [WAI-ARIA TreeView pattern](https://www.w3.org/WAI/ARIA/apg/patterns
 
 | Key | Action |
 |-----|--------|
-| ArrowRight | Expand node (if collapsed), or move to first child (if expanded) |
-| ArrowLeft | Collapse node (if expanded), or move to parent (if collapsed/leaf) |
+| ArrowRight | Expand (if collapsed), move to first child (if expanded), or trigger async load |
+| ArrowLeft | Collapse (if expanded), or move to parent |
 | ArrowDown | Next visible node |
 | ArrowUp | Previous visible node |
 | Home | First node |
 | End | Last visible node |
 | Enter | Activate node (emits `item:click`) |
-| `*` (asterisk) | Expand all siblings at current level |
-| Type-ahead | Character keys jump to next matching node (500ms timeout) |
-| Space | Toggle checkbox *(Phase 2)* |
-| F2 | Enter rename mode *(Phase 3)* |
+| `*` | Expand all siblings at current level |
+| Type-ahead | Character keys jump to next matching label (500ms timeout) |
+
+ArrowDown/Up/Home/End are handled by the `selection` or `a11y` plugin when present. The tree plugin provides its own fallback if neither is active.
 
 ## CSS Classes
 
-- `.vlist--tree` on root
-- `.vlist-tree-node` on items
-- `.vlist-tree-node--expanded` on expanded nodes
-- `.vlist-tree-node--leaf` on leaf nodes
-- `.vlist-tree-node--loading` on async-loading nodes
-- `.vlist-tree-node--context` on ancestor-only nodes during filter *(Phase 2)*
-- `.vlist-tree-node--compressed` on compressed-path nodes *(Phase 2)*
-- `.vlist-tree-node--editing` on nodes in rename mode *(Phase 3)*
-- `.vlist-tree-connector` on connector line elements *(Phase 2)*
+| Class | Applied to |
+|-------|-----------|
+| `.vlist--tree` | Root element |
+| `.vlist-tree-node` | Every tree item |
+| `.vlist-tree-node--expanded` | Expanded nodes |
+| `.vlist-tree-node--leaf` | Leaf nodes (no children) |
+| `.vlist-tree-node--loading` | Nodes loading async children |
 
 ## ARIA
 
-- `role="tree"` on root, `role="treeitem"` on nodes
-- `aria-expanded` on nodes with children
-- `aria-level` for depth (1-based)
-- `aria-setsize` and `aria-posinset` scoped to siblings at each level
-- `aria-checked` with tri-state support *(Phase 2)*
+- `role="tree"` on root, `role="treeitem"` on every node
+- `aria-expanded="true"` / `"false"` on nodes with children (absent on leaves)
+- `aria-level` — nesting depth (1-based per spec)
+- `aria-setsize` / `aria-posinset` — sibling count and position, scoped per parent
+
+## Plugin Interactions
+
+| Plugin | Interaction |
+|--------|-------------|
+| **selection** | Works — selection operates on the flat visible list |
+| **scrollbar** | Works |
+| **scale** | Works — compression-aware render pipeline |
+| **autosize** | Works |
+| **snapshots** | Works |
+| **grid, masonry, table** | Conflict — tree is a list layout |
+| **groups** | Conflict — tree manages its own hierarchy |
+| **data** | Conflict — use `loadChildren` for async tree data |
 
 ## Notes
 
-- Works with: selection, scrollbar, scale, autosize, snapshots
-- Conflicts with: grid, masonry, table, groups, data
-- `scrollToIndex` uses flat visible indices — use `expandTo(id)` first to ensure a deep node is visible
-- `list.total` returns the count of currently visible (flattened) nodes, not total nodes in the tree
-- Removing a node also removes its entire subtree
+- `list.total` returns visible (flattened) node count, not total nodes in tree
+- Collapsing a node removes its entire subtree from view but preserves expand state — re-expanding restores it
+- Removing a node removes its entire subtree
+- Duplicate IDs are detected across the full tree (including collapsed subtrees) and throw
+- `moveNode` validates cycles — moving a node onto its own descendant throws
+- `scrollToIndex` uses flat visible indices — call `expandTo(id)` first to ensure a deep node is visible
 
 ## Examples
 
-- [File Browser](/examples/file-browser) — Finder-like tree with icons and async directory loading
-- [Category Picker](/examples/category-picker) — checkbox tree with tri-state selection *(Phase 2)*
+- [Tree View](/examples/tree) — collapsible file tree with keyboard navigation

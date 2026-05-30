@@ -15,6 +15,7 @@ const ALLOWED_ROOTS = ["vlist", "vlist.io"];
 // Patterns to ignore when listing directories
 const IGNORE_PATTERNS = [
   "dist",
+  "node_modules",
   "build",
   ".git",
   ".turbo",
@@ -22,6 +23,10 @@ const IGNORE_PATTERNS = [
   "coverage",
   ".cache",
   "__pycache__",
+  "shim",
+  "scratchpad",
+  "bun.lock",
+  "npm-readme.md",
 ];
 
 // =============================================================================
@@ -80,6 +85,9 @@ function shouldIgnore(name: string): boolean {
 
   // Ignore patterns
   if (IGNORE_PATTERNS.includes(name)) return true;
+
+  // Prefix patterns
+  if (name.startsWith("tsconfig")) return true;
 
   return false;
 }
