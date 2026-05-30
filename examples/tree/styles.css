@@ -14,6 +14,7 @@
     --vlist-item-padding-y: 0;
 }
 
+
 #list-container .vlist-item {
     border-bottom: none;
 }
@@ -121,6 +122,14 @@
 
 .hide-chevrons .tree-node__chevron {
     display: none;
+}
+
+.hide-chevrons .tree-node {
+    padding-left: 6px;
+}
+
+.hide-chevrons .vlist--tree-lines {
+    --vlist-tree-guide-start: 14px;
 }
 
 .hide-branches .vlist-tree-node::after {
