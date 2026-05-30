@@ -11,7 +11,7 @@
 /* Grid container */
 #list-container {
     --item-radius: 8px;
-    height: 600px;
+    height: 640px;
     margin: 0 auto;
 }
 
@@ -137,6 +137,7 @@
 
 .detail__img {
     width: 100%;
+    height: 214.5px;
     border-radius: var(--item-radius, 8px);
     display: block;
     margin-bottom: 8px;
