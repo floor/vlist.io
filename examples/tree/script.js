@@ -10,7 +10,7 @@ import { getIcon, getChevron } from "./icons.js";
 // Constants
 // =============================================================================
 
-const ITEM_HEIGHT = 32;
+const ITEM_HEIGHT = 30;
 const API_BASE = "/api/files";
 
 // =============================================================================
