@@ -151,6 +151,7 @@ export async function createList() {
         indent: 20,
         expanded: ["vlist/src"],
         expandOnClick: true,
+        connectorLines: true,
         loadChildren: async (item) => {
           return fetchDir(item.id);
         },
@@ -214,6 +215,23 @@ const resetBtn = document.getElementById("btn-reset");
 if (resetBtn) {
   resetBtn.addEventListener("click", () => {
     createList();
+  });
+}
+
+// Display toggles
+const container = document.getElementById("list-container");
+
+const chevronToggle = document.getElementById("toggle-chevrons");
+if (chevronToggle) {
+  chevronToggle.addEventListener("change", () => {
+    container?.classList.toggle("hide-chevrons", !chevronToggle.checked);
+  });
+}
+
+const branchToggle = document.getElementById("toggle-branches");
+if (branchToggle) {
+  branchToggle.addEventListener("change", () => {
+    container?.classList.toggle("hide-branches", !branchToggle.checked);
   });
 }
 

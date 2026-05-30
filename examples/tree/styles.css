@@ -9,8 +9,12 @@
     width: 320px;
 }
 
+#list-container .vlist {
+    --vlist-item-padding-x: 0;
+    --vlist-item-padding-y: 0;
+}
+
 #list-container .vlist-item {
-    padding: 0;
     border-bottom: none;
 }
 
@@ -109,6 +113,33 @@
 
 #list-container .vlist-item--focused .tree-node {
     outline: none;
+}
+
+/* ============================================================================
+   Display toggles
+   ============================================================================ */
+
+.hide-chevrons .tree-node__chevron {
+    display: none;
+}
+
+.hide-branches .vlist-tree-node::after {
+    display: none !important;
+}
+
+/* Toggle label */
+.ui-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted, #6b7280);
+    cursor: pointer;
+    user-select: none;
+}
+
+.ui-toggle input {
+    accent-color: var(--accent, #667eea);
 }
 
 /* ============================================================================

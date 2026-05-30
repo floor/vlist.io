@@ -388,6 +388,11 @@ function buildExtraHead(
       `<link rel="stylesheet" href="/dist/vlist-grid.css?v=${VLIST_VERSION}" />`,
     );
   }
+  if (example?.plugins?.includes("tree")) {
+    tags.push(
+      `<link rel="stylesheet" href="/dist/vlist-tree.css?v=${VLIST_VERSION}" />`,
+    );
+  }
 
   // Shared example styles (at example root, optional)
   const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));
