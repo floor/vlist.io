@@ -12,6 +12,7 @@
 #list-container .vlist {
     --vlist-item-padding-x: 0;
     --vlist-item-padding-y: 0;
+    --vlist-transition-duration: 0ms;
 }
 
 #list-container .vlist-item {
