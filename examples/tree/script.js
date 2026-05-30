@@ -164,11 +164,34 @@ function updateTreeState() {
 // Controls
 // =============================================================================
 
+async function loadAllDirs(items) {
+  const pending = [];
+  for (const item of items) {
+    if (item.isDir && item.children === undefined) {
+      pending.push(
+        fetchDir(item.id).then((children) => {
+          item.children = children;
+          return loadAllDirs(children);
+        }),
+      );
+    } else if (item.children?.length) {
+      pending.push(loadAllDirs(item.children));
+    }
+  }
+  await Promise.all(pending);
+}
+
 const expandAllBtn = document.getElementById("btn-expand-all");
 if (expandAllBtn) {
-  expandAllBtn.addEventListener("click", () => {
+  expandAllBtn.addEventListener("click", async () => {
+    expandAllBtn.disabled = true;
+    expandAllBtn.textContent = "Loading…";
+    await loadAllDirs(rootItems);
+    list?.setItems(rootItems);
     list?.expandAll();
     updateTreeState();
+    expandAllBtn.textContent = "Expand";
+    expandAllBtn.disabled = false;
   });
 }
 
@@ -192,6 +215,7 @@ const container = document.getElementById("list-container");
 
 const chevronToggle = document.getElementById("toggle-chevrons");
 if (chevronToggle) {
+  container?.classList.add("hide-chevrons");
   chevronToggle.addEventListener("change", () => {
     container?.classList.toggle("hide-chevrons", !chevronToggle.checked);
   });
@@ -199,6 +223,7 @@ if (chevronToggle) {
 
 const branchToggle = document.getElementById("toggle-branches");
 if (branchToggle) {
+  container?.classList.add("hide-branches");
   branchToggle.addEventListener("change", () => {
     container?.classList.toggle("hide-branches", !branchToggle.checked);
   });

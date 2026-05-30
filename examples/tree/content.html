@@ -37,16 +37,18 @@
             <!-- Display -->
             <section class="ui-section">
                 <h3 class="ui-title">Display</h3>
-                <div class="ui-row">
-                    <label class="ui-toggle">
-                        <input type="checkbox" id="toggle-chevrons" checked />
-                        <span>Chevrons</span>
+                <div class="ui-row tree-toggle-row">
+                    <span>Chevrons</span>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-chevrons" />
+                        <span class="ui-switch__track"></span>
                     </label>
                 </div>
-                <div class="ui-row">
-                    <label class="ui-toggle">
-                        <input type="checkbox" id="toggle-branches" checked />
-                        <span>Branches</span>
+                <div class="ui-row tree-toggle-row">
+                    <span>Branches</span>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-branches" />
+                        <span class="ui-switch__track"></span>
                     </label>
                 </div>
             </section>
@@ -54,12 +56,25 @@
             <!-- Keyboard -->
             <section class="ui-section">
                 <h3 class="ui-title">Keyboard</h3>
-                <div class="ui-row">
-                    <p class="ui-hint">
-                        <kbd>&rarr;</kbd> expand · <kbd>&larr;</kbd> collapse<br>
-                        <kbd>&uarr;</kbd><kbd>&darr;</kbd> navigate · <kbd>*</kbd> expand siblings<br>
-                        Type to search
-                    </p>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">&rarr;</span>
+                    <span class="ui-value">Expand</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">&larr;</span>
+                    <span class="ui-value">Collapse / parent</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">&uarr; / &darr;</span>
+                    <span class="ui-value">Navigate</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">*</span>
+                    <span class="ui-value">Expand siblings</span>
+                </div>
+                <div class="ui-row no-margin">
+                    <span class="ui-label">Home / End</span>
+                    <span class="ui-value">First / Last</span>
                 </div>
             </section>
 
@@ -69,15 +84,11 @@
                 <div class="ui-row">
                     <div class="ui-btn-group">
                         <button id="btn-expand-all" class="ui-btn">
-                            Expand All
+                            Expand
                         </button>
                         <button id="btn-collapse-all" class="ui-btn">
-                            Collapse All
+                            Collapse
                         </button>
-                    </div>
-                </div>
-                <div class="ui-row">
-                    <div class="ui-btn-group">
                         <button id="btn-reset" class="ui-btn">Reset</button>
                     </div>
                 </div>
