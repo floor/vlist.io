@@ -6,17 +6,17 @@ import { list, createList, stats, fetchDir, rootItems } from "./script.js";
 // UI updates
 // =============================================================================
 
-const visibleEl = document.getElementById("info-visible");
+const itemsEl = document.getElementById("info-visible");
+const renderedEl = document.getElementById("info-rendered");
 const expandedEl = document.getElementById("info-expanded");
-const nodesEl = document.getElementById("info-nodes");
 
 export function updateTreeState() {
   const l = list();
   if (!l) return;
   const layout = l.getTreeLayout();
-  if (visibleEl) visibleEl.textContent = layout.totalVisible.toLocaleString();
+  if (itemsEl) itemsEl.textContent = layout.totalVisible.toLocaleString();
+  if (renderedEl) renderedEl.textContent = l.element.querySelector(".vlist-content")?.children.length ?? 0;
   if (expandedEl) expandedEl.textContent = l.getExpanded().length;
-  if (nodesEl) nodesEl.textContent = layout.flatNodes.length.toLocaleString();
 }
 
 // =============================================================================

@@ -1,7 +1,7 @@
 /* Tree View — example styles */
 
 /* ============================================================================
-   vlist overrides
+   Container
    ============================================================================ */
 
 #list-container {
@@ -10,18 +10,11 @@
 }
 
 #list-container .vlist {
-    --vlist-item-padding-x: 0;
-    --vlist-item-padding-y: 0;
-    --vlist-transition-duration: 0ms;
     border-radius: 0;
 }
 
-#list-container .vlist-item {
-    border-bottom: none;
-}
-
 /* ============================================================================
-   Tree Node (32px)
+   Tree Node
    ============================================================================ */
 
 .tree-node {
@@ -51,10 +44,6 @@
 .tree-node__chevron:hover {
     color: var(--text, #111827);
     background: var(--bg-hover, rgba(0, 0, 0, 0.04));
-}
-
-.tree-node__chevron--expanded {
-    /* SVG icons handle rotation — no transform needed */
 }
 
 .tree-node__chevron--leaf {
@@ -146,25 +135,7 @@
 }
 
 /* ============================================================================
-   Loading state
-   ============================================================================ */
-
-.vlist-tree-node--loading .tree-node__chevron {
-    animation: tree-spin 0.8s linear infinite;
-    color: var(--accent, #667eea);
-}
-
-@keyframes tree-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* ============================================================================
-   Sidebar tree state
+   Sidebar
    ============================================================================ */
 
 .tree-state {
