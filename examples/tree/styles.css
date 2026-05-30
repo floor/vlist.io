@@ -64,14 +64,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
+    overflow: visible;
 }
 
 .tree-node__icon svg {
-    width: 18px;
-    height: 18px;
+    overflow: visible;
 }
 
 /* ── Label ── */

@@ -3,7 +3,7 @@
 // Colors from TheRedXD/zed-icons-colored-theme (MIT)
 
 const svg = (paths, color) =>
-  `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:${color}">${paths}</svg>`;
+  `<svg width="18" height="18" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:${color}">${paths}</svg>`;
 
 const PATHS = {
   folder: '<path d="M8.26 3.97c.09.2.22.5.31.72.08.19.26.31.46.31H12.5a.5.5 0 01.5.5v6.63a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5V3.87a.5.5 0 01.5-.5h3.84c.4 0 .75.24.92.6Z" fill="currentColor" stroke="currentColor" stroke-width="0.5"/>',
@@ -39,7 +39,7 @@ const COLORS_LIGHT = {
   ts: "#0083cc", js: "#aca100", css: "#814cbf", html: "#78432c",
   toml: "#dd6c00", json: "#19aa47", md: "#4583ad", lock: "#554841",
   git: "#872111", license: "#8d5a27", package: "#bb5532", file: "#8d5a27",
-  folder: "#6b6b6b", folder_open: "#6b6b6b",
+  folder: "#a0a0a0", folder_open: "#a0a0a0",
   cjs: "#aca100", mjs: "#aca100", jsx: "#aca100", tsx: "#0083cc",
   yaml: "#dd6c00", yml: "#dd6c00", sh: "#8d5a27",
   default: "#6b6b6b",
@@ -69,7 +69,7 @@ export function getIcon(name, isFolder, expanded) {
   const colors = getColors();
   if (isFolder) {
     const key = expanded ? "folder_open" : "folder";
-    return svg(PATHS[key], colors[key]);
+    return `<svg width="22" height="22" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:${colors[key]}">${PATHS[key]}</svg>`;
   }
   const byName = NAME_TO_ICON[name];
   if (byName) return svg(PATHS[byName], colors[byName] || colors.default);
