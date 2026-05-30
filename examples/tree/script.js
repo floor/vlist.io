@@ -5,6 +5,7 @@ import { createVList, tree, selection } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { getIcon, getChevron } from "./icons.js";
+import { updateTreeState } from "./controls.js";
 
 // =============================================================================
 // Constants
@@ -23,7 +24,7 @@ function formatSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 
-async function fetchDir(path) {
+export async function fetchDir(path) {
   const res = await fetch(`${API_BASE}?path=${encodeURIComponent(path)}`);
   if (!res.ok) throw new Error(`Failed to load ${path}`);
   const data = await res.json();
@@ -40,8 +41,11 @@ async function fetchDir(path) {
 // State
 // =============================================================================
 
-export let list = null;
-let rootItems = [];
+let _list = null;
+let _rootItems = [];
+
+export function list() { return _list; }
+export function rootItems() { return _rootItems; }
 
 // =============================================================================
 // Template
@@ -76,8 +80,8 @@ const itemTemplate = (item, _index, state) => {
 // =============================================================================
 
 export const stats = createStats({
-  getScrollPosition: () => list?.getScrollPosition() ?? 0,
-  getTotal: () => list?.total ?? 0,
+  getScrollPosition: () => _list?.getScrollPosition() ?? 0,
+  getTotal: () => _list?.total ?? 0,
   getItemSize: () => ITEM_HEIGHT,
   getContainerSize: () =>
     document.querySelector("#list-container")?.clientHeight ?? 0,
@@ -90,20 +94,20 @@ const updateInfo = createInfoUpdater(stats);
 // =============================================================================
 
 export async function createList() {
-  if (list) {
-    list.destroy();
-    list = null;
+  if (_list) {
+    _list.destroy();
+    _list = null;
   }
 
   const container = document.getElementById("list-container");
   container.innerHTML = "";
 
-  rootItems = await fetchDir("vlist");
+  _rootItems = await fetchDir("vlist");
 
-  const srcNode = rootItems.find((n) => n.name === "src");
+  const srcNode = _rootItems.find((n) => n.name === "src");
   if (srcNode) srcNode.children = await fetchDir(srcNode.id);
 
-  list = createVList(
+  _list = createVList(
     {
       container: "#list-container",
       ariaLabel: "File tree",
@@ -111,7 +115,7 @@ export async function createList() {
         height: ITEM_HEIGHT,
         template: itemTemplate,
       },
-      items: rootItems,
+      items: _rootItems,
     },
     [
       tree({
@@ -125,108 +129,23 @@ export async function createList() {
           return fetchDir(item.id);
         },
       }),
-      selection({ mode: "single" }),
+      selection({ mode: "single", followFocus: true, focusOnClick: true }),
     ],
   );
 
-  list.on("scroll", updateInfo);
-  list.on("range:change", updateInfo);
-  list.on("velocity:change", ({ velocity }) => {
+  _list.on("scroll", updateInfo);
+  _list.on("range:change", updateInfo);
+  _list.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
     updateInfo();
   });
 
-  list.on("tree:expand", updateTreeState);
-  list.on("tree:collapse", updateTreeState);
-  list.on("tree:load", updateTreeState);
+  _list.on("tree:expand", updateTreeState);
+  _list.on("tree:collapse", updateTreeState);
+  _list.on("tree:load", updateTreeState);
 
   updateInfo();
   updateTreeState();
-}
-
-// =============================================================================
-// UI updates
-// =============================================================================
-
-const visibleEl = document.getElementById("info-visible");
-const expandedEl = document.getElementById("info-expanded");
-const nodesEl = document.getElementById("info-nodes");
-
-function updateTreeState() {
-  if (!list) return;
-  const layout = list.getTreeLayout();
-  if (visibleEl) visibleEl.textContent = layout.totalVisible.toLocaleString();
-  if (expandedEl) expandedEl.textContent = list.getExpanded().length;
-  if (nodesEl) nodesEl.textContent = layout.flatNodes.length.toLocaleString();
-}
-
-// =============================================================================
-// Controls
-// =============================================================================
-
-async function loadAllDirs(items) {
-  const pending = [];
-  for (const item of items) {
-    if (item.isDir && item.children === undefined) {
-      pending.push(
-        fetchDir(item.id).then((children) => {
-          item.children = children;
-          return loadAllDirs(children);
-        }),
-      );
-    } else if (item.children?.length) {
-      pending.push(loadAllDirs(item.children));
-    }
-  }
-  await Promise.all(pending);
-}
-
-const expandAllBtn = document.getElementById("btn-expand-all");
-if (expandAllBtn) {
-  expandAllBtn.addEventListener("click", async () => {
-    expandAllBtn.disabled = true;
-    expandAllBtn.textContent = "Loading…";
-    await loadAllDirs(rootItems);
-    list?.setItems(rootItems);
-    list?.expandAll();
-    updateTreeState();
-    expandAllBtn.textContent = "Expand";
-    expandAllBtn.disabled = false;
-  });
-}
-
-const collapseAllBtn = document.getElementById("btn-collapse-all");
-if (collapseAllBtn) {
-  collapseAllBtn.addEventListener("click", () => {
-    list?.collapseAll();
-    updateTreeState();
-  });
-}
-
-const resetBtn = document.getElementById("btn-reset");
-if (resetBtn) {
-  resetBtn.addEventListener("click", () => {
-    createList();
-  });
-}
-
-// Display toggles
-const container = document.getElementById("list-container");
-
-const chevronToggle = document.getElementById("toggle-chevrons");
-if (chevronToggle) {
-  container?.classList.add("hide-chevrons");
-  chevronToggle.addEventListener("change", () => {
-    container?.classList.toggle("hide-chevrons", !chevronToggle.checked);
-  });
-}
-
-const branchToggle = document.getElementById("toggle-branches");
-if (branchToggle) {
-  container?.classList.add("hide-branches");
-  branchToggle.addEventListener("change", () => {
-    container?.classList.toggle("hide-branches", !branchToggle.checked);
-  });
 }
 
 // =============================================================================
