@@ -13,6 +13,7 @@
     --vlist-item-padding-x: 0;
     --vlist-item-padding-y: 0;
     --vlist-transition-duration: 0ms;
+    border-radius: 0;
 }
 
 #list-container .vlist-item {
@@ -42,6 +43,7 @@
     justify-content: center;
     width: 16px;
     height: 16px;
+    margin-left: 2px;
     flex-shrink: 0;
     border-radius: 3px;
 }
