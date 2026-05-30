@@ -2,9 +2,10 @@
     <header>
         <h1>Tree View</h1>
         <p class="description">
-            Real filesystem tree with <code>tree</code> + async <code>loadChildren</code>.
-            Folders load on first expand via <code>/api/files</code>.
-            <kbd>Right</kbd> expand · <kbd>Left</kbd> collapse · type to jump.
+            Real filesystem tree with <code>tree</code> + async
+            <code>loadChildren</code>. Folders load on first expand via
+            <code>/api/files</code>. <kbd>Right</kbd> expand ·
+            <kbd>Left</kbd> collapse · type to jump.
         </p>
     </header>
 
@@ -30,6 +31,22 @@
                     <div class="tree-state__row">
                         <span class="tree-state__label">Expanded</span>
                         <strong id="info-expanded">0</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <section class="ui-section">
+                <h3 class="ui-title">Actions</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
+                        <button id="btn-expand-all" class="ui-btn">
+                            Expand all
+                        </button>
+                        <button id="btn-collapse-all" class="ui-btn">
+                            Collapse all
+                        </button>
+                        <button id="btn-reset" class="ui-btn">Reset</button>
                     </div>
                 </div>
             </section>
@@ -75,22 +92,6 @@
                 <div class="ui-row no-margin">
                     <span class="ui-label">Home / End</span>
                     <span class="ui-value">First / Last</span>
-                </div>
-            </section>
-
-            <!-- Actions -->
-            <section class="ui-section">
-                <h3 class="ui-title">Actions</h3>
-                <div class="ui-row">
-                    <div class="ui-btn-group">
-                        <button id="btn-expand-all" class="ui-btn">
-                            Expand
-                        </button>
-                        <button id="btn-collapse-all" class="ui-btn">
-                            Collapse
-                        </button>
-                        <button id="btn-reset" class="ui-btn">Reset</button>
-                    </div>
                 </div>
             </section>
         </aside>
