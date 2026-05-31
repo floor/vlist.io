@@ -481,6 +481,44 @@ export function createList() {
     );
   }
 
+  // Sticky group header — overlay that shows current group
+  if (useGroups) {
+    const tableHeader = list.element.querySelector(".vlist-table-header");
+    const stickyEl = document.createElement("div");
+    stickyEl.className = "group-sticky";
+    stickyEl.style.display = "none";
+    if (tableHeader) tableHeader.after(stickyEl);
+
+    let lastGroup = "";
+
+    list.on("scroll", () => {
+      const scrollPos = list.getScrollPosition();
+      const firstIdx = Math.max(0, Math.floor(scrollPos / currentRowHeight));
+
+      // Walk backward from first visible item to find its group
+      let group = "";
+      for (let i = firstIdx; i >= 0; i--) {
+        const item = list.getItemAt(i);
+        if (!item) continue;
+        if (item.__groupHeader) {
+          group = item.groupKey;
+          break;
+        }
+      }
+
+      if (group && group !== "…") {
+        if (group !== lastGroup) {
+          stickyEl.innerHTML = `<span class="group-sticky__label">${group}</span>`;
+          lastGroup = group;
+        }
+        stickyEl.style.display = "";
+      } else {
+        stickyEl.style.display = "none";
+        lastGroup = "";
+      }
+    });
+  }
+
   // Wire events
   list.on("scroll", updateInfo);
   list.on("range:change", () => {
