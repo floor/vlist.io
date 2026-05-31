@@ -35,7 +35,11 @@ export let filterContinent = "";
 export let loadRequests = 0;
 export let loadedCount = 0;
 export let useCustomScrollbar = false;
+export let useGroups = true;
 
+export function setUseGroups(v) {
+  useGroups = v;
+}
 export function setCurrentRowHeight(v) {
   currentRowHeight = v;
 }
@@ -92,8 +96,10 @@ const citiesAdapter = {
     loadedCount += data.items.length;
     updateContext();
 
+    const items = injectGroupHeaders(data.items, offset);
+
     return {
-      items: data.items,
+      items,
       total: data.total,
       hasMore: data.hasMore,
     };
@@ -339,6 +345,66 @@ export const stats = createStats({
 const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
+// Grouping — adaptive based on sort key
+// =============================================================================
+
+const GROUP_HEADER_HEIGHT = 28;
+
+function getPopulationTier(pop) {
+  if (pop >= 15_000_000) return "15M+";
+  if (pop >= 10_000_000) return "10M+";
+  if (pop >= 1_000_000) return "1M+";
+  if (pop >= 500_000) return "500K+";
+  return "< 500K";
+}
+
+function getGroupKey(item) {
+  if (!item || !item.name) return null;
+  switch (sortKey) {
+    case "population":
+      return getPopulationTier(item.population || 0);
+    case "name":
+      return (item.name[0] || "?").toUpperCase();
+    case "continent":
+      return item.continent || "Unknown";
+    case "country_code":
+      return item.country_code || "??";
+    default:
+      return getPopulationTier(item.population || 0);
+  }
+}
+
+let groupCounter = 0;
+
+function injectGroupHeaders(items, offset) {
+  if (!useGroups || items.length === 0) return items;
+
+  const result = [];
+  let lastGroup = offset > 0 ? null : undefined;
+
+  for (const item of items) {
+    const group = getGroupKey(item);
+    if (group !== null && group !== lastGroup) {
+      result.push({
+        id: `__group_header_${groupCounter++}`,
+        __groupHeader: true,
+        groupKey: group,
+        groupIndex: groupCounter,
+      });
+      lastGroup = group;
+    }
+    result.push(item);
+  }
+  return result;
+}
+
+const groupHeaderTemplate = (key) => `
+  <div class="group-header">
+    <span class="group-header__label">${key}</span>
+  </div>
+`;
+
+// =============================================================================
 // Create / Recreate list
 // =============================================================================
 
@@ -360,6 +426,7 @@ export function createList() {
   // Reset load stats on recreate
   loadRequests = 0;
   loadedCount = 0;
+  groupCounter = 0;
 
   const columns = getColumns();
   const isStriped = currentBorderMode === "striped";
@@ -405,6 +472,14 @@ export function createList() {
       ...(useCustomScrollbar ? [scrollbar()] : []),
     ],
   );
+
+  // Tell table renderer about group headers
+  if (useGroups && list._updateTableForGroups) {
+    list._updateTableForGroups(
+      (item) => !!item.__groupHeader,
+      groupHeaderTemplate,
+    );
+  }
 
   // Wire events
   list.on("scroll", updateInfo);
