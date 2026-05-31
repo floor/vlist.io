@@ -398,11 +398,7 @@ function injectGroupHeaders(items, offset) {
   return result;
 }
 
-const groupHeaderTemplate = (key) => `
-  <div class="group-header">
-    <span class="group-header__label">${key}</span>
-  </div>
-`;
+const groupHeaderTemplate = (key) => key;
 
 // =============================================================================
 // Create / Recreate list
