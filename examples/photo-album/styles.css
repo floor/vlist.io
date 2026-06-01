@@ -11,7 +11,7 @@
 /* Grid container */
 #list-container {
     --item-radius: 8px;
-    height: 640px;
+    height: 590px;
     margin: 0 auto;
 }
 
@@ -139,7 +139,7 @@
     width: 100%;
     height: 214.5px;
     border-radius: var(--item-radius, 8px);
-    display: block;
+    display: none;
     margin-bottom: 8px;
 }
 

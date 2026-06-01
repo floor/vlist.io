@@ -103,7 +103,7 @@ export let currentColumns = 4;
 export let currentGap = 8;
 export let currentRadius = 8;
 export let followFocus = true;
-export let useGroups = true;
+export let useGroups = false;
 export let list = null;
 
 export function setCurrentMode(v) {
