@@ -4,7 +4,7 @@
         <p class="description">
             Plugin architecture with
             <code>scale</code> + <code>scrollbar</code> plugins. Handles
-            100K–5M items with automatic scroll scaling when total height
+            100K–20M items with automatic scroll scaling when total height
             exceeds the browser's 16.7M pixel limit.
         </p>
     </header>
@@ -21,9 +21,18 @@
                 <h3 class="ui-title">Layout</h3>
                 <div class="ui-row">
                     <div class="ui-segmented" id="layout-buttons">
-                        <button class="ui-segmented__btn ui-segmented__btn--active" data-layout="list">List</button>
-                        <button class="ui-segmented__btn" data-layout="grid">Grid</button>
-                        <button class="ui-segmented__btn" data-layout="table">Table</button>
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-layout="list"
+                        >
+                            List
+                        </button>
+                        <button class="ui-segmented__btn" data-layout="grid">
+                            Grid
+                        </button>
+                        <button class="ui-segmented__btn" data-layout="table">
+                            Table
+                        </button>
                     </div>
                 </div>
             </section>
@@ -45,11 +54,11 @@
                         >
                             1M
                         </button>
-                        <button class="ui-segmented__btn" data-size="2m">
-                            2M
+                        <button class="ui-segmented__btn" data-size="7m">
+                            7M
                         </button>
-                        <button class="ui-segmented__btn" data-size="5m">
-                            5M
+                        <button class="ui-segmented__btn" data-size="20m">
+                            20M
                         </button>
                     </div>
                 </div>

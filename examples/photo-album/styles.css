@@ -186,6 +186,40 @@
 }
 
 /* ============================================================================
+   Group Headers
+   ============================================================================ */
+
+#list-container .vlist-group-header {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #9ca3af);
+    background: transparent;
+}
+
+#list-container .vlist-sticky-header {
+    z-index: 5;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #9ca3af);
+    background: transparent;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+}
+
+#list-container .vlist-sticky-header .sticky-group {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    height: 100%;
+}
+
+/* ============================================================================
    Responsive
    ============================================================================ */
 

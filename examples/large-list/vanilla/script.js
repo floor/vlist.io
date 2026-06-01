@@ -20,8 +20,8 @@ const SIZES = {
   "100k": 100_000,
   "500k": 500_000,
   "1m": 1_000_000,
-  "2m": 2_000_000,
-  "5m": 5_000_000,
+  "7m": 7_000_000,
+  "20m": 20_000_000,
 };
 
 const COLORS = [
@@ -122,11 +122,41 @@ const barCell = (_val, _item, index) => {
 };
 
 const TABLE_COLUMNS = [
-  { key: "id", label: "#", width: 80, minWidth: 60, align: "right", cell: indexCell },
-  { key: "color", label: "", width: 44, minWidth: 44, maxWidth: 44, align: "center", cell: colorDot, resizable: false },
+  {
+    key: "id",
+    label: "#",
+    width: 80,
+    minWidth: 60,
+    align: "right",
+    cell: indexCell,
+  },
+  {
+    key: "color",
+    label: "",
+    width: 44,
+    minWidth: 44,
+    maxWidth: 44,
+    align: "center",
+    cell: colorDot,
+    resizable: false,
+  },
   { key: "hash", label: "Hash", width: 130, minWidth: 80, cell: hashCell },
-  { key: "value", label: "Value", width: 90, minWidth: 60, align: "right", cell: valueCell },
-  { key: "bar", label: "Progress", width: 200, minWidth: 100, flex: 1, cell: barCell },
+  {
+    key: "value",
+    label: "Value",
+    width: 90,
+    minWidth: 60,
+    align: "right",
+    cell: valueCell,
+  },
+  {
+    key: "bar",
+    label: "Progress",
+    width: 200,
+    minWidth: 100,
+    flex: 1,
+    cell: barCell,
+  },
 ];
 
 const fallbackTemplate = () => "";
@@ -161,7 +191,7 @@ const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => SIZES[currentSize],
   getItemSize: getItemSize,
-  getColumns: () => currentLayout === "grid" ? GRID_COLUMNS : 1,
+  getColumns: () => (currentLayout === "grid" ? GRID_COLUMNS : 1),
   getContainerSize: () =>
     document.querySelector("#list-container")?.clientHeight ?? 0,
 });
@@ -261,13 +291,19 @@ function createList(sizeKey) {
 
 function updateContext(count) {
   const itemHeight = getItemSize();
-  const effectiveRows = currentLayout === "grid" ? Math.ceil(count / GRID_COLUMNS) : count;
-  const totalHeight = effectiveRows * (itemHeight + (currentLayout === "grid" ? GRID_GAP : 0));
+  const effectiveRows =
+    currentLayout === "grid" ? Math.ceil(count / GRID_COLUMNS) : count;
+  const totalHeight =
+    effectiveRows * (itemHeight + (currentLayout === "grid" ? GRID_GAP : 0));
   const maxHeight = 16_777_216; // browser limit ~16.7M px
   const isScaled = totalHeight > maxHeight;
   const ratio = isScaled ? (totalHeight / maxHeight).toFixed(1) : "1.0";
-  const selector = currentLayout === "table" ? ".vlist-table-row"
-    : currentLayout === "grid" ? ".vlist-grid-item" : ".vlist-item";
+  const selector =
+    currentLayout === "table"
+      ? ".vlist-table-row"
+      : currentLayout === "grid"
+        ? ".vlist-grid-item"
+        : ".vlist-item";
   const domNodes = document.querySelectorAll(selector).length;
   const virtualized = ((1 - domNodes / count) * 100).toFixed(2);
 
@@ -291,7 +327,10 @@ layoutButtons.addEventListener("click", (e) => {
   currentLayout = layout;
 
   layoutButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ui-segmented__btn--active", b.dataset.layout === layout);
+    b.classList.toggle(
+      "ui-segmented__btn--active",
+      b.dataset.layout === layout,
+    );
   });
 
   createList(currentSize);

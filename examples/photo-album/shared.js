@@ -49,13 +49,20 @@ for (let id = 0; id <= 1084; id++) {
 // Data
 // =============================================================================
 
+const BASE_DATE = new Date(2026, 4, 31).getTime(); // May 31, 2026
+const DAY_MS = 86_400_000;
+
 export const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
   const picId = VALID_IDS[i % VALID_IDS.length];
   const category = CATEGORIES[i % CATEGORIES.length];
+  const date = new Date(BASE_DATE - i * DAY_MS);
+  const month = date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
   return {
     id: i + 1,
     title: `Photo ${i + 1}`,
     category,
+    date,
+    month,
     likes: Math.floor(Math.abs(Math.sin(i * 2.1)) * 500),
     picId,
     aspectRatio: ASPECT_RATIOS[i % ASPECT_RATIOS.length],
@@ -96,6 +103,7 @@ export let currentColumns = 4;
 export let currentGap = 8;
 export let currentRadius = 8;
 export let followFocus = true;
+export let useGroups = true;
 export let list = null;
 
 export function setCurrentMode(v) {
@@ -115,6 +123,9 @@ export function setCurrentRadius(v) {
 }
 export function setFollowFocus(v) {
   followFocus = v;
+}
+export function setUseGroups(v) {
+  useGroups = v;
 }
 export function setAspectRatio(v) {
   ASPECT_RATIO = v;

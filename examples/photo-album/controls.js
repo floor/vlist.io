@@ -133,6 +133,18 @@ ratioButtons.addEventListener("click", (e) => {
 });
 
 // =============================================================================
+// Groups Toggle
+// =============================================================================
+
+const groupsToggle = document.getElementById("groups-toggle");
+if (groupsToggle) {
+  groupsToggle.addEventListener("change", () => {
+    app.setUseGroups(groupsToggle.checked);
+    app.createView();
+  });
+}
+
+// =============================================================================
 // Navigation
 // =============================================================================
 
