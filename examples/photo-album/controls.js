@@ -11,7 +11,7 @@ import * as app from "./shared.js";
 let rebuildTimer = 0;
 function debouncedRebuild() {
   clearTimeout(rebuildTimer);
-  rebuildTimer = setTimeout(() => app.createView(), 150);
+  rebuildTimer = setTimeout(() => app.createView(), 200);
 }
 
 // =============================================================================
@@ -133,6 +133,18 @@ ratioButtons.addEventListener("click", (e) => {
 });
 
 // =============================================================================
+// Groups Toggle
+// =============================================================================
+
+const groupsToggle = document.getElementById("groups-toggle");
+if (groupsToggle) {
+  groupsToggle.addEventListener("change", () => {
+    app.setUseGroups(groupsToggle.checked);
+    app.createView();
+  });
+}
+
+// =============================================================================
 // Navigation
 // =============================================================================
 
@@ -165,7 +177,9 @@ document.getElementById("btn-random").addEventListener("click", () => {
 // Follow Focus
 // =============================================================================
 
-document.getElementById("follow-focus-toggle").addEventListener("change", (e) => {
-  app.setFollowFocus(e.target.checked);
-  app.createView();
-});
+document
+  .getElementById("follow-focus-toggle")
+  .addEventListener("change", (e) => {
+    app.setFollowFocus(e.target.checked);
+    app.createView();
+  });

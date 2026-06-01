@@ -11,7 +11,7 @@
 /* Grid container */
 #list-container {
     --item-radius: 8px;
-    height: 640px;
+    height: 590px;
     margin: 0 auto;
 }
 
@@ -139,7 +139,7 @@
     width: 100%;
     height: 214.5px;
     border-radius: var(--item-radius, 8px);
-    display: block;
+    display: none;
     margin-bottom: 8px;
 }
 
@@ -183,6 +183,40 @@
     box-shadow: 0 0 0 2px var(--vlist-focus-ring, #3b82f6);
     border-radius: var(--item-radius);
     background: transparent;
+}
+
+/* ============================================================================
+   Group Headers
+   ============================================================================ */
+
+#list-container .vlist-group-header {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #9ca3af);
+    background: transparent;
+}
+
+#list-container .vlist-sticky-header {
+    z-index: 5;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #9ca3af);
+    background: transparent;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+}
+
+#list-container .vlist-sticky-header .sticky-group {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    height: 100%;
 }
 
 /* ============================================================================

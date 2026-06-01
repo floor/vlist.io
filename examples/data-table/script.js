@@ -3,7 +3,15 @@
 // All sorting and filtering happens server-side via /api/cities.
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
-import { createVList, table, selection, data as dataPlugin, snapshots, scrollbar } from "vlist";
+import {
+  createVList,
+  table,
+  selection,
+  data as dataPlugin,
+  groups,
+  snapshots,
+  scrollbar,
+} from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -35,7 +43,11 @@ export let filterContinent = "";
 export let loadRequests = 0;
 export let loadedCount = 0;
 export let useCustomScrollbar = false;
+export let useGroups = true;
 
+export function setUseGroups(v) {
+  useGroups = v;
+}
 export function setCurrentRowHeight(v) {
   currentRowHeight = v;
 }
@@ -339,17 +351,50 @@ export const stats = createStats({
 const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
+// Grouping — adaptive based on sort key
+// =============================================================================
+
+const GROUP_HEADER_HEIGHT = 36;
+
+function getPopulationTier(pop) {
+  if (pop >= 15_000_000) return "15M+";
+  if (pop >= 10_000_000) return "10M+";
+  if (pop >= 5_000_000) return "5M+";
+  if (pop >= 2_000_000) return "2M+";
+  if (pop >= 1_000_000) return "1M+";
+  if (pop >= 500_000) return "500K+";
+  if (pop >= 100_000) return "100K+";
+  return "< 100K";
+}
+
+function getGroupKey(item) {
+  if (!item || !item.name) return null;
+  switch (sortKey) {
+    case "population":
+      return getPopulationTier(item.population || 0);
+    case "name":
+      return (item.name[0] || "?").toUpperCase();
+    case "continent":
+      return item.continent || "Unknown";
+    case "country_code":
+      return item.country_code || "??";
+    default:
+      return getPopulationTier(item.population || 0);
+  }
+}
+
+function getGroupForItem(index, item) {
+  return getGroupKey(item) || "…";
+}
+
+const groupHeaderTemplate = (key) => key;
+
+// =============================================================================
 // Create / Recreate list
 // =============================================================================
 
 export function createList() {
   if (list) {
-    const vp = list.element.querySelector(".vlist-viewport");
-    const actualTop = vp ? vp.scrollTop : 0;
-    const snap = list.getScrollSnapshot();
-    if (actualTop > 0 && snap.scrollTop > 0) {
-      try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snap)); } catch {}
-    }
     list.destroy();
     list = null;
   }
@@ -400,6 +445,18 @@ export function createList() {
         minColumnWidth: 50,
         sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
       }),
+      ...(useGroups
+        ? [
+            groups({
+              getGroupForIndex: getGroupForItem,
+              header: {
+                height: GROUP_HEADER_HEIGHT,
+                template: groupHeaderTemplate,
+              },
+              sticky: true,
+            }),
+          ]
+        : []),
       selection({ mode: "single" }),
       snapshots({ autoSave: STORAGE_KEY }),
       ...(useCustomScrollbar ? [scrollbar()] : []),

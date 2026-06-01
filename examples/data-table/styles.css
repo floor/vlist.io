@@ -216,6 +216,24 @@
     }
 }
 
+/* ============================================================================
+   Group headers
+   ============================================================================ */
+
+/* Sticky group overlay — uses vlist-sticky-header base + table group content styling */
+#list-container .vlist-sticky-header {
+    z-index: 5;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 28px;
+    border-bottom: 1px solid var(--vlist-border, #e5e7eb);
+}
+
+#list-container .vlist-sticky-header .vlist-table-group-header-content {
+    padding: 0 var(--vlist-item-padding-x, 0.75rem);
+}
+
 @media (max-width: 820px) {
     .split-main--full #list-container {
         height: 480px;

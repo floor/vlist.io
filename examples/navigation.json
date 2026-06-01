@@ -12,7 +12,14 @@
         "slug": "photo-album",
         "name": "Photo Album",
         "desc": "Responsive image gallery — toggle between grid and masonry layouts",
-        "plugins": ["grid", "masonry", "selection", "scrollbar", "snapshots"]
+        "plugins": [
+          "grid",
+          "masonry",
+          "selection",
+          "groups",
+          "scrollbar",
+          "snapshots"
+        ]
       },
       {
         "slug": "messaging",
@@ -30,7 +37,7 @@
         "slug": "data-table",
         "name": "Data Table",
         "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 120 FPS",
-        "plugins": ["table", "selection", "data", "snapshots"]
+        "plugins": ["table", "selection", "groups", "data", "snapshots"]
       },
       {
         "slug": "social-feed",

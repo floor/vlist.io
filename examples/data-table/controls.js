@@ -142,6 +142,19 @@ if (continentSelect) {
 }
 
 // =============================================================================
+// Groups Toggle — enable/disable grouping (rebuilds list)
+// =============================================================================
+
+const groupsToggle = document.getElementById("groups-toggle");
+
+if (groupsToggle) {
+  groupsToggle.addEventListener("change", () => {
+    app.setUseGroups(groupsToggle.checked);
+    app.createList();
+  });
+}
+
+// =============================================================================
 // Scrollbar Toggle — native ↔ custom (rebuilds list)
 // =============================================================================
 

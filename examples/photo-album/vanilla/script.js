@@ -5,6 +5,7 @@
 import {
   createVList,
   grid,
+  groups,
   masonry,
   scrollbar,
   selection,
@@ -21,6 +22,7 @@ import {
   currentColumns,
   currentGap,
   followFocus,
+  useGroups,
   list,
   setFactory,
   onReady,
@@ -28,7 +30,20 @@ import {
 } from "../shared.js";
 import "../controls.js";
 
-const PADDING = 2;
+const PADDING = 5;
+const GROUP_HEADER_HEIGHT = 32;
+
+function groupsPlugin() {
+  if (!useGroups) return null;
+  return groups({
+    getGroupForIndex: (index, item) => item?.month ?? "…",
+    header: {
+      height: GROUP_HEADER_HEIGHT,
+      template: (key) => key,
+    },
+    sticky: true,
+  });
+}
 
 // =============================================================================
 // Stats — shared info bar (progress, velocity, visible/total)
@@ -69,11 +84,26 @@ setFactory(
     const container = document.getElementById("list-container");
 
     if (currentMode === "grid") {
-      return createGridView(container, currentOrientation, currentColumns, currentGap, snap);
+      return createGridView(
+        container,
+        currentOrientation,
+        currentColumns,
+        currentGap,
+        snap,
+      );
     }
-    return createMasonryView(container, currentOrientation, currentColumns, currentGap, snap);
+    return createMasonryView(
+      container,
+      currentOrientation,
+      currentColumns,
+      currentGap,
+      snap,
+    );
   },
-  { key: "photo-album", transition: { fadeIn: 300, fadeOut: 200, fadeOutDelay: 100 } },
+  {
+    key: "photo-album",
+    transition: { fadeIn: 160, fadeOut: 120, fadeOutDelay: 40 },
+  },
 );
 
 onReady((list) => {
@@ -97,6 +127,7 @@ function createGridView(container, orientation, columns, gap, snap) {
     const colWidth = (innerHeight - (columns - 1) * gap) / columns;
     const height = Math.round(colWidth);
 
+    const gp = groupsPlugin();
     return createVList(
       {
         padding: PADDING,
@@ -113,6 +144,7 @@ function createGridView(container, orientation, columns, gap, snap) {
       },
       [
         grid({ columns, gap }),
+        ...(gp ? [gp] : []),
         selection({ mode: "single", followFocus }),
         scrollbar({ autoHide: true }),
         snap,
@@ -120,6 +152,7 @@ function createGridView(container, orientation, columns, gap, snap) {
     );
   }
 
+  const gp = groupsPlugin();
   return createVList(
     {
       padding: PADDING,
@@ -135,6 +168,7 @@ function createGridView(container, orientation, columns, gap, snap) {
     },
     [
       grid({ columns, gap }),
+      ...(gp ? [gp] : []),
       selection({ mode: "single", followFocus }),
       scrollbar({ autoHide: true }),
       snap,
@@ -143,6 +177,7 @@ function createGridView(container, orientation, columns, gap, snap) {
 }
 
 function createMasonryView(container, orientation, columns, gap, snap) {
+  const gp = groupsPlugin();
   return createVList(
     {
       container: "#list-container",
@@ -165,6 +200,7 @@ function createMasonryView(container, orientation, columns, gap, snap) {
     },
     [
       masonry({ columns, gap }),
+      ...(gp ? [gp] : []),
       selection({ mode: "single", followFocus }),
       scrollbar({ autoHide: true }),
       snap,
@@ -187,7 +223,7 @@ function showDetail(item) {
     />
     <div class="detail__meta">
       <strong>${item.title}</strong>
-      <span>${item.category} · ♥ ${item.likes}</span>
+      <span>${item.month} · ${item.category} · ♥ ${item.likes}</span>
     </div>
   `;
 }
