@@ -3,7 +3,15 @@
 // All sorting and filtering happens server-side via /api/cities.
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
-import { createVList, table, selection, data as dataPlugin, snapshots, scrollbar } from "vlist";
+import {
+  createVList,
+  table,
+  selection,
+  data as dataPlugin,
+  groups,
+  snapshots,
+  scrollbar,
+} from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -96,10 +104,8 @@ const citiesAdapter = {
     loadedCount += data.items.length;
     updateContext();
 
-    const items = injectGroupHeaders(data.items, offset);
-
     return {
-      items,
+      items: data.items,
       total: data.total,
       hasMore: data.hasMore,
     };
@@ -348,14 +354,17 @@ const updateInfo = createInfoUpdater(stats);
 // Grouping — adaptive based on sort key
 // =============================================================================
 
-const GROUP_HEADER_HEIGHT = 28;
+const GROUP_HEADER_HEIGHT = 36;
 
 function getPopulationTier(pop) {
   if (pop >= 15_000_000) return "15M+";
   if (pop >= 10_000_000) return "10M+";
+  if (pop >= 5_000_000) return "5M+";
+  if (pop >= 2_000_000) return "2M+";
   if (pop >= 1_000_000) return "1M+";
   if (pop >= 500_000) return "500K+";
-  return "< 500K";
+  if (pop >= 100_000) return "100K+";
+  return "< 100K";
 }
 
 function getGroupKey(item) {
@@ -374,28 +383,8 @@ function getGroupKey(item) {
   }
 }
 
-let groupCounter = 0;
-
-function injectGroupHeaders(items, offset) {
-  if (!useGroups || items.length === 0) return items;
-
-  const result = [];
-  let lastGroup = offset > 0 ? null : undefined;
-
-  for (const item of items) {
-    const group = getGroupKey(item);
-    if (group !== null && group !== lastGroup) {
-      result.push({
-        id: `__group_header_${groupCounter++}`,
-        __groupHeader: true,
-        groupKey: group,
-        groupIndex: groupCounter,
-      });
-      lastGroup = group;
-    }
-    result.push(item);
-  }
-  return result;
+function getGroupForItem(index, item) {
+  return getGroupKey(item) || "…";
 }
 
 const groupHeaderTemplate = (key) => key;
@@ -406,12 +395,6 @@ const groupHeaderTemplate = (key) => key;
 
 export function createList() {
   if (list) {
-    const vp = list.element.querySelector(".vlist-viewport");
-    const actualTop = vp ? vp.scrollTop : 0;
-    const snap = list.getScrollSnapshot();
-    if (actualTop > 0 && snap.scrollTop > 0) {
-      try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(snap)); } catch {}
-    }
     list.destroy();
     list = null;
   }
@@ -422,7 +405,6 @@ export function createList() {
   // Reset load stats on recreate
   loadRequests = 0;
   loadedCount = 0;
-  groupCounter = 0;
 
   const columns = getColumns();
   const isStriped = currentBorderMode === "striped";
@@ -463,57 +445,23 @@ export function createList() {
         minColumnWidth: 50,
         sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
       }),
+      ...(useGroups
+        ? [
+            groups({
+              getGroupForIndex: getGroupForItem,
+              header: {
+                height: GROUP_HEADER_HEIGHT,
+                template: groupHeaderTemplate,
+              },
+              sticky: true,
+            }),
+          ]
+        : []),
       selection({ mode: "single" }),
       snapshots({ autoSave: STORAGE_KEY }),
       ...(useCustomScrollbar ? [scrollbar()] : []),
     ],
   );
-
-  // Tell table renderer about group headers
-  if (useGroups && list._updateTableForGroups) {
-    list._updateTableForGroups(
-      (item) => !!item.__groupHeader,
-      groupHeaderTemplate,
-    );
-  }
-
-  // Sticky group header — overlay that shows current group
-  if (useGroups) {
-    const tableHeader = list.element.querySelector(".vlist-table-header");
-    const stickyEl = document.createElement("div");
-    stickyEl.className = "vlist-sticky-header";
-    stickyEl.style.display = "none";
-    if (tableHeader) tableHeader.after(stickyEl);
-
-    let lastGroup = "";
-
-    list.on("scroll", () => {
-      const scrollPos = list.getScrollPosition();
-      const firstIdx = Math.max(0, Math.floor(scrollPos / currentRowHeight));
-
-      // Walk backward from first visible item to find its group
-      let group = "";
-      for (let i = firstIdx; i >= 0; i--) {
-        const item = list.getItemAt(i);
-        if (!item) continue;
-        if (item.__groupHeader) {
-          group = item.groupKey;
-          break;
-        }
-      }
-
-      if (group && group !== "…") {
-        if (group !== lastGroup) {
-          stickyEl.innerHTML = `<div class="vlist-table-group-header-content">${group}</div>`;
-          lastGroup = group;
-        }
-        stickyEl.style.display = "";
-      } else {
-        stickyEl.style.display = "none";
-        lastGroup = "";
-      }
-    });
-  }
 
   // Wire events
   list.on("scroll", updateInfo);
