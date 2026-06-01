@@ -481,7 +481,7 @@ export function createList() {
   if (useGroups) {
     const tableHeader = list.element.querySelector(".vlist-table-header");
     const stickyEl = document.createElement("div");
-    stickyEl.className = "group-sticky";
+    stickyEl.className = "vlist-sticky-header";
     stickyEl.style.display = "none";
     if (tableHeader) tableHeader.after(stickyEl);
 
@@ -504,7 +504,7 @@ export function createList() {
 
       if (group && group !== "…") {
         if (group !== lastGroup) {
-          stickyEl.innerHTML = `<span class="group-sticky__label">${group}</span>`;
+          stickyEl.innerHTML = `<div class="vlist-table-group-header-content">${group}</div>`;
           lastGroup = group;
         }
         stickyEl.style.display = "";

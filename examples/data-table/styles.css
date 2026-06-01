@@ -220,21 +220,18 @@
    Group headers
    ============================================================================ */
 
-/* Sticky group overlay — sits between table header and viewport */
-.group-sticky {
-    display: flex;
-    align-items: center;
-    padding: 0 var(--vlist-item-padding-x, 0.75rem);
-    height: 28px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--vlist-text-muted, #6b7280);
-    background-color: var(--vlist-group-header-bg, #f3f4f6);
-    border-bottom: 1px solid var(--vlist-border, #e5e7eb);
+/* Sticky group overlay — uses vlist-sticky-header base + table group content styling */
+#list-container .vlist-sticky-header {
     z-index: 5;
     position: relative;
+    display: flex;
+    align-items: center;
+    height: 28px;
+    border-bottom: 1px solid var(--vlist-border, #e5e7eb);
+}
+
+#list-container .vlist-sticky-header .vlist-table-group-header-content {
+    padding: 0 var(--vlist-item-padding-x, 0.75rem);
 }
 
 @media (max-width: 820px) {
