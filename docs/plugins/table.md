@@ -40,20 +40,20 @@ list.on("column:sort", ({ key, index, direction }) => {
 | `resizable` | `boolean` | `true` | Allow column resize |
 | `minColumnWidth` | `number` | `50` | Minimum column width |
 | `maxColumnWidth` | `number` | `Infinity` | Maximum column width |
-| `fillWidth` | `boolean \| "stretch" \| "spacer"` | `false` | Make rows span the full container width when columns don't ([see below](#filling-the-container-width)) |
+| `fillWidth` | `boolean \| "stretch" \| "spacer"` | `"spacer"` | Make rows span the full container width when columns don't ([see below](#filling-the-container-width)) |
 | `rowBorders` | `boolean` | `true` | Show row borders |
 | `columnBorders` | `boolean` | `false` | Show column borders |
 | `sort` | `{ key, direction }` | — | Initial sort state |
 
 ## Filling the container width
 
-By default a table is exactly as wide as the sum of its column widths. When the columns are narrower than the container, rows stop short and leave empty space on the right. `fillWidth` controls how that leftover space is handled:
+When the columns are narrower than the container, `fillWidth` controls whether — and how — rows extend to fill the remaining space:
 
 | Value | Behavior |
 |-------|----------|
-| `false` (default) | No fill — rows are as wide as the columns |
+| `"spacer"` (default) | Keep every column's exact width and extend rows with empty trailing space, so column widths stay meaningful while rows reach the container edge (background, row borders, striping included) |
 | `"stretch"` (or `true`) | Grow columns proportionally to their current width (respecting `maxWidth`) so the columns themselves fill the width |
-| `"spacer"` | Keep every column's exact width and extend rows with empty trailing space, so column widths stay meaningful while rows still reach the edge |
+| `false` | Opt out — rows are exactly as wide as the sum of the columns, leaving empty space to the right |
 
 Both modes are a no-op once the columns overflow the container — the table scrolls horizontally as usual. The fill is recomputed on container resize and column-preset changes, and `"spacer"` re-absorbs the slack after a manual column resize so rows stay full-width.
 
