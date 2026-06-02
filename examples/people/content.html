@@ -18,8 +18,20 @@
         </div>
 
         <aside class="split-panel">
-            <!-- Mode -->
+            <!-- Search plugin toggle -->
             <section class="ui-section">
+                <h3 class="ui-title">Search</h3>
+                <div class="ui-row">
+                    <label class="ui-label" for="search-toggle">Enable search</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="search-toggle" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Mode -->
+            <section class="ui-section" id="mode-section">
                 <h3 class="ui-title">Mode</h3>
                 <div class="ui-row">
                     <div class="ui-segmented" id="mode-toggle">
@@ -37,7 +49,7 @@
             </section>
 
             <!-- Search field -->
-            <section class="ui-section">
+            <section class="ui-section" id="field-section">
                 <h3 class="ui-title">Search field</h3>
                 <div class="ui-row">
                     <div class="ui-segmented" id="field-toggle">

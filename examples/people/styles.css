@@ -110,3 +110,9 @@
     font-size: 12px;
     color: var(--text-muted, #6b7280);
 }
+
+/* Mode/field controls are inert while the search plugin is disabled */
+.ui-section--disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}

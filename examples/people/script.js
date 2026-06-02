@@ -18,10 +18,14 @@ export const ITEM_HEIGHT = 56;
 // State — exported so the control panel can read/write
 // =============================================================================
 
+export let searchEnabled = true;
 export let currentMode = "filter"; // "filter" | "navigate"
 export let currentField = "all"; // "all" | "name" | "category" | "country"
 export let list = null;
 
+export function setSearchEnabled(v) {
+  searchEnabled = v;
+}
 export function setCurrentMode(v) {
   currentMode = v;
 }
@@ -83,6 +87,18 @@ export function createList() {
   const container = document.getElementById("list-container");
   container.innerHTML = "";
 
+  const plugins = [];
+  if (searchEnabled) {
+    plugins.push(
+      search({
+        mode: currentMode,
+        placeholder: currentMode === "filter" ? "Filter people…" : "Find a person…",
+        field: currentField === "all" ? undefined : currentField,
+      }),
+    );
+  }
+  plugins.push(selection({ mode: "single" }));
+
   list = createVList(
     {
       container: "#list-container",
@@ -90,14 +106,7 @@ export function createList() {
       item: { height: ITEM_HEIGHT, template: renderPerson },
       items: PEOPLE,
     },
-    [
-      search({
-        mode: currentMode,
-        placeholder: currentMode === "filter" ? "Filter people…" : "Find a person…",
-        field: currentField === "all" ? undefined : currentField,
-      }),
-      selection({ mode: "single" }),
-    ],
+    plugins,
   );
 
   list.on("scroll", updateInfo);
@@ -106,20 +115,31 @@ export function createList() {
     stats.onVelocity(velocity);
     updateInfo();
   });
-  list.on("search:change", ({ matches, total }) => {
-    updateMatchInfo(matches, total);
-    updateInfo();
-  });
-  list.on("search:match", ({ matchIndex, matches }) => {
-    updateMatchInfo(matches, list?.total ?? PEOPLE.length, matchIndex);
-  });
+  if (searchEnabled) {
+    list.on("search:change", ({ matches, total }) => {
+      updateMatchInfo(matches, total);
+      updateInfo();
+    });
+    list.on("search:match", ({ matchIndex, matches }) => {
+      updateMatchInfo(matches, list?.total ?? PEOPLE.length, matchIndex);
+    });
+  }
   list.on("selection:change", ({ items }) => {
     if (items.length > 0) showDetail(items[0]);
     else clearDetail();
   });
 
+  reflectSearchEnabled();
   updateInfo();
   updateMatchInfo(0, PEOPLE.length);
+}
+
+// Dim the mode/field controls and reset the match counter when search is off.
+function reflectSearchEnabled() {
+  for (const id of ["mode-section", "field-section"]) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("ui-section--disabled", !searchEnabled);
+  }
 }
 
 // =============================================================================
@@ -158,6 +178,10 @@ function clearDetail() {
 function updateMatchInfo(matches, total, currentIndex) {
   const el = document.getElementById("info-matches");
   if (!el) return;
+  if (!searchEnabled) {
+    el.textContent = "off";
+    return;
+  }
   if (currentMode === "navigate" && matches > 0 && currentIndex != null) {
     el.textContent = `${currentIndex + 1} / ${matches}`;
   } else {
@@ -189,5 +213,13 @@ function wireSegment(id, setter) {
 
 wireSegment("mode-toggle", setCurrentMode);
 wireSegment("field-toggle", setCurrentField);
+
+const searchToggle = document.getElementById("search-toggle");
+if (searchToggle) {
+  searchToggle.addEventListener("change", (e) => {
+    setSearchEnabled(e.target.checked);
+    createList();
+  });
+}
 
 export const categories = CATEGORIES;
