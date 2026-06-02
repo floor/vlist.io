@@ -4,7 +4,7 @@ updated: 2026-06-02
 status: draft
 ---
 
-# RFC-010: Language-Agnostic Text
+# RFC-010: Externalized UI Text
 
 **Status:** Draft  
 **Author:** floor  
