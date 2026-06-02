@@ -1,4 +1,5 @@
 [
+  "rfcs/RFC-010-Language-Agnostic-Text",
   "rfcs/RFC-009-Configuration-Immutability",
   "rfcs/RFC-008-Search-Plugin",
   "rfcs/RFC-007-Tree-Plugin",

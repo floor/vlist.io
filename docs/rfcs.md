@@ -6,6 +6,7 @@ RFCs are discussed in [GitHub Discussions](https://github.com/floor/vlist/discus
 
 | RFC | Status | Topic |
 |-----|--------|-------|
+| [RFC-010: Language-Agnostic Text](/docs/rfcs/RFC-010-Language-Agnostic-Text) | Draft | No inline human-language strings; consumer-supplied labels with one overridable default |
 | [RFC-009: Configuration Immutability](/docs/rfcs/RFC-009-Configuration-Immutability) | Draft | Immutable config architecture, runtime escape hatches, rebuild continuity |
 | [RFC-008: Search Plugin](/docs/rfcs/RFC-008-Search-Plugin) | Draft | Built-in search bar with filter/navigate modes |
 | [RFC-007: Tree Plugin](/docs/rfcs/RFC-007-Tree-Plugin) | Draft | Hierarchical tree view with keyboard and ARIA |
