@@ -36,6 +36,7 @@ export let totalCities = 0;
 export let currentRowHeight = ROW_HEIGHT;
 export let currentPreset = "full";
 export let currentBorderMode = "both";
+export let currentFillMode = "spacer";
 export let sortKey = "population";
 export let sortDirection = "desc";
 export let searchQuery = "";
@@ -56,6 +57,9 @@ export function setCurrentPreset(v) {
 }
 export function setCurrentBorderMode(v) {
   currentBorderMode = v;
+}
+export function setCurrentFillMode(v) {
+  currentFillMode = v;
 }
 export function setSearchQuery(v) {
   searchQuery = v;
@@ -443,6 +447,7 @@ export function createList() {
         columnBorders,
         rowBorders,
         minColumnWidth: 50,
+        fillWidth: currentFillMode === "none" ? false : currentFillMode,
         sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
       }),
       ...(useGroups
