@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-06-02
 status: published
 ---
 
@@ -144,6 +144,7 @@ interface TableConfig {
   resizable?: boolean;
   minColumnWidth?: number;
   maxColumnWidth?: number;
+  fillWidth?: boolean | "stretch" | "spacer";
   sort?: { key: string; direction: "asc" | "desc" };
 }
 

@@ -71,6 +71,29 @@ if (borderModeEl) {
 }
 
 // =============================================================================
+// Fill Mode — Off ↔ Stretch ↔ Spacer (how rows fill leftover width)
+// =============================================================================
+
+const fillModeEl = document.getElementById("fill-mode");
+
+if (fillModeEl) {
+  fillModeEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-fill]");
+    if (!btn) return;
+
+    const mode = btn.dataset.fill;
+    if (mode === app.currentFillMode) return;
+    app.setCurrentFillMode(mode);
+
+    fillModeEl.querySelectorAll("button").forEach((b) => {
+      b.classList.toggle("ui-segmented__btn--active", b.dataset.fill === mode);
+    });
+
+    app.createList();
+  });
+}
+
+// =============================================================================
 // Search — debounced text input, triggers server-side search
 // =============================================================================
 
@@ -242,6 +265,16 @@ export function initControls() {
       b.classList.toggle(
         "ui-segmented__btn--active",
         b.dataset.mode === app.currentBorderMode,
+      );
+    });
+  }
+
+  // Sync fill-mode buttons
+  if (fillModeEl) {
+    fillModeEl.querySelectorAll("button").forEach((b) => {
+      b.classList.toggle(
+        "ui-segmented__btn--active",
+        b.dataset.fill === app.currentFillMode,
       );
     });
   }

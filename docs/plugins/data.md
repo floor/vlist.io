@@ -1,6 +1,6 @@
 ---
 created: 2026-02-10
-updated: 2026-05-27
+updated: 2026-06-02
 status: published
 ---
 
@@ -62,8 +62,9 @@ interface VListAdapter<T> {
 
 | Method | Description |
 |--------|-------------|
-| `reload()` | Reset and reload all data |
-| `loadVisibleRange()` | Load visible items on demand |
+| `reload()` | Reset and reload all data (e.g. after a server-side sort/filter). Keeps the last-known total so the list shows placeholders while reloading |
+| `loadVisibleRange()` | Load visible items on demand (no-op until the viewport is measured) |
+| `loadInitial()` | Load page 1 deterministically, regardless of container dimensions |
 | `getTotal()` | Get total item count |
 | `setTotal(n)` | Set total item count |
 
@@ -73,7 +74,17 @@ interface VListAdapter<T> {
 |-------|---------|
 | `load:start` | `{ offset, limit }` |
 | `load:end` | `{ items, total }` |
-| `error` | `{ error, context }` |
+| `error` | `{ error, context }` — `context` is `"load"`, `"ensureRange"`, or `"loadInitial"` |
+
+## Loading resilience
+
+When a chunk fails to load (network drop, server error, timeout), the plugin keeps the list usable and recovers on its own:
+
+- **Placeholders, not empty rows** — failed and unloaded ranges render placeholders. `reload()` keeps the last-known total, so a server-side sort or filter shows placeholders for the full range while the new data loads, instead of collapsing to an empty list. The total is corrected once the first new chunk arrives.
+- **Automatic retry with backoff** — a failed load re-attempts the visible range with exponential backoff (2s → 30s cap). Once a load succeeds the backoff resets, and placeholders are replaced with real data — no scrolling required.
+- **Event-independent** — recovery does **not** rely solely on the browser `online` event. The backoff timer also recovers from server errors, timeouts, and blocked requests where `online` never fires. When the `online` event *does* fire, the backoff resets and the visible range retries immediately.
+
+Off-screen ranges that failed are retried when scrolled back into view (or on the next `online` event).
 
 ## Notes
 
@@ -81,6 +92,7 @@ interface VListAdapter<T> {
 - Deduplicates concurrent requests for the same range
 - Supports cursor-based pagination via `cursor` in adapter response
 - Sets `aria-busy` on root during loading
+- Aborts in-flight requests on `reload()` (via the adapter's `signal`) — aborts are not surfaced as errors
 
 ## Examples
 

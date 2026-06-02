@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-28
+updated: 2026-06-02
 status: published
 ---
 
@@ -40,9 +40,36 @@ list.on("column:sort", ({ key, index, direction }) => {
 | `resizable` | `boolean` | `true` | Allow column resize |
 | `minColumnWidth` | `number` | `50` | Minimum column width |
 | `maxColumnWidth` | `number` | `Infinity` | Maximum column width |
+| `fillWidth` | `boolean \| "stretch" \| "spacer"` | `"spacer"` | Make rows span the full container width when columns don't ([see below](#filling-the-container-width)) |
 | `rowBorders` | `boolean` | `true` | Show row borders |
 | `columnBorders` | `boolean` | `false` | Show column borders |
 | `sort` | `{ key, direction }` | — | Initial sort state |
+
+## Filling the container width
+
+When the columns are narrower than the container, `fillWidth` controls whether — and how — rows extend to fill the remaining space:
+
+| Value | Behavior |
+|-------|----------|
+| `"spacer"` (default) | Keep every column's exact width and extend rows with empty trailing space, so column widths stay meaningful while rows reach the container edge (background, row borders, striping included) |
+| `"stretch"` (or `true`) | Grow columns proportionally to their current width (respecting `maxWidth`) so the columns themselves fill the width |
+| `false` | Opt out — rows are exactly as wide as the sum of the columns, leaving empty space to the right |
+
+Both modes are a no-op once the columns overflow the container — the table scrolls horizontally as usual. The fill is recomputed on container resize and column-preset changes, and `"spacer"` re-absorbs the slack after a manual column resize so rows stay full-width.
+
+```ts
+table({
+  columns: [
+    { key: "city", label: "City", width: 200 },
+    { key: "pop", label: "Population", width: 100, align: "right" },
+    { key: "continent", label: "Continent", width: 120 },
+  ],
+  rowHeight: 36,
+  fillWidth: "spacer", // keep widths, extend rows to the container edge
+});
+```
+
+Use `"stretch"` when you want columns to consume all available space, and `"spacer"` when column widths are meaningful (e.g. fixed numeric columns) but you still want full-width rows for consistent backgrounds, row borders, and striping. Try both in the [Data Table example](/examples/data-table) via the **Fill Mode** control.
 
 ## Methods
 
