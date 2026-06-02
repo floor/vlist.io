@@ -161,8 +161,11 @@ const DEFAULT_SEARCH_TEXT: Required<SearchText> = {
   set. One fewer string, one fewer tab stop.
 - The redundant root `aria-label="Search list"` is removed. `role="search"`
   already establishes the landmark; the landmark is left **unnamed by default**.
-  If named search landmarks matter (e.g. multiple search regions on a page), we
-  expose an optional localized region label rather than inventing one.
+  Note this is *not* the same as the list's `ariaLabel`: that label names the
+  list/listbox container, not the separate `role="search"` region, so it cannot
+  be reused to name the landmark. If named search landmarks matter (e.g.
+  multiple search regions on a page), we expose an optional localized region
+  label rather than inventing one.
 - The **input's** accessible name continues to come from `placeholder`, now part
   of the documented `text` surface.
 
