@@ -1,0 +1,112 @@
+/* People — search example styles */
+
+#list-container {
+    height: 600px;
+}
+
+#list-container .vlist-item {
+    padding: 0;
+}
+
+#list-container .vlist {
+    border-radius: var(--vlist-border-radius, 0.5rem);
+    overflow: hidden;
+}
+
+/* ============================================================================
+   Person row
+   ============================================================================ */
+
+.person {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    padding: 0 14px;
+    box-sizing: border-box;
+}
+
+.person__avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--fw-bold);
+    font-size: 12px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Category-tinted avatars */
+.person__avatar--scientist { background: #2563eb; }
+.person__avatar--actor     { background: #db2777; }
+.person__avatar--musician  { background: #7c3aed; }
+.person__avatar--athlete   { background: #059669; }
+.person__avatar--leader    { background: #d97706; }
+.person__avatar--writer    { background: #0891b2; }
+.person__avatar--artist    { background: #dc2626; }
+
+.person__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.person__name {
+    font-weight: var(--fw-bold);
+    font-size: 14px;
+    color: var(--vlist-text, #111827);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.person__meta {
+    font-size: 12px;
+    color: var(--vlist-text-muted, #6b7280);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.person__badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--bg, rgba(127, 127, 127, 0.12));
+    color: var(--text-muted, #6b7280);
+    border: 1px solid var(--border, rgba(127, 127, 127, 0.2));
+}
+
+/* ============================================================================
+   Control panel extras
+   ============================================================================ */
+
+.people-hints {
+    gap: 6px;
+}
+
+.people-hints code {
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 12px;
+    background: var(--bg, rgba(127, 127, 127, 0.1));
+    border: 1px solid var(--border, rgba(127, 127, 127, 0.2));
+    color: var(--text-muted, #6b7280);
+}
+
+.person-detail__cat {
+    font-size: 12px;
+    color: var(--text-muted, #6b7280);
+}

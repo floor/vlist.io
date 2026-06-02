@@ -34,6 +34,12 @@
         "plugins": ["groups", "selection", "snapshots"]
       },
       {
+        "slug": "people",
+        "name": "People",
+        "desc": "Type-ahead search — filter & navigate modes with match highlighting",
+        "plugins": ["search", "selection"]
+      },
+      {
         "slug": "data-table",
         "name": "Data Table",
         "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 120 FPS",
