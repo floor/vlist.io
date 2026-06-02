@@ -6,7 +6,7 @@ status: published
 
 # Plugin Overview
 
-vlist v2 ships 15 plugins. Each plugin is tree-shaken — only what you import is bundled.
+vlist v2 ships 16 plugins. Each plugin is tree-shaken — only what you import is bundled.
 
 Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 
@@ -16,6 +16,7 @@ Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 |--------|--------|---------------|-------------|
 | a11y | `a11y()` | +{{size:a11y:delta}} KB | Baseline keyboard nav + single-select |
 | selection | `selection()` | +{{size:selection:delta}} KB | Single/multi selection + keyboard nav |
+| search | `search()` | +{{size:search:delta}} KB | Search bar: filter, navigate, highlight |
 | data | `data()` | +{{size:data:delta}} KB | Async data loading + pagination |
 | scrollbar | `scrollbar()` | +{{size:scrollbar:delta}} KB | Custom scrollbar UI |
 | sortable | `sortable()` | +{{size:sortable:delta}} KB | Drag-and-drop reordering |
