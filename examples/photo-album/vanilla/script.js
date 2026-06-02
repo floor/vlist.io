@@ -30,7 +30,7 @@ import {
 } from "../shared.js";
 import "../controls.js";
 
-const PADDING = 5;
+const PADDING = 2;
 const GROUP_HEADER_HEIGHT = 32;
 
 function groupsPlugin() {
