@@ -33,7 +33,7 @@ import {
 const CHUNK_SIZE = 25;
 const ITEM_HEIGHT = 56;
 const GRID_COLUMNS = 4;
-const GRID_GAP = 8;
+const GRID_GAP = 4;
 const TABLE_ROW_HEIGHT = 36;
 const TABLE_HEADER_HEIGHT = 36;
 const SNAPSHOT_KEY = "track-list-scroll";
@@ -254,9 +254,7 @@ function applyScale(plugins) {
 // =============================================================================
 
 function createListView(selectionMode) {
-  const plugins = [
-    dataPlugin(getAsyncConfig()),
-  ];
+  const plugins = [dataPlugin(getAsyncConfig())];
   applyScale(plugins);
   applyScrollbar(plugins);
   plugins.push(transition({ duration: 200 }));
@@ -265,14 +263,17 @@ function createListView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = createVList({
-    container: "#list-container",
-    ariaLabel: "Track list",
-    item: {
-      height: ITEM_HEIGHT,
-      template: trackTemplate,
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Track list",
+      item: {
+        height: ITEM_HEIGHT,
+        template: trackTemplate,
+      },
     },
-  }, plugins);
+    plugins,
+  );
 }
 
 // =============================================================================
@@ -296,15 +297,18 @@ function createGridView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = createVList({
-    container: "#list-container",
-    ariaLabel: "Track list",
-    item: {
-      height: (_index, ctx) =>
-        ctx ? Math.round(ctx.columnWidth * 1.3) : cardHeight,
-      template: trackGridTemplate,
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Track list",
+      item: {
+        height: (_index, ctx) =>
+          ctx ? Math.round(ctx.columnWidth * 1.3) : cardHeight,
+        template: trackGridTemplate,
+      },
     },
-  }, plugins);
+    plugins,
+  );
 }
 
 function createTableView(selectionMode) {
@@ -338,15 +342,18 @@ function createTableView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = createVList({
-    container: "#list-container",
-    ariaLabel: "Track list",
-    item: {
-      height: TABLE_ROW_HEIGHT,
-      striped: "odd",
-      template: trackTableRowTemplate,
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Track list",
+      item: {
+        height: TABLE_ROW_HEIGHT,
+        striped: "odd",
+        template: trackTableRowTemplate,
+      },
     },
-  }, plugins);
+    plugins,
+  );
 
   list.on("column:resize", ({ key, width }) => {
     if (!currentColumnWidths) currentColumnWidths = {};
