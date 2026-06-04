@@ -1,0 +1,176 @@
+<div class="container">
+    <header>
+        <h1>Code Explorer</h1>
+        <p class="description">
+            Browse <strong>vlist's own source</strong>: a virtualized file
+            <code>tree</code> on the left, a searchable list on the right. Pick
+            a file to list its exported <strong>symbols</strong> (functions,
+            constants, types…) and filter them; or switch to
+            <strong>History</strong> to scrub the commits that touched that file
+            in <em>navigate</em> mode. clears.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <h2 class="sr-only">Code Explorer</h2>
+            <div class="explorer">
+                <div class="explorer-tree">
+                    <div class="explorer-header">
+                        <span class="explorer-title">vlist</span>
+                        <button
+                            class="explorer-btn"
+                            id="cx-tree-toggle"
+                            type="button"
+                        >
+                            Expand all
+                        </button>
+                    </div>
+                    <div id="tree-container"></div>
+                </div>
+
+                <div class="explorer-list">
+                    <div class="explorer-header">
+                        <span class="explorer-context" id="cx-context"></span>
+                        <div class="ui-segmented" id="cx-view-toggle">
+                            <button
+                                class="ui-segmented__btn ui-segmented__btn--active"
+                                data-value="symbols"
+                            >
+                                Symbols
+                            </button>
+                            <button
+                                class="ui-segmented__btn"
+                                data-value="history"
+                            >
+                                History
+                            </button>
+                        </div>
+                    </div>
+                    <div id="symbol-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Search config -->
+            <section class="ui-section">
+                <h3 class="ui-title">Search</h3>
+                <div class="ui-row">
+                    <label class="ui-label" for="cx-search-toggle"
+                        >Enable</label
+                    >
+                    <label class="ui-switch">
+                        <input type="checkbox" id="cx-search-toggle" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Mode -->
+            <section class="ui-section" id="cx-mode-section">
+                <h3 class="ui-title">Mode</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="cx-mode-toggle">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="filter"
+                        >
+                            Filter
+                        </button>
+                        <button class="ui-segmented__btn" data-value="navigate">
+                            Navigate
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Variant -->
+            <section class="ui-section" id="cx-style-section">
+                <h3 class="ui-title">Variant</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="cx-style-toggle">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="default"
+                        >
+                            Default
+                        </button>
+                        <button class="ui-segmented__btn" data-value="md3">
+                            MD3
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Highlight -->
+            <section class="ui-section" id="cx-highlight-section">
+                <h3 class="ui-title">Highlight</h3>
+                <div class="ui-row">
+                    <label class="ui-label" for="cx-highlight-toggle"
+                        >Enable</label
+                    >
+                    <label class="ui-switch">
+                        <input
+                            type="checkbox"
+                            id="cx-highlight-toggle"
+                            checked
+                        />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="cx-scope-toggle">
+                        <button class="ui-segmented__btn" data-value="scoped">
+                            Name only
+                        </button>
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="full"
+                        >
+                            Whole row
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Options -->
+            <section class="ui-section" id="cx-options-section">
+                <h3 class="ui-title">Options</h3>
+                <div class="ui-row">
+                    <label class="ui-label" for="cx-case-toggle"
+                        >Case sensitive</label
+                    >
+                    <label class="ui-switch">
+                        <input type="checkbox" id="cx-case-toggle" />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">rendered</span>
+            </span>
+        </div>
+        <div class="example-info__right">
+            <span class="example-info__stat">
+                <strong id="info-matches">0 / 0</strong>
+                <span class="example-info__unit">matches</span>
+            </span>
+        </div>
+    </div>
+</div>

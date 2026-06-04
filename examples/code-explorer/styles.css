@@ -1,0 +1,366 @@
+/* Code Explorer — file tree (left) + searchable symbols/history (right). */
+
+.split-main.split-main--full {
+    height: 580px;
+}
+
+.ui-section--disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ── Explorer layout inside split-main ─────────────────────────────────── */
+.explorer {
+    display: flex;
+    gap: 16px;
+    height: 100%;
+}
+
+.explorer-tree {
+    flex: 0 0 260px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--vlist-border, #e5e7eb);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.explorer-tree .tree-node--file .tree-node__label {
+    font-size: 15px;
+}
+
+.explorer-tree .vlist-content {
+    font-family: var(--font-mono);
+}
+
+.explorer-list {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--vlist-border, #e5e7eb);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.explorer-list .vlist-content {
+    font-family: var(--font-mono);
+}
+
+.explorer-list .vlist-content .vlist-item {
+    font-size: 0.8em;
+}
+
+#tree-container,
+#symbol-container {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.explorer-tree .vlist,
+.explorer-list .vlist {
+    border: none;
+    border-radius: 0;
+}
+
+/* Custom scrollbar plugin — always visible, flat. */
+.explorer-tree .vlist {
+    --vlist-custom-scrollbar-width: 4px;
+    --vlist-custom-scrollbar-radius: 0;
+}
+
+.explorer-list .vlist {
+    --vlist-custom-scrollbar-width: 16px;
+    --vlist-custom-scrollbar-radius: 0;
+}
+
+.explorer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 8px 5px 12px;
+    border-bottom: 1px solid var(--vlist-border, #e5e7eb);
+}
+
+.explorer-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vlist-text, #111827);
+}
+
+.explorer-btn {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--vlist-text-muted, #94a3b8);
+    font: inherit;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.explorer-btn:hover {
+    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.12));
+    color: var(--vlist-text, #111827);
+}
+
+.explorer-context {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+}
+
+.explorer-context code {
+    font-size: 12px;
+}
+
+.explorer-context-all {
+    color: var(--vlist-text-muted, #94a3b8);
+}
+
+.explorer-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 24px;
+    text-align: center;
+    color: var(--vlist-text-muted, #94a3b8);
+    font-size: 13px;
+}
+
+/* ── File tree row (shared with the Tree View example) ─────────────────── */
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    width: 100%;
+    padding-right: 14px;
+    cursor: default;
+    user-select: none;
+}
+
+.tree-node__chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 2px;
+    flex-shrink: 0;
+    border-radius: 3px;
+}
+
+.tree-node__chevron:hover {
+    color: var(--vlist-text, #111827);
+    background: var(--vlist-bg-hover, rgba(0, 0, 0, 0.06));
+}
+
+.tree-node__chevron--leaf {
+    visibility: hidden;
+}
+
+.tree-node__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+.tree-node__icon svg {
+    overflow: visible;
+}
+
+.tree-node__label {
+    flex: 1;
+    min-width: 0;
+    font-size: 15px;
+    color: var(--vlist-text, #111827);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+}
+
+.tree-node--dir .tree-node__label {
+    font-weight: 600;
+}
+
+.tree-node--file .tree-node__label {
+    font-weight: 400;
+}
+
+.tree-node__meta {
+    font-size: 11px;
+    color: var(--vlist-text-muted, #94a3b8);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+/* ── Symbol row ────────────────────────────────────────────────────────── */
+.sym {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+}
+
+.sym__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.sym__kind {
+    flex: 0 0 auto;
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.14));
+    color: var(--vlist-text-muted, #94a3b8);
+}
+
+.sym__name {
+    min-width: 0;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--vlist-text, #e5e7eb);
+}
+
+.sym__sig {
+    margin: 0;
+    padding: 0;
+    font-family: inherit;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--vlist-text-muted, #94a3b8);
+}
+
+/* ── Syntax highlighting ───────────────────────────────────────────────── */
+.syn-kw {
+    color: #c792ea;
+}
+.syn-type {
+    color: #82aaff;
+}
+.syn-str {
+    color: #c3e88d;
+}
+.syn-num {
+    color: #f78c6c;
+}
+.syn-punct {
+    color: #89ddff;
+}
+
+.sym--internal {
+    opacity: 0.6;
+}
+
+.sym--function .sym__kind {
+    color: #38bdf8;
+}
+.sym--const .sym__kind {
+    color: #a78bfa;
+}
+.sym--class .sym__kind {
+    color: #fb923c;
+}
+.sym--interface .sym__kind {
+    color: #34d399;
+}
+.sym--type .sym__kind {
+    color: #f472b6;
+}
+.sym--enum .sym__kind {
+    color: #facc15;
+}
+.sym--re-export .sym__kind {
+    color: #94a3b8;
+}
+
+/* ── Commit row ────────────────────────────────────────────────────────── */
+.commit {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+}
+
+.commit__type {
+    flex: 0 0 auto;
+    min-width: 66px;
+    margin-top: 1px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.14));
+    color: var(--vlist-text-muted, #94a3b8);
+}
+
+.commit__body {
+    min-width: 0;
+}
+
+.commit__subject {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--vlist-text, #e5e7eb);
+}
+
+.commit__meta {
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--vlist-text-muted, #94a3b8);
+}
+
+.commit__meta code {
+    font-size: 11px;
+}
+
+.commit--feat .commit__type {
+    color: #34d399;
+}
+.commit--fix .commit__type {
+    color: #f87171;
+}
+.commit--docs .commit__type {
+    color: #38bdf8;
+}
+.commit--refactor .commit__type {
+    color: #a78bfa;
+}
+.commit--perf .commit__type {
+    color: #22d3ee;
+}
+.commit--test .commit__type {
+    color: #facc15;
+}
+.commit--style .commit__type {
+    color: #f472b6;
+}
+.commit--chore .commit__type,
+.commit--ci .commit__type {
+    color: #94a3b8;
+}
+.commit--revert .commit__type {
+    color: #fb923c;
+}

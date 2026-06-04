@@ -21,10 +21,14 @@ export const ITEM_HEIGHT = 56;
 export let searchEnabled = true;
 export let currentMode = "filter"; // "filter" | "navigate"
 export let currentField = "all"; // "all" | "name" | "category" | "country"
+export let currentStyle = "default"; // "default" | "md3"
 export let list = null;
 
 export function setSearchEnabled(v) {
   searchEnabled = v;
+}
+export function setCurrentStyle(v) {
+  currentStyle = v;
 }
 export function setCurrentMode(v) {
   currentMode = v;
@@ -92,8 +96,11 @@ export function createList() {
     plugins.push(
       search({
         mode: currentMode,
-        placeholder: currentMode === "filter" ? "Filter people…" : "Find a person…",
         field: currentField === "all" ? undefined : currentField,
+        variant: currentStyle,
+        text: {
+          placeholder: currentMode === "filter" ? "Filter people…" : "Find a person…",
+        },
       }),
     );
   }
@@ -136,7 +143,7 @@ export function createList() {
 
 // Dim the mode/field controls and reset the match counter when search is off.
 function reflectSearchEnabled() {
-  for (const id of ["mode-section", "field-section"]) {
+  for (const id of ["mode-section", "field-section", "style-section"]) {
     const el = document.getElementById(id);
     if (el) el.classList.toggle("ui-section--disabled", !searchEnabled);
   }
@@ -213,6 +220,7 @@ function wireSegment(id, setter) {
 
 wireSegment("mode-toggle", setCurrentMode);
 wireSegment("field-toggle", setCurrentField);
+wireSegment("style-toggle", setCurrentStyle);
 
 const searchToggle = document.getElementById("search-toggle");
 if (searchToggle) {

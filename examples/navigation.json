@@ -34,12 +34,6 @@
         "plugins": ["groups", "selection", "snapshots"]
       },
       {
-        "slug": "people",
-        "name": "People",
-        "desc": "Type-ahead search — filter & navigate modes with match highlighting",
-        "plugins": ["search", "selection"]
-      },
-      {
         "slug": "data-table",
         "name": "Data Table",
         "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 120 FPS",
@@ -94,6 +88,13 @@
         "name": "Velocity Loading",
         "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
         "plugins": ["data", "selection", "scale", "scrollbar", "snapshots"]
+      },
+      {
+        "slug": "code-explorer",
+        "name": "Code Explorer",
+        "desc": "Browse vlist's own source — file tree, per-file symbols & history with search",
+        "plugins": ["tree", "search", "selection", "autosize"],
+        "badge": "new"
       },
       {
         "slug": "large-list",
