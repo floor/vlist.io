@@ -302,10 +302,17 @@
     box-sizing: border-box;
 }
 
-.commit__type {
+.commit__left {
     flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
     min-width: 66px;
-    margin-top: 1px;
+}
+
+.commit__type {
+    width: 100%;
     padding: 2px 7px;
     border-radius: 6px;
     text-align: center;
@@ -314,6 +321,7 @@
     letter-spacing: 0.04em;
     background: var(--vlist-bg-hover, rgba(127, 127, 127, 0.14));
     color: var(--vlist-text-muted, #94a3b8);
+    box-sizing: border-box;
 }
 
 .commit__body {
@@ -337,17 +345,15 @@
 }
 
 .commit__tag {
-    display: inline-block;
-    margin-left: 8px;
     padding: 1px 6px;
     font-size: 10px;
     font-weight: 600;
     line-height: 1.4;
+    text-align: center;
     color: #a78bfa;
     background: rgba(167, 139, 250, 0.12);
     border: 1px solid rgba(167, 139, 250, 0.25);
     border-radius: 4px;
-    vertical-align: middle;
 }
 
 .commit--feat .commit__type {

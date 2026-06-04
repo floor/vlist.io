@@ -210,9 +210,12 @@ const renderSymbol = (item) => `
 
 const renderCommit = (item) => `
   <div class="commit commit--${item.type}">
-    <span class="commit__type">${item.type}</span>
+    <div class="commit__left">
+      <span class="commit__type">${item.type}</span>
+      ${item.tag ? `<span class="commit__tag">${esc(item.tag)}</span>` : ""}
+    </div>
     <div class="commit__body">
-      <div class="commit__subject">${esc(item.subject)}${item.tag ? `<span class="commit__tag">${esc(item.tag)}</span>` : ""}</div>
+      <div class="commit__subject">${esc(item.subject)}</div>
       <div class="commit__meta">
         <code>${item.shortHash}</code> · ${esc(item.author)} · <span class="commit__ago">${timeAgo(item.date)}</span>
       </div>
