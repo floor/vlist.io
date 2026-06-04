@@ -250,22 +250,18 @@
     color: var(--vlist-text-muted, #94a3b8);
 }
 
-/* ── Syntax highlighting ───────────────────────────────────────────────── */
-.syn-kw {
-    color: #c792ea;
-}
-.syn-type {
-    color: #82aaff;
-}
-.syn-str {
-    color: #c3e88d;
-}
-.syn-num {
-    color: #f78c6c;
-}
-.syn-punct {
-    color: #89ddff;
-}
+/* ── Syntax highlighting (One Dark / One Light) ───────────────────────── */
+.syn-kw    { color: #c678dd; }
+.syn-type  { color: #e6c07b; }
+.syn-str   { color: #98c379; }
+.syn-num   { color: #d19a66; }
+.syn-punct { color: #abb2bf; }
+
+[data-theme-mode="light"] .syn-kw    { color: #a626a4; }
+[data-theme-mode="light"] .syn-type  { color: #c18401; }
+[data-theme-mode="light"] .syn-str   { color: #50a14f; }
+[data-theme-mode="light"] .syn-num   { color: #986801; }
+[data-theme-mode="light"] .syn-punct { color: #383a42; }
 
 .sym--internal {
     opacity: 0.6;
