@@ -140,6 +140,7 @@ type Commit = {
   date: string;
   subject: string;
   type: string;
+  tag?: string;
   /** Changed files under src/ — drives per-file history. */
   files: string[];
 };
@@ -148,7 +149,22 @@ const CC_TYPES = new Set([
   "feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "build", "ci", "revert",
 ]);
 
+function buildTagMap(): Map<string, string> {
+  const out = Bun.spawnSync(
+    ["git", "-C", REPO, "tag", "-l", "--format=%(objectname) %(refname:short)"],
+    { stdout: "pipe" },
+  ).stdout.toString();
+  const map = new Map<string, string>();
+  for (const line of out.split("\n")) {
+    const [hash, tag] = line.trim().split(" ");
+    if (hash && tag) map.set(hash, tag);
+  }
+  return map;
+}
+
 function buildHistory(): Commit[] {
+  const tags = buildTagMap();
+
   // Unit-separated header line per commit, then one changed-file path per line.
   const fmt = "%x1e%H%x1f%h%x1f%an%x1f%ad%x1f%s";
   const out = Bun.spawnSync(
@@ -157,7 +173,6 @@ function buildHistory(): Commit[] {
   ).stdout.toString();
 
   const commits: Commit[] = [];
-  // Records are separated by the record-separator (\x1e) we prefixed.
   for (const record of out.split("\x1e")) {
     if (!record.trim()) continue;
     const [header, ...rest] = record.split("\n");
@@ -167,7 +182,7 @@ function buildHistory(): Commit[] {
       .filter((l) => l.startsWith("src/"));
     const tm = /^(\w+)(?:\([^)]*\))?!?:/.exec(subject ?? "");
     const type = tm && CC_TYPES.has(tm[1]!) ? tm[1]! : "other";
-    commits.push({
+    const commit: Commit = {
       id: shortHash!,
       hash: hash!,
       shortHash: shortHash!,
@@ -176,7 +191,10 @@ function buildHistory(): Commit[] {
       subject: subject ?? "",
       type,
       files,
-    });
+    };
+    const tag = tags.get(hash!);
+    if (tag) commit.tag = tag;
+    commits.push(commit);
   }
   return commits;
 }
