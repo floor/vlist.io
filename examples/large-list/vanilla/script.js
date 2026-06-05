@@ -224,17 +224,20 @@ function createList(sizeKey) {
   const count = SIZES[sizeKey];
   const items = generateItems(count);
 
-  const plugins = [selection({ mode: "single" })];
+  const plugins = [
+    selection({ mode: "single", followFocus: true, focusOnClick: true }),
+  ];
   if (count > 100_000) plugins.push(scale(), scrollbar({ autoHide: true }));
 
   const isTable = currentLayout === "table";
   const isGrid = currentLayout === "grid";
   let rowHeight = ITEM_HEIGHT;
   let template = itemTemplate;
-
+  let padding = [8, 0, 8, 0];
   if (isTable) {
     rowHeight = TABLE_ROW_HEIGHT;
     template = fallbackTemplate;
+    padding = 0;
     plugins.push(
       table({
         columns: TABLE_COLUMNS,
@@ -245,6 +248,7 @@ function createList(sizeKey) {
       }),
     );
   } else if (isGrid) {
+    padding = 8;
     rowHeight = GRID_ITEM_HEIGHT;
     template = gridTemplate;
     plugins.push(grid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
@@ -254,6 +258,7 @@ function createList(sizeKey) {
     {
       container: "#list-container",
       ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
+      padding,
       item: {
         height: rowHeight,
         template,

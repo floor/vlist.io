@@ -12,7 +12,7 @@
 /* ── Explorer layout inside split-main ─────────────────────────────────── */
 .explorer {
     display: flex;
-    gap: 16px;
+    gap: 0;
     height: 100%;
 }
 
@@ -21,7 +21,8 @@
     display: flex;
     flex-direction: column;
     border: 1px solid var(--vlist-border, #e5e7eb);
-    border-radius: 10px;
+    border-right: none;
+    border-radius: 10px 0 0 10px;
     overflow: hidden;
 }
 
@@ -39,7 +40,7 @@
     display: flex;
     flex-direction: column;
     border: 1px solid var(--vlist-border, #e5e7eb);
-    border-radius: 10px;
+    border-radius: 0 10px 10px 0;
     overflow: hidden;
 }
 
@@ -75,6 +76,8 @@
 }
 
 .explorer-header {
+    flex: none;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -183,19 +186,19 @@
     flex: 1;
     min-width: 0;
     font-size: 15px;
+    font-weight: 500;
     color: var(--vlist-text, #111827);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1;
 }
 
 .tree-node--dir .tree-node__label {
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .tree-node--file .tree-node__label {
-    font-weight: 400;
+    font-weight: 500;
 }
 
 .tree-node__meta {
@@ -251,17 +254,37 @@
 }
 
 /* ── Syntax highlighting (One Dark / One Light) ───────────────────────── */
-.syn-kw    { color: #c678dd; }
-.syn-type  { color: #e6c07b; }
-.syn-str   { color: #98c379; }
-.syn-num   { color: #d19a66; }
-.syn-punct { color: #abb2bf; }
+.syn-kw {
+    color: #c678dd;
+}
+.syn-type {
+    color: #e6c07b;
+}
+.syn-str {
+    color: #98c379;
+}
+.syn-num {
+    color: #d19a66;
+}
+.syn-punct {
+    color: #abb2bf;
+}
 
-[data-theme-mode="light"] .syn-kw    { color: #a626a4; }
-[data-theme-mode="light"] .syn-type  { color: #c18401; }
-[data-theme-mode="light"] .syn-str   { color: #50a14f; }
-[data-theme-mode="light"] .syn-num   { color: #986801; }
-[data-theme-mode="light"] .syn-punct { color: #383a42; }
+[data-theme-mode="light"] .syn-kw {
+    color: #a626a4;
+}
+[data-theme-mode="light"] .syn-type {
+    color: #c18401;
+}
+[data-theme-mode="light"] .syn-str {
+    color: #50a14f;
+}
+[data-theme-mode="light"] .syn-num {
+    color: #986801;
+}
+[data-theme-mode="light"] .syn-punct {
+    color: #383a42;
+}
 
 .sym--internal {
     opacity: 0.6;

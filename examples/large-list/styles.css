@@ -131,6 +131,13 @@
    Grid mode cards
    ============================================================================ */
 
+.vlist-grid-item {
+    padding: 0;
+    border: 1px solid var(--vlist-border) !important;
+    border-radius: 4px;
+    background-color: var(--vlist-border);
+}
+
 .grid-card {
     display: flex;
     flex-direction: column;
@@ -145,16 +152,17 @@
 
 .grid-card__accent {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 8px;
+    left: 2px;
+    right: 2px;
     height: 3px;
 }
 
 .grid-card__index {
     font-weight: var(--fw-bold);
-    font-size: 14px;
+    font-size: 10px;
     margin-top: 4px;
+    font-family: var(--font-mono);
 }
 
 .grid-card__hash {
@@ -179,7 +187,8 @@
 }
 
 .grid-card__value {
-    font-size: 12px;
+    font-family: var(--font-mono);
+    font-size: 14px;
     font-weight: var(--fw-bold);
     color: var(--text-muted);
 }
