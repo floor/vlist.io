@@ -462,7 +462,7 @@ export function createList() {
             }),
           ]
         : []),
-      selection({ mode: "single" }),
+      selection({ mode: "single", followFocus: true, focusOnClick: true }),
       snapshots({ autoSave: STORAGE_KEY }),
       ...(useCustomScrollbar ? [scrollbar()] : []),
     ],

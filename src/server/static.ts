@@ -27,6 +27,7 @@ const DEV_CSS_MAP: Record<string, string> = {
   "vlist-table.css": "vlist-table.css",
   "vlist-extras.css": "vlist-extras.css",
   "vlist-tree.css": "vlist-tree.css",
+  "vlist-search.css": "vlist-search.css",
 };
 
 // =============================================================================
