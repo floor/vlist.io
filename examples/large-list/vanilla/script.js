@@ -3,7 +3,7 @@
 // Demonstrates handling 1M+ items with automatic scroll scaling
 // Supports List and Table layout modes
 
-import { createVList, scale, scrollbar, table, grid } from "vlist";
+import { createVList, scale, scrollbar, table, grid, selection } from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -224,7 +224,7 @@ function createList(sizeKey) {
   const count = SIZES[sizeKey];
   const items = generateItems(count);
 
-  const plugins = [];
+  const plugins = [selection({ mode: "single" })];
   if (count > 100_000) plugins.push(scale(), scrollbar({ autoHide: true }));
 
   const isTable = currentLayout === "table";
