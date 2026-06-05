@@ -309,12 +309,18 @@ export function createList() {
     updateInfo();
   });
 
-  // Restore scroll position or ensure last item is fully visible
-  if (firstVisibleIndex > 0) {
-    list.scrollToIndex(firstVisibleIndex, "start");
-  } else {
-    list.scrollToIndex(currentItems.length - 1, "end");
-  }
+  // Scroll to the correct position. With sticky headers, the viewport
+  // height changes via calc() — the resize callback adjusts containerSize.
+  // We listen for the first resize to re-snap after the sticky header
+  // shrinks the viewport.
+  const scrollTarget = firstVisibleIndex > 0 ? firstVisibleIndex : currentItems.length - 1;
+  const scrollAlign = firstVisibleIndex > 0 ? "start" : "end";
+  list.scrollToIndex(scrollTarget, scrollAlign);
+
+  const unsub = list.on("resize", () => {
+    unsub();
+    if (list) list.scrollToIndex(scrollTarget, scrollAlign);
+  });
 
   statusEl.textContent = `${currentItems.length.toLocaleString()} messages`;
   updateInfo();
