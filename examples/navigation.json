@@ -90,6 +90,13 @@
         "plugins": ["data", "selection", "scale", "scrollbar", "snapshots"]
       },
       {
+        "slug": "code-explorer",
+        "name": "Code Explorer",
+        "desc": "Browse vlist's own source — file tree, per-file symbols & history with search",
+        "plugins": ["tree", "search", "selection", "autosize"],
+        "badge": "new"
+      },
+      {
         "slug": "large-list",
         "name": "Large Dataset",
         "desc": "100K–5M items with scroll compression",

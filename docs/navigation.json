@@ -59,6 +59,11 @@
         "desc": "Item selection and keyboard navigation"
       },
       {
+        "slug": "plugins/search",
+        "name": "Search",
+        "desc": "Search bar with filter, navigate, and highlight"
+      },
+      {
         "slug": "plugins/data",
         "name": "Data",
         "desc": "Lazy data loading"

@@ -1,0 +1,140 @@
+<div class="container">
+    <header>
+        <h1>People</h1>
+        <p class="description">
+            Type-ahead search over a curated list of notable people using the
+            <code>search</code> plugin. Toggle between <strong>filter</strong>
+            (hide non-matches) and <strong>navigate</strong> (jump between
+            matches) modes — matches are highlighted with
+            <code>&lt;mark&gt;</code>. Press <kbd>Ctrl/⌘+F</kbd> to focus the
+            bar, <kbd>Esc</kbd> to clear.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main">
+            <h2 class="sr-only">People</h2>
+            <div id="list-container"></div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Search plugin toggle -->
+            <section class="ui-section">
+                <h3 class="ui-title">Search</h3>
+                <div class="ui-row">
+                    <label class="ui-label" for="search-toggle">Enable search</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="search-toggle" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Mode -->
+            <section class="ui-section" id="mode-section">
+                <h3 class="ui-title">Mode</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="mode-toggle">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="filter"
+                        >
+                            Filter
+                        </button>
+                        <button class="ui-segmented__btn" data-value="navigate">
+                            Navigate
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search field -->
+            <section class="ui-section" id="field-section">
+                <h3 class="ui-title">Search field</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="field-toggle">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="all"
+                        >
+                            All
+                        </button>
+                        <button class="ui-segmented__btn" data-value="name">
+                            Name
+                        </button>
+                        <button class="ui-segmented__btn" data-value="category">
+                            Category
+                        </button>
+                        <button class="ui-segmented__btn" data-value="country">
+                            Country
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bar style -->
+            <section class="ui-section" id="style-section">
+                <h3 class="ui-title">Bar style</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="style-toggle">
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="default"
+                        >
+                            Default
+                        </button>
+                        <button class="ui-segmented__btn" data-value="md3">
+                            MD3
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Try -->
+            <section class="ui-section">
+                <h3 class="ui-title">Try</h3>
+                <div class="ui-row ui-row--wrap people-hints">
+                    <code>ein</code>
+                    <code>messi</code>
+                    <code>brazil</code>
+                    <code>scientist</code>
+                    <code>184</code>
+                </div>
+            </section>
+
+            <!-- Selected person -->
+            <section class="ui-section">
+                <h3 class="ui-title">Selected</h3>
+                <div class="ui-detail" id="person-detail">
+                    <span class="ui-detail__empty"
+                        >Click a person to see details</span
+                    >
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">rendered</span>
+            </span>
+        </div>
+        <div class="example-info__right">
+            <span class="example-info__stat">
+                <strong id="info-matches">0 / 0</strong>
+                <span class="example-info__unit">matches</span>
+            </span>
+        </div>
+    </div>
+</div>

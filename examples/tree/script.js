@@ -44,8 +44,12 @@ export async function fetchDir(path) {
 let _list = null;
 let _rootItems = [];
 
-export function list() { return _list; }
-export function rootItems() { return _rootItems; }
+export function list() {
+  return _list;
+}
+export function rootItems() {
+  return _rootItems;
+}
 
 // =============================================================================
 // Template

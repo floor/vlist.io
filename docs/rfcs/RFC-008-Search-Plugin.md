@@ -1,12 +1,12 @@
 ---
 created: 2026-05-29
-updated: 2026-05-29
-status: draft
+updated: 2026-06-02
+status: phase-1-implemented
 ---
 
 # RFC-008: Search Plugin
 
-**Status:** Draft  
+**Status:** Phase 1 implemented (shipped in `search()` — filter/navigate modes, highlighting, keyboard, ARIA, tree delegation). Phase 2 pending.  
 **Author:** floor  
 **Type:** Plugin / Feature  
 **Created:** 2026-05-29  
