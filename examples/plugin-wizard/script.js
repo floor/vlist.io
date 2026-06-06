@@ -1,7 +1,7 @@
 // Plugin Explorer — Discover vlist's composable plugins
 // Demonstrates scroll.wheel: false, wrap, button-only navigation
 
-import { createVList } from "vlist";
+import { createVList, carousel } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -133,7 +133,7 @@ function createList() {
   list = createVList({
     container: "#list-container",
     orientation: currentOrientation,
-    scroll: { scrollbar: "none", wrap: true },
+    scroll: { scrollbar: "none" },
     ariaLabel: "Plugin explorer",
     item: {
       height: ITEM_HEIGHT,
@@ -141,7 +141,9 @@ function createList() {
       template: itemTemplate,
     },
     items: PLUGINS,
-  });
+  }, [
+    carousel({ snap: true, snapDuration: 400, initialIndex: currentIndex }),
+  ]);
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);
@@ -150,61 +152,37 @@ function createList() {
     updateInfo();
   });
 
-  list.on("item:click", ({ index }) => goTo(index));
+  list.on("item:click", ({ index }) => goTo(index % TOTAL));
 
-  // Snap to nearest card on scroll idle.
-  // Suppressed while goTo is animating to prevent re-snap mid-animation.
-  let lastDirection = 0;
-
-  list.on("scroll", ({ direction }) => {
-    if (!snapping) {
-      lastDirection = (direction === "down" || direction === "right") ? 1
-        : (direction === "up" || direction === "left") ? -1 : 0;
-    }
-  });
-
-  list.on("scroll:idle", () => {
-    if (snapping) return;
-    const itemSize = isH
-      ? document.getElementById("list-container").clientWidth
-      : ITEM_HEIGHT;
-    if (!itemSize) return;
-    const pos = list.getScrollPosition();
-    const remainder = pos % itemSize;
-    if (remainder < 3 || itemSize - remainder < 3) return;
-    const fractional = pos / itemSize;
-    const target = lastDirection >= 0 ? Math.ceil(fractional) : Math.floor(fractional);
-    const resolved = ((target % TOTAL) + TOTAL) % TOTAL;
-    goTo(resolved);
-    lastDirection = 0;
+  // Update dots and panel when scrolling changes the active card
+  list.on("carousel:change", ({ index }) => {
+    currentIndex = index;
+    updateCurrentInfo();
+    updateDots();
+    updateStep();
   });
 
   updateInfo();
-  goTo(currentIndex, true);
 }
 
 // =============================================================================
 // Navigation
 // =============================================================================
 
-let snapping = false;
-
 function goTo(index, instant = false) {
-  snapping = true;
-
-  // scroll.wrap handles modulo — pass the raw index
-  list.scrollToIndex(index, {
-    align: "start",
-    behavior: instant ? "auto" : "smooth",
-    duration: instant ? 0 : 400,
-  });
-
   currentIndex = ((index % TOTAL) + TOTAL) % TOTAL;
+
+  if (list) {
+    list.goTo(currentIndex, {
+      behavior: instant ? "auto" : "smooth",
+      duration: instant ? 0 : 400,
+    });
+  }
+
   updateCurrentInfo();
   updateDots();
   updateInfo();
   updateStep();
-  setTimeout(() => { snapping = false; }, instant ? 50 : 500);
 }
 
 // =============================================================================

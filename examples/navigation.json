@@ -147,8 +147,8 @@
       {
         "slug": "plugin-wizard",
         "name": "Plugin Wizard",
-        "desc": "Discover all 16 vlist plugins — swipe through cards with code snippets",
-        "plugins": [],
+        "desc": "Discover all 17 vlist plugins — infinite carousel with code snippets",
+        "plugins": ["carousel"],
         "badge": "new"
       }
     ]
