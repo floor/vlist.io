@@ -160,6 +160,7 @@ function createList() {
       snap: snapEnabled,
       snapDuration: 400,
       initialIndex: currentIndex,
+      gap: 8,
     }),
   ]);
 

@@ -49,10 +49,9 @@
 }
 
 #list-container .vlist-item {
-    padding: 0 4px !important;
+    padding: 0 !important;
     border: none !important;
     background: transparent;
-    box-sizing: border-box;
 }
 
 /* ============================================================================
