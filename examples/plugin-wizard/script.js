@@ -142,7 +142,7 @@ function createList() {
     },
     items: PLUGINS,
   }, [
-    carousel({ snap: true, snapDuration: 400, initialIndex: currentIndex }),
+    carousel({ variant: "static", snap: true, snapDuration: 400, initialIndex: currentIndex }),
   ]);
 
   list.on("scroll", updateInfo);
