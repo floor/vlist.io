@@ -1,12 +1,12 @@
 ---
 created: 2026-06-06
 updated: 2026-06-06
-status: draft
+status: spec-locked
 ---
 
 # RFC-011: Carousel Plugin
 
-**Status:** Draft  
+**Status:** Spec locked ([discussion #105](https://github.com/floor/vlist/discussions/105))  
 **Author:** floor  
 **Type:** Plugin / Feature  
 **Created:** 2026-06-06  
@@ -37,26 +37,30 @@ Real-world carousel patterns (image galleries, onboarding wizards, plugin explor
 
 ## Design
 
-### Core principle
+### Implementation model
 
-The scroll position is unbounded — it can grow past `totalSize` or go negative. The render pipeline maps indices via modulo:
+Use a **finite virtual scroll window with silent rebasing**, not a literally unbounded native scroll position.
 
-```
-visibleIndex = ((scrollIndex % total) + total) % total
-```
+- `lapSize = sum(real item sizes)`.
+- Virtual slots map to logical items with modulo.
+- Start in the middle cycle at `initialIndex`.
+- Content size is `lapSize * cycles`, where `cycles` is internal and capped below the browser virtual-size limit.
+- When the native/virtual position approaches either edge, jump to the equivalent position in the middle cycle while preserving logical index and fractional offset.
+- Empty lists render nothing and all methods no-op.
+- Single-item lists render one item; `next`, `prev`, and snap no-op.
 
-Items are positioned relative to the viewport using their modulo'd index. No item duplication — the same item pool is reused, just with wrapped indices.
+This gives the infinite-loop illusion without exposing inflated counts or risking browser scroll limits.
 
 ### Plugin responsibilities
 
 | Responsibility | Approach |
 |---------------|----------|
-| **Unbounded scroll** | Override scroll setter to allow positions beyond `[0, totalSize]` |
+| **Virtual scroll window** | Finite multi-cycle content size with silent rebasing at edges |
 | **Index modulo** | Override `getItemFn` to wrap indices: `items[index % total]` |
-| **Content size** | Set content size to a large virtual range (e.g. `totalSize * 1000`) so native scrollbar has room |
-| **scrollToIndex** | Override to compute the shortest-path scroll target: forward or backward, whichever is closer |
-| **Snap-to-item** | Optional: snap to the nearest item boundary on scroll idle |
-| **Keyboard** | ArrowDown/Right always moves forward, ArrowUp/Left always moves backward — never jumps across the entire list |
+| **Content size** | `lapSize * cycles`, capped below browser limit |
+| **scrollToIndex** | Override to compute the shortest-path scroll target |
+| **Snap-to-item** | Cycle-aware snap on scroll idle (owned by carousel, not a separate plugin) |
+| **Keyboard** | ArrowDown/Right → `next()`, ArrowUp/Left → `prev()` (swapped in RTL for horizontal) |
 
 ### Layout variants (MD3-inspired)
 
@@ -75,9 +79,9 @@ In `"hero"` and `"multi"` modes, items transition smoothly as they approach or l
 
 - **Scale**: focal item at 100%, adjacent items at `focalScale` (e.g. 85%)
 - **Opacity**: focal item at 1.0, adjacent items at `focalOpacity` (e.g. 0.7)
-- **Transitions**: driven by scroll position, not CSS transitions — ensures 60fps with no layout thrash
+- **CSS-variable driven**: the plugin computes per-visible-element `--vlist-carousel-progress`, `--vlist-carousel-scale`, `--vlist-carousel-opacity`, and `--vlist-carousel-offset` on scroll. Templates should not be re-executed on every scroll frame just to animate opacity or scale.
 
-The plugin exposes `state.carousel.focal` (boolean) and `state.carousel.progress` (0–1 distance from focal center) to the template, so the consumer can apply custom effects.
+The same values are also exposed in `state.carousel` at template render time for custom effects.
 
 #### Peek
 
@@ -86,18 +90,21 @@ Adjacent items are partially visible at the viewport edges, hinting that there's
 ### API
 
 ```ts
+type CarouselVariant = "full" | "hero" | "multi" | "free";
+type CarouselDirection = "auto" | "forward" | "backward";
+
 carousel(config?: {
   /** Layout variant (default: "full") */
-  variant?: "full" | "hero" | "multi" | "free";
+  variant?: CarouselVariant;
 
-  /** Snap to the nearest item on scroll idle (default: true, ignored for "free") */
+  /** Snap to the nearest item on scroll idle (default: true, default false for "free") */
   snap?: boolean;
 
   /** Snap animation duration in ms (default: 400) */
   snapDuration?: number;
 
-  /** Visible peek of adjacent items in px or "auto" (default: "auto") */
-  peek?: number | "auto";
+  /** Visible peek of adjacent items — number (px), string ("20%"), or "auto" (default: "auto") */
+  peek?: number | string | "auto";
 
   /** Scale factor for non-focal items, 0–1 (default: 0.85, hero/multi only) */
   focalScale?: number;
@@ -107,42 +114,117 @@ carousel(config?: {
 
   /** Number of items visible at once in "multi" mode (default: 3) */
   visibleCount?: number;
+
+  /** Focal alignment in hero/multi modes (default: "center") */
+  focalAlign?: "center" | "start";
+
+  /** Initial item index (default: 0) */
+  initialIndex?: number;
 })
 ```
 
-#### Template state
+### Registered methods
+
+```ts
+list.next(step?: number, options?: {
+  behavior?: "auto" | "smooth";
+  duration?: number;
+}): void;
+
+list.prev(step?: number, options?: {
+  behavior?: "auto" | "smooth";
+  duration?: number;
+}): void;
+
+list.goTo(index: number, options?: {
+  direction?: CarouselDirection;
+  behavior?: "auto" | "smooth";
+  duration?: number;
+  align?: "start" | "center" | "end";
+}): void;
+
+list.getCarouselState(): {
+  index: number;          // logical item index, 0..total-1
+  progress: number;       // 0 at focal position, 1 at edge
+  offset: number;         // signed logical item distance from focal item
+  scrollPosition: number; // normalized pixel offset within one lap
+};
+```
+
+### Template state
 
 The plugin adds `state.carousel` to the template's third argument:
 
 ```ts
 template: (item, index, state) => {
-  const { focal, progress } = state.carousel;
-  // focal: true if this is the center item
+  const { active, progress, offset } = state.carousel;
+  // active: true if this is the focal item
   // progress: 0 (center) to 1 (edge) — distance from focal position
+  // offset: signed item distance from focal center
   return `<div style="opacity: ${1 - progress * 0.3}">${item.name}</div>`;
 }
 ```
 
+The same values are mirrored to CSS variables on each rendered element, so visual effects do not require template re-execution:
+
+- `--vlist-carousel-progress` (0–1)
+- `--vlist-carousel-offset` (signed integer)
+- `--vlist-carousel-scale` (0–1)
+- `--vlist-carousel-opacity` (0–1)
+
 ### What it replaces
 
-- `scroll.wrap` in the core becomes unnecessary for carousel use cases — the plugin handles wrapping at a higher level with better UX
-- The `scroll.wheel: false` pattern (wizard-nav) can use carousel instead for a more natural feel
-- Custom snap-to-item logic in examples (plugin-wizard's `scroll:idle` handler) is replaced by built-in snap
+- **`scroll.wrap`** — the core's wrap clamps indices and rewinds the scroll animation. `carousel()` replaces this with silent rebasing for seamless forward/backward motion. Even `variant: "free"` (no snap) is superior to `scroll.wrap` because it never visually rewinds.
+- **`scroll.wheel: false`** — the wizard-nav pattern of disabling wheel and using buttons. `carousel()` supports wheel scrolling with snap, making the wheel-disable hack unnecessary.
+- **Custom snap-to-item logic** — the plugin-wizard's `scroll:idle` snap handler is replaced by built-in cycle-aware snapping.
 
-### Interactions with other plugins
+### RTL support
+
+In horizontal mode with `dir="rtl"`, "forward" is leftward and "backward" is rightward. The plugin should detect the document or container's `direction` and swap ArrowLeft/ArrowRight mapping accordingly. `next()` and `prev()` remain directionally correct regardless of RTL — only the keyboard mapping changes.
+
+### Future extensions (out of scope for v1)
+
+- **Autoplay** — auto-advance on a timer with pause-on-hover and pause-on-focus. The API should not preclude adding `autoplay?: number | { interval: number; pauseOnHover?: boolean }` later. The `next()` method is the hook point.
+- **Indicators** — built-in dot/progress indicators (currently left to the consumer).
+- **2D grid carousel** — carousel with grid items (follow-up RFC).
+
+### Compatibility
 
 | Plugin | Interaction |
 |--------|------------|
-| `selection()` | Works — focusedIndex wraps via modulo |
-| `scrollbar()` | The virtual content size gives the scrollbar a proportional thumb; alternatively, hide it (`scrollbar: "none"`) |
-| `scale()` | Not compatible — carousel uses its own virtual scroll space |
-| `groups()` | Not compatible — infinite wrap doesn't map to grouped sections |
-| `grid()` | Compatible — items wrap in grid rows |
-| `autosize()` | Compatible — measured sizes wrap with the items |
+| `selection()` | Compatible — logical indices, ArrowRight/Down → `next()`, ArrowLeft/Up → `prev()`. ARIA set size stays at real item count. |
+| `a11y()` | Compatible — logical indices and item IDs |
+| `scrollbar()` | Compatible as lap progress indicator. Recommended default: no visible scrollbar. |
+| `autosize()` | Compatible — measurements keyed by logical item index, rebasing preserves current item + fractional offset |
+| `scale()` | **Not compatible** — both plugins own virtual scroll space |
+| `groups()` | **Not compatible** — infinite wrap doesn't map to grouped sections |
+| `table()` | **Out of scope for v1** |
+| `masonry()` | **Out of scope for v1** |
+| `tree()` | **Out of scope for v1** |
+| `grid()` | **Out of scope for v1** — 2D grid carousel is a follow-up RFC |
+
+### Public API contracts
+
+- `list.total`, `items`, `getItemAt()`, selection payloads, click payloads, and ARIA set sizes refer to the **real item count**. Virtual slots, cycles, and rebasing are internal implementation details.
+- `getScrollPosition()` returns a **normalized logical pixel offset** within one lap. The raw virtual coordinate may be silently rebased and is not a stable public value.
+- `scrollToIndex(i)` chooses the **shortest path** (forward or backward).
 
 ### Size budget
 
-Target: **+2.0 KB gzipped** — scroll override, modulo mapping, snap logic, focal scaling, peek calculation.
+Target: **+2.0 KB gzipped** — scroll override, modulo mapping, snap logic, focal scaling, peek calculation, CSS variable updates.
+
+---
+
+## Decisions (locked)
+
+Resolved via [discussion #105](https://github.com/floor/vlist/discussions/105):
+
+1. **Snap owned by carousel** — the nearest snap target is cycle-aware. A generic `snap()` plugin can happen later but does not block this RFC.
+2. **Logical totals** — `list.total`, selection, ARIA, events all use the real item count. Virtual cycles are strictly internal.
+3. **Normalized scroll position** — `getScrollPosition()` returns within one lap. Raw coordinate exposed only via `getCarouselState()`.
+4. **CSS-variable-driven effects** — `--vlist-carousel-progress` etc. updated on scroll. Template state mirrors the values at render time but templates are NOT re-executed per frame.
+5. **Focal alignment** — defaults to `"center"`, with `focalAlign: "start"` for MD3-style hero shelves.
+6. **Explicit methods** — `next()`, `prev()`, `goTo()` registered on the list instance for deterministic wizard/button controls.
 
 ---
 
@@ -154,21 +236,35 @@ Target: **+2.0 KB gzipped** — scroll override, modulo mapping, snap logic, foc
 
 3. **CSS scroll-snap** — use native `scroll-snap-type: x mandatory`. Doesn't work with virtual scrolling (items are absolutely positioned), and browser support for programmatic smooth-scroll + snap is inconsistent.
 
+4. **Literally unbounded scroll** — let the position grow indefinitely. Risks browser precision issues at very large offsets and makes `getScrollPosition()` semantics confusing. Silent rebasing is safer.
+
 ---
 
-## Open questions
+## Acceptance tests
 
-1. Should the snap behavior be part of `carousel()` or a separate `snap()` plugin?
-2. How should `list.total` report — the real item count, or the virtual inflated count?
-3. Should `getScrollPosition()` return the raw unbounded position or the modulo'd position?
-4. Should focal scaling be CSS-driven (transform + opacity via classes) or JS-driven (inline styles per frame)? CSS is cleaner but limits custom effects; JS is more flexible but needs care on the hot path.
-5. In `"hero"` mode, should the hero item be configurable (e.g. always the center, or always the left) or always centered?
-6. Should `carousel()` expose `goTo(index)` / `next()` / `prev()` methods, or rely on `scrollToIndex` with wrap?
+- From the last item, `next()` moves forward to item 0 without visually rewinding through the list.
+- From the first item, `prev()` moves backward to the last item.
+- Wheel/touch scroll can cross the boundary in both directions without a visible jump.
+- Idle snapping lands on the nearest logical item, except in `variant: "free"` when snap is false.
+- `list.total`, click events, selection events, and ARIA counts stay at the real item count.
+- DOM node count stays bounded by visible items plus overscan.
+- Horizontal and vertical orientations both work.
+- Empty and single-item lists are stable no-ops.
+
+---
+
+## Implementation notes
+
+- Avoid inflating `state.totalItems` or `setVirtualTotalFn` — that leaks virtual counts into selection, events, and ARIA.
+- If `setRenderFn` is too heavy for v1, add a small internal mapping hook that separates render slot index from logical item index rather than making virtual cycles public.
+- The plugin should set `priority: 10` (layout tier) since it replaces the scroll contract.
 
 ---
 
 ## References
 
+- [Discussion #105](https://github.com/floor/vlist/discussions/105) — review and spec lock
+- [Material Design 3 Carousel](https://m3.material.io/components/carousel/overview) — layout variant inspiration
 - Plugin Wizard example (`/examples/plugin-wizard`) — current consumer of `scroll.wrap`
 - Wizard Nav example (`/examples/wizard-nav`) — original carousel pattern
 - Carousel example (`/examples/carousel`) — horizontal scrolling without wrap
