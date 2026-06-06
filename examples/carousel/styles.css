@@ -49,13 +49,14 @@
 }
 
 #list-container .vlist-item {
-    padding: 0 !important;
+    padding: 0 4px !important;
     border: none !important;
     background: transparent;
+    box-sizing: border-box;
 }
 
 /* ============================================================================
-   Photo slide
+   Photo slide — adapts to --vlist-carousel-width
    ============================================================================ */
 
 .photo-slide {
@@ -79,6 +80,7 @@
     opacity: 1;
 }
 
+/* Text overlay — hidden on small items */
 .photo-slide__overlay {
     position: absolute;
     bottom: 0;
@@ -89,6 +91,9 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    opacity: calc(1 - var(--vlist-carousel-progress, 0) * 2);
+    transition: opacity 0.1s ease;
+    pointer-events: none;
 }
 
 .photo-slide__title {

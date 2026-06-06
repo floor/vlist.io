@@ -13,9 +13,9 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) =>
 // State
 // =============================================================================
 
-let currentVariant = "full";
+let currentVariant = "hero";
 let currentOrientation = "horizontal";
-let snapEnabled = true;
+let snapEnabled = false;
 let currentIndex = 0;
 let list = null;
 
