@@ -48,8 +48,8 @@
       {
         "slug": "carousel",
         "name": "Carousel",
-        "desc": "Horizontal scrolling with fixed or variable item widths — toggle to compare",
-        "plugins": []
+        "desc": "MD3-aligned photo carousel — infinite loop with snap, variant layouts, and real photos",
+        "plugins": ["carousel"]
       },
       {
         "slug": "window-scroll",

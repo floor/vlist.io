@@ -6,7 +6,7 @@ status: published
 
 # Plugin Overview
 
-vlist v2 ships 15 plugins. Each plugin is tree-shaken — only what you import is bundled.
+vlist v2 ships 16 plugins. Each plugin is tree-shaken — only what you import is bundled.
 
 Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 
@@ -26,6 +26,7 @@ Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 | snapshots | `snapshots()` | +{{size:snapshots:delta}} KB | Scroll save/restore |
 | transition | `transition()` | +{{size:transition:delta}} KB | FLIP-based enter/exit animations |
 | autosize | `autosize()` | +{{size:autosize:delta}} KB | Dynamic item measurement |
+| carousel | `carousel()` | +{{size:carousel:delta}} KB | Infinite-loop carousel (MD3-aligned) |
 | **Layout** | | | |
 | grid | `grid()` | +{{size:grid:delta}} KB | 2D grid layout |
 | table | `table()` | +{{size:table:delta}} KB | Virtualized data table |
@@ -50,15 +51,16 @@ Plugins are passed as the second argument to `createVList`. Order in the array d
 
 Not all plugins can be combined. Layout plugins are mutually exclusive, and some plugins only support flat lists.
 
-| | grid | masonry | table | tree | scale | transition | sortable |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **grid** | — | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-| **masonry** | ❌ | — | ❌ | ❌ | — | ❌ | ❌ |
-| **table** | ❌ | ❌ | — | ❌ | — | ❌ | ❌ |
-| **tree** | ❌ | ❌ | ❌ | — | — | — | — |
-| **scale** | — | — | — | — | — | — | ❌ |
-| **transition** | ❌ | ❌ | ❌ | — | — | — | — |
-| **sortable** | ❌ | ❌ | ❌ | — | ❌ | — | — |
+| | grid | masonry | table | tree | scale | carousel | transition | sortable |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **grid** | — | ❌ | ❌ | ❌ | — | ❌ | ❌ | ❌ |
+| **masonry** | ❌ | — | ❌ | ❌ | — | ❌ | ❌ | ❌ |
+| **table** | ❌ | ❌ | — | ❌ | — | ❌ | ❌ | ❌ |
+| **tree** | ❌ | ❌ | ❌ | — | — | ❌ | — | — |
+| **scale** | — | — | — | — | — | ❌ | — | ❌ |
+| **carousel** | ❌ | ❌ | ❌ | ❌ | ❌ | — | ❌ | ❌ |
+| **transition** | ❌ | ❌ | ❌ | — | — | ❌ | — | — |
+| **sortable** | ❌ | ❌ | ❌ | — | ❌ | ❌ | — | — |
 
 All combinations not listed above are ✅ compatible.
 
@@ -66,8 +68,11 @@ Incompatibility reasons:
 
 - **grid + masonry / grid + table / masonry + table / tree + any layout** — only one layout plugin can be active at a time.
 - **tree + groups** — tree manages its own hierarchy; groups is for flat grouped lists.
-- **transition + grid/table/masonry** — transition uses FLIP animations designed for flat lists only.
-- **sortable + grid/masonry/table/scale** — drag-and-drop reordering requires a flat, fixed-height list.
+- **carousel + scale** — both plugins own virtual scroll space.
+- **carousel + groups** — infinite wrap doesn't map to grouped sections.
+- **carousel + grid/masonry/table/tree** — carousel manages its own single-axis layout.
+- **transition + grid/table/masonry/carousel** — transition uses FLIP animations designed for flat lists only.
+- **sortable + grid/masonry/table/scale/carousel** — drag-and-drop reordering requires a flat, fixed-height list.
 
 ## Priority Order
 

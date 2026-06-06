@@ -2,129 +2,96 @@
     <header>
         <h1>Carousel</h1>
         <p class="description">
-            Pure vanilla JavaScript – no frameworks, no dependencies. A
-            horizontal virtual list rendering 10,000 cards with
-            <code>orientation: 'horizontal'</code> and
-            <code>scroll.wheel: true</code>. Toggle
-            <strong>variable width</strong> to switch between fixed-size cards
-            and dynamic per-item widths. Only visible items are in the DOM.
+            Infinite-loop photo carousel powered by the
+            <code>carousel()</code> plugin — aligned with
+            <a href="https://m3.material.io/components/carousel/overview" target="_blank">Material Design 3</a>.
+            Items wrap seamlessly in both directions with smooth snap-to-item.
+            Switch between <strong>variant</strong> layouts to see MD3 hero, multi-browse, and full-screen modes.
         </p>
     </header>
 
     <div class="split-layout">
         <div class="split-main">
-            <h2 class="sr-only">Carousel</h2>
-            <div id="list-container"></div>
+            <h2 class="sr-only">Photo Carousel</h2>
+            <div class="carousel-wrap">
+                <div id="list-container"></div>
+
+                <!-- Navigation overlay -->
+                <button id="btn-prev" class="carousel-nav carousel-nav--prev" title="Previous">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"/>
+                    </svg>
+                </button>
+                <button id="btn-next" class="carousel-nav carousel-nav--next" title="Next">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+
+                <!-- Dot indicators -->
+                <div class="carousel-dots" id="carousel-dots"></div>
+            </div>
         </div>
 
         <aside class="split-panel">
-            <!-- Mode -->
+            <!-- Variant -->
             <section class="ui-section">
-                <h3 class="ui-title">Mode</h3>
-
+                <h3 class="ui-title">Variant</h3>
                 <div class="ui-row">
-                    <label class="ui-label">Size</label>
-                    <span class="ui-value" id="size-value">240px</span>
-                </div>
-                <div class="ui-row">
-                    <input
-                        type="range"
-                        id="size-slider"
-                        class="ui-slider"
-                        min="200"
-                        max="500"
-                        step="10"
-                        value="240"
-                    />
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Variable width</label>
-                    <label class="ui-switch">
-                        <input type="checkbox" id="toggle-variable" />
-                        <span class="ui-switch__track"></span>
-                    </label>
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Scrollbar</label>
-                    <label class="ui-switch">
-                        <input type="checkbox" id="toggle-scrollbar" />
-                        <span class="ui-switch__track"></span>
-                    </label>
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Gap</label>
-                    <div class="ui-btn-group" id="gap-buttons">
-                        <button class="ui-ctrl-btn" data-gap="0">0</button>
-                        <button class="ui-ctrl-btn" data-gap="4">4</button>
-                        <button
-                            class="ui-ctrl-btn ui-ctrl-btn--active"
-                            data-gap="8"
-                        >
-                            8
-                        </button>
-                        <button class="ui-ctrl-btn" data-gap="12">12</button>
-                        <button class="ui-ctrl-btn" data-gap="16">16</button>
-                    </div>
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Radius</label>
-                    <div class="ui-btn-group" id="radius-buttons">
-                        <button class="ui-ctrl-btn" data-radius="0">0</button>
-                        <button class="ui-ctrl-btn" data-radius="4">4</button>
-                        <button class="ui-ctrl-btn" data-radius="8">8</button>
-                        <button
-                            class="ui-ctrl-btn ui-ctrl-btn--active"
-                            data-radius="12"
-                        >
-                            12
-                        </button>
-                        <button class="ui-ctrl-btn" data-radius="16">16</button>
+                    <div class="ui-btn-group ui-btn-group--wrap" id="variant-buttons">
+                        <button class="ui-ctrl-btn ui-ctrl-btn--active" data-variant="full">Full</button>
+                        <button class="ui-ctrl-btn" data-variant="hero">Hero</button>
+                        <button class="ui-ctrl-btn" data-variant="hero-center">Center</button>
+                        <button class="ui-ctrl-btn" data-variant="multi">Multi</button>
+                        <button class="ui-ctrl-btn" data-variant="uncontained">Uncontained</button>
                     </div>
                 </div>
             </section>
 
-            <!-- Scroll To -->
+            <!-- Options -->
             <section class="ui-section">
-                <h3 class="ui-title">Scroll To</h3>
+                <h3 class="ui-title">Options</h3>
 
                 <div class="ui-row">
+                    <label class="ui-label">Snap</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="toggle-snap" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+
+                <div class="ui-row">
+                    <label class="ui-label">Orientation</label>
+                    <div class="ui-segmented" id="orientation-mode">
+                        <button class="ui-segmented__btn ui-segmented__btn--active" data-orientation="horizontal">Horizontal</button>
+                        <button class="ui-segmented__btn" data-orientation="vertical">Vertical</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigate -->
+            <section class="ui-section">
+                <h3 class="ui-title">Navigate</h3>
+                <div class="ui-row">
                     <div class="ui-btn-group">
-                        <button
-                            id="btn-start"
-                            class="ui-btn ui-btn--icon"
-                            title="Start"
-                        >
+                        <button id="btn-first" class="ui-btn ui-btn--icon" title="First">
                             <i class="icon icon--back"></i>
                         </button>
-                        <button
-                            id="btn-center"
-                            class="ui-btn ui-btn--icon"
-                            title="Center"
-                        >
+                        <button id="btn-random" class="ui-btn ui-btn--icon" title="Random">
                             <i class="icon icon--center"></i>
                         </button>
-                        <button
-                            id="btn-end"
-                            class="ui-btn ui-btn--icon"
-                            title="End"
-                        >
+                        <button id="btn-last" class="ui-btn ui-btn--icon" title="Last">
                             <i class="icon icon--forward"></i>
                         </button>
                     </div>
                 </div>
             </section>
 
-            <!-- Card Detail -->
+            <!-- Photo detail -->
             <section class="ui-section">
-                <h3 class="ui-title">Last clicked</h3>
-                <div class="ui-detail" id="card-detail">
-                    <span class="ui-detail__empty"
-                        >Click a card to preview</span
-                    >
+                <h3 class="ui-title">Current</h3>
+                <div class="ui-detail" id="photo-detail">
+                    <span class="ui-detail__empty">Scroll to explore</span>
                 </div>
             </section>
         </aside>
@@ -148,11 +115,10 @@
         </div>
         <div class="example-info__right">
             <span class="example-info__stat">
-                width <strong id="info-width">260</strong
-                ><span class="example-info__unit">px</span>
+                variant <strong id="info-variant">full</strong>
             </span>
             <span class="example-info__stat">
-                mode <strong id="info-mode">fixed</strong>
+                step <strong id="info-step">1 / 24</strong>
             </span>
         </div>
     </div>
