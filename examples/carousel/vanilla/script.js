@@ -214,26 +214,6 @@ document.getElementById("btn-random").addEventListener("click", () => {
 });
 
 // =============================================================================
-// Keyboard navigation
-// =============================================================================
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-    e.preventDefault();
-    list?.prev(1, { behavior: "smooth", duration: 400 });
-  } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-    e.preventDefault();
-    list?.next(1, { behavior: "smooth", duration: 400 });
-  } else if (e.key === "Home") {
-    e.preventDefault();
-    list?.goTo(0, { behavior: "smooth", duration: 400 });
-  } else if (e.key === "End") {
-    e.preventDefault();
-    list?.goTo(ITEM_COUNT - 1, { behavior: "smooth", duration: 400 });
-  }
-});
-
-// =============================================================================
 // Variant buttons
 // =============================================================================
 

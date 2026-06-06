@@ -225,26 +225,6 @@ function updateStep() {
 }
 
 // =============================================================================
-// Keyboard navigation
-// =============================================================================
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-    e.preventDefault();
-    goTo(currentIndex - 1);
-  } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-    e.preventDefault();
-    goTo(currentIndex + 1);
-  } else if (e.key === "Home") {
-    e.preventDefault();
-    goTo(0);
-  } else if (e.key === "End") {
-    e.preventDefault();
-    goTo(TOTAL - 1);
-  }
-});
-
-// =============================================================================
 // Controls — prev/next/first/last/random
 // =============================================================================
 
