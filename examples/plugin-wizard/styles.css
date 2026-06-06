@@ -1,0 +1,290 @@
+/* Plugin Explorer — example styles */
+
+/* ============================================================================
+   Wizard layout — prev | cards | next
+   ============================================================================ */
+
+.wizard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 16px;
+    height: 100%;
+}
+
+.wizard__center {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#list-container {
+    height: 480px;
+    border-radius: 16px;
+    width: auto;
+    margin: 0;
+}
+
+#list-container .vlist {
+    border: none;
+    border-radius: 16px;
+    background: transparent;
+}
+
+.wizard--horizontal #list-container {
+    height: 480px;
+}
+
+#list-container .vlist-item {
+    padding: 0;
+    border: none;
+    cursor: default;
+}
+
+/* ============================================================================
+   Navigation buttons (prev / next)
+   ============================================================================ */
+
+.nav-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.nav-btn .icon {
+    width: 18px;
+    height: 18px;
+}
+
+.nav-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-hover);
+}
+
+.nav-btn:active {
+    background: var(--border);
+    transform: scale(0.95);
+}
+
+/* ============================================================================
+   Step indicator dots
+   ============================================================================ */
+
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 0;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.dot:hover {
+    background: var(--text-dim);
+    transform: scale(1.3);
+}
+
+.dot-active {
+    background: var(--accent);
+    transform: scale(1.3);
+}
+
+.dot-active:hover {
+    background: var(--accent);
+}
+
+/* ============================================================================
+   Plugin card
+   ============================================================================ */
+
+.plugin-card {
+    height: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.plugin-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.plugin-card__title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.plugin-card__name {
+    font-size: 22px;
+    font-weight: var(--fw-bold);
+    color: var(--text);
+    letter-spacing: -0.3px;
+    font-family: var(--font-mono);
+}
+
+.plugin-card__size {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.plugin-card__category {
+    flex-shrink: 0;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.plugin-card__tagline {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1.3;
+}
+
+.plugin-card__desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.plugin-card__features {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.plugin-card__features li {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+    padding-left: 16px;
+    position: relative;
+}
+
+.plugin-card__features li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 11px;
+}
+
+.plugin-card__code-wrap {
+    position: relative;
+    margin: auto 0 0;
+}
+
+.plugin-card__copy {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: var(--bg-card, rgba(255, 255, 255, 0.06));
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease;
+    z-index: 1;
+}
+
+.plugin-card__code-wrap:hover .plugin-card__copy {
+    opacity: 1;
+}
+
+.plugin-card__copy:hover {
+    background: var(--bg-card-hover, rgba(255, 255, 255, 0.12));
+}
+
+.plugin-card__code {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--bg-code, rgba(0, 0, 0, 0.15));
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-weight: 500;
+    white-space: pre;
+}
+
+[data-theme-mode="light"] .plugin-card__code {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+/* Syntax highlighting (One Dark / One Light) */
+.syn-kw {
+    color: #c678dd;
+}
+.syn-type {
+    color: #e6c07b;
+}
+.syn-str {
+    color: #98c379;
+}
+.syn-num {
+    color: #d19a66;
+}
+.syn-punct {
+    color: #abb2bf;
+}
+
+[data-theme-mode="light"] .syn-kw {
+    color: #a626a4;
+}
+[data-theme-mode="light"] .syn-type {
+    color: #c18401;
+}
+[data-theme-mode="light"] .syn-str {
+    color: #50a14f;
+}
+[data-theme-mode="light"] .syn-num {
+    color: #986801;
+}
+[data-theme-mode="light"] .syn-punct {
+    color: #383a42;
+}
+
+.split-main.split-main--full {
+    height: 600px;
+}

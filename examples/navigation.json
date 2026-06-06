@@ -145,10 +145,11 @@
         "plugins": ["table", "grid", "selection", "groups"]
       },
       {
-        "slug": "wizard-nav",
-        "name": "Wizard",
-        "desc": "Button-only step navigation — wheel scrolling disabled",
-        "plugins": []
+        "slug": "plugin-wizard",
+        "name": "Plugin Wizard",
+        "desc": "Discover all 16 vlist plugins — swipe through cards with code snippets",
+        "plugins": [],
+        "badge": "new"
       }
     ]
   }

@@ -238,7 +238,6 @@
 
 .sym__name {
     min-width: 0;
-    font-size: 10px;
     font-weight: 600;
     color: var(--vlist-text, #e5e7eb);
 }
