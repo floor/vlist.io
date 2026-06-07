@@ -317,6 +317,15 @@ samp {
     vertical-align: middle;
 }
 
+.sidebar__badge--dot {
+    font-size: 0;
+    padding: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
 /* ─── Content ────────────────────────────────────────────────────── */
 
 .content {
