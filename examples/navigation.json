@@ -49,7 +49,8 @@
         "slug": "carousel",
         "name": "Carousel",
         "desc": "MD3-aligned photo carousel — infinite loop with snap, variant layouts, and real photos",
-        "plugins": ["carousel"]
+        "plugins": ["carousel"],
+        "badge": "updated"
       },
       {
         "slug": "window-scroll",
