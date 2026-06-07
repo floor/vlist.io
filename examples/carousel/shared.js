@@ -51,3 +51,20 @@ export const items = Array.from({ length: ITEM_COUNT }, (_, i) => ({
 export function getImageUrl(picId, width, height) {
   return `https://picsum.photos/id/${picId}/${width}/${height}`;
 }
+
+// =============================================================================
+// Preloading
+// =============================================================================
+
+export function preloadImages(width, height) {
+  return Promise.all(
+    PHOTO_IDS.map(
+      (id) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.onload = img.onerror = resolve;
+          img.src = getImageUrl(id, width, height);
+        }),
+    ),
+  );
+}

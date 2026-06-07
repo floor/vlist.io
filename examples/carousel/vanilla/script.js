@@ -2,7 +2,7 @@
 // Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
 import { createVList, carousel } from "vlist";
-import { items, getImageUrl, ITEM_COUNT } from "../shared.js";
+import { items, getImageUrl, preloadImages, ITEM_COUNT } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -18,6 +18,7 @@ let currentOrientation = "horizontal";
 let snapEnabled = false;
 let currentIndex = 0;
 let list = null;
+let imagesPreloaded = false;
 
 // =============================================================================
 // DOM references
@@ -42,13 +43,29 @@ function itemTemplate(item) {
   const imgH = isH ? 500 : 800;
   const url = getImageUrl(item.picId, imgW, imgH);
 
+  if (imagesPreloaded) {
+    return `
+      <div class="photo-slide">
+        <img
+          class="photo-slide__img photo-slide__img--loaded"
+          src="${url}"
+          alt="${esc(item.title)}"
+          decoding="sync"
+        />
+        <div class="photo-slide__overlay">
+          <span class="photo-slide__title">${esc(item.title)}</span>
+          <span class="photo-slide__location">${esc(item.location)}</span>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="photo-slide">
       <img
         class="photo-slide__img"
         src="${url}"
         alt="${esc(item.title)}"
-        loading="lazy"
         decoding="async"
         data-t="${performance.now()}"
         onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('photo-slide__img--loaded')"
@@ -263,3 +280,12 @@ document.getElementById("orientation-mode").addEventListener("click", (e) => {
 // =============================================================================
 
 createList();
+
+const isH = currentOrientation === "horizontal";
+preloadImages(isH ? 800 : 600, isH ? 500 : 800).then(() => {
+  imagesPreloaded = true;
+  document.querySelectorAll(".photo-slide__img:not(.photo-slide__img--loaded)").forEach((img) => {
+    img.style.transition = "none";
+    img.classList.add("photo-slide__img--loaded");
+  });
+});
