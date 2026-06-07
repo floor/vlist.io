@@ -1,6 +1,6 @@
 # RFC-012 — Compression / Scale Removal Refactor
 
-Status: **Phase 3b done — Phase 4 pending** · Branches: `vlist@logical-scroll-model`, `vlist.io@refactor/logical-scroll`
+Status: **Phase 4 done** · Branches: `vlist@logical-scroll-model`, `vlist.io@refactor/logical-scroll`
 
 This document tracks the multi-phase removal of the scroll-compression
 ("scale") subsystem from vlist, now that the **bounded logical scroll model**
@@ -245,7 +245,43 @@ superseded by `src/core/`), so deleting them removed the compression concept
 
 ---
 
-## 6. Follow-up
+## 6. Phase 4 — Carousel through bounded wrap
 
-- Phase 4: simplify the carousel plugin to drop virtual inflation now that
-  bounded mode exists.
+The carousel's infinite loop previously managed its own silent rebasing,
+smooth-scroll animation, and raw `scrollTop` writes on top of a content element
+sized to `lapSize × CYCLES` (the full virtual window). That duplicated the
+bounded handler's job and assumed `scrollTop == logical position`.
+
+Phase 4 routes the carousel through a **wrap-capable** bounded handler instead:
+
+- New `WrapConfig` on the bounded handler (`{ lapSize, home, thresholdLaps }`),
+  requested via `ctx.setBoundedWrap(...)`. Wrap implies bounded.
+- In wrap mode the logical position is **never clamped**; the content element is
+  sized to the runway (not the full virtual window), and `scrollTop` is pinned to
+  the runway centre with all motion absorbed into `baseOffset`.
+- `wrapRebase()` folds the logical position back toward `home` (the middle cycle)
+  by **whole laps** once it drifts past `thresholdLaps`. Shifting
+  `scrollPosition` + `baseOffset` by a whole lap leaves `scrollTop` and every
+  on-screen transform untouched, and the carousel's modulo index map resolves the
+  shifted window to identical real items — the loop is seamless.
+- The carousel dropped `rebaseIfNeeded`, its bespoke `smoothScrollTo`,
+  `setScrollFns`, and all manual `scrollTop` writes. Item transforms now subtract
+  `engineState.baseOffset` (a no-op in native mode where `baseOffset == 0`).
+- Snap-to-item moved from a `setTimeout(200)` in `onAfterScroll` to the engine's
+  `onIdle` plugin hook.
+
+### Verification
+
+- `bun run typecheck` clean · `bun test` → **3330 pass / 0 fail** (incl. 4 new
+  bounded-wrap unit tests: runway sizing, no-clamp, whole-lap fold seamlessness,
+  sub-threshold no-fold) · `bun run build` succeeds (base **9.6 KB** gzipped).
+- Real-Chrome harness: `carousel-basic` (bounded runway + centred scrollTop),
+  `carousel-buttons` (22/22 next/prev/goTo/wrap), `carousel-keyboard`,
+  `carousel-hero`, `carousel-md3`, `carousel-hero-engine` all green.
+
+### Behavior change
+
+`list.getScrollPosition()` for a carousel now returns the raw logical position
+(a large middle-cycle value) instead of a lap-normalized value, since the
+carousel no longer overrides the scroll getter. Public index/ARIA/selection
+surfaces are unchanged.

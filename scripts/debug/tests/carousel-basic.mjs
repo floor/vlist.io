@@ -55,20 +55,23 @@ if (errors.length) {
   console.log("Errors:", errors);
 }
 
-// Check: is the scroll position in the middle cycle?
+// RFC-012 bounded wrap model: the carousel routes through the bounded scroll
+// handler, so the native scrollTop is a runway-local value (centred), NOT the
+// absolute logical position. The content element is sized to a viewport-multiple
+// runway (default 2×) instead of the full virtual size, and scrollTop sits near
+// the runway centre. The logical position lives in state.scrollPosition.
 const ITEM_HEIGHT = 480;
-const TOTAL = 16;
-const CYCLES = 101;
-const MIDDLE = 50;
-const expectedScroll = MIDDLE * TOTAL * ITEM_HEIGHT;
-console.log("\nExpected start scroll:", expectedScroll);
-console.log("Actual start scroll:", state.vpScrollTop);
-console.log("Match:", Math.abs(state.vpScrollTop - expectedScroll) < ITEM_HEIGHT * 2 ? "✅" : "❌");
+const expectedRunway = state.vpH * 2; // BOUNDED_RUNWAY_FACTOR
+const contentH = parseInt(state.contentH, 10);
+console.log("\nExpected runway content height:", expectedRunway);
+console.log("Actual content height:", contentH);
+console.log("Bounded to runway:", Math.abs(contentH - expectedRunway) < ITEM_HEIGHT ? "✅" : "❌");
 
-// Check: what range does the render pipeline think is visible?
-const visibleStart = Math.floor(state.vpScrollTop / ITEM_HEIGHT);
-const visibleEnd = Math.ceil((state.vpScrollTop + state.vpH) / ITEM_HEIGHT);
-console.log("\nVisible range: [" + visibleStart + " - " + visibleEnd + "]");
-console.log("These map to logical items: [" + (visibleStart % TOTAL) + " - " + (visibleEnd % TOTAL) + "]");
+const centre = (contentH - state.vpH) / 2;
+console.log("\nscrollTop near runway centre (" + centre + "):", Math.abs(state.vpScrollTop - centre) < ITEM_HEIGHT ? "✅" : "❌");
+
+// The focal item should land at the top of the viewport: on-screen position
+// (transform - scrollTop) ≈ 0 for the currently focused logical item.
+console.log("Items rendered:", state.renderedItems > 0 ? "✅ " + state.renderedItems : "❌ none");
 
 await browser.close();

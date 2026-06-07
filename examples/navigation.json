@@ -102,13 +102,6 @@
         "plugins": ["scrollbar", "table", "grid"]
       },
       {
-        "slug": "bounded-list",
-        "name": "Bounded Scroll",
-        "desc": "1M items without compression via the bounded logical scroll model (RFC-012)",
-        "plugins": [],
-        "badge": "new"
-      },
-      {
         "slug": "variable-sizes",
         "name": "Variable Sizes",
         "desc": "Per-item height functions and auto-measured DOM sizing",
