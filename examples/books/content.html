@@ -3,15 +3,15 @@
         <h1>Books</h1>
         <p class="description">
             Virtualized data table with <code>table</code> +
-            <code>async</code> + <code>scale</code>, backed by a real
-            <strong>SQLite database</strong> of
+            <code>async</code> + <code>scroll: { mode: "bounded" }</code>,
+            backed by a real <strong>SQLite database</strong> of
             <strong>40.8 million books</strong> from
             <a href="https://openlibrary.org" target="_blank">Open Library</a>.
             Data loads <strong>lazily in chunks</strong> as you scroll —
             sorting, filtering, and search all happen
             <strong>server-side</strong> via <code>/api/books</code>.
-            <code>scale</code> + <code>scrollbar</code> handle the
-            compressed scroll space needed for 40M+ items (far beyond the
+            Bounded scroll mode + <code>scrollbar</code> handle the
+            scroll space needed for 40M+ items (far beyond the
             browser's ~16.7M pixel limit).
         </p>
     </header>

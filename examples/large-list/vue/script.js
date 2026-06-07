@@ -1,6 +1,6 @@
 // Large List — Vue implementation with useVList composable
-// Uses builder pattern with compression + scrollbar plugins
-// Demonstrates handling 100K–5M items with automatic scroll compression
+// Uses bounded scroll mode (RFC-012) + scrollbar plugin
+// Demonstrates handling 100K–5M items with a viewport-sized content runway
 
 import { createApp, ref, computed, watch } from "vue";
 import { useVList, useVListEvent } from "vlist-vue";
@@ -92,16 +92,13 @@ const App = {
       ariaLabel: computed(
         () => `${SIZES[currentSize.value].toLocaleString()} items list`,
       ),
+      scroll: { mode: "bounded" },
       item: {
         height: ITEM_HEIGHT,
         template: itemTemplate,
       },
       items,
       plugins: [
-        {
-          name: "compression",
-          config: {},
-        },
         {
           name: "scrollbar",
           config: { autoHide: true },
@@ -245,9 +242,9 @@ const App = {
         <h1>Large List</h1>
         <p class="description">
           Vue implementation with <code>useVList</code> composable +
-          <code>scale</code> + <code>scrollbar</code> plugins.
-          Handles 100K–5M items with automatic scroll scaling when total height
-          exceeds the browser's 16.7M pixel limit.
+          <code>scroll: { mode: "bounded" }</code> + <code>scrollbar</code>.
+          Handles 100K–5M items with a viewport-sized content runway, avoiding
+          the browser's 16.7M pixel element limit.
         </p>
       </header>
 
@@ -269,7 +266,7 @@ const App = {
 
       <div class="compression-bar">
         <span :class="['ui-badge ui-badge--pill', compression.isCompressed ? 'ui-badge--success' : 'ui-badge--muted']">
-          {{ compression.isCompressed ? 'COMPRESSED' : 'NATIVE' }}
+          {{ compression.isCompressed ? 'BOUNDED' : 'NATIVE' }}
         </span>
         <span class="compression-detail">
           Virtual height: <strong>{{ (compression.virtualHeight / 1_000_000).toFixed(1) }}M px</strong>
@@ -376,10 +373,10 @@ const App = {
 
       <footer>
         <p>
-          Compression activates automatically when the virtual height exceeds ~16.7
-          million pixels. The Vue composable integrates seamlessly with the builder's
-          plugin system — compression logic is only loaded when you configure the
-          <code>compression</code> plugin. 💚
+          Bounded mode keeps the content element a small viewport-sized runway,
+          sidestepping the browser's ~16.7 million pixel element limit. The Vue
+          composable integrates seamlessly with the builder — enable it with
+          <code>scroll: { mode: "bounded" }</code>. 💚
         </p>
       </footer>
     </div>

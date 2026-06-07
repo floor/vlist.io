@@ -9,7 +9,6 @@ import {
   grid,
   table,
   scrollbar,
-  scale,
   snapshots,
   transition,
 } from "vlist";
@@ -47,7 +46,7 @@ let totalTracks = 0;
 let currentSelectionMode = "single";
 let currentLayoutMode = "list";
 let currentScrollbarEnabled = false;
-let currentScaleEnabled = false;
+let currentBoundedEnabled = false;
 let currentFocusOnClick = false;
 let loadRequests = 0;
 let loadedCount = 0;
@@ -143,7 +142,7 @@ const updateInfo = createInfoUpdater(stats);
 // Layout
 const layoutModeEl = document.getElementById("layout-mode");
 const scrollbarToggle = document.getElementById("scrollbar-toggle");
-const scaleToggle = document.getElementById("scale-toggle");
+const boundedToggle = document.getElementById("bounded-toggle");
 const focusOnClickToggle = document.getElementById("focus-on-click-toggle");
 
 // Selection
@@ -240,14 +239,11 @@ function applyScrollbar(plugins) {
 }
 
 // =============================================================================
-// Apply scale feature to builder if enabled
+// Bounded scroll mode config (RFC-012) — viewport-sized content runway
 // =============================================================================
 
-function applyScale(plugins) {
-  if (currentScaleEnabled) {
-    plugins.push(scale({ force: true }));
-  }
-}
+const boundedScroll = () =>
+  currentBoundedEnabled ? { scroll: { mode: "bounded" } } : {};
 
 // =============================================================================
 // List View (default — vertical list with 80px rows)
@@ -255,7 +251,6 @@ function applyScale(plugins) {
 
 function createListView(selectionMode) {
   const plugins = [dataPlugin(getAsyncConfig())];
-  applyScale(plugins);
   applyScrollbar(plugins);
   plugins.push(transition({ duration: 200 }));
   plugins.push(
@@ -267,6 +262,7 @@ function createListView(selectionMode) {
     {
       container: "#list-container",
       ariaLabel: "Track list",
+      ...boundedScroll(),
       item: {
         height: ITEM_HEIGHT,
         template: trackTemplate,
@@ -290,7 +286,6 @@ function createGridView(selectionMode) {
     dataPlugin(getAsyncConfig()),
     grid({ columns: GRID_COLUMNS, gap: GRID_GAP }),
   ];
-  applyScale(plugins);
   applyScrollbar(plugins);
   plugins.push(
     selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
@@ -301,6 +296,7 @@ function createGridView(selectionMode) {
     {
       container: "#list-container",
       ariaLabel: "Track list",
+      ...boundedScroll(),
       item: {
         height: (_index, ctx) =>
           ctx ? Math.round(ctx.columnWidth * 1.3) : cardHeight,
@@ -335,7 +331,6 @@ function createTableView(selectionMode) {
           : undefined,
     }),
   );
-  applyScale(plugins);
   applyScrollbar(plugins);
   plugins.push(
     selection({ mode: selectionMode, focusOnClick: currentFocusOnClick }),
@@ -346,6 +341,7 @@ function createTableView(selectionMode) {
     {
       container: "#list-container",
       ariaLabel: "Track list",
+      ...boundedScroll(),
       item: {
         height: TABLE_ROW_HEIGHT,
         striped: "odd",
@@ -425,13 +421,13 @@ scrollbarToggle.addEventListener("change", (e) => {
 });
 
 // =============================================================================
-// Scale Toggle
+// Bounded Scroll Toggle
 // =============================================================================
 
-scaleToggle.addEventListener("change", (e) => {
-  currentScaleEnabled = e.target.checked;
-  // Scale forces custom scrollbar — lock the toggle on when scale is active
-  if (currentScaleEnabled) {
+boundedToggle.addEventListener("change", (e) => {
+  currentBoundedEnabled = e.target.checked;
+  // Bounded mode pairs with the custom scrollbar — lock the toggle on
+  if (currentBoundedEnabled) {
     scrollbarToggle.checked = true;
     scrollbarToggle.disabled = true;
     currentScrollbarEnabled = true;

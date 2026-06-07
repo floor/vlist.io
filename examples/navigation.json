@@ -67,7 +67,6 @@
           "grid",
           "table",
           "scrollbar",
-          "scale",
           "snapshots",
           "transition"
         ]
@@ -87,7 +86,7 @@
         "slug": "velocity-loading",
         "name": "Velocity Loading",
         "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
-        "plugins": ["data", "selection", "scale", "scrollbar", "snapshots"]
+        "plugins": ["data", "selection", "scrollbar", "snapshots"]
       },
       {
         "slug": "code-explorer",
@@ -99,8 +98,8 @@
       {
         "slug": "large-list",
         "name": "Large Dataset",
-        "desc": "100K–5M items with scroll compression",
-        "plugins": ["scale", "scrollbar", "table", "grid"]
+        "desc": "100K–5M items via the bounded logical scroll model",
+        "plugins": ["scrollbar", "table", "grid"]
       },
       {
         "slug": "variable-sizes",
