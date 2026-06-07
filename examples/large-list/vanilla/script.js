@@ -1,9 +1,9 @@
 // Builder Million Items — Composable entry point
-// Uses scale + scrollbar plugins
-// Demonstrates handling 1M+ items with automatic scroll scaling
+// Uses bounded scroll mode (RFC-012) + scrollbar plugin
+// Demonstrates handling 1M+ items with a viewport-sized content runway
 // Supports List and Table layout modes
 
-import { createVList, scale, scrollbar, table, grid, selection } from "vlist";
+import { createVList, scrollbar, table, grid, selection } from "vlist";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -227,7 +227,8 @@ function createList(sizeKey) {
   const plugins = [
     selection({ mode: "single", followFocus: true, focusOnClick: true }),
   ];
-  if (count > 100_000) plugins.push(scale(), scrollbar({ autoHide: true }));
+  const bounded = count > 100_000;
+  if (bounded) plugins.push(scrollbar({ autoHide: true }));
 
   const isTable = currentLayout === "table";
   const isGrid = currentLayout === "grid";
@@ -259,6 +260,7 @@ function createList(sizeKey) {
       container: "#list-container",
       ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
       padding,
+      ...(bounded ? { scroll: { mode: "bounded" } } : {}),
       item: {
         height: rowHeight,
         template,
@@ -287,22 +289,24 @@ function createList(sizeKey) {
 
   // Update info bar
   updateInfo();
-  updateContext(count);
+  updateContext(count, bounded);
 }
 
 // =============================================================================
-// Info bar right side — context (virtualized %, scale mode)
+// Info bar right side — context (virtualized %, scroll mode)
 // =============================================================================
 
-function updateContext(count) {
+function updateContext(count, bounded) {
   const itemHeight = getItemSize();
   const effectiveRows =
     currentLayout === "grid" ? Math.ceil(count / GRID_COLUMNS) : count;
   const totalHeight =
     effectiveRows * (itemHeight + (currentLayout === "grid" ? GRID_GAP : 0));
-  const maxHeight = 16_777_216; // browser limit ~16.7M px
-  const isScaled = totalHeight > maxHeight;
-  const ratio = isScaled ? (totalHeight / maxHeight).toFixed(1) : "1.0";
+  const containerSize =
+    document.querySelector("#list-container")?.clientHeight ?? 1;
+  // In bounded mode the content element is a viewport-multiple runway, so the
+  // ratio of the virtual extent to the rendered content is the savings factor.
+  const ratio = bounded ? (totalHeight / (containerSize * 2)).toFixed(1) : "1.0";
   const selector =
     currentLayout === "table"
       ? ".vlist-table-row"
@@ -314,8 +318,8 @@ function updateContext(count) {
 
   infoVirtualizedEl.textContent = `${virtualized}%`;
   infoScaleEl.textContent = `${ratio}×`;
-  infoModeEl.textContent = isScaled ? "SCALED" : "NATIVE";
-  infoModeStatEl.className = `example-info__stat ${isScaled ? "example-info__stat--warn" : "example-info__stat--ok"}`;
+  infoModeEl.textContent = bounded ? "BOUNDED" : "NATIVE";
+  infoModeStatEl.className = `example-info__stat ${bounded ? "example-info__stat--warn" : "example-info__stat--ok"}`;
 }
 
 // =============================================================================

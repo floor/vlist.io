@@ -1,6 +1,6 @@
 // Large List — Svelte implementation with vlist action
-// Uses builder pattern with compression + scrollbar plugins
-// Demonstrates handling 100K–5M items with automatic scroll compression
+// Uses bounded scroll mode (RFC-012) + scrollbar plugin
+// Demonstrates handling 100K–5M items with a viewport-sized content runway
 
 import { vlist, onVListEvent } from "vlist-svelte";
 
@@ -117,11 +117,11 @@ function updateStats(count, genTime, buildTime) {
 function updateCompressionInfo(count) {
   const totalHeight = count * ITEM_HEIGHT;
   const maxHeight = 16_777_216; // browser limit ~16.7M px
-  const isCompressed = totalHeight > maxHeight;
-  const ratio = isCompressed ? (totalHeight / maxHeight).toFixed(1) : "1.0";
+  const bounded = totalHeight > maxHeight;
+  const ratio = bounded ? (totalHeight / maxHeight).toFixed(1) : "1.0";
 
-  let html = `<span class="ui-badge ui-badge--pill ${isCompressed ? "ui-badge--success" : "ui-badge--muted"}">`;
-  html += isCompressed ? "COMPRESSED" : "NATIVE";
+  let html = `<span class="ui-badge ui-badge--pill ${bounded ? "ui-badge--success" : "ui-badge--muted"}">`;
+  html += bounded ? "BOUNDED" : "NATIVE";
   html += "</span>";
   html += ` <span class="compression-detail">`;
   html += `Virtual height: <strong>${(totalHeight / 1_000_000).toFixed(1)}M px</strong>`;
@@ -155,16 +155,13 @@ function createList(sizeKey) {
   action = vlist(container, {
     config: {
       ariaLabel: `${count.toLocaleString()} items list`,
+      scroll: { mode: "bounded" },
       item: {
         height: ITEM_HEIGHT,
         template: itemTemplate,
       },
       items,
       plugins: [
-        {
-          name: "compression",
-          config: {},
-        },
         {
           name: "scrollbar",
           config: { autoHide: true },

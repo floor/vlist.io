@@ -3,9 +3,9 @@
         <h1>Large List</h1>
         <p class="description">
             Svelte implementation with <code>vlist</code> action +
-            <code>scale</code> + <code>scrollbar</code> plugins.
-            Handles 100K–5M items with automatic scroll compression when total
-            height exceeds the browser's 16.7M pixel limit.
+            <code>scroll: { mode: "bounded" }</code> + <code>scrollbar</code>.
+            Handles 100K–5M items with a viewport-sized content runway, avoiding
+            the browser's 16.7M pixel element limit.
         </p>
     </header>
 
@@ -131,10 +131,10 @@
 
     <footer>
         <p>
-            Compression activates automatically when the virtual height exceeds
-            ~16.7 million pixels. The Svelte action integrates seamlessly with
-            the builder's plugin system — compression logic is only loaded when
-            you configure the <code>compression</code> plugin. 🎯
+            Bounded mode keeps the content element a small viewport-sized
+            runway, sidestepping the browser's ~16.7 million pixel element
+            limit. The Svelte action integrates seamlessly with the builder —
+            enable it with <code>scroll: { mode: "bounded" }</code>. 🎯
         </p>
     </footer>
 </div>

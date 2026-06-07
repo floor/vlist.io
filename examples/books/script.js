@@ -8,7 +8,6 @@ import {
   table,
   selection,
   data as dataPlugin,
-  scale,
   scrollbar,
 } from "vlist";
 import { createStats } from "../stats.js";
@@ -611,6 +610,7 @@ export function createList() {
     {
       container: "#list-container",
       ariaLabel: "Open Library books data table",
+      scroll: { mode: "bounded" },
       item: {
         height: currentRowHeight,
         template: fallbackTemplate,
@@ -641,7 +641,6 @@ export function createList() {
         sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
       }),
       selection({ mode: "single" }),
-      scale(),
       scrollbar({ autoHide: true }),
     ],
   );
