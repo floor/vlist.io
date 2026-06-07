@@ -1,12 +1,12 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-06-07
 status: published
 ---
 
 # Plugin Overview
 
-vlist v2 ships 16 plugins. Each plugin is tree-shaken — only what you import is bundled.
+vlist v2 ships 17 plugins. Each plugin is tree-shaken — only what you import is bundled.
 
 Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 
@@ -21,7 +21,7 @@ Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 | scrollbar | `scrollbar()` | +{{size:scrollbar:delta}} KB | Custom scrollbar UI |
 | sortable | `sortable()` | +{{size:sortable:delta}} KB | Drag-and-drop reordering |
 | groups | `groups()` | +{{size:groups:delta}} KB | Grouped lists with sticky headers |
-| scale | `scale()` | +{{size:scale:delta}} KB | 1M+ items via scroll compression |
+| scale | `scale()` | +{{size:scale:delta}} KB | **Deprecated** — use `scroll: { mode: "bounded" }` instead |
 | page | `page()` | +{{size:page:delta}} KB | Document/window scroll mode |
 | snapshots | `snapshots()` | +{{size:snapshots:delta}} KB | Scroll save/restore |
 | transition | `transition()` | +{{size:transition:delta}} KB | FLIP-based enter/exit animations |
@@ -56,11 +56,11 @@ Not all plugins can be combined. Layout plugins are mutually exclusive, and some
 | **grid** | — | ❌ | ❌ | ❌ | — | ❌ | ❌ | ❌ |
 | **masonry** | ❌ | — | ❌ | ❌ | — | ❌ | ❌ | ❌ |
 | **table** | ❌ | ❌ | — | ❌ | — | ❌ | ❌ | ❌ |
-| **tree** | ❌ | ❌ | ❌ | — | — | ❌ | — | — |
+| **tree** | ❌ | ❌ | ❌ | — | — | ❌ | — | ❌ |
 | **scale** | — | — | — | — | — | ❌ | — | ❌ |
 | **carousel** | ❌ | ❌ | ❌ | ❌ | ❌ | — | ❌ | ❌ |
 | **transition** | ❌ | ❌ | ❌ | — | — | ❌ | — | — |
-| **sortable** | ❌ | ❌ | ❌ | — | ❌ | ❌ | — | — |
+| **sortable** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | — | — |
 
 All combinations not listed above are ✅ compatible.
 
@@ -72,7 +72,7 @@ Incompatibility reasons:
 - **carousel + groups** — infinite wrap doesn't map to grouped sections.
 - **carousel + grid/masonry/table/tree** — carousel manages its own single-axis layout.
 - **transition + grid/table/masonry/carousel** — transition uses FLIP animations designed for flat lists only.
-- **sortable + grid/masonry/table/scale/carousel** — drag-and-drop reordering requires a flat, fixed-height list.
+- **sortable + grid/masonry/table/tree/scale/carousel** — drag-and-drop reordering requires a flat, fixed-height list.
 
 ## Priority Order
 

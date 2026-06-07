@@ -1,6 +1,6 @@
 ---
 created: 2026-06-06
-updated: 2026-06-06
+updated: 2026-06-07
 status: published
 ---
 
@@ -26,16 +26,26 @@ list.on("carousel:change", ({ index }) => {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `variant` | `"full" \| "hero" \| "hero-center" \| "multi" \| "uncontained" \| "free"` | `"full"` | Layout variant (see below) |
+| `variant` | `CarouselVariant \| SlotConfig` | `"full"` | Layout variant (see below), or a custom `SlotConfig` object |
 | `snap` | `boolean` | `true` (`false` for `"free"`) | Snap to nearest item on scroll idle |
 | `snapDuration` | `number` | `400` | Snap animation duration in ms |
 | `peek` | `number \| string \| "auto"` | `"auto"` | Visible peek of adjacent items (px, `"20%"`, or `"auto"`) |
-| `largeItemMaxWidth` | `number \| "auto"` | `"auto"` | Maximum width of the large/focal item |
-| `parallax` | `number` | `0.5` | Parallax factor for item content, 0–1 (0 = no parallax) |
-| `visibleCount` | `number` | `3` | Number of visible items in `"multi"` mode |
-| `focalAlign` | `"center" \| "start"` | `"start"` | Focal alignment (`"center"` for `"hero-center"`) |
+| `gap` | `number` | `0` | Gap between items in px |
 | `initialIndex` | `number` | `0` | Initial item index |
-| `cornerRadius` | `number` | `28` | Item corner radius in px |
+
+```ts
+type CarouselVariant = "static" | "full" | "hero" | "hero-center" | "multi" | "uncontained" | "free";
+```
+
+### Custom variant
+
+Pass a `SlotConfig` object to define a custom slot layout:
+
+```ts
+carousel({
+  variant: { slots: [0.7, 0.2, 0.1], focalSlot: 0 },
+});
+```
 
 ## Variants
 
@@ -47,15 +57,16 @@ list.on("carousel:change", ({ index }) => {
 | `"multi"` | Multiple visible items: large + medium + small | Required |
 | `"uncontained"` | Single-size items scroll past the container edge | Optional |
 | `"free"` | Items of various widths scroll freely, no snap | No |
+| `"static"` | Items use their native size, no layout engine | No |
 
 ## Methods
 
 | Method | Description |
 |--------|-------------|
-| `next(step?, options?)` | Advance by `step` items (default 1). Options: `{ behavior, duration }` |
-| `prev(step?, options?)` | Go back by `step` items (default 1). Options: `{ behavior, duration }` |
-| `goTo(index, options?)` | Navigate to a specific item. Options: `{ direction, behavior, duration }` |
-| `getCarouselState()` | Returns `{ index, progress, offset, scrollPosition, role }` |
+| `next(step?, options?)` | Advance by `step` items (default 1). Smooth by default; pass `{ behavior: "auto" }` for instant. |
+| `prev(step?, options?)` | Go back by `step` items (default 1). Smooth by default; pass `{ behavior: "auto" }` for instant. |
+| `goTo(index, options?)` | Navigate to a specific item. Instant by default; pass `{ behavior: "smooth" }` to animate. Options: `{ direction, behavior, duration }` |
+| `getCarouselState()` | Returns `{ index, scrollPosition }` |
 
 ### goTo direction
 
@@ -71,21 +82,6 @@ list.on("carousel:change", ({ index }) => {
 |-------|---------|
 | `carousel:change` | `{ index, scrollPosition }` — emitted when the focal item changes |
 
-## Template state
-
-The plugin adds `state.carousel` to the template's third argument:
-
-```ts
-template: (item, index, state) => {
-  const { active, progress, offset, role } = state.carousel;
-  // active: true if this is the focal item
-  // progress: 0 (center) to 1 (edge)
-  // offset: signed item distance from focal center
-  // role: "large" | "medium" | "small"
-  return `<div class="card card--${role}">${item.name}</div>`;
-}
-```
-
 ## CSS variables
 
 Updated per rendered element on every scroll frame:
@@ -95,14 +91,22 @@ Updated per rendered element on every scroll frame:
 | `--vlist-carousel-progress` | 0–1 | Distance from focal center |
 | `--vlist-carousel-offset` | integer | Signed item distance from focal |
 | `--vlist-carousel-role` | string | `"large"`, `"medium"`, or `"small"` |
-| `--vlist-carousel-parallax` | px | Content offset for parallax effect |
 | `--vlist-carousel-width` | px | Dynamic item width |
+
+Use these in your CSS for scroll-driven effects:
+
+```css
+.slide {
+  opacity: calc(1 - var(--vlist-carousel-progress) * 0.4);
+  filter: grayscale(var(--vlist-carousel-progress));
+}
+```
 
 ## How it works
 
-The plugin creates a **finite virtual scroll window** — the content is repeated across multiple cycles with items mapped via modulo. Scrolling past the last item seamlessly continues to the first, without the visual rewind that `scroll.wrap` produces.
+The plugin creates a **bounded virtual scroll window** — the content is repeated across multiple cycles with items mapped via modulo. Scrolling past the last item seamlessly continues to the first.
 
-When the scroll position approaches either edge of the virtual window, the plugin **silently rebases** to the middle cycle — the user sees continuous forward or backward motion.
+Internally, the carousel delegates to the **bounded scroll handler** (RFC-012) via `ctx.setBoundedWrap`. When the scroll position drifts too far from the middle cycle, the handler folds the logical position back by whole laps — the user sees continuous forward or backward motion with no visual discontinuity.
 
 ## Compatibility
 
@@ -120,7 +124,7 @@ When the scroll position approaches either edge of the virtual window, the plugi
 - Tab focuses the first carousel item
 - Arrow keys navigate between items
 - Container has `role="region"`, items labeled "item X of N"
-- `prefers-reduced-motion` disables parallax and item size transitions
+- `prefers-reduced-motion` disables item size transitions
 - RTL horizontal layout swaps arrow key directions
 
 ## Notes
@@ -132,4 +136,5 @@ When the scroll position approaches either edge of the virtual window, the plugi
 
 ## Examples
 
+- [Carousel](/examples/carousel) — MD3-aligned photo carousel with variant layouts and real photos
 - [Plugin Wizard](/examples/plugin-wizard) — carousel-powered plugin explorer with dots, prev/next, and orientation toggle
