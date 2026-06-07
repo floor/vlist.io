@@ -1,77 +1,130 @@
-// Carousel — Vanilla JavaScript
-// Horizontal scrolling with toggle between fixed and variable item widths.
-// Uses split-layout + panel + shared info bar stats (same pattern as basic).
+// Carousel — MD3-aligned photo carousel using the carousel() plugin
+// Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
-import { createVList } from "vlist";
-import { items, buildConfig, getDetailHtml, ASPECT_RATIO } from "../shared.js";
+import { createVList, carousel } from "vlist";
+import { items, getImageUrl, ITEM_COUNT } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
-// Scale factor: maps height 200–500 → 0–1
-const MIN_HEIGHT = 200;
-const MAX_HEIGHT = 500;
-function getScale(h) {
-  return Math.max(0, Math.min(1, (h - MIN_HEIGHT) / (MAX_HEIGHT - MIN_HEIGHT)));
-}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
 // =============================================================================
 // State
 // =============================================================================
 
-let variableWidth = false;
-let showScrollbar = false;
-let currentHeight = 240;
-let currentGap = 8;
-let currentRadius = 12;
+let currentVariant = "hero";
+let currentOrientation = "horizontal";
+let snapEnabled = false;
+let currentIndex = 0;
 let list = null;
 
 // =============================================================================
-// DOM references — panel
+// DOM references
 // =============================================================================
 
-const toggleEl = document.getElementById("toggle-variable");
-const toggleScrollbarEl = document.getElementById("toggle-scrollbar");
-const sizeSlider = document.getElementById("size-slider");
-const sizeValue = document.getElementById("size-value");
-const gapButtons = document.getElementById("gap-buttons");
-const radiusButtons = document.getElementById("radius-buttons");
-
-const detailEl = document.getElementById("card-detail");
 const listContainerEl = document.getElementById("list-container");
+const dotsEl = document.getElementById("carousel-dots");
+const detailEl = document.getElementById("photo-detail");
+const infoVariantEl = document.getElementById("info-variant");
+const infoStepEl = document.getElementById("info-step");
 
 // =============================================================================
-// DOM references — info bar right side
+// Template
 // =============================================================================
 
-const infoWidth = document.getElementById("info-width");
-const infoMode = document.getElementById("info-mode");
+const ITEM_HEIGHT = 480;
+const ITEM_WIDTH = 720;
 
-// =============================================================================
-// Stats — shared info bar (progress, velocity, visible/total)
-// =============================================================================
+function itemTemplate(item) {
+  const isH = currentOrientation === "horizontal";
+  const imgW = isH ? 800 : 600;
+  const imgH = isH ? 500 : 800;
+  const url = getImageUrl(item.picId, imgW, imgH);
 
-function getCurrentWidth() {
-  return Math.round(currentHeight * ASPECT_RATIO);
+  return `
+    <div class="photo-slide">
+      <img
+        class="photo-slide__img"
+        src="${url}"
+        alt="${esc(item.title)}"
+        loading="lazy"
+        decoding="async"
+        data-t="${performance.now()}"
+        onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('photo-slide__img--loaded')"
+        onerror="this.style.transition='none';this.classList.add('photo-slide__img--loaded')"
+      />
+      <div class="photo-slide__overlay">
+        <span class="photo-slide__title">${esc(item.title)}</span>
+        <span class="photo-slide__location">${esc(item.location)}</span>
+      </div>
+    </div>
+  `;
 }
+
+// =============================================================================
+// Stats
+// =============================================================================
 
 const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
-  getTotal: () => items.length,
-  getItemSize: () => getCurrentWidth() + currentGap,
-  getContainerSize: () =>
-    document.querySelector("#list-container")?.clientWidth ?? 0,
+  getTotal: () => ITEM_COUNT,
+  getItemSize: () => currentOrientation === "horizontal" ? ITEM_WIDTH : ITEM_HEIGHT,
+  getContainerSize: () => {
+    const el = document.querySelector("#list-container");
+    return currentOrientation === "horizontal"
+      ? el?.clientWidth ?? 0
+      : el?.clientHeight ?? 0;
+  },
 });
 
 const updateInfo = createInfoUpdater(stats);
 
 // =============================================================================
-// Info bar — right side (contextual)
+// Dots
 // =============================================================================
 
-function updateContext() {
-  const w = getCurrentWidth();
-  if (infoWidth) infoWidth.textContent = variableWidth ? "var" : w;
-  if (infoMode) infoMode.textContent = variableWidth ? "variable" : "fixed";
+function updateDots() {
+  dotsEl.innerHTML = items
+    .map((_, i) =>
+      `<span class="carousel-dot ${i === currentIndex ? "carousel-dot--active" : ""}" data-index="${i}"></span>`,
+    )
+    .join("");
+}
+
+dotsEl.addEventListener("click", (e) => {
+  const dot = e.target.closest(".carousel-dot");
+  if (dot) {
+    const idx = Number(dot.dataset.index);
+    currentIndex = idx;
+    list?.goTo(idx, { behavior: "smooth", duration: 400 });
+    updateDots();
+    updateDetail();
+    updateStep();
+  }
+});
+
+// =============================================================================
+// Detail panel
+// =============================================================================
+
+function updateDetail() {
+  const item = items[currentIndex];
+  if (!item || !detailEl) return;
+  const url = getImageUrl(item.picId, 400, 260);
+  detailEl.innerHTML = `
+    <div class="photo-detail">
+      <img class="photo-detail__img" src="${url}" alt="${esc(item.title)}" />
+      <div class="photo-detail__meta">
+        <strong>${esc(item.title)}</strong>
+        <span>${esc(item.location)} · #${item.id}</span>
+      </div>
+    </div>
+  `;
+}
+
+function updateStep() {
+  if (infoStepEl) infoStepEl.textContent = `${currentIndex + 1} / ${ITEM_COUNT}`;
 }
 
 // =============================================================================
@@ -85,15 +138,31 @@ function createList() {
   }
 
   listContainerEl.innerHTML = "";
-  listContainerEl.style.height = currentHeight + "px";
-  listContainerEl.style.setProperty("--card-scale", getScale(currentHeight));
-  listContainerEl.style.setProperty("--item-gap", currentGap + "px");
-  listContainerEl.style.setProperty("--item-radius", currentRadius + "px");
+
+  const isH = currentOrientation === "horizontal";
+  const wrap = document.querySelector(".carousel-wrap");
+  wrap.classList.toggle("carousel-wrap--vertical", !isH);
 
   list = createVList({
     container: "#list-container",
-    ...buildConfig(variableWidth, currentHeight, currentGap, showScrollbar),
-  });
+    orientation: currentOrientation,
+    scroll: { scrollbar: "none" },
+    ariaLabel: "Photo carousel",
+    item: {
+      height: ITEM_HEIGHT,
+      width: isH ? ITEM_WIDTH : undefined,
+      template: itemTemplate,
+    },
+    items,
+  }, [
+    carousel({
+      variant: currentVariant,
+      snap: snapEnabled,
+      snapDuration: 400,
+      initialIndex: currentIndex,
+      gap: 8,
+    }),
+  ]);
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);
@@ -102,111 +171,91 @@ function createList() {
     updateInfo();
   });
 
-  list.on("item:click", ({ item, index }) => {
-    showDetail(item, index);
+  list.on("carousel:change", ({ index }) => {
+    currentIndex = index;
+    updateDots();
+    updateDetail();
+    updateStep();
   });
 
   updateInfo();
-  updateContext();
+  updateDots();
+  updateDetail();
+  updateStep();
+  if (infoVariantEl) infoVariantEl.textContent = currentVariant;
 }
 
 // =============================================================================
-// Card detail (panel)
+// Prev / Next buttons
 // =============================================================================
 
-function showDetail(item, index) {
-  if (detailEl) {
-    detailEl.innerHTML = getDetailHtml(item, index, variableWidth);
-  }
-}
+document.getElementById("btn-prev").addEventListener("click", () => {
+  list?.prev(1, { behavior: "smooth", duration: 400 });
+});
 
-// =============================================================================
-// Size slider
-// =============================================================================
-
-sizeSlider?.addEventListener("input", (e) => {
-  currentHeight = parseInt(e.target.value, 10);
-  if (sizeValue) sizeValue.textContent = currentHeight + "px";
-  createList();
+document.getElementById("btn-next").addEventListener("click", () => {
+  list?.next(1, { behavior: "smooth", duration: 400 });
 });
 
 // =============================================================================
-// Gap chips
+// Navigate buttons
 // =============================================================================
 
-gapButtons?.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-gap]");
+document.getElementById("btn-first").addEventListener("click", () => {
+  list?.goTo(0, { behavior: "smooth", duration: 400 });
+});
+
+document.getElementById("btn-last").addEventListener("click", () => {
+  list?.goTo(ITEM_COUNT - 1, { behavior: "smooth", duration: 400 });
+});
+
+document.getElementById("btn-random").addEventListener("click", () => {
+  list?.goTo(Math.floor(Math.random() * ITEM_COUNT), { behavior: "smooth", duration: 400 });
+});
+
+// =============================================================================
+// Variant buttons
+// =============================================================================
+
+document.getElementById("variant-buttons").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-variant]");
   if (!btn) return;
+  const variant = btn.dataset.variant;
+  if (variant === currentVariant) return;
 
-  const gap = parseInt(btn.dataset.gap, 10);
-  if (gap === currentGap) return;
-  currentGap = gap;
-
-  gapButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ui-ctrl-btn--active", parseInt(b.dataset.gap) === gap);
+  currentVariant = variant;
+  document.querySelectorAll("#variant-buttons .ui-ctrl-btn").forEach((b) => {
+    b.classList.toggle("ui-ctrl-btn--active", b.dataset.variant === variant);
   });
 
   createList();
 });
 
 // =============================================================================
-// Radius chips
+// Snap toggle
 // =============================================================================
 
-radiusButtons?.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-radius]");
+document.getElementById("toggle-snap").addEventListener("change", (e) => {
+  snapEnabled = e.target.checked;
+  createList();
+});
+
+// =============================================================================
+// Orientation toggle
+// =============================================================================
+
+document.getElementById("orientation-mode").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-orientation]");
   if (!btn) return;
+  const orientation = btn.dataset.orientation;
+  if (orientation === currentOrientation) return;
 
-  const radius = parseInt(btn.dataset.radius, 10);
-  if (radius === currentRadius) return;
-  currentRadius = radius;
-
-  radiusButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle(
-      "ui-ctrl-btn--active",
-      parseInt(b.dataset.radius) === radius,
-    );
+  currentOrientation = orientation;
+  document.querySelectorAll("#orientation-mode .ui-segmented__btn").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.orientation === orientation);
   });
 
   createList();
-});
-
-// =============================================================================
-// Toggle — variable width
-// =============================================================================
-
-toggleEl?.addEventListener("change", (e) => {
-  variableWidth = e.target.checked;
-  createList();
-});
-
-toggleScrollbarEl?.addEventListener("change", (e) => {
-  showScrollbar = e.target.checked;
-  createList();
-});
-
-// =============================================================================
-// Scroll To — smooth navigation buttons
-// =============================================================================
-
-document.getElementById("btn-start")?.addEventListener("click", () => {
-  list?.scrollToIndex(0, { align: "start", behavior: "smooth", duration: 600 });
-});
-
-document.getElementById("btn-center")?.addEventListener("click", () => {
-  list?.scrollToIndex(Math.floor(items.length / 2), {
-    align: "center",
-    behavior: "smooth",
-    duration: 800,
-  });
-});
-
-document.getElementById("btn-end")?.addEventListener("click", () => {
-  list?.scrollToIndex(items.length - 1, {
-    align: "end",
-    behavior: "smooth",
-    duration: 600,
-  });
 });
 
 // =============================================================================

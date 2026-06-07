@@ -1,0 +1,102 @@
+<div class="container">
+    <header>
+        <h1>Plugin Wizard</h1>
+        <p class="description">
+            Discover vlist's composable plugins — scroll or use the arrows
+            to browse each one. Uses the <code>carousel()</code> plugin
+            for infinite-loop scrolling with snap-to-card.
+        </p>
+    </header>
+
+    <div class="split-layout">
+        <div class="split-main split-main--full">
+            <h2 class="sr-only">Plugins</h2>
+            <div class="wizard">
+                <button class="nav-btn nav-prev" id="btn-prev">
+                    <i class="icon icon--back"></i>
+                </button>
+
+                <div class="wizard__center">
+                    <div id="list-container"></div>
+                    <div class="step-indicator" id="step-indicator"></div>
+                </div>
+
+                <button class="nav-btn nav-next" id="btn-next">
+                    <i class="icon icon--forward"></i>
+                </button>
+            </div>
+        </div>
+
+        <aside class="split-panel">
+            <!-- Layout -->
+            <section class="ui-section">
+                <h3 class="ui-title">Layout</h3>
+                <div class="ui-row">
+                    <label class="ui-label">Orientation</label>
+                    <div class="ui-segmented" id="orientation-mode">
+                        <button class="ui-segmented__btn ui-segmented__btn--active" data-orientation="vertical">Y</button>
+                        <button class="ui-segmented__btn" data-orientation="horizontal">X</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <section class="ui-section">
+                <h3 class="ui-title">Navigation</h3>
+                <div class="ui-row">
+                    <div class="ui-btn-group">
+                        <button id="btn-first" class="ui-btn ui-btn--icon" title="First">
+                            <i class="icon icon--up"></i>
+                        </button>
+                        <button id="btn-last" class="ui-btn ui-btn--icon" title="Last">
+                            <i class="icon icon--down"></i>
+                        </button>
+                        <button id="btn-random" class="ui-btn ui-btn--icon" title="Random">
+                            <i class="icon icon--shuffle"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Current Plugin -->
+            <section class="ui-section">
+                <h3 class="ui-title">Current Plugin</h3>
+                <div class="ui-row">
+                    <span class="ui-label">Name</span>
+                    <span class="ui-value" id="current-name">-</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Size</span>
+                    <span class="ui-value" id="current-size">-</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Category</span>
+                    <span class="ui-value" id="current-category">-</span>
+                </div>
+            </section>
+        </aside>
+    </div>
+
+    <div class="example-info" id="example-info">
+        <div class="example-info__left">
+            <span class="example-info__stat">
+                <strong id="info-progress">0%</strong>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-velocity">0.00</span> /
+                <strong id="info-velocity-avg">0.00</strong>
+                <span class="example-info__unit">px/ms</span>
+            </span>
+            <span class="example-info__stat">
+                <span id="info-dom">0</span> /
+                <strong id="info-total">0</strong>
+                <span class="example-info__unit">items</span>
+            </span>
+        </div>
+        <div class="example-info__right">
+            <span class="example-info__stat">
+                <strong id="info-step">1 / 16</strong>
+            </span>
+        </div>
+    </div>
+</div>

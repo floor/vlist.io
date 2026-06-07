@@ -5,7 +5,6 @@ import {
   createVList,
   selection,
   data as dataPlugin,
-  scale,
   scrollbar,
   snapshots,
 } from "vlist";
@@ -114,6 +113,7 @@ const list = createVList(
   {
     container: "#list-container",
     ariaLabel: "Virtual user list with velocity-based loading",
+    scroll: { mode: "bounded" },
     item: {
       height: ITEM_HEIGHT,
       template: itemTemplate,
@@ -142,7 +142,6 @@ const list = createVList(
         cancelThreshold: LOAD_VELOCITY_THRESHOLD,
       },
     }),
-    scale(),
     scrollbar({ autoHide: true }),
     snapshots({ autoSave: STORAGE_KEY }),
   ],

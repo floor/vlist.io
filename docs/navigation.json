@@ -46,7 +46,7 @@
       {
         "slug": "plugins/overview",
         "name": "Overview",
-        "desc": "All 14 plugins with bundle costs"
+        "desc": "All 16 plugins with bundle costs"
       },
       {
         "slug": "plugins/a11y",
@@ -107,6 +107,11 @@
         "slug": "plugins/autosize",
         "name": "AutoSize",
         "desc": "Auto-measure items via ResizeObserver"
+      },
+      {
+        "slug": "plugins/carousel",
+        "name": "Carousel",
+        "desc": "Infinite-loop carousel (MD3-aligned)"
       }
     ]
   },
