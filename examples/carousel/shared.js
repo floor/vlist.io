@@ -15,21 +15,21 @@ const PHOTO_IDS = [
 ];
 
 const TITLES = [
-  "Mountain Sunrise", "Ocean Waves", "Forest Path", "Desert Dunes",
-  "City Lights", "Autumn Leaves", "Snowy Peaks", "Coastal Cliffs",
-  "Golden Fields", "Misty Valley", "Urban Skyline", "Lakeside View",
-  "Tropical Beach", "Alpine Meadow", "River Bend", "Night Sky",
-  "Volcanic Shore", "Pine Forest", "Canyon Depths", "Flower Garden",
-  "Bamboo Grove", "Northern Lights", "Rolling Hills", "Coral Reef",
+  "Himalayan Peaks", "Coastal Bluffs", "Vinyl Groove", "Morning Coffee",
+  "Ocean Pier", "Santorini Village", "New Growth", "Stone Lighthouse",
+  "Prairie Fence", "Golden Hour", "Rolling Hills", "Railway Lines",
+  "Bay Crossing", "Cherry Blossoms", "Bridge at Night", "Hazy Beach",
+  "Park Afternoon", "Frangipani Blooms", "Pastoral Sunset", "Minimal Desk",
+  "Millennium Bridge", "Golden Gate View", "Fort Point", "Tunnel Light",
 ];
 
 const LOCATIONS = [
-  "Patagonia", "Big Sur", "Black Forest", "Sahara",
-  "Tokyo", "Vermont", "Swiss Alps", "Amalfi Coast",
-  "Tuscany", "Yosemite", "Hong Kong", "Lake Como",
-  "Maldives", "Dolomites", "Colorado", "Iceland",
-  "Hawaii", "Redwood", "Grand Canyon", "Provence",
-  "Kyoto", "Tromsø", "New Zealand", "Great Barrier Reef",
+  "Nepal", "Maine", "Studio", "Portland",
+  "California", "Greece", "Lakeside", "New England",
+  "Midwest", "Countryside", "Carpathians", "Eastern Europe",
+  "San Francisco", "Spring", "New York", "Santa Monica",
+  "Atlanta", "Hawaii", "Netherlands", "Studio",
+  "London", "San Francisco", "San Francisco", "Underground",
 ];
 
 // =============================================================================
