@@ -2,12 +2,15 @@
 // Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
 import { createVList, carousel } from "vlist";
-import { items, getImageUrl, preloadImages, ITEM_COUNT } from "../shared.js";
+import { items, getImageUrl, getItemWidth, preloadImages, ITEM_COUNT } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) =>
-  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const esc = (s) =>
+  String(s).replace(
+    /[&<>"]/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+  );
 
 // =============================================================================
 // State
@@ -39,7 +42,9 @@ const ITEM_WIDTH = 720;
 
 function itemTemplate(item) {
   const isH = currentOrientation === "horizontal";
-  const imgW = isH ? 800 : 600;
+  const isMultiAspect = currentVariant === "multi-aspect";
+  const itemW = isMultiAspect ? getItemWidth(item.index, ITEM_HEIGHT) : null;
+  const imgW = isMultiAspect ? Math.max(itemW, 400) : isH ? 800 : 600;
   const imgH = isH ? 500 : 800;
   const url = getImageUrl(item.picId, imgW, imgH);
 
@@ -86,12 +91,13 @@ function itemTemplate(item) {
 const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => ITEM_COUNT,
-  getItemSize: () => currentOrientation === "horizontal" ? ITEM_WIDTH : ITEM_HEIGHT,
+  getItemSize: () =>
+    currentOrientation === "horizontal" ? ITEM_WIDTH : ITEM_HEIGHT,
   getContainerSize: () => {
     const el = document.querySelector("#list-container");
     return currentOrientation === "horizontal"
-      ? el?.clientWidth ?? 0
-      : el?.clientHeight ?? 0;
+      ? (el?.clientWidth ?? 0)
+      : (el?.clientHeight ?? 0);
   },
 });
 
@@ -103,8 +109,9 @@ const updateInfo = createInfoUpdater(stats);
 
 function updateDots() {
   dotsEl.innerHTML = items
-    .map((_, i) =>
-      `<span class="carousel-dot ${i === currentIndex ? "carousel-dot--active" : ""}" data-index="${i}"></span>`,
+    .map(
+      (_, i) =>
+        `<span class="carousel-dot ${i === currentIndex ? "carousel-dot--active" : ""}" data-index="${i}"></span>`,
     )
     .join("");
 }
@@ -141,7 +148,8 @@ function updateDetail() {
 }
 
 function updateStep() {
-  if (infoStepEl) infoStepEl.textContent = `${currentIndex + 1} / ${ITEM_COUNT}`;
+  if (infoStepEl)
+    infoStepEl.textContent = `${currentIndex + 1} / ${ITEM_COUNT}`;
 }
 
 // =============================================================================
@@ -160,26 +168,36 @@ function createList() {
   const wrap = document.querySelector(".carousel-wrap");
   wrap.classList.toggle("carousel-wrap--vertical", !isH);
 
-  list = createVList({
-    container: "#list-container",
-    orientation: currentOrientation,
-    scroll: { scrollbar: "none" },
-    ariaLabel: "Photo carousel",
-    item: {
-      height: ITEM_HEIGHT,
-      width: isH ? ITEM_WIDTH : undefined,
-      template: itemTemplate,
+  const isMultiAspect = currentVariant === "multi-aspect";
+  const itemWidth = isH
+    ? isMultiAspect
+      ? (index) => getItemWidth(index, ITEM_HEIGHT)
+      : ITEM_WIDTH
+    : undefined;
+
+  list = createVList(
+    {
+      container: "#list-container",
+      orientation: currentOrientation,
+      scroll: { scrollbar: "none" },
+      ariaLabel: "Photo carousel",
+      item: {
+        height: ITEM_HEIGHT,
+        width: itemWidth,
+        template: itemTemplate,
+      },
+      items,
     },
-    items,
-  }, [
-    carousel({
-      variant: currentVariant,
-      snap: snapEnabled,
-      snapDuration: 400,
-      initialIndex: currentIndex,
-      gap: 8,
-    }),
-  ]);
+    [
+      carousel({
+        variant: currentVariant,
+        snap: snapEnabled,
+        snapDuration: 400,
+        initialIndex: currentIndex,
+        gap: 8,
+      }),
+    ],
+  );
 
   list.on("scroll", updateInfo);
   list.on("range:change", updateInfo);
@@ -212,22 +230,6 @@ document.getElementById("btn-prev").addEventListener("click", () => {
 
 document.getElementById("btn-next").addEventListener("click", () => {
   list?.next(1, { behavior: "smooth", duration: 400 });
-});
-
-// =============================================================================
-// Navigate buttons
-// =============================================================================
-
-document.getElementById("btn-first").addEventListener("click", () => {
-  list?.goTo(0, { behavior: "smooth", duration: 400 });
-});
-
-document.getElementById("btn-last").addEventListener("click", () => {
-  list?.goTo(ITEM_COUNT - 1, { behavior: "smooth", duration: 400 });
-});
-
-document.getElementById("btn-random").addEventListener("click", () => {
-  list?.goTo(Math.floor(Math.random() * ITEM_COUNT), { behavior: "smooth", duration: 400 });
 });
 
 // =============================================================================
@@ -268,9 +270,14 @@ document.getElementById("orientation-mode").addEventListener("click", (e) => {
   if (orientation === currentOrientation) return;
 
   currentOrientation = orientation;
-  document.querySelectorAll("#orientation-mode .ui-segmented__btn").forEach((b) => {
-    b.classList.toggle("ui-segmented__btn--active", b.dataset.orientation === orientation);
-  });
+  document
+    .querySelectorAll("#orientation-mode .ui-segmented__btn")
+    .forEach((b) => {
+      b.classList.toggle(
+        "ui-segmented__btn--active",
+        b.dataset.orientation === orientation,
+      );
+    });
 
   createList();
 });
@@ -284,8 +291,10 @@ createList();
 const isH = currentOrientation === "horizontal";
 preloadImages(isH ? 800 : 600, isH ? 500 : 800).then(() => {
   imagesPreloaded = true;
-  document.querySelectorAll(".photo-slide__img:not(.photo-slide__img--loaded)").forEach((img) => {
-    img.style.transition = "none";
-    img.classList.add("photo-slide__img--loaded");
-  });
+  document
+    .querySelectorAll(".photo-slide__img:not(.photo-slide__img--loaded)")
+    .forEach((img) => {
+      img.style.transition = "none";
+      img.classList.add("photo-slide__img--loaded");
+    });
 });

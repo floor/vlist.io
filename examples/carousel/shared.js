@@ -45,6 +45,16 @@ export const items = Array.from({ length: ITEM_COUNT }, (_, i) => ({
 }));
 
 // =============================================================================
+// Aspect ratios — for multi-aspect variant (MD3 uncontained multi-aspect ratio)
+// =============================================================================
+
+const ASPECT_RATIOS = [16 / 9, 9 / 16, 1, 3 / 4];
+
+export function getItemWidth(index, height) {
+  return Math.round(height * ASPECT_RATIOS[index % ASPECT_RATIOS.length]);
+}
+
+// =============================================================================
 // Image URLs
 // =============================================================================
 
