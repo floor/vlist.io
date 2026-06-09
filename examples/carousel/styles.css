@@ -228,7 +228,7 @@
 .photo-detail__frame {
     padding: 16px;
     border-radius: 16px;
-    background: var(--surface-2, #1e1e2e);
+    background: var(--surface-container, #e8e8f0);
 }
 
 .photo-detail__img {
