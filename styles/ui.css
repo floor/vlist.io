@@ -335,6 +335,7 @@
 }
 
 .ui-btn--primary:hover {
+    background: var(--accent);
     opacity: 0.9;
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
@@ -412,7 +413,8 @@
     color: var(--accent-text);
 }
 
-.ui-ctrl-btn--active {
+.ui-ctrl-btn--active,
+.ui-ctrl-btn--active:hover {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
