@@ -1,576 +1,376 @@
-# Mobile & Touch Support
+# Mobile
 
-> How vlist works on mobile devices, touch interactions, and optimization strategies for mobile browsers.
+> Touch interactions, responsive layout, and mobile-specific tips.
 
 ## Overview
 
-vlist works excellently on mobile devices through native browser scrolling capabilities. The library relies on standard browser scroll behavior rather than custom touch handlers, providing a familiar, high-performance experience on all mobile platforms.
+vlist uses native browser scrolling — `overflow: auto` on the viewport — so touch interactions work out of the box. Momentum scrolling, bounce effects, swipe gestures, and platform-specific overscroll behavior are all handled by the browser, not by JavaScript.
 
-### Quick Summary
+This means you get hardware-accelerated, platform-consistent scrolling with zero configuration. This tutorial covers the things you should be aware of when targeting mobile.
 
-| Feature | Mobile Support | Notes |
-|---------|----------------|-------|
-| **Touch scrolling** | Native | Momentum, bounce, all standard gestures |
-| **Performance** | Optimized | Virtual rendering, passive listeners, RAF throttling |
-| **Responsive layout** | Automatic | Works at any viewport size |
-| **Custom scrollbar drag** | Mouse only | Native scroll still works perfectly |
-| **Keyboard navigation** | N/A | Not applicable on mobile |
-| **Browser support** | Excellent | iOS Safari 12+, Chrome, Firefox, Edge |
 
----
 
-## Touch Scrolling
+## How Scroll Works on Mobile
 
-### Native Browser Scrolling
+### Touch scrolling
 
-vlist uses standard `overflow: auto` on the viewport element, allowing the browser to handle all touch interactions natively:
-
-- **Momentum scrolling** — Swipe and release for inertial scrolling
-- **Bounce effect** — Native overscroll behavior on iOS
-- **Pinch zoom** — Standard pinch gestures (if not disabled)
-- **Pull-to-refresh** — Native browser behavior (if implemented)
-
-All scroll event listeners use `{ passive: true }` for optimal performance:
+Touch scroll events are handled via a **passive** listener — the browser scrolls on the compositor thread without waiting for JavaScript:
 
 ```javascript
-// From scroll controller
-viewport.addEventListener('scroll', onScrollFrame, { passive: true });
+viewport.addEventListener('scroll', onScrollEvent, { passive: true })
 ```
 
-This ensures the browser can immediately handle touch events without waiting for JavaScript, resulting in silky-smooth 60fps scrolling.
+This gives you native momentum scrolling, iOS bounce, and Android overscroll glow — all free.
 
-### Why Native Scrolling?
+### Wheel events (desktop/trackpad)
 
-Rather than implementing custom touch handlers (`touchstart`, `touchmove`, `touchend`), vlist delegates to the browser's highly-optimized native scrolling:
+On desktop, vlist intercepts wheel events with a non-passive listener for synchronous rendering. This doesn't affect mobile — touch devices don't fire wheel events.
 
-**Advantages:**
-- Better performance (hardware-accelerated)
-- Platform-consistent behavior (iOS bounce, Android overscroll glow)
-- Automatic handling of edge cases (interrupted gestures, multi-touch, etc.)
-- Accessibility features (VoiceOver/TalkBack scrolling)
-- Less code to maintain
-
-**Custom touch handling would require:**
-- Manual velocity calculation
-- Momentum simulation
-- Platform-specific behavior replication
-- Touch event coordination (prevent conflicts)
-- Significantly more code and testing
-
----
-
-## Performance on Mobile
-
-vlist includes extensive optimizations specifically beneficial for mobile devices:
-
-### Virtual Rendering
-
-Only visible items are rendered in the DOM:
-
-```
-Total items: 1,000,000
-Rendered items: ~20 (depending on viewport height)
-DOM nodes: Minimal
-```
-
-This keeps memory usage low and garbage collection pressure minimal — crucial for mobile devices with limited RAM.
-
-### Passive Event Listeners
-
-All scroll listeners are passive, allowing the browser to scroll immediately:
+You can disable wheel interception if your list is only used on mobile:
 
 ```javascript
-{ passive: true }  // Never blocks scrolling
+createVList({
+  container: '#list',
+  scroll: { wheel: false },
+  // ...
+})
 ```
 
-### RAF Throttling
 
-Scroll processing is throttled to one update per animation frame (60fps max):
 
-```javascript
-requestAnimationFrame(() => {
-  updateVisibleItems();
-});
-```
+## Responsive Layout
 
-### CSS Containment
+### Container sizing
 
-Items use CSS `contain` for better rendering performance:
-
-```css
-.vlist-items {
-  contain: layout style;
-}
-
-.vlist-item {
-  contain: content;
-  will-change: transform;
-}
-```
-
-This tells the browser to optimize rendering by isolating item repaints.
-
-### Zero-Allocation Scroll Path
-
-The scroll hot path allocates no objects — no garbage collection during scroll:
-
-```javascript
-// Reuses existing range object instead of creating new ones
-range.start = newStart;
-range.end = newEnd;
-```
-
-### Element Pooling
-
-DOM elements are recycled via `createElementPool()`, reducing GC pressure:
-
-```javascript
-// Elements are reused, not destroyed and recreated
-const el = pool.get();
-updateElement(el, newData);
-```
-
----
-
-## Responsive Viewport
-
-### Viewport Meta Tag
-
-All vlist demos include the standard mobile viewport meta tag:
-
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-```
-
-This ensures proper scaling on mobile devices.
-
-### Container Sizing
-
-vlist adapts to any container size. Common mobile patterns:
+vlist fills whatever container you give it. The key decision on mobile is how to size that container.
 
 ```css
 /* Full-screen list */
-.vlist {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+#list {
+  height: 100dvh;
 }
 
-/* List within a page */
-.vlist {
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height (iOS Safari) */
-}
-
-/* List with header */
-.vlist {
-  height: calc(100vh - 60px);
+/* List below a fixed header */
+#list {
   height: calc(100dvh - 60px);
 }
-```
 
-### Dynamic Viewport Height
-
-On iOS Safari, the viewport height changes when the address bar shows/hides. Use dynamic viewport units:
-
-```css
-.vlist {
-  height: 100dvh; /* Dynamic - adjusts to visible area */
-  /* height: 100vh; <- Static - may cause layout shifts */
+/* List in a flex layout */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+#list {
+  flex: 1;
+  min-height: 0; /* Required for flex children to shrink */
 }
 ```
 
----
+### Dynamic viewport height
 
-## Custom Scrollbar Limitations
+On iOS Safari and Android Chrome, the browser UI (address bar, toolbar) shows and hides as you scroll, changing the viewport height. Use `dvh` (dynamic viewport height) instead of `vh`:
 
-The custom scrollbar (used in compressed mode for 1M+ items) has limited mobile support:
+```css
+/* Good — adjusts when browser UI shows/hides */
+#list {
+  height: 100dvh;
+}
 
-### Mouse Events Only
-
-The scrollbar currently uses mouse events for drag interactions:
-
-```javascript
-thumb.addEventListener('mousedown', handleThumbMouseDown);
-document.addEventListener('mousemove', handleThumbMouseMove);
-document.addEventListener('mouseup', handleThumbMouseUp);
+/* Avoid — can cause layout shifts on mobile */
+#list {
+  height: 100vh;
+}
 ```
 
-**This means:**
-- Dragging the scrollbar thumb **does not work** on touch devices
-- Native content scrolling **still works perfectly**
-- The scrollbar **appears** and **auto-hides** correctly
-- Hover-based scrollbar visibility **does not work** (no hover state on touch)
+### Safe area insets
 
-### Workaround for Mobile
+On devices with notches or rounded corners (iPhone, some Android), use `env()` to keep content out of the unsafe area:
 
-Configure the scrollbar for mobile-friendly behavior:
+```css
+#list {
+  padding-bottom: env(safe-area-inset-bottom);
+}
 
-```javascript
-import { createVList, scrollbar } from 'vlist';
-
-const list = createVList({
-  container: '#list',
-  items: data,
-  item: { height: 60, template: renderItem },
-}, [scrollbar({
-  autoHide: true,
-  autoHideDelay: 800,
-  showOnHover: false,
-  showOnViewportEnter: false
-})]);
+/* Or if the list has a bottom toolbar */
+.toolbar {
+  padding-bottom: env(safe-area-inset-bottom);
+}
 ```
 
-### Detection-Based Configuration
 
-Detect touch capability and adjust config:
 
-```javascript
-import { createVList, scrollbar } from 'vlist';
+## Touch Targets
 
-const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+Items need to be large enough to tap accurately. Follow platform guidelines:
 
-const scrollbarConfig = isTouchDevice
-  ? {
-      autoHide: true,
-      autoHideDelay: 800,
-      showOnHover: false,
-      showOnViewportEnter: false
-    }
-  : {
-      autoHide: true,
-      autoHideDelay: 1000,
-      showOnHover: true,
-      showOnViewportEnter: true
-    };
-
-const list = createVList({
-  container: '#list',
-  items: data,
-  item: { height: 60, template: renderItem },
-}, [scrollbar(scrollbarConfig)]);
-```
-
----
-
-## Mobile-Optimized Configuration
-
-### Recommended Settings
+| Platform | Minimum | Recommended |
+|----------|---------|-------------|
+| iOS (HIG) | 44x44 px | 48x48 px |
+| Android (MD3) | 48x48 dp | 48x48 dp |
+| WCAG 2.5.8 | 44x44 px | 48x48 px |
 
 ```javascript
-import { createVList } from 'vlist';
-
-const list = createVList({
+createVList({
   container: '#list',
   item: {
-    height: 60,  // Taller items are easier to tap
+    height: 56,  // Comfortable tap target
     template: (item) => `
-      <div style="padding: 16px; min-height: 44px;">
-        <!-- Minimum 44px tap target (iOS guidelines) -->
-        ${item.name}
+      <div class="list-item">
+        <span class="list-item__name">${item.name}</span>
+        <span class="list-item__detail">${item.detail}</span>
       </div>
-    `
+    `,
   },
-  items: data,
-  scroll: {
-    wheel: true,        // Still useful for desktop/trackpads
-  }
-});
-```
-
-### Touch Target Sizing
-
-Follow platform guidelines for minimum tap target sizes:
-
-| Platform | Minimum Size | Recommended |
-|----------|--------------|-------------|
-| iOS | 44x44 px | 48x48 px |
-| Android | 48x48 dp | 48x48 dp |
-| Web (WCAG) | 44x44 px | 48x48 px |
-
-```css
-.vlist-item {
-  min-height: 48px;
-  padding: 12px 16px;
-}
-```
-
-### Disable Text Selection During Scroll
-
-vlist includes `user-select: none` on items to prevent text selection during scrolling:
-
-```css
-.vlist-item {
-  user-select: none;
-}
-```
-
-This prevents accidental text selection when swiping through the list.
-
----
-
-## Mobile Browser Support
-
-### Supported Browsers
-
-From the main README, vlist supports:
-
-| Browser | Version | Mobile | Notes |
-|---------|---------|--------|-------|
-| **Chrome** | 60+ | Android | Excellent support |
-| **Safari** | 12+ | iOS | Includes iOS Safari |
-| **Firefox** | 55+ | Android | Full support |
-| **Edge** | 79+ | Android | Chromium-based |
-
-### iOS-Specific Considerations
-
-**Dynamic Viewport Height:**
-```css
-.vlist {
-  height: 100dvh; /* Adjusts when Safari UI shows/hides */
-}
-```
-
-**Safe Area Insets:**
-```css
-.vlist {
-  padding-bottom: env(safe-area-inset-bottom); /* iPhone notch */
-}
-```
-
-**Momentum Scrolling (Legacy):**
-```css
-.vlist-viewport {
-  -webkit-overflow-scrolling: touch; /* iOS < 13 */
-}
-```
-
-Note: `-webkit-overflow-scrolling: touch` is deprecated in iOS 13+ but harmless to include for older devices.
-
-### Android-Specific Considerations
-
-**Overscroll Glow:**
-Native Android overscroll glow is preserved (can't be disabled in modern browsers).
-
-**Chrome Address Bar:**
-Use dynamic viewport units to account for address bar hide/show:
-```css
-height: 100dvh;
-```
-
----
-
-## Testing on Mobile
-
-### Device Testing
-
-**Real Device Testing:**
-1. Open vlist demo on your phone
-2. Test scrolling through large lists (10K, 100K, 1M items)
-3. Verify smooth 60fps scrolling
-4. Check memory usage doesn't grow during scroll
-5. Test rapid flicking (momentum scrolling)
-
-**Remote Debugging:**
-- **iOS Safari:** Use Safari on Mac > Develop > [Your iPhone]
-- **Android Chrome:** Use `chrome://inspect` on desktop Chrome
-
-### Performance Profiling
-
-**Chrome DevTools (Android):**
-```
-1. Connect device via USB
-2. Enable USB debugging
-3. chrome://inspect > Inspect device
-4. Performance tab > Record while scrolling
-```
-
-**Safari Web Inspector (iOS):**
-```
-1. Connect device via USB
-2. Enable Web Inspector on device
-3. Safari > Develop > [Device] > [Page]
-4. Timelines tab > Record
-```
-
-### Lighthouse Mobile Audit
-
-Run Lighthouse in mobile mode:
-
-```bash
-npx lighthouse https://your-vlist-app.com \
-  --only-categories=performance \
-  --form-factor=mobile \
-  --screenEmulation.mobile=true
-```
-
----
-
-## Known Limitations
-
-### 1. Custom Scrollbar Drag
-
-**Issue:** Cannot drag the custom scrollbar on touch devices.
-
-**Why:** Uses mouse events (`mousedown`, `mousemove`, `mouseup`).
-
-**Impact:** Low — users scroll by swiping content, not dragging scrollbars.
-
-**Workaround:** Native scroll works perfectly. Configure scrollbar with `showOnHover: false`.
-
-### 2. Hover States
-
-**Issue:** CSS `:hover` and JavaScript hover events don't work on touch.
-
-**Why:** Touch devices have no persistent hover state.
-
-**Impact:** Minimal — items can use `:active` for tap feedback.
-
-**Workaround:** Use `:active` state for touch feedback:
-```css
-.vlist-item:active {
-  background-color: var(--vlist-bg-hover);
-}
-```
-
-### 3. Keyboard Navigation
-
-**Issue:** Arrow keys, Home, End not available on virtual keyboards.
-
-**Why:** Mobile keyboards don't have these keys.
-
-**Impact:** None — touch scrolling replaces keyboard navigation.
-
----
-
-## Examples
-
-### Full-Screen Mobile List
-
-```javascript
-import { createVList } from 'vlist';
-
-const list = createVList({
-  container: '#app',
-  item: {
-    height: 60,
-    template: (user) => `
-      <div class="user-item">
-        <img src="${user.avatar}" alt="${user.name}">
-        <div class="user-info">
-          <div class="user-name">${user.name}</div>
-          <div class="user-email">${user.email}</div>
-        </div>
-      </div>
-    `
-  },
-  items: users
-});
+  items,
+})
 ```
 
 ```css
-/* Full-screen mobile layout */
-#app {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-}
-
-.vlist {
-  height: 100dvh; /* Dynamic viewport height */
-  padding-bottom: env(safe-area-inset-bottom); /* iPhone notch */
-}
-
-/* Touch-friendly tap targets */
-.user-item {
+.list-item {
   display: flex;
   align-items: center;
-  gap: 12px;
   padding: 12px 16px;
-  min-height: 48px; /* Minimum tap target */
+  min-height: 48px;
 }
+```
 
-/* Touch feedback */
+### Touch feedback
+
+vlist sets `user-select: none` on items to prevent accidental text selection during swipes. For tap feedback, use `:active` instead of `:hover`:
+
+```css
+/* Hover doesn't exist on touch — use :active */
 .vlist-item:active {
   background-color: rgba(0, 0, 0, 0.05);
 }
 ```
 
-### Chat UI (Reverse Mode)
+
+
+## Custom Scrollbar
+
+The `scrollbar()` plugin supports both mouse and touch drag on the scrollbar thumb. It uses `mousedown`/`mousemove`/`mouseup` and `touchstart`/`touchmove`/`touchend` events.
+
+### Mobile-friendly configuration
+
+On touch devices, users scroll by swiping content, not by dragging a scrollbar. Configure accordingly:
 
 ```javascript
-import { createVList } from 'vlist';
+import { createVList, scrollbar } from 'vlist'
 
-const chat = createVList({
-  container: '#chat',
-  reverse: true, // Start at bottom (newest messages)
-  item: {
-    height: (index) => messages[index].height,
-    template: (message) => `
-      <div class="message ${message.own ? 'own' : 'other'}">
-        ${message.text}
-      </div>
-    `
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+
+createVList({
+  container: '#list',
+  item: { height: 56, template: myTemplate },
+  items,
+}, [
+  scrollbar({
+    autoHide: true,
+    autoHideDelay: isTouchDevice ? 800 : 1000,
+    showOnHover: !isTouchDevice,       // No hover state on touch
+    showOnViewportEnter: !isTouchDevice,
+  }),
+])
+```
+
+### Or hide it entirely
+
+For carousels or lists where the scrollbar adds no value on mobile:
+
+```javascript
+createVList({
+  container: '#list',
+  scroll: { scrollbar: 'none' },
+  // ...
+})
+```
+
+
+
+## Idle Timeout
+
+Mobile touch events have larger gaps between them than desktop scroll events. Increase the idle timeout to avoid premature idle detection:
+
+```javascript
+createVList({
+  container: '#list',
+  scroll: {
+    idleTimeout: 250, // Default 150ms — increase for mobile
   },
-  items: messages
-});
+  // ...
+})
+```
+
+When idle fires, vlist loads deferred data, re-enables CSS transitions, and resets the velocity tracker. Too short a timeout on mobile can cause data loads mid-fling.
+
+
+
+## Performance
+
+vlist's architecture is already optimized for mobile constraints (limited RAM, weaker CPU):
+
+- **Virtual rendering** — Only ~20 items in the DOM regardless of list size
+- **Element pooling** — DOM elements are recycled, not destroyed and recreated
+- **Zero-allocation scroll path** — No GC pauses during scroll
+- **CSS containment** — `.vlist-content` uses `contain: layout style`, items use `contain: content` and `will-change: transform`
+- **Passive scroll listener** — Browser scrolls on compositor thread, not blocked by JS
+
+### What to watch for
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| Janky scroll on first load | Too many initial items | Start with fewer items, load more on scroll |
+| Scroll pauses briefly | GC from template allocations | Avoid creating objects in templates |
+| Items flash white | Images loading slowly | Use placeholder backgrounds, preload images |
+| List height jumps | iOS address bar showing/hiding | Use `dvh` units |
+
+
+
+## Examples
+
+### Full-Screen Contact List
+
+```javascript
+import { createVList } from 'vlist'
+import 'vlist/styles'
+
+createVList({
+  container: '#contacts',
+  scroll: { idleTimeout: 250 },
+  item: {
+    height: 64,
+    template: (contact) => `
+      <div class="contact">
+        <img class="contact__avatar" src="${contact.avatar}" alt="" />
+        <div class="contact__info">
+          <div class="contact__name">${contact.name}</div>
+          <div class="contact__phone">${contact.phone}</div>
+        </div>
+      </div>
+    `,
+  },
+  items: contacts,
+})
 ```
 
 ```css
-/* Mobile chat layout */
-#chat {
-  height: calc(100dvh - 60px); /* Minus input bar */
+#contacts {
+  height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.message {
-  max-width: 80%;
-  padding: 8px 12px;
-  margin: 4px 8px;
-  border-radius: 16px;
-  min-height: 44px; /* Tap target for long-press actions */
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
 }
 
-.message.own {
+.contact__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.contact__name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.contact__phone {
+  font-size: 14px;
+  color: #888;
+}
+
+.vlist-item:active {
+  background: rgba(0, 0, 0, 0.04);
+}
+```
+
+### Mobile Chat
+
+```javascript
+import { createVList } from 'vlist'
+
+createVList({
+  container: '#chat',
+  reverse: true,
+  scroll: { idleTimeout: 250 },
+  item: {
+    height: (index) => messages[index].height,
+    template: (msg) => `
+      <div class="bubble bubble--${msg.own ? 'own' : 'other'}">
+        ${msg.text}
+      </div>
+    `,
+  },
+  items: messages,
+})
+```
+
+```css
+#chat {
+  height: calc(100dvh - 56px); /* Minus input bar */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 8px 12px;
+  margin: 4px 16px;
+  border-radius: 18px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.bubble--own {
   margin-left: auto;
   background: #007aff;
   color: white;
 }
 
-.message.other {
+.bubble--other {
   margin-right: auto;
   background: #e5e5ea;
-  color: black;
+  color: #1c1c1e;
 }
 ```
 
----
+
+
+## Browser Support
+
+| Browser | Minimum | Notes |
+|---------|---------|-------|
+| iOS Safari | 15+ | `dvh` units require iOS 15.4+ |
+| Chrome (Android) | 108+ | `dvh` units require Chrome 108+ |
+| Firefox (Android) | 94+ | Full support |
+| Samsung Internet | 20+ | Chromium-based |
+
+For older browsers, fall back to `100vh` with a JavaScript resize handler.
+
+
 
 ## Summary
 
-vlist provides **excellent mobile support** through native browser scrolling:
+| Area | Recommendation |
+|------|---------------|
+| **Scrolling** | Works natively — nothing to configure |
+| **Height** | Use `dvh` units, not `vh` |
+| **Safe areas** | Use `env(safe-area-inset-bottom)` for notch devices |
+| **Tap targets** | Minimum 48px height |
+| **Touch feedback** | `:active` not `:hover` |
+| **Scrollbar** | Hide or set `showOnHover: false` on touch |
+| **Idle timeout** | Increase to 200-300ms |
+| **Performance** | Virtual rendering handles it — keep templates fast |
 
-- **Native touch scrolling** — All standard gestures work perfectly
-- **High performance** — Virtual rendering, passive listeners, optimized rendering
-- **Responsive** — Works at any viewport size
-- **Cross-browser** — iOS Safari 12+, Android Chrome, Firefox, Edge
-- **Minor limitation** — Custom scrollbar drag requires mouse (but native scroll works)
+## Further Reading
 
-The library's reliance on native scrolling rather than custom touch handling results in better performance, platform consistency, and less code complexity — making it an excellent choice for mobile applications with large lists.
-
----
-
-## Related Documentation
-
-- [Accessibility](/docs/accessibility) — Screen reader support, ARIA attributes
-- [Performance](/tutorials/optimization) — Optimization strategies and benchmarks
-- [Scrollbar Plugin](/docs/plugins/scrollbar) — Scroll controller and configuration
-
----
-
-**Need help?** Open an issue on [GitHub](https://github.com/floor/vlist) or join the discussion.
+- [Optimization](/tutorials/optimization) — Template performance and data loading
+- [Styling](/tutorials/styling) — CSS customization and theming
+- [Scrollbar Plugin](/docs/plugins/scrollbar) — Custom scrollbar configuration
+- [Chat Interface](/tutorials/chat-interface) — Reverse mode for messaging UIs
