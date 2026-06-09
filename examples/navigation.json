@@ -143,13 +143,6 @@
         "name": "File Browser",
         "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
         "plugins": ["table", "grid", "selection", "groups"]
-      },
-      {
-        "slug": "plugin-wizard",
-        "name": "Plugin Wizard",
-        "desc": "Discover all 17 vlist plugins — infinite carousel with code snippets",
-        "plugins": ["carousel"],
-        "badge": "new"
       }
     ]
   }
