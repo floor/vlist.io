@@ -44,9 +44,17 @@ const ITEM_WIDTH = 720;
 function itemTemplate(item) {
   const isH = currentOrientation === "horizontal";
   const isMultiAspect = currentVariant === "multi-aspect";
-  const itemW = isMultiAspect ? getItemWidth(item.index, ITEM_HEIGHT, currentVariant) : null;
-  const imgW = isMultiAspect ? Math.max(itemW, 400) : isH ? 800 : 600;
-  const imgH = isH ? 500 : 800;
+  const pw = item.w ?? 1;
+  const ph = item.h ?? 1;
+  let imgW, imgH;
+  if (isMultiAspect) {
+    const scale = 600 / Math.max(pw, ph);
+    imgW = Math.round(pw * scale);
+    imgH = Math.round(ph * scale);
+  } else {
+    imgW = isH ? 800 : 600;
+    imgH = isH ? 500 : 800;
+  }
   const url = getImageUrl(item.picId, imgW, imgH);
 
   if (imagesPreloaded) {
@@ -118,15 +126,21 @@ function updateDots() {
 }
 
 dotsEl.addEventListener("click", (e) => {
-  const dot = e.target.closest(".carousel-dot");
-  if (dot) {
-    const idx = Number(dot.dataset.index);
-    currentIndex = idx;
-    list?.goTo(idx, { behavior: "smooth", duration: 400 });
-    updateDots();
-    updateDetail();
-    updateStep();
-  }
+  const dots = dotsEl.querySelectorAll(".carousel-dot");
+  if (!dots.length) return;
+  const x = e.clientX;
+  let closest = 0;
+  let minDist = Infinity;
+  dots.forEach((dot, i) => {
+    const rect = dot.getBoundingClientRect();
+    const dist = Math.abs(x - (rect.left + rect.width / 2));
+    if (dist < minDist) { minDist = dist; closest = i; }
+  });
+  currentIndex = closest;
+  list?.goTo(closest, { behavior: "smooth", duration: 400 });
+  updateDots();
+  updateDetail();
+  updateStep();
 });
 
 // =============================================================================
@@ -136,7 +150,10 @@ dotsEl.addEventListener("click", (e) => {
 function updateDetail() {
   const item = items[currentIndex];
   if (!item || !detailEl) return;
-  const url = getImageUrl(item.picId, 400, 260);
+  const pw = item.w ?? 300;
+  const ph = item.h ?? 300;
+  const scale = 300 / Math.max(pw, ph);
+  const url = getImageUrl(item.picId, Math.round(pw * scale), Math.round(ph * scale));
   detailEl.innerHTML = `
     <div class="photo-detail">
       <img class="photo-detail__img" src="${url}" alt="${esc(item.title)}" />
@@ -173,9 +190,10 @@ function createList() {
   wrap.classList.toggle("carousel-wrap--vertical", !isH);
 
   const isMultiAspect = currentVariant === "multi-aspect";
+  const containerH = listContainerEl.clientHeight || ITEM_HEIGHT;
   const itemWidth = isH
     ? isMultiAspect
-      ? (index) => getItemWidth(index, ITEM_HEIGHT, currentVariant)
+      ? (index) => getItemWidth(index, containerH, currentVariant)
       : ITEM_WIDTH
     : undefined;
 
@@ -186,7 +204,7 @@ function createList() {
       scroll: { scrollbar: "none" },
       ariaLabel: "Photo carousel",
       item: {
-        height: ITEM_HEIGHT,
+        height: isMultiAspect ? containerH : ITEM_HEIGHT,
         width: itemWidth,
         template: itemTemplate,
       },
