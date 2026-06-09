@@ -68,7 +68,7 @@
     height: 100%;
     overflow: hidden;
     border-radius: 28px;
-    background: var(--surface-2, #1e1e2e);
+    background: var(--surface-container);
 }
 
 .photo-slide__img {
