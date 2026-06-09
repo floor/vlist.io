@@ -23,6 +23,11 @@
     "label": "Building Features",
     "items": [
       {
+        "slug": "carousel",
+        "name": "Carousel",
+        "desc": "Build an infinite-loop photo carousel with variants and navigation"
+      },
+      {
         "slug": "chat-interface",
         "name": "Chat Interface",
         "desc": "Create a messaging UI with reverse mode"
@@ -40,7 +45,7 @@
       {
         "slug": "optimization",
         "name": "Optimization",
-        "desc": "Performance tuning and best practices"
+        "desc": "Write fast templates, tune loading, and diagnose jank"
       },
       {
         "slug": "styling",

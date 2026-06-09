@@ -69,25 +69,25 @@ function itemTemplate(item) {
 
   if (imagesPreloaded) {
     return `
-      <div class="photo-slide">
+      <div class="vlist-carousel-slide photo-slide">
         <img
-          class="photo-slide__img photo-slide__img--loaded"
+          class="vlist-carousel-slide__media photo-slide__img photo-slide__img--loaded"
           src="${url}"
           alt="${esc(item.title)}"
           decoding="sync"
         />
-        <div class="photo-slide__overlay">
-          <span class="photo-slide__title">${esc(item.title)}</span>
-          <span class="photo-slide__location">${esc(item.location)}</span>
+        <div class="vlist-carousel-slide__overlay photo-slide__overlay">
+          <span class="vlist-carousel-slide__title photo-slide__title">${esc(item.title)}</span>
+          <span class="vlist-carousel-slide__subtitle photo-slide__location">${esc(item.location)}</span>
         </div>
       </div>
     `;
   }
 
   return `
-    <div class="photo-slide">
+    <div class="vlist-carousel-slide photo-slide">
       <img
-        class="photo-slide__img"
+        class="vlist-carousel-slide__media photo-slide__img"
         src="${url}"
         alt="${esc(item.title)}"
         decoding="async"
@@ -95,9 +95,9 @@ function itemTemplate(item) {
         onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('photo-slide__img--loaded')"
         onerror="this.style.transition='none';this.classList.add('photo-slide__img--loaded')"
       />
-      <div class="photo-slide__overlay">
-        <span class="photo-slide__title">${esc(item.title)}</span>
-        <span class="photo-slide__location">${esc(item.location)}</span>
+      <div class="vlist-carousel-slide__overlay photo-slide__overlay">
+        <span class="vlist-carousel-slide__title photo-slide__title">${esc(item.title)}</span>
+        <span class="vlist-carousel-slide__subtitle photo-slide__location">${esc(item.location)}</span>
       </div>
     </div>
   `;

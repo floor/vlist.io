@@ -28,6 +28,7 @@ const DEV_CSS_MAP: Record<string, string> = {
   "vlist-extras.css": "vlist-extras.css",
   "vlist-tree.css": "vlist-tree.css",
   "vlist-search.css": "vlist-search.css",
+  "vlist-carousel.css": "vlist-carousel.css",
 };
 
 // =============================================================================

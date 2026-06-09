@@ -403,6 +403,11 @@ function buildExtraHead(
       `<link rel="stylesheet" href="/dist/vlist-search.css?v=${VLIST_VERSION}" />`,
     );
   }
+  if (example?.plugins?.includes("carousel")) {
+    tags.push(
+      `<link rel="stylesheet" href="/dist/vlist-carousel.css?v=${VLIST_VERSION}" />`,
+    );
+  }
 
   // Shared example styles (at example root, optional)
   const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));

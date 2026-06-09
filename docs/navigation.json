@@ -156,6 +156,16 @@
     ]
   },
   {
+    "label": "Internals",
+    "items": [
+      {
+        "slug": "internals/optimization",
+        "name": "Optimization",
+        "desc": "How the rendering pipeline, pooling, and scroll handling work"
+      }
+    ]
+  },
+  {
     "label": "Resources",
     "items": [
       {

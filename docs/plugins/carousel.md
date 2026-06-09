@@ -92,6 +92,14 @@ import { registerPreset, getPreset, resolvePreset } from "vlist";
 | `resolvePreset(name, containerSize, peek)` | Resolve a name to a `SlotConfig`. Returns `null` if the name is unknown or the resolver returns `null`. |
 
 ```ts
+type TextFade = "role" | "viewport" | "size";
+
+interface SlotConfig {
+  slots: number[];
+  focalSlot: number;
+  textFade?: TextFade;  // default: "role"
+}
+
 type SlotConfigResolver = (containerSize: number, peek: number) => SlotConfig | null;
 ```
 
@@ -158,15 +166,62 @@ Updated per rendered element on every scroll frame:
 | `--vlist-carousel-progress` | 0–1 | Distance from focal center |
 | `--vlist-carousel-offset` | integer | Signed item distance from focal |
 | `--vlist-carousel-role` | string | `"large"`, `"medium"`, or `"small"` |
+| `--vlist-carousel-role-weight` | 0–1 | Text overlay visibility weight — driven by the preset's `textFade` mode (see below) |
 | `--vlist-carousel-width` | px | Dynamic item width |
+| `--vlist-carousel-focal-width` | px | Focal slot width (constant per preset) — use to stabilize media sizing |
+| `--vlist-carousel-radius` | px | Read by `vlist-carousel.css` for slide border-radius |
 
-Use these in your CSS for scroll-driven effects:
+### `textFade`
+
+The `textFade` option on `SlotConfig` controls how `--vlist-carousel-role-weight` is computed:
+
+| Mode | Behavior | Used by |
+|------|----------|---------|
+| `"role"` (default) | `1 - progress` for large items, `0` for medium/small. Text is visible on the focal item and fades during transitions. | `hero`, `hero-center`, `multi`, `full` |
+| `"viewport"` | Visibility ratio — how much of the item is inside the viewport. Text fades in as an item enters and out as it leaves. | `multi-aspect` (no-engine) |
+| `"size"` | Ratio of the item's rendered size to the focal slot's size. Text fades when items shrink at the edges and appears when they grow. | `uncontained` |
+
+Use the variable in CSS to drive overlay opacity:
+
+```css
+.slide__overlay {
+  opacity: var(--vlist-carousel-role-weight, 0);
+}
+```
+
+Use these variables in your CSS for scroll-driven effects:
 
 ```css
 .slide {
   opacity: calc(1 - var(--vlist-carousel-progress) * 0.4);
   filter: grayscale(var(--vlist-carousel-progress));
 }
+```
+
+## Stylesheet
+
+Optional structural styles for carousel slides. Handles media stabilization (no image "breathing" during transitions), overlay visibility, and text truncation:
+
+```ts
+import "vlist/styles/carousel";
+```
+
+Add the `vlist-carousel-slide` classes to your template:
+
+```html
+<div class="vlist-carousel-slide">
+  <img class="vlist-carousel-slide__media" src="..." />
+  <div class="vlist-carousel-slide__overlay">
+    <span class="vlist-carousel-slide__title">Title</span>
+    <span class="vlist-carousel-slide__subtitle">Subtitle</span>
+  </div>
+</div>
+```
+
+Set `--vlist-carousel-radius` on the slide to control border-radius:
+
+```css
+.my-slide { --vlist-carousel-radius: 28px; }
 ```
 
 ## How it works
