@@ -2,7 +2,7 @@
 // Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
 import { createVList, carousel } from "vlist";
-import { items, getImageUrl, getItemWidth, preloadImages, ITEM_COUNT } from "../shared.js";
+import { getItems, getImageUrl, getItemWidth, preloadImages } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -22,6 +22,7 @@ let snapEnabled = false;
 let currentIndex = 0;
 let list = null;
 let imagesPreloaded = false;
+let items = getItems(currentVariant);
 
 // =============================================================================
 // DOM references
@@ -43,7 +44,7 @@ const ITEM_WIDTH = 720;
 function itemTemplate(item) {
   const isH = currentOrientation === "horizontal";
   const isMultiAspect = currentVariant === "multi-aspect";
-  const itemW = isMultiAspect ? getItemWidth(item.index, ITEM_HEIGHT) : null;
+  const itemW = isMultiAspect ? getItemWidth(item.index, ITEM_HEIGHT, currentVariant) : null;
   const imgW = isMultiAspect ? Math.max(itemW, 400) : isH ? 800 : 600;
   const imgH = isH ? 500 : 800;
   const url = getImageUrl(item.picId, imgW, imgH);
@@ -90,7 +91,7 @@ function itemTemplate(item) {
 
 const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
-  getTotal: () => ITEM_COUNT,
+  getTotal: () => items.length,
   getItemSize: () =>
     currentOrientation === "horizontal" ? ITEM_WIDTH : ITEM_HEIGHT,
   getContainerSize: () => {
@@ -149,7 +150,7 @@ function updateDetail() {
 
 function updateStep() {
   if (infoStepEl)
-    infoStepEl.textContent = `${currentIndex + 1} / ${ITEM_COUNT}`;
+    infoStepEl.textContent = `${currentIndex + 1} / ${items.length}`;
 }
 
 // =============================================================================
@@ -164,6 +165,9 @@ function createList() {
 
   listContainerEl.innerHTML = "";
 
+  items = getItems(currentVariant);
+  imagesPreloaded = false;
+
   const isH = currentOrientation === "horizontal";
   const wrap = document.querySelector(".carousel-wrap");
   wrap.classList.toggle("carousel-wrap--vertical", !isH);
@@ -171,7 +175,7 @@ function createList() {
   const isMultiAspect = currentVariant === "multi-aspect";
   const itemWidth = isH
     ? isMultiAspect
-      ? (index) => getItemWidth(index, ITEM_HEIGHT)
+      ? (index) => getItemWidth(index, ITEM_HEIGHT, currentVariant)
       : ITEM_WIDTH
     : undefined;
 
@@ -218,6 +222,18 @@ function createList() {
   updateDetail();
   updateStep();
   if (infoVariantEl) infoVariantEl.textContent = currentVariant;
+
+  const preloadW = isH ? 800 : 600;
+  const preloadH = isH ? 500 : 800;
+  preloadImages(currentVariant, preloadW, preloadH).then(() => {
+    imagesPreloaded = true;
+    listContainerEl
+      .querySelectorAll(".photo-slide__img:not(.photo-slide__img--loaded)")
+      .forEach((img) => {
+        img.style.transition = "none";
+        img.classList.add("photo-slide__img--loaded");
+      });
+  });
 }
 
 // =============================================================================
@@ -287,14 +303,3 @@ document.getElementById("orientation-mode").addEventListener("click", (e) => {
 // =============================================================================
 
 createList();
-
-const isH = currentOrientation === "horizontal";
-preloadImages(isH ? 800 : 600, isH ? 500 : 800).then(() => {
-  imagesPreloaded = true;
-  document
-    .querySelectorAll(".photo-slide__img:not(.photo-slide__img--loaded)")
-    .forEach((img) => {
-      img.style.transition = "none";
-      img.classList.add("photo-slide__img--loaded");
-    });
-});
