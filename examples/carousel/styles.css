@@ -62,6 +62,7 @@
    ============================================================================ */
 
 .photo-slide {
+    --vlist-carousel-radius: 28px;
     position: relative;
     width: 100%;
     height: 100%;
@@ -71,9 +72,6 @@
 }
 
 .photo-slide__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
     opacity: 0;
     transition: opacity 0.4s ease;
 }
@@ -82,12 +80,7 @@
     opacity: 1;
 }
 
-/* Text overlay — visible only on "large" role items */
 .photo-slide__overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
     padding: 32px 24px 24px;
     background: linear-gradient(
         0deg,
@@ -98,10 +91,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    opacity: var(--vlist-carousel-role-weight, 0);
     transition: opacity 0.15s ease;
-    pointer-events: none;
-    overflow: hidden;
 }
 
 .photo-slide__title {
@@ -109,18 +99,12 @@
     font-weight: var(--fw-bold, 700);
     color: #fff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .photo-slide__location {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.8);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 /* ============================================================================
