@@ -4,9 +4,13 @@
         <p class="description">
             Infinite-loop photo carousel powered by the
             <code>carousel()</code> plugin — aligned with
-            <a href="https://m3.material.io/components/carousel/overview" target="_blank">Material Design 3</a>.
-            Items wrap seamlessly in both directions with smooth snap-to-item.
-            Switch between <strong>variant</strong> layouts to see MD3 hero, multi-browse, and full-screen modes.
+            <a
+                href="https://m3.material.io/components/carousel/overview"
+                target="_blank"
+                >Material Design 3</a
+            >. Items wrap seamlessly with smooth snap-to-item. Switch between
+            <strong>variant</strong> layouts to see hero, multi-browse,
+            uncontained, and full-screen modes.
         </p>
     </header>
 
@@ -17,14 +21,36 @@
                 <div id="list-container"></div>
 
                 <!-- Navigation overlay -->
-                <button id="btn-prev" class="carousel-nav carousel-nav--prev" title="Previous">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="15 18 9 12 15 6"/>
+                <button
+                    id="btn-prev"
+                    class="carousel-nav carousel-nav--prev"
+                    title="Previous"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <polyline points="15 18 9 12 15 6" />
                     </svg>
                 </button>
-                <button id="btn-next" class="carousel-nav carousel-nav--next" title="Next">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 18 15 12 9 6"/>
+                <button
+                    id="btn-next"
+                    class="carousel-nav carousel-nav--next"
+                    title="Next"
+                >
+                    <svg
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <polyline points="9 18 15 12 9 6" />
                     </svg>
                 </button>
 
@@ -38,10 +64,34 @@
             <section class="ui-section">
                 <h3 class="ui-title">Variant</h3>
                 <div class="ui-row">
-                    <div class="ui-btn-group ui-btn-group--wrap" id="variant-buttons">
-                        <button class="ui-ctrl-btn" data-variant="full">Full</button>
-                        <button class="ui-ctrl-btn ui-ctrl-btn--active" data-variant="hero">Hero</button>
-                        <button class="ui-ctrl-btn" data-variant="hero-center">Center</button>
+                    <div
+                        class="ui-btn-group ui-btn-group--wrap"
+                        id="variant-buttons"
+                    >
+                        <button
+                            class="ui-ctrl-btn ui-ctrl-btn--active"
+                            data-variant="hero"
+                        >
+                            Hero
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="hero-center">
+                            Hero Center
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="full">
+                            Full
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="full-h">
+                            Full-H
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="multi">
+                            Multi
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="uncontained">
+                            Uncontained
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="multi-aspect">
+                            Multi-Aspect
+                        </button>
                     </div>
                 </div>
             </section>
@@ -56,38 +106,6 @@
                         <input type="checkbox" id="toggle-snap" />
                         <span class="ui-switch__track"></span>
                     </label>
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Orientation</label>
-                    <div class="ui-segmented" id="orientation-mode">
-                        <button class="ui-segmented__btn ui-segmented__btn--active" data-orientation="horizontal">Horizontal</button>
-                        <button class="ui-segmented__btn" data-orientation="vertical">Vertical</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Navigate -->
-            <section class="ui-section">
-                <h3 class="ui-title">Navigate</h3>
-                <div class="ui-row">
-                    <div class="ui-btn-group">
-                        <button id="btn-first" class="ui-btn ui-btn--icon" title="First">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="3" y1="4" x2="3" y2="14"/>
-                                <polyline points="13 4 7 9 13 14"/>
-                            </svg>
-                        </button>
-                        <button id="btn-random" class="ui-btn ui-btn--icon" title="Random">
-                            <i class="icon icon--center"></i>
-                        </button>
-                        <button id="btn-last" class="ui-btn ui-btn--icon" title="Last">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="5 4 11 9 5 14"/>
-                                <line x1="15" y1="4" x2="15" y2="14"/>
-                            </svg>
-                        </button>
-                    </div>
                 </div>
             </section>
 

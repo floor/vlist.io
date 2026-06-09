@@ -1,6 +1,6 @@
 ---
 created: 2026-06-06
-updated: 2026-06-07
+updated: 2026-06-09
 status: published
 ---
 
@@ -26,7 +26,7 @@ list.on("carousel:change", ({ index }) => {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `variant` | `CarouselVariant \| SlotConfig` | `"full"` | Layout variant (see below), or a custom `SlotConfig` object |
+| `variant` | `CarouselVariant \| SlotConfig \| SlotConfigResolver` | `"full"` | Layout variant name, a `SlotConfig` object, or a resolver function |
 | `snap` | `boolean` | `true` (`false` for `"free"`) | Snap to nearest item on scroll idle |
 | `snapDuration` | `number` | `400` | Snap animation duration in ms |
 | `peek` | `number \| string \| "auto"` | `"auto"` | Visible peek of adjacent items (px, `"20%"`, or `"auto"`) |
@@ -34,18 +34,35 @@ list.on("carousel:change", ({ index }) => {
 | `initialIndex` | `number` | `0` | Initial item index |
 
 ```ts
-type CarouselVariant = "static" | "full" | "hero" | "hero-center" | "multi" | "uncontained" | "free";
+type CarouselVariant = "full" | "hero" | "hero-center" | "multi" | "uncontained" | "static" | "free" | (string & {});
 ```
+
+The type accepts any string — built-in names are autocompleted, but you can pass any name registered via `registerPreset()`.
 
 ### Custom variant
 
-Pass a `SlotConfig` object to define a custom slot layout:
+There are three ways to define a custom layout:
+
+**Inline `SlotConfig`** — a fixed slot layout:
 
 ```ts
 carousel({
   variant: { slots: [0.7, 0.2, 0.1], focalSlot: 0 },
 });
 ```
+
+**`SlotConfigResolver` function** — a dynamic resolver that receives the container size and peek value:
+
+```ts
+carousel({
+  variant: (containerSize, peek) => ({
+    slots: [0.6, 0.4],
+    focalSlot: 0,
+  }),
+});
+```
+
+**Registered preset** — a named resolver added to the global registry (see [Presets](#presets)).
 
 ## Variants
 
@@ -56,8 +73,58 @@ carousel({
 | `"hero-center"` | One large centered item + two small peek items | Required |
 | `"multi"` | Multiple visible items: large + medium + small | Required |
 | `"uncontained"` | Single-size items scroll past the container edge | Optional |
+| `"multi-aspect"` | Variable-width items using native aspect ratios, no layout engine | No |
 | `"free"` | Items of various widths scroll freely, no snap | No |
 | `"static"` | Items use their native size, no layout engine | No |
+
+## Presets
+
+Presets are named `SlotConfigResolver` functions stored in a global registry. Built-in variants (`full`, `hero`, `hero-center`, `multi`, `uncontained`) are pre-registered — you can add your own or override existing ones.
+
+```ts
+import { registerPreset, getPreset, resolvePreset } from "vlist";
+```
+
+| Function | Description |
+|----------|-------------|
+| `registerPreset(name, resolver)` | Register a named preset. Overwrites any existing preset with the same name. |
+| `getPreset(name)` | Get a resolver by name, or `undefined` if not registered. |
+| `resolvePreset(name, containerSize, peek)` | Resolve a name to a `SlotConfig`. Returns `null` if the name is unknown or the resolver returns `null`. |
+
+```ts
+type SlotConfigResolver = (containerSize: number, peek: number) => SlotConfig | null;
+```
+
+A resolver returning `null` means "no layout engine" — the plugin falls back to variable-width item rendering (used by `multi-aspect` and `static` variants, which are not registered as presets).
+
+### Registering a custom preset
+
+```ts
+import { registerPreset, full } from "vlist";
+
+// A new preset with custom slot proportions
+registerPreset("panorama", (containerSize, peek) => ({
+  slots: [0.8, 0.1, 0.1],
+  focalSlot: 0,
+}));
+
+// An alias for an existing preset
+registerPreset("full-h", full);
+
+// Use it by name
+carousel({ variant: "panorama" });
+```
+
+### Built-in preset exports
+
+Each built-in preset is also exported as a named `SlotConfigResolver` function for direct use:
+
+```ts
+import { full, hero, heroCenter, multi, uncontained } from "vlist";
+
+const config = hero(800, 56);
+// { slots: [0.93, 0.07], focalSlot: 0 }
+```
 
 ## Methods
 

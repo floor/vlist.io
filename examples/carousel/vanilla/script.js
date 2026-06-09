@@ -1,24 +1,30 @@
 // Carousel — MD3-aligned photo carousel using the carousel() plugin
 // Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
-import { createVList, carousel } from "vlist";
-import { items, getImageUrl, preloadImages, ITEM_COUNT } from "../shared.js";
+import { createVList, carousel, rebuild, registerPreset, full } from "vlist";
+import { getItems, getImageUrl, getItemWidth, preloadImages } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) =>
-  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+registerPreset("full-h", full);
+
+const esc = (s) =>
+  String(s).replace(
+    /[&<>"]/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+  );
 
 // =============================================================================
 // State
 // =============================================================================
 
 let currentVariant = "hero";
-let currentOrientation = "horizontal";
 let snapEnabled = false;
 let currentIndex = 0;
 let list = null;
 let imagesPreloaded = false;
+let items = getItems(currentVariant);
+let viewVersion = 0;
 
 // =============================================================================
 // DOM references
@@ -37,10 +43,28 @@ const infoStepEl = document.getElementById("info-step");
 const ITEM_HEIGHT = 480;
 const ITEM_WIDTH = 720;
 
+function isVertical() {
+  return currentVariant === "full";
+}
+
+function isFull() {
+  return currentVariant === "full" || currentVariant === "full-h";
+}
+
 function itemTemplate(item) {
-  const isH = currentOrientation === "horizontal";
-  const imgW = isH ? 800 : 600;
-  const imgH = isH ? 500 : 800;
+  const isH = !isVertical();
+  const isMultiAspect = currentVariant === "multi-aspect";
+  const pw = item.w ?? 1;
+  const ph = item.h ?? 1;
+  let imgW, imgH;
+  if (isMultiAspect) {
+    const scale = 600 / Math.max(pw, ph);
+    imgW = Math.round(pw * scale);
+    imgH = Math.round(ph * scale);
+  } else {
+    imgW = isH ? 800 : 600;
+    imgH = isH ? 500 : 800;
+  }
   const url = getImageUrl(item.picId, imgW, imgH);
 
   if (imagesPreloaded) {
@@ -85,13 +109,11 @@ function itemTemplate(item) {
 
 const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
-  getTotal: () => ITEM_COUNT,
-  getItemSize: () => currentOrientation === "horizontal" ? ITEM_WIDTH : ITEM_HEIGHT,
+  getTotal: () => items.length,
+  getItemSize: () => isVertical() ? ITEM_HEIGHT : ITEM_WIDTH,
   getContainerSize: () => {
     const el = document.querySelector("#list-container");
-    return currentOrientation === "horizontal"
-      ? el?.clientWidth ?? 0
-      : el?.clientHeight ?? 0;
+    return isVertical() ? (el?.clientHeight ?? 0) : (el?.clientWidth ?? 0);
   },
 });
 
@@ -103,22 +125,29 @@ const updateInfo = createInfoUpdater(stats);
 
 function updateDots() {
   dotsEl.innerHTML = items
-    .map((_, i) =>
-      `<span class="carousel-dot ${i === currentIndex ? "carousel-dot--active" : ""}" data-index="${i}"></span>`,
+    .map(
+      (_, i) =>
+        `<span class="carousel-dot ${i === currentIndex ? "carousel-dot--active" : ""}" data-index="${i}"></span>`,
     )
     .join("");
 }
 
 dotsEl.addEventListener("click", (e) => {
-  const dot = e.target.closest(".carousel-dot");
-  if (dot) {
-    const idx = Number(dot.dataset.index);
-    currentIndex = idx;
-    list?.goTo(idx, { behavior: "smooth", duration: 400 });
-    updateDots();
-    updateDetail();
-    updateStep();
-  }
+  const dots = dotsEl.querySelectorAll(".carousel-dot");
+  if (!dots.length) return;
+  const x = e.clientX;
+  let closest = 0;
+  let minDist = Infinity;
+  dots.forEach((dot, i) => {
+    const rect = dot.getBoundingClientRect();
+    const dist = Math.abs(x - (rect.left + rect.width / 2));
+    if (dist < minDist) { minDist = dist; closest = i; }
+  });
+  currentIndex = closest;
+  list?.goTo(closest, { behavior: "smooth", duration: 400 });
+  updateDots();
+  updateDetail();
+  updateStep();
 });
 
 // =============================================================================
@@ -128,10 +157,15 @@ dotsEl.addEventListener("click", (e) => {
 function updateDetail() {
   const item = items[currentIndex];
   if (!item || !detailEl) return;
-  const url = getImageUrl(item.picId, 400, 260);
+  const pw = item.w ?? 300;
+  const ph = item.h ?? 300;
+  const scale = 300 / Math.max(pw, ph);
+  const url = getImageUrl(item.picId, Math.round(pw * scale), Math.round(ph * scale));
   detailEl.innerHTML = `
     <div class="photo-detail">
-      <img class="photo-detail__img" src="${url}" alt="${esc(item.title)}" />
+      <div class="photo-detail__frame">
+        <img class="photo-detail__img" src="${url}" alt="${esc(item.title)}" />
+      </div>
       <div class="photo-detail__meta">
         <strong>${esc(item.title)}</strong>
         <span>${esc(item.location)} · #${item.id}</span>
@@ -141,54 +175,57 @@ function updateDetail() {
 }
 
 function updateStep() {
-  if (infoStepEl) infoStepEl.textContent = `${currentIndex + 1} / ${ITEM_COUNT}`;
+  if (infoStepEl)
+    infoStepEl.textContent = `${currentIndex + 1} / ${items.length}`;
 }
 
 // =============================================================================
-// Create / Recreate list
+// Factory + rebuild
 // =============================================================================
 
-function createList() {
-  if (list) {
-    list.destroy();
-    list = null;
-  }
+function factory() {
+  const isH = !isVertical();
+  const isMultiAspect = currentVariant === "multi-aspect";
+  const containerH = listContainerEl.clientHeight || ITEM_HEIGHT;
+  const itemWidth = isH
+    ? isMultiAspect
+      ? (index) => getItemWidth(index, containerH, currentVariant)
+      : ITEM_WIDTH
+    : undefined;
 
-  listContainerEl.innerHTML = "";
-
-  const isH = currentOrientation === "horizontal";
-  const wrap = document.querySelector(".carousel-wrap");
-  wrap.classList.toggle("carousel-wrap--vertical", !isH);
-
-  list = createVList({
-    container: "#list-container",
-    orientation: currentOrientation,
-    scroll: { scrollbar: "none" },
-    ariaLabel: "Photo carousel",
-    item: {
-      height: ITEM_HEIGHT,
-      width: isH ? ITEM_WIDTH : undefined,
-      template: itemTemplate,
+  return createVList(
+    {
+      container: "#list-container",
+      orientation: isH ? "horizontal" : "vertical",
+      scroll: { scrollbar: "none" },
+      ariaLabel: "Photo carousel",
+      item: {
+        height: isMultiAspect ? containerH : ITEM_HEIGHT,
+        width: itemWidth,
+        template: itemTemplate,
+      },
+      items,
     },
-    items,
-  }, [
-    carousel({
-      variant: currentVariant,
-      snap: snapEnabled,
-      snapDuration: 400,
-      initialIndex: currentIndex,
-      gap: 8,
-    }),
-  ]);
+    [
+      carousel({
+        variant: currentVariant,
+        snap: snapEnabled,
+        snapDuration: 400,
+        initialIndex: currentIndex,
+        gap: 8,
+      }),
+    ],
+  );
+}
 
-  list.on("scroll", updateInfo);
-  list.on("range:change", updateInfo);
-  list.on("velocity:change", ({ velocity }) => {
+function onReady(l) {
+  l.on("scroll", updateInfo);
+  l.on("range:change", updateInfo);
+  l.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
     updateInfo();
   });
-
-  list.on("carousel:change", ({ index }) => {
+  l.on("carousel:change", ({ index }) => {
     currentIndex = index;
     updateDots();
     updateDetail();
@@ -202,6 +239,39 @@ function createList() {
   if (infoVariantEl) infoVariantEl.textContent = currentVariant;
 }
 
+async function createList() {
+  items = getItems(currentVariant);
+  imagesPreloaded = false;
+
+  const wrap = document.querySelector(".carousel-wrap");
+  wrap.classList.toggle("carousel-wrap--vertical", isVertical());
+
+  const version = ++viewVersion;
+  const newList = await rebuild(list, factory, {
+    key: "carousel",
+    transition: { fadeIn: 160, fadeOut: 120, fadeOutDelay: 40 },
+  });
+  if (version !== viewVersion) {
+    newList.destroy();
+    return;
+  }
+  list = newList;
+  onReady(list);
+
+  const isH = !isVertical();
+  const preloadW = isH ? 800 : 600;
+  const preloadH = isH ? 500 : 800;
+  preloadImages(currentVariant, preloadW, preloadH).then(() => {
+    imagesPreloaded = true;
+    listContainerEl
+      .querySelectorAll(".photo-slide__img:not(.photo-slide__img--loaded)")
+      .forEach((img) => {
+        img.style.transition = "none";
+        img.classList.add("photo-slide__img--loaded");
+      });
+  });
+}
+
 // =============================================================================
 // Prev / Next buttons
 // =============================================================================
@@ -212,22 +282,6 @@ document.getElementById("btn-prev").addEventListener("click", () => {
 
 document.getElementById("btn-next").addEventListener("click", () => {
   list?.next(1, { behavior: "smooth", duration: 400 });
-});
-
-// =============================================================================
-// Navigate buttons
-// =============================================================================
-
-document.getElementById("btn-first").addEventListener("click", () => {
-  list?.goTo(0, { behavior: "smooth", duration: 400 });
-});
-
-document.getElementById("btn-last").addEventListener("click", () => {
-  list?.goTo(ITEM_COUNT - 1, { behavior: "smooth", duration: 400 });
-});
-
-document.getElementById("btn-random").addEventListener("click", () => {
-  list?.goTo(Math.floor(Math.random() * ITEM_COUNT), { behavior: "smooth", duration: 400 });
 });
 
 // =============================================================================
@@ -258,34 +312,7 @@ document.getElementById("toggle-snap").addEventListener("change", (e) => {
 });
 
 // =============================================================================
-// Orientation toggle
-// =============================================================================
-
-document.getElementById("orientation-mode").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-orientation]");
-  if (!btn) return;
-  const orientation = btn.dataset.orientation;
-  if (orientation === currentOrientation) return;
-
-  currentOrientation = orientation;
-  document.querySelectorAll("#orientation-mode .ui-segmented__btn").forEach((b) => {
-    b.classList.toggle("ui-segmented__btn--active", b.dataset.orientation === orientation);
-  });
-
-  createList();
-});
-
-// =============================================================================
 // Init
 // =============================================================================
 
 createList();
-
-const isH = currentOrientation === "horizontal";
-preloadImages(isH ? 800 : 600, isH ? 500 : 800).then(() => {
-  imagesPreloaded = true;
-  document.querySelectorAll(".photo-slide__img:not(.photo-slide__img--loaded)").forEach((img) => {
-    img.style.transition = "none";
-    img.classList.add("photo-slide__img--loaded");
-  });
-});
