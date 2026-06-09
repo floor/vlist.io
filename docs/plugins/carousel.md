@@ -158,6 +158,7 @@ Updated per rendered element on every scroll frame:
 | `--vlist-carousel-progress` | 0–1 | Distance from focal center |
 | `--vlist-carousel-offset` | integer | Signed item distance from focal |
 | `--vlist-carousel-role` | string | `"large"`, `"medium"`, or `"small"` |
+| `--vlist-carousel-role-weight` | 0–1 | `1 - progress` for large items, `0` for medium/small — use for overlay visibility |
 | `--vlist-carousel-width` | px | Dynamic item width |
 
 Use these in your CSS for scroll-driven effects:

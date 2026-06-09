@@ -82,7 +82,7 @@
     opacity: 1;
 }
 
-/* Text overlay — hidden on small items */
+/* Text overlay — visible only on "large" role items */
 .photo-slide__overlay {
     position: absolute;
     bottom: 0;
@@ -98,9 +98,10 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    opacity: calc(1 - var(--vlist-carousel-progress, 0) * 2);
-    transition: opacity 0.1s ease;
+    opacity: var(--vlist-carousel-role-weight, 0);
+    transition: opacity 0.15s ease;
     pointer-events: none;
+    overflow: hidden;
 }
 
 .photo-slide__title {
@@ -108,12 +109,18 @@
     font-weight: var(--fw-bold, 700);
     color: #fff;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .photo-slide__location {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.8);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* ============================================================================
