@@ -8,9 +8,9 @@
                 href="https://m3.material.io/components/carousel/overview"
                 target="_blank"
                 >Material Design 3</a
-            >. Items wrap seamlessly in both directions with smooth
-            snap-to-item. Switch between <strong>variant</strong> layouts to see
-            hero, multi-browse, uncontained, and full-screen modes.
+            >. Items wrap seamlessly with smooth snap-to-item. Switch between
+            <strong>variant</strong> layouts to see hero, multi-browse,
+            uncontained, and full-screen modes.
         </p>
     </header>
 
@@ -68,9 +68,6 @@
                         class="ui-btn-group ui-btn-group--wrap"
                         id="variant-buttons"
                     >
-                        <button class="ui-ctrl-btn" data-variant="full">
-                            Full
-                        </button>
                         <button
                             class="ui-ctrl-btn ui-ctrl-btn--active"
                             data-variant="hero"
@@ -79,6 +76,12 @@
                         </button>
                         <button class="ui-ctrl-btn" data-variant="hero-center">
                             Hero Center
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="full">
+                            Full
+                        </button>
+                        <button class="ui-ctrl-btn" data-variant="full-h">
+                            Full-H
                         </button>
                         <button class="ui-ctrl-btn" data-variant="multi">
                             Multi
@@ -103,24 +106,6 @@
                         <input type="checkbox" id="toggle-snap" />
                         <span class="ui-switch__track"></span>
                     </label>
-                </div>
-
-                <div class="ui-row">
-                    <label class="ui-label">Orientation</label>
-                    <div class="ui-segmented" id="orientation-mode">
-                        <button
-                            class="ui-segmented__btn ui-segmented__btn--active"
-                            data-orientation="horizontal"
-                        >
-                            Horizontal
-                        </button>
-                        <button
-                            class="ui-segmented__btn"
-                            data-orientation="vertical"
-                        >
-                            Vertical
-                        </button>
-                    </div>
                 </div>
             </section>
 

@@ -1,10 +1,12 @@
 // Carousel — MD3-aligned photo carousel using the carousel() plugin
 // Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
-import { createVList, carousel } from "vlist";
+import { createVList, carousel, rebuild, registerPreset, full } from "vlist";
 import { getItems, getImageUrl, getItemWidth, preloadImages } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
+
+registerPreset("full-h", full);
 
 const esc = (s) =>
   String(s).replace(
@@ -17,12 +19,12 @@ const esc = (s) =>
 // =============================================================================
 
 let currentVariant = "hero";
-let currentOrientation = "horizontal";
 let snapEnabled = false;
 let currentIndex = 0;
 let list = null;
 let imagesPreloaded = false;
 let items = getItems(currentVariant);
+let viewVersion = 0;
 
 // =============================================================================
 // DOM references
@@ -41,8 +43,16 @@ const infoStepEl = document.getElementById("info-step");
 const ITEM_HEIGHT = 480;
 const ITEM_WIDTH = 720;
 
+function isVertical() {
+  return currentVariant === "full";
+}
+
+function isFull() {
+  return currentVariant === "full" || currentVariant === "full-h";
+}
+
 function itemTemplate(item) {
-  const isH = currentOrientation === "horizontal";
+  const isH = !isVertical();
   const isMultiAspect = currentVariant === "multi-aspect";
   const pw = item.w ?? 1;
   const ph = item.h ?? 1;
@@ -100,13 +110,10 @@ function itemTemplate(item) {
 const stats = createStats({
   getScrollPosition: () => list?.getScrollPosition() ?? 0,
   getTotal: () => items.length,
-  getItemSize: () =>
-    currentOrientation === "horizontal" ? ITEM_WIDTH : ITEM_HEIGHT,
+  getItemSize: () => isVertical() ? ITEM_HEIGHT : ITEM_WIDTH,
   getContainerSize: () => {
     const el = document.querySelector("#list-container");
-    return currentOrientation === "horizontal"
-      ? (el?.clientWidth ?? 0)
-      : (el?.clientHeight ?? 0);
+    return isVertical() ? (el?.clientHeight ?? 0) : (el?.clientWidth ?? 0);
   },
 });
 
@@ -156,7 +163,9 @@ function updateDetail() {
   const url = getImageUrl(item.picId, Math.round(pw * scale), Math.round(ph * scale));
   detailEl.innerHTML = `
     <div class="photo-detail">
-      <img class="photo-detail__img" src="${url}" alt="${esc(item.title)}" />
+      <div class="photo-detail__frame">
+        <img class="photo-detail__img" src="${url}" alt="${esc(item.title)}" />
+      </div>
       <div class="photo-detail__meta">
         <strong>${esc(item.title)}</strong>
         <span>${esc(item.location)} · #${item.id}</span>
@@ -171,24 +180,11 @@ function updateStep() {
 }
 
 // =============================================================================
-// Create / Recreate list
+// Factory + rebuild
 // =============================================================================
 
-function createList() {
-  if (list) {
-    list.destroy();
-    list = null;
-  }
-
-  listContainerEl.innerHTML = "";
-
-  items = getItems(currentVariant);
-  imagesPreloaded = false;
-
-  const isH = currentOrientation === "horizontal";
-  const wrap = document.querySelector(".carousel-wrap");
-  wrap.classList.toggle("carousel-wrap--vertical", !isH);
-
+function factory() {
+  const isH = !isVertical();
   const isMultiAspect = currentVariant === "multi-aspect";
   const containerH = listContainerEl.clientHeight || ITEM_HEIGHT;
   const itemWidth = isH
@@ -197,10 +193,10 @@ function createList() {
       : ITEM_WIDTH
     : undefined;
 
-  list = createVList(
+  return createVList(
     {
       container: "#list-container",
-      orientation: currentOrientation,
+      orientation: isH ? "horizontal" : "vertical",
       scroll: { scrollbar: "none" },
       ariaLabel: "Photo carousel",
       item: {
@@ -220,15 +216,16 @@ function createList() {
       }),
     ],
   );
+}
 
-  list.on("scroll", updateInfo);
-  list.on("range:change", updateInfo);
-  list.on("velocity:change", ({ velocity }) => {
+function onReady(l) {
+  l.on("scroll", updateInfo);
+  l.on("range:change", updateInfo);
+  l.on("velocity:change", ({ velocity }) => {
     stats.onVelocity(velocity);
     updateInfo();
   });
-
-  list.on("carousel:change", ({ index }) => {
+  l.on("carousel:change", ({ index }) => {
     currentIndex = index;
     updateDots();
     updateDetail();
@@ -240,7 +237,28 @@ function createList() {
   updateDetail();
   updateStep();
   if (infoVariantEl) infoVariantEl.textContent = currentVariant;
+}
 
+async function createList() {
+  items = getItems(currentVariant);
+  imagesPreloaded = false;
+
+  const wrap = document.querySelector(".carousel-wrap");
+  wrap.classList.toggle("carousel-wrap--vertical", isVertical());
+
+  const version = ++viewVersion;
+  const newList = await rebuild(list, factory, {
+    key: "carousel",
+    transition: { fadeIn: 160, fadeOut: 120, fadeOutDelay: 40 },
+  });
+  if (version !== viewVersion) {
+    newList.destroy();
+    return;
+  }
+  list = newList;
+  onReady(list);
+
+  const isH = !isVertical();
   const preloadW = isH ? 800 : 600;
   const preloadH = isH ? 500 : 800;
   preloadImages(currentVariant, preloadW, preloadH).then(() => {
@@ -290,29 +308,6 @@ document.getElementById("variant-buttons").addEventListener("click", (e) => {
 
 document.getElementById("toggle-snap").addEventListener("change", (e) => {
   snapEnabled = e.target.checked;
-  createList();
-});
-
-// =============================================================================
-// Orientation toggle
-// =============================================================================
-
-document.getElementById("orientation-mode").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-orientation]");
-  if (!btn) return;
-  const orientation = btn.dataset.orientation;
-  if (orientation === currentOrientation) return;
-
-  currentOrientation = orientation;
-  document
-    .querySelectorAll("#orientation-mode .ui-segmented__btn")
-    .forEach((b) => {
-      b.classList.toggle(
-        "ui-segmented__btn--active",
-        b.dataset.orientation === orientation,
-      );
-    });
-
   createList();
 });
 
