@@ -7,11 +7,11 @@ reviewers: GPT-5.5, Opus 4.8, Gemini 3.1, Opus 4.6 (CTO)
 
 # RFC-013: Unified Scroll Model
 
-**Status:** Draft
-**Author:** floor
-**Type:** Core Architecture
-**Created:** 2026-06-07
-**Depends on:** RFC-012 (Logical Scroll Model)
+**Status:** Draft  
+**Author:** floor  
+**Type:** Core Architecture  
+**Created:** 2026-06-07  
+**Depends on:** RFC-012 (Logical Scroll Model)  
 
 ---
 
