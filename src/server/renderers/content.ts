@@ -456,11 +456,52 @@ export function createContentRenderer(config: ContentConfig) {
   // Navigation Helpers
   // ===========================================================================
 
+  /** Display title for an RFC slug — its markdown H1, falling back to a slug-derived name. */
+  function rfcTitle(slug: string): string {
+    const mdPath = join(CONTENT_DIR, `${slug}.md`);
+    if (existsSync(mdPath)) {
+      const m = readFileSync(mdPath, "utf-8").match(/^#\s+(.+?)\s*$/m);
+      if (m && m[1]) return m[1];
+    }
+    return slug
+      .replace(/^rfcs\//, "")
+      .replace(/^(RFC-\d+)-/, "$1: ")
+      .replace(/-/g, " ");
+  }
+
+  /**
+   * RFC detail pages are reachable (via slugs.json) but intentionally absent from
+   * the sidebar navigation, so they have no prev/next there. Chain them in
+   * slugs.json order, anchored by the RFCs overview page, so each RFC links to its
+   * neighbours and the overview links forward into the list.
+   */
+  function loadRfcChain(): { slug: string; name: string }[] {
+    const chain = [{ slug: "rfcs", name: "RFCs" }];
+    if (existsSync(SLUGS_PATH)) {
+      const extra = JSON.parse(readFileSync(SLUGS_PATH, "utf-8")) as string[];
+      for (const s of extra) {
+        if (s.startsWith("rfcs/RFC-")) chain.push({ slug: s, name: rfcTitle(s) });
+      }
+    }
+    return chain;
+  }
+
   function getPrevNext(currentSlug: string | null): {
     prev: { slug: string; name: string } | null;
     next: { slug: string; name: string } | null;
   } {
     if (!currentSlug) return { prev: null, next: null };
+
+    // RFC detail pages: walk the RFC chain (overview → RFC-013 → RFC-012 → …).
+    if (currentSlug.startsWith("rfcs/RFC-")) {
+      const chain = loadRfcChain();
+      const i = chain.findIndex((c) => c.slug === currentSlug);
+      if (i === -1) return { prev: null, next: null };
+      return {
+        prev: i > 0 ? chain[i - 1]! : null,
+        next: i < chain.length - 1 ? chain[i + 1]! : null,
+      };
+    }
 
     // Flatten all items
     const allItems: { slug: string; name: string }[] = [];
@@ -475,11 +516,18 @@ export function createContentRenderer(config: ContentConfig) {
     );
     if (currentIndex === -1) return { prev: null, next: null };
 
-    return {
-      prev: currentIndex > 0 ? allItems[currentIndex - 1] : null,
-      next:
-        currentIndex < allItems.length - 1 ? allItems[currentIndex + 1] : null,
-    };
+    const prev = currentIndex > 0 ? allItems[currentIndex - 1]! : null;
+    let next =
+      currentIndex < allItems.length - 1 ? allItems[currentIndex + 1]! : null;
+
+    // Connect the RFCs overview forward into the RFC chain (its sidebar position
+    // makes it the last item, so it otherwise has no "next").
+    if (currentSlug === "rfcs" && !next) {
+      const chain = loadRfcChain();
+      if (chain.length > 1) next = chain[1]!;
+    }
+
+    return { prev, next };
   }
 
   function buildPrevNext(currentSlug: string | null): string {
