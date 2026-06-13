@@ -263,11 +263,11 @@ function assemblePage(
 
     // SEO metadata
     OG_TYPE: "website",
-    OG_SITE_NAME: null,
-    TWITTER_CARD: "summary",
+    OG_SITE_NAME: "vlist",
+    TWITTER_CARD: "summary_large_image",
 
     // Feature flags
-    SEO_ENHANCED: false,
+    SEO_ENHANCED: true,
     HAS_LIST: false,
     HAS_IMPORTMAP: true,
     HAS_TOC: false,

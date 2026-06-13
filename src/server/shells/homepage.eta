@@ -14,6 +14,10 @@
         <meta property="og:url" content="<%= it.canonicalUrl %>" />
         <meta property="og:title" content="<%= it.title %>" />
         <meta property="og:description" content="<%= it.description %>" />
+        <meta property="og:image" content="https://vlist.io/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="vlist — the virtual list library for every framework" />
         <meta property="og:site_name" content="vlist" />
 
         <!-- Twitter -->
@@ -21,6 +25,7 @@
         <meta name="twitter:url" content="<%= it.canonicalUrl %>" />
         <meta name="twitter:title" content="<%= it.title %>" />
         <meta name="twitter:description" content="<%= it.description %>" />
+        <meta name="twitter:image" content="https://vlist.io/og-image.png" />
 
         <!-- Additional SEO -->
         <meta name="author" content="Floor IO" />
