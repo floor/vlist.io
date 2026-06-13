@@ -5,6 +5,8 @@
 // dates at startup (~25ms) instead of ~40 individual execSync calls (~1.3s).
 
 import { execSync } from "child_process";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 import { ROOT, SITE } from "./config";
 import { CACHE_META } from "./cache";
 import { V1_TO_V2_DOCS, V1_TO_V2_TUTORIALS } from "./version-map";
@@ -17,6 +19,28 @@ import {
   EXAMPLE_GROUPS,
   BENCH_GROUPS,
 } from "./renderers";
+
+// =============================================================================
+// RFC detail pages
+// =============================================================================
+
+/**
+ * RFC detail pages live in `docs/slugs.json` (the valid-slug allowlist), not in
+ * `navigation.json` — so they're absent from the sidebar AND from anything driven
+ * off the nav data (prev/next, sitemap). Read them here so they're indexed.
+ */
+function loadRfcSlugs(): string[] {
+  try {
+    const path = join(ROOT, "docs/slugs.json");
+    if (!existsSync(path)) return [];
+    const slugs = JSON.parse(readFileSync(path, "utf-8")) as string[];
+    return slugs.filter((s) => s.startsWith("rfcs/RFC-"));
+  } catch {
+    return [];
+  }
+}
+
+const RFC_SLUGS = loadRfcSlugs();
 
 // =============================================================================
 // Git-based lastmod (batched)
@@ -133,6 +157,11 @@ function buildLastmodMap(): Map<string, string> {
       const file = `docs/${item.slug}.md`;
       map.set(`/docs/${item.slug}`, resolveDate(allDates, file));
     }
+  }
+
+  // RFC detail pages (from slugs.json, not navigation.json) → markdown files
+  for (const slug of RFC_SLUGS) {
+    map.set(`/docs/${slug}`, resolveDate(allDates, `docs/${slug}.md`));
   }
 
   // Docs v1 overview
@@ -278,6 +307,11 @@ export function renderSitemap(): Response {
       if (item.slug === "") continue;
       urls.push({ loc: `/docs/${item.slug}`, priority: "0.7" });
     }
+  }
+
+  // RFC detail pages — reachable via slugs.json but absent from the nav groups
+  for (const slug of RFC_SLUGS) {
+    urls.push({ loc: `/docs/${slug}`, priority: "0.6" });
   }
 
   // Docs v1 — pages with a v2 equivalent get lower priority (canonical points to v2)
