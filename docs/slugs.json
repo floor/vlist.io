@@ -1,4 +1,7 @@
 [
+  "rfcs/RFC-013-Unified-Scroll-Model",
+  "rfcs/RFC-012-Logical-Scroll-Model",
+  "rfcs/RFC-011-Carousel-Plugin",
   "rfcs/RFC-010-Externalized-UI-Text",
   "rfcs/RFC-009-Configuration-Immutability",
   "rfcs/RFC-008-Search-Plugin",
