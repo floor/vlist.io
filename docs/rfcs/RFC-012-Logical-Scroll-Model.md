@@ -6,11 +6,11 @@ status: approved
 
 # RFC-012: Logical Scroll Model
 
-**Status:** Approved (with required amendments)
-**Author:** floor
-**Type:** Core Architecture
-**Created:** 2026-06-06
-**Amended:** 2026-06-07 — committee review (GPT-5.5, Gemini 3.1, Opus 4.6, Opus 4.8, Codex)
+**Status:** Approved (with required amendments)  
+**Author:** floor  
+**Type:** Core Architecture  
+**Created:** 2026-06-06  
+**Amended:** 2026-06-07 — committee review (GPT-5.5, Gemini 3.1, Opus 4.6, Opus 4.8, Codex)  
 
 ---
 
