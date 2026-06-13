@@ -265,6 +265,8 @@ function assemblePage(
     OG_TYPE: "website",
     OG_SITE_NAME: "vlist",
     TWITTER_CARD: "summary_large_image",
+    SCHEMA_TYPE: "WebPage",
+    SCHEMA_COLLECTION: "vlist Benchmarks",
 
     // Feature flags
     SEO_ENHANCED: true,

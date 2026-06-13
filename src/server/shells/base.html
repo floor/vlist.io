@@ -41,7 +41,7 @@
         <script type="application/ld+json">
             {
                 "@context": "https://schema.org",
-                "@type": "TechArticle",
+                "@type": "<%= it.SCHEMA_TYPE || 'TechArticle' %>",
                 "headline": "<%= it.TITLE %>",
                 "description": "<%= it.DESCRIPTION %>",
                 "url": "<%= it.URL %>",
@@ -62,7 +62,7 @@
                 "inLanguage": "en-US",
                 "isPartOf": {
                     "@type": "WebSite",
-                    "name": "vlist Documentation",
+                    "name": "<%= it.SCHEMA_COLLECTION || 'vlist Documentation' %>",
                     "url": "https://vlist.io"
                 }
             }

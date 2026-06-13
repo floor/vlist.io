@@ -542,6 +542,8 @@ function assemblePage(
     OG_TYPE: "website",
     OG_SITE_NAME: "vlist",
     TWITTER_CARD: "summary_large_image",
+    SCHEMA_TYPE: "SoftwareSourceCode",
+    SCHEMA_COLLECTION: "vlist Examples",
 
     // Feature flags
     SEO_ENHANCED: true,
