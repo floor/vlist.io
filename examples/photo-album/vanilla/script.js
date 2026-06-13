@@ -102,7 +102,7 @@ setFactory(
   },
   {
     key: "photo-album",
-    transition: { fadeIn: 160, fadeOut: 120, fadeOutDelay: 40 },
+    transition: 250,
   },
 );
 

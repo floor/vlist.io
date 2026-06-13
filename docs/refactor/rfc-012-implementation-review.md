@@ -149,7 +149,7 @@ Gemini sees the implementation as architecturally complete for the default list 
 
 ---
 
-## RFC-013 Assessment — Bounded-Only Scroll
+## RFC-013 Assessment — Unified Scroll Model
 
 **Reviewers:** GPT-5.5, Opus 4.8, Opus 4.6 (CTO)
 **Consensus:** Approve the destination, reject the framing.

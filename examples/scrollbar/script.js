@@ -185,7 +185,7 @@ export async function createList() {
       },
       plugins,
     );
-  }, { key: STORAGE_KEY, transition: 120 });
+  }, { key: STORAGE_KEY, transition: 50 });
 
   if (version !== listVersion) {
     newList.destroy();
