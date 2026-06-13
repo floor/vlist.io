@@ -73,6 +73,10 @@ export interface TemplateData {
   OG_TYPE: string;
   OG_SITE_NAME: string | null;
   TWITTER_CARD: string;
+  /** schema.org @type for JSON-LD (default: TechArticle). */
+  SCHEMA_TYPE?: string;
+  /** schema.org isPartOf collection name (default: vlist Documentation). */
+  SCHEMA_COLLECTION?: string;
 
   // Feature flags
   SEO_ENHANCED: boolean;
