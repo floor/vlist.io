@@ -6,6 +6,9 @@ RFCs are discussed in [GitHub Discussions](https://github.com/floor/vlist/discus
 
 | RFC | Status | Topic |
 |-----|--------|-------|
+| [RFC-013: Unified Scroll Model](/docs/rfcs/RFC-013-Unified-Scroll-Model) | Draft | Make bounded logical scroll the only scroll model; remove the native viewport path |
+| [RFC-012: Logical Scroll Model](/docs/rfcs/RFC-012-Logical-Scroll-Model) | Implemented | Viewport-sized content with logical scroll — no compression, unlimited item count |
+| [RFC-011: Carousel Plugin](/docs/rfcs/RFC-011-Carousel-Plugin) | Implemented | Paged carousel with infinite loop, snap, and focal scaling |
 | [RFC-010: Externalized UI Text](/docs/rfcs/RFC-010-Externalized-UI-Text) | Draft | No inline human-language strings; consumer-supplied text with one overridable default per plugin |
 | [RFC-009: Configuration Immutability](/docs/rfcs/RFC-009-Configuration-Immutability) | Draft | Immutable config architecture, runtime escape hatches, rebuild continuity |
 | [RFC-008: Search Plugin](/docs/rfcs/RFC-008-Search-Plugin) | Draft | Built-in search bar with filter/navigate modes |
