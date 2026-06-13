@@ -787,6 +787,14 @@ export function createContentRenderer(config: ContentConfig) {
       OG_TYPE: "article",
       OG_SITE_NAME: "vlist",
       TWITTER_CARD: "summary_large_image",
+      SCHEMA_TYPE: "TechArticle",
+      SCHEMA_COLLECTION: urlPrefix.startsWith("/docs")
+        ? "vlist Documentation"
+        : urlPrefix.startsWith("/tutorials")
+          ? "vlist Tutorials"
+          : urlPrefix.startsWith("/blog")
+            ? "vlist Blog"
+            : "vlist",
 
       // Feature flags
       SEO_ENHANCED: true,
