@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>RFC-013 Gate B — momentum spike</title>
+<!--
+  RFC-013 Gate B device spike (standalone, no build, no library).
+
+  Validates the "idle-only rebase + larger runway" hypothesis from
+  docs/refactor/rfc-013-implementation-plan.md on a real phone:
+
+    - viewport stays overflow:auto  → native touch momentum drives scrollTop
+    - content is a bounded runway   → runwayFactor × viewport (NOT the full list)
+    - rebase ONLY at idle           → never writes scrollTop mid-gesture
+    - render flush after rebase     → no stale offset - oldBaseOffset jump
+
+  Telemetry (the binary signals from the plan):
+    writes-during-momentum  must be 0   (we never set scrollTop while scrolling)
+    hard-edge hits          must be 0   (scrollTop never pins at 0/max mid-fling)
+    max single-fling travel < maxScrollTop with margin (sizes runwayFactor)
+    frame gaps > 32ms       negligible during flings
+
+  Config via URL, e.g.  /gate-b/?items=1000000&size=52&runway=16&idle=160
+-->
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; font: 14px/1.4 -apple-system, system-ui, sans-serif; }
+  #viewport {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;     /* iOS momentum */
+    overscroll-behavior: contain;
+    overflow-anchor: none;                  /* RFC-012 G3 */
+    background: #0b0d12;
+  }
+  #content { position: relative; width: 100%; }
+  .row {
+    position: absolute; left: 0; right: 0;
+    display: flex; align-items: center; padding: 0 16px;
+    color: #c9d2e3; border-bottom: 1px solid #161a22;
+    will-change: transform;
+  }
+  .row.odd { background: #11141b; }
+  .row .i { font-variant-numeric: tabular-nums; opacity: .55; width: 5.5em; }
+  .row .bar { height: 8px; border-radius: 4px; background: linear-gradient(90deg,#3b6,#39f); }
+
+  #hud {
+    position: fixed; top: env(safe-area-inset-top, 8px); left: 8px; right: 8px;
+    background: rgba(8,10,15,.92); color: #e7edf7; border: 1px solid #232a36;
+    border-radius: 10px; padding: 8px 10px; font-size: 12px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; z-index: 10;
+    backdrop-filter: blur(6px);
+  }
+  #hud b { font-variant-numeric: tabular-nums; font-weight: 600; }
+  #hud .bad { color: #ff6b6b; }
+  #hud .ok { color: #51d88a; }
+  #hud .full { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; }
+  #hud button { font: inherit; padding: 3px 8px; border-radius: 6px; border: 1px solid #2c3542; background: #161b24; color: #cdd7e6; }
+  #hud .runway { opacity: .7; }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="content"></div></div>
+
+<div id="hud">
+  <div class="full"><b>RFC-013 Gate B</b><span class="runway" id="cfg"></span><button id="reset">reset</button></div>
+  <div>logical <b id="t-logical">0</b></div>
+  <div>scrollTop <b id="t-top">0</b></div>
+  <div>baseOffset <b id="t-base">0</b></div>
+  <div>maxScrollTop <b id="t-maxtop">0</b></div>
+  <div>rebases <b id="t-rebase">0</b></div>
+  <div>max fling <b id="t-fling">0</b></div>
+  <div>writes/momentum <b id="t-write" class="ok">0</b></div>
+  <div>hard-edge hits <b id="t-edge" class="ok">0</b></div>
+  <div>frame gaps &gt;32ms <b id="t-gap">0</b></div>
+  <div>fling vs runway <b id="t-margin">—</b></div>
+</div>
+
+<script>
+(() => {
+  // ── Config ───────────────────────────────────────────────────────
+  const q = new URLSearchParams(location.search);
+  const TOTAL    = +(q.get("items")  || 1_000_000);
+  const SIZE     = +(q.get("size")   || 52);
+  const FACTOR   = +(q.get("runway") || 16);     // runway = FACTOR × viewport
+  const IDLE_MS  = +(q.get("idle")   || 160);    // rebase fires this long after last scroll event
+
+  const viewport = document.getElementById("viewport");
+  const content  = document.getElementById("content");
+
+  // ── Geometry ─────────────────────────────────────────────────────
+  let containerSize = viewport.clientHeight;
+  const virtualTotal = TOTAL * SIZE;
+  let contentSize, maxScrollTop, maxLogical, maxBaseOffset;
+  function geometry() {
+    containerSize = viewport.clientHeight;
+    contentSize   = Math.min(virtualTotal, containerSize * FACTOR);
+    maxScrollTop  = Math.max(0, contentSize - containerSize);
+    maxLogical    = Math.max(0, virtualTotal - containerSize);
+    maxBaseOffset = Math.max(0, virtualTotal - contentSize);
+    content.style.height = contentSize + "px";
+  }
+  geometry();
+
+  // ── State ────────────────────────────────────────────────────────
+  let baseOffset = 0;            // virtual offset mapping to scrollTop = 0
+  let logical = 0;               // absolute virtual position = baseOffset + scrollTop
+  let scrolling = false;         // true between a scroll event and the idle tick
+
+  // ── Telemetry ────────────────────────────────────────────────────
+  const M = { rebases: 0, writesDuringMomentum: 0, hardEdge: 0, maxFling: 0, frameGaps: 0 };
+  let flingStartLogical = 0;     // logical when the current scroll session began
+
+  const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+
+  // Single choke point for *programmatic* scrollTop writes. Native user
+  // scrolling does NOT pass through here, so the counter only ever rises if
+  // WE write scrollTop while a gesture/momentum is active — which must never happen.
+  function writeScrollTop(px) {
+    if (scrolling) M.writesDuringMomentum++;   // the failure we are hunting
+    viewport.scrollTop = px;
+  }
+
+  // ── Rendering (pooled rows, recycled) ────────────────────────────
+  const pool = new Map();        // dataIndex → element
+  const OVERSCAN = 4;
+  function render() {
+    const first = Math.max(0, Math.floor(logical / SIZE) - OVERSCAN);
+    const last  = Math.min(TOTAL - 1, Math.ceil((logical + containerSize) / SIZE) + OVERSCAN);
+    // release out-of-range
+    for (const [idx, el] of pool) {
+      if (idx < first || idx > last) { el.remove(); pool.delete(idx); }
+    }
+    for (let i = first; i <= last; i++) {
+      let el = pool.get(i);
+      if (!el) {
+        el = document.createElement("div");
+        el.className = "row" + (i & 1 ? " odd" : "");
+        el.style.height = SIZE + "px";
+        el.innerHTML = '<span class="i">#' + i.toLocaleString() + '</span><span class="bar" style="width:' + (12 + (i % 60)) + '%"></span>';
+        content.appendChild(el);
+        pool.set(i, el);
+      }
+      // position relative to the runway: absolute offset minus baseOffset
+      el.style.transform = "translateY(" + (i * SIZE - baseOffset) + "px)";
+    }
+  }
+
+  // ── Idle rebase: re-centre scrollTop, preserve logical, then flush ──
+  function rebaseAtIdle() {
+    if (maxBaseOffset <= 0) return false;
+    const centre = maxScrollTop / 2;
+    const newBase = clamp(logical - centre, 0, maxBaseOffset);
+    if (Math.abs(newBase - baseOffset) < 0.5) return false;
+    baseOffset = newBase;
+    writeScrollTop(clamp(logical - newBase, 0, maxScrollTop)); // scrolling is already false here
+    M.rebases++;
+    return true;                  // caller must re-render (the synthetic scroll event is a no-op)
+  }
+
+  // ── Scroll handling ──────────────────────────────────────────────
+  let idleTimer = null;
+  function onScroll() {
+    const top = viewport.scrollTop;
+    const newLogical = baseOffset + top;
+
+    if (!scrolling) { scrolling = true; flingStartLogical = newLogical; }
+
+    // hard-edge hit = scrollTop pinned at a runway boundary while the list still
+    // has somewhere to go (ran out of runway mid-gesture → the dead-stop failure).
+    if ((top <= 0.5 && newLogical > 0.5) ||
+        (top >= maxScrollTop - 0.5 && newLogical < maxLogical - 0.5)) {
+      M.hardEdge++;
+    }
+
+    logical = newLogical;
+    const travel = Math.abs(logical - flingStartLogical);
+    if (travel > M.maxFling) M.maxFling = travel;
+
+    render();
+    scheduleIdle();
+  }
+
+  function scheduleIdle() {
+    if (idleTimer !== null) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      idleTimer = null;
+      scrolling = false;                 // gesture/momentum is over
+      if (rebaseAtIdle()) render();      // render flush — critical (plan P1)
+    }, IDLE_MS);
+  }
+
+  viewport.addEventListener("scroll", onScroll, { passive: true });
+
+  // ── Frame-gap monitor (only counts while scrolling) ──────────────
+  let lastFrame = performance.now();
+  function frame(now) {
+    if (scrolling && now - lastFrame > 32) M.frameGaps++;
+    lastFrame = now;
+    paintHud();
+    requestAnimationFrame(frame);
+  }
+
+  // ── HUD ──────────────────────────────────────────────────────────
+  const $ = (id) => document.getElementById(id);
+  $("cfg").textContent = `${TOTAL.toLocaleString()} items · ${SIZE}px · runway ${FACTOR}× · idle ${IDLE_MS}ms`;
+  function paintHud() {
+    $("t-logical").textContent = Math.round(logical).toLocaleString();
+    $("t-top").textContent     = Math.round(viewport.scrollTop).toLocaleString();
+    $("t-base").textContent    = Math.round(baseOffset).toLocaleString();
+    $("t-maxtop").textContent  = Math.round(maxScrollTop).toLocaleString();
+    $("t-rebase").textContent  = M.rebases;
+    $("t-fling").textContent   = Math.round(M.maxFling).toLocaleString();
+    const w = $("t-write"); w.textContent = M.writesDuringMomentum; w.className = M.writesDuringMomentum ? "bad" : "ok";
+    const e = $("t-edge");  e.textContent = M.hardEdge;             e.className = M.hardEdge ? "bad" : "ok";
+    $("t-gap").textContent     = M.frameGaps;
+    const pct = maxScrollTop > 0 ? Math.round(M.maxFling / maxScrollTop * 100) : 0;
+    const m = $("t-margin"); m.textContent = pct + "% of runway"; m.className = pct > 85 ? "bad" : "ok";
+  }
+
+  $("reset").addEventListener("click", () => {
+    M.rebases = M.writesDuringMomentum = M.hardEdge = M.maxFling = M.frameGaps = 0;
+  });
+
+  window.addEventListener("resize", () => { geometry(); render(); });
+
+  render();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
