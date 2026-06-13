@@ -14,6 +14,10 @@
         <meta property="og:url" content="<%= it.URL %>" />
         <meta property="og:title" content="<%= it.TITLE %>" />
         <meta property="og:description" content="<%= it.DESCRIPTION %>" />
+        <meta property="og:image" content="<%= it.OG_IMAGE || 'https://vlist.io/og-image.png' %>" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="vlist — the virtual list library for every framework" />
         <% if (it.OG_SITE_NAME) { %>
         <meta property="og:site_name" content="<%= it.OG_SITE_NAME %>" />
         <% } %>
@@ -23,6 +27,7 @@
         <meta name="twitter:url" content="<%= it.URL %>" />
         <meta name="twitter:title" content="<%= it.TITLE %>" />
         <meta name="twitter:description" content="<%= it.DESCRIPTION %>" />
+        <meta name="twitter:image" content="<%= it.OG_IMAGE || 'https://vlist.io/og-image.png' %>" />
 
         <% if (it.SEO_ENHANCED) { %>
         <!-- Additional SEO -->
