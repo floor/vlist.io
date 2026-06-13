@@ -17,12 +17,14 @@ reviewers: GPT-5.5, Opus 4.8, Gemini 3.1, Opus 4.6 (CTO)
 
 ## Summary
 
-Remove the native scroll path. Make bounded logical scroll the only scroll model in vlist. The `scroll: { mode: "bounded" }` option disappears — bounded is how vlist works.
+Remove the native **viewport** scroll path. Make bounded logical scroll the only scroll model for viewport-scrolled lists — which is every list except those using `page()`. The `scroll: { mode: "bounded" }` option disappears — bounded is how vlist works.
 
 ```
 Before:  createVList({ scroll: { mode: "bounded" } })   // opt-in
 After:   createVList({})                                  // just works
 ```
+
+The one principled exception is `page()` (document/window scroll). The runway is a *viewport*-scroll technique; page mode scrolls the **window** over a full-height document and is a fundamentally different scroll provider. Rather than force page mode through a bounded proxy, `page()` stays a self-contained native-document scroll island behind the existing `skipDefaultScroll` seam (see Gate C). This is not the old "native vs bounded mode" toggle — there is one ambient model (bounded viewport) plus one plugin that brings its own scroll source.
 
 ---
 
@@ -253,7 +255,7 @@ Code that explicitly sets `mode: "bounded"` gets a config warning in the last 2.
 
 ## Implementation
 
-The bounded path exists and is proven for the default list and carousel (RFC-012 Phases 0–4), and the self-managed renderers (grid/table/masonry) and resize geometry have since been routed through it. "Flip the default and delete native" now hinges on **three release gates (B, C, SB) plus an RTL policy** — not the broad "adapterize everything" migration earlier drafts described. Gates A/A′/A″ are landed; gate SB (virtual-scrollbar + accessibility parity) was added after the 2026-06-13 review round, where Codex (GPT-5) and Gemini 3.1 independently raised it as co-equal with Gate B.
+The bounded path exists and is proven for the default list and carousel (RFC-012 Phases 0–4), and the self-managed renderers (grid/table/masonry) and resize geometry have since been routed through it. "Flip the default and delete native" now hinges on **two hard release gates (B, SB), a small page-mode seam (C), and an RTL policy** — not the broad "adapterize everything" migration earlier drafts described. Gates A/A′/A″ are landed; gate SB (virtual-scrollbar + accessibility parity) was added after the 2026-06-13 review round, where Codex (GPT-5) and Gemini 3.1 independently raised it as co-equal with Gate B. Gate C was de-risked in discussion #117: page mode stays a native-document island rather than getting a bounded proxy.
 
 ### Status
 
@@ -263,7 +265,7 @@ The bounded path exists and is proven for the default list and carousel (RFC-012
 | **(A′) — Resize refreshes runway** | `ResizeObserver` re-derives runway geometry on container resize | ✅ **Done** | `283b2d5` |
 | **(A″) — Self-managed plugins bounded-aware** | groups sticky headers; scrollbar max-scroll incl. padding | ✅ **Done** | `e2ba4b0`, `e182f3a` |
 | **B — iOS/touch momentum** | rebasing must not kill native fling momentum | 🔴 **Open — release gate** | needs device validation |
-| **C — Bounded page-mode proxy** | `page()` works without unbounded document height | 🔴 **Open — release gate** | guarded by throw (`283b2d5`) |
+| **C — page() as native-document island** | `page()` keeps its own window scroll + full-height sizing behind the `skipDefaultScroll` seam; no bounded proxy | 🟡 **Approach resolved — small implementation** | already 90% true (`plugin.ts`, `create.ts:757`) |
 | **SB — Virtual scrollbar + AT parity** | custom overlay scrollbar reaches native scrollbar's UX + screen-reader parity | 🔴 **Open — release gate** | added by 2026-06-13 review (Codex, Gemini) |
 | **RTL — Horizontal scroll policy** | `scrollLeft` rebasing semantics in RTL across browsers | 🔴 **Open — needs stated policy** | unaddressed since RFC-012 OQ#3 |
 | **D — Adapter as source of truth** | core canonical state becomes logical, not pixel | 🟡 **Non-blocking follow-up** | purity refactor, no behavior change |
@@ -288,15 +290,23 @@ Acceptance (on real iOS Safari and Android Chrome — unit tests cannot cover th
 
 Device validation passing all four is mandatory before Phase E.
 
-### Gate C — Bounded page-mode proxy (release gate)
+### Gate C — page() as a native-document scroll island
 
-RFC-012 landed a guard that throws when `page()` and bounded are combined (`283b2d5`). The bounded page-mode proxy was designed (RFC-012 §Phase 2) but never implemented. Bounded-only removes the native fallback, so this is now required, not optional.
+Earlier drafts framed this as "build a bounded page-mode proxy **or** drop `page()`." Both were overkill. The resolution (discussion #117): **`page()` keeps native document scroll as a self-contained island.** The runway is a *viewport*-scroll technique; page mode scrolls the **window** over a full-height document — a different scroll provider, not a different "mode."
 
-This gate is a **hard either/or for 3.0** — bounded-only cannot ship with page mode merely guarded:
-- **Either** the bounded page-mode proxy ships: intercept `window` scroll events, translate to bounded logical space, drive the bounded handler, preserving the document-integrated scroll feel page-mode users expect; **or**
-- **`page()` is intentionally dropped in 3.0** with a documented migration path and a dev-time error explaining the removal.
+This is ~90% already true in the code:
+- Page mode calls `disableDefaultScroll()`, and `create.ts:757` only attaches the viewport handler when `!skipDefaultScroll` — so **page mode never uses the native viewport handler that bounded-only deletes.** It brings its own `window` scroll (`plugin.ts:96-114`).
+- The page plugin never references `baseOffset`/`runway`/`bounded`; it leaves `baseOffset` at `0`, so the core render path draws items at full `offset` — exactly what a full-height document needs.
 
-A silent break (the throw guard shipping as the 3.0 behavior) is not an acceptable outcome.
+So bounded-only still deletes `src/core/scroll.ts` and `scroll.mode`. What "survives" for page mode is not a scroll handler but the degenerate content model (full-height sizing + `baseOffset = 0`), owned by the plugin. The implementation work is a single seam:
+
+> **`skipDefaultScroll` ⇒ no bounded handler is installed, and the owning plugin sizes content to full height.**
+
+`skipDefaultScroll` already suppresses the viewport handler; this extends it so the bounded handler isn't created and `syncContentSize` uses full height when a plugin owns scroll. The hard, unbuilt window-rebasing proxy is **not needed.**
+
+**Discipline (the make-or-break):** page's native-ness must stay behind this *one* seam, not leak as `if (pageMode)` checks across the pipeline. One seam → clean. Scattered mode-checks → the dual path rebuilt through the back door.
+
+**Accepted limitation (not a regression).** A full-height document still caps page mode at ~349,525 items at 48px (the 16.7M px browser limit). This is page mode's *existing* ceiling — opt-in bounded never raised it — so nothing shipping regresses. We explicitly choose **not** to raise it: the bounded page-proxy was the only way to, and its cost (window-level rebasing) is not worth it. Document-integrated infinite feeds page data in as they scroll and don't need millions of physical rows; lists that genuinely need millions of items use a viewport-virtualized list, which stays unlimited. State this as a known limit in the page docs.
 
 ### Gate RTL — Horizontal scroll policy
 
@@ -318,6 +328,8 @@ Acceptance before Phase E:
 
 This is product risk as much as engine risk and should be QA'd as a release gate, not assumed.
 
+**page() carve-out.** Page mode is the one exception to "virtual overlay everywhere": it already removes the custom-scrollbar class (`plugin.ts:70`) and lets the **document's own native scrollbar** scroll the page — which is the correct affordance for document-integrated scroll, and inherits native AT bindings for free. So the SB acceptance above applies to viewport lists; `page()` keeps the document scrollbar.
+
 ### Phase D — Adapter as source of truth (non-blocking)
 
 RFC-013 §One scroll contract presents `ScrollAdapter.getLogical()` as the sole plugin contract. Core still runs on pixel-based `state.scrollPosition` with the adapter (`adapter.ts`) as a correct wrapper over it. Making logical the canonical representation is a worthwhile cleanup for plugin authors but changes **no behavior** and the pixel-equivalents are already correct — so it must **not** gate the 3.0 release. Ship it as a follow-up refactor.
@@ -326,8 +338,8 @@ RFC-013 §One scroll contract presents `ScrollAdapter.getLogical()` as the sole 
 
 Once **B, C, SB, and RTL** are closed (D may trail):
 1. Remove `scroll.mode` from config types and validation
-2. Remove the native scroll path from `src/core/scroll.ts` and `src/core/create.ts`
-3. Remove native-path branches from the scrollbar plugin
+2. Remove the native viewport scroll path from `src/core/scroll.ts` and `src/core/create.ts`; replace the `page() + bounded` throw guard with the Gate C seam (`skipDefaultScroll` ⇒ no bounded handler + full-height sizing)
+3. Remove native-path branches from the scrollbar plugin (page() keeps the document scrollbar — that's not a native *viewport* scrollbar branch)
 4. Remove dual-mode tests (keep bounded tests, delete native-only tests that duplicate them)
 5. Update docs: remove "bounded" as an opt-in concept — it's just how vlist scrolls
 
@@ -339,9 +351,9 @@ This phase is net-negative lines. The total RFC is net positive until this point
 
 1. **`runwayFactor` — keep internal.** Already tuned 10→3→2 during RFC-012; exposing it invites misuse. The existing `scroll.runway` escape hatch remains for power users but is not promoted in docs.
 
-2. **Page mode — hard gate, not open question.** The bounded page-mode proxy is an unbuilt dependency (see Phase C). It must be implemented and tested before the flip.
+2. **Page mode — native-document island, not a bounded proxy (discussion #117).** `page()` keeps its own window scroll and full-height sizing behind the `skipDefaultScroll` seam; the bounded page-proxy is *not* built. Accepted limitation: page mode stays capped at ~349,525 items (the existing 16.7M px ceiling — not a regression). Lists that need more use a viewport-virtualized list. See Gate C.
 
-3. **Timing — separate 3.0, not a 2.x cleanup.** With renderer routing and resize geometry already landed (gates A/A′/A″), the remaining work is gates B, C, and the RTL policy. Sequence: ship the RFC-012 fixes plus the `mode: "bounded"` deprecation warning as 2.x, close B/C/RTL on real devices, then flip the default and delete native as vlist 3.0. Phase D (adapter-as-source-of-truth) can land after 3.0.
+3. **Timing — separate 3.0, not a 2.x cleanup.** With renderer routing and resize geometry already landed (gates A/A′/A″), the remaining work is the hard gates B and SB, the small page-mode seam C, and the RTL policy. Sequence: ship the RFC-012 fixes plus the `mode: "bounded"` deprecation warning as 2.x, close B/SB on real devices (and the C seam + RTL policy), then flip the default and delete native as vlist 3.0. Phase D (adapter-as-source-of-truth) can land after 3.0.
 
 ---
 
@@ -365,7 +377,9 @@ Consensus: the goal is right, the original framing ("mostly deletion, net-negati
 | Codex (GPT-5) | **Approve destination, keep Phase E gated.** Re-verified A/A′/A″ against code; ran focused bounded suite (301 pass / 0 fail). Conditions: Gate B device validation, Gate C ship-or-deprecate, RTL support policy, **virtual-scrollbar/AT acceptance as a release gate**, plugin guidance toward `ScrollAdapter` now. |
 | Gemini 3.1 | **Approve destination, strictly block Phase E on Gate B and A11y.** Native scrollbars provide free ARIA bindings; the custom scrollbar must reach parity before native is dropped. |
 
-Both reviewers independently elevated **virtual-scrollbar + accessibility parity** to a release gate co-equal with Gate B. This revision adds it as **Gate SB**, resolves the previously-contradictory scrollbar story (§One scrollbar model now specifies a bundled, on-by-default, suppressible overlay scrollbar at every size), tightens Gate C to a hard ship-or-deprecate, makes Gate RTL an explicit supported/unsupported policy, and pulls the "prefer `ScrollAdapter`" guidance forward for plugin authors.
+Both reviewers independently elevated **virtual-scrollbar + accessibility parity** to a release gate co-equal with Gate B. This revision adds it as **Gate SB**, resolves the previously-contradictory scrollbar story (§One scrollbar model now specifies a bundled, on-by-default, suppressible overlay scrollbar at every size), makes Gate RTL an explicit supported/unsupported policy, and pulls the "prefer `ScrollAdapter`" guidance forward for plugin authors.
+
+**Gate C resolution (post-#117).** Codex's "ship-or-deprecate" framing was overtaken by a simpler answer: `page()` keeps native **document** scroll as a self-contained island behind the existing `skipDefaultScroll` seam — no bounded page-proxy, and `page()` is not dropped. The accepted cost is that page mode keeps its existing ~349,525-item ceiling (not a regression). This de-risked Gate C from a hard release gate to a small implementation seam. See Gate C.
 
 ---
 
