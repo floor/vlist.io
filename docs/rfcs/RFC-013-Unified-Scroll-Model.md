@@ -52,7 +52,7 @@ The bounded scroll model is not a "large list" feature. It works identically for
 - For a 10-item list at 48px each (480px total), the content is 480px — smaller than the runway. Native behavior is preserved naturally.
 - Scroll physics come from the browser's native scroll on the bounded window. No reimplementation.
 
-There is no list size where native scroll is *required*.
+There is no list size where native scroll is *required for vlist correctness*. (Native scroll remains a platform affordance — OS scrollbar, AT bindings, simple third-party integration — even where it is not architecturally necessary; see §What you lose and Gate SB.)
 
 ### The "you should have used bounded" migration
 
@@ -94,11 +94,16 @@ interface ScrollAdapter {
 
 ### One scrollbar model
 
-All scrollbars are virtual. The native scrollbar path is removed. The `scrollbar()` plugin has one mode, not two.
+The `scrollbar()` plugin has one mode, not two — the native-vs-virtual branch is removed. But "all scrollbars are virtual" needs a precise default story, because a sub-runway list still has real-sized content and would otherwise paint the OS scrollbar (see Gate SB):
+
+- **Default for 3.0 — virtual overlay scrollbar, bundled and on by default, suppressible.** The viewport sets `overflow` such that the browser scrollbar never paints (`overflow: hidden` on the main axis with scroll driven through the handler), and vlist renders its own overlay scrollbar for *every* list regardless of size. This removes the native↔custom *transition* at the runway boundary — the scrollbar looks and behaves the same at 10 items and 10M. Consumers can opt out (`scrollbar: false`) for headless/embedded cases.
+- **Rejected alternative:** keep the OS scrollbar for sub-runway lists and switch to virtual past the runway. This reintroduces a visible discontinuity (native bar suddenly becomes custom as the list grows) — exactly the migration-cliff feel this RFC exists to remove.
+
+The cost is that the virtual scrollbar must reach AT/UX parity before native can be dropped — tracked as **Gate SB** (release gate).
 
 ### Content sizing
 
-The content element is always sized to `min(totalItems × itemSize, viewport × runwayFactor)`. For small lists where total content fits in the viewport, this is just the total content size — no rebasing occurs, scroll behavior is indistinguishable from native.
+The content element is always sized to `min(totalItems × itemSize, viewport × runwayFactor)`. For small lists where total content fits the runway, this is just the total content size and **no rebasing occurs** — scroll *physics* are indistinguishable from native. Note this is about scroll feel, not the scrollbar: per §One scrollbar model, the visible scrollbar is the virtual overlay at every size, so there is no native-scrollbar appearance even for small lists.
 
 ### Small-list fast path
 
@@ -229,6 +234,8 @@ The "Simplified" list above is real, but it oversells "single path" as pure subt
 - Use `ScrollAdapter` exclusively — no raw `scrollTop` reads for scroll position.
 - Cross-axis scroll (horizontal table overflow) remains native and unaffected.
 
+**Start now, ahead of Phase D.** Even though making logical state canonical is a post-3.0 follow-up (Phase D), new plugin work should already prefer `ScrollAdapter` (`getLogical()` / `getPixelEquivalent()` / `scrollByPx()`) over direct `engineState.scrollPosition` or `baseOffset` reads wherever possible. Code written against the adapter today needs no change when Phase D lands; code written against raw pixel state will.
+
 ### Semver
 
 This is a major breaking change. vlist is at 2.3.0 — this ships as **vlist 3.0**.
@@ -236,7 +243,7 @@ This is a major breaking change. vlist is at 2.3.0 — this ships as **vlist 3.0
 Breaking changes:
 - `scroll.mode` option removed
 - `scale()` plugin removed (deprecated in RFC-012, deleted here)
-- Native scrollbar path removed — `scrollbar()` plugin becomes required for visible scrollbars
+- Native OS scrollbar no longer appears for any list — the virtual overlay scrollbar (bundled, on by default, `scrollbar: false` to suppress) replaces it at every size; see §One scrollbar model and Gate SB
 - `getScrollPosition()` on carousel returns raw logical position instead of lap-normalized value
 - `internals.ts` exports reduced (legacy rendering modules deleted in RFC-012 Phase 3b)
 
@@ -246,7 +253,7 @@ Code that explicitly sets `mode: "bounded"` gets a config warning in the last 2.
 
 ## Implementation
 
-The bounded path exists and is proven for the default list and carousel (RFC-012 Phases 0–4), and the self-managed renderers (grid/table/masonry) and resize geometry have since been routed through it. "Flip the default and delete native" now hinges on **two real gates plus an RTL policy** — not the broad "adapterize everything" migration earlier drafts described.
+The bounded path exists and is proven for the default list and carousel (RFC-012 Phases 0–4), and the self-managed renderers (grid/table/masonry) and resize geometry have since been routed through it. "Flip the default and delete native" now hinges on **three release gates (B, C, SB) plus an RTL policy** — not the broad "adapterize everything" migration earlier drafts described. Gates A/A′/A″ are landed; gate SB (virtual-scrollbar + accessibility parity) was added after the 2026-06-13 review round, where Codex (GPT-5) and Gemini 3.1 independently raised it as co-equal with Gate B.
 
 ### Status
 
@@ -257,9 +264,10 @@ The bounded path exists and is proven for the default list and carousel (RFC-012
 | **(A″) — Self-managed plugins bounded-aware** | groups sticky headers; scrollbar max-scroll incl. padding | ✅ **Done** | `e2ba4b0`, `e182f3a` |
 | **B — iOS/touch momentum** | rebasing must not kill native fling momentum | 🔴 **Open — release gate** | needs device validation |
 | **C — Bounded page-mode proxy** | `page()` works without unbounded document height | 🔴 **Open — release gate** | guarded by throw (`283b2d5`) |
+| **SB — Virtual scrollbar + AT parity** | custom overlay scrollbar reaches native scrollbar's UX + screen-reader parity | 🔴 **Open — release gate** | added by 2026-06-13 review (Codex, Gemini) |
 | **RTL — Horizontal scroll policy** | `scrollLeft` rebasing semantics in RTL across browsers | 🔴 **Open — needs stated policy** | unaddressed since RFC-012 OQ#3 |
 | **D — Adapter as source of truth** | core canonical state becomes logical, not pixel | 🟡 **Non-blocking follow-up** | purity refactor, no behavior change |
-| **E — Flip and delete** | remove `scroll.mode` + native path | ⬜ **Blocked on B, C, RTL** | — |
+| **E — Flip and delete** | remove `scroll.mode` + native path | ⬜ **Blocked on B, C, SB, RTL** | — |
 
 The diff is net positive until Phase E, which is net-negative lines.
 
@@ -272,17 +280,43 @@ Fix direction (commit to option 3, validate on device):
 2. Increase `BOUNDED_RUNWAY_FACTOR` for headroom — touch fling velocity is physically bounded, so a large runway (e.g. 10–20× viewport ≈ 6–12k px on a phone, still four orders of magnitude under the 16.7M cap) absorbs any single fling.
 3. **Both — idle-only rebase + larger runway.** The large runway means a rebase essentially never fires *during* a gesture; idle-only rebase removes the in-fling `scrollTop` writes entirely. This is the intended fix.
 
-Acceptance: on real iOS Safari and Android Chrome, a hard fling traverses, decelerates, and rubber-bands with no detectable stall or stop. Unit tests cannot cover this (happy-dom has no momentum) — device validation is mandatory before Phase E.
+Acceptance (on real iOS Safari and Android Chrome — unit tests cannot cover this, happy-dom has no momentum):
+- Hard fling traverses, decelerates, and rubber-bands/overscrolls with no detectable stall or stop
+- Repeated rapid flings in the same direction (forcing repeated rebases) show no thumb or content judder
+- Slow drag-scroll and fling-then-catch land where expected
+- No frame drops attributable to a `scrollTop` write mid-gesture
+
+Device validation passing all four is mandatory before Phase E.
 
 ### Gate C — Bounded page-mode proxy (release gate)
 
 RFC-012 landed a guard that throws when `page()` and bounded are combined (`283b2d5`). The bounded page-mode proxy was designed (RFC-012 §Phase 2) but never implemented. Bounded-only removes the native fallback, so this is now required, not optional.
 
-The proxy must intercept `window` scroll events, translate them to bounded logical space, and drive the bounded handler — while preserving the document-integrated scroll feel page-mode users expect. If the proxy slips the 3.0 timeline, the fallback is an **explicit deprecation of `page()`** with a documented migration, not a silent break.
+This gate is a **hard either/or for 3.0** — bounded-only cannot ship with page mode merely guarded:
+- **Either** the bounded page-mode proxy ships: intercept `window` scroll events, translate to bounded logical space, drive the bounded handler, preserving the document-integrated scroll feel page-mode users expect; **or**
+- **`page()` is intentionally dropped in 3.0** with a documented migration path and a dev-time error explaining the removal.
+
+A silent break (the throw guard shipping as the 3.0 behavior) is not an acceptable outcome.
 
 ### Gate RTL — Horizontal scroll policy
 
-RFC-012 left RTL as open question #3; RFC-013 must close it. In RTL, `scrollLeft` semantics differ across browsers (negative in some, decreasing-from-max in others), and the runway rebase shifts `scrollLeft` directly. State the normalization policy and the supported-browser matrix, and add an RTL horizontal test before the flip. Until then, RTL horizontal lists are an unverified configuration under bounded-only.
+RFC-012 left RTL as open question #3; RFC-013 must close it. In RTL, `scrollLeft` semantics differ across browsers (negative in some, decreasing-from-max in others), and the runway rebase shifts `scrollLeft` directly. Close it as an explicit policy, not a note:
+- **If RTL-horizontal is supported in 3.0:** normalize `scrollLeft` semantics across engines, state the supported-browser matrix, and add an RTL horizontal rebase test before the flip.
+- **If it is not supported in 3.0:** document that explicitly and add a **dev-time warning (or throw) for bounded horizontal RTL**, so the unsupported configuration fails loudly rather than silently mis-scrolling.
+
+Until one of these lands, RTL horizontal lists are an unverified configuration under bounded-only.
+
+### Gate SB — Virtual scrollbar + accessibility parity (release gate)
+
+Added after the 2026-06-13 review: Codex (GPT-5) and Gemini 3.1 independently flagged that removing the native scroll path commits vlist to a custom scrollbar for **every** list, and native scrollbars provide free ARIA/AT bindings, keyboard behavior, and platform feel that the virtual scrollbar must match before native can be dropped. Per §One scrollbar model, the 3.0 default is a bundled, on-by-default, suppressible overlay scrollbar at every list size.
+
+Acceptance before Phase E:
+- **Keyboard:** PageUp/PageDown/Home/End/arrow scrolling work on the scroll region; focus-into-view reveals offscreen focused items
+- **Screen readers:** the scroll region exposes `role="scrollbar"` (or an equivalent the AT announces), with correct `aria-valuenow`/`aria-valuemin`/`aria-valuemax`/`aria-controls`; SR scroll cues behave comparably to a native scrollable region
+- **Pointer:** thumb drag, track click/page, and wheel-over-thumb all map to the correct logical position
+- **Feel & theming:** overlay appearance acceptable across macOS/Windows/mobile; honors high-contrast and `prefers-reduced-motion`; `scrollbar: false` cleanly yields no visible scrollbar
+
+This is product risk as much as engine risk and should be QA'd as a release gate, not assumed.
 
 ### Phase D — Adapter as source of truth (non-blocking)
 
@@ -290,7 +324,7 @@ RFC-013 §One scroll contract presents `ScrollAdapter.getLogical()` as the sole 
 
 ### Phase E — Flip and delete
 
-Once **B, C, and RTL** are closed (D may trail):
+Once **B, C, SB, and RTL** are closed (D may trail):
 1. Remove `scroll.mode` from config types and validation
 2. Remove the native scroll path from `src/core/scroll.ts` and `src/core/create.ts`
 3. Remove native-path branches from the scrollbar plugin
@@ -322,7 +356,16 @@ This phase is net-negative lines. The total RFC is net positive until this point
 
 Consensus: the goal is right, the original framing ("mostly deletion, net-negative lines") was wrong. This revision incorporates all reviewer feedback.
 
-**Post-review update (2026-06-13).** Several reviewers' "not done yet" evidence — grid/table writing full physical content sizes, resize leaving stale runway geometry — was read from this RFC's own (then-current) text rather than the code, and has since landed (`54fb8f0`, `283b2d5`). Re-verification against `staging` reduced the open gate set from "adapterize every renderer, then delete native" to **B (iOS/touch momentum), C (page-mode proxy), and the RTL policy**; gate A and its siblings are ✅ done, and Phase D (adapter-as-source-of-truth) is reclassified as a non-blocking post-3.0 follow-up. See the Implementation status table.
+**Post-review update (2026-06-13).** Several reviewers' "not done yet" evidence — grid/table writing full physical content sizes, resize leaving stale runway geometry — was read from this RFC's own (then-current) text rather than the code, and has since landed (`54fb8f0`, `283b2d5`). Re-verification against `staging` reduced the open gate set from "adapterize every renderer, then delete native" to the gates in the Implementation status table; gate A and its siblings are ✅ done, and Phase D (adapter-as-source-of-truth) is reclassified as a non-blocking post-3.0 follow-up.
+
+**Second review round (2026-06-13, GitHub discussion #117).**
+
+| Reviewer | Verdict |
+|----------|---------|
+| Codex (GPT-5) | **Approve destination, keep Phase E gated.** Re-verified A/A′/A″ against code; ran focused bounded suite (301 pass / 0 fail). Conditions: Gate B device validation, Gate C ship-or-deprecate, RTL support policy, **virtual-scrollbar/AT acceptance as a release gate**, plugin guidance toward `ScrollAdapter` now. |
+| Gemini 3.1 | **Approve destination, strictly block Phase E on Gate B and A11y.** Native scrollbars provide free ARIA bindings; the custom scrollbar must reach parity before native is dropped. |
+
+Both reviewers independently elevated **virtual-scrollbar + accessibility parity** to a release gate co-equal with Gate B. This revision adds it as **Gate SB**, resolves the previously-contradictory scrollbar story (§One scrollbar model now specifies a bundled, on-by-default, suppressible overlay scrollbar at every size), tightens Gate C to a hard ship-or-deprecate, makes Gate RTL an explicit supported/unsupported policy, and pulls the "prefer `ScrollAdapter`" guidance forward for plugin authors.
 
 ---
 
