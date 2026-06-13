@@ -90,6 +90,7 @@ interface Frontmatter {
   created?: string;
   updated?: string;
   status?: string;
+  description?: string;
 }
 
 function parseFrontmatter(source: string): Frontmatter {
@@ -102,8 +103,70 @@ function parseFrontmatter(source: string): Frontmatter {
     if (key.trim() === "created") meta.created = value;
     if (key.trim() === "updated") meta.updated = value;
     if (key.trim() === "status") meta.status = value;
+    if (key.trim() === "description") meta.description = value;
   }
   return meta;
+}
+
+/** Strip inline markdown to plain, attribute/JSON-safe text. */
+function stripInlineMarkdown(s: string): string {
+  return s
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // links → label
+    .replace(/`([^`]+)`/g, "$1") // inline code
+    .replace(/[*_~]+/g, "") // emphasis / strikethrough markers
+    .replace(/["<>\\]/g, "") // chars that break HTML attrs / JSON-LD strings
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Derive a meta description from the first prose paragraph of a markdown body
+ * (frontmatter already stripped). Skips headings, rules, lists, tables,
+ * blockquotes, code fences, and leading bold "**Key:** value" metadata lines
+ * (e.g. RFC header blocks). Truncates to ~160 chars on a word boundary.
+ * Returns "" when no prose is found, so callers can fall back.
+ */
+function extractDescription(md: string): string {
+  const paragraphs: string[] = [];
+  let buf: string[] = [];
+  let inFence = false;
+  const flush = (): void => {
+    if (buf.length) paragraphs.push(buf.join(" "));
+    buf = [];
+  };
+  for (const raw of md.split("\n")) {
+    const line = raw.trim();
+    if (line.startsWith("```")) {
+      inFence = !inFence;
+      flush();
+      continue;
+    }
+    if (inFence) continue;
+    if (line === "") {
+      flush();
+      continue;
+    }
+    // headings, horizontal rules, blockquotes, tables, list items
+    if (/^(#{1,6}\s|[-*]{3,}$|>|\||[-*+]\s|\d+\.\s)/.test(line)) {
+      flush();
+      continue;
+    }
+    // skip a leading "**Status:** ..." style metadata line (RFC header block)
+    if (buf.length === 0 && /^\*\*[^*]+:\*\*/.test(line)) continue;
+    buf.push(line);
+  }
+  flush();
+
+  const first =
+    paragraphs.find((p) => stripInlineMarkdown(p).length >= 40) ??
+    paragraphs[0] ??
+    "";
+  let text = stripInlineMarkdown(first);
+  if (text.length > 160) {
+    text = text.slice(0, 157).replace(/\s+\S*$/, "") + "…";
+  }
+  return text;
 }
 
 function formatDate(iso: string): string {
@@ -816,7 +879,14 @@ export function createContentRenderer(config: ContentConfig) {
     // Extract title from first h1
     const h1Title = extractTitle(parsedHtml);
     const title = h1Title ? `${h1Title} — ${titleSuffix}` : defaultTitle;
-    const description = navItem?.desc || defaultDescription;
+    // Per-page description for SEO/social. Priority: explicit frontmatter →
+    // sidebar nav desc → first prose paragraph of the page → generic default.
+    // RFC pages (absent from nav) previously all shared the generic default.
+    const description =
+      frontmatter.description ||
+      navItem?.desc ||
+      extractDescription(mdSource) ||
+      defaultDescription;
 
     const html = assemblePage(slug, content, title, description, tocHtml);
 
