@@ -14,6 +14,8 @@ vlist(document.getElementById("list-container"), {
   config: {
     ariaLabel: "Orders",
     items,
+    padding: 8,
+    scroll: { scrollbar: "native" },
     item: {
       height: ITEM_HEIGHT,
       striped: true,

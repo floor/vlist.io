@@ -15,6 +15,8 @@ function App() {
   const { setRef } = createVList(() => ({
     ariaLabel: "Orders",
     items,
+    padding: 8,
+    scroll: { scrollbar: "native" },
     item: {
       height: ITEM_HEIGHT,
       striped: true,
