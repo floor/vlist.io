@@ -22,10 +22,10 @@
         "solid-js": "^1.9.11",
         "virtua": "^0.48.6",
         "vlist": "file:../vlist",
-        "vlist-react": "^1.6.0",
-        "vlist-solidjs": "^1.6.0",
-        "vlist-svelte": "^1.6.0",
-        "vlist-vue": "^1.6.0",
+        "vlist-react": "^2.6.0",
+        "vlist-solidjs": "^2.6.0",
+        "vlist-svelte": "^2.6.0",
+        "vlist-vue": "^2.6.0",
         "vue": "^3.5.28",
         "vue-virtual-scroller": "^2.0.0-beta.8",
       },
@@ -534,13 +534,13 @@
 
     "vlist": ["vlist@file:../vlist", { "devDependencies": { "@happy-dom/global-registrator": "^20.9.0", "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "happy-dom": "^20.9.0", "jsdom": "^28.0.0", "typescript": "^5.0.0" } }],
 
-    "vlist-react": ["vlist-react@1.6.0", "", { "peerDependencies": { "react": ">=17.0.0", "vlist": "^1.5.0" } }, "sha512-qCDeonRjj/ewZLfNRYlOQOQoPoK5lA76QesIcLVbEZvLh+gJnigI6dVd01zhwhjG89kp5TdQeCo7ug3kRnK0Yg=="],
+    "vlist-react": ["vlist-react@2.6.0", "", { "peerDependencies": { "react": ">=17.0.0", "vlist": "^2.6.0" } }, "sha512-/mP/++BKhnHeIyhyzAnGM/Odt5jYz7uWxklg3sMPJFpbHcV9oiOQdAnnJOxYN1JmyqwIcYpqizl0IBxeAHNNzA=="],
 
-    "vlist-solidjs": ["vlist-solidjs@1.6.0", "", { "peerDependencies": { "solid-js": ">=1.0.0", "vlist": "^1.5.0" } }, "sha512-1ySZ20cptgwBvJ+vFK6lI9OVbMKSRZHdQJDSfZZAV//S8qZoqzSFumaprXJ8wkjIU/x+gd1uIeWfHyp8DjUBCA=="],
+    "vlist-solidjs": ["vlist-solidjs@2.6.0", "", { "peerDependencies": { "solid-js": ">=1.0.0", "vlist": "^2.6.0" } }, "sha512-q39K4H3wX2ulOVChXnb/hSqJ8ia1/68AYdzByWJl+EspN+4+qosg2ELERtAN9sP/fEEgB9wm13CQgzsUAv7Gdg=="],
 
-    "vlist-svelte": ["vlist-svelte@1.6.0", "", { "peerDependencies": { "svelte": ">=3.0.0", "vlist": "^1.5.0" } }, "sha512-2hmxJjkYR3t1K7n8tywSnksvdBR5X17yMtPfm0/CHkUtxk13OzeH4jD7YLcjAnmXI20JUCcEyXK5FMDDHyyG8A=="],
+    "vlist-svelte": ["vlist-svelte@2.6.0", "", { "peerDependencies": { "svelte": ">=3.0.0", "vlist": "^2.6.0" } }, "sha512-/ghD9H7rM5wZM+Co0scFk+y6tXVdK6J95GDKIxlM+RpiUbIBq4HS0ZZ4SKICkOH9RfNYXru1XAI6ODYGlQTopg=="],
 
-    "vlist-vue": ["vlist-vue@1.6.0", "", { "peerDependencies": { "vlist": "^1.5.0", "vue": ">=3.0.0" } }, "sha512-rkU/0fQkBLLyy5jaTQeDUG3ODKZDaE88EnNZQIMFLkz7P123doLAZqW0Q+4GGLQ0xWaBLJS8lS6ppnrniY4P5Q=="],
+    "vlist-vue": ["vlist-vue@2.6.0", "", { "peerDependencies": { "vlist": "^2.6.0", "vue": ">=3.0.0" } }, "sha512-GsEyQvseg7UWzL326g/VmWoc5bPpTVLEXsDigJM7EtmlGJqI9qqp1hFC1lw8ftEoIeLgDykQzP1gVwsP+0XGHg=="],
 
     "vue": ["vue@3.5.28", "", { "dependencies": { "@vue/compiler-dom": "3.5.28", "@vue/compiler-sfc": "3.5.28", "@vue/runtime-dom": "3.5.28", "@vue/server-renderer": "3.5.28", "@vue/shared": "3.5.28" }, "peerDependencies": { "typescript": "*" }, "optionalPeers": ["typescript"] }, "sha512-BRdrNfeoccSoIZeIhyPBfvWSLFP4q8J3u8Ju8Ug5vu3LdD+yTM13Sg4sKtljxozbnuMu1NB1X5HBHRYUzFocKg=="],
 
@@ -609,14 +609,6 @@
     "parse5/entities": ["entities@6.0.1", "", {}, "sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g=="],
 
     "proxy-agent/lru-cache": ["lru-cache@7.18.3", "", {}, "sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA=="],
-
-    "vlist-react/vlist": ["vlist@file:../vlist", { "devDependencies": { "@happy-dom/global-registrator": "^20.9.0", "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "happy-dom": "^20.9.0", "jsdom": "^28.0.0", "typescript": "^5.0.0" } }],
-
-    "vlist-solidjs/vlist": ["vlist@file:../vlist", { "devDependencies": { "@happy-dom/global-registrator": "^20.9.0", "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "happy-dom": "^20.9.0", "jsdom": "^28.0.0", "typescript": "^5.0.0" } }],
-
-    "vlist-svelte/vlist": ["vlist@file:../vlist", { "devDependencies": { "@happy-dom/global-registrator": "^20.9.0", "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "happy-dom": "^20.9.0", "jsdom": "^28.0.0", "typescript": "^5.0.0" } }],
-
-    "vlist-vue/vlist": ["vlist@file:../vlist", { "devDependencies": { "@happy-dom/global-registrator": "^20.9.0", "@types/bun": "^1.0.0", "@types/jsdom": "^27.0.0", "happy-dom": "^20.9.0", "jsdom": "^28.0.0", "typescript": "^5.0.0" } }],
 
     "whatwg-url/webidl-conversions": ["webidl-conversions@7.0.0", "", {}, "sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g=="],
 

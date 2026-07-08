@@ -23,6 +23,7 @@ const App = {
         container: el,
         ariaLabel: "Orders",
         items,
+        padding: 8,
         item: {
           height: ITEM_HEIGHT,
           striped: true,
