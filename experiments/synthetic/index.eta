@@ -1,0 +1,50 @@
+<section id="synthetic-experiment">
+  <div class="eyebrow"><%= it.SECTION %> / RFC-013 / Input experiment</div>
+  <h1>One million rows. Owned touch.</h1>
+  <p class="intro">A standalone prototype of logical scrolling with signed touch velocity and a viewport-sized content box. Drag, fling, catch, change direction, and interrupt a smooth jump.</p>
+  <p class="notice"><strong>Experimental boundary policy:</strong> same-axis touch stops at either edge. It does not hand off to the page—even when a new gesture starts inside the list. Swipe the page margins to scroll the parent. This behavior is under evaluation, not approved for v3.</p>
+  <div class="controls">
+    <label>Axis <select id="axis"><option value="y">Vertical + native horizontal pan</option><option value="x">Horizontal + native vertical pan</option></select></label>
+    <a href="./native/">Native runway comparison</a>
+  </div>
+  <div class="controls" aria-label="Navigation experiments">
+    <button id="first">First</button><button id="middle">Middle</button><button id="last">Last</button>
+    <button id="smooth">Smooth +100 rows</button><button id="resize">Resize viewport</button>
+  </div>
+  <div class="frame">
+    <div class="header" aria-hidden="true"><div id="header">ROW                         NATIVE CROSS-AXIS PAN                         HEADER SYNC                         FAR COLUMN</div></div>
+    <div id="viewport" tabindex="0" role="region" aria-label="Synthetic scroll experiment. Arrow keys, Page Up, Page Down, Home and End navigate.">
+      <div id="stage"></div>
+    </div>
+    <label class="scrub">Position <input id="scrub" type="range" min="0" max="1000000" value="0" aria-controls="viewport"></label>
+  </div>
+  <div class="metrics">
+    <div class="metric"><span>Motion state</span><b id="state">idle</b></div>
+    <div class="metric"><span>Logical position · px</span><b id="logical">0</b></div>
+    <div class="metric"><span>Native main-axis offset · px</span><b id="native">0</b></div>
+    <div class="metric"><span>Rendered / visible rows</span><b id="nodes">0</b></div>
+    <div class="metric"><span>Active frame gaps &gt;32ms</span><b id="gaps">0</b></div>
+    <div class="metric"><span>Boundary contacts</span><b id="edges">0</b></div>
+    <div class="metric"><span>Paint coverage failures</span><b id="blanks">0</b></div>
+    <div class="metric"><span>Unexpected native main scroll</span><b id="native-events">0</b></div>
+  </div>
+  <p class="status">Physical-device sign-off: pending. Green counters alone do not certify touch feel, zoom, accessibility, or parent-scroll behavior.</p>
+  <div class="controls"><button id="reset">Reset telemetry</button><button id="export">Download result JSON</button><label>Device / observations <input id="notes" placeholder="Device, OS, browser, results" size="28"></label></div>
+  <details><summary>Recent transitions and interruptions</summary><pre id="events"></pre></details>
+  <p>The position slider is a native test control. Production scrollbar accessibility and real vlist plugin integration remain separate gates. <a href="#device-tests">Device test checklist</a>.</p>
+  <details id="device-tests" open>
+    <summary><strong>iOS / Android test checklist</strong></summary>
+    <ol>
+      <li>Enter your device, OS and browser in the notes field, then reset telemetry.</li>
+      <li>Drag slowly, reverse direction, fling quickly and catch the moving list.</li>
+      <li>Repeat in horizontal mode. Try diagonal gestures and native cross-axis panning.</li>
+      <li>Pinch to zoom and add a second finger during a drag. Check that normal dragging works again after lifting both fingers.</li>
+      <li>Try First and Last. Touch at the edge stops inside the list; swiping the page margin should scroll the page.</li>
+      <li>Start a smooth jump, then interrupt it with touch or the position slider. Resize the viewport and try a link tap.</li>
+      <li>Add observations to the notes, then download the result JSON for each axis. Notes are kept on this page only; export before changing axis or reloading.</li>
+    </ol>
+    <p>Compare with the native runway page. Record stalls, unexpected page movement, zoom problems and any difference in feel. Automated checks do not replace these device observations.</p>
+  </details>
+  <section class="page-tail" id="page-tail"><h2>Parent-scroll target</h2><p>This page intentionally extends beyond the widget. Test a gesture beginning in the page margin, a gesture beginning at a list edge, and a gesture reaching the edge mid-drag. Record the difference.</p><p>On vertical mode, pan sideways to inspect the far column and header sync. On horizontal mode, pan vertically inside a card. Try pinch zoom, a second finger during drag, and a link tap after scrolling.</p></section>
+
+</section>
