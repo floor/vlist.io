@@ -21,7 +21,7 @@ describe("RFC-014 standalone synthetic motion contract", () => {
       fling(motion, sign);
       const released = motion.position;
       expect(motion.state).toBe("inertia");
-      motion.tick(56);
+      motion.tick(40); motion.tick(56);
       expect((motion.position - released) * sign).toBeGreaterThan(0);
     }
   });
@@ -67,6 +67,7 @@ describe("RFC-014 standalone synthetic motion contract", () => {
   test("inertia integrates independently of frame cadence", () => {
     const a = setup().motion, b = setup().motion;
     fling(a); fling(b);
+    a.tick(40); b.tick(40);
     for (let time = 48; time <= 200; time += 8) a.tick(time);
     for (let time = 56; time <= 200; time += 16) b.tick(time);
     expect(a.position).toBeCloseTo(b.position, 8);
@@ -113,6 +114,25 @@ describe("RFC-014 standalone synthetic motion contract", () => {
     motion.tick(192);
     expect(motion.position).toBe(before);
     expect(motion.state).toBe("idle");
+  });
+  test("a delayed first inertia frame uses the frame clock, not release time", () => {
+    const { motion } = setup(); fling(motion);
+    const released = motion.position;
+    motion.tick(160); // 120ms after release, but no frame-to-frame pause.
+    expect(motion.state).toBe("inertia");
+    expect(motion.position).toBe(released);
+    motion.tick(176);
+    expect(motion.position).toBeGreaterThan(released);
+  });
+  test("smooth navigation starts on its first animation frame", () => {
+    const { motion } = setup();
+    motion.smooth(1000, 0);
+    motion.tick(1000);
+    expect(motion.state).toBe("animating");
+    expect(motion.position).toBe(500);
+    motion.tick(1016);
+    expect(motion.position).toBeGreaterThan(500);
+    expect(motion.position).toBeLessThan(1000);
   });
   test("reduced motion disables inertia and interpolation", () => {
     const { motion } = setup({ reducedMotion: true }); fling(motion);

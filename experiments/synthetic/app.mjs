@@ -97,11 +97,11 @@ window.addEventListener("pointerdown", event => {
   dragged = false;
   caught = motion.active;
   suppressClickPointer = null;
-  motion.begin(event.pointerId, event.clientX, event.clientY, performance.now());
+  motion.begin(event.pointerId, event.clientX, event.clientY, event.timeStamp);
 });
 window.addEventListener("pointermove", event => {
   if (!isTouch(event) || blockTouches) return;
-  if (motion.move(event.pointerId, event.clientX, event.clientY, performance.now())) {
+  if (motion.move(event.pointerId, event.clientX, event.clientY, event.timeStamp)) {
     dragged = true;
     if (!viewport.hasPointerCapture(event.pointerId)) viewport.setPointerCapture(event.pointerId);
     // touch-action defines browser pan/zoom policy; this only suppresses other defaults.
@@ -113,7 +113,7 @@ function endPointer(event) {
   const cancelled = event.type === "pointercancel";
   if (cancelled) { counters.pointerCancels++; motion.cancel("pointercancel"); }
   if (!cancelled && (dragged || caught)) suppressClickPointer = event.pointerId;
-  motion.end(event.pointerId, performance.now());
+  motion.end(event.pointerId, event.timeStamp);
   pointers.delete(event.pointerId);
   if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
   if (!pointers.size) {
@@ -170,7 +170,7 @@ scrub.addEventListener("input", () => motion.jump(Number(scrub.value) / 1_000_00
 $("first").onclick = () => motion.jump(0);
 $("middle").onclick = () => motion.jump(total * size / 2);
 $("last").onclick = () => motion.jump(total * size);
-$("smooth").onclick = () => motion.smooth(motion.position + size * 100, performance.now());
+$("smooth").onclick = () => motion.smooth(motion.position + size * 100);
 $("resize").onclick = () => { viewport.style.height = viewport.clientHeight > 280 ? "240px" : "360px"; };
 new ResizeObserver(() => {
   extent = vertical ? viewport.clientHeight : viewport.clientWidth;

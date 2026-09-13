@@ -4,7 +4,7 @@ export function createMotion({ getMax, onChange = () => {}, onEvent = () => {}, 
   let state = "idle";
   let pointer = null;
   let startMain = 0, startCross = 0, lastMain = 0, lastTime = 0;
-  let velocity = 0, frameTime = 0;
+  let velocity = 0, frameTime = null;
   let animationStart = 0, animationFrom = 0, animationTo = 0;
   const friction = 0.006;
   const clamp = value => Math.max(0, Math.min(getMax(), value));
@@ -68,7 +68,7 @@ export function createMotion({ getMax, onChange = () => {}, onEvent = () => {}, 
       if (id !== pointer) return;
       pointer = null;
       if (state === "tracking" && !reducedMotion && time - lastTime <= 80 && Math.abs(velocity) >= 0.02) {
-        frameTime = time;
+        frameTime = null;
         transition("inertia", "release");
       } else { velocity = 0; transition("idle", "release"); }
     },
@@ -81,17 +81,23 @@ export function createMotion({ getMax, onChange = () => {}, onEvent = () => {}, 
       commit(position + delta);
       return position !== previous;
     },
-    smooth(value, time) {
+    smooth(value) {
       cancel("smooth-navigation");
       if (pointer !== null || reducedMotion) { commit(value); return; }
       animationFrom = position;
       animationTo = clamp(value);
-      animationStart = frameTime = time;
+      frameTime = null;
       transition("animating", "smooth-navigation");
     },
     resize() { cancel("resize"); commit(position); },
     tick(time) {
       if (state !== "inertia" && state !== "animating") return;
+      // Input timestamps never seed this clock; pauses are between frames only.
+      if (frameTime === null) {
+        frameTime = time;
+        if (state === "animating") animationStart = time;
+        return;
+      }
       const dt = time - frameTime;
       if (dt <= 0) return;
       frameTime = time;

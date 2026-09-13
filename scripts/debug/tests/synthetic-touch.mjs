@@ -127,6 +127,19 @@ async function regressions() {
       await page.keyboard.press(axis === "y" ? "ArrowDown" : "ArrowRight"); await wait(50);
       assert.equal((await read()).logical, before.logical + (axis === "y" ? 52 : 180), "focused link permits arrow navigation");
     },
+    async clocks(axis) {
+      const origin = await plainPoint(axis);
+      const time = Date.now() / 1000 - 2;
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [origin], timestamp: time });
+      for (let step = 1; step <= 3; step++) {
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ ...origin,
+          x: origin.x - (axis === "x" ? step * 20 : 0), y: origin.y - (axis === "y" ? step * 20 : 0) }], timestamp: time + step * 0.016 });
+      }
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [], timestamp: time + 0.2 });
+      const ended = await read();
+      assert(ended.logical > 0, "timestamp probe must move");
+      assert.equal(ended.state, "idle", "stale release uses event timestamp even when dispatched quickly");
+    },
     async pause(axis) {
       await page.evaluate(() => {
         document.querySelector("#smooth").click();
