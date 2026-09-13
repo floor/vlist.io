@@ -1,3 +1,5 @@
+> **Historical — superseded 2026-09-10.** Do not use as the active implementation contract. See [canonical RFC-013](../rfcs/RFC-013-Spatial-Navigation-Model.md).
+
 # RFC-013 — Unified Scroll Model: Implementation Plan
 
 Status: **Planning** · Target: **vlist 3.0** · Depends on: RFC-012 (shipped, opt-in bounded)

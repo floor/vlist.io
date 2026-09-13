@@ -168,7 +168,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) reset
 $("reset").onclick = () => { for (const key in counters) counters[key] = 0; events.length = 0; schedule(); };
 function snapshot() {
   return {
-    schema: 1, revision: "floor-synthetic-2026-09-10", url: location.href, candidate: "B-standalone-synthetic", timestamp: new Date().toISOString(),
+    schema: 1, candidate: "B-standalone-synthetic", timestamp: new Date().toISOString(),
     physicalDeviceSignoff: "pending", notes: $("notes").value, userAgent: navigator.userAgent,
     axis, touchAction: getComputedStyle(viewport).touchAction, reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
     viewport: { width: viewport.clientWidth, height: viewport.clientHeight, devicePixelRatio },

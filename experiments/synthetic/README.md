@@ -4,7 +4,7 @@ Primary URL: https://vlist.io/experiments/synthetic/
 
 The existing https://floor.io/experiments/synthetic/ remains available independently.
 Both pages use the same standalone candidate B motion driver. No production vlist
-scroll behavior changes. This deployable experiment derives from the RFC-013
+scroll behavior changes. This deployable experiment derives from the RFC-014
 `gate-b/synthetic/` prototype; `native/` preserves the earlier native-runway comparison.
 
 - Vertical: `/experiments/synthetic/`

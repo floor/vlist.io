@@ -1,4 +1,5 @@
 [
+  "rfcs/RFC-014-Scroll-Input-Model",
   "rfcs/RFC-013-Unified-Scroll-Model",
   "rfcs/RFC-012-Logical-Scroll-Model",
   "rfcs/RFC-011-Carousel-Plugin",

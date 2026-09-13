@@ -110,6 +110,14 @@ When `easing` is omitted, a default easeInOutQuad curve is used.
 |--------|-----------|-------------|
 | `destroy` | `() => void` | Tear down instance, remove DOM, clean up listeners |
 
+With an async adapter the list does not know how long it is until its first
+read returns, so a `scrollToIndex` given before that has no row to scroll to.
+It is not dropped: the request is held and honoured on the first render that
+has a total. That makes "open this list on row 2960" safe to call as soon as
+the list exists, which is the only moment a caller reliably has.
+
+Only the most recent request is held, and only until it is used.
+
 ## Events
 
 ### Core

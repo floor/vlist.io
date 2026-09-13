@@ -122,7 +122,7 @@ try {
   assert.equal(reduced.logical, 5200, "reduced motion jumps to exact target");
   await page.emulateMediaFeatures([]);
   await page.goto(base, { waitUntil: "networkidle0" });
-  await page.screenshot({ path: "/tmp/rfc-013-synthetic.png", fullPage: true });
+  await page.screenshot({ path: "/tmp/rfc-014-synthetic.png", fullPage: true });
   assert.deepEqual(errors, [], "no browser runtime errors");
   console.log("PASS browser smoke. Physical-device feel, pinch and chaining validation remain pending.");
 } finally { await browser.close(); }
