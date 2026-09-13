@@ -21,7 +21,7 @@ html { scroll-behavior: auto; }
 #synthetic-experiment .header { all: revert; display: block; position: relative; overflow: hidden; height: 36px; background: #173d32; color: white; }
 #synthetic-experiment .header div { width: 960px; padding: 6px 16px; white-space: pre; }
 #synthetic-experiment #viewport { position: relative; height: 360px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x pinch-zoom; overflow-anchor: none; }
-#synthetic-experiment #stage { position: relative; width: 960px; height: 100%; overflow: hidden; overflow-anchor: none; }
+#synthetic-experiment #stage { position: relative; width: 960px; height: 100%; overflow: clip; overflow-anchor: none; }
 #synthetic-experiment .row { position: absolute; top: 0; left: 0; width: 960px; height: 52px; display: flex; align-items: center; gap: 32px; padding: 0 16px; border-bottom: 1px solid #e2e9e5; background: #fff; font-variant-numeric: tabular-nums; }
 #synthetic-experiment .row.odd { background: #f5f9f6; }
 #synthetic-experiment .row strong { min-width: 140px; }

@@ -43,7 +43,84 @@ async function geometry() {
     return { covered: covered >= start + length - 1, length, scrollExtent: vertical ? el.scrollHeight : el.scrollWidth };
   });
 }
+
+// Each regression runs on a fresh page so an expected baseline failure cannot
+// conceal another defect. --regressions-only also probes the deployed build.
+async function regressions() {
+  let failures = 0;
+  const selected = process.argv.find(arg => arg.startsWith("--case="))?.slice(7);
+  const cases = {
+    async focus(axis) {
+      const actual = await page.evaluate(async axis => {
+        const stage = document.querySelector("#stage"), viewport = document.querySelector("#viewport");
+        const rect = viewport.getBoundingClientRect();
+        const link = [...stage.querySelectorAll("a")].find(a => {
+          const r = a.getBoundingClientRect();
+          return axis === "y" ? r.top > rect.bottom : r.left > rect.right;
+        });
+        if (!link) throw new Error("Missing overscan link");
+        const overflow = getComputedStyle(stage)[axis === "y" ? "overflowY" : "overflowX"];
+        link.focus();
+        await new Promise(resolve => setTimeout(resolve, 80));
+        return { overflow, stage: axis === "y" ? stage.scrollTop : stage.scrollLeft,
+          viewport: axis === "y" ? viewport.scrollTop : viewport.scrollLeft,
+          events: window.__rfc013.snapshot().counters.nativeMainScrollEvents };
+      }, axis);
+      assert.deepEqual(actual, { overflow: "clip", stage: 0, viewport: 0, events: 0 });
+    },
+
+  };
+  for (const axis of ["y", "x"]) for (const [name, run] of Object.entries(cases)) {
+    if (selected && selected !== name) continue;
+    await page.close(); page = await browser.newPage();
+    page.on("pageerror", error => errors.push(String(error)));
+    await page.setViewport({ width: 430, height: 932, hasTouch: true, isMobile: true });
+    cdp = await page.createCDPSession();
+    await page.goto(`${base}?axis=${axis}`, { waitUntil: "networkidle0" });
+    await page.waitForFunction(() => window.__rfc013?.snapshot().nodes > 0);
+    await page.$eval("#viewport", el => el.scrollIntoView({ block: "center" }));
+    try { await run(axis); console.log(`PASS regression ${axis}/${name}`); }
+    catch (error) { failures++; console.error(`FAIL regression ${axis}/${name}: ${error.message}`); }
+  }
+  assert.equal(failures, 0, `${failures} regression probes failed`);
+}
+async function plainPoint(axis) {
+  return page.$eval("#viewport", (el, axis) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x + (axis === "x" ? 220 : 80), y: r.y + (axis === "y" ? 240 : 70), id: 1 };
+  }, axis);
+}
+async function linkPoint(axis) {
+  await page.evaluate(axis => {
+    const viewport = document.querySelector("#viewport");
+    const link = document.querySelector(".row:not([hidden]) a");
+    if (axis === "y") viewport.scrollLeft = link.offsetLeft - 40;
+  }, axis);
+  await wait(50);
+  return page.evaluate(() => {
+    const v = document.querySelector("#viewport").getBoundingClientRect();
+    const link = [...document.querySelectorAll(".row:not([hidden]) a")].find(a => {
+      const r = a.getBoundingClientRect();
+      return r.top > v.top + 70 && r.bottom < v.bottom && r.left >= v.left && r.right <= v.right;
+    });
+    if (!link) throw new Error("No visible Test link for real touch");
+    const r = link.getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2, id: 1 };
+  });
+}
+async function gesture(origin, axis, distance = 10) {
+  await touch("touchStart", [origin]);
+  for (let step = 1; step <= 6; step++) {
+    await touch("touchMove", [{ ...origin, x: origin.x - (axis === "x" ? step * distance : 0), y: origin.y - (axis === "y" ? step * distance : 0) }]);
+    await wait(16);
+  }
+  await touch("touchEnd", []);
+}
+
 try {
+  await regressions();
+  if (process.argv.includes("--regressions-only")) process.exitCode = 0;
+  else {
   console.log(`Browser: ${await browser.version()}`);
   for (const axis of ["y", "x"]) {
     if (axis === "x") {
@@ -125,4 +202,5 @@ try {
   await page.screenshot({ path: "/tmp/rfc-014-synthetic.png", fullPage: true });
   assert.deepEqual(errors, [], "no browser runtime errors");
   console.log("PASS browser smoke. Physical-device feel, pinch and chaining validation remain pending.");
+  }
 } finally { await browser.close(); }

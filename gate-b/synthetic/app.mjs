@@ -151,6 +151,10 @@ viewport.addEventListener("scroll", () => {
   if (vertical) $("header").style.transform = `translateX(${-viewport.scrollLeft}px)`;
   schedule();
 });
+stage.addEventListener("scroll", () => {
+  if (Math.abs(vertical ? stage.scrollTop : stage.scrollLeft) > 0.5) counters.nativeMainScrollEvents++;
+  schedule();
+});
 scrub.addEventListener("pointerdown", () => motion.cancel("slider-start"));
 scrub.addEventListener("input", () => motion.jump(Number(scrub.value) / 1_000_000 * (total * size - extent), "slider"));
 $("first").onclick = () => motion.jump(0);
