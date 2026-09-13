@@ -142,7 +142,7 @@ viewport.addEventListener("wheel", event => {
   if (motion.by(main * factor, "wheel")) event.preventDefault();
 }, { passive: false });
 viewport.addEventListener("keydown", event => {
-  if (event.target !== viewport || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (nativeInput(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
   const forward = vertical ? "ArrowDown" : "ArrowRight";
   const back = vertical ? "ArrowUp" : "ArrowLeft";
   let target;

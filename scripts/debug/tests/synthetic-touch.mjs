@@ -120,6 +120,13 @@ async function regressions() {
       });
       assert.deepEqual(clicks, { unrelated: 2, keyboard: 3, suppressed: 3, consumedOnce: 4 });
     },
+    async keyboard(axis) {
+      await linkPoint(axis);
+      await page.evaluate(() => document.querySelector(".row:not([hidden]) a").focus({ preventScroll: true }));
+      const before = await read();
+      await page.keyboard.press(axis === "y" ? "ArrowDown" : "ArrowRight"); await wait(50);
+      assert.equal((await read()).logical, before.logical + (axis === "y" ? 52 : 180), "focused link permits arrow navigation");
+    },
 
   };
   for (const axis of ["y", "x"]) for (const [name, run] of Object.entries(cases)) {
