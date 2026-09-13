@@ -15,12 +15,16 @@ const touch = (type, points) => cdp.send("Input.dispatchTouchEvent", { type, tou
 async function drag(vertical, cross = false, release = true) {
   const box = await page.$eval("#viewport", el => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
   // Avoid the interactive link and hit ordinary row content.
-  const origin = { x: box.x + Math.min(95, box.width / 3), y: box.y + (vertical ? 180 : 80), id: 1 };
-  const hit = await page.evaluate(({ x, y }) => {
-    const el = document.elementFromPoint(x, y);
-    return { tag: el?.tagName, inViewport: !!el?.closest("#viewport"), interactive: !!el?.closest("a,button,input,select,textarea"), scale: visualViewport.scale };
-  }, origin);
-  assert(hit.inViewport && !hit.interactive, `gesture must start on plain row: ${JSON.stringify({ origin, hit })}`);
+  const origin = await page.evaluate(({ box, vertical }) => {
+    const candidates = [vertical ? 180 : 80, 30, 120, 210];
+    for (const offset of candidates) {
+      if (offset >= box.height) continue;
+      const point = { x: box.x + Math.min(95, box.width / 3), y: box.y + offset, id: 1 };
+      const hit = document.elementFromPoint(point.x, point.y);
+      if (hit?.closest("#viewport") && !hit.closest("a,button,input,select,textarea")) return point;
+    }
+    throw new Error("No plain row origin after native cross-axis pan");
+  }, { box, vertical });
   await touch("touchStart", [origin]);
   for (let step = 1; step <= 6; step++) {
     const alongY = cross ? !vertical : vertical;
@@ -265,10 +269,14 @@ try {
     const two = { x: box.x + 130, y: box.y + 100, id: 2 };
     await touch("touchStart", [one]);
     await touch("touchStart", [one, two]);
+    await touch("touchEnd", [one]);
     await touch("touchEnd", []); await wait(80);
     const multi = await read();
     assert(multi.counters.multitouchCancels > 0, `${axis}: second finger cancels ownership`);
     assert.equal(multi.state, "idle", `${axis}: all fingers lifted clears cancellation`);
+    const beforeRecovery = await read();
+    await drag(axis === "y"); await wait(80);
+    assert((await read()).logical > beforeRecovery.logical, `${axis}: same-page drag recovers after multitouch`);
     console.log(`PASS ${axis}: touch, cancel, native cross-axis, navigation, resize, keyboard, geometry`);
   }
   await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
