@@ -73,26 +73,46 @@ Additive release: `scroll.mode: "synthetic"` beside native and bounded, defaults
 unchanged, shipped as its own entry so the base bundle is unaffected for consumers
 who do not opt in.
 
-- [ ] Connect driver to core logical position, render, idle and cancellation hooks
-      through the existing `BoundedScrollHandler` seam.
-- [ ] Define a non-cancelling `shiftBy(delta)`: measurement corrections (autosize,
+- [x] Connect driver to core logical position, render, idle and cancellation hooks
+      through the existing `BoundedScrollHandler` seam (floor/vlist#130, 2026-09-14).
+- [x] Define a non-cancelling `shiftBy(delta)`: measurement corrections (autosize,
       transition) shift position and any animation target while preserving gesture
-      state and velocity; `scrollTo` keeps its cancelling semantics.
-- [ ] Route the transition plugin's raw `scrollTop`/`scrollHeight` reads through
-      logical position and size cache.
-- [ ] Specify the clipping layer (stage `overflow: clip`, viewport cross-axis native)
+      state and velocity; `scrollTo` keeps its cancelling semantics (#131).
+- [x] Route the transition plugin's raw `scrollTop`/`scrollHeight` reads through
+      logical position and size cache (#131; also fixes bounded-mode FLIP endpoints,
+      transition row +1.8 → +2.0 KB accepted).
+- [x] Specify the clipping layer (stage `overflow: clip`, viewport cross-axis native)
       and the clock contract (`event.timeStamp` for input, frame timestamps for
-      animation, suspension measured between frames only) with tests.
-- [ ] Verify real table header sync/cross-axis keyboard and touch behavior.
-- [ ] Verify carousel wrap, groups, autosize anchor, snapshots and changing totals.
-- [ ] Specify selection/sortable gesture ownership and interactive-child behavior.
-- [ ] Audit main-axis native reads/writes and external scroll events; legitimate
-      native cross-axis operations remain supported.
+      animation, suspension measured between frames only) with tests (#130).
+- [x] Verify real table header sync/cross-axis keyboard and touch behavior (Chrome
+      touch emulation in #130/#131; physical-device sheet still pending).
+- [x] Verify groups, autosize anchor, snapshots and changing totals (#130/#131).
+      Carousel wrap is unsupported with synthetic mode in this release and throws (#132).
+- [x] Selection and interactive-child behavior verified (#130). Sortable is unsupported
+      with synthetic mode in this release and throws (#132); arbitration is future work.
+- [x] Audit main-axis native reads/writes and external scroll events; legitimate
+      native cross-axis operations remain supported (driver makes none; transition
+      reads routed in #131).
 - [ ] Verify RTL policy for the selected engine, with support tests or explicit guard.
-- [ ] Keep `page()` as external native-document provider; preserve/reword size guard;
-      maintain explicit page/carousel conflict.
-- [ ] Document supported plugin combinations and known limitations of the opt-in
-      mode (boundary policy, scrollbar accessibility) in the 2.7 release notes.
+- [x] `page()` remains the external native-document provider in native mode and
+      throws with synthetic mode (#132).
+- [x] Document supported plugin combinations and known limitations of the opt-in
+      mode in README, npm-readme and the `[Unreleased]` changelog (#132); release
+      notes at the minor.
+- [x] **Size budget for the synthetic entry: 2.5 KB gzipped, accepted 2026-09-14**
+      (floor/vlist#130). The bounded handler's 1.1 KB covers wheel and rebase only;
+      the entry replaces native touch (sampling, multitouch, capture, click
+      suppression), native keyboard scrolling and the clip lifecycle, and component
+      ablation showed no single removable feature after diagnostics, reason strings,
+      per-commit timers and the two-phase keyboard path were removed. Base bundle
+      unchanged at 9.8 KB (+17 bytes for the factory hook). PRs (b) and (c) fit
+      inside the budget; any growth needs a new decision.
+- [x] **Performance parity measured 2026-09-14** on the same build, 1M rows, Chrome
+      touch fling: every frame 16.7 ms at 1x and 6x CPU throttling, no long tasks;
+      main-thread cost per pixel travelled 0.090 ms (synthetic) vs 0.094 ms (bounded);
+      style recalculation higher for synthetic (8.2 vs 2.5 ms per fling) because rows
+      move from JavaScript. Follow-up candidate, separately gated: translate the stage
+      once per frame with an anchored baseOffset to cut per-frame style writes.
 
 ## 5. Production scrollbar and migration
 
@@ -108,10 +128,16 @@ Can be designed independently; must finish before native viewport removal.
 
 **2.7 opt-in release**
 
-- [ ] Five prototype review defects fixed and covered by the harness.
-- [ ] Physical-device decision on boundary policy recorded.
-- [ ] Section 4 checklist complete for the supported plugin set; unsupported
-      combinations throw.
+- [x] Five prototype review defects fixed and covered by the harness (vlist.io#56,
+      deployed 2026-09-13).
+- [x] Boundary policy for the opt-in mode recorded (2026-09-13).
+- [x] Section 4 checklist complete for the supported plugin set; unsupported
+      combinations throw. Integration branch `feat/synthetic-input` at c7db431e
+      (PRs #130, #131, #132), verified 2026-09-14 from a clean export: 3530 tests,
+      typecheck, build with declarations, base 9.8 KB, synthetic +2.5 KB.
+      Still open before the minor: RTL policy for the synthetic driver, the official
+      benchmark scenario, the per-device result sheet, and the merge of
+      `feat/synthetic-input` into staging (jvial).
 - [ ] Required typecheck, tests, browser checks and size measurements pass; base
       bundle unchanged for non-opt-in consumers.
 
