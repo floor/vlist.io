@@ -7,7 +7,7 @@
 <link rel="canonical" href="<%= it.URL %>">
 <meta name="robots" content="noindex">
 <!--
-  RFC-013 Gate B device spike (standalone, no build, no library).
+  RFC-014 Gate B device spike (standalone, no build, no library).
 
   Validates the "idle-only rebase + larger runway" hypothesis from
   docs/refactor/rfc-013-implementation-plan.md on a real phone:

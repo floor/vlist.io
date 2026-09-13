@@ -180,7 +180,7 @@ function snapshot() {
 }
 $("export").onclick = () => {
   const url = URL.createObjectURL(new Blob([JSON.stringify(snapshot(), null, 2)], { type: "application/json" }));
-  const link = document.createElement("a"); link.href = url; link.download = `rfc-013-synthetic-${axis}.json`; link.click();
+  const link = document.createElement("a"); link.href = url; link.download = `rfc-014-synthetic-${axis}.json`; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 // Read-only browser-harness seam. Navigation exercises the actual controls/events.

@@ -1,4 +1,4 @@
-/** Standalone RFC-013 experiment. No production vlist imports or DOM dependencies. */
+/** Standalone RFC-014 experiment. No production vlist imports or DOM dependencies. */
 export function createMotion({ getMax, onChange = () => {}, onEvent = () => {}, axis = "y", reducedMotion = false }) {
   let position = 0;
   let state = "idle";

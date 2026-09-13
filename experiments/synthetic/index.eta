@@ -1,5 +1,5 @@
 <section id="synthetic-experiment">
-  <div class="eyebrow"><%= it.SECTION %> / RFC-013 / Input experiment</div>
+  <div class="eyebrow"><%= it.SECTION %> / RFC-014 / Input experiment</div>
   <h1>One million rows. Owned touch.</h1>
   <p class="intro">A standalone prototype of logical scrolling with signed touch velocity and a viewport-sized content box. Drag, fling, catch, change direction, and interrupt a smooth jump.</p>
   <p class="notice"><strong>Experimental boundary policy:</strong> same-axis touch stops at either edge. It does not hand off to the page—even when a new gesture starts inside the list. Swipe the page margins to scroll the parent. This behavior is under evaluation, not approved for v3.</p>
