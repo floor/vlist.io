@@ -95,7 +95,10 @@ export function createMotion({ getMax, onChange = () => {}, onEvent = () => {}, 
       const dt = time - frameTime;
       if (dt <= 0) return;
       frameTime = time;
-      if (dt > 100) { cancel("frame-pause"); return; }
+      if (dt > 100) {
+        if (state === "animating") commit(animationTo);
+        cancel("frame-pause"); return;
+      }
       if (state === "animating") {
         const progress = Math.min(1, (time - animationStart) / 400);
         commit(animationFrom + (animationTo - animationFrom) * (1 - (1 - progress) ** 3));

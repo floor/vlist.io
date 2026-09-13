@@ -99,12 +99,20 @@ describe("RFC-014 standalone synthetic motion contract", () => {
     motion.cancel("slider-start"); const q = motion.position;
     motion.tick(92); expect(motion.position).toBe(q);
   });
-  test("resize clamps and frame suspension stops stale animation", () => {
+  test("resize clamps and frame suspension completes smooth navigation", () => {
     const { motion, setMax } = setup(); fling(motion);
     setMax(100); motion.resize();
     expect(motion.position).toBe(100); expect(motion.active).toBe(false);
-    motion.smooth(0, 100); motion.tick(250);
-    expect(motion.position).toBe(100); expect(motion.active).toBe(false);
+    motion.smooth(0, 100); motion.tick(116); motion.tick(250);
+    expect(motion.position).toBe(0); expect(motion.active).toBe(false);
+  });
+  test("a pause between inertia frames stops without jumping", () => {
+    const { motion } = setup(); fling(motion);
+    motion.tick(56); motion.tick(72);
+    const before = motion.position;
+    motion.tick(192);
+    expect(motion.position).toBe(before);
+    expect(motion.state).toBe("idle");
   });
   test("reduced motion disables inertia and interpolation", () => {
     const { motion } = setup({ reducedMotion: true }); fling(motion);

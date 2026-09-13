@@ -127,7 +127,15 @@ async function regressions() {
       await page.keyboard.press(axis === "y" ? "ArrowDown" : "ArrowRight"); await wait(50);
       assert.equal((await read()).logical, before.logical + (axis === "y" ? 52 : 180), "focused link permits arrow navigation");
     },
-
+    async pause(axis) {
+      await page.evaluate(() => {
+        document.querySelector("#smooth").click();
+        requestAnimationFrame(() => { const end = performance.now() + 160; while (performance.now() < end) {} });
+      });
+      await wait(250);
+      assert.equal((await read()).logical, axis === "y" ? 5200 : 18000, "paused smooth navigation lands on target");
+      assert.equal((await read()).state, "idle");
+    },
   };
   for (const axis of ["y", "x"]) for (const [name, run] of Object.entries(cases)) {
     if (selected && selected !== name) continue;
