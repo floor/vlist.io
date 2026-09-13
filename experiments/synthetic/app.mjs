@@ -82,6 +82,8 @@ function hud() {
   $("events").textContent = events.map(e => `${e.ms}ms ${e.type} ${e.reason ?? e.source ?? ""} ${e.from ?? ""} → ${e.to ?? ""}`).join("\n");
 }
 const interactive = target => target.closest("a,button,input,select,textarea,[contenteditable]:not([contenteditable='false']),[data-native-input]");
+// Links/buttons participate in main-axis gestures; editing controls keep theirs.
+const nativeInput = target => target.closest("input,select,textarea,[contenteditable]:not([contenteditable='false']),[data-native-input]");
 const isTouch = event => event.pointerType === "touch" || event.pointerType === "pen";
 window.addEventListener("pointerdown", event => {
   if (!isTouch(event)) return;
@@ -90,7 +92,7 @@ window.addEventListener("pointerdown", event => {
     blockTouches = true; counters.multitouchCancels++;
     motion.cancel("multitouch"); return;
   }
-  if (!viewport.contains(event.target) || interactive(event.target)) return;
+  if (!viewport.contains(event.target) || nativeInput(event.target)) return;
   dragged = false;
   motion.begin(event.pointerId, event.clientX, event.clientY, performance.now());
 });

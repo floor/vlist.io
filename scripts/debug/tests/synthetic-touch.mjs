@@ -68,6 +68,21 @@ async function regressions() {
       }, axis);
       assert.deepEqual(actual, { overflow: "clip", stage: 0, viewport: 0, events: 0 });
     },
+    async link(axis) {
+      const origin = await linkPoint(axis);
+      await page.evaluate(() => {
+        window.rowClicks = 0;
+        window.pointerLog = [];
+        for (const type of ["pointerdown", "pointerup", "click"]) window.addEventListener(type, e => window.pointerLog.push({ type, id: e.pointerId, detail: e.detail, state: window.__rfc013.snapshot().state }), true);
+        document.querySelector("#stage").addEventListener("click", () => window.rowClicks++);
+      });
+      const before = await read(), url = page.url();
+      await gesture(origin, axis);
+      await wait(80);
+      assert((await read()).logical > before.logical, "drag from Test link advances logical position");
+      assert.equal(await page.evaluate(() => window.rowClicks), 0, "drag must not click");
+      assert.equal(page.url(), url, "drag must not navigate");
+    },
 
   };
   for (const axis of ["y", "x"]) for (const [name, run] of Object.entries(cases)) {
