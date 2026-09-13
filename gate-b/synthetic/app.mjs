@@ -11,7 +11,8 @@ $("axis").onchange = event => { location.search = `?axis=${event.target.value}`;
 if (!vertical) $("header").textContent = "HORIZONTAL SYNTHETIC · VERTICAL NATIVE PAN";
 
 let extent = 0, raf = 0, lastFrame = 0, lastHud = 0, dirty = true;
-let blockTouches = false, dragged = false, suppressClickUntil = 0;
+let blockTouches = false, dragged = false, caught = false;
+let suppressClickPointer = null;
 const pointers = new Set();
 const pool = [], events = [];
 const counters = { frameGaps: 0, boundaryContacts: 0, coverageFailures: 0, nativeMainScrollEvents: 0, pointerCancels: 0, multitouchCancels: 0, crossAxisScrollEvents: 0, maxVelocity: 0 };
@@ -94,6 +95,8 @@ window.addEventListener("pointerdown", event => {
   }
   if (!viewport.contains(event.target) || nativeInput(event.target)) return;
   dragged = false;
+  caught = motion.active;
+  suppressClickPointer = null;
   motion.begin(event.pointerId, event.clientX, event.clientY, performance.now());
 });
 window.addEventListener("pointermove", event => {
@@ -109,7 +112,7 @@ function endPointer(event) {
   if (!isTouch(event)) return;
   const cancelled = event.type === "pointercancel";
   if (cancelled) { counters.pointerCancels++; motion.cancel("pointercancel"); }
-  if (dragged) suppressClickUntil = performance.now() + 500;
+  if (!cancelled && (dragged || caught)) suppressClickPointer = event.pointerId;
   motion.end(event.pointerId, performance.now());
   pointers.delete(event.pointerId);
   if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
@@ -117,13 +120,18 @@ function endPointer(event) {
     if (blockTouches || cancelled) motion.reset("all-pointers-ended");
     blockTouches = false;
     dragged = false;
+    caught = false;
   }
   schedule();
 }
 window.addEventListener("pointerup", endPointer);
 window.addEventListener("pointercancel", endPointer);
 viewport.addEventListener("click", event => {
-  if (event.detail !== 0 && performance.now() < suppressClickUntil) { event.preventDefault(); event.stopPropagation(); }
+  if (event.detail !== 0 && suppressClickPointer !== null &&
+      (event.pointerId === suppressClickPointer || event.pointerId === undefined)) {
+    suppressClickPointer = null;
+    event.preventDefault(); event.stopPropagation();
+  }
 }, true);
 viewport.addEventListener("wheel", event => {
   if (event.ctrlKey || interactive(event.target)) return;
@@ -168,7 +176,7 @@ new ResizeObserver(() => {
   extent = vertical ? viewport.clientHeight : viewport.clientWidth;
   motion.resize(); dirty = true; schedule();
 }).observe(viewport);
-function resetInput(reason) { pointers.clear(); blockTouches = false; dragged = false; motion.reset(reason); }
+function resetInput(reason) { pointers.clear(); blockTouches = false; dragged = false; caught = false; suppressClickPointer = null; motion.reset(reason); }
 window.addEventListener("blur", () => resetInput("blur"));
 document.addEventListener("visibilitychange", () => { if (document.hidden) resetInput("hidden"); });
 $("reset").onclick = () => { for (const key in counters) counters[key] = 0; events.length = 0; schedule(); };

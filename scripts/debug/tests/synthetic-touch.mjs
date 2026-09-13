@@ -83,6 +83,43 @@ async function regressions() {
       assert.equal(await page.evaluate(() => window.rowClicks), 0, "drag must not click");
       assert.equal(page.url(), url, "drag must not navigate");
     },
+    async catch(axis) {
+      await page.evaluate(() => {
+        window.rowClicks = 0;
+        window.pointerLog = [];
+        for (const type of ["pointerdown", "pointerup", "click"]) window.addEventListener(type, e => window.pointerLog.push({ type, id: e.pointerId, detail: e.detail, state: window.__rfc013.snapshot().state }), true);
+        document.querySelector("#stage").addEventListener("click", () => window.rowClicks++);
+      });
+      const origin = await plainPoint(axis);
+      await gesture(origin, axis, 40);
+      await wait(600);
+      assert.equal((await read()).state, "inertia", "catch probe must still be flinging after 600ms");
+      await touch("touchStart", [origin]); await touch("touchEnd", []); await wait(60);
+      assert.equal(await page.evaluate(() => window.pointerLog.filter(e => e.type === "pointerdown").at(-1).state), "inertia", "pointer must catch live inertia, not a settled fling");
+      assert.equal(await page.evaluate(() => window.rowClicks), 0, `catch must suppress pointer click: ${JSON.stringify(await page.evaluate(() => ({ pointers: window.pointerLog, events: window.__rfc013.snapshot().events })))}`);
+      assert.equal((await read()).state, "idle");
+      await touch("touchStart", [origin]); await touch("touchEnd", []); await wait(60);
+      assert.equal(await page.evaluate(() => window.rowClicks), 1, "ordinary idle tap must click");
+      await page.$eval("#smooth", el => el.click());
+      await touch("touchStart", [origin]); await touch("touchEnd", []); await wait(60);
+      assert.equal(await page.evaluate(() => window.pointerLog.filter(e => e.type === "pointerdown").at(-1).state), "animating", "pointer must catch smooth navigation");
+      assert.equal(await page.evaluate(() => window.rowClicks), 1, "animation catch must suppress click");
+      // A drag may have no browser-generated click. A delayed compatibility click
+      // for that same pointer is still consumed, without swallowing other inputs.
+      await gesture(origin, axis);
+      await wait(650);
+      const clicks = await page.evaluate(() => {
+        const id = window.pointerLog.filter(e => e.type === "pointerup").at(-1).id;
+        const row = document.querySelector(".row:not([hidden])");
+        const send = (pointerId, detail) => row.dispatchEvent(new PointerEvent("click", { bubbles: true, cancelable: true, pointerId, detail }));
+        send(id + 100, 1); const unrelated = window.rowClicks;
+        send(-1, 0); const keyboard = window.rowClicks;
+        send(id, 1); const suppressed = window.rowClicks;
+        send(id, 1); const consumedOnce = window.rowClicks;
+        return { unrelated, keyboard, suppressed, consumedOnce };
+      });
+      assert.deepEqual(clicks, { unrelated: 2, keyboard: 3, suppressed: 3, consumedOnce: 4 });
+    },
 
   };
   for (const axis of ["y", "x"]) for (const [name, run] of Object.entries(cases)) {
