@@ -88,6 +88,12 @@ const nativeInput = target => target.closest("input,select,textarea,[contentedit
 const isTouch = event => event.pointerType === "touch" || event.pointerType === "pen";
 window.addEventListener("pointerdown", event => {
   if (!isTouch(event)) return;
+  if (event.isPrimary) {
+    // A new primary touch proves the previous sequence ended, even if its
+    // pointerup/cancel was lost. Recover the model and bookkeeping together.
+    if (pointers.size) resetInput("new-primary");
+    pointers.clear();
+  }
   pointers.add(event.pointerId);
   if (pointers.size > 1) {
     blockTouches = true; counters.multitouchCancels++;

@@ -131,6 +131,15 @@ async function regressions() {
       await page.keyboard.press(axis === "y" ? "ArrowDown" : "ArrowRight"); await wait(50);
       assert.equal((await read()).logical, before.logical + (axis === "y" ? 52 : 180), "focused link permits arrow navigation");
     },
+    async stale(axis) {
+      await page.$eval("#viewport", el => {
+        el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch", pointerId: 999, isPrimary: true }));
+        el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerType: "touch", pointerId: 1000, isPrimary: false }));
+      });
+      const before = await read();
+      await gesture(await plainPoint(axis), axis);
+      assert((await read()).logical > before.logical, "new primary gesture recovers after missing pointer ends");
+    },
     async clocks(axis) {
       const origin = await plainPoint(axis);
       const time = Date.now() / 1000 - 2;
