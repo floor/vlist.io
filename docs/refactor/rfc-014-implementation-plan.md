@@ -56,6 +56,14 @@ For B, explicitly accept or reject the prototype boundary policy for the intende
 product; improving parent chaining requires a new specified experiment. For A,
 measure runway exhaustion and rebase safety; a larger factor is not proof.
 
+- [x] **Boundary policy, 2.7 opt-in mode: accepted 2026-09-13** (Codex
+      recommendation, #127). Hard same-axis stop at both edges, no parent handoff,
+      including gestures starting inside an edge-pinned list. Document it as a
+      known limitation of the opt-in mode; native mode remains for pages that need
+      parent scrolling. Not a default decision.
+- [ ] Per-device result sheet recorded: devices, OS and browser versions, exported
+      telemetry for both axes, checklist outcomes.
+
 **No-go:** retain current native default/bounded opt-in until a candidate meets the
 contract. Do not announce removal of `scroll.mode` before this decision.
 

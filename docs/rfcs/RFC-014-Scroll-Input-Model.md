@@ -191,6 +191,18 @@ sortable takes `pointerdown` on the same element with a 5 px threshold and no
 `touch-action`, and autosize/transition corrections route through a cancelling
 `scrollTo`, so the driver needs a non-cancelling shift primitive.
 
+**2026-09-13 — boundary policy for the opt-in mode: accepted.** Same-axis touch
+in synthetic mode stops hard at either list edge and does not hand the gesture to
+the parent, including a gesture that begins inside an already edge-pinned list. This
+is accepted for the 2.7 opt-in mode only, on Codex's recommendation in
+[#127](https://github.com/floor/vlist/discussions/127), and must be documented
+as a known limitation of that mode; applications that need native parent scrolling
+keep the existing native mode. Accepting it for an opt-in feature does not approve
+it as a default. Parent chaining, if ever required, is a different ownership design
+to be specified and measured separately. The per-device result sheet (devices, OS
+and browser versions, exported telemetry) is still to be recorded before the opt-in
+release.
+
 Implementation sequence and live checklists:
 [implementation plan](../refactor/rfc-014-implementation-plan.md).
 Prototype usage, telemetry and physical-device result sheet:
