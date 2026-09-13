@@ -11,7 +11,8 @@ $("axis").onchange = event => { location.search = `?axis=${event.target.value}`;
 if (!vertical) $("header").textContent = "HORIZONTAL SYNTHETIC · VERTICAL NATIVE PAN";
 
 let extent = 0, raf = 0, lastFrame = 0, lastHud = 0, dirty = true;
-let blockTouches = false, dragged = false, suppressClickUntil = 0;
+let blockTouches = false, dragged = false, caught = false;
+let suppressClickPointer = null;
 const pointers = new Set();
 const pool = [], events = [];
 const counters = { frameGaps: 0, boundaryContacts: 0, coverageFailures: 0, nativeMainScrollEvents: 0, pointerCancels: 0, multitouchCancels: 0, crossAxisScrollEvents: 0, maxVelocity: 0 };
@@ -82,21 +83,31 @@ function hud() {
   $("events").textContent = events.map(e => `${e.ms}ms ${e.type} ${e.reason ?? e.source ?? ""} ${e.from ?? ""} → ${e.to ?? ""}`).join("\n");
 }
 const interactive = target => target.closest("a,button,input,select,textarea,[contenteditable]:not([contenteditable='false']),[data-native-input]");
+// Links/buttons participate in main-axis gestures; editing controls keep theirs.
+const nativeInput = target => target.closest("input,select,textarea,[contenteditable]:not([contenteditable='false']),[data-native-input]");
 const isTouch = event => event.pointerType === "touch" || event.pointerType === "pen";
 window.addEventListener("pointerdown", event => {
   if (!isTouch(event)) return;
+  if (event.isPrimary) {
+    // A new primary touch proves the previous sequence ended, even if its
+    // pointerup/cancel was lost. Recover the model and bookkeeping together.
+    if (pointers.size) resetInput("new-primary");
+    pointers.clear();
+  }
   pointers.add(event.pointerId);
   if (pointers.size > 1) {
     blockTouches = true; counters.multitouchCancels++;
     motion.cancel("multitouch"); return;
   }
-  if (!viewport.contains(event.target) || interactive(event.target)) return;
+  if (!viewport.contains(event.target) || nativeInput(event.target)) return;
   dragged = false;
-  motion.begin(event.pointerId, event.clientX, event.clientY, performance.now());
+  caught = motion.active;
+  suppressClickPointer = null;
+  motion.begin(event.pointerId, event.clientX, event.clientY, event.timeStamp);
 });
 window.addEventListener("pointermove", event => {
   if (!isTouch(event) || blockTouches) return;
-  if (motion.move(event.pointerId, event.clientX, event.clientY, performance.now())) {
+  if (motion.move(event.pointerId, event.clientX, event.clientY, event.timeStamp)) {
     dragged = true;
     if (!viewport.hasPointerCapture(event.pointerId)) viewport.setPointerCapture(event.pointerId);
     // touch-action defines browser pan/zoom policy; this only suppresses other defaults.
@@ -107,21 +118,26 @@ function endPointer(event) {
   if (!isTouch(event)) return;
   const cancelled = event.type === "pointercancel";
   if (cancelled) { counters.pointerCancels++; motion.cancel("pointercancel"); }
-  if (dragged) suppressClickUntil = performance.now() + 500;
-  motion.end(event.pointerId, performance.now());
+  if (!cancelled && (dragged || caught)) suppressClickPointer = event.pointerId;
+  motion.end(event.pointerId, event.timeStamp);
   pointers.delete(event.pointerId);
   if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
   if (!pointers.size) {
     if (blockTouches || cancelled) motion.reset("all-pointers-ended");
     blockTouches = false;
     dragged = false;
+    caught = false;
   }
   schedule();
 }
 window.addEventListener("pointerup", endPointer);
 window.addEventListener("pointercancel", endPointer);
 viewport.addEventListener("click", event => {
-  if (event.detail !== 0 && performance.now() < suppressClickUntil) { event.preventDefault(); event.stopPropagation(); }
+  if (event.detail !== 0 && suppressClickPointer !== null &&
+      (event.pointerId === suppressClickPointer || event.pointerId === undefined)) {
+    suppressClickPointer = null;
+    event.preventDefault(); event.stopPropagation();
+  }
 }, true);
 viewport.addEventListener("wheel", event => {
   if (event.ctrlKey || interactive(event.target)) return;
@@ -132,7 +148,7 @@ viewport.addEventListener("wheel", event => {
   if (motion.by(main * factor, "wheel")) event.preventDefault();
 }, { passive: false });
 viewport.addEventListener("keydown", event => {
-  if (event.target !== viewport || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (nativeInput(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
   const forward = vertical ? "ArrowDown" : "ArrowRight";
   const back = vertical ? "ArrowUp" : "ArrowLeft";
   let target;
@@ -151,18 +167,22 @@ viewport.addEventListener("scroll", () => {
   if (vertical) $("header").style.transform = `translateX(${-viewport.scrollLeft}px)`;
   schedule();
 });
+stage.addEventListener("scroll", () => {
+  if (Math.abs(vertical ? stage.scrollTop : stage.scrollLeft) > 0.5) counters.nativeMainScrollEvents++;
+  schedule();
+});
 scrub.addEventListener("pointerdown", () => motion.cancel("slider-start"));
 scrub.addEventListener("input", () => motion.jump(Number(scrub.value) / 1_000_000 * (total * size - extent), "slider"));
 $("first").onclick = () => motion.jump(0);
 $("middle").onclick = () => motion.jump(total * size / 2);
 $("last").onclick = () => motion.jump(total * size);
-$("smooth").onclick = () => motion.smooth(motion.position + size * 100, performance.now());
+$("smooth").onclick = () => motion.smooth(motion.position + size * 100);
 $("resize").onclick = () => { viewport.style.height = viewport.clientHeight > 280 ? "240px" : "360px"; };
 new ResizeObserver(() => {
   extent = vertical ? viewport.clientHeight : viewport.clientWidth;
   motion.resize(); dirty = true; schedule();
 }).observe(viewport);
-function resetInput(reason) { pointers.clear(); blockTouches = false; dragged = false; motion.reset(reason); }
+function resetInput(reason) { pointers.clear(); blockTouches = false; dragged = false; caught = false; suppressClickPointer = null; motion.reset(reason); }
 window.addEventListener("blur", () => resetInput("blur"));
 document.addEventListener("visibilitychange", () => { if (document.hidden) resetInput("hidden"); });
 $("reset").onclick = () => { for (const key in counters) counters[key] = 0; events.length = 0; schedule(); };
