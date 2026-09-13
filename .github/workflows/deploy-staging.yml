@@ -67,7 +67,7 @@ jobs:
             sed -i 's|"vlist": "file:../vlist"|"vlist": "file:../staging.vlist"|' package.json
 
             # Clean install to ensure fresh resolution (avoid lockfile conflicts)
-            rm -rf node_modules bun.lockb
+            rm -rf node_modules bun.lock
             bun install --force
 
             # Framework adapters (vlist-react, vlist-vue, etc.) depend on @floor/vlist
