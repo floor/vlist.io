@@ -71,6 +71,14 @@ async function regressions() {
           events: window.__rfc013.snapshot().counters.nativeMainScrollEvents };
       }, axis);
       assert.deepEqual(actual, { overflow: "clip", stage: 0, viewport: 0, events: 0 });
+      // Fault injection verifies that telemetry also observes the stage layer.
+      // Keep this separate from the clipping assertion so either can regress.
+      await page.$eval("#stage", (el, axis) => {
+        el.style.overflow = "hidden";
+        if (axis === "y") el.scrollTop = 1; else el.scrollLeft = 1;
+      }, axis);
+      await wait(80);
+      assert((await read()).counters.nativeMainScrollEvents > 0, "telemetry must count native stage scrolling");
     },
     async link(axis) {
       const origin = await linkPoint(axis);
