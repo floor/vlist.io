@@ -93,6 +93,20 @@ who do not opt in.
       maintain explicit page/carousel conflict.
 - [ ] Document supported plugin combinations and known limitations of the opt-in
       mode (boundary policy, scrollbar accessibility) in the 2.7 release notes.
+- [x] **Size budget for the synthetic entry: 2.5 KB gzipped, accepted 2026-09-14**
+      (floor/vlist#130). The bounded handler's 1.1 KB covers wheel and rebase only;
+      the entry replaces native touch (sampling, multitouch, capture, click
+      suppression), native keyboard scrolling and the clip lifecycle, and component
+      ablation showed no single removable feature after diagnostics, reason strings,
+      per-commit timers and the two-phase keyboard path were removed. Base bundle
+      unchanged at 9.8 KB (+17 bytes for the factory hook). PRs (b) and (c) fit
+      inside the budget; any growth needs a new decision.
+- [x] **Performance parity measured 2026-09-14** on the same build, 1M rows, Chrome
+      touch fling: every frame 16.7 ms at 1x and 6x CPU throttling, no long tasks;
+      main-thread cost per pixel travelled 0.090 ms (synthetic) vs 0.094 ms (bounded);
+      style recalculation higher for synthetic (8.2 vs 2.5 ms per fling) because rows
+      move from JavaScript. Follow-up candidate, separately gated: translate the stage
+      once per frame with an anchored baseOffset to cut per-frame style writes.
 
 ## 5. Production scrollbar and migration
 
