@@ -203,6 +203,17 @@ to be specified and measured separately. The per-device result sheet (devices, O
 and browser versions, exported telemetry) is still to be recorded before the opt-in
 release.
 
+**2026-09-14 — opt-in implementation complete on `feat/synthetic-input`.** Codex
+implemented and Claude reviewed three PRs (floor/vlist#130, #131, #132): the
+`vlist/synthetic` entry with `scroll.mode: "synthetic"`, the non-cancelling
+`shiftBy` with autosize and transition corrections routed through it, and the
+guards plus documentation. Verified from a clean export: 3530 tests, typecheck,
+base bundle unchanged at 9.8 KB, synthetic entry +2.5 KB gzipped (accepted
+budget), frame timing and main-thread cost per pixel on par with bounded mode.
+The five prototype defects are fixed and live. Not yet done: RTL policy for the
+driver, the official benchmark scenario, the per-device result sheet, and the
+merge into staging for the 2.7 minor, which is jvial's decision.
+
 Implementation sequence and live checklists:
 [implementation plan](../refactor/rfc-014-implementation-plan.md).
 Prototype usage, telemetry and physical-device result sheet:
