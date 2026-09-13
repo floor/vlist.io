@@ -1,0 +1,59 @@
+/* Experiment-only rules; header, navigation and theme remain site-owned. */
+html { scroll-behavior: auto; }
+.experiment-page { padding: 20px; }
+
+#synthetic-experiment { color-scheme: light; font: 16px/1.5 system-ui, sans-serif; color: #182b32; background: #f1f4f2; }
+#synthetic-experiment * { box-sizing: border-box; }
+#synthetic-experiment { margin: 0; }
+#synthetic-experiment { max-width: 1000px; margin: auto; padding: 32px 24px; }
+#synthetic-experiment h1 { margin: 8px 0; font-size: clamp(26px, 5vw, 40px); letter-spacing: -.035em; }
+#synthetic-experiment h2 { font-size: 19px; }
+#synthetic-experiment a { color: #00614d; }
+#synthetic-experiment .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #497466; }
+#synthetic-experiment .intro { max-width: 760px; }
+#synthetic-experiment .notice { padding: 12px 16px; border-left: 3px solid #b27619; background: #fff6df; }
+#synthetic-experiment .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; align-items: center; }
+#synthetic-experiment button, #synthetic-experiment select, #synthetic-experiment input { font: inherit; }
+#synthetic-experiment button, #synthetic-experiment select { padding: 8px 12px; border: 1px solid #b7c7be; border-radius: 6px; background: white; color: inherit; }
+#synthetic-experiment button { cursor: pointer; }
+#synthetic-experiment :focus-visible { outline: 3px solid #168b70; outline-offset: 3px; }
+#synthetic-experiment .frame { border: 1px solid #a9bdb2; border-radius: 10px; overflow: hidden; background: white; }
+#synthetic-experiment .header { all: revert; display: block; position: relative; overflow: hidden; height: 36px; background: #173d32; color: white; }
+#synthetic-experiment .header div { width: 960px; padding: 6px 16px; white-space: pre; }
+#synthetic-experiment #viewport { position: relative; height: 360px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x pinch-zoom; overflow-anchor: none; }
+#synthetic-experiment #stage { position: relative; width: 960px; height: 100%; overflow: hidden; overflow-anchor: none; }
+#synthetic-experiment .row { position: absolute; top: 0; left: 0; width: 960px; height: 52px; display: flex; align-items: center; gap: 32px; padding: 0 16px; border-bottom: 1px solid #e2e9e5; background: #fff; font-variant-numeric: tabular-nums; }
+#synthetic-experiment .row.odd { background: #f5f9f6; }
+#synthetic-experiment .row strong { min-width: 140px; }
+#synthetic-experiment .row span { min-width: 200px; }
+body.horizontal #synthetic-experiment #viewport { overflow-x: hidden; overflow-y: auto; touch-action: pan-y pinch-zoom; }
+body.horizontal #synthetic-experiment #stage { width: 100%; height: 600px; }
+body.horizontal #synthetic-experiment .row { width: 180px; height: 600px; display: block; padding: 20px; border-right: 1px solid #d9e4dc; }
+body.horizontal #synthetic-experiment .row span, body.horizontal #synthetic-experiment .row a { display: block; margin-top: 30px; }
+body.horizontal #synthetic-experiment .header div { width: auto; }
+#synthetic-experiment .scrub { display: flex; gap: 12px; align-items: center; padding: 12px 16px; background: #f6f9f7; }
+#synthetic-experiment .scrub input { width: 100%; accent-color: #167356; }
+#synthetic-experiment .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 20px 0; }
+#synthetic-experiment .metric { background: white; border: 1px solid #dbe5de; padding: 12px; border-radius: 8px; }
+#synthetic-experiment .metric span { display: block; font-size: 12px; color: #526b60; }
+#synthetic-experiment .metric b { font-size: 20px; font-variant-numeric: tabular-nums; }
+#synthetic-experiment details { margin: 16px 0; }
+#synthetic-experiment pre { max-height: 180px; overflow: auto; font-size: 12px; padding: 12px; background: #e5ede7; white-space: pre-wrap; }
+#synthetic-experiment .page-tail { margin-top: 24px; padding: 24px; min-height: 65vh; background: #e2ebe5; border-radius: 10px; }
+#synthetic-experiment .status { color: #805714; font-weight: 600; }
+    @media (max-width: 600px) {
+#synthetic-experiment { padding: 20px 18px; }
+#synthetic-experiment #viewport { height: 320px; }
+#synthetic-experiment .controls button { flex-grow: 1; }
+#synthetic-experiment .metrics { grid-template-columns: repeat(2, 1fr); } }
+    @media (forced-colors: active) {
+#synthetic-experiment .row, #synthetic-experiment .frame, #synthetic-experiment button, #synthetic-experiment .metric { border: 1px solid CanvasText; } }
+
+#synthetic-experiment { margin: 0 auto; width: 100%; border-radius: 12px; }
+#synthetic-experiment p { margin: 12px 0; }
+#synthetic-experiment ol { padding-left: 24px; }
+@media (max-width: 600px) { .experiment-page { padding: 12px; } }
+/* Reset shared UI control layout within the standalone test apparatus. */
+#synthetic-experiment .controls { flex-direction: row; justify-content: flex-start; padding: 0; background: transparent; border: 0; }
+#synthetic-experiment .controls label { color: #182b32; font-weight: 400; }
+#synthetic-experiment select, #synthetic-experiment input { color: #182b32; max-width: 100%; }

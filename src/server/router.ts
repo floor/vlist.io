@@ -16,6 +16,7 @@ import {
   renderBenchmarkPage,
 } from "./renderers";
 import { renderHomepage } from "./renderers/homepage";
+import { resolveExperiment } from "./renderers/experiments";
 import { resolveStatic } from "./static";
 import { compressResponse } from "./compression";
 import { renderSitemap, renderRobots } from "./sitemap";
@@ -147,9 +148,18 @@ export function handleRequest(req: Request): Response | Promise<Response> {
   const pathname = decodeURIComponent(url.pathname);
   const acceptEncoding = req.headers.get("Accept-Encoding");
 
+  // Keep relative module/comparison links valid, including the selected axis.
+  if (pathname === "/experiments/synthetic" || pathname === "/experiments/synthetic/native") {
+    return new Response(null, {
+      status: 308,
+      headers: { Location: `${pathname}/${url.search}` },
+    });
+  }
+
   // ── Sync routes (no Promise allocation) ──
   const syncResponse =
     routeSystem(pathname) ??
+    resolveExperiment(pathname) ??
     resolveHomepage(pathname) ??
     resolveExamples(pathname, url) ??
     resolveDocsV1(pathname) ??

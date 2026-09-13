@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { launchBrowser } from "../core.mjs";
 
-const base = process.argv.find(arg => arg.startsWith("--base="))?.slice(7) ?? "http://localhost:3338/gate-b/synthetic/";
+const base = process.argv.find(arg => arg.startsWith("--base="))?.slice(7) ?? "http://localhost:3338/experiments/synthetic/";
 const browser = await launchBrowser();
 let page = await browser.newPage();
 const errors = [];
