@@ -10,7 +10,7 @@
   RFC-014 Gate B device spike (standalone, no build, no library).
 
   Validates the "idle-only rebase + larger runway" hypothesis from
-  docs/refactor/rfc-013-implementation-plan.md on a real phone:
+  docs/refactor/rfc-013-native-runway-plan-historical.md on a real phone:
 
     - viewport stays overflow:auto  → native touch momentum drives scrollTop
     - content is a bounded runway   → runwayFactor × viewport (NOT the full list)

@@ -32,7 +32,7 @@ describe("deployed synthetic experiment", () => {
     expect(html).toContain('href="/styles/shell.css"');
     expect(html).toContain('href="/experiments/synthetic/styles.css"');
     expect(html).toContain('src="/experiments/synthetic/app.mjs"');
-    expect(html).toContain("Experiments / RFC-013");
+    expect(html).toContain("Experiments / RFC-014");
     expect(html).not.toContain("<%= it.");
   });
 });
