@@ -196,7 +196,15 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
 - Integration branch `next` opened 2026-09-14 at vlist staging 2.7.2; series 1
   (scrollbar gate, #142-#144) and series 2 (RTL, #145) merged; series 3 (adapter
   adoption: `getRenderOrigin()` on the adapter, renderers then motion plugins then
-  readers, enforced by a source-boundary test) dispatched 2026-09-14.
+  readers, enforced by a source-boundary test) dispatched 2026-09-14. PR a merged
+  2026-09-14 (floor/vlist#146): `ScrollAdapter.getRenderOrigin()`; grid, table, tree
+  and masonry read position and origin once per commit and keep their own last
+  committed origin; an AST boundary test counts every remaining direct read per
+  plugin. Review found that the adapter's page-mode getter forced layout on each read
+  (`getBoundingClientRect`), which the scroll and idle event payloads had been paying
+  per frame since RFC-012 phase 1; scroll sources now commit their position to engine
+  state and reads stay cached. Base 10,105 bytes (-1); wheel probe 40/40 in every
+  layout and mode.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
