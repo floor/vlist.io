@@ -223,8 +223,8 @@ runway. Results:
 
 | Platform | Writes during momentum | Hard-edge hits | Max fling | Runway | Fling vs runway | Frame gaps >32 ms |
 |---|---|---|---|---|---|---|
-| iOS Safari | 0 | 955 | 35,375 px | 16,470 px | 215% | 10 |
-| Android Chrome | 0 | 751 | 27,560 px | 12,180 px | 226% | 1 |
+| iPhone SE (2nd gen, 2020), iOS 26.6.1, Safari | 0 | 955 | 35,375 px | 16,470 px | 215% | 10 |
+| Pixel 8a, Android 17, Chrome | 0 | 751 | 27,560 px | 12,180 px | 226% | 1 |
 
 The idle-only rebase policy held (no writes during momentum), but a single native
 fling travels more than twice the runway on both platforms and pins against the
@@ -232,8 +232,8 @@ runway edge for hundreds of frames: the fling stops dead mid-momentum, as the Ju
 committee predicted. A 40x runway would be needed to contain these flings, and the
 plan does not accept a larger factor as proof. Candidate A is rejected. Candidate B
 (synthetic touch) was reported as working well on both devices; its opt-in
-implementation is complete on `feat/synthetic-input`. Device models and OS/browser
-versions are to be appended to the result sheet.
+implementation is complete on `feat/synthetic-input`. The iPhone SE is a 2020
+device, which covers the plan's low-end responsiveness item for iOS.
 
 Implementation sequence and live checklists:
 [implementation plan](../refactor/rfc-014-implementation-plan.md).
