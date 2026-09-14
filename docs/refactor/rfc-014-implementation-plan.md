@@ -149,8 +149,9 @@ Can be designed independently; must finish before native viewport removal.
       1M rows on c7db431e. RTL guard merged (#134). Nothing remains open before the
       minor except the merge of `feat/synthetic-input` into staging and the release
       prep (jvial); the synthetic telemetry export stays optional.
-- [ ] Required typecheck, tests, browser checks and size measurements pass; base
-      bundle unchanged for non-opt-in consumers.
+- [x] Required typecheck, tests, browser checks and size measurements pass; base
+      bundle unchanged for non-opt-in consumers (clean export of 20aaa281:
+      3536 tests, typecheck, build with declarations, base 9.8 KB, synthetic +2.6 KB).
 
 **3.0 default decision (conditional)**
 
