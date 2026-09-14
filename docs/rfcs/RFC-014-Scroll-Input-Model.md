@@ -225,6 +225,7 @@ runway. Results:
 |---|---|---|---|---|---|---|
 | iPhone SE (2nd gen, 2020), iOS 26.6.1, Safari | 0 | 955 | 35,375 px | 16,470 px | 215% | 10 |
 | Pixel 8a, Android 17, Chrome | 0 | 751 | 27,560 px | 12,180 px | 226% | 1 |
+| iPhone SE (2nd gen), iOS 26.6.1, Chrome for iOS (WebKit) | 0 | 361 | 11,793 px | 8,145 px | 145% | 0 |
 
 The idle-only rebase policy held (no writes during momentum), but a single native
 fling travels more than twice the runway on both platforms and pins against the
@@ -234,6 +235,14 @@ plan does not accept a larger factor as proof. Candidate A is rejected. Candidat
 (synthetic touch) was reported as working well on both devices; its opt-in
 implementation is complete on `feat/synthetic-input`. The iPhone SE is a 2020
 device, which covers the plan's low-end responsiveness item for iOS.
+
+Candidate B telemetry, exported from the prototype page on the iPhone SE in Chrome for
+iOS (2026-09-14, vertical axis, 313x320 viewport at 2x): frame gaps over 32 ms 0,
+boundary contacts 0, paint-coverage failures 0, native main-axis scroll events 0,
+13 rendered nodes for 1,000,000 rows, peak velocity 2.9 px/ms, 15 pointer cancellations
+(WebKit taking cross-axis pan or pinch, the documented arbitration), 2 multitouch
+cancellations with recovery. Flings settle to idle; slider and navigation cancel motion
+as specified.
 
 **2026-09-14 — wheel judder in bounded and synthetic mode: root cause fixed in 2.6.5.**
 jvial found trackpad deceleration jerky in both logical modes on a 120 Hz display. The

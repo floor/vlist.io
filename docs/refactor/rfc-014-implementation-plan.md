@@ -67,7 +67,9 @@ measure runway exhaustion and rebase safety; a larger factor is not proof.
       Writes during momentum stayed 0 on both. Details in the RFC decision record.
 - [x] Devices recorded: iPhone SE (2nd gen, 2020) on iOS 26.6.1 Safari; Pixel 8a on
       Android 17 Chrome.
-- [ ] Optional: the synthetic page's exported telemetry for both axes.
+- [x] Synthetic telemetry recorded for the vertical axis on the iPhone SE in Chrome for
+      iOS (all counters zero, 13 nodes, peak 2.9 px/ms); candidate A also fails in that
+      browser (361 hard-edge hits, 145% of runway). Horizontal-axis export optional.
 
 **No-go:** retain current native default/bounded opt-in until a candidate meets the
 contract. Do not announce removal of `scroll.mode` before this decision.
