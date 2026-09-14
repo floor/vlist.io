@@ -217,8 +217,17 @@ before any release. Series 7 PR a merged into `next` (floor/vlist#157): core
 carousel, sortable and horizontal RTL; `vlist/config` defaults to the core factory.
 Verified from a clean export: 3,624 tests, coverage gate green, wheel probe 40/40 on
 five layouts in both entries. Sizes before removals: base 12,820 bytes with the
-driver, native 10,358. First local test round on this build; PR b (removals, 9.9 KB
-gate) in progress and merges after that round.
+driver, native 10,358. First local test round on this build (2026-09-15): the driver
+passed on every example ("amazing"); findings were migrations and two pre-existing
+defects. Examples that relied on the browser scrollbar now install `scrollbar()`;
+carousel, sortable and plugin-wizard import `vlist/native`. Scrollbar plugin
+regression from #143 fixed on next (floor/vlist#158): numeric `width`/`radius` config
+was ignored and the author's `--vlist-custom-scrollbar-width/-radius` variables were
+overridden by inline platform defaults; precedence is now config, author variable,
+platform default, and vlist.css no longer declares those two defaults. Scrollbar row
++99 bytes (+2.9 KB shown) against its +2.8 KB gate budget, accepted to restore the 2.8
+promise. Carousel slots not following container resizes (pre-existing in 2.8.0) is
+dispatched as a 2.8.x fix on staging. PR b (removals, 9.9 KB gate) resumes after.
 
 **3.0 shape (decided 2026-09-14)**
 
