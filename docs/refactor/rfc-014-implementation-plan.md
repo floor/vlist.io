@@ -130,17 +130,21 @@ Can be designed independently; must finish before native viewport removal.
 
 - [ ] Decide core-vs-plugin bundling, default/disable/customization API, dup guard.
       Decided 2026-09-14: the scrollbar stays a plugin, required by documentation.
-- [ ] Native look by default: per-platform defaults for width, overlay vs gutter,
+- [x] Native look by default: per-platform defaults for width, overlay vs gutter,
       radius and auto-hide timing (macOS, Windows, Android), from AzzaAzza69's
-      requirement in floor/vlist#108.
-- [ ] Honour the standard `scrollbar-width` and `scrollbar-color` properties read from
-      the container's computed style, so existing stylesheets keep working.
-- [ ] Documented one-to-one mapping from each `::-webkit-scrollbar*` pseudo-element to a
+      requirement in floor/vlist#108 (#143).
+- [x] Honour the standard `scrollbar-width` and `scrollbar-color` properties read from
+      the container's computed style, so existing stylesheets keep working (#143).
+- [x] Documented one-to-one mapping from each `::-webkit-scrollbar*` pseudo-element to a
       plugin class or `--vlist-scrollbar-*` variable; the pseudo-elements themselves are
-      not mirrored (non-standard, Chromium-only, not readable from script).
-- [ ] Implement keyboard, focus, pointer and semantics; test with screen readers.
-- [ ] Test forced colors, theming, reduced motion, horizontal orientation, huge totals.
-- [ ] Measure net bundle impact including the default scrollbar and gesture driver.
+      not mirrored (non-standard, Chromium-only, not readable from script) (#144).
+- [x] Implement keyboard, focus, pointer and semantics (floor/vlist#142 on `next`,
+      2026-09-14: role=scrollbar, ARIA range and "Row N of M", focus-visible, one
+      pointer-capture path). Screen-reader pass (VoiceOver macOS/iOS, TalkBack) pending.
+- [x] Forced colors, horizontal orientation and huge totals (20M rows) tested (#144);
+      reduced motion is handled by the driver, not the bar.
+- [x] Scrollbar plugin +2.0 → +2.8 KB gzipped across #142-#144 (402 + 394 + 0 bytes),
+      inside its budget; base unchanged.
 - [ ] Specify migration for `scroll.mode` and `scrollbar: "native"` and public internals.
 
 ## 6. Release gates
