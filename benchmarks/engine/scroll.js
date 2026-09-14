@@ -196,6 +196,8 @@ export const measureRawRAFRate = (durationMs) => {
 /**
  * @typedef {Object} ScrollRunResult
  * @property {number[]} frameTimes - Inter-frame intervals (ms) from rAF paint counter
+ * @property {number[]} [inputWorkTimes] - Synchronous logical setter cost only; excludes deferred rendering/layout
+ * @property {number} [distance] - Observed logical distance travelled (px)
  * @property {number[]} frameWorkTimes - Per-frame rendering cost (JS callbacks + forced layout) in ms
  * @property {number} totalFrames - Number of frames recorded
  * @property {number} scrollDriverRate - setTimeout ticks per second (diagnostic)
@@ -217,6 +219,7 @@ export const measureRawRAFRate = (durationMs) => {
  * @param {number} opts.speedPxPerSec - Scroll speed in pixels per second
  * @param {number} [opts.stressMs=0] - CPU burn per frame (simulates app workload)
  * @param {(progress: number) => void} [opts.onProgress] - Progress callback (0-1)
+ * @param {{max: number, set: (position: number) => void, get: () => number}} [options.logicalScroll] - Optional logical input provider; native frame-cost probe is disabled
  * @returns {Promise<ScrollRunResult>}
  */
 export const measureScrollRun = async ({
@@ -225,6 +228,7 @@ export const measureScrollRun = async ({
   speedPxPerSec,
   stressMs = 0,
   onProgress,
+  logicalScroll,
 }) => {
   // Guard: if no viewport, return zero metrics instead of crashing
   if (!viewport) {
@@ -239,7 +243,8 @@ export const measureScrollRun = async ({
     };
   }
 
-  const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+  const maxScroll = logicalScroll ? logicalScroll.max : viewport.scrollHeight - viewport.clientHeight;
+  if (logicalScroll && !(maxScroll > 0)) throw new Error("Logical benchmark requires a positive virtual scroll range");
 
   return new Promise((resolve) => {
     // -----------------------------------------------------------------
@@ -247,6 +252,8 @@ export const measureScrollRun = async ({
     // -----------------------------------------------------------------
     const frameTimes = [];
     const frameWorkTimes = [];
+    const inputWorkTimes = [];
+    let distance = 0, previousPosition = 0;
     let running = true;
     let scrollDriverTicks = 0;
     let lastProgressUpdate = 0;
@@ -315,7 +322,7 @@ export const measureScrollRun = async ({
       }
     };
 
-    viewport.addEventListener("scroll", onScrollForCostProbe, {
+    if (!logicalScroll) viewport.addEventListener("scroll", onScrollForCostProbe, {
       passive: true,
     });
 
@@ -366,6 +373,8 @@ export const measureScrollRun = async ({
         resolve({
           frameTimes,
           frameWorkTimes,
+          inputWorkTimes,
+          distance,
           totalFrames: frameTimes.length,
           scrollDriverRate: driverRate,
           medianFPS: medFPS,
@@ -398,7 +407,14 @@ export const measureScrollRun = async ({
         scrollDirection = 1;
       }
 
-      viewport.scrollTop = scrollPos;
+      if (logicalScroll) {
+        const start = performance.now();
+        logicalScroll.set(scrollPos);
+        inputWorkTimes.push(performance.now() - start);
+        const current = logicalScroll.get();
+        distance += Math.abs(current - previousPosition);
+        previousPosition = current;
+      } else viewport.scrollTop = scrollPos;
 
       // Schedule next tick — setTimeout(0) runs ~4ms apart in Chrome,
       // giving us ~250 scroll updates/sec
