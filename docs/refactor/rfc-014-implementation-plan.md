@@ -65,8 +65,9 @@ measure runway exhaustion and rebase safety; a larger factor is not proof.
       runway 16x, idle-only rebase) fails its own gate on both physical devices:
       iOS 955 hard-edge hits, max fling 215% of runway; Android 751 hits, 226%.
       Writes during momentum stayed 0 on both. Details in the RFC decision record.
-- [ ] Result sheet completion: device models, OS and browser versions, and the
-      synthetic page's exported telemetry for both axes.
+- [x] Devices recorded: iPhone SE (2nd gen, 2020) on iOS 26.6.1 Safari; Pixel 8a on
+      Android 17 Chrome.
+- [ ] Optional: the synthetic page's exported telemetry for both axes.
 
 **No-go:** retain current native default/bounded opt-in until a candidate meets the
 contract. Do not announce removal of `scroll.mode` before this decision.
@@ -143,7 +144,7 @@ Can be designed independently; must finish before native viewport removal.
       matched logical native/bounded/synthetic scenarios plus an in-page pointer-fling
       scenario for the synthetic driver; 60 FPS, zero frames over 32 ms at 10K to
       1M rows on c7db431e. Still open before the minor: RTL policy for the synthetic
-      driver, result-sheet completion (device versions, synthetic telemetry), and
+      driver, optional synthetic telemetry export, and
       the merge of `feat/synthetic-input` into staging (jvial).
 - [ ] Required typecheck, tests, browser checks and size measurements pass; base
       bundle unchanged for non-opt-in consumers.
