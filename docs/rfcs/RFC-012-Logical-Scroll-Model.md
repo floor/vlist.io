@@ -276,6 +276,31 @@ These are real work items resolved during Phase 1, not RFC gates:
 
 ---
 
+## Status audit (2026-09-14, vlist 2.7.2)
+
+Checked against the source, not the June review.
+
+| Item | Status | Evidence |
+|---|---|---|
+| Phase 0 rebase prototype | Done | Runway experiments; superseded by the RFC-014 device tests |
+| Phase 1: bounded runway, logical position, `overflow-anchor: none`, `ScrollAdapter`, resize refresh, page guard | Done | `src/core/runway.ts`, `src/core/adapter.ts`, `src/core/dom.ts` |
+| Phase 3: compression removal, `scale()` no-op with warning | Done | No `compressionCtx`, `CompressionContext` or `calculateCompressedItemPosition` in `src`; `scale()` still exported per the 2.x ladder, removal in 3.0 |
+| Phase 4: carousel on bounded wrap | Done | `d67ff72` |
+| Renderers route content size through bounded | Done as of 2.7.2 | Grid, table, masonry since June; tree fixed in floor/vlist#140 (2.7.2) |
+| Renderers follow `baseOffset` on every commit | Done as of 2.7.1 | Core fast path (2.6.5, issue 025), grid/table/tree/masonry (2.7.1) |
+| Rebase never during momentum | **Not met by design** | Bounded rebases at 25%/75% of a 2x runway mid-scroll; the RFC's fallback (idle-only rebase) was tested on iPhone SE and Pixel 8a under RFC-014 and stalls long flings at 145-226% of a 16x runway. Documented as a bounded-mode limitation in the README (2.7.2). RFC-014 resolves the direction: synthetic input for touch |
+| Phase 2: virtual scrollbars by default, native deprecated, ARIA contract | **Not started** | Scrollbar plugin has no `role="scrollbar"` or ARIA values; bounded and synthetic require adding the plugin by hand. This is the RFC-014 Scrollbar gate |
+| Page mode bounded proxy | **Superseded** | Code throws for page plus bounded; RFC-014 reframes page mode as the native document provider |
+| `{ index, offsetPx }` as the internal primitive; plugins through the adapter | **Partial** | The adapter exposes it; engine state stays absolute pixels plus `baseOffset`; no first-party plugin uses the adapter (all sixteen read `scrollPosition`/`baseOffset` directly). The migration boundary was never enforced, which is how five renderers drifted in September |
+| RTL `scrollLeft` normalization | **Not started** | No RTL code anywhere; synthetic mode guards horizontal RTL lists (2.7.0) |
+| Unknown or changing totals under bounded | Unverified | No explicit test |
+| Docs page for logical scroll | **Missing** | The `scale()` warning linked to `/docs/logical-scroll` (404) until 2.7.2; now points here |
+
+Remaining items are carried by the RFC-014 plan as 3.0 gates: scrollbar accessibility,
+RTL support for the synthetic driver, adapter adoption across plugins, page mode under the
+external-scroll seam, and the deprecation ladder for `scroll.mode`, `scrollbar: "native"`
+and `scale()`.
+
 ## Committee review
 
 Reviewed 2026-06-07 by GPT-5.5, Gemini 3.1, Opus 4.6, Opus 4.8, Codex.

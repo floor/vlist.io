@@ -8,7 +8,7 @@ RFCs are discussed in [GitHub Discussions](https://github.com/floor/vlist/discus
 |-----|--------|-------|
 | [RFC-014: Scroll Input Model](/docs/rfcs/RFC-014-Scroll-Input-Model) | Draft | Who owns scroll input: hardened native runway or synthetic touch, decided on device results |
 | [RFC-013: Unified Scroll Model](/docs/rfcs/RFC-013-Unified-Scroll-Model) | Rejected | Bounded-only model with native path removed; superseded by RFC-014 |
-| [RFC-012: Logical Scroll Model](/docs/rfcs/RFC-012-Logical-Scroll-Model) | Implemented | Viewport-sized content with logical scroll — no compression, unlimited item count |
+| [RFC-012: Logical Scroll Model](/docs/rfcs/RFC-012-Logical-Scroll-Model) | Partially implemented | Viewport-sized content with logical scroll; scrollbar, RTL, adapter adoption and page mode carried by RFC-014 as 3.0 gates |
 | [RFC-011: Carousel Plugin](/docs/rfcs/RFC-011-Carousel-Plugin) | Implemented | Paged carousel with infinite loop, snap, and focal scaling |
 | [RFC-010: Externalized UI Text](/docs/rfcs/RFC-010-Externalized-UI-Text) | Draft | No inline human-language strings; consumer-supplied text with one overridable default per plugin |
 | [RFC-009: Configuration Immutability](/docs/rfcs/RFC-009-Configuration-Immutability) | Draft | Immutable config architecture, runtime escape hatches, rebuild continuity |
