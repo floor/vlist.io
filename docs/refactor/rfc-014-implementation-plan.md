@@ -140,7 +140,10 @@ Can be designed independently; must finish before native viewport removal.
       not mirrored (non-standard, Chromium-only, not readable from script) (#144).
 - [x] Implement keyboard, focus, pointer and semantics (floor/vlist#142 on `next`,
       2026-09-14: role=scrollbar, ARIA range and "Row N of M", focus-visible, one
-      pointer-capture path). Screen-reader pass (VoiceOver macOS/iOS, TalkBack) pending.
+      pointer-capture path). Screen-reader pass: VoiceOver macOS passed 2026-09-15 on a
+      local build of `next` (bar reachable by Tab, role and row value announced, keys
+      and adjust gesture move it, list navigation intact). VoiceOver iOS and TalkBack
+      pending.
 - [x] Forced colors, horizontal orientation and huge totals (20M rows) tested (#144);
       reduced motion is handled by the driver, not the bar.
 - [x] Scrollbar plugin +2.0 → +2.8 KB gzipped across #142-#144 (402 + 394 + 0 bytes),
