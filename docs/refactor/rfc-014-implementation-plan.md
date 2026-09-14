@@ -223,7 +223,17 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
   page hooks (`setScrollFns`, `disableDefaultScroll` deprecated, removal in 3.0); the
   page plugin commits through core, dedupes window events and honours
   `scroll.idleTimeout`; the plugin boundary allowlist is empty. Base 10,169 (+29 for
-  the series), page -34. PR b (page under the synthetic entry, size guard) dispatched.
+  the series), page -34. PR b merged 2026-09-14 (floor/vlist#150): with an external
+  source installed core takes the document-provider path in every mode (no driver, no
+  runway, document-sized content, origin 0); the page-plus-logical-mode throws are
+  gone and the carousel conflict stays explicit; the source contract gains an optional
+  `onContentSize` hook, invoked from the single content-sizing function, and the page
+  plugin owns the 16,777,216 px guard (throw at creation when the size is known, warn
+  once on later growth or on a deferred renderer's first commit). Page gate closed.
+  Size: base 10,187 bytes (9.9 KB), +47 for series 4 against a +30 allowance; the
+  overrun is the creation-time validation for custom and deferred renderers, kept
+  because it turns a silent broken layout into an error at creation. Synthetic row
+  2,643 (smaller than before series 3); page +146 for the guard and its messages.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
@@ -232,7 +242,8 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
 **3.0 default decision (conditional)**
 
 - [ ] Consumer feedback from the opt-in mode recorded alongside the A/B comparison.
-- [ ] Scrollbar, page, RTL and migration gates closed.
+- [ ] Scrollbar, page, RTL and migration gates closed (scrollbar, RTL and page closed
+      on `next` as of 2026-09-14; migration is series 5).
 - [ ] Only then flip the default or delete the native viewport path, if still selected.
 
 Adapter canonicalization and distance-based overscan remain separately scoped work.
