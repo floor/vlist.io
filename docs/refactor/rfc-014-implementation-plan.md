@@ -217,6 +217,13 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
   short; fixed with tests. Series 3 closed: the boundary test's allowlist holds only
   the page plugin's three scroll-source accesses. Base 10,140 bytes (+34 for the
   series). Next gate: page mode under the external-scroll seam.
+- Series 4 (page mode) PR a merged 2026-09-14 (floor/vlist#149): one commit path in the
+  native handler shared by DOM events, wheel, programmatic writes and smooth-scroll
+  ticks; `PluginContext.setScrollSource()` and `commitScroll()` replace the ad-hoc
+  page hooks (`setScrollFns`, `disableDefaultScroll` deprecated, removal in 3.0); the
+  page plugin commits through core, dedupes window events and honours
+  `scroll.idleTimeout`; the plugin boundary allowlist is empty. Base 10,169 (+29 for
+  the series), page -34. PR b (page under the synthetic entry, size guard) dispatched.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
