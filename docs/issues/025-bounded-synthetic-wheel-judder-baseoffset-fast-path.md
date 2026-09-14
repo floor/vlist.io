@@ -125,6 +125,17 @@ render on the scroll position; groups already guarded with its own
 The tree renderer had a second, older defect: it never subtracted `baseOffset` from its
 row transforms, so in bounded mode past the first runway its rows sat at absolute offsets.
 
+Masonry turned out not to be clean either, for a third reason: it re-renders on every
+position change, but its release grace period keeps items that just left the visible set
+alive with their old transform. In native mode those are off-screen; in the logical
+modes `baseOffset` has moved, so after a jump to the middle of 100K items 21 stale items
+sat inside the viewport on top of the new range, and on wheel they lagged by one frame's
+`baseOffset` delta (a tracked item moved on 36 of 40 frames). Grace-period items now
+follow the current `baseOffset`.
+
+Measured on the fixed branch, single tracked item across 40 wheel steps: grid, table and
+masonry all move on 40 of 40 frames in every mode, identical to native.
+
 Fix: floor/vlist#138 (proposed 2.7.1). The same guard in all three fast paths, and the tree
 renders at `offset - baseOffset`. After the fix the grid probe reads 40 of 40 in every
 mode with identical steps. Lesson added below: a fix in core does not reach renderers
