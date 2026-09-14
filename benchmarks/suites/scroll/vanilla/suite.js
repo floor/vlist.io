@@ -30,6 +30,7 @@ import {
   wakeUpDisplay,
   measureRawRAFRate,
   measureScrollRun,
+  measurePointerFlingRun,
   computeScrollStats,
 } from "../../../engine/scroll.js";
 
@@ -262,7 +263,7 @@ for (const mode of ["native", "bounded", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthet
           throw new Error("Synthetic benchmark moved a native main-axis scroll offset");
         }
         const { avgFps, droppedPct } = computeScrollStats(result, SCROLL_DURATION_MS);
-        const samples = result.inputWorkTimes.sort((a,b) => a-b);
+        const samples = [...result.inputWorkTimes].sort((a,b) => a-b);
         const total = samples.reduce((sum, value) => sum + value, 0);
         return [
           { label: "Avg FPS", value: avgFps, unit: "fps", better: "higher" },
@@ -277,3 +278,38 @@ for (const mode of ["native", "bounded", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthet
     },
   });
 }
+
+
+if (__BENCH_HAS_SYNTHETIC__) defineSuite({
+  id: "scroll-fling-synthetic",
+  name: "Pointer fling (synthetic)",
+  description: "Repeated in-page pointer flings with idle recovery; browser capture is shimmed, not a trusted-touch test",
+  run: async ({ itemCount, container, onStatus }) => {
+    const driver = createRefreshRateDriver();
+    let list;
+    try {
+      list = createSynthetic({ container, items: generateItems(itemCount),
+        item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode: "synthetic" } });
+      list.scrollToIndex(Math.floor(itemCount / 2));
+      await waitFrames(10);
+      const options = { viewport: findViewport(container), content: container.querySelector('.vlist-content'), getPosition: () => list.getScrollPosition() };
+      onStatus('Warming pointer sampling and inertia...');
+      await measurePointerFlingRun({ ...options, durationMs: 1 });
+      onStatus('Measuring repeated pointer flings...');
+      const result = await measurePointerFlingRun({ ...options, durationMs: SCROLL_DURATION_MS });
+      const stats = computeScrollStats(result, SCROLL_DURATION_MS);
+      const sorted = [...result.frameTimes].sort((a,b) => a-b);
+      const average = values => values.reduce((a,b) => a+b,0) / values.length;
+      return [
+        { label: "Avg FPS", value: stats.avgFps, unit: "fps", better: "higher" },
+        { label: "Dropped", value: stats.droppedPct, unit: "%", better: "lower" },
+        { label: "Frame p95", value: round(sorted[Math.floor((sorted.length-1)*.95)],2), unit: "ms", better: "lower" },
+        { label: "Frame max", value: round(Math.max(...sorted),2), unit: "ms", better: "lower" },
+        { label: "Frames over 32 ms", value: sorted.filter(value => value > 32).length, unit: "", better: "lower" },
+        { label: "Inertia frames per fling", value: round(average(result.inertiaFrames),1), unit: "", better: "higher" },
+        { label: "Distance per fling", value: round(average(result.distances),1), unit: "px", better: "higher" },
+        { label: "Flings", value: result.distances.length, unit: "", better: "higher" },
+      ];
+    } finally { list?.destroy(); driver.stop(); container.innerHTML = ""; }
+  },
+});

@@ -219,7 +219,7 @@ export const measureRawRAFRate = (durationMs) => {
  * @param {number} opts.speedPxPerSec - Scroll speed in pixels per second
  * @param {number} [opts.stressMs=0] - CPU burn per frame (simulates app workload)
  * @param {(progress: number) => void} [opts.onProgress] - Progress callback (0-1)
- * @param {{max: number, set: (position: number) => void, get: () => number}} [options.logicalScroll] - Optional logical input provider; native frame-cost probe is disabled
+ * @param {{max: number, set: (position: number) => void, get: () => number}} [opts.logicalScroll] - Optional logical input provider; native frame-cost probe is disabled
  * @returns {Promise<ScrollRunResult>}
  */
 export const measureScrollRun = async ({
@@ -513,4 +513,80 @@ export const computeScrollStats = (
     estimatedMaxFps,
     medianFrameTime,
   };
+};
+
+/**
+ * In-page synthetic pointer benchmark. This exercises dispatch, axis intent,
+ * sampling and inertia, but cannot simulate trusted browser pointer capture.
+ * Capture methods are temporarily shimmed because untrusted PointerEvents have
+ * no browser-owned active pointer ID (native setPointerCapture would throw).
+ * Real capture, touch-action and compositor arbitration remain CDP/device gates.
+ */
+export const measurePointerFlingRun = async ({ viewport, content, getPosition,
+  durationMs = 5000, sampleMs = 16, moves = 4, step = 32 }) => {
+  const frameTimes = [], inertiaFrames = [], distances = [];
+  const captured = new Set();
+  const names = ['setPointerCapture', 'hasPointerCapture', 'releasePointerCapture'];
+  const saved = names.map(name => Object.getOwnPropertyDescriptor(viewport, name));
+  let running = true, frameId = null, previousFrame = null;
+  const checkNative = () => {
+    if (viewport.scrollTop !== 0 || content.scrollTop !== 0) throw new Error('Synthetic fling moved a native main-axis scroll offset');
+  };
+  const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+  const delay = () => new Promise(resolve => setTimeout(resolve, sampleMs));
+  const recordFrame = timestamp => {
+    if (!running) return;
+    if (previousFrame !== null) frameTimes.push(timestamp - previousFrame);
+    previousFrame = timestamp;
+    frameId = requestAnimationFrame(recordFrame);
+  };
+  const dispatch = (type, y) => {
+    viewport.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true,
+      pointerType: 'touch', pointerId: 1, isPrimary: true, clientX: 100, clientY: y,
+      buttons: type === 'pointerup' ? 0 : 1 }));
+    checkNative();
+  };
+  try {
+    Object.defineProperties(viewport, {
+      setPointerCapture: { configurable: true, value: id => captured.add(id) },
+      hasPointerCapture: { configurable: true, value: id => captured.has(id) },
+      releasePointerCapture: { configurable: true, value: id => captured.delete(id) },
+    });
+    checkNative();
+    frameId = requestAnimationFrame(recordFrame);
+    const start = performance.now();
+    let direction = -1;
+    do {
+      const before = getPosition();
+      dispatch('pointerdown', 200);
+      for (let move = 1; move <= moves; move++) {
+        await delay(); dispatch('pointermove', 200 + direction * step * move);
+      }
+      dispatch('pointerup', 200 + direction * step * moves);
+      const released = getPosition();
+      if (released === before) throw new Error('Synthetic pointer drag did not move');
+      let previous = released, idle = 0, movingFrames = 0;
+      const releaseTime = performance.now();
+      while (idle < 3) {
+        await nextFrame(); checkNative();
+        const position = getPosition();
+        if (Math.abs(position - previous) > 0.00001) { movingFrames++; idle = 0; }
+        else idle++;
+        previous = position;
+        if (performance.now() - releaseTime > 2500) throw new Error('Synthetic fling did not settle');
+      }
+      if (!movingFrames) throw new Error('Synthetic pointer release produced no inertia');
+      inertiaFrames.push(movingFrames);
+      distances.push(Math.abs(previous - before));
+      direction *= -1;
+    } while (performance.now() - start < durationMs);
+    return { frameTimes, frameWorkTimes: [], totalFrames: frameTimes.length, inertiaFrames, distances };
+  } finally {
+    running = false;
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    for (let i = 0; i < names.length; i++) {
+      if (saved[i]) Object.defineProperty(viewport, names[i], saved[i]);
+      else delete viewport[names[i]];
+    }
+  }
 };
