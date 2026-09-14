@@ -135,9 +135,12 @@ Can be designed independently; must finish before native viewport removal.
       combinations throw. Integration branch `feat/synthetic-input` at c7db431e
       (PRs #130, #131, #132), verified 2026-09-14 from a clean export: 3530 tests,
       typecheck, build with declarations, base 9.8 KB, synthetic +2.5 KB.
-      Still open before the minor: RTL policy for the synthetic driver, the official
-      benchmark scenario, the per-device result sheet, and the merge of
-      `feat/synthetic-input` into staging (jvial).
+      Official benchmark scenarios landed 2026-09-14 (vlist.io#59, vlist#133):
+      matched logical native/bounded/synthetic scenarios plus an in-page pointer-fling
+      scenario for the synthetic driver; 60 FPS, zero frames over 32 ms at 10K to
+      1M rows on c7db431e. Still open before the minor: RTL policy for the synthetic
+      driver, the per-device result sheet, and the merge of `feat/synthetic-input`
+      into staging (jvial).
 - [ ] Required typecheck, tests, browser checks and size measurements pass; base
       bundle unchanged for non-opt-in consumers.
 
