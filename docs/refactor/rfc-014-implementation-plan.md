@@ -61,8 +61,12 @@ measure runway exhaustion and rebase safety; a larger factor is not proof.
       including gestures starting inside an edge-pinned list. Document it as a
       known limitation of the opt-in mode; native mode remains for pages that need
       parent scrolling. Not a default decision.
-- [ ] Per-device result sheet recorded: devices, OS and browser versions, exported
-      telemetry for both axes, checklist outcomes.
+- [x] **Input decision recorded 2026-09-14: candidate B.** Candidate A (native
+      runway 16x, idle-only rebase) fails its own gate on both physical devices:
+      iOS 955 hard-edge hits, max fling 215% of runway; Android 751 hits, 226%.
+      Writes during momentum stayed 0 on both. Details in the RFC decision record.
+- [ ] Result sheet completion: device models, OS and browser versions, and the
+      synthetic page's exported telemetry for both axes.
 
 **No-go:** retain current native default/bounded opt-in until a candidate meets the
 contract. Do not announce removal of `scroll.mode` before this decision.
@@ -135,9 +139,12 @@ Can be designed independently; must finish before native viewport removal.
       combinations throw. Integration branch `feat/synthetic-input` at c7db431e
       (PRs #130, #131, #132), verified 2026-09-14 from a clean export: 3530 tests,
       typecheck, build with declarations, base 9.8 KB, synthetic +2.5 KB.
-      Still open before the minor: RTL policy for the synthetic driver, the official
-      benchmark scenario, the per-device result sheet, and the merge of
-      `feat/synthetic-input` into staging (jvial).
+      Official benchmark scenarios landed 2026-09-14 (vlist.io#59, vlist#133):
+      matched logical native/bounded/synthetic scenarios plus an in-page pointer-fling
+      scenario for the synthetic driver; 60 FPS, zero frames over 32 ms at 10K to
+      1M rows on c7db431e. Still open before the minor: RTL policy for the synthetic
+      driver, result-sheet completion (device versions, synthetic telemetry), and
+      the merge of `feat/synthetic-input` into staging (jvial).
 - [ ] Required typecheck, tests, browser checks and size measurements pass; base
       bundle unchanged for non-opt-in consumers.
 

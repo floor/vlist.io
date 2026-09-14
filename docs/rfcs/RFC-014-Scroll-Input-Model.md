@@ -214,6 +214,27 @@ The five prototype defects are fixed and live. Not yet done: RTL policy for the
 driver, the official benchmark scenario, the per-device result sheet, and the
 merge into staging for the 2.7 minor, which is jvial's decision.
 
+**2026-09-14 — Input gate: candidate B chosen; candidate A rejected on device.**
+jvial ran the native runway comparison (candidate A: bounded runway 16x viewport,
+idle-only rebase at 160 ms, 1,000,000 rows of 52 px) on a physical iPhone and a
+physical Android phone. The page's own three pass conditions are: no scrollTop
+writes during momentum, zero hard-edge hits, and a single fling shorter than the
+runway. Results:
+
+| Platform | Writes during momentum | Hard-edge hits | Max fling | Runway | Fling vs runway | Frame gaps >32 ms |
+|---|---|---|---|---|---|---|
+| iOS Safari | 0 | 955 | 35,375 px | 16,470 px | 215% | 10 |
+| Android Chrome | 0 | 751 | 27,560 px | 12,180 px | 226% | 1 |
+
+The idle-only rebase policy held (no writes during momentum), but a single native
+fling travels more than twice the runway on both platforms and pins against the
+runway edge for hundreds of frames: the fling stops dead mid-momentum, as the June
+committee predicted. A 40x runway would be needed to contain these flings, and the
+plan does not accept a larger factor as proof. Candidate A is rejected. Candidate B
+(synthetic touch) was reported as working well on both devices; its opt-in
+implementation is complete on `feat/synthetic-input`. Device models and OS/browser
+versions are to be appended to the result sheet.
+
 Implementation sequence and live checklists:
 [implementation plan](../refactor/rfc-014-implementation-plan.md).
 Prototype usage, telemetry and physical-device result sheet:

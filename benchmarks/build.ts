@@ -19,7 +19,8 @@ const BENCHMARKS_DIR = "./benchmarks";
 const OUT_DIR = "./dist/benchmarks";
 
 const PROJECT_ROOT = "./";
-const VLIST_ROOT = resolve(PROJECT_ROOT, "../vlist");
+const VLIST_ROOT = resolve(PROJECT_ROOT, process.env.VLIST_BENCH_ROOT ?? "../vlist");
+const hasSynthetic = existsSync(resolve(VLIST_ROOT, "dist/synthetic.js"));
 
 const BUILD_OPTIONS = {
   format: "esm" as const,
@@ -30,6 +31,8 @@ function resolveVlistFallback(path: string): string | null {
   const subpath = path.replace(/^vlist\/?/, "");
   const candidates: Record<string, string> = {
     "": resolve(VLIST_ROOT, "dist/index.js"),
+    config: resolve(VLIST_ROOT, "dist/config.js"),
+    synthetic: resolve(VLIST_ROOT, "dist/synthetic.js"),
     internals: resolve(VLIST_ROOT, "dist/internals.js"),
     "package.json": resolve(VLIST_ROOT, "package.json"),
     styles: resolve(VLIST_ROOT, "dist/vlist.css"),
@@ -64,6 +67,16 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     // "vlist" → "vlist"
     // "vlist/react" → "vlist/react"
     build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
+      if (args.path === "vlist/synthetic" && !hasSynthetic) {
+        // A pre-RFC build has no synthetic entry. Register only native/bounded;
+        // this stub fails closed if any caller nevertheless tries to use it.
+        return { path: "unavailable-synthetic", namespace: "benchmark" };
+      }
+      if (process.env.VLIST_BENCH_ROOT) {
+        const path = resolveVlistFallback(args.path);
+        if (!path) throw new Error(`Missing benchmark artifact ${args.path} in ${VLIST_ROOT}`);
+        return { path };
+      }
       try {
         const subpath = args.path.replace(/^vlist/, "vlist");
         const resolved = require.resolve(subpath, {
@@ -75,6 +88,10 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         return fallback ? { path: fallback } : undefined;
       }
     });
+
+    build.onLoad({ filter: /^unavailable-synthetic$/, namespace: "benchmark" }, () => ({
+      contents: 'export function createVList(){throw new Error("Synthetic entry unavailable in this benchmark build")}', loader: "js",
+    }));
 
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
@@ -171,6 +188,7 @@ async function build(): Promise<void> {
   console.log("🔨 Building benchmarks...\n");
 
   try {
+    console.log(`vlist artifacts: ${VLIST_ROOT}; synthetic: ${hasSynthetic}`);
     // Build runner.js first as a shared module
     console.log("Building runner.js...");
     const runnerResult = await Bun.build({
@@ -192,6 +210,7 @@ async function build(): Promise<void> {
 
     // Define Vue feature flags for production builds
     const define: Record<string, string> = {
+      __BENCH_HAS_SYNTHETIC__: String(hasSynthetic),
       "process.env.NODE_ENV": '"production"',
       __VUE_OPTIONS_API__: "true",
       __VUE_PROD_DEVTOOLS__: "false",

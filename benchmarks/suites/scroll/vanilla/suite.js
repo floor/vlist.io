@@ -5,6 +5,7 @@
 // and formats results with rating thresholds.
 
 import { createVList } from "vlist";
+import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -29,6 +30,7 @@ import {
   wakeUpDisplay,
   measureRawRAFRate,
   measureScrollRun,
+  measurePointerFlingRun,
   computeScrollStats,
 } from "../../../engine/scroll.js";
 
@@ -220,5 +222,94 @@ defineSuite({
     }
 
     return metrics;
+  },
+});
+
+
+// Matched public logical-position writes. These measure programmatic navigation,
+// not touch sampling or fling physics. Input JS timing excludes deferred native
+// rendering/layout and must not be presented as total frame/main-thread cost.
+for (const mode of ["native", "bounded", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]) {
+  defineSuite({
+    id: `scroll-logical-${mode}`,
+    name: `Logical scroll (${mode})`,
+    description: "Matched logical-position writes; FPS and synchronous setter cost (not total rendering cost)",
+    hasScrollSpeed: true,
+    run: async ({ itemCount, container, onStatus, scrollSpeed = BASE_SCROLL_SPEED }) => {
+      const driver = createRefreshRateDriver();
+      let list;
+      try {
+        container.innerHTML = "";
+        let write;
+        list = (mode === "synthetic" ? createSynthetic : createVList)({
+          container, items: generateItems(itemCount),
+          item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode },
+        }, [{ name: "benchmark-logical-input", setup(ctx) { write = ctx.scrollTo; } }]);
+        const viewport = findViewport(container);
+        const source = { max: itemCount * ITEM_HEIGHT - viewport.clientHeight,
+          set: position => write(position),
+          // Native state updates asynchronously; use its position read here.
+          get: () => mode === "native" ? viewport.scrollTop : list.getScrollPosition(),
+        };
+        await waitFrames(10);
+        onStatus(`Warming logical ${mode}...`);
+        await measureScrollRun({ viewport, durationMs: 500, speedPxPerSec: scrollSpeed, logicalScroll: source });
+        source.set(0); await waitFrames(5);
+        onStatus(`Scrolling logical ${mode}...`);
+        const result = await measureScrollRun({ viewport, durationMs: SCROLL_DURATION_MS,
+          speedPxPerSec: scrollSpeed, logicalScroll: source });
+        if (!(result.distance > 0) || !result.inputWorkTimes.length) throw new Error("Logical scroll driver did not move the list");
+        if (mode === "synthetic" && (viewport.scrollTop !== 0 || container.querySelector('.vlist-content').scrollTop !== 0)) {
+          throw new Error("Synthetic benchmark moved a native main-axis scroll offset");
+        }
+        const { avgFps, droppedPct } = computeScrollStats(result, SCROLL_DURATION_MS);
+        const samples = [...result.inputWorkTimes].sort((a,b) => a-b);
+        const total = samples.reduce((sum, value) => sum + value, 0);
+        return [
+          { label: "Avg FPS", value: avgFps, unit: "fps", better: "higher" },
+          { label: "Dropped", value: droppedPct, unit: "%", better: "lower" },
+          { label: "Input JS mean", value: round(total / samples.length, 4), unit: "ms", better: "lower" },
+          { label: "Input JS p95", value: round(samples[Math.floor((samples.length - 1) * .95)], 4), unit: "ms", better: "lower" },
+          { label: "Input JS total", value: round(total, 2), unit: "ms", better: "lower" },
+          { label: "Driver ticks", value: samples.length, unit: "", better: "higher" },
+          { label: "Distance", value: round(result.distance, 1), unit: "px", better: "higher" },
+        ];
+      } finally { list?.destroy(); driver.stop(); container.innerHTML = ""; }
+    },
+  });
+}
+
+
+if (__BENCH_HAS_SYNTHETIC__) defineSuite({
+  id: "scroll-fling-synthetic",
+  name: "Pointer fling (synthetic)",
+  description: "Repeated in-page pointer flings with idle recovery; browser capture is shimmed, not a trusted-touch test",
+  run: async ({ itemCount, container, onStatus }) => {
+    const driver = createRefreshRateDriver();
+    let list;
+    try {
+      list = createSynthetic({ container, items: generateItems(itemCount),
+        item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode: "synthetic" } });
+      list.scrollToIndex(Math.floor(itemCount / 2));
+      await waitFrames(10);
+      const options = { viewport: findViewport(container), content: container.querySelector('.vlist-content'), getPosition: () => list.getScrollPosition() };
+      onStatus('Warming pointer sampling and inertia...');
+      await measurePointerFlingRun({ ...options, durationMs: 1 });
+      onStatus('Measuring repeated pointer flings...');
+      const result = await measurePointerFlingRun({ ...options, durationMs: SCROLL_DURATION_MS });
+      const stats = computeScrollStats(result, SCROLL_DURATION_MS);
+      const sorted = [...result.frameTimes].sort((a,b) => a-b);
+      const average = values => values.reduce((a,b) => a+b,0) / values.length;
+      return [
+        { label: "Avg FPS", value: stats.avgFps, unit: "fps", better: "higher" },
+        { label: "Dropped", value: stats.droppedPct, unit: "%", better: "lower" },
+        { label: "Frame p95", value: round(sorted[Math.floor((sorted.length-1)*.95)],2), unit: "ms", better: "lower" },
+        { label: "Frame max", value: round(Math.max(...sorted),2), unit: "ms", better: "lower" },
+        { label: "Frames over 32 ms", value: sorted.filter(value => value > 32).length, unit: "", better: "lower" },
+        { label: "Inertia frames per fling", value: round(average(result.inertiaFrames),1), unit: "", better: "higher" },
+        { label: "Distance per fling", value: round(average(result.distances),1), unit: "px", better: "higher" },
+        { label: "Flings", value: result.distances.length, unit: "", better: "higher" },
+      ];
+    } finally { list?.destroy(); driver.stop(); container.innerHTML = ""; }
   },
 });
