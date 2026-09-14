@@ -1,6 +1,6 @@
 # RFC-014 implementation plan
 
-Updated: **2026-09-11** · Status: **prototype authorized; release gates open**.
+Updated: **2026-09-14** · Status: **2.7.0 opt-in released; 3.0 default decision open**.
 Canonical: [RFC-014: Scroll Input Model](../rfcs/RFC-014-Scroll-Input-Model.md). Supersedes the rejected RFC-013.
 The old [native-runway plan](rfc-013-native-runway-plan-historical.md) is historical.
 
@@ -67,7 +67,9 @@ measure runway exhaustion and rebase safety; a larger factor is not proof.
       Writes during momentum stayed 0 on both. Details in the RFC decision record.
 - [x] Devices recorded: iPhone SE (2nd gen, 2020) on iOS 26.6.1 Safari; Pixel 8a on
       Android 17 Chrome.
-- [ ] Optional: the synthetic page's exported telemetry for both axes.
+- [x] Synthetic telemetry recorded for the vertical axis on the iPhone SE in Chrome for
+      iOS (all counters zero, 13 nodes, peak 2.9 px/ms); candidate A also fails in that
+      browser (361 hard-edge hits, 145% of runway). Horizontal-axis export optional.
 
 **No-go:** retain current native default/bounded opt-in until a candidate meets the
 contract. Do not announce removal of `scroll.mode` before this decision.
@@ -149,8 +151,13 @@ Can be designed independently; must finish before native viewport removal.
       1M rows on c7db431e. RTL guard merged (#134). Nothing remains open before the
       minor except the merge of `feat/synthetic-input` into staging and the release
       prep (jvial); the synthetic telemetry export stays optional.
-- [ ] Required typecheck, tests, browser checks and size measurements pass; base
-      bundle unchanged for non-opt-in consumers.
+- [x] Required typecheck, tests, browser checks and size measurements pass; base
+      bundle unchanged for non-opt-in consumers (clean export of 20aaa281:
+      3536 tests, typecheck, build with declarations, base 9.8 KB, synthetic +2.6 KB).
+
+**2.7.0 released 2026-09-14** (floor/vlist v2.7.0, npm latest). Follow-ups: framework
+adapters cannot reach the `vlist/synthetic` entry yet; vlist.io docs page for the mode;
+staging benchmark build should resolve vlist from the staging clone (`VLIST_BENCH_ROOT`).
 
 **3.0 default decision (conditional)**
 

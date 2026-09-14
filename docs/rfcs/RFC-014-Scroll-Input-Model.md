@@ -1,12 +1,12 @@
 ---
 created: 2026-09-10
 updated: 2026-09-13
-status: draft
+status: shipped-opt-in
 ---
 
 # RFC-014: Scroll Input Model
 
-**Status:** Draft — direction approved, prototype authorized, production input choice open  
+**Status:** Opt-in mode shipped in vlist 2.7.0 (2026-09-14); default change and native-path removal remain a separate, conditional 3.0 decision  
 **Author:** floor  
 **Type:** Core Architecture  
 **Created:** 2026-09-10  
@@ -225,6 +225,7 @@ runway. Results:
 |---|---|---|---|---|---|---|
 | iPhone SE (2nd gen, 2020), iOS 26.6.1, Safari | 0 | 955 | 35,375 px | 16,470 px | 215% | 10 |
 | Pixel 8a, Android 17, Chrome | 0 | 751 | 27,560 px | 12,180 px | 226% | 1 |
+| iPhone SE (2nd gen), iOS 26.6.1, Chrome for iOS (WebKit) | 0 | 361 | 11,793 px | 8,145 px | 145% | 0 |
 
 The idle-only rebase policy held (no writes during momentum), but a single native
 fling travels more than twice the runway on both platforms and pins against the
@@ -234,6 +235,31 @@ plan does not accept a larger factor as proof. Candidate A is rejected. Candidat
 (synthetic touch) was reported as working well on both devices; its opt-in
 implementation is complete on `feat/synthetic-input`. The iPhone SE is a 2020
 device, which covers the plan's low-end responsiveness item for iOS.
+
+Candidate B telemetry, exported from the prototype page on the iPhone SE in Chrome for
+iOS (2026-09-14, vertical axis, 313x320 viewport at 2x): frame gaps over 32 ms 0,
+boundary contacts 0, paint-coverage failures 0, native main-axis scroll events 0,
+13 rendered nodes for 1,000,000 rows, peak velocity 2.9 px/ms, 15 pointer cancellations
+(WebKit taking cross-axis pan or pinch, the documented arbitration), 2 multitouch
+cancellations with recovery. Flings settle to idle; slider and navigation cancel motion
+as specified.
+
+**2026-09-14 — wheel judder in bounded and synthetic mode: root cause fixed in 2.6.5.**
+jvial found trackpad deceleration jerky in both logical modes on a 120 Hz display. The
+cause was a pre-existing core defect, not the synthetic driver: the pipeline's
+range-unchanged fast path skipped the DOM commit while `baseOffset` carried the motion,
+so rows stood still until the range crossed a row boundary. Fixed in floor/vlist#135
+(v2.6.5), merged into `feat/synthetic-input`; the pointer-fling benchmark now asserts on
+rendered row position (vlist.io#63). Full record, including the investigation's wrong
+turns: [issue 025](../issues/025-bounded-synthetic-wheel-judder-baseoffset-fast-path.md).
+
+**2026-09-14 — 2.7.0 released.** `vlist/synthetic` with `scroll.mode: "synthetic"` is
+published as an opt-in entry (+2.6 KB gzipped; base 9.9 KB). Ships with the supported
+plugin set (table, groups, snapshots, scrollbar, autosize, transition, selection, a11y),
+guards for page, carousel, sortable and RTL horizontal lists, the documented boundary
+policy, and the 2.6.5 pipeline fix. Native remains the default. Next: framework
+adapter support for the entry, a vlist.io docs page for the mode, and consumer feedback
+toward the conditional 3.0 decision.
 
 Implementation sequence and live checklists:
 [implementation plan](../refactor/rfc-014-implementation-plan.md).

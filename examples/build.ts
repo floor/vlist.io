@@ -108,11 +108,32 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     const VLIST_JS_ENTRIES: Record<string, string> = {
       vlist: "index.js",
       "vlist/internals": "internals.js",
+      "vlist/synthetic": "synthetic.js",
     };
     build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
       const entry = VLIST_JS_ENTRIES[args.path];
-      if (entry) return { path: join(vlistDist, entry) };
+      if (!entry) return;
+      const path = join(vlistDist, entry);
+      // Optional entries (vlist/synthetic ships in 2.7) fall back to a stub that
+      // delegates to core and throws only when the missing mode is requested, so
+      // an older vlist (npm production, or a staging clone behind the site) still
+      // builds every example.
+      if (args.path === "vlist/synthetic" && (process.env.VLIST_NO_SYNTHETIC === "1" || !existsSync(path))) {
+        return { path: "vlist-synthetic-unavailable", namespace: "vlist-optional" };
+      }
+      return { path };
     });
+    build.onLoad({ filter: /^vlist-synthetic-unavailable$/, namespace: "vlist-optional" }, () => ({
+      contents: [
+        'import { createVList as core } from "vlist";',
+        "export function createVList(config, plugins) {",
+        '  if (config?.scroll?.mode === "synthetic") throw new Error("vlist/synthetic is not available in this vlist build");',
+        "  return core(config, plugins);",
+        "}",
+        "export const SYNTHETIC_AVAILABLE = false;",
+      ].join("\n"),
+      loader: "js",
+    }));
 
     // vlist adapters — resolve to separate packages
     // "vlist-react" → "vlist-react"

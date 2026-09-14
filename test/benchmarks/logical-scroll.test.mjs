@@ -39,7 +39,7 @@ test('a missing logical range fails instead of reporting a motionless successful
 
 import { measurePointerFlingRun } from '../../benchmarks/engine/scroll.js';
 
-async function runPointerDriver({ drift = false, inertia = true } = {}) {
+async function runPointerDriver({ drift = false, inertia = true, stalledDOM = false, recycle = false } = {}) {
   const original = { performance: globalThis.performance, raf: globalThis.requestAnimationFrame,
     caf: globalThis.cancelAnimationFrame, timer: globalThis.setTimeout, PointerEvent: globalThis.PointerEvent };
   let now = 0, id = 0, position = 1000, lastY = 0, direction = 1, remaining = 0;
@@ -67,7 +67,12 @@ async function runPointerDriver({ drift = false, inertia = true } = {}) {
   };
   let result, error, done = false;
   try {
-    const promise = measurePointerFlingRun({ viewport, content: { scrollTop: 0 }, getPosition: () => position, durationMs: 400 });
+    const row = {
+      getAttribute: () => String(recycle ? Math.floor(position / 36) : 20),
+      getBoundingClientRect: () => ({ top: Number(row.getAttribute()) * 36 - (stalledDOM ? 1000 : position) }),
+    };
+    const promise = measurePointerFlingRun({ viewport, content: { scrollTop: 0, querySelector: () => row },
+      itemHeight: 36, getPosition: () => position, durationMs: 400 });
     promise.then(value => { result = value; done = true; }, value => { error = value; done = true; });
     for (let tick = 0; !done && tick < 100; tick++) {
       now += 16;
@@ -104,4 +109,17 @@ test('pointer driver alternates touch gestures, observes inertia and restores ca
 test('pointer driver fails closed on native movement and missing inertia', async () => {
   expect((await runPointerDriver({ drift: true })).error.message).toContain('native main-axis');
   expect((await runPointerDriver({ inertia: false })).error.message).toContain('no inertia');
+});
+
+
+test('pointer driver rejects stationary DOM while logical position keeps advancing', async () => {
+  const { error } = await runPointerDriver({ stalledDOM: true });
+  expect(error?.message).toContain('DOM motion');
+});
+
+test('pointer driver follows screen motion across recycled row indices', async () => {
+  const { result, error } = await runPointerDriver({ recycle: true });
+  expect(error).toBeUndefined();
+  expect(result.domMovingFrames).toBeGreaterThan(0);
+  expect(result.domMovingFrames).toBe(result.logicalMovingFrames);
 });

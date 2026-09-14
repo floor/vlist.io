@@ -292,7 +292,7 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
         item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode: "synthetic" } });
       list.scrollToIndex(Math.floor(itemCount / 2));
       await waitFrames(10);
-      const options = { viewport: findViewport(container), content: container.querySelector('.vlist-content'), getPosition: () => list.getScrollPosition() };
+      const options = { itemHeight: ITEM_HEIGHT, viewport: findViewport(container), content: container.querySelector('.vlist-content'), getPosition: () => list.getScrollPosition() };
       onStatus('Warming pointer sampling and inertia...');
       await measurePointerFlingRun({ ...options, durationMs: 1 });
       onStatus('Measuring repeated pointer flings...');
@@ -308,6 +308,8 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
         { label: "Frames over 32 ms", value: sorted.filter(value => value > 32).length, unit: "", better: "lower" },
         { label: "Inertia frames per fling", value: round(average(result.inertiaFrames),1), unit: "", better: "higher" },
         { label: "Distance per fling", value: round(average(result.distances),1), unit: "px", better: "higher" },
+        { label: "Logical moving frames", value: result.logicalMovingFrames, unit: "", better: "higher" },
+        { label: "DOM moving frames", value: result.domMovingFrames, unit: "", better: "higher" },
         { label: "Flings", value: result.distances.length, unit: "", better: "higher" },
       ];
     } finally { list?.destroy(); driver.stop(); container.innerHTML = ""; }
