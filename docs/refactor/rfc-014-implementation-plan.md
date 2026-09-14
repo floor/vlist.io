@@ -1,6 +1,6 @@
 # RFC-014 implementation plan
 
-Updated: **2026-09-11** · Status: **prototype authorized; release gates open**.
+Updated: **2026-09-14** · Status: **2.7.0 opt-in released; 3.0 default decision open**.
 Canonical: [RFC-014: Scroll Input Model](../rfcs/RFC-014-Scroll-Input-Model.md). Supersedes the rejected RFC-013.
 The old [native-runway plan](rfc-013-native-runway-plan-historical.md) is historical.
 
@@ -154,6 +154,10 @@ Can be designed independently; must finish before native viewport removal.
 - [x] Required typecheck, tests, browser checks and size measurements pass; base
       bundle unchanged for non-opt-in consumers (clean export of 20aaa281:
       3536 tests, typecheck, build with declarations, base 9.8 KB, synthetic +2.6 KB).
+
+**2.7.0 released 2026-09-14** (floor/vlist v2.7.0, npm latest). Follow-ups: framework
+adapters cannot reach the `vlist/synthetic` entry yet; vlist.io docs page for the mode;
+staging benchmark build should resolve vlist from the staging clone (`VLIST_BENCH_ROOT`).
 
 **3.0 default decision (conditional)**
 
