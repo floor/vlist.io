@@ -104,6 +104,13 @@ who do not opt in.
       horizontal lists throw in synthetic mode; vertical lists on RTL pages allowed;
       native and bounded untouched; support planned as a non-breaking addition
       (floor/vlist#134).
+- [x] RTL gate, reduced scope (vertical lists and tables on RTL pages), closed
+      2026-09-14 on `next` (floor/vlist#145): table header follows the body in RTL
+      (`:dir(rtl)` flex order) and keyboard cross-axis navigation normalises the
+      negative `scrollLeft` origin. Verified in Chrome, Firefox and Safari 26.4
+      (safaridriver): header/body left delta [550,100,-450] → [0,0,0] px; diagonal
+      wheel keeps the cross-axis component. Horizontal RTL lists stay guarded in
+      synthetic mode. Base unchanged, table +63 bytes.
 - [x] `page()` remains the external native-document provider in native mode and
       throws with synthetic mode (#132).
 - [x] Document supported plugin combinations and known limitations of the opt-in
@@ -129,10 +136,37 @@ who do not opt in.
 Can be designed independently; must finish before native viewport removal.
 
 - [ ] Decide core-vs-plugin bundling, default/disable/customization API, dup guard.
-- [ ] Implement keyboard, focus, pointer and semantics; test with screen readers.
-- [ ] Test forced colors, theming, reduced motion, horizontal orientation, huge totals.
-- [ ] Measure net bundle impact including the default scrollbar and gesture driver.
-- [ ] Specify migration for `scroll.mode` and `scrollbar: "native"` and public internals.
+      Decided 2026-09-14: the scrollbar stays a plugin, required by documentation.
+- [x] Native look by default: per-platform defaults for width, overlay vs gutter,
+      radius and auto-hide timing (macOS, Windows, Android), from AzzaAzza69's
+      requirement in floor/vlist#108 (#143).
+- [x] Honour the standard `scrollbar-width` and `scrollbar-color` properties read from
+      the container's computed style, so existing stylesheets keep working (#143).
+- [x] Documented one-to-one mapping from each `::-webkit-scrollbar*` pseudo-element to a
+      plugin class or `--vlist-scrollbar-*` variable; the pseudo-elements themselves are
+      not mirrored (non-standard, Chromium-only, not readable from script) (#144).
+- [x] Implement keyboard, focus, pointer and semantics (floor/vlist#142 on `next`,
+      2026-09-14: role=scrollbar, ARIA range and "Row N of M", focus-visible, one
+      pointer-capture path). Screen-reader pass: VoiceOver macOS passed 2026-09-15 on a
+      local build of `next` (bar reachable by Tab, role and row value announced, keys
+      and adjust gesture move it, list navigation intact). VoiceOver iOS and TalkBack
+      pending.
+- [x] Forced colors, horizontal orientation and huge totals (20M rows) tested (#144);
+      reduced motion is handled by the driver, not the bar.
+- [x] Scrollbar plugin +2.0 → +2.8 KB gzipped across #142-#144 (402 + 394 + 0 bytes),
+      inside its budget; base unchanged.
+- [x] Specify migration for `scroll.mode` and `scrollbar: "native"` and public internals:
+      series 5 merged into staging 2026-09-15 for the 2.8 minor (floor/vlist#151):
+      `@deprecated` JSDoc on `scroll.mode`, `scroll.runway`, the `"native"` and
+      `"none"` values of `scroll.scrollbar` (core reads only `"none"`; the options
+      object stays as the `vlist/config` convenience) and the old plugin hooks; the
+      `scale()` guidance rerouted to the synthetic entry; deprecations table in the
+      READMEs and changelog; no runtime warning for bounded mode. Found and fixed on
+      the way: `vlist/config`, which every framework adapter uses, installed the
+      deprecated `scale()` stub unconditionally and warned every adapter user once per
+      page; the stub is now silent and only explicit `scale()` warns. Base
+      byte-identical. staging forwarded into next (ffdea873). Migration guide:
+      vlist.io `docs/migration-v3.md`.
 
 ## 6. Release gates
 
@@ -156,8 +190,16 @@ Can be designed independently; must finish before native viewport removal.
       3536 tests, typecheck, build with declarations, base 9.8 KB, synthetic +2.6 KB).
 
 **2.7.0 released 2026-09-14** (floor/vlist v2.7.0, npm latest). Follow-ups: framework
-adapters cannot reach the `vlist/synthetic` entry yet; vlist.io docs page for the mode;
-staging benchmark build should resolve vlist from the staging clone (`VLIST_BENCH_ROOT`).
+adapters cannot reach the `vlist/synthetic` entry yet (done 2026-09-15 for 2.8:
+`VListConfig.factory` in `vlist/config`, floor/vlist#152, with a guard when synthetic
+mode is requested without a factory; adapter PRs vlist-react#3, vlist-vue#3,
+vlist-svelte#3, vlist-solidjs#3 approved, merge and publish after 2.8; browser
+harness two-sample race fixed in #153); vlist.io docs page for the mode (done
+2026-09-15: `docs/scroll-modes.md`, plus `scroll.mode`/`scroll.runway` rows in the API
+reference and the v2 to v3 migration guide); staging benchmark build resolving vlist
+from the staging clone (done 2026-09-15: `VLIST_BENCH_ROOT` set in the staging deploy
+workflow); the unresolved `scale` size placeholders on the bundle-size and plugin
+overview pages removed (the stub has no size row).
 
 **3.0 shape (decided 2026-09-14)**
 
@@ -167,8 +209,50 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
   shows no consumer needs parent handoff, find-in-page or native scrollbar semantics.
 - The custom scrollbar remains a plugin, required by documentation, not bundled.
 - Size gate: 3.0 base at or below 9.9 KB gzipped with the driver included; plugin rows
-  unchanged or smaller. Simplification pays for the driver: one wheel handler, no
-  runway or `baseOffset` split, no mode branching, simpler pipeline.
+  unchanged or smaller, except the scrollbar plugin, whose accessibility and native-look
+  work has its own budget of +2.8 KB (from +2.0). Simplification pays for the driver: one
+  wheel handler, no runway or `baseOffset` split, no mode branching, simpler pipeline.
+- Integration branch `next` opened 2026-09-14 at vlist staging 2.7.2; series 1
+  (scrollbar gate, #142-#144) and series 2 (RTL, #145) merged; series 3 (adapter
+  adoption: `getRenderOrigin()` on the adapter, renderers then motion plugins then
+  readers, enforced by a source-boundary test) dispatched 2026-09-14. PR a merged
+  2026-09-14 (floor/vlist#146): `ScrollAdapter.getRenderOrigin()`; grid, table, tree
+  and masonry read position and origin once per commit and keep their own last
+  committed origin; an AST boundary test counts every remaining direct read per
+  plugin. Review found that the adapter's page-mode getter forced layout on each read
+  (`getBoundingClientRect`), which the scroll and idle event payloads had been paying
+  per frame since RFC-012 phase 1; scroll sources now commit their position to engine
+  state and reads stay cached. Base 10,105 bytes (-1); wheel probe 40/40 in every
+  layout and mode. PR b merged 2026-09-14 (floor/vlist#147): transition, groups,
+  carousel and sortable read through the adapter; native mode gains a single scroll
+  writer that reads back the clamped DOM value, commits position and direction, renders
+  and schedules idle in the call, so all three modes are readable synchronously after a
+  write and the later DOM event dedupes. Transition's hand-written engine commits are
+  gone. Base 10,129 bytes (+23 for the series, inside the +40 allowance); probe 40/40
+  including groups. PR c merged 2026-09-14 (floor/vlist#148): a11y, autosize,
+  selection and snapshots read through the adapter; a11y focus navigation writes
+  through it. Review found the adapter's maximum omitted the main-axis padding that
+  the content element and the logical sources include, which clamped last-item focus
+  short; fixed with tests. Series 3 closed: the boundary test's allowlist holds only
+  the page plugin's three scroll-source accesses. Base 10,140 bytes (+34 for the
+  series). Next gate: page mode under the external-scroll seam.
+- Series 4 (page mode) PR a merged 2026-09-14 (floor/vlist#149): one commit path in the
+  native handler shared by DOM events, wheel, programmatic writes and smooth-scroll
+  ticks; `PluginContext.setScrollSource()` and `commitScroll()` replace the ad-hoc
+  page hooks (`setScrollFns`, `disableDefaultScroll` deprecated, removal in 3.0); the
+  page plugin commits through core, dedupes window events and honours
+  `scroll.idleTimeout`; the plugin boundary allowlist is empty. Base 10,169 (+29 for
+  the series), page -34. PR b merged 2026-09-14 (floor/vlist#150): with an external
+  source installed core takes the document-provider path in every mode (no driver, no
+  runway, document-sized content, origin 0); the page-plus-logical-mode throws are
+  gone and the carousel conflict stays explicit; the source contract gains an optional
+  `onContentSize` hook, invoked from the single content-sizing function, and the page
+  plugin owns the 16,777,216 px guard (throw at creation when the size is known, warn
+  once on later growth or on a deferred renderer's first commit). Page gate closed.
+  Size: base 10,187 bytes (9.9 KB), +47 for series 4 against a +30 allowance; the
+  overrun is the creation-time validation for custom and deferred renderers, kept
+  because it turns a silent broken layout into an error at creation. Synthetic row
+  2,643 (smaller than before series 3); page +146 for the guard and its messages.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
@@ -177,7 +261,8 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
 **3.0 default decision (conditional)**
 
 - [ ] Consumer feedback from the opt-in mode recorded alongside the A/B comparison.
-- [ ] Scrollbar, page, RTL and migration gates closed.
+- [x] Scrollbar, page, RTL and migration gates closed (scrollbar, RTL and page on
+      `next` 2026-09-14; migration on staging 2026-09-15, forwarded to `next`).
 - [ ] Only then flip the default or delete the native viewport path, if still selected.
 
 Adapter canonicalization and distance-based overscan remain separately scoped work.

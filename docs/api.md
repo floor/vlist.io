@@ -38,6 +38,8 @@ const list = createVList(config, [plugin1(), plugin2()]);
 | `scroll.wheel` | `boolean` | `true` | Mouse wheel scrolling |
 | `scroll.gutter` | `"auto" \| "stable"` | `"auto"` | Scrollbar space reservation |
 | `scroll.idleTimeout` | `number` | `150` | Idle detection timeout (ms) |
+| `scroll.mode` | `"native" \| "bounded" \| "synthetic"` | `"native"` | Scroll model; `"synthetic"` needs the `vlist/synthetic` entry. See [Scroll modes](/docs/scroll-modes) |
+| `scroll.runway` | `number` | `2` | Bounded mode runway as a multiple of the viewport (min 1.5) |
 
 ## Instance Properties
 

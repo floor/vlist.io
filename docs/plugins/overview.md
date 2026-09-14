@@ -21,7 +21,7 @@ Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 | scrollbar | `scrollbar()` | +{{size:scrollbar:delta}} KB | Custom scrollbar UI |
 | sortable | `sortable()` | +{{size:sortable:delta}} KB | Drag-and-drop reordering |
 | groups | `groups()` | +{{size:groups:delta}} KB | Grouped lists with sticky headers |
-| scale | `scale()` | +{{size:scale:delta}} KB | **Deprecated** — use `scroll: { mode: "bounded" }` instead |
+| scale | `scale()` | no-op | **Deprecated** — use `scroll: { mode: "bounded" }` in 2.x or synthetic mode from `vlist/synthetic`; removed in 3.0. See [Scroll modes](/docs/scroll-modes) |
 | page | `page()` | +{{size:page:delta}} KB | Document/window scroll mode |
 | snapshots | `snapshots()` | +{{size:snapshots:delta}} KB | Scroll save/restore |
 | transition | `transition()` | +{{size:transition:delta}} KB | FLIP-based enter/exit animations |

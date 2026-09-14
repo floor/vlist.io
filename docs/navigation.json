@@ -13,6 +13,11 @@
         "depth": 2
       },
       {
+        "slug": "scroll-modes",
+        "name": "Scroll modes",
+        "desc": "Native, bounded and synthetic input: what each owns and when to use it"
+      },
+      {
         "slug": "types",
         "name": "Types",
         "desc": "TypeScript interfaces and type definitions"
@@ -37,6 +42,11 @@
         "slug": "migration",
         "name": "Migration (v1 → v2)",
         "desc": "Builder pattern to factory function migration guide"
+      },
+      {
+        "slug": "migration-v3",
+        "name": "Migration (v2 → v3)",
+        "desc": "Synthetic input becomes core; what the deprecation ladder removes"
       }
     ]
   },
