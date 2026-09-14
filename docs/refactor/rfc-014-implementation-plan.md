@@ -204,7 +204,13 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
   (`getBoundingClientRect`), which the scroll and idle event payloads had been paying
   per frame since RFC-012 phase 1; scroll sources now commit their position to engine
   state and reads stay cached. Base 10,105 bytes (-1); wheel probe 40/40 in every
-  layout and mode.
+  layout and mode. PR b merged 2026-09-14 (floor/vlist#147): transition, groups,
+  carousel and sortable read through the adapter; native mode gains a single scroll
+  writer that reads back the clamped DOM value, commits position and direction, renders
+  and schedules idle in the call, so all three modes are readable synchronously after a
+  write and the later DOM event dedupes. Transition's hand-written engine commits are
+  gone. Base 10,129 bytes (+23 for the series, inside the +40 allowance); probe 40/40
+  including groups.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
