@@ -1,7 +1,9 @@
 // Sortable — Drag-and-drop reordering
 // Demonstrates sortable plugin with configurable drag handles
 
-import { createVList, sortable, selection, snapshots } from "vlist";
+// vlist 3.0: drag-and-drop reordering needs the native entry.
+import { createVList } from "vlist/native";
+import { sortable, selection, snapshots } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 

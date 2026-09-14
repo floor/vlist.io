@@ -1,7 +1,9 @@
 // Carousel — MD3-aligned photo carousel using the carousel() plugin
 // Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
-import { createVList, carousel, rebuild, registerPreset, full } from "vlist";
+// vlist 3.0: carousel uses wrap scrolling, which needs the native entry.
+import { createVList } from "vlist/native";
+import { carousel, rebuild, registerPreset, full } from "vlist";
 import { getItems, getImageUrl, getItemWidth, preloadImages } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";

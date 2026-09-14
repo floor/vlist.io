@@ -1,13 +1,9 @@
 // Velocity-Based Loading - Pure Vanilla JavaScript
 // Demonstrates smart loading that adapts to scroll velocity
 
-import {
-  createVList,
-  selection,
-  data as dataPlugin,
-  scrollbar,
-  snapshots,
-} from "vlist";
+// vlist 3.0: bounded mode lives in the native entry.
+import { createVList } from "vlist/native";
+import { selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
 import {
   LOAD_VELOCITY_THRESHOLD,
   TOTAL_ITEMS,
