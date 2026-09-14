@@ -87,7 +87,14 @@ are not a comparison of total rendering or main-thread cost.
 Select `scroll-fling-synthetic` to exercise pointer dispatch, axis intent,
 velocity sampling and inertia through repeated back-and-forth gestures. It waits
 for three unchanged frames between flings, rejects zero inertia or native
-main-axis movement, and reports FPS, dropped frames, frame p95/max, frames over
+main-axis movement, and checks rendered motion on every sampled animation frame.
+The first indexed row's screen position, normalized by its index and fixed item
+height to handle recycling, must move opposite to the logical delta within
+0.05 px of layout rounding. Logical steps below that tolerance are not counted.
+A stalled or lagging DOM marks the scenario unsuccessful even when logical positions and FPS look
+healthy. Results include matching logical/DOM moving-frame counts. This DOMRect
+read can force layout; timings include the observer cost and should not be mixed
+with older logical-only fling results. The scenario also reports FPS, dropped frames, frame p95/max, frames over
 32 ms, inertia frames and distance per fling. Events use real monotonic browser
 `timeStamp`s at a nominal 16 ms cadence. Because in-page PointerEvents do not own a
 browser pointer ID, this scenario temporarily shims capture methods and restores
@@ -95,7 +102,9 @@ them afterward. It does not verify trusted capture, touch-action, native gesture
 arbitration or physical-device feel; those remain CDP/device checks.
 
 These suite IDs currently have no numerical thresholds in `ci/config.json`.
-Failed motion/native-offset invariants fail the run; “no budget regressions” from
+Failed motion/native-offset invariants produce `success: false` scenario results
+and an error in the JSON/summary. The runner currently still exits zero; consumers
+must inspect scenario success. “No budget regressions” from
 `bench:compare` does not establish a timing budget for these new scenarios.
 
 When invoking the vlist wrapper from a library worktree, use `VLIST_IO_DIR` for the

@@ -522,14 +522,26 @@ export const computeScrollStats = (
  * no browser-owned active pointer ID (native setPointerCapture would throw).
  * Real capture, touch-action and compositor arbitration remain CDP/device gates.
  */
-export const measurePointerFlingRun = async ({ viewport, content, getPosition,
+export const measurePointerFlingRun = async ({ viewport, content, getPosition, itemHeight,
   durationMs = 5000, sampleMs = 16, moves = 4, step = 32 }) => {
   const frameTimes = [], inertiaFrames = [], distances = [];
+  if (!(itemHeight > 0)) throw new Error('DOM motion check requires a positive fixed item height');
+  let logicalMovingFrames = 0, domMovingFrames = 0, motionError;
+  // Read a fresh row every frame. A recycled DOM node may now represent another
+  // index; subtract its layout offset to compare the same screen-space origin.
+  const screenOrigin = () => {
+    const row = content.querySelector('[data-index]');
+    const index = row?.getAttribute('data-index');
+    if (index == null || !Number.isFinite(Number(index))) throw new Error('DOM motion check found no indexed row');
+    return row.getBoundingClientRect().top - Number(index) * itemHeight;
+  };
+  let previousPosition = getPosition(), previousOrigin = screenOrigin();
   const captured = new Set();
   const names = ['setPointerCapture', 'hasPointerCapture', 'releasePointerCapture'];
   const saved = names.map(name => Object.getOwnPropertyDescriptor(viewport, name));
   let running = true, frameId = null, previousFrame = null;
   const checkNative = () => {
+    if (motionError) throw motionError;
     if (viewport.scrollTop !== 0 || content.scrollTop !== 0) throw new Error('Synthetic fling moved a native main-axis scroll offset');
   };
   const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
@@ -538,6 +550,20 @@ export const measurePointerFlingRun = async ({ viewport, content, getPosition,
     if (!running) return;
     if (previousFrame !== null) frameTimes.push(timestamp - previousFrame);
     previousFrame = timestamp;
+    try {
+      const position = getPosition(), origin = screenOrigin();
+      const logicalDelta = position - previousPosition, domDelta = origin - previousOrigin;
+      // DOMRects are quantized to layout pixels. 0.05 px covers that rounding,
+      // while still detecting the sub-row inertia steps that exposed #135.
+      if (Math.abs(logicalDelta) > 0.05) {
+        logicalMovingFrames++;
+        if (Math.abs(domDelta + logicalDelta) > 0.05) {
+          throw new Error(`DOM motion missed logical movement: logical=${logicalDelta.toFixed(4)} px, screen=${domDelta.toFixed(4)} px`);
+        }
+        domMovingFrames++;
+      }
+      previousPosition = position; previousOrigin = origin;
+    } catch (error) { motionError = error; return; }
     frameId = requestAnimationFrame(recordFrame);
   };
   const dispatch = (type, y) => {
@@ -580,7 +606,7 @@ export const measurePointerFlingRun = async ({ viewport, content, getPosition,
       distances.push(Math.abs(previous - before));
       direction *= -1;
     } while (performance.now() - start < durationMs);
-    return { frameTimes, frameWorkTimes: [], totalFrames: frameTimes.length, inertiaFrames, distances };
+    return { frameTimes, frameWorkTimes: [], totalFrames: frameTimes.length, inertiaFrames, distances, logicalMovingFrames, domMovingFrames };
   } finally {
     running = false;
     if (frameId !== null) cancelAnimationFrame(frameId);
