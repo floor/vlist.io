@@ -201,6 +201,14 @@ from the staging clone (done 2026-09-15: `VLIST_BENCH_ROOT` set in the staging d
 workflow); the unresolved `scale` size placeholders on the bundle-size and plugin
 overview pages removed (the stub has no size row).
 
+**2.8.0 released 2026-09-15** (floor/vlist v2.8.0, npm latest): deprecation ladder,
+`VListConfig.factory` for adapters, the silent scale stub, autosize `remeasure(index?)`;
+adapters 2.8.0 merged on their `main` branches, npm publish pending (manual, OTP);
+vlist.io docs (scroll modes, v2 to v3 migration) deployed to production. CI was red on
+the release PR on the per-file coverage gate (scale plugin 58.8% after #151, all tests
+passing); fixed by a test-only follow-up, and the coverage script is now part of every
+clean-export verification.
+
 **3.0 shape (decided 2026-09-14)**
 
 - Core: synthetic input is the default and the only model in core. Bounded mode,
