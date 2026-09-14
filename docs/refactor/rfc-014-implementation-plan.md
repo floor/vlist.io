@@ -190,8 +190,12 @@ Can be designed independently; must finish before native viewport removal.
       3536 tests, typecheck, build with declarations, base 9.8 KB, synthetic +2.6 KB).
 
 **2.7.0 released 2026-09-14** (floor/vlist v2.7.0, npm latest). Follow-ups: framework
-adapters cannot reach the `vlist/synthetic` entry yet; vlist.io docs page for the mode;
-staging benchmark build should resolve vlist from the staging clone (`VLIST_BENCH_ROOT`).
+adapters cannot reach the `vlist/synthetic` entry yet (done 2026-09-15 for 2.8:
+`VListConfig.factory` in `vlist/config`, floor/vlist#152, with a guard when synthetic
+mode is requested without a factory; adapter PRs vlist-react#3, vlist-vue#3,
+vlist-svelte#3, vlist-solidjs#3 approved, merge and publish after 2.8; browser
+harness two-sample race fixed in #153); vlist.io docs page for the mode; staging
+benchmark build should resolve vlist from the staging clone (`VLIST_BENCH_ROOT`).
 
 **3.0 shape (decided 2026-09-14)**
 
