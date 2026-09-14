@@ -5,7 +5,13 @@
 
 import { scrollbar, table, grid, selection } from "vlist";
 // The opt-in entry handles all three modes; it delegates native/bounded to core.
-import { createVList } from "vlist/synthetic";
+// When the installed vlist has no synthetic entry, the examples bundler substitutes
+// a stub that throws for synthetic mode only, so the example degrades to two modes.
+import * as syntheticEntry from "vlist/synthetic";
+
+const { createVList } = syntheticEntry;
+// Only the bundler stub defines this flag; the real entry leaves it undefined.
+const SYNTHETIC_AVAILABLE = syntheticEntry.SYNTHETIC_AVAILABLE !== false;
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -270,20 +276,28 @@ function createList(sizeKey) {
     plugins.push(grid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
   }
 
-  list = createVList(
-    {
-      container: "#list-container",
-      ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
-      padding,
-      ...(mode !== "native" ? { scroll: { mode } } : {}),
-      item: {
-        height: rowHeight,
-        template,
+  try {
+    list = createVList(
+      {
+        container: "#list-container",
+        ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
+        padding,
+        ...(mode !== "native" ? { scroll: { mode } } : {}),
+        item: {
+          height: rowHeight,
+          template,
+        },
+        items,
       },
-      items,
-    },
-    plugins,
-  );
+      plugins,
+    );
+  } catch (error) {
+    // Synthetic mode unavailable in this build: fall back to auto and say so.
+    console.warn(error);
+    infoModeEl.textContent = "UNAVAILABLE";
+    if (currentMode === "synthetic") { selectMode("auto"); return; }
+    throw error;
+  }
 
   // Bind events
   list.on("scroll", ({ scrollPosition, direction }) => {
@@ -347,28 +361,34 @@ function updateContext(count, mode) {
 // Scroll mode selector buttons
 // =============================================================================
 
+function selectMode(mode) {
+  currentMode = mode;
+  modeButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
+  });
+  const url = new URL(location.href);
+  if (mode === "auto") url.searchParams.delete("mode");
+  else url.searchParams.set("mode", mode);
+  history.replaceState(null, "", url);
+  createList(currentSize);
+}
+
+const syntheticButton = modeButtons.querySelector('[data-mode="synthetic"]');
+if (!SYNTHETIC_AVAILABLE) {
+  syntheticButton.disabled = true;
+  syntheticButton.title = "Requires vlist 2.7 (vlist/synthetic entry)";
+  if (currentMode === "synthetic") currentMode = "auto";
+}
 modeButtons.querySelectorAll("button").forEach((b) => {
   b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === currentMode);
 });
 
 modeButtons.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-mode]");
-  if (!btn) return;
-
+  if (!btn || btn.disabled) return;
   const mode = btn.dataset.mode;
   if (mode === currentMode) return;
-
-  currentMode = mode;
-  modeButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
-  });
-
-  const url = new URL(location.href);
-  if (mode === "auto") url.searchParams.delete("mode");
-  else url.searchParams.set("mode", mode);
-  history.replaceState(null, "", url);
-
-  createList(currentSize);
+  selectMode(mode);
 });
 
 // =============================================================================
