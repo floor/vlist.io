@@ -19,7 +19,7 @@ All measurements are for ESM output with minification enabled. Gzipped delta is 
 | scrollbar | {{size:scrollbar:min}} KB | {{size:scrollbar:gz}} KB | +{{size:scrollbar:delta}} KB |
 | sortable | {{size:sortable:min}} KB | {{size:sortable:gz}} KB | +{{size:sortable:delta}} KB |
 | groups | {{size:groups:min}} KB | {{size:groups:gz}} KB | +{{size:groups:delta}} KB |
-| scale | {{size:scale:min}} KB | {{size:scale:gz}} KB | +{{size:scale:delta}} KB |
+| scale | — | — | no-op stub (deprecated, removed in 3.0) |
 | page | {{size:page:min}} KB | {{size:page:gz}} KB | +{{size:page:delta}} KB |
 | snapshots | {{size:snapshots:min}} KB | {{size:snapshots:gz}} KB | +{{size:snapshots:delta}} KB |
 | transition | {{size:transition:min}} KB | {{size:transition:gz}} KB | +{{size:transition:delta}} KB |
