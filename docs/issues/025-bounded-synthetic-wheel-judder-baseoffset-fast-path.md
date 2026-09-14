@@ -111,6 +111,25 @@ not needed for smoothness.
   position against the logical delta every frame (0.05 px tolerance), so this class of
   defect fails the benchmark instead of passing on logical numbers.
 
+## Addendum 2026-09-14: the same defect in grid, table and tree
+
+After 2.7.0, jvial reported the same judder in the grid layout. The three plugins that
+replace the core renderer (`grid`, `table`, `tree`) carry their own copy of the
+range-unchanged fast path, without the `baseOffset` guard added to core in 2.6.5. Grid is
+the worst case: with 128 px rows the range crosses a boundary even less often, and the
+DOM-level probe showed rows moving on 7 of 40 frames in bounded and synthetic mode
+(44-48 px lurches) against 40 of 40 in native. Masonry was unaffected because it keys its
+render on the scroll position; groups already guarded with its own
+`lastRenderBaseOffset`.
+
+The tree renderer had a second, older defect: it never subtracted `baseOffset` from its
+row transforms, so in bounded mode past the first runway its rows sat at absolute offsets.
+
+Fix: floor/vlist#138 (proposed 2.7.1). The same guard in all three fast paths, and the tree
+renders at `offset - baseOffset`. After the fix the grid probe reads 40 of 40 in every
+mode with identical steps. Lesson added below: a fix in core does not reach renderers
+that replace core; search for every copy of the pattern.
+
 ## Lessons
 
 - **Measure what the user sees.** For a virtual list the logical position is an
@@ -124,3 +143,6 @@ not needed for smoothness.
 - **Real-input recorders beat emulated input for feel problems.** CDP-dispatched wheel
   events could not reproduce what a 120 Hz trackpad delivers; a tiny in-page recorder
   printing per-frame data from the real gesture could.
+- **A fix in core does not reach plugins that replace core.** Five renderers had their own
+  copy of the fast path; the 2.6.5 fix covered one. When a defect is a pattern, grep for
+  the pattern across the tree before closing the issue.
