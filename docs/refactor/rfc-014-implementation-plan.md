@@ -194,8 +194,12 @@ adapters cannot reach the `vlist/synthetic` entry yet (done 2026-09-15 for 2.8:
 `VListConfig.factory` in `vlist/config`, floor/vlist#152, with a guard when synthetic
 mode is requested without a factory; adapter PRs vlist-react#3, vlist-vue#3,
 vlist-svelte#3, vlist-solidjs#3 approved, merge and publish after 2.8; browser
-harness two-sample race fixed in #153); vlist.io docs page for the mode; staging
-benchmark build should resolve vlist from the staging clone (`VLIST_BENCH_ROOT`).
+harness two-sample race fixed in #153); vlist.io docs page for the mode (done
+2026-09-15: `docs/scroll-modes.md`, plus `scroll.mode`/`scroll.runway` rows in the API
+reference and the v2 to v3 migration guide); staging benchmark build resolving vlist
+from the staging clone (done 2026-09-15: `VLIST_BENCH_ROOT` set in the staging deploy
+workflow); the unresolved `scale` size placeholders on the bundle-size and plugin
+overview pages removed (the stub has no size row).
 
 **3.0 shape (decided 2026-09-14)**
 

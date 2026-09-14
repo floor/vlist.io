@@ -76,9 +76,11 @@ jobs:
             mkdir -p node_modules/@floor
             ln -sfn ../vlist node_modules/@floor/vlist
 
-            # Build sandbox examples and benchmarks (using latest vlist staging code)
+            # Build sandbox examples and benchmarks (using latest vlist staging code).
+            # The benchmark bundler resolves vlist from VLIST_BENCH_ROOT (default ../vlist,
+            # the production clone), so point it at the staging clone explicitly.
             bun run build:examples
-            bun run build:bench
+            VLIST_BENCH_ROOT="$VLIST_DIR" bun run build:bench
 
             # Restore package.json (keep git clean for next pull)
             git checkout -- package.json
