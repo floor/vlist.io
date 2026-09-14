@@ -45,12 +45,22 @@ independent proposal and is not a prerequisite for this input experiment.
 | Milestone | Scope | Version |
 |---|---|---|
 | Opt-in | `scroll.mode: "synthetic"` beside native and bounded; existing defaults, configuration and plugin behavior unchanged; shipped as its own entry so the base bundle does not grow for consumers who do not opt in; unsupported combinations (page, carousel wrap until integrated) throw with a clear message; known limitations documented | 2.7 (minor, additive) |
-| Default change | Synthetic as default, deprecation or removal of `scroll.mode` and `scrollbar: "native"`, native viewport path deleted, mandatory custom scrollbar | 3.0, only if the Release gate closes and the device decision still selects B |
+| Default change (3.0 shape, decided 2026-09-14) | Synthetic input becomes the core default and the only model in core. Bounded mode is removed with `scroll.mode` and the runway/rebase machinery: with the list owning input, content is viewport-sized by construction and `baseOffset` disappears. Native scrolling is kept as an opt-in `vlist/native` entry (the inverse of today's `vlist/synthetic`) for layouts that need parent scroll handoff, find-in-page or native scrollbar semantics; the gate review may still drop it if no consumer needs it. `scale()` is removed. The custom scrollbar stays a plugin, required by documentation, not bundled into core. | 3.0, only if the Release gate closes |
 
 The opt-in milestone follows the RFC-012 precedent, where bounded mode shipped as
 opt-in in 2.x. Real consumer usage of the opt-in mode is an input to the default
 decision. The A/B comparison informs that decision; it does not block the opt-in
 release once the Input and Integration gates below are met for the opt-in surface.
+
+**3.0 simplification and size goal.** 3.0 exists to remove a model, not to add one.
+Moving the synthetic driver into core costs about 2.6 KB gzipped; deleting the native
+and bounded handlers saves about 1.8 KB. The difference must be paid for by what a single
+input model makes possible: one wheel handler instead of three, no runway, rebase or
+`baseOffset` split, no `scroll.mode` branching in `create.ts`, a pipeline that positions
+items at `offset - position`, and the `scale()` plugin gone. **Gate: the 3.0 base bundle
+must measure at or below the 2.7 base (9.9 KB gzipped) with the synthetic driver
+included, and the plugin rows must not grow.** A 3.0 that ships larger than 2.7 fails
+the gate. The measurement is `bun run size`, recorded in the release prep.
 
 ## Current implementation and alternatives
 

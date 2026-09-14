@@ -159,6 +159,21 @@ Can be designed independently; must finish before native viewport removal.
 adapters cannot reach the `vlist/synthetic` entry yet; vlist.io docs page for the mode;
 staging benchmark build should resolve vlist from the staging clone (`VLIST_BENCH_ROOT`).
 
+**3.0 shape (decided 2026-09-14)**
+
+- Core: synthetic input is the default and the only model in core. Bounded mode,
+  `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
+- Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
+  shows no consumer needs parent handoff, find-in-page or native scrollbar semantics.
+- The custom scrollbar remains a plugin, required by documentation, not bundled.
+- Size gate: 3.0 base at or below 9.9 KB gzipped with the driver included; plugin rows
+  unchanged or smaller. Simplification pays for the driver: one wheel handler, no
+  runway or `baseOffset` split, no mode branching, simpler pipeline.
+- Gate order before the flip: scrollbar accessibility, RTL support in the driver,
+  adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
+  mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
+  integration branch while 2.7 gathers consumer feedback.
+
 **3.0 default decision (conditional)**
 
 - [ ] Consumer feedback from the opt-in mode recorded alongside the A/B comparison.
