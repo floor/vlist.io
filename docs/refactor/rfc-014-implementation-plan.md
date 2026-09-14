@@ -155,7 +155,18 @@ Can be designed independently; must finish before native viewport removal.
       reduced motion is handled by the driver, not the bar.
 - [x] Scrollbar plugin +2.0 → +2.8 KB gzipped across #142-#144 (402 + 394 + 0 bytes),
       inside its budget; base unchanged.
-- [ ] Specify migration for `scroll.mode` and `scrollbar: "native"` and public internals.
+- [x] Specify migration for `scroll.mode` and `scrollbar: "native"` and public internals:
+      series 5 merged into staging 2026-09-15 for the 2.8 minor (floor/vlist#151):
+      `@deprecated` JSDoc on `scroll.mode`, `scroll.runway`, the `"native"` and
+      `"none"` values of `scroll.scrollbar` (core reads only `"none"`; the options
+      object stays as the `vlist/config` convenience) and the old plugin hooks; the
+      `scale()` guidance rerouted to the synthetic entry; deprecations table in the
+      READMEs and changelog; no runtime warning for bounded mode. Found and fixed on
+      the way: `vlist/config`, which every framework adapter uses, installed the
+      deprecated `scale()` stub unconditionally and warned every adapter user once per
+      page; the stub is now silent and only explicit `scale()` warns. Base
+      byte-identical. staging forwarded into next (ffdea873). Migration guide:
+      vlist.io `docs/migration-v3.md`.
 
 ## 6. Release gates
 
@@ -242,8 +253,8 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
 **3.0 default decision (conditional)**
 
 - [ ] Consumer feedback from the opt-in mode recorded alongside the A/B comparison.
-- [ ] Scrollbar, page, RTL and migration gates closed (scrollbar, RTL and page closed
-      on `next` as of 2026-09-14; migration is series 5).
+- [x] Scrollbar, page, RTL and migration gates closed (scrollbar, RTL and page on
+      `next` 2026-09-14; migration on staging 2026-09-15, forwarded to `next`).
 - [ ] Only then flip the default or delete the native viewport path, if still selected.
 
 Adapter canonicalization and distance-based overscan remain separately scoped work.

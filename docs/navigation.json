@@ -37,6 +37,11 @@
         "slug": "migration",
         "name": "Migration (v1 → v2)",
         "desc": "Builder pattern to factory function migration guide"
+      },
+      {
+        "slug": "migration-v3",
+        "name": "Migration (v2 → v3)",
+        "desc": "Synthetic input becomes core; what the deprecation ladder removes"
       }
     ]
   },
