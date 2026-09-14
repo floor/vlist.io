@@ -104,6 +104,13 @@ who do not opt in.
       horizontal lists throw in synthetic mode; vertical lists on RTL pages allowed;
       native and bounded untouched; support planned as a non-breaking addition
       (floor/vlist#134).
+- [x] RTL gate, reduced scope (vertical lists and tables on RTL pages), closed
+      2026-09-14 on `next` (floor/vlist#145): table header follows the body in RTL
+      (`:dir(rtl)` flex order) and keyboard cross-axis navigation normalises the
+      negative `scrollLeft` origin. Verified in Chrome, Firefox and Safari 26.4
+      (safaridriver): header/body left delta [550,100,-450] → [0,0,0] px; diagonal
+      wheel keeps the cross-axis component. Horizontal RTL lists stay guarded in
+      synthetic mode. Base unchanged, table +63 bytes.
 - [x] `page()` remains the external native-document provider in native mode and
       throws with synthetic mode (#132).
 - [x] Document supported plugin combinations and known limitations of the opt-in
@@ -187,7 +194,9 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
   work has its own budget of +2.8 KB (from +2.0). Simplification pays for the driver: one
   wheel handler, no runway or `baseOffset` split, no mode branching, simpler pipeline.
 - Integration branch `next` opened 2026-09-14 at vlist staging 2.7.2; series 1
-  (scrollbar gate) dispatched to Codex.
+  (scrollbar gate, #142-#144) and series 2 (RTL, #145) merged; series 3 (adapter
+  adoption: `getRenderOrigin()` on the adapter, renderers then motion plugins then
+  readers, enforced by a source-boundary test) dispatched 2026-09-14.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
