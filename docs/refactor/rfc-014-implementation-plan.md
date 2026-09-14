@@ -176,8 +176,11 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
   shows no consumer needs parent handoff, find-in-page or native scrollbar semantics.
 - The custom scrollbar remains a plugin, required by documentation, not bundled.
 - Size gate: 3.0 base at or below 9.9 KB gzipped with the driver included; plugin rows
-  unchanged or smaller. Simplification pays for the driver: one wheel handler, no
-  runway or `baseOffset` split, no mode branching, simpler pipeline.
+  unchanged or smaller, except the scrollbar plugin, whose accessibility and native-look
+  work has its own budget of +2.8 KB (from +2.0). Simplification pays for the driver: one
+  wheel handler, no runway or `baseOffset` split, no mode branching, simpler pipeline.
+- Integration branch `next` opened 2026-09-14 at vlist staging 2.7.2; series 1
+  (scrollbar gate) dispatched to Codex.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
