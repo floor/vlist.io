@@ -1,9 +1,11 @@
 // Builder Million Items — Composable entry point
-// Uses bounded scroll mode (RFC-012) + scrollbar plugin
+// Scroll mode is selectable: native, bounded (RFC-012) or synthetic (RFC-014).
 // Demonstrates handling 1M+ items with a viewport-sized content runway
 // Supports List and Table layout modes
 
-import { createVList, scrollbar, table, grid, selection } from "vlist";
+import { scrollbar, table, grid, selection } from "vlist";
+// The opt-in entry handles all three modes; it delegates native/bounded to core.
+import { createVList } from "vlist/synthetic";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -170,6 +172,7 @@ const scrollDirEl = document.getElementById("scroll-direction");
 const rangeEl = document.getElementById("visible-range");
 const sizeButtons = document.getElementById("size-buttons");
 const layoutButtons = document.getElementById("layout-buttons");
+const modeButtons = document.getElementById("mode-buttons");
 
 // Info bar right-side elements
 const infoVirtualizedEl = document.getElementById("info-virtualized");
@@ -206,6 +209,16 @@ let currentSize = "1m";
 let currentLayout = "list";
 let list = null;
 
+// Scroll mode: "auto" keeps the example's historical rule (bounded above 100K,
+// native below); "native", "bounded" and "synthetic" force a mode. The choice
+// lives in the URL so a reload keeps it.
+const MODES = ["auto", "native", "bounded", "synthetic"];
+const initialMode = new URLSearchParams(location.search).get("mode");
+let currentMode = MODES.includes(initialMode) ? initialMode : "auto";
+
+const resolveMode = (count) =>
+  currentMode === "auto" ? (count > 100_000 ? "bounded" : "native") : currentMode;
+
 // =============================================================================
 // Create / Recreate list
 // =============================================================================
@@ -227,8 +240,10 @@ function createList(sizeKey) {
   const plugins = [
     selection({ mode: "single", followFocus: true, focusOnClick: true }),
   ];
-  const bounded = count > 100_000;
-  if (bounded) plugins.push(scrollbar({ autoHide: true }));
+  const mode = resolveMode(count);
+  // Bounded and synthetic have no native main-axis scrollbar; synthetic requires
+  // the custom one.
+  if (mode !== "native") plugins.push(scrollbar({ autoHide: true }));
 
   const isTable = currentLayout === "table";
   const isGrid = currentLayout === "grid";
@@ -260,7 +275,7 @@ function createList(sizeKey) {
       container: "#list-container",
       ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
       padding,
-      ...(bounded ? { scroll: { mode: "bounded" } } : {}),
+      ...(mode !== "native" ? { scroll: { mode } } : {}),
       item: {
         height: rowHeight,
         template,
@@ -289,14 +304,14 @@ function createList(sizeKey) {
 
   // Update info bar
   updateInfo();
-  updateContext(count, bounded);
+  updateContext(count, mode);
 }
 
 // =============================================================================
 // Info bar right side — context (virtualized %, scroll mode)
 // =============================================================================
 
-function updateContext(count, bounded) {
+function updateContext(count, mode) {
   const itemHeight = getItemSize();
   const effectiveRows =
     currentLayout === "grid" ? Math.ceil(count / GRID_COLUMNS) : count;
@@ -304,9 +319,15 @@ function updateContext(count, bounded) {
     effectiveRows * (itemHeight + (currentLayout === "grid" ? GRID_GAP : 0));
   const containerSize =
     document.querySelector("#list-container")?.clientHeight ?? 1;
-  // In bounded mode the content element is a viewport-multiple runway, so the
-  // ratio of the virtual extent to the rendered content is the savings factor.
-  const ratio = bounded ? (totalHeight / (containerSize * 2)).toFixed(1) : "1.0";
+  // Bounded content is a viewport-multiple runway (2x); synthetic content is
+  // exactly viewport-sized. The ratio of the virtual extent to the rendered
+  // content is the savings factor.
+  const ratio =
+    mode === "bounded"
+      ? (totalHeight / (containerSize * 2)).toFixed(1)
+      : mode === "synthetic"
+        ? (totalHeight / containerSize).toFixed(1)
+        : "1.0";
   const selector =
     currentLayout === "table"
       ? ".vlist-table-row"
@@ -318,9 +339,37 @@ function updateContext(count, bounded) {
 
   infoVirtualizedEl.textContent = `${virtualized}%`;
   infoScaleEl.textContent = `${ratio}×`;
-  infoModeEl.textContent = bounded ? "BOUNDED" : "NATIVE";
-  infoModeStatEl.className = `example-info__stat ${bounded ? "example-info__stat--warn" : "example-info__stat--ok"}`;
+  infoModeEl.textContent = mode.toUpperCase();
+  infoModeStatEl.className = `example-info__stat ${mode === "native" ? "example-info__stat--ok" : "example-info__stat--warn"}`;
 }
+
+// =============================================================================
+// Scroll mode selector buttons
+// =============================================================================
+
+modeButtons.querySelectorAll("button").forEach((b) => {
+  b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === currentMode);
+});
+
+modeButtons.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-mode]");
+  if (!btn) return;
+
+  const mode = btn.dataset.mode;
+  if (mode === currentMode) return;
+
+  currentMode = mode;
+  modeButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
+  });
+
+  const url = new URL(location.href);
+  if (mode === "auto") url.searchParams.delete("mode");
+  else url.searchParams.set("mode", mode);
+  history.replaceState(null, "", url);
+
+  createList(currentSize);
+});
 
 // =============================================================================
 // Layout selector buttons

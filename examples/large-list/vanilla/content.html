@@ -2,8 +2,9 @@
     <header>
         <h1>Large List</h1>
         <p class="description">
-            Plugin architecture with
-            <code>scroll: { mode: "bounded" }</code> + <code>scrollbar</code>.
+            Plugin architecture with a selectable scroll mode:
+            <code>native</code>, <code>bounded</code> (RFC-012 runway) or
+            <code>synthetic</code> (RFC-014 owned input) + <code>scrollbar</code>.
             Handles 100K–20M items with a viewport-sized content runway,
             avoiding the browser's 16.7M pixel element limit.
         </p>
@@ -32,6 +33,27 @@
                         </button>
                         <button class="ui-segmented__btn" data-layout="table">
                             Table
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scroll mode -->
+            <section class="ui-section">
+                <h3 class="ui-title">Scroll mode</h3>
+                <div class="ui-row">
+                    <div class="ui-segmented" id="mode-buttons">
+                        <button class="ui-segmented__btn" data-mode="auto">
+                            Auto
+                        </button>
+                        <button class="ui-segmented__btn" data-mode="native">
+                            Native
+                        </button>
+                        <button class="ui-segmented__btn" data-mode="bounded">
+                            Bounded
+                        </button>
+                        <button class="ui-segmented__btn" data-mode="synthetic">
+                            Synthetic
                         </button>
                     </div>
                 </div>

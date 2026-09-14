@@ -108,6 +108,7 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     const VLIST_JS_ENTRIES: Record<string, string> = {
       vlist: "index.js",
       "vlist/internals": "internals.js",
+      "vlist/synthetic": "synthetic.js",
     };
     build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
       const entry = VLIST_JS_ENTRIES[args.path];
