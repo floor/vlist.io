@@ -6,7 +6,7 @@
 //
 // Any combination works — you can pre-measure Reddit posts or auto-size RSS items.
 
-import { createVList, autosize, a11y } from "vlist";
+import { createVList, autosize, a11y, scrollbar } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -411,6 +411,7 @@ function createList() {
   const plugins = [];
   if (currentMode === "b") plugins.push(autosize());
   if (a11yEnabled) plugins.push(a11y());
+  plugins.push(scrollbar());
 
   if (currentMode === "a") {
     // Mode A: pre-measure all items, then use size function

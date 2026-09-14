@@ -151,7 +151,7 @@ clickBehaviorButtons.addEventListener("click", (e) => {
 });
 
 // =============================================================================
-// Width slider — sets CSS variable, no rebuild needed
+// Width slider — plugin config (the plugin owns the width since 3.0), rebuild
 // =============================================================================
 
 const widthSlider = document.getElementById("width-slider");
@@ -160,12 +160,13 @@ const widthValue = document.getElementById("width-value");
 widthSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
   widthValue.textContent = px + "px";
-  document.documentElement.style.setProperty("--vlist-custom-scrollbar-width", px + "px");
+  app.setWidth(px);
+  app.createList();
   save();
 });
 
 // =============================================================================
-// Radius slider — sets CSS variable, no rebuild needed
+// Radius slider — plugin config, rebuild
 // =============================================================================
 
 const radiusSlider = document.getElementById("radius-slider");
@@ -174,7 +175,8 @@ const radiusValue = document.getElementById("radius-value");
 radiusSlider.addEventListener("input", (e) => {
   const px = parseInt(e.target.value, 10);
   radiusValue.textContent = px + "px";
-  document.documentElement.style.setProperty("--vlist-custom-scrollbar-radius", px + "px");
+  app.setRadius(px);
+  app.createList();
   save();
 });
 
@@ -302,12 +304,12 @@ export function restoreFromStorage() {
     if (saved.width !== undefined) {
       widthSlider.value = saved.width;
       widthValue.textContent = saved.width + "px";
-      document.documentElement.style.setProperty("--vlist-custom-scrollbar-width", saved.width + "px");
+      app.setWidth(saved.width);
     }
     if (saved.radius !== undefined) {
       radiusSlider.value = saved.radius;
       radiusValue.textContent = saved.radius + "px";
-      document.documentElement.style.setProperty("--vlist-custom-scrollbar-radius", saved.radius + "px");
+      app.setRadius(saved.radius);
     }
   }
 

@@ -1,7 +1,7 @@
 // Tree View — Collapsible file tree with async loading
 // Demonstrates tree plugin with real filesystem data from /api/files
 
-import { createVList, tree, selection } from "vlist";
+import { createVList, tree, selection, scrollbar } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { getIcon, getChevron } from "./icons.js";
@@ -134,6 +134,7 @@ export async function createList() {
         },
       }),
       selection({ mode: "single", followFocus: true, focusOnClick: true }),
+      scrollbar(),
     ],
   );
 

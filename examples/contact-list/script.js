@@ -2,7 +2,7 @@
 // Demonstrates groups plugin with sticky/inline toggle
 // and selection for click-to-select with detail panel
 
-import { createVList, groups, selection, snapshots } from "vlist";
+import { createVList, groups, selection, snapshots, scrollbar } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -119,6 +119,7 @@ export function createList() {
 
   plugins.push(selection({ mode: "single" }));
   plugins.push(snapshots(snapshot ? { restore: snapshot } : undefined));
+  plugins.push(scrollbar());
 
   list = createVList({
     container: "#list-container",
