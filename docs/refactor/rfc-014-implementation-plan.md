@@ -209,6 +209,17 @@ the release PR on the per-file coverage gate (scale plugin 58.8% after #151, all
 passing); fixed by a test-only follow-up, and the coverage script is now part of every
 clean-export verification.
 
+**3.0 flip started 2026-09-15** on Dr Jones's decision to implement locally and test
+before any release. Series 7 PR a merged into `next` (floor/vlist#157): core
+`createVList` uses the synthetic driver; `vlist/native` is the opt-in native entry
+(native and bounded until the removals); `vlist/synthetic` is a deprecated alias;
+`scroll.mode: "native" | "bounded"` in core throws with the import to add, as do
+carousel, sortable and horizontal RTL; `vlist/config` defaults to the core factory.
+Verified from a clean export: 3,624 tests, coverage gate green, wheel probe 40/40 on
+five layouts in both entries. Sizes before removals: base 12,820 bytes with the
+driver, native 10,358. First local test round on this build; PR b (removals, 9.9 KB
+gate) in progress and merges after that round.
+
 **3.0 shape (decided 2026-09-14)**
 
 - Core: synthetic input is the default and the only model in core. Bounded mode,
