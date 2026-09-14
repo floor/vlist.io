@@ -235,6 +235,15 @@ plan does not accept a larger factor as proof. Candidate A is rejected. Candidat
 implementation is complete on `feat/synthetic-input`. The iPhone SE is a 2020
 device, which covers the plan's low-end responsiveness item for iOS.
 
+**2026-09-14 — wheel judder in bounded and synthetic mode: root cause fixed in 2.6.5.**
+jvial found trackpad deceleration jerky in both logical modes on a 120 Hz display. The
+cause was a pre-existing core defect, not the synthetic driver: the pipeline's
+range-unchanged fast path skipped the DOM commit while `baseOffset` carried the motion,
+so rows stood still until the range crossed a row boundary. Fixed in floor/vlist#135
+(v2.6.5), merged into `feat/synthetic-input`; the pointer-fling benchmark now asserts on
+rendered row position (vlist.io#63). Full record, including the investigation's wrong
+turns: [issue 025](../issues/025-bounded-synthetic-wheel-judder-baseoffset-fast-path.md).
+
 Implementation sequence and live checklists:
 [implementation plan](../refactor/rfc-014-implementation-plan.md).
 Prototype usage, telemetry and physical-device result sheet:
