@@ -98,7 +98,10 @@ who do not opt in.
 - [x] Audit main-axis native reads/writes and external scroll events; legitimate
       native cross-axis operations remain supported (driver makes none; transition
       reads routed in #131).
-- [ ] Verify RTL policy for the selected engine, with support tests or explicit guard.
+- [x] RTL policy for the synthetic driver, decided 2026-09-14: explicit guard. RTL
+      horizontal lists throw in synthetic mode; vertical lists on RTL pages allowed;
+      native and bounded untouched; support planned as a non-breaking addition
+      (floor/vlist#134).
 - [x] `page()` remains the external native-document provider in native mode and
       throws with synthetic mode (#132).
 - [x] Document supported plugin combinations and known limitations of the opt-in
@@ -143,9 +146,9 @@ Can be designed independently; must finish before native viewport removal.
       Official benchmark scenarios landed 2026-09-14 (vlist.io#59, vlist#133):
       matched logical native/bounded/synthetic scenarios plus an in-page pointer-fling
       scenario for the synthetic driver; 60 FPS, zero frames over 32 ms at 10K to
-      1M rows on c7db431e. Still open before the minor: RTL policy for the synthetic
-      driver, optional synthetic telemetry export, and
-      the merge of `feat/synthetic-input` into staging (jvial).
+      1M rows on c7db431e. RTL guard merged (#134). Nothing remains open before the
+      minor except the merge of `feat/synthetic-input` into staging and the release
+      prep (jvial); the synthetic telemetry export stays optional.
 - [ ] Required typecheck, tests, browser checks and size measurements pass; base
       bundle unchanged for non-opt-in consumers.
 
