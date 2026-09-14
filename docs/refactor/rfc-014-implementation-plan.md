@@ -210,7 +210,13 @@ staging benchmark build should resolve vlist from the staging clone (`VLIST_BENC
   and schedules idle in the call, so all three modes are readable synchronously after a
   write and the later DOM event dedupes. Transition's hand-written engine commits are
   gone. Base 10,129 bytes (+23 for the series, inside the +40 allowance); probe 40/40
-  including groups.
+  including groups. PR c merged 2026-09-14 (floor/vlist#148): a11y, autosize,
+  selection and snapshots read through the adapter; a11y focus navigation writes
+  through it. Review found the adapter's maximum omitted the main-axis padding that
+  the content element and the logical sources include, which clamped last-item focus
+  short; fixed with tests. Series 3 closed: the boundary test's allowlist holds only
+  the page plugin's three scroll-source accesses. Base 10,140 bytes (+34 for the
+  series). Next gate: page mode under the external-scroll seam.
 - Gate order before the flip: scrollbar accessibility, RTL support in the driver,
   adapter adoption in all plugins (the vehicle for removing `baseOffset` reads), page
   mode under the external-scroll seam, deprecation ladder. Work proceeds on a `next`
