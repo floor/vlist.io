@@ -1,9 +1,10 @@
 // Sortable — Drag-and-drop reordering
 // Demonstrates sortable plugin with configurable drag handles
 
-// vlist 3.0: drag-and-drop reordering needs the native entry.
-import { createVList } from "vlist/native";
-import { sortable, selection, snapshots } from "vlist";
+// Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
+// On touch, a long press starts a drag; with the handle grip, the handle drags.
+import { sortable, selection, snapshots, scrollbar } from "vlist";
+import { bindScrollModeSelector, factoryFor, getScrollMode } from "../scroll-mode.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -92,6 +93,7 @@ let tasks = makeTasks(100);
 export let list = null;
 export let useHandle = false;
 export let moveCount = 0;
+export let scrollMode = getScrollMode("native");
 
 export function setUseHandle(v) {
   useHandle = v;
@@ -160,7 +162,7 @@ export function createList() {
 
   const sortableConfig = {};
   if (useHandle) sortableConfig.handle = ".task__handle";
-  list = createVList({
+  list = factoryFor(scrollMode)({
     container: "#list-container",
     ariaLabel: "Task list",
     item: {
@@ -172,6 +174,8 @@ export function createList() {
     sortable(sortableConfig),
     selection({ mode: "single" }),
     snapshots(snapshot ? { restore: snapshot } : undefined),
+    // Synthetic input has no browser scrollbar; add the custom one.
+    ...(scrollMode === "synthetic" ? [scrollbar({ autoHide: true })] : []),
   ]);
 
   // Wire events
@@ -321,9 +325,11 @@ function setControlsDisabled(disabled) {
 
 // Footer context
 const infoHandle = document.getElementById("info-handle");
+const infoMode = document.getElementById("info-mode");
 
 export function updateContext() {
   if (infoHandle) infoHandle.textContent = useHandle ? "handle" : "free";
+  if (infoMode) infoMode.textContent = scrollMode.toUpperCase();
   const container = document.getElementById("list-container");
   if (container) {
     container.setAttribute("data-grip", useHandle ? "handle" : "free");
@@ -349,6 +355,15 @@ if (handleMode) {
         (b.dataset.handle === "true") === mode,
       );
     });
+    createList();
+  });
+}
+
+// Scroll mode toggle (native / synthetic)
+const modeButtons = document.getElementById("mode-buttons");
+if (modeButtons) {
+  bindScrollModeSelector(modeButtons, scrollMode, (mode) => {
+    scrollMode = mode;
     createList();
   });
 }

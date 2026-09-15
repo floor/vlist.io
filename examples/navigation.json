@@ -99,7 +99,7 @@
       {
         "slug": "large-list",
         "name": "Large Dataset",
-        "desc": "100K–5M items via the bounded logical scroll model",
+        "desc": "100K–20M items with native or synthetic scrolling",
         "plugins": ["scrollbar", "table", "grid"]
       },
       {
