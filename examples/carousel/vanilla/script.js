@@ -1,8 +1,8 @@
 // Carousel — MD3-aligned photo carousel using the carousel() plugin
 // Demonstrates infinite loop, snap-to-item, variant layouts, and real photos
 
-// vlist 3.0: carousel uses wrap scrolling, which needs the native entry.
-import { createVList } from "vlist/native";
+// vlist 3.0: synthetic input (own wheel, touch and inertia) with carousel wrap folding.
+import { createVList } from "vlist/synthetic";
 import { carousel, rebuild, registerPreset, full } from "vlist";
 import { getItems, getImageUrl, getItemWidth, preloadImages } from "../shared.js";
 import { createStats } from "../../stats.js";
@@ -199,7 +199,6 @@ function factory() {
     {
       container: "#list-container",
       orientation: isH ? "horizontal" : "vertical",
-      scroll: { scrollbar: "none" },
       ariaLabel: "Photo carousel",
       item: {
         height: isMultiAspect ? containerH : ITEM_HEIGHT,
