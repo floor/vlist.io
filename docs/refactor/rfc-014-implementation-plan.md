@@ -334,6 +334,21 @@ coverage, 23 size scenarios, build, pack, browser suites 52/0, 38/0, 32/0 and 4/
 suite passed twice in isolation after one failure Codex saw when suites ran together). Base
 unchanged at 9,514 gzip bytes; createStats 9,744 (-28).
 
+**3.0 freeze cycle opened 2026-09-16.** Dr Jones shared a critical review of 3.0 by Grok
+(via Cursor); Claude verified every finding against `next` (four read-only checks) and
+documented them in the private floor docs. Verdict: hold 3.0.0 stable until the contracts
+are fixed. Claude implements the fixes directly and Grok reviews afterwards.
+First change merged (floor/vlist#168): the public types no longer rely on index signatures.
+`VListItem` requires only an `id`, so ordinary interfaces satisfy it; `VList` rejects unknown
+property names; each plugin declares the methods it adds and `createVList` infers them from
+the plugins array. An explicit item type argument skips that inference (TypeScript forbids
+partial type argument lists), so the docs tell consumers to type the config instead. Also
+exported `GridPluginConfig`, `A11yPluginConfig`, the thirteen method types and the
+`PluginMethods` helper; removed the deprecated `ScrollbarConfig` export. New strict type
+tests (`test/types/`, `tsconfig.types.json`) run in `bun run typecheck`. Verified from a clean
+export: 3,756 tests in both orders, coverage, 23 size scenarios, build, pack, browser suites
+4/0, 32/0, 38/0 and 52/0; bundle sizes unchanged (types only).
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
