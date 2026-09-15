@@ -5,6 +5,8 @@
 import { createApp, ref, computed, watch } from "vue";
 import { useVList, useVListEvent } from "vlist-vue";
 import * as vlistNative from "vlist/native";
+// vlist 3 keeps native scrolling as the default; huge lists opt into synthetic input.
+import * as vlistSynthetic from "vlist/synthetic";
 
 // vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
 // bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
@@ -97,6 +99,7 @@ const App = {
       // A plain string: the DOM layer escapes ariaLabel and cannot read a ref.
       ariaLabel: `${SIZES[currentSize.value].toLocaleString()} items list`,
       // vlist/config installs the scrollbar plugin from scroll.scrollbar options.
+      ...(VLIST3 ? { factory: vlistSynthetic.createVList } : {}),
       scroll: VLIST3 ? { scrollbar: { autoHide: true } } : { mode: "bounded", scrollbar: { autoHide: true } },
       item: {
         height: ITEM_HEIGHT,

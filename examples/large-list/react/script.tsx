@@ -5,6 +5,12 @@
 import { useState, useCallback, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { useVList, useVListEvent } from "vlist-react";
+import * as vlistNative from "vlist/native";
+// vlist 3 keeps native scrolling as the default; this 5M-item list opts into
+// synthetic input. On 2.x the bundler stubs "vlist/native" (NATIVE_AVAILABLE false).
+import * as vlistSynthetic from "vlist/synthetic";
+
+const VLIST3 = (vlistNative as { NATIVE_AVAILABLE?: boolean }).NATIVE_AVAILABLE !== false;
 import type { VList } from "vlist";
 
 // =============================================================================
@@ -107,6 +113,7 @@ function App() {
     items,
     // vlist/config installs the scrollbar plugin from these options. A user
     // plugin named "scrollbar" would replace it, so no descriptor here.
+    ...(VLIST3 ? { factory: vlistSynthetic.createVList } : {}),
     scroll: { scrollbar: { autoHide: true } },
   });
 

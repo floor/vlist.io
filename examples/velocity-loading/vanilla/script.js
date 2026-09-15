@@ -3,6 +3,8 @@
 
 import { createVList, selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
 import * as vlistNative from "vlist/native";
+// vlist 3 keeps native scrolling as the default; huge lists opt into synthetic input.
+import * as vlistSynthetic from "vlist/synthetic";
 
 // vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
 // bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
@@ -108,7 +110,7 @@ function updateContext() {
 // Build list — snapshots({ autoSave }) handles save/restore automatically.
 // On first visit, autoLoad fetches data. On return visits, the snapshot provides
 // the total and scroll position, and autoLoad is cancelled automatically.
-const list = createVList(
+const list = (VLIST3 ? vlistSynthetic.createVList : createVList)(
   {
     container: "#list-container",
     ariaLabel: "Virtual user list with velocity-based loading",

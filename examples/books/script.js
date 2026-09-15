@@ -11,6 +11,8 @@ import {
   scrollbar,
 } from "vlist";
 import * as vlistNative from "vlist/native";
+// vlist 3 keeps native scrolling as the default; huge lists opt into synthetic input.
+import * as vlistSynthetic from "vlist/synthetic";
 
 // vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
 // bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
@@ -611,7 +613,7 @@ export function createList() {
   const columnBorders = false;
   const rowBorders = true;
 
-  list = createVList(
+  list = (VLIST3 ? vlistSynthetic.createVList : createVList)(
     {
       container: "#list-container",
       ariaLabel: "Open Library books data table",

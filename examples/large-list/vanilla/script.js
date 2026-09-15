@@ -228,7 +228,10 @@ let currentMode = MODES.includes(initialMode) ? initialMode : "auto";
 
 const resolveMode = (count) =>
   currentMode === "auto"
-    ? (NATIVE_AVAILABLE ? "synthetic" : count > 100_000 ? "bounded" : "native")
+    ? (NATIVE_AVAILABLE
+        // 3.0: native by default; synthetic input past the browser element limit.
+        ? (count > 300_000 ? "synthetic" : "native")
+        : count > 100_000 ? "bounded" : "native")
     : currentMode;
 
 // =============================================================================
