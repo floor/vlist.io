@@ -46,6 +46,7 @@ import {
 } from "./tracks";
 import type { TrackInput } from "./tracks";
 import { searchSite } from "../server/search";
+import { parseSearchVersion } from "../server/versions";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 
@@ -641,12 +642,11 @@ const handleGetTracksStats = (): Response => {
   }
 };
 
-// GET /api/search?q=...&limit=...&version=v1|v2
+// GET /api/search?q=...&limit=...&version=v1|v2|v3 (v3, the current docs, by default)
 const handleSearch = (url: URL) => {
   const q = url.searchParams.get("q") || "";
   const limit = intParam(url, "limit", 10, 1, 50);
-  const v = url.searchParams.get("version");
-  const version: "v1" | "v2" = v === "v1" ? "v1" : "v2";
+  const version = parseSearchVersion(url.searchParams.get("version"));
   const results = searchSite(q, limit, version);
   return json({ query: q, results });
 };

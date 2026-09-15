@@ -1,5 +1,6 @@
 // src/server/version-map.ts
-// Slug mapping between v1 and v2 documentation.
+// Slug mapping between v1 and the later docs. v2 (archived) and v3 (current) share slugs,
+// so the v2 keys below are also the current slugs.
 // Used by the version switcher, canonical tags, and sitemap.
 //
 // Set MATCH_VERSION_SLUGS to false to disable all slug matching
@@ -7,7 +8,7 @@
 
 export const MATCH_VERSION_SLUGS = true;
 
-// v2 slug → v1 slug (docs)
+// v2/v3 slug → v1 slug (docs)
 export const V2_TO_V1_DOCS: Record<string, string> = {
   "getting-started": "getting-started",
   accessibility: "accessibility",
@@ -33,7 +34,7 @@ export const V2_TO_V1_DOCS: Record<string, string> = {
   benchmarks: "resources/benchmarks",
 };
 
-// v1 slug → v2 slug (reverse + many-to-one for consolidated API page)
+// v1 slug → v2/v3 slug (reverse + many-to-one for consolidated API page)
 export const V1_TO_V2_DOCS: Record<string, string> = {};
 for (const [v2, v1] of Object.entries(V2_TO_V1_DOCS)) {
   if (!(v1 in V1_TO_V2_DOCS)) V1_TO_V2_DOCS[v1] = v2;
@@ -43,7 +44,7 @@ V1_TO_V2_DOCS["api/events"] = "api";
 V1_TO_V2_DOCS["api/constants"] = "api";
 V1_TO_V2_DOCS["api/exports"] = "api";
 
-// v2 slug → v1 slug (tutorials)
+// v2/v3 slug → v1 slug (tutorials)
 export const V2_TO_V1_TUTORIALS: Record<string, string> = {
   "quick-start": "quick-start",
   "plugin-system": "builder-pattern",
@@ -53,7 +54,7 @@ export const V2_TO_V1_TUTORIALS: Record<string, string> = {
   styling: "styling",
 };
 
-// v1 slug → v2 slug (tutorials, reverse)
+// v1 slug → v2/v3 slug (tutorials, reverse)
 export const V1_TO_V2_TUTORIALS: Record<string, string> = {};
 for (const [v2, v1] of Object.entries(V2_TO_V1_TUTORIALS)) {
   if (!(v1 in V1_TO_V2_TUTORIALS)) V1_TO_V2_TUTORIALS[v1] = v2;

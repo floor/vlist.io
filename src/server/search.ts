@@ -3,18 +3,21 @@
 // Built once at server startup from markdown files and navigation metadata.
 //
 // Indexes four content sections:
-//   - Docs:       markdown files in ./docs/ with navigation from docs/navigation.json
-//   - Tutorials:  markdown files in ./tutorials/ with navigation from tutorials/navigation.json
+//   - Docs:       markdown files in ./docs/ with navigation from docs/navigation.json,
+//                 plus the archived ./docs/v1/ and ./docs/v2/
+//   - Tutorials:  markdown files in ./tutorials/ with navigation from tutorials/navigation.json,
+//                 plus the archived ./tutorials/v1/ and ./tutorials/v2/
 //   - Examples:   metadata-only from examples/navigation.json (name + desc + features)
 //   - Benchmarks: metadata-only from benchmarks/navigation.json (name + desc)
 //
 // Exports:
-//   searchSite(query, limit?)  → ranked search results with snippets
+//   searchSite(query, limit?, version?)  → ranked search results with snippets
 //   getSearchIndex()           → serialized JSON for potential client-side use
 
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
 import MiniSearch from "minisearch";
+import { CURRENT_DOC_VERSION, versionFromPath, type DocVersion } from "./versions";
 
 // =============================================================================
 // Types
@@ -156,83 +159,34 @@ function readMarkdown(relativePath: string): string {
 function buildDocuments(): IndexDocument[] {
   const documents: IndexDocument[] = [];
 
-  // -- Docs ------------------------------------------------------------------
+  // -- Docs and tutorials: current, then the archived v1 and v2 folders -----
 
-  const docGroups = readJSON<NavGroup[]>("docs/navigation.json");
-  for (const group of docGroups) {
-    const groupLabel = group.label ?? "";
-    for (const item of group.items) {
-      const md = readMarkdown(`docs/${item.slug}.md`);
-      documents.push({
-        id: `docs:${item.slug}`,
-        title: item.name,
-        section: SECTION_DOCS,
-        group: groupLabel,
-        description: item.desc,
-        body: md ? stripMarkdown(md) : "",
-        url: `/docs/${item.slug}`,
-        keywords: "",
-      });
-    }
-  }
+  const contentSources: readonly { dir: string; label: string | null; section: string }[] = [
+    { dir: "docs", label: null, section: SECTION_DOCS },
+    { dir: "docs/v1", label: "v1", section: SECTION_DOCS },
+    { dir: "docs/v2", label: "v2", section: SECTION_DOCS },
+    { dir: "tutorials", label: null, section: SECTION_TUTORIALS },
+    { dir: "tutorials/v1", label: "v1", section: SECTION_TUTORIALS },
+    { dir: "tutorials/v2", label: "v2", section: SECTION_TUTORIALS },
+  ];
 
-  // -- Docs v1 ---------------------------------------------------------------
-
-  const docV1Groups = readJSON<NavGroup[]>("docs/v1/navigation.json");
-  for (const group of docV1Groups) {
-    const groupLabel = group.label ?? "";
-    for (const item of group.items) {
-      const md = readMarkdown(`docs/v1/${item.slug}.md`);
-      documents.push({
-        id: `docs-v1:${item.slug}`,
-        title: `${item.name} (v1)`,
-        section: SECTION_DOCS,
-        group: groupLabel,
-        description: item.desc,
-        body: md ? stripMarkdown(md) : "",
-        url: `/docs/v1/${item.slug}`,
-        keywords: "",
-      });
-    }
-  }
-
-  // -- Tutorials -------------------------------------------------------------
-
-  const tutorialGroups = readJSON<NavGroup[]>("tutorials/navigation.json");
-  for (const group of tutorialGroups) {
-    const groupLabel = group.label ?? "";
-    for (const item of group.items) {
-      const md = readMarkdown(`tutorials/${item.slug}.md`);
-      documents.push({
-        id: `tutorials:${item.slug}`,
-        title: item.name,
-        section: SECTION_TUTORIALS,
-        group: groupLabel,
-        description: item.desc,
-        body: md ? stripMarkdown(md) : "",
-        url: `/tutorials/${item.slug}`,
-        keywords: "",
-      });
-    }
-  }
-
-  // -- Tutorials v1 ----------------------------------------------------------
-
-  const tutorialV1Groups = readJSON<NavGroup[]>("tutorials/v1/navigation.json");
-  for (const group of tutorialV1Groups) {
-    const groupLabel = group.label ?? "";
-    for (const item of group.items) {
-      const md = readMarkdown(`tutorials/v1/${item.slug}.md`);
-      documents.push({
-        id: `tutorials-v1:${item.slug}`,
-        title: `${item.name} (v1)`,
-        section: SECTION_TUTORIALS,
-        group: groupLabel,
-        description: item.desc,
-        body: md ? stripMarkdown(md) : "",
-        url: `/tutorials/v1/${item.slug}`,
-        keywords: "",
-      });
+  for (const source of contentSources) {
+    const groups = readJSON<NavGroup[]>(`${source.dir}/navigation.json`);
+    for (const group of groups) {
+      const groupLabel = group.label ?? "";
+      for (const item of group.items) {
+        const md = readMarkdown(`${source.dir}/${item.slug}.md`);
+        documents.push({
+          id: `${source.dir.replace("/", "-")}:${item.slug}`,
+          title: source.label ? `${item.name} (${source.label})` : item.name,
+          section: source.section,
+          group: groupLabel,
+          description: item.desc,
+          body: md ? stripMarkdown(md) : "",
+          url: `/${source.dir}/${item.slug}`,
+          keywords: "",
+        });
+      }
     }
   }
 
@@ -394,24 +348,20 @@ function extractSnippet(
  *
  * @param query   - The search query string.
  * @param limit   - Maximum number of results to return (default 10).
- * @param version - "v1" to only show v1 results, "v2" (default) to exclude v1.
+ * @param version - "v1" or "v2" to search that archive only; "v3" (default) for the current
+ *                  docs, tutorials, examples and benchmarks.
  * @returns         Array of SearchResult objects, ranked by relevance.
  */
 export function searchSite(
   query: string,
   limit: number = DEFAULT_LIMIT,
-  version: "v1" | "v2" = "v2",
+  version: DocVersion = CURRENT_DOC_VERSION,
 ): SearchResult[] {
   if (!query || !query.trim()) return [];
 
   const raw = index.search(query.trim());
 
-  const isV1Url = (url: string): boolean =>
-    url.startsWith("/docs/v1/") || url.startsWith("/tutorials/v1/");
-
-  const filtered = version === "v1"
-    ? raw.filter((hit) => isV1Url(hit.url as string))
-    : raw.filter((hit) => !isV1Url(hit.url as string));
+  const filtered = raw.filter((hit) => versionFromPath(hit.url as string) === version);
 
   return filtered.slice(0, limit).map((hit) => ({
     title: hit.title as string,

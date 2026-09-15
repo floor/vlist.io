@@ -190,9 +190,8 @@
         });
 
         function getSearchVersion() {
-            var p = window.location.pathname;
-            if (p.startsWith("/docs/v1") || p.startsWith("/tutorials/v1")) return "v1";
-            return "v2";
+            var m = window.location.pathname.match(/^\/(?:docs|tutorials)\/(v1|v2)(?:\/|$)/);
+            return m ? m[1] : "v3";
         }
 
         function doSearch(q) {
