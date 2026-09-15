@@ -325,6 +325,15 @@ pack, browser suites 52/0 (sortable), 38/0, 32/0 and 4/0. Base 9,514 gzip bytes 
 synthetic 11,790, sortable 13,095 (+565), synthetic + sortable 15,429. Physical-device passes
 (iOS and Android callouts, momentum catching, pen) are still to do.
 
+**Stats fix merged 2026-09-16** (floor/vlist#167): `createStats` no longer maps positions
+through the removed scale compression ratio, which made a 1,000,000-row synthetic list report
+100% halfway. Both entries now use the unscaled logical position, clamped to the real range;
+native lists past the browser limit may stop short of 100%, documented with the
+`content:size:overflow` error. Verified from a clean export: 3,756 tests in both orders,
+coverage, 23 size scenarios, build, pack, browser suites 52/0, 38/0, 32/0 and 4/0 (the RTL
+suite passed twice in isolation after one failure Codex saw when suites ran together). Base
+unchanged at 9,514 gzip bytes; createStats 9,744 (-28).
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
