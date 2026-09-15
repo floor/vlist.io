@@ -1,5 +1,5 @@
 # GitHub Actions — Deploy staging.vlist.io
-# Triggers on push to staging branch, manual trigger, or when vlist staging is updated
+# Triggers on push to staging branch, manual trigger, or when vlist next is updated
 # SSHs into the server and runs deploy commands for the staging instance
 
 name: Deploy Staging
@@ -8,7 +8,7 @@ on:
   push:
     branches: [staging]
 
-  # Triggered by vlist repo when its staging branch is updated
+  # Triggered by vlist repo when its next branch (the 3.0 prerelease line) is updated
   repository_dispatch:
     types: [vlist-staging-updated]
 
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 # Serialize deploys. A push to vlist.io staging and a repository_dispatch from
-# vlist staging can fire near-simultaneously; running both at once makes the
+# vlist next can fire near-simultaneously; running both at once makes the
 # server-side `git fetch` collide on the origin/staging ref lock. Queue instead
 # of cancelling — an in-flight SSH deploy must not be aborted mid-run.
 concurrency:
@@ -49,11 +49,12 @@ jobs:
 
             echo "📦 Deploying staging.vlist.io..."
 
-            # Pull latest vlist staging branch (separate clone — production uses /home/floor/vlist)
+            # Pull latest vlist next branch, the 3.0 prerelease line (separate clone;
+            # production installs vlist from npm latest)
             VLIST_DIR="/home/floor/staging.vlist"
             cd $VLIST_DIR
-            git fetch origin staging
-            git reset --hard origin/staging
+            git fetch origin next
+            git checkout -f -B next origin/next
             bun install --frozen-lockfile
             bun run build
 
@@ -62,7 +63,7 @@ jobs:
             git fetch origin staging
             git reset --hard origin/staging
 
-            # Point vlist dependency to local staging clone (not npm — we want latest staging code)
+            # Point vlist dependency to the local clone (not npm — we want the latest next code)
             echo "🔗 Linking vlist from staging clone..."
             sed -i 's|"vlist": "file:../vlist"|"vlist": "file:../staging.vlist"|' package.json
 
@@ -76,7 +77,7 @@ jobs:
             mkdir -p node_modules/@floor
             ln -sfn ../vlist node_modules/@floor/vlist
 
-            # Build sandbox examples and benchmarks (using latest vlist staging code).
+            # Build sandbox examples and benchmarks (using the latest vlist next code).
             # The benchmark bundler resolves vlist from VLIST_BENCH_ROOT (default ../vlist,
             # the production clone), so point it at the staging clone explicitly.
             bun run build:examples

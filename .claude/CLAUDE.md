@@ -98,19 +98,19 @@ Two environments deployed via GitHub Actions:
 | Environment | URL | Branch | vlist Source |
 |-------------|-----|--------|-------------|
 | **Production** | vlist.io | `main` | npm `latest` |
-| **Staging** | staging.vlist.io | `staging` | Local clone (latest staging code) |
+| **Staging** | staging.vlist.io | `staging` | Local clone of vlist `next` (3.0 prerelease line) |
 
 ### Server Layout
 ```
 /home/floor/
 ├── vlist/                 # vlist production (main)
 ├── vlist.io/              # vlist.io production (port 3338)
-├── staging.vlist/         # vlist staging (staging branch)
+├── staging.vlist/         # vlist clone for staging (next branch)
 └── staging.vlist.io/      # vlist.io staging (port 3339)
 ```
 
 ### Cross-Repo Deploy
-Pushing to `vlist` staging triggers a `repository_dispatch` → `staging.vlist.io` auto-redeploys.
+Pushing to `vlist` next triggers a `repository_dispatch` → `staging.vlist.io` auto-redeploys.
 
 **Stack:** Bun → PM2 → nginx → Cloudflare
 
