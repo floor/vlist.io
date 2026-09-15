@@ -47,8 +47,9 @@ npm install vlist@next
   emits an error when content passes the limit.
 - **Synthetic lists need a scrollbar plugin.** Synthetic input has no browser scrollbar;
   add `scrollbar()`.
-- **Synthetic input does not support** sortable or horizontal right-to-left lists yet.
-  Keep those on `vlist`. Carousel works with both entries.
+- **Synthetic input does not support** horizontal right-to-left lists yet. Keep those on
+  `vlist`. Carousel and sortable work with both entries; sortable uses a long press on touch
+  unless a `handle` is set.
 - **Programmatic scrolls are synchronous** in both entries: `scrollTo`, `scrollToIndex`
   and plugin corrections update `getScrollPosition()` and emit `scroll` in the call.
 - **3.0.0-next.1 users:** `vlist/native` remains as a deprecated alias of `vlist`.

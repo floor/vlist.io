@@ -65,9 +65,9 @@ What changes for you:
 - **Programmatic scrolls commit synchronously.** `scrollTo`, `scrollToIndex` and
   plugin corrections update `getScrollPosition()`, render and emit `scroll` in the
   call, as with the native entry.
-- **Plugins:** plugins work with this entry, including `carousel()` and `page()`, with one
-  exception: `sortable()` throws and points to `vlist`. Horizontal lists on right-to-left
-  pages throw too; vertical lists and tables on right-to-left pages are supported.
+- **Plugins:** every plugin works with this entry, including `carousel()`, `sortable()` and
+  `page()`. Horizontal lists on right-to-left pages throw and point to `vlist`; vertical
+  lists and tables on right-to-left pages are supported.
   `page()` keeps native document scrolling with either entry. Plugin conflicts are
   unchanged.
 - **Boundaries:** same-axis touch stops at the list's edges without handing off to the
@@ -97,7 +97,6 @@ const { containerRef } = useVList({
   matters: `vlist`.
 - Lists past the limit: `vlist/synthetic`.
 - Touch-heavy lists that should move the same way on every platform: `vlist/synthetic`.
-- Drag-and-drop reordering with `sortable()`: `vlist`, for now.
 - Document scrolling with `page()`: either entry, within the element limit.
 
 Try both in the [large list example](/examples/large-list).

@@ -46,7 +46,7 @@ const list = createVList(config, [
 
 Plugins are passed as the second argument to `createVList`. Order in the array does not matter — priorities are fixed internally per plugin.
 
-Plugins work with both entries, `vlist` (native scrolling) and `vlist/synthetic`, except `sortable()`, which requires `vlist` for now. See [Scroll modes](/docs/scroll-modes).
+Every plugin works with both entries, `vlist` (native scrolling) and `vlist/synthetic`. See [Scroll modes](/docs/scroll-modes).
 
 ## Compatibility
 
