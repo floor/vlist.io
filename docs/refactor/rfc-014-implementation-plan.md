@@ -297,6 +297,19 @@ and Linux order, coverage, build, base 9.3 KB and synthetic entry 11.4 KB, pack 
 files. Next consumers: the radiooooo monorepo (desk) and web v4 move their pin from
 3.0.0-next.1.
 
+**Series 9 PR a merged 2026-09-16** (floor/vlist#165): `carousel()` works with
+`vlist/synthetic`. The synthetic handler folds whole laps with the non-cancelling motion
+shift, so drags, flings, smooth navigation and directional snapping continue across a fold.
+Two native carousel defects found on the way are fixed in separate commits: a fold spiked
+`velocity:change` and could suppress a scroll event, and a pending next/previous target
+stayed in the old lap. Both handlers notify core and the wrap owner through optional
+internal `onFold` fields on the published plugin types. Sortable stays rejected on synthetic.
+Verified from a clean export: 3,687 tests in default and Linux order, coverage, 20 size
+scenarios, build, pack, browser suites 32/0 and 38/0; the largest item movement on a fold
+frame is 35 px, with 0 px deviation from the home-cycle layout. Base 9,543 gzip bytes (+20),
+synthetic 11,820 (+133), carousel 14,080 (+49), synthetic + carousel 16,343. The carousel
+still carries its native runway on either entry.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
