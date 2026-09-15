@@ -273,6 +273,14 @@ desk, the migration guide and scroll-modes page, and a 3.0.0-next.2 prerelease. 
 gate becomes the 2.8 base, 9.9 KB, for the native default. The bullets below describe the
 superseded 2026-09-14 shape.
 
+**2.8.1 released 2026-09-15** (npm `latest`): corrected the 2.8 deprecation notices for
+the native-default shape (native stays the default, synthetic input opt-in, the scrollbar
+strings not deprecated), the carousel resize fix and the prerelease-aware publish workflow;
+two README size rows refreshed. vlist.io deployed with the rewritten migration guide.
+Series 8 PR a merged into `next` (floor/vlist#162): the carousel supplies its own wrap
+runway; native entry 9,537 gzip bytes (-856), carousel row +893. PR b (native default) and
+the test geometry-mock cleanup are in progress.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
