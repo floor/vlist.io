@@ -349,6 +349,22 @@ tests (`test/types/`, `tsconfig.types.json`) run in `bun run typecheck`. Verifie
 export: 3,756 tests in both orders, coverage, 23 size scenarios, build, pack, browser suites
 4/0, 32/0, 38/0 and 52/0; bundle sizes unchanged (types only).
 
+**Method bus merged 2026-09-16** (floor/vlist#169): public method names are a contract.
+`registerMethod` throws when a second plugin claims one; internal underscore names stay
+overridable (groups, masonry and page each provide `_scrollItemIntoView`) and no longer reach
+the public instance. grid, groups and masonry install their scroll implementation through
+`setScrollToIndexFn` instead of shadowing the public method, so core keeps `scrollToIndex`
+and the scroll held before the list has a total. Two ordering bugs surfaced and are fixed:
+the held scroll flushed before the plugins rebuilt their layout (0 with grid, masonry and
+groups; now it matches the same request made with items present), and core clamped the index
+against the plugin's own virtual total, so with grid every index past 100 collapsed onto one
+position. A plugin whose `setup()` throws is now logged outside production, which is what
+makes the duplicate-name error observable at all. Base 9,627 gzip bytes (+114 over the type
+surface merge), attributed piece by piece in the PR: duplicate check 47, underscore skip 12,
+console line 58, ordering fixes free. Still open and unchanged: `[groups, grid]` loses a held
+scroll and hook ownership is last-writer-wins when both are present; grid and groups leak
+their internal counts through `list.total`.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
