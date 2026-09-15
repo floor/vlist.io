@@ -36,7 +36,7 @@ All inputs are callbacks so the tracker always reflects the latest values withou
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `getScrollPosition` | `() => number` | Current scroll position (scrollTop or scrollLeft) |
+| `getScrollPosition` | `() => number` | The list's logical scroll position, normally `list.getScrollPosition()` |
 | `getTotal` | `() => number` | Total number of items |
 | `getItemSize` | `() => number` | Item size along the scroll axis (height for vertical, width for horizontal) |
 | `getContainerSize` | `() => number` | Viewport size in px (clientHeight for vertical, clientWidth for horizontal) |
@@ -84,6 +84,13 @@ const stats = createStats({
   getColumns: () => 4,
 });
 ```
+
+## Large lists
+
+Both entries report an unscaled logical position, so progress and item counts follow the real content size.
+
+- **`vlist/synthetic`:** any list size reaches 100% at the end.
+- **`vlist` past the browser's element size limit** (about 16 million px): the browser cannot scroll to the end of the declared content, so progress stops short of 100%. The list emits an `error` event with the context `content:size:overflow` when this happens; use `vlist/synthetic` for lists that large.
 
 ## Examples
 
