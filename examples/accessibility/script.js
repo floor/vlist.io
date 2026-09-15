@@ -4,7 +4,7 @@
 // The ARIA inspector updates live as you interact.
 // Toggle "a11y" off to disable all built-in keyboard navigation.
 
-import { createVList, groups, selection } from "vlist";
+import { createVList, groups, selection, scrollbar } from "vlist";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -144,6 +144,7 @@ export function createList() {
   if (a11yEnabled) {
     plugins.push(selection({ mode: "single" }));
   }
+  plugins.push(scrollbar());
 
   list = createVList({
     container: "#list-container",

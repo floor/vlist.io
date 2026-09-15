@@ -3,7 +3,7 @@
 // match highlighting, and the match counter — composed with selection for a
 // click-to-detail panel.
 
-import { createVList, search, selection } from "vlist";
+import { createVList, search, selection, scrollbar } from "vlist";
 import { PEOPLE } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -105,6 +105,7 @@ export function createList() {
     );
   }
   plugins.push(selection({ mode: "single" }));
+  plugins.push(scrollbar());
 
   list = createVList(
     {

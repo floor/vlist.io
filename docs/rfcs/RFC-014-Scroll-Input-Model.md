@@ -1,12 +1,12 @@
 ---
 created: 2026-09-10
-updated: 2026-09-13
+updated: 2026-09-15
 status: shipped-opt-in
 ---
 
 # RFC-014: Scroll Input Model
 
-**Status:** Opt-in mode shipped in vlist 2.7.0 (2026-09-14); default change and native-path removal remain a separate, conditional 3.0 decision  
+**Status:** Opt-in mode shipped in vlist 2.7.0 (2026-09-14); 3.0 keeps native scrolling as the default and synthetic input opt-in (shape revised 2026-09-15)  
 **Author:** floor  
 **Type:** Core Architecture  
 **Created:** 2026-09-10  
@@ -45,22 +45,14 @@ independent proposal and is not a prerequisite for this input experiment.
 | Milestone | Scope | Version |
 |---|---|---|
 | Opt-in | `scroll.mode: "synthetic"` beside native and bounded; existing defaults, configuration and plugin behavior unchanged; shipped as its own entry so the base bundle does not grow for consumers who do not opt in; unsupported combinations (page, carousel wrap until integrated) throw with a clear message; known limitations documented | 2.7 (minor, additive) |
-| Default change (3.0 shape, decided 2026-09-14) | Synthetic input becomes the core default and the only model in core. Bounded mode is removed with `scroll.mode` and the runway/rebase machinery: with the list owning input, content is viewport-sized by construction and `baseOffset` disappears. Native scrolling is kept as an opt-in `vlist/native` entry (the inverse of today's `vlist/synthetic`) for layouts that need parent scroll handoff, find-in-page or native scrollbar semantics; the gate review may still drop it if no consumer needs it. `scale()` is removed. The custom scrollbar stays a plugin, required by documentation, not bundled into core. | 3.0, only if the Release gate closes |
+| Default change (3.0 shape, decided 2026-09-14, revised 2026-09-15) | Native scrolling stays the default of `vlist`; synthetic input is the opt-in `vlist/synthetic` entry. Bounded mode is removed with `scroll.mode`, `scroll.runway` and `scale()`; huge lists use `vlist/synthetic`. The carousel's wrap runway moves into the carousel plugin. The custom scrollbar stays a plugin. The 2026-09-14 shape (synthetic default, native as `vlist/native`) was implemented on `next`, tested and published as 3.0.0-next.1, then revised; see the decision record. | 3.0 |
 
 The opt-in milestone follows the RFC-012 precedent, where bounded mode shipped as
 opt-in in 2.x. Real consumer usage of the opt-in mode is an input to the default
 decision. The A/B comparison informs that decision; it does not block the opt-in
 release once the Input and Integration gates below are met for the opt-in surface.
 
-**3.0 simplification and size goal.** 3.0 exists to remove a model, not to add one.
-Moving the synthetic driver into core costs about 2.6 KB gzipped; deleting the native
-and bounded handlers saves about 1.8 KB. The difference must be paid for by what a single
-input model makes possible: one wheel handler instead of three, no runway, rebase or
-`baseOffset` split, no `scroll.mode` branching in `create.ts`, a pipeline that positions
-items at `offset - position`, and the `scale()` plugin gone. **Gate: the 3.0 base bundle
-must measure at or below the 2.7 base (9.9 KB gzipped) with the synthetic driver
-included, and the plugin rows must not grow.** A 3.0 that ships larger than 2.7 fails
-the gate. The measurement is `bun run size`, recorded in the release prep.
+**3.0 simplification and size goal (revised 2026-09-15).** Moving the synthetic driver into the default could not meet the 9.9 KB base gate: after removing bounded mode, `scale()` and the deprecated hooks, the synthetic default measured 11,670 bytes gzipped, and a read-only analysis of the core found no feature-preserving path to 9.9 KB. With native as the default, the same removals shrink the base instead; a scratch experiment put it near 9.0 KB. **Gate: the 3.0 base bundle, native by default, measures at or below the 2.8 base (9.9 KB gzipped); the synthetic entry must not cost more than its 2.8 opt-in; the carousel row may grow by the runway it now carries.** The measurement is `bun run size`, recorded in the release prep.
 
 ## Current implementation and alternatives
 
@@ -294,3 +286,17 @@ provide same-axis parent chaining. If chaining is ever required, it needs a diff
 ownership design, for example Touch Events with a look-ahead before the first
 `preventDefault`, or synthesized parent scrolling; either is a new driver design to
 be specified and measured, not a parameter of this one.
+
+**2026-09-15 — 3.0 shape revised: native default, synthetic opt-in.** The 2026-09-14
+shape was implemented on `next` (floor/vlist#157, the flip; #160, the removals), passed
+two local test rounds on every vlist.io example and a migration of the radiooooo desk, and
+was published as 3.0.0-next.1. Its default bundle measured 11,670 bytes gzipped against
+the 9.9 KB gate, and a read-only analysis of the core by Claude and Codex found no path to
+the gate without removing features. Dr Jones then chose native as the 3.0 default. It
+gives the smallest default bundle and the smallest break from 2.x, where native is the
+default; it keeps native browser features and assistive-technology scrolling by default;
+and synthetic input stays one import away through `vlist/synthetic` for huge lists,
+touch-heavy apps and cross-browser consistency. The test rounds showed that synthetic input
+works well, not that every list needs it. Bounded mode, `scroll.mode`, `scroll.runway`,
+`scale()` and the deprecated plugin hooks stay removed. Implementation is series 8 on
+`next`; a 3.0.0-next.2 prerelease supersedes next.1.

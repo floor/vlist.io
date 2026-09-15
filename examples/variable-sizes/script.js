@@ -4,7 +4,7 @@
 //   B · Auto-size via estimatedHeight + ResizeObserver
 // Uses split-layout pattern with side panel, mode toggle, and info bar stats.
 
-import { createVList, autosize /* scrollbar */ } from "vlist";
+import { createVList, autosize, scrollbar } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initModeToggle } from "./controls.js";
@@ -180,7 +180,7 @@ export function createList() {
         gap: 12,
         template: renderItem,
       },
-    });
+    }, [scrollbar()]);
   } else {
     // Mode B: estimated size, auto-measured by ResizeObserver
     const start = performance.now();
@@ -196,7 +196,7 @@ export function createList() {
 
         template: renderItem,
       },
-    }, [autosize()]);
+    }, [autosize(), scrollbar()]);
 
     initTime = performance.now() - start;
   }

@@ -109,6 +109,7 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       vlist: "index.js",
       "vlist/internals": "internals.js",
       "vlist/synthetic": "synthetic.js",
+      "vlist/native": "native.js",
     };
     build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
       const entry = VLIST_JS_ENTRIES[args.path];
@@ -121,8 +122,19 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       if (args.path === "vlist/synthetic" && (process.env.VLIST_NO_SYNTHETIC === "1" || !existsSync(path))) {
         return { path: "vlist-synthetic-unavailable", namespace: "vlist-optional" };
       }
+      // vlist/native ships with 3.0; on 2.x core already handles native and bounded.
+      if (args.path === "vlist/native" && !existsSync(path)) {
+        return { path: "vlist-native-unavailable", namespace: "vlist-optional" };
+      }
       return { path };
     });
+    build.onLoad({ filter: /^vlist-native-unavailable$/, namespace: "vlist-optional" }, () => ({
+      contents: [
+        'export { createVList } from "vlist";',
+        "export const NATIVE_AVAILABLE = false;",
+      ].join("\n"),
+      loader: "js",
+    }));
     build.onLoad({ filter: /^vlist-synthetic-unavailable$/, namespace: "vlist-optional" }, () => ({
       contents: [
         'import { createVList as core } from "vlist";',

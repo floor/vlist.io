@@ -201,7 +201,77 @@ from the staging clone (done 2026-09-15: `VLIST_BENCH_ROOT` set in the staging d
 workflow); the unresolved `scale` size placeholders on the bundle-size and plugin
 overview pages removed (the stub has no size row).
 
+**2.8.0 released 2026-09-15** (floor/vlist v2.8.0, npm latest): deprecation ladder,
+`VListConfig.factory` for adapters, the silent scale stub, autosize `remeasure(index?)`;
+adapters 2.8.0 merged on their `main` branches, npm publish pending (manual, OTP);
+vlist.io docs (scroll modes, v2 to v3 migration) deployed to production. CI was red on
+the release PR on the per-file coverage gate (scale plugin 58.8% after #151, all tests
+passing); fixed by a test-only follow-up, and the coverage script is now part of every
+clean-export verification.
+
+**3.0 flip started 2026-09-15** on Dr Jones's decision to implement locally and test
+before any release. Series 7 PR a merged into `next` (floor/vlist#157): core
+`createVList` uses the synthetic driver; `vlist/native` is the opt-in native entry
+(native and bounded until the removals); `vlist/synthetic` is a deprecated alias;
+`scroll.mode: "native" | "bounded"` in core throws with the import to add, as do
+carousel, sortable and horizontal RTL; `vlist/config` defaults to the core factory.
+Verified from a clean export: 3,624 tests, coverage gate green, wheel probe 40/40 on
+five layouts in both entries. Sizes before removals: base 12,820 bytes with the
+driver, native 10,358. First local test round on this build (2026-09-15): the driver
+passed on every example ("amazing"); findings were migrations and two pre-existing
+defects. Examples that relied on the browser scrollbar now install `scrollbar()`;
+carousel, sortable and plugin-wizard import `vlist/native`. Scrollbar plugin
+regression from #143 fixed on next (floor/vlist#158): numeric `width`/`radius` config
+was ignored and the author's `--vlist-custom-scrollbar-width/-radius` variables were
+overridden by inline platform defaults; precedence is now config, author variable,
+platform default, and vlist.css no longer declares those two defaults. Scrollbar row
++99 bytes (+2.9 KB shown) against its +2.8 KB gate budget, accepted to restore the 2.8
+promise. Carousel slots not following container resizes (pre-existing in 2.8.0) is
+dispatched as a 2.8.x fix on staging. PR b (removals, 9.9 KB gate) resumes after.
+
+**3.0 removals merged 2026-09-15** (floor/vlist#160, series 7 PR b): `scroll.mode`,
+`scroll.runway`, `scale()`, `setScrollFns` and `disableDefaultScroll` removed; the
+default factory rejects the `"native"` and `"none"` scrollbar strings, which remain on
+`vlist/native`; the native entry injects its own scroll handler, the private carousel
+wrap runway and the size warning. Verified from a clean export (3,639 tests, coverage
+gate, 19 size scenarios, build) and the checked-in browser suite (32 PASS, 0 FAIL,
+DOM-position wheel probe in both entries). vlist.io examples migrated with a 2.x
+fallback (vlist.io c845284), verified locally on the 3.0 build and on staging with 2.8.
+Dr Jones's second local test round on this build (2026-09-15) passed: every example
+tested, all smooth.
+
+**3.0.0-next.1 published 2026-09-15** (npm `next` dist-tag; `latest` stays 2.8.0; GitHub
+prerelease). The publish workflow now sends hyphenated versions to `next`, marks the
+GitHub release as a prerelease and checks that the tag matches `package.json`
+(RELEASING.md documents the procedure). The first publish attempt failed in the Linux
+test step before anything reached npm: an a11y integration test derived the scroll
+limit from a viewport height that a geometry mock leaked by `resilience.test.ts` set to
+500 px. The test now pins its height; the tag was moved to the fixed commit and the
+unused version republished. The desk (radiooooo monorepo) was migrated to 3.0 on its
+local link to `next` as a real-world test. Follow-up: eleven integration test files
+leave geometry mocks on the element prototype without restoring them.
+
+Size is deferred to a later step by Dr Jones. Baseline after the removals: base 11,670
+gzip bytes, native entry 10,395, plugin rows about -1.2 KB each. A read-only analysis by
+Claude and Codex (2026-09-15) found that removing the modes returned about 1.2 KB while
+the synthetic driver costs about 2.7 KB, and that the core factory, untouched by the mode
+work, is the largest part of the base. Candidate ownership moves (page scroll source to
+page, native-only policy to the native entry, the live region to a11y, compact
+validation, a plain navigation object) are recorded for that step; experiments that
+changed telemetry or dropped critical inline styles, and removals of published plugin
+API, need explicit decisions. A native-default shape with bounded removed measured about
+9.0 KB in a scratch experiment and remains an open option. PR c (size cuts) is on hold.
+
 **3.0 shape (decided 2026-09-14)**
+
+**Revised 2026-09-15 by Dr Jones: native default.** The shape below was implemented,
+tested and published as 3.0.0-next.1, then revised: `vlist` stays native, `vlist/synthetic`
+is the opt-in synthetic entry, bounded mode stays removed, and the carousel owns its wrap
+runway (RFC-014 decision record, 2026-09-15). Series 8 on `next`: PR a moves the carousel
+runway into the plugin, PR b makes native the default; then the vlist.io examples, the
+desk, the migration guide and scroll-modes page, and a 3.0.0-next.2 prerelease. The size
+gate becomes the 2.8 base, 9.9 KB, for the native default. The bullets below describe the
+superseded 2026-09-14 shape.
 
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.

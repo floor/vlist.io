@@ -14,7 +14,7 @@ plugins and the public API are the same in all three.
 |---|---|---|---|---|
 | `native` (default) | The browser viewport | Full virtual size | Up to the browser's ~16.7M px element limit | Wheel, keyboard, parent scroll handoff, find-in-page, native scrollbar |
 | `bounded` | The browser viewport, rebased by vlist | A runway of 2× the viewport | Unbounded | Wheel and keyboard driven lists past the element limit |
-| `synthetic` (opt-in, `vlist/synthetic`) | vlist, from pointer and wheel events | The viewport itself | Unbounded | Touch-heavy lists, any size; the 3.0 default |
+| `synthetic` (opt-in, `vlist/synthetic`) | vlist, from pointer and wheel events | The viewport itself | Unbounded | Touch-heavy lists, any size; stays opt-in in 3.0 |
 
 ## Native
 

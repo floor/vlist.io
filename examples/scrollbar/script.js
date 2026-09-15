@@ -2,6 +2,9 @@
 // Uses a contact list as the canvas to demonstrate native, custom, and none modes.
 
 import { createVList, scrollbar, selection, rebuild } from "vlist";
+// vlist 3.0: synthetic input is the default and has no browser scrollbar; the
+// "native" mode of this demo uses the native entry to show the real one.
+import { createVList as createNativeVList } from "vlist/native";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -38,6 +41,8 @@ export let paddingX = 2;
 export let paddingY = 2;
 export let minThumbSize = 15;
 export let clickBehavior = "scroll"; // "jump" | "scroll"
+export let width = 8;
+export let radius = 4;
 export let list = null;
 
 export function setMode(v) {
@@ -70,6 +75,12 @@ export function setMinThumbSize(v) {
 export function setClickBehavior(v) {
   clickBehavior = v;
 }
+export function setWidth(v) {
+  width = v;
+}
+export function setRadius(v) {
+  radius = v;
+}
 
 // =============================================================================
 // Persist / restore config
@@ -87,18 +98,8 @@ export function saveConfig() {
     paddingY,
     minThumbSize,
     clickBehavior,
-    width:
-      parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue(
-          "--vlist-custom-scrollbar-width",
-        ),
-      ) || 8,
-    radius:
-      parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue(
-          "--vlist-custom-scrollbar-radius",
-        ),
-      ) || 4,
+    width,
+    radius,
   };
   try {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
@@ -152,8 +153,9 @@ let listVersion = 0;
 export async function createList() {
   const version = ++listVersion;
 
-  const scrollConfig = {};
-  if (mode === "none") scrollConfig.scrollbar = "none";
+  // "native": the browser scrollbar from the native entry. "custom": the plugin
+  // on synthetic input. "none": synthetic input with no scrollbar at all.
+  const factory = mode === "native" ? createNativeVList : createVList;
 
   const newList = await rebuild(list, (snap) => {
     const plugins = [];
@@ -168,6 +170,8 @@ export async function createList() {
           padding: { top: paddingY, right: paddingX, bottom: paddingY, left: paddingX },
           clickBehavior,
           minThumbSize,
+          width,
+          radius,
         }),
       );
     }
@@ -175,11 +179,10 @@ export async function createList() {
     plugins.push(selection());
     plugins.push(snap);
 
-    return createVList(
+    return factory(
       {
         container: "#list-container",
         ariaLabel: "Scrollbar demo — contact list",
-        scroll: scrollConfig,
         item: { height: ITEM_HEIGHT, template: renderContact },
         items: contacts,
       },

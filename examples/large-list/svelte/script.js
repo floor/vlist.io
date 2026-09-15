@@ -3,6 +3,11 @@
 // Demonstrates handling 100K–5M items with a viewport-sized content runway
 
 import { vlist, onVListEvent } from "vlist-svelte";
+import * as vlistNative from "vlist/native";
+
+// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
+// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
+const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
 
 // =============================================================================
 // Constants
@@ -155,18 +160,13 @@ function createList(sizeKey) {
   action = vlist(container, {
     config: {
       ariaLabel: `${count.toLocaleString()} items list`,
-      scroll: { mode: "bounded" },
+      // vlist/config installs the scrollbar plugin from scroll.scrollbar options.
+      scroll: VLIST3 ? { scrollbar: { autoHide: true } } : { mode: "bounded", scrollbar: { autoHide: true } },
       item: {
         height: ITEM_HEIGHT,
         template: itemTemplate,
       },
       items,
-      plugins: [
-        {
-          name: "scrollbar",
-          config: { autoHide: true },
-        },
-      ],
     },
     onInstance: (inst) => {
       const buildTime = performance.now() - startTime;

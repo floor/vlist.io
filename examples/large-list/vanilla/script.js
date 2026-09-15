@@ -8,10 +8,14 @@ import { scrollbar, table, grid, selection } from "vlist";
 // When the installed vlist has no synthetic entry, the examples bundler substitutes
 // a stub that throws for synthetic mode only, so the example degrades to two modes.
 import * as syntheticEntry from "vlist/synthetic";
+// vlist 3.0: synthetic input is the core default and native scrolling lives in the
+// "vlist/native" entry. On 2.x the bundler substitutes a stub that delegates to core.
+import * as nativeEntry from "vlist/native";
 
 const { createVList } = syntheticEntry;
-// Only the bundler stub defines this flag; the real entry leaves it undefined.
+// Only the bundler stubs define these flags; the real entries leave them undefined.
 const SYNTHETIC_AVAILABLE = syntheticEntry.SYNTHETIC_AVAILABLE !== false;
+const NATIVE_AVAILABLE = nativeEntry.NATIVE_AVAILABLE !== false;
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -223,7 +227,9 @@ const initialMode = new URLSearchParams(location.search).get("mode");
 let currentMode = MODES.includes(initialMode) ? initialMode : "auto";
 
 const resolveMode = (count) =>
-  currentMode === "auto" ? (count > 100_000 ? "bounded" : "native") : currentMode;
+  currentMode === "auto"
+    ? (NATIVE_AVAILABLE ? "synthetic" : count > 100_000 ? "bounded" : "native")
+    : currentMode;
 
 // =============================================================================
 // Create / Recreate list
@@ -276,13 +282,18 @@ function createList(sizeKey) {
     plugins.push(grid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
   }
 
+  // 3.0: native and bounded come from the vlist/native entry; synthetic is core.
+  const factory = NATIVE_AVAILABLE && mode !== "synthetic" ? nativeEntry.createVList : createVList;
+
   try {
-    list = createVList(
+    if (NATIVE_AVAILABLE && mode === "bounded") throw new Error("vlist 3.0: bounded mode was removed");
+    list = factory(
       {
         container: "#list-container",
         ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
         padding,
-        ...(mode !== "native" ? { scroll: { mode } } : {}),
+        // 2.x selects the model with scroll.mode; 3.0 selects it by entry.
+        ...(!NATIVE_AVAILABLE && mode !== "native" ? { scroll: { mode } } : {}),
         item: {
           height: rowHeight,
           template,
@@ -292,10 +303,11 @@ function createList(sizeKey) {
       plugins,
     );
   } catch (error) {
-    // Synthetic mode unavailable in this build: fall back to auto and say so.
+    // Mode unavailable in this build (synthetic on 2.6, bounded after the 3.0
+    // removals): fall back to auto and say so.
     console.warn(error);
     infoModeEl.textContent = "UNAVAILABLE";
-    if (currentMode === "synthetic") { selectMode("auto"); return; }
+    if (currentMode !== "auto") { selectMode("auto"); return; }
     throw error;
   }
 

@@ -2,7 +2,7 @@
 // Demonstrates reverse: true, groups plugin, DOM measurement,
 // auto-scroll, incoming messages, send input.
 
-import { createVList, groups, transition } from "vlist";
+import { createVList, groups, transition, scrollbar } from "vlist";
 import {
   getChatUser,
   pickMessage,
@@ -270,6 +270,7 @@ export function createList() {
   }
 
   plugins.push(transition({ remove: false }));
+  plugins.push(scrollbar());
 
   list = createVList(
     {

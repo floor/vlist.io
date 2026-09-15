@@ -1,7 +1,9 @@
 // Plugin Explorer — Discover vlist's composable plugins
 // Demonstrates scroll.wheel: false, wrap, button-only navigation
 
-import { createVList, carousel } from "vlist";
+// vlist 3.0: carousel uses wrap scrolling, which needs the native entry.
+import { createVList } from "vlist/native";
+import { carousel } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 

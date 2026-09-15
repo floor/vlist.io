@@ -2,7 +2,7 @@
 // Grid view uses grid plugin, list view uses table plugin for resizable/sortable columns
 // Demonstrates switching between two layout modes with shared navigation
 
-import { createVList, grid, groups, table, selection } from "vlist";
+import { createVList, grid, groups, table, selection, scrollbar } from "vlist";
 
 // =============================================================================
 // File Type Icons
@@ -467,7 +467,7 @@ function createGridView() {
     });
   }
 
-  const plugins = [grid({ columns: currentColumns, gap: currentGap })];
+  const plugins = [grid({ columns: currentColumns, gap: currentGap }), scrollbar()];
   if (groupMap) {
     plugins.push(
       groups({
@@ -586,6 +586,7 @@ function createTableList() {
     );
   }
   plugins.push(selection({ mode: "single" }));
+  plugins.push(scrollbar());
 
   list = createVList({
     container: "#browser-container",

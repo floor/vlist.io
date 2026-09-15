@@ -1,7 +1,7 @@
 // Scroll Save/Restore Example
 // Demonstrates getScrollSnapshot() and snapshots({ restore }) for SPA navigation
 
-import { createVList, selection, snapshots } from "vlist";
+import { createVList, selection, snapshots, scrollbar } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -106,6 +106,7 @@ function createList() {
   }, [
     selection({ mode: "multiple" }),
     snapshots({ autoSave: STORAGE_KEY }),
+    scrollbar(),
   ]);
 
   // Info bar updates
