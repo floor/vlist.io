@@ -1,6 +1,6 @@
 ---
 created: 2026-05-29
-updated: 2026-05-29
+updated: 2026-09-16
 status: published
 ---
 
@@ -84,10 +84,6 @@ const stats = createStats({
   getColumns: () => 4,
 });
 ```
-
-## Scale plugin compatibility
-
-When the [scale](/docs/plugins/scale) plugin compresses scroll space for large lists, `createStats` accounts for the compression ratio automatically. The geometric mapping converts the virtual (compressed) scroll position back to actual item indices using the same linear mapping the scale plugin uses internally.
 
 ## Examples
 

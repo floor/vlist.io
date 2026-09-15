@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -102,9 +102,12 @@ The `ctx` object passed to `setup()` — your gateway to the list internals.
 
 | Method | Description |
 |--------|-------------|
+| `ctx.scroll` | Scroll adapter: `getPixelEquivalent()`, `setPixelEquivalent(px)`, `getRenderOrigin()`, `getMaxPixelEquivalent()` |
 | `ctx.scrollTo(position)` | Set scroll position |
 | `ctx.smoothScrollTo(pos, duration, easing?)` | Animated scroll |
-| `ctx.disableDefaultScroll()` | Take over scroll handling from the core |
+| `ctx.setScrollSource({ write, onContentSize? })` | Take over scroll handling with an external position source |
+| `ctx.commitScroll(px)` | Commit a position from that source, render and schedule idle |
+| `ctx.cancelScroll()` | Cancel an in-flight smooth scroll |
 | `ctx.setScrollTarget(target)` | Change the scroll event target (e.g. `window`) |
 | `ctx.onScrollFrame()` | Manually trigger scroll frame processing |
 

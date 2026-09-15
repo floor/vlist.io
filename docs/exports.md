@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -16,11 +16,14 @@ status: published
 // Public API — stable
 import { createVList, grid, selection, scrollbar } from "vlist";
 
+// Synthetic input entry: same config, vlist owns the scroll position
+import { createVList as createSyntheticVList } from "vlist/synthetic";
+
 // Internals — advanced, use at your own risk
 import { createSizeCache, calculateScrollToIndex } from "vlist/internals";
 ```
 
-The public entry exports `createVList`, all 14 plugin factories, `createStats`, and types. Low-level utilities live under `vlist/internals` to keep IDE autocomplete clean.
+The public entry exports `createVList`, all 16 plugin factories, `createStats`, and types. Low-level utilities live under `vlist/internals` to keep IDE autocomplete clean.
 
 ## Public API
 
@@ -30,9 +33,9 @@ import {
   createVList,
 
   // Plugins
-  a11y, autosize, data, grid, groups, masonry,
-  page, scale, scrollbar, selection, snapshots,
-  sortable, table, transition,
+  a11y, autosize, carousel, data, grid, groups, masonry,
+  page, scrollbar, search, selection, snapshots,
+  sortable, table, transition, tree,
 
   // Utilities
   createStats,
@@ -114,28 +117,6 @@ import {
 | `isInRange(index, range)` | True if index falls within a range. |
 | `getRangeCount(range)` | Number of items in a range. |
 | `diffRanges(prev, next)` | Items that entered/left the viewport between two ranges. |
-
-### Scale
-
-Utilities for 1M+ items with scroll space compression.
-
-```ts
-import {
-  MAX_VIRTUAL_SIZE,
-  getScaleState,
-  getScale,
-  needsScaling,
-  getMaxItemsWithoutScaling,
-  getScaleInfo,
-  calculateScaledVisibleRange,
-  calculateScaledRenderRange,
-  calculateScaledItemPosition,
-  calculateScaledScrollToIndex,
-  calculateIndexFromScrollPosition,
-} from "vlist/internals";
-```
-
-`MAX_VIRTUAL_SIZE` is 16,000,000 px — the safe limit below browsers' maximum element size.
 
 ### Selection
 

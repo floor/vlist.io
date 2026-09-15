@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -60,7 +60,8 @@ list.on("sort:end", ({ fromIndex, toIndex }) => {
 - Pointer drag with ghost element, or keyboard via Space + Arrow keys
 - Auto-scroll at viewport edges
 - Full ARIA support (`aria-roledescription`, grab/drop announcements)
-- Conflicts with: grid, masonry, table, scale
+- Conflicts with: grid, masonry, table
+- Requires `createVList` from `vlist`; `vlist/synthetic` does not support sortable yet
 
 ## Examples
 

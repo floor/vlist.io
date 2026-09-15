@@ -50,7 +50,8 @@ bun run deploy               # Trigger GitHub Actions deploy workflow
 
 ### Key Paths
 - `/` → Server-rendered landing page
-- `/docs/*`, `/tutorials/*` → Markdown → HTML
+- `/docs/*`, `/tutorials/*` → Markdown → HTML (current v3 docs)
+- `/docs/v1/*`, `/docs/v2/*`, `/tutorials/v1/*`, `/tutorials/v2/*` → archived docs; `src/server/versions.ts` drives the v1/v2/v3 switcher, canonicals, search and sitemap. Pages removed from v3 redirect to their v2 copy
 - `/examples/*` → Interactive examples (18 total, multi-framework)
 - `/benchmarks/*` → Performance suites + library comparisons
 - `/api/*` → REST API (users, cities, tracks, posts, files, recipes)

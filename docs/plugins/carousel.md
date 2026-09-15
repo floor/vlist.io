@@ -1,6 +1,6 @@
 ---
 created: 2026-06-06
-updated: 2026-06-09
+updated: 2026-09-16
 status: published
 ---
 
@@ -226,9 +226,9 @@ Set `--vlist-carousel-radius` on the slide to control border-radius:
 
 ## How it works
 
-The plugin creates a **bounded virtual scroll window** — the content is repeated across multiple cycles with items mapped via modulo. Scrolling past the last item seamlessly continues to the first.
+The plugin creates a **repeating virtual scroll window** — the content is repeated across multiple cycles with items mapped via modulo. Scrolling past the last item seamlessly continues to the first.
 
-Internally, the carousel delegates to the **bounded scroll handler** (RFC-012) via `ctx.setBoundedWrap`. When the scroll position drifts too far from the middle cycle, the handler folds the logical position back by whole laps — the user sees continuous forward or backward motion with no visual discontinuity.
+Internally, the carousel supplies its own wrap handler through `ctx.setBoundedWrap`. When the scroll position drifts too far from the middle cycle, the handler folds the logical position back by whole laps, so the user sees continuous forward or backward motion with no visual discontinuity. With `vlist/synthetic`, the synthetic input handler performs the same fold while a drag, a fling or a snap animation continues.
 
 ## Compatibility
 
@@ -238,7 +238,7 @@ Internally, the carousel delegates to the **bounded scroll handler** (RFC-012) v
 | `a11y()` | Compatible |
 | `scrollbar()` | Compatible (lap progress indicator) |
 | `autosize()` | Compatible |
-| `scale()` | **Not compatible** — both own virtual scroll space |
+| `page()` | **Not compatible**: page scrolling cannot wrap, and creation throws |
 | `groups()` | **Not compatible** — infinite wrap doesn't map to grouped sections |
 
 ## Accessibility
