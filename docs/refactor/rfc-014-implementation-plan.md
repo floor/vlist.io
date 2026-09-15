@@ -237,6 +237,8 @@ wrap runway and the size warning. Verified from a clean export (3,639 tests, cov
 gate, 19 size scenarios, build) and the checked-in browser suite (32 PASS, 0 FAIL,
 DOM-position wheel probe in both entries). vlist.io examples migrated with a 2.x
 fallback (vlist.io c845284), verified locally on the 3.0 build and on staging with 2.8.
+Dr Jones's second local test round on this build (2026-09-15) passed: every example
+tested, all smooth.
 
 Size is deferred to a later step by Dr Jones. Baseline after the removals: base 11,670
 gzip bytes, native entry 10,395, plugin rows about -1.2 KB each. A read-only analysis by
