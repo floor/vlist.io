@@ -280,6 +280,14 @@ two README size rows refreshed. vlist.io deployed with the rewritten migration g
 Series 8 PR a merged into `next` (floor/vlist#162): the carousel supplies its own wrap
 runway; native entry 9,537 gzip bytes (-856), carousel row +893. PR b (native default) and
 the test geometry-mock cleanup are in progress.
+Series 8 PR b merged into `next` (floor/vlist#164): `vlist` is native by default,
+`vlist/synthetic` is the first-class opt-in entry, `vlist/native` a deprecated re-export
+alias; the scrollbar strings are valid again on `vlist`, `scroll.mode`/`scroll.runway`
+still throw. Default base **9,523 gzip bytes**, 665 under the 9.9 KB gate; synthetic
+entry 11,687; every plugin row about -2.1 KB; carousel 14,031. Verified from a clean
+export: 3,641 tests in default and Linux order, coverage, 19 size scenarios, build,
+browser suite 32/0. The test geometry-mock cleanup merged into `staging`
+(floor/vlist#163: 37 files restored, per-file guard). Series 8 closed.
 
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
