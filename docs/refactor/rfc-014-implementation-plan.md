@@ -264,6 +264,15 @@ API, need explicit decisions. A native-default shape with bounded removed measur
 
 **3.0 shape (decided 2026-09-14)**
 
+**Revised 2026-09-15 by Dr Jones: native default.** The shape below was implemented,
+tested and published as 3.0.0-next.1, then revised: `vlist` stays native, `vlist/synthetic`
+is the opt-in synthetic entry, bounded mode stays removed, and the carousel owns its wrap
+runway (RFC-014 decision record, 2026-09-15). Series 8 on `next`: PR a moves the carousel
+runway into the plugin, PR b makes native the default; then the vlist.io examples, the
+desk, the migration guide and scroll-modes page, and a 3.0.0-next.2 prerelease. The size
+gate becomes the 2.8 base, 9.9 KB, for the native default. The bullets below describe the
+superseded 2026-09-14 shape.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
