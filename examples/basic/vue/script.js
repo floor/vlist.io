@@ -2,7 +2,7 @@
 // Demonstrates core vlist with 100,000 items.
 
 import { createApp, ref, watch, onUnmounted } from "vue";
-import { createVList } from "vlist";
+import { createVList, scrollbar } from "vlist";
 import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
@@ -29,7 +29,7 @@ const App = {
           striped: true,
           template: itemTemplate,
         },
-      });
+      }, [scrollbar()]);
     });
 
     onUnmounted(() => {

@@ -10,6 +10,11 @@ import {
   data as dataPlugin,
   scrollbar,
 } from "vlist";
+import * as vlistNative from "vlist/native";
+
+// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
+// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
+const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
@@ -610,7 +615,7 @@ export function createList() {
     {
       container: "#list-container",
       ariaLabel: "Open Library books data table",
-      scroll: { mode: "bounded" },
+      ...(VLIST3 ? {} : { scroll: { mode: "bounded" } }),
       item: {
         height: currentRowHeight,
         template: fallbackTemplate,

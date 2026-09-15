@@ -286,12 +286,14 @@ function createList(sizeKey) {
   const factory = NATIVE_AVAILABLE && mode !== "synthetic" ? nativeEntry.createVList : createVList;
 
   try {
+    if (NATIVE_AVAILABLE && mode === "bounded") throw new Error("vlist 3.0: bounded mode was removed");
     list = factory(
       {
         container: "#list-container",
         ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
         padding,
-        ...(mode !== "native" ? { scroll: { mode } } : {}),
+        // 2.x selects the model with scroll.mode; 3.0 selects it by entry.
+        ...(!NATIVE_AVAILABLE && mode !== "native" ? { scroll: { mode } } : {}),
         item: {
           height: rowHeight,
           template,

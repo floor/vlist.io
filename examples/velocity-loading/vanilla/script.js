@@ -1,9 +1,12 @@
 // Velocity-Based Loading - Pure Vanilla JavaScript
 // Demonstrates smart loading that adapts to scroll velocity
 
-// vlist 3.0: bounded mode lives in the native entry.
-import { createVList } from "vlist/native";
-import { selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
+import { createVList, selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
+import * as vlistNative from "vlist/native";
+
+// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
+// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
+const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
 import {
   LOAD_VELOCITY_THRESHOLD,
   TOTAL_ITEMS,
@@ -109,7 +112,7 @@ const list = createVList(
   {
     container: "#list-container",
     ariaLabel: "Virtual user list with velocity-based loading",
-    scroll: { mode: "bounded" },
+    ...(VLIST3 ? {} : { scroll: { mode: "bounded" } }),
     item: {
       height: ITEM_HEIGHT,
       template: itemTemplate,

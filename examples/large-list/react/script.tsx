@@ -105,16 +105,9 @@ function App() {
       template: itemTemplate,
     },
     items,
-    plugins: [
-      {
-        name: "compression",
-        config: {},
-      },
-      {
-        name: "scrollbar",
-        config: { autoHide: true },
-      },
-    ],
+    // vlist/config installs the scrollbar plugin from these options. A user
+    // plugin named "scrollbar" would replace it, so no descriptor here.
+    scroll: { scrollbar: { autoHide: true } },
   });
 
   // Track scroll events

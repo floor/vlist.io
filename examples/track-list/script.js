@@ -12,6 +12,11 @@ import {
   snapshots,
   transition,
 } from "vlist";
+import * as vlistNative from "vlist/native";
+
+// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
+// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
+const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import {
@@ -45,7 +50,8 @@ let list = null;
 let totalTracks = 0;
 let currentSelectionMode = "single";
 let currentLayoutMode = "list";
-let currentScrollbarEnabled = false;
+// 3.0 synthetic input has no browser scrollbar, so the custom one starts on.
+let currentScrollbarEnabled = VLIST3;
 let currentBoundedEnabled = false;
 let currentFocusOnClick = false;
 let loadRequests = 0;
@@ -142,7 +148,13 @@ const updateInfo = createInfoUpdater(stats);
 // Layout
 const layoutModeEl = document.getElementById("layout-mode");
 const scrollbarToggle = document.getElementById("scrollbar-toggle");
+if (VLIST3 && scrollbarToggle) scrollbarToggle.checked = true;
 const boundedToggle = document.getElementById("bounded-toggle");
+if (VLIST3 && boundedToggle) {
+  boundedToggle.checked = false;
+  boundedToggle.disabled = true;
+  boundedToggle.title = "Removed in vlist 3.0: synthetic input handles large lists";
+}
 const focusOnClickToggle = document.getElementById("focus-on-click-toggle");
 
 // Selection
@@ -243,7 +255,7 @@ function applyScrollbar(plugins) {
 // =============================================================================
 
 const boundedScroll = () =>
-  currentBoundedEnabled ? { scroll: { mode: "bounded" } } : {};
+  !VLIST3 && currentBoundedEnabled ? { scroll: { mode: "bounded" } } : {};
 
 // =============================================================================
 // List View (default — vertical list with 80px rows)
