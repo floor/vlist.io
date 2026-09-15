@@ -1,12 +1,13 @@
 # GitHub Actions — Deploy staging.vlist.io
-# Triggers on push to staging branch, manual trigger, or when vlist next is updated
+# Triggers on push to the next branch (the 3.0 line), manual trigger, or when vlist next is updated.
+# This file must stay identical on staging, the default branch: repository_dispatch runs its copy.
 # SSHs into the server and runs deploy commands for the staging instance
 
 name: Deploy Staging
 
 on:
   push:
-    branches: [staging]
+    branches: [next]
 
   # Triggered by vlist repo when its next branch (the 3.0 prerelease line) is updated
   repository_dispatch:
@@ -15,7 +16,7 @@ on:
   # Allow manual trigger from Actions tab
   workflow_dispatch:
 
-# Serialize deploys. A push to vlist.io staging and a repository_dispatch from
+# Serialize deploys. A push to vlist.io next and a repository_dispatch from
 # vlist next can fire near-simultaneously; running both at once makes the
 # server-side `git fetch` collide on the origin/staging ref lock. Queue instead
 # of cancelling — an in-flight SSH deploy must not be aborted mid-run.
@@ -58,10 +59,10 @@ jobs:
             bun install --frozen-lockfile
             bun run build
 
-            # Pull latest vlist.io staging branch
+            # Pull latest vlist.io next branch (the 3.0 line; staging stays the 2.x line for production)
             cd $APP_DIR
-            git fetch origin staging
-            git reset --hard origin/staging
+            git fetch origin next
+            git checkout -f -B next origin/next
 
             # Point vlist dependency to the local clone (not npm — we want the latest next code)
             echo "🔗 Linking vlist from staging clone..."

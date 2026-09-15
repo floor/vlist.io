@@ -10,7 +10,7 @@ Interactive docs, examples, and benchmarks for the [vlist](https://github.com/fl
 
 ## Git Workflow
 
-**Working branch is `staging`.** The `main` branch is protected and requires a pull request.
+**Working branch is `next` for 3.0 work** (branched from `staging` on 2026-09-16): it runs locally and on staging.vlist.io, built against vlist `next`. **`staging` stays the 2.x line** that feeds `main` and production; do not merge `next` into it before the 3.0 release. The `main` branch is protected and requires a pull request.
 
 - ❌ **NEVER push directly to `main`** — it is protected on GitHub and will be rejected
 - ❌ **NEVER commit on `main`** — always work on `staging` or feature branches
@@ -98,7 +98,7 @@ Two environments deployed via GitHub Actions:
 | Environment | URL | Branch | vlist Source |
 |-------------|-----|--------|-------------|
 | **Production** | vlist.io | `main` | npm `latest` |
-| **Staging** | staging.vlist.io | `staging` | Local clone of vlist `next` (3.0 prerelease line) |
+| **Staging** | staging.vlist.io | `next` | Local clone of vlist `next` (3.0 prerelease line) |
 
 ### Server Layout
 ```
