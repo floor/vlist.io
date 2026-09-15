@@ -229,6 +229,26 @@ platform default, and vlist.css no longer declares those two defaults. Scrollbar
 promise. Carousel slots not following container resizes (pre-existing in 2.8.0) is
 dispatched as a 2.8.x fix on staging. PR b (removals, 9.9 KB gate) resumes after.
 
+**3.0 removals merged 2026-09-15** (floor/vlist#160, series 7 PR b): `scroll.mode`,
+`scroll.runway`, `scale()`, `setScrollFns` and `disableDefaultScroll` removed; the
+default factory rejects the `"native"` and `"none"` scrollbar strings, which remain on
+`vlist/native`; the native entry injects its own scroll handler, the private carousel
+wrap runway and the size warning. Verified from a clean export (3,639 tests, coverage
+gate, 19 size scenarios, build) and the checked-in browser suite (32 PASS, 0 FAIL,
+DOM-position wheel probe in both entries). vlist.io examples migrated with a 2.x
+fallback (vlist.io c845284), verified locally on the 3.0 build and on staging with 2.8.
+
+Size is deferred to a later step by Dr Jones. Baseline after the removals: base 11,670
+gzip bytes, native entry 10,395, plugin rows about -1.2 KB each. A read-only analysis by
+Claude and Codex (2026-09-15) found that removing the modes returned about 1.2 KB while
+the synthetic driver costs about 2.7 KB, and that the core factory, untouched by the mode
+work, is the largest part of the base. Candidate ownership moves (page scroll source to
+page, native-only policy to the native entry, the live region to a11y, compact
+validation, a plain navigation object) are recorded for that step; experiments that
+changed telemetry or dropped critical inline styles, and removals of published plugin
+API, need explicit decisions. A native-default shape with bounded removed measured about
+9.0 KB in a scratch experiment and remains an open option. PR c (size cuts) is on hold.
+
 **3.0 shape (decided 2026-09-14)**
 
 - Core: synthetic input is the default and the only model in core. Bounded mode,
