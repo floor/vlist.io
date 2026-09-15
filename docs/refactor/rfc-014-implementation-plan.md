@@ -310,6 +310,21 @@ frame is 35 px, with 0 px deviation from the home-cycle layout. Base 9,543 gzip 
 synthetic 11,820 (+133), carousel 14,080 (+49), synthetic + carousel 16,343. The carousel
 still carries its native runway on either entry.
 
+**Series 9 PR b merged 2026-09-16** (floor/vlist#166): `sortable()` works with
+`vlist/synthetic`. Dr Jones decided the touch gesture: without a handle, a long press
+(`touchDelay`, default 350 ms) starts the drag and earlier movement scrolls; with `handle`,
+the handle drags at `dragThreshold` as before. The same gestures apply on native `vlist`,
+where the measured baseline showed native panning cancelling all 8 touch sorts. The claim
+stays inside the plugin (document-capture interception, non-passive `touchmove` on document
+and on the original target, which survives row recycling, pointer capture on the content
+element) with no core seam; the only core change removes the guard. Also fixed: item shifts
+subtract the render origin, horizontal drops no longer count `scrollLeft` twice, and a drop
+after returning from edge auto-scroll resolves without another pointer move. Verified from a
+clean export: 3,749 tests in default and Linux order, coverage, 21 size scenarios, build,
+pack, browser suites 52/0 (sortable), 38/0, 32/0 and 4/0. Base 9,514 gzip bytes (-29),
+synthetic 11,790, sortable 13,095 (+565), synthetic + sortable 15,429. Physical-device passes
+(iOS and Android callouts, momentum catching, pen) are still to do.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
