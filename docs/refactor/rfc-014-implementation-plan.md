@@ -289,6 +289,14 @@ export: 3,641 tests in default and Linux order, coverage, 19 size scenarios, bui
 browser suite 32/0. The test geometry-mock cleanup merged into `staging`
 (floor/vlist#163: 37 files restored, per-file guard). Series 8 closed.
 
+**3.0.0-next.2 published 2026-09-15** (npm `next` dist-tag; `latest` stays 2.8.1; GitHub
+prerelease): the native-default shape, after Dr Jones's local test round on the examples.
+`next` first took staging 2.8.1 and the geometry-mock cleanup, then the release commit and
+a README wording fix. Verified from a clean export before tagging: 3,641 tests in default
+and Linux order, coverage, build, base 9.3 KB and synthetic entry 11.4 KB, pack of 107
+files. Next consumers: the radiooooo monorepo (desk) and web v4 move their pin from
+3.0.0-next.1.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
