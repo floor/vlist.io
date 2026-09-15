@@ -240,6 +240,17 @@ fallback (vlist.io c845284), verified locally on the 3.0 build and on staging wi
 Dr Jones's second local test round on this build (2026-09-15) passed: every example
 tested, all smooth.
 
+**3.0.0-next.1 published 2026-09-15** (npm `next` dist-tag; `latest` stays 2.8.0; GitHub
+prerelease). The publish workflow now sends hyphenated versions to `next`, marks the
+GitHub release as a prerelease and checks that the tag matches `package.json`
+(RELEASING.md documents the procedure). The first publish attempt failed in the Linux
+test step before anything reached npm: an a11y integration test derived the scroll
+limit from a viewport height that a geometry mock leaked by `resilience.test.ts` set to
+500 px. The test now pins its height; the tag was moved to the fixed commit and the
+unused version republished. The desk (radiooooo monorepo) was migrated to 3.0 on its
+local link to `next` as a real-world test. Follow-up: eleven integration test files
+leave geometry mocks on the element prototype without restoring them.
+
 Size is deferred to a later step by Dr Jones. Baseline after the removals: base 11,670
 gzip bytes, native entry 10,395, plugin rows about -1.2 KB each. A read-only analysis by
 Claude and Codex (2026-09-15) found that removing the modes returned about 1.2 KB while
