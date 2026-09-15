@@ -1,0 +1,193 @@
+[
+  {
+    "items": [
+      {
+        "slug": "getting-started",
+        "name": "Getting Started",
+        "desc": "Installation, configuration, and first virtual list"
+      },
+      {
+        "slug": "api",
+        "name": "API Reference",
+        "desc": "createVList, config, properties, and methods",
+        "depth": 2
+      },
+      {
+        "slug": "scroll-modes",
+        "name": "Scroll modes",
+        "desc": "Native, bounded and synthetic input: what each owns and when to use it"
+      },
+      {
+        "slug": "types",
+        "name": "Types",
+        "desc": "TypeScript interfaces and type definitions"
+      },
+      {
+        "slug": "exports",
+        "name": "Exports",
+        "desc": "Low-level utilities from vlist/internals",
+        "depth": 2
+      },
+      {
+        "slug": "adapters",
+        "name": "Adapters",
+        "desc": "React, Vue, Svelte, and SolidJS integration"
+      },
+      {
+        "slug": "accessibility",
+        "name": "Accessibility",
+        "desc": "WAI-ARIA, keyboard navigation, and screen readers"
+      },
+      {
+        "slug": "migration",
+        "name": "Migration (v1 \u2192 v2)",
+        "desc": "Builder pattern to factory function migration guide"
+      },
+      {
+        "slug": "migration-v3",
+        "name": "Migration (v2 \u2192 v3)",
+        "desc": "Synthetic input becomes core; what the deprecation ladder removes"
+      }
+    ]
+  },
+  {
+    "label": "Plugins",
+    "items": [
+      {
+        "slug": "plugins/overview",
+        "name": "Overview",
+        "desc": "All 16 plugins with bundle costs"
+      },
+      {
+        "slug": "plugins/a11y",
+        "name": "a11y",
+        "desc": "Enhanced ARIA and focus management"
+      },
+      {
+        "slug": "plugins/selection",
+        "name": "Selection",
+        "desc": "Item selection and keyboard navigation"
+      },
+      {
+        "slug": "plugins/search",
+        "name": "Search",
+        "desc": "Search bar with filter, navigate, and highlight"
+      },
+      {
+        "slug": "plugins/data",
+        "name": "Data",
+        "desc": "Lazy data loading"
+      },
+      {
+        "slug": "plugins/scrollbar",
+        "name": "Scrollbar",
+        "desc": "Custom scrollbar UI"
+      },
+      {
+        "slug": "plugins/sortable",
+        "name": "Sortable",
+        "desc": "Drag-and-drop reordering"
+      },
+      {
+        "slug": "plugins/groups",
+        "name": "Groups",
+        "desc": "Grouped lists with sticky headers"
+      },
+      {
+        "slug": "plugins/scale",
+        "name": "Scale",
+        "desc": "1M+ items support"
+      },
+      {
+        "slug": "plugins/page",
+        "name": "Page",
+        "desc": "Document-level scrolling"
+      },
+      {
+        "slug": "plugins/snapshots",
+        "name": "Snapshots",
+        "desc": "Scroll position save/restore"
+      },
+      {
+        "slug": "plugins/transition",
+        "name": "Transition",
+        "desc": "FLIP-based insert/remove animations"
+      },
+      {
+        "slug": "plugins/autosize",
+        "name": "AutoSize",
+        "desc": "Auto-measure items via ResizeObserver"
+      },
+      {
+        "slug": "plugins/carousel",
+        "name": "Carousel",
+        "desc": "Infinite-loop carousel (MD3-aligned)"
+      }
+    ]
+  },
+  {
+    "label": "Layout Plugins",
+    "items": [
+      {
+        "slug": "plugins/grid",
+        "name": "Grid",
+        "desc": "2D grid layout"
+      },
+      {
+        "slug": "plugins/table",
+        "name": "Table",
+        "desc": "Data table with columns"
+      },
+      {
+        "slug": "plugins/masonry",
+        "name": "Masonry",
+        "desc": "Pinterest-style layout"
+      },
+      {
+        "slug": "plugins/tree",
+        "name": "Tree",
+        "desc": "Virtualized hierarchical tree view"
+      }
+    ]
+  },
+  {
+    "label": "Utilities",
+    "items": [
+      {
+        "slug": "utils/rebuild",
+        "name": "Rebuild",
+        "desc": "Seamless list recreation with scroll continuity"
+      },
+      {
+        "slug": "utils/stats",
+        "name": "Stats",
+        "desc": "Scroll progress, velocity, and item count"
+      }
+    ]
+  },
+  {
+    "label": "Internals",
+    "items": [
+      {
+        "slug": "internals/optimization",
+        "name": "Optimization",
+        "desc": "How the rendering pipeline, pooling, and scroll handling work"
+      }
+    ]
+  },
+  {
+    "label": "Resources",
+    "items": [
+      {
+        "slug": "benchmarks",
+        "name": "Benchmarks",
+        "desc": "Performance metrics and test suites"
+      },
+      {
+        "slug": "bundle-size",
+        "name": "Bundle Size",
+        "desc": "Per-plugin size analysis"
+      }
+    ]
+  }
+]
