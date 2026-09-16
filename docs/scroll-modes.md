@@ -66,8 +66,8 @@ What changes for you:
   plugin corrections update `getScrollPosition()`, render and emit `scroll` in the
   call, as with the native entry.
 - **Plugins:** every plugin works with this entry, including `carousel()`, `sortable()` and
-  `page()`. Horizontal lists on right-to-left pages throw and point to `vlist`; vertical
-  lists and tables on right-to-left pages are supported.
+  `page()`. Horizontal lists on right-to-left pages throw at creation — in this entry and in
+  `vlist`; vertical lists and tables on right-to-left pages are supported in both.
   `page()` keeps native document scrolling with either entry. Plugin conflicts are
   unchanged.
 - **Boundaries:** same-axis touch stops at the list's edges without handing off to the
