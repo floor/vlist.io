@@ -365,6 +365,27 @@ console line 58, ordering fixes free. Still open and unchanged: `[groups, grid]`
 scroll and hook ownership is last-writer-wins when both are present; grid and groups leak
 their internal counts through `list.total`.
 
+**Adapter config path merged 2026-09-16** (floor/vlist#170): `vlist/config` wires only the
+plugins the config asks for. It used to add `selection({ mode: "none" })`, `snapshots()` and the
+custom overlay scrollbar to every list, so an adapter list and a core list built from the same
+options did not behave the same — and that always-on selection claimed `role="listbox"`,
+`tabindex="0"` and an option role per item with no keyboard handler behind any of it. Selection
+follows its field, `mode: "none"` no longer claims the role, and `snapshots: true`, `scrollbar:
+true` and `a11y: true` are opt-in fields. The groups config is passed to the plugin as it stands:
+rebuilding it field by field dropped the documented `header` shape and collapsed a function
+`headerHeight` to the first group's value. A `layout` without its options throws. Both READMEs
+stopped claiming every list is accessible by default and stopped pointing at `interactive`, an
+option no version has ever read.
+
+**Behaviour contracts merged 2026-09-16** (floor/vlist#171): `item:click`, `item:dblclick` and
+`item:contextmenu` report the data index rather than the layout index, so a grouped list no longer
+announces data row 3 as row 5 and the index can be fed back to `getItemAt` or `removeItem`.
+`createVList` copies the items array it is given, since `insertItem`, `removeItem` and
+`removeItems` splice in place and were rewriting the caller's array while `setItems` had always
+copied. `reverse` finally does what the README documents: a reverse list sitting at the end stays
+pinned to it as `appendItems` adds, while one scrolled back through history stays put. Core had
+only ever passed the flag to plugins.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
