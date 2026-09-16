@@ -204,7 +204,7 @@ ArrowDown/Up/Home/End are handled by the `selection` or `a11y` plugin when prese
 | **snapshots** | Works |
 | **grid, masonry, table** | Conflict — tree is a list layout |
 | **groups** | Conflict — tree manages its own hierarchy |
-| **data** | Conflict — use `loadChildren` for async tree data |
+| **data** | Conflict — creating a list with both throws; use `loadChildren` for async tree data |
 
 ## Notes
 
