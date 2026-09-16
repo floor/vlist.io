@@ -386,6 +386,26 @@ copied. `reverse` finally does what the README documents: a reverse list sitting
 pinned to it as `appendItems` adds, while one scrolled back through history stays put. Core had
 only ever passed the flag to plugins.
 
+**Horizontal RTL rejected 2026-09-16** (floor/vlist#172): a horizontal list in an RTL container
+throws at creation in `vlist` as well as `vlist/synthetic`. The native entry used to accept it and
+render a first page that never moved — RTL makes `scrollLeft` negative, the wheel clamp pins it at
+0, items translate the wrong way — while both READMEs sold native horizontal RTL as a reason to
+prefer that entry. Dr Jones chose rejecting over fixing: a real implementation needs a sign at
+every logical/DOM boundary and in all twelve files that write their own transform, none of it
+covered by a browser test. Going from a throw to an implementation later is additive. Vertical RTL
+and RTL tables are untouched.
+
+**Release gate and hygiene 2026-09-16** (floor/vlist#173): CI runs on `next`, so 3.0 pull requests
+are checked automatically for the first time — every merge before this one was gated by hand
+against a clean export. The four browser suites run in CI against an in-repo Chrome launcher
+(`scripts/browser-driver.mjs`); they previously required a driver module from the vlist.io
+repository, so nothing but a local checkout with a sibling clone could run them. `bun run size`
+now fails above the base bundle's 9.9 KB gzip budget and prints exact bytes (9,688 of 10,137).
+Hygiene: 88 "vlist v2" headers, a CONTRIBUTING source tree listing folders deleted or never
+created, and carousel's and sortable's conflicts with the removed `scale` plugin. Q2 is only
+partly closed — it also asks for a heap assertion, and the memory tests assert DOM, listener and
+observer behaviour, never heap.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
