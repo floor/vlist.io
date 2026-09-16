@@ -179,4 +179,5 @@ Colors come from theme tokens: the highlight via `--vlist-search-match-bg` and `
 
 - Filtering is non-destructive — it overrides item access, so clearing restores the original list.
 - With the **tree** plugin, filter mode delegates to the tree's ancestor-preserving filter.
-- Server-side search (via the `data()` plugin), column-aware search for tables, fuzzy matching, and advanced query syntax are planned for Phase 2 (RFC-008).
+- `search()` cannot be combined with `data()` — creating a list with both throws. Filtering is client-side over the rows the list holds, and with an adapter those are only the loaded window, so a query could answer no more than "which loaded rows match?". Query the remote dataset through the adapter instead.
+- Column-aware search for tables, fuzzy matching, and advanced query syntax are planned for Phase 2 (RFC-008).
