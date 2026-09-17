@@ -53,6 +53,12 @@
         "badge": "updated"
       },
       {
+        "slug": "plugin-wizard",
+        "name": "Plugin Wizard",
+        "desc": "Carousel-powered plugin explorer — dots, prev/next, and an orientation toggle",
+        "plugins": ["carousel"]
+      },
+      {
         "slug": "window-scroll",
         "name": "Window Scroll",
         "desc": "Document-level scrolling with async data loading — no inner scrollbar",
