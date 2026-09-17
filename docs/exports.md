@@ -152,12 +152,12 @@ import {
 
 ### Grid
 
-Layout and rendering for 2D grid layouts.
+Layout for 2D grid layouts. Rendering is `grid()`'s own; the separate renderer
+was removed in 3.0 because no grid list ran it.
 
 ```ts
 import {
   createGridLayout,
-  createGridRenderer,
 } from "vlist/internals";
 ```
 
