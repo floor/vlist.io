@@ -78,13 +78,12 @@ function longPress() {
   const host = $("list-longpress");
   let started = false;
   let callout = null;
-  let order = null;
 
   const list = createNativeVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );
-  order = list.items.map((i) => i.id).join(",");
+  const reorder = wireReorder(list, rows(40));
 
   host.addEventListener("pointerdown", (e) => set("lp-pointer", e.pointerType, "info"), { passive: true });
   // A callout or a selection starting means the browser took the gesture.
@@ -101,13 +100,36 @@ function longPress() {
     if (callout === null) set("lp-callout", "none", "good");
   });
   list.on("sort:end", ({ fromIndex, toIndex }) => {
-    const now = list.items.map((i) => i.id).join(",");
-    const moved = now !== order;
-    order = now;
-    set("lp-moved", moved ? `${fromIndex} → ${toIndex}` : "no change", moved ? "good" : "warn");
+    const moved = reorder(fromIndex, toIndex);
+    set("lp-moved", moved ? `${fromIndex} → ${toIndex}` : "same position", moved ? "good" : "warn");
     if (started && callout === null && moved) mark("longpress", true, `moved ${fromIndex}→${toIndex}, no callout`);
   });
   return list;
+}
+
+/**
+ * Apply a finished sort to the data.
+ *
+ * `sortable()` moves pixels, not records: it emits `sort:end` and the consumer
+ * reorders their own array and calls `setItems`. Leaving that out is why this
+ * page first reported "no change" after a drag that had worked perfectly — the
+ * list looked right mid-drag and snapped back on drop, and the card blamed the
+ * library for the page's omission.
+ *
+ * Returns whether anything actually moved, which is what the card reports.
+ */
+function wireReorder(list, items) {
+  let current = items;
+  return (fromIndex, toIndex) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return false;
+    const next = [...current];
+    const [moved] = next.splice(fromIndex, 1);
+    if (!moved) return false;
+    next.splice(toIndex, 0, moved);
+    current = next;
+    list.setItems(next);
+    return true;
+  };
 }
 
 // =============================================================================
@@ -130,20 +152,57 @@ function handle() {
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable({ handle: ".ppr__grip" })],
   );
+  const reorder = wireReorder(list, rows(40));
 
-  host.addEventListener("pointerdown", (e) => {
+  // Capture phase, and on the document rather than the container.
+  //
+  // A handle drag is claimed at `pointerdown` with `stopPropagation()`, so the
+  // plugin can reserve the gesture before the viewport starts tracking it as a
+  // scroll. That is correct, and it means a bubble-phase listener on an
+  // ancestor never sees the press — which is why this card first reported every
+  // grip drag as a body drag. The page was measuring, and reporting, its own
+  // blind spot.
+  let pressedAt = 0;
+
+  document.addEventListener("pointerdown", (e) => {
+    if (!host.contains(e.target)) return;
     downOnGrip = !!e.target.closest(".ppr__grip");
     scrollAtDown = list.getScrollPosition();
-  }, { passive: true });
+    pressedAt = performance.now();
+  }, { capture: true, passive: true });
 
-  host.addEventListener("pointerup", () => {
-    if (downOnGrip) return;
+  // A time window, not a "finger is still down" flag.
+  //
+  // The browser cancels the pointer the moment it decides the gesture is a
+  // scroll, and only then does the list start moving. Measured here:
+  //
+  //   443ms pointerdown · 467ms pointercancel · 482ms scroll · 767ms touchend
+  //
+  // So a flag cleared on pointercancel is already false when the first scroll
+  // arrives, and this card sat at "—" through a scroll that plainly happened.
+  // The press is what we are attributing the scroll to, so remember when it
+  // was rather than whether it is still in progress.
+  const PRESS_WINDOW_MS = 2000;
+
+  list.on("scroll", () => {
+    if (bodyScrolled || downOnGrip) return;
+    if (performance.now() - pressedAt > PRESS_WINDOW_MS) return;
     if (Math.abs(list.getScrollPosition() - scrollAtDown) > 8) {
       bodyScrolled = true;
       set("hd-body", "yes", "good");
+      settle();
     }
-    settle();
-  }, { passive: true });
+  });
+
+  for (const type of ["pointerup", "pointercancel", "touchend", "touchcancel"]) {
+    document.addEventListener(type, (e) => {
+      if (!host.contains(e.target)) return;
+      // Let any scroll this gesture caused land before judging it.
+      setTimeout(settle, 250);
+    }, { capture: true, passive: true });
+  }
+
+  list.on("sort:end", ({ fromIndex, toIndex }) => reorder(fromIndex, toIndex));
 
   list.on("sort:start", () => {
     if (downOnGrip) { gripDragged = true; set("hd-grip", "yes", "good"); }
@@ -212,6 +271,9 @@ function pen() {
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );
+  const reorder = wireReorder(list, rows(40));
+  list.on("sort:end", ({ fromIndex, toIndex }) => reorder(fromIndex, toIndex));
+
   host.addEventListener("pointerdown", (e) => {
     seen.add(e.pointerType);
     set("pe-types", [...seen].join(", "), seen.has("pen") ? "good" : "info");
@@ -334,8 +396,10 @@ function zoom() {
   vv()?.addEventListener("resize", report);
   vv()?.addEventListener("scroll", report);
 
+  const reorder = wireReorder(list, rows(40));
+
   list.on("sort:start", () => { dragging = true; worstGap = 0; worstOffset = 0; sample(); });
-  list.on("sort:end", () => { dragging = false; settle(); });
+  list.on("sort:end", ({ fromIndex, toIndex }) => { reorder(fromIndex, toIndex); dragging = false; settle(); });
   list.on("sort:cancel", () => { dragging = false; settle(); });
 
   let fingerX = 0, fingerY = 0;
