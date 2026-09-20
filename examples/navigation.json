@@ -5,13 +5,15 @@
       {
         "slug": "basic",
         "name": "Basic List",
-        "desc": "Interactive control panel — item count, sizing strategies, overscan, scroll-to, data operations",
-        "plugins": ["a11y"]
+        "desc": "Interactive control panel \u2014 item count, sizing strategies, overscan, scroll-to, data operations",
+        "plugins": [
+          "a11y"
+        ]
       },
       {
         "slug": "photo-album",
         "name": "Photo Album",
-        "desc": "Responsive image gallery — toggle between grid and masonry layouts",
+        "desc": "Responsive image gallery \u2014 toggle between grid and masonry layouts",
         "plugins": [
           "grid",
           "masonry",
@@ -24,44 +26,64 @@
       {
         "slug": "messaging",
         "name": "Messaging",
-        "desc": "Chat UI — reverse mode, date headers, auto-scroll, incoming messages",
-        "plugins": ["groups", "transition"]
+        "desc": "Chat UI \u2014 reverse mode, date headers, auto-scroll, incoming messages",
+        "plugins": [
+          "groups",
+          "transition"
+        ]
       },
       {
         "slug": "contact-list",
         "name": "Contact List",
-        "desc": "A–Z grouped contacts with sticky headers and selection",
-        "plugins": ["groups", "selection", "snapshots"]
+        "desc": "A\u2013Z grouped contacts with sticky headers and selection",
+        "plugins": [
+          "groups",
+          "selection",
+          "snapshots"
+        ]
       },
       {
         "slug": "data-table",
         "name": "Data Table",
-        "desc": "Resizable columns, sortable headers, and row selection — 10K rows at 120 FPS",
-        "plugins": ["table", "selection", "groups", "data", "snapshots"]
+        "desc": "Resizable columns, sortable headers, and row selection \u2014 10K rows at 120 FPS",
+        "plugins": [
+          "table",
+          "selection",
+          "groups",
+          "data",
+          "snapshots"
+        ]
       },
       {
         "slug": "social-feed",
         "name": "Social Feed",
-        "desc": "Social feed with real posts — variable heights measured automatically",
-        "plugins": ["autosize"]
+        "desc": "Social feed with real posts \u2014 variable heights measured automatically",
+        "plugins": [
+          "autosize"
+        ]
       },
       {
         "slug": "carousel",
         "name": "Carousel",
-        "desc": "MD3-aligned photo carousel — infinite loop with snap, variant layouts, and real photos",
-        "plugins": ["carousel"],
+        "desc": "MD3-aligned photo carousel \u2014 infinite loop with snap, variant layouts, and real photos",
+        "plugins": [
+          "carousel"
+        ],
         "badge": "updated"
       },
       {
         "slug": "window-scroll",
         "name": "Window Scroll",
-        "desc": "Document-level scrolling with async data loading — no inner scrollbar",
-        "plugins": ["page", "data"]
+        "desc": "Document-level scrolling with async data loading \u2014 no inner scrollbar",
+        "plugins": [
+          "page",
+          "data"
+        ]
       },
       {
         "slug": "track-list",
         "name": "Track List",
-        "desc": "Music library with async loading — toggle between list, grid, and table views",
+        "desc": "Music library with async loading \u2014 toggle between list, grid, and table views",
         "plugins": [
           "data",
           "selection",
@@ -75,8 +97,11 @@
       {
         "slug": "accessibility",
         "name": "Accessibility",
-        "desc": "WAI-ARIA listbox — role, aria-setsize, aria-posinset, and aria-activedescendant updating live in the inspector",
-        "plugins": ["groups", "selection"]
+        "desc": "WAI-ARIA listbox \u2014 role, aria-setsize, aria-posinset, and aria-activedescendant updating live in the inspector",
+        "plugins": [
+          "groups",
+          "selection"
+        ]
       }
     ]
   },
@@ -86,51 +111,82 @@
       {
         "slug": "velocity-loading",
         "name": "Velocity Loading",
-        "desc": "Smart async loading — skips fetches when scrolling fast, preloads in scroll direction",
-        "plugins": ["data", "selection", "scrollbar", "snapshots"]
+        "desc": "Smart async loading \u2014 skips fetches when scrolling fast, preloads in scroll direction",
+        "plugins": [
+          "data",
+          "selection",
+          "scrollbar",
+          "snapshots"
+        ]
       },
       {
         "slug": "code-explorer",
         "name": "Code Explorer",
-        "desc": "Browse vlist's own source — file tree, per-file symbols & history with search",
-        "plugins": ["tree", "search", "selection", "autosize"],
+        "desc": "Browse vlist's own source \u2014 file tree, per-file symbols & history with search",
+        "plugins": [
+          "tree",
+          "search",
+          "selection",
+          "autosize"
+        ],
         "badge": "new"
       },
       {
         "slug": "large-list",
         "name": "Large Dataset",
-        "desc": "100K–20M items with native or synthetic scrolling",
-        "plugins": ["scrollbar", "table", "grid"]
+        "desc": "100K\u201320M items with native or synthetic scrolling",
+        "plugins": [
+          "scrollbar",
+          "table",
+          "grid"
+        ]
       },
       {
         "slug": "variable-sizes",
         "name": "Variable Sizes",
         "desc": "Per-item height functions and auto-measured DOM sizing",
-        "plugins": ["autosize"]
+        "plugins": [
+          "autosize"
+        ]
       },
       {
         "slug": "scroll-restore",
         "name": "Scroll Restore",
         "desc": "Save and restore scroll position across navigations",
-        "plugins": ["snapshots", "selection"]
+        "plugins": [
+          "snapshots",
+          "selection"
+        ]
       },
       {
         "slug": "scrollbar",
         "name": "Scrollbar",
-        "desc": "Native, custom, and none — configure auto-hide, gutter, hover behavior, and track width",
-        "plugins": ["scrollbar", "selection", "snapshots"]
+        "desc": "Native, custom, and none \u2014 configure auto-hide, gutter, hover behavior, and track width",
+        "plugins": [
+          "scrollbar",
+          "selection",
+          "snapshots"
+        ]
       },
       {
         "slug": "sortable",
         "name": "Sortable",
-        "desc": "Drag-and-drop reordering with handle or full-item drag — task list demo",
-        "plugins": ["sortable", "selection", "snapshots"]
+        "desc": "Drag-and-drop reordering with handle or full-item drag \u2014 task list demo",
+        "plugins": [
+          "sortable",
+          "selection",
+          "snapshots"
+        ]
       },
       {
         "slug": "tree",
         "name": "Tree View",
-        "desc": "Collapsible file tree — expand/collapse, keyboard navigation, type-ahead search",
-        "plugins": ["tree", "selection", "scrollbar"],
+        "desc": "Collapsible file tree \u2014 expand/collapse, keyboard navigation, type-ahead search",
+        "plugins": [
+          "tree",
+          "selection",
+          "scrollbar"
+        ],
         "badge": "new"
       }
     ]
@@ -142,7 +198,26 @@
         "slug": "file-browser",
         "name": "File Browser",
         "desc": "Finder-like file browser with resizable/sortable table list view and grid toggle",
-        "plugins": ["table", "grid", "selection", "groups"]
+        "plugins": [
+          "table",
+          "grid",
+          "selection",
+          "groups"
+        ]
+      }
+    ]
+  },
+  {
+    "label": "Testing",
+    "items": [
+      {
+        "slug": "phone-pass",
+        "name": "Phone pass",
+        "desc": "Device checks before a release \u2014 long-press drag, handle-only drag, momentum catching, stylus, carousel wrap. Built for a real phone",
+        "plugins": [
+          "sortable",
+          "carousel"
+        ]
       }
     ]
   }
