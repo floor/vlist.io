@@ -229,7 +229,12 @@ defineSuite({
 // Matched public logical-position writes. These measure programmatic navigation,
 // not touch sampling or fling physics. Input JS timing excludes deferred native
 // rendering/layout and must not be presented as total frame/main-thread cost.
-for (const mode of ["native", "bounded", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]) {
+// vlist 3.0 removed `scroll.mode` and with it bounded mode, so the entry point
+// is the only thing that selects the input model: `vlist` scrolls natively,
+// `vlist/synthetic` does its own. The suite ids are unchanged so the recorded
+// history still lines up; `scroll-logical-bounded` keeps its past results and
+// simply stops gaining new ones.
+for (const mode of ["native", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]) {
   defineSuite({
     id: `scroll-logical-${mode}`,
     name: `Logical scroll (${mode})`,
@@ -243,8 +248,11 @@ for (const mode of ["native", "bounded", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthet
         let write;
         list = (mode === "synthetic" ? createSynthetic : createVList)({
           container, items: generateItems(itemCount),
-          item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode },
-        }, [{ name: "benchmark-logical-input", setup(ctx) { write = ctx.scrollTo; } }]);
+          item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
+          // vlist 3.0 groups the scroll surface under `ctx.scroll`; `ctx.scrollTo`
+          // is gone. Reading the old name left `write` undefined, and the driver
+          // then spun without ever moving the list rather than failing outright.
+        }, [{ name: "benchmark-logical-input", setup(ctx) { write = position => ctx.scroll.to(position); } }]);
         const viewport = findViewport(container);
         const source = { max: itemCount * ITEM_HEIGHT - viewport.clientHeight,
           set: position => write(position),
@@ -289,7 +297,7 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
     let list;
     try {
       list = createSynthetic({ container, items: generateItems(itemCount),
-        item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode: "synthetic" } });
+        item: { height: ITEM_HEIGHT, template: benchmarkTemplate } });
       list.scrollToIndex(Math.floor(itemCount / 2));
       await waitFrames(10);
       const options = { itemHeight: ITEM_HEIGHT, viewport: findViewport(container), content: container.querySelector('.vlist-content'), getPosition: () => list.getScrollPosition() };
