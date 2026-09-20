@@ -15,7 +15,7 @@ import { createVList } from "vlist/synthetic";
 import { createVList as createNativeVList } from "vlist";
 
 const ITEM_H = 64;
-const TESTS = ["longpress", "handle", "momentum", "pen", "fold"];
+const TESTS = ["longpress", "handle", "momentum", "pen", "fold", "zoom"];
 
 const $ = (id) => document.getElementById(id);
 const set = (id, text, tone) => {
@@ -296,6 +296,91 @@ function fold() {
 }
 
 // =============================================================================
+// 6 — dragging while the page is zoomed
+//
+// Reported from an iPhone: pinch-zoom the page, drag a row, and the row is not
+// where the finger is. The sortable ghost is `position: fixed` placed at the
+// pointer's client coordinates, and a pinch-zoom splits the viewport in two —
+// a layout viewport that fixed positioning resolves against, and a visual
+// viewport that the finger is in. When those two are panned apart, anything
+// that assumes they are the same lands wrong by exactly that distance.
+//
+// Chrome's page-scale emulation does not reproduce it, so this measures it on
+// the device instead: the gap between the finger and the row it is dragging,
+// against the visual viewport's own offset. If the two agree, the cause is
+// established rather than guessed.
+// =============================================================================
+
+function zoom() {
+  const host = $("list-zoom");
+  let dragging = false;
+  let worstGap = 0;
+  let worstOffset = 0;
+  let explained = null;
+
+  const list = createNativeVList(
+    { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
+    [sortable()],
+  );
+
+  const vv = () => window.visualViewport;
+
+  const report = () => {
+    const v = vv();
+    set("zo-scale", v ? `${v.scale.toFixed(2)}×` : "not reported", v && v.scale > 1.05 ? "info" : "");
+    set("zo-offset", v ? `${Math.round(v.offsetLeft)}, ${Math.round(v.offsetTop)} px` : "—");
+  };
+  report();
+  vv()?.addEventListener("resize", report);
+  vv()?.addEventListener("scroll", report);
+
+  list.on("sort:start", () => { dragging = true; worstGap = 0; worstOffset = 0; sample(); });
+  list.on("sort:end", () => { dragging = false; settle(); });
+  list.on("sort:cancel", () => { dragging = false; settle(); });
+
+  let fingerX = 0, fingerY = 0;
+  host.addEventListener("pointermove", (e) => { fingerX = e.clientX; fingerY = e.clientY; }, { passive: true });
+
+  function sample() {
+    if (!dragging) return;
+    const ghost = document.querySelector(".vlist-sort-ghost");
+    const v = vv();
+    if (ghost && fingerY) {
+      const r = ghost.getBoundingClientRect();
+      // The finger should be inside the row it is dragging. Measure how far
+      // outside it is, on each axis, and keep the worst.
+      const dy = fingerY < r.top ? r.top - fingerY : fingerY > r.bottom ? fingerY - r.bottom : 0;
+      const dx = fingerX < r.left ? r.left - fingerX : fingerX > r.right ? fingerX - r.right : 0;
+      const gap = Math.max(dx, dy);
+      if (gap > worstGap) {
+        worstGap = gap;
+        worstOffset = v ? Math.max(Math.abs(v.offsetLeft), Math.abs(v.offsetTop)) : 0;
+        set("zo-gap", `${Math.round(worstGap)} px`, worstGap > 8 ? "bad" : "good");
+        // Within a few pixels of the visual viewport's own offset is the
+        // signature of the layout/visual viewport split, rather than some
+        // unrelated drift.
+        explained = worstOffset > 4 && Math.abs(worstGap - worstOffset) <= Math.max(6, worstOffset * 0.25);
+        set("zo-explains", worstGap <= 8 ? "no gap to explain"
+          : explained ? `yes — offset is ${Math.round(worstOffset)} px`
+          : `no — offset is only ${Math.round(worstOffset)} px`,
+          worstGap <= 8 ? "good" : explained ? "bad" : "warn");
+      }
+    }
+    requestAnimationFrame(sample);
+  }
+
+  function settle() {
+    if (worstGap === 0) return;
+    const zoomed = (vv()?.scale ?? 1) > 1.05;
+    mark("zoom", worstGap <= 8,
+      `${zoomed ? "zoomed" : "unzoomed"} ${(vv()?.scale ?? 1).toFixed(2)}×, worst finger-to-row gap ${Math.round(worstGap)} px` +
+      (explained === true ? ", matching the visual viewport offset" : explained === false ? ", not explained by the viewport offset" : ""));
+  }
+
+  return list;
+}
+
+// =============================================================================
 // Verdicts
 //
 // Every card can be answered by hand. The automatic marks are a starting point
@@ -343,7 +428,7 @@ function summarise() {
   ];
   for (const t of TESTS) {
     const r = results[t];
-    const label = { longpress: "1 long press drag", handle: "2 handle only", momentum: "3 momentum catch", pen: "4 stylus", fold: "5 carousel wrap" }[t];
+    const label = { longpress: "1 long press drag", handle: "2 handle only", momentum: "3 momentum catch", pen: "4 stylus", fold: "5 carousel wrap", zoom: "6 drag while zoomed" }[t];
     lines.push(r ? `${r.pass ? "PASS" : "FAIL"}  ${label} — ${r.detail}` : `----  ${label} — not run`);
   }
   const done = TESTS.filter((t) => results[t]);
@@ -378,6 +463,7 @@ handle();
 momentum();
 pen();
 fold();
+zoom();
 
 $("copy").addEventListener("click", async () => {
   const text = $("summary").textContent;
