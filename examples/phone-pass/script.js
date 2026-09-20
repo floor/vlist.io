@@ -465,19 +465,81 @@ pen();
 fold();
 zoom();
 
-$("copy").addEventListener("click", async () => {
-  const text = $("summary").textContent;
+/**
+ * Copy the summary.
+ *
+ * `navigator.clipboard` is unavailable on a plain http:// origin, which is what
+ * a LAN address is — and this page is meant to be opened from a phone over the
+ * network. The first version called it, let it throw, and only selected the
+ * text as a fallback while still looking like it had worked. Someone then
+ * pasted whatever was already on their clipboard and sent that instead, which
+ * is a worse failure than not copying at all.
+ *
+ * So: try the modern API only where it can work, fall back to execCommand,
+ * which does work on an insecure origin, and never claim success that did not
+ * happen.
+ */
+async function copySummary(text) {
+  if (window.isSecureContext && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fall through — a permission prompt was refused, or the page lost focus
+    }
+  }
+
+  const scratch = document.createElement("textarea");
+  scratch.value = text;
+  scratch.setAttribute("readonly", "");
+  // Off-screen but focusable, and no zoom on iOS from a 16px font.
+  scratch.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px";
+  document.body.appendChild(scratch);
+  scratch.select();
+  scratch.setSelectionRange(0, text.length);
+  let ok = false;
   try {
-    await navigator.clipboard.writeText(text);
-    $("copy").textContent = "Copied";
+    ok = document.execCommand("copy");
   } catch {
-    // Clipboard is blocked without a secure context on some phones; select it
-    // instead so a long press can copy, which is the thing this page is testing.
+    ok = false;
+  }
+  scratch.remove();
+  return ok;
+}
+
+$("copy").addEventListener("click", async () => {
+  const button = $("copy");
+  const text = $("summary").textContent;
+  const copied = await copySummary(text);
+
+  if (copied) {
+    button.textContent = "Copied";
+    button.dataset.state = "ok";
+  } else {
+    // Select the summary itself so a long press can copy it, and say plainly
+    // that nothing is on the clipboard yet.
     const range = document.createRange();
     range.selectNodeContents($("summary"));
-    getSelection().removeAllRanges();
-    getSelection().addRange(range);
-    $("copy").textContent = "Selected — copy it";
+    const selection = getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    button.textContent = "Could not copy — it is selected, copy it by hand";
+    button.dataset.state = "manual";
   }
-  setTimeout(() => { $("copy").textContent = "Copy result"; }, 2000);
+
+  setTimeout(() => {
+    button.textContent = "Copy result";
+    button.dataset.state = "";
+  }, 4000);
 });
+
+// Say up front when the clipboard button cannot work, rather than at the moment
+// someone needs it to.
+if (!window.isSecureContext) {
+  const note = document.createElement("p");
+  note.className = "pp__note";
+  note.textContent =
+    "This page is on a plain http address, so the browser does not allow one-tap copying. " +
+    "The button will select the text for you and you can copy it by hand.";
+  $("copy").insertAdjacentElement("beforebegin", note);
+}
