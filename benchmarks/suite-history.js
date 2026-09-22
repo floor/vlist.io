@@ -44,6 +44,7 @@ const COLORS = {
 
 const SUITE_DISPLAY_NAMES = {
   "render-vanilla": "Render (Vanilla)",
+  "render-synthetic": "Render (Synthetic)",
   "render-react": "Render (React)",
   "render-vue": "Render (Vue)",
   "render-svelte": "Render (Svelte)",
@@ -54,6 +55,9 @@ const SUITE_DISPLAY_NAMES = {
   "scroll-svelte": "Scroll (Svelte)",
   "scroll-solidjs": "Scroll (SolidJS)",
   "memory-vanilla": "Memory (Vanilla)",
+  "memory-synthetic": "Memory (Synthetic)",
+  "scroll-logical-native": "Logical scroll (native)",
+  "scroll-logical-synthetic": "Logical scroll (synthetic)",
   "memory-react": "Memory (React)",
   "memory-vue": "Memory (Vue)",
   "memory-svelte": "Memory (Svelte)",

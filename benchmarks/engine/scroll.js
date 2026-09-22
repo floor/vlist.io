@@ -204,6 +204,10 @@ export const measureRawRAFRate = (durationMs) => {
  * @property {number} medianFPS - Median FPS derived from frame times
  * @property {number} medianFrameTime - Median inter-frame interval (ms)
  * @property {number} p95FrameTime - 95th percentile inter-frame interval (ms)
+ * @property {number} [renderedDistance] - Screen-space distance sampled once per frame (px)
+ * @property {number} [positionLagP95] - p95 of |logical − rendered| at those samples (px)
+ * @property {number} [logicalFrameMoves] - Frames whose logical position moved
+ * @property {number} [renderedMovingFrames] - Those frames whose screen position moved with it
  */
 
 /**
@@ -219,9 +223,32 @@ export const measureRawRAFRate = (durationMs) => {
  * @param {number} opts.speedPxPerSec - Scroll speed in pixels per second
  * @param {number} [opts.stressMs=0] - CPU burn per frame (simulates app workload)
  * @param {(progress: number) => void} [opts.onProgress] - Progress callback (0-1)
- * @param {{max: number, set: (position: number) => void, get: () => number}} [opts.logicalScroll] - Optional logical input provider; native frame-cost probe is disabled
+ * @param {{max: number, set: (position: number) => void, get: () => number, rendered?: () => number}} [opts.logicalScroll] - Optional logical input provider; native frame-cost probe is disabled. `rendered` reads the on-screen position in the same space as `get`.
  * @returns {Promise<ScrollRunResult>}
  */
+
+/**
+ * Screen position of the list origin, in CSS pixels.
+ *
+ * A recycled row stands in for whichever index it currently shows. Subtract
+ * `index * itemHeight` so the origin stays comparable across recycling.
+ * Scrolling the list down decreases this value. Vertical fixed-height rows.
+ *
+ * @param {Element} content
+ * @param {number} itemHeight
+ * @returns {number}
+ */
+export const readScreenOrigin = (content, itemHeight) => {
+  const row = content?.querySelector("[data-index]");
+  const index = row?.getAttribute("data-index");
+  if (index == null || !Number.isFinite(Number(index))) {
+    throw new Error("Rendered-position sample found no indexed row");
+  }
+  if (!(itemHeight > 0)) {
+    throw new Error("Rendered-position sample requires a positive item height");
+  }
+  return row.getBoundingClientRect().top - Number(index) * itemHeight;
+};
 export const measureScrollRun = async ({
   viewport,
   durationMs,
@@ -246,14 +273,22 @@ export const measureScrollRun = async ({
   const maxScroll = logicalScroll ? logicalScroll.max : viewport.scrollHeight - viewport.clientHeight;
   if (logicalScroll && !(maxScroll > 0)) throw new Error("Logical benchmark requires a positive virtual scroll range");
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     // -----------------------------------------------------------------
     // Shared state
     // -----------------------------------------------------------------
     const frameTimes = [];
     const frameWorkTimes = [];
     const inputWorkTimes = [];
+    const lagSamples = [];
     let distance = 0, previousPosition = 0;
+    let renderedDistance = 0;
+    let logicalFrameMoves = 0;
+    let renderedMovingFrames = 0;
+    let previousLogicalSample = null;
+    let previousRenderedSample = null;
+    let sampleFrameId = null;
+    let settled = false;
     let running = true;
     let scrollDriverTicks = 0;
     let lastProgressUpdate = 0;
@@ -352,10 +387,21 @@ export const measureScrollRun = async ({
         // Report 100% complete
         if (onProgress) onProgress(1);
 
-        // Clean up cost probe
+        // Clean up cost probe and take the last rendered sample in this turn.
+        // The pending frame callback would otherwise run after the list is destroyed.
         viewport.removeEventListener("scroll", onScrollForCostProbe);
         if (costProbeFrameId !== null) {
           cancelAnimationFrame(costProbeFrameId);
+        }
+        if (sampleFrameId !== null) {
+          cancelAnimationFrame(sampleFrameId);
+          sampleFrameId = null;
+        }
+        try {
+          sampleRendered();
+        } catch (error) {
+          fail(error);
+          return;
         }
 
         // Compute scroll driver rate for diagnostics
@@ -370,11 +416,19 @@ export const measureScrollRun = async ({
             : 0;
         const medFPS = medFrameTime > 0 ? round(1000 / medFrameTime, 1) : 0;
 
+        const sortedLag = [...lagSamples].sort((a, b) => a - b);
+        settled = true;
         resolve({
           frameTimes,
           frameWorkTimes,
           inputWorkTimes,
           distance,
+          ...(logicalScroll?.rendered ? {
+            renderedDistance: round(renderedDistance, 1),
+            positionLagP95: round(percentile(sortedLag, 95), 2),
+            logicalFrameMoves,
+            renderedMovingFrames,
+          } : {}),
           totalFrames: frameTimes.length,
           scrollDriverRate: driverRate,
           medianFPS: medFPS,
@@ -414,11 +468,55 @@ export const measureScrollRun = async ({
         const current = logicalScroll.get();
         distance += Math.abs(current - previousPosition);
         previousPosition = current;
+        // The setter paints synchronously. Sample on the next frame, once,
+        // so the screen position is the one the frame actually showed.
+        if (logicalScroll.rendered && sampleFrameId === null) {
+          sampleFrameId = requestAnimationFrame(() => {
+            sampleFrameId = null;
+            if (settled) return;
+            try {
+              sampleRendered();
+            } catch (error) {
+              fail(error);
+            }
+          });
+        }
       } else viewport.scrollTop = scrollPos;
 
       // Schedule next tick — setTimeout(0) runs ~4ms apart in Chrome,
       // giving us ~250 scroll updates/sec
       setTimeout(scrollTick, 0);
+    };
+
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      running = false;
+      viewport.removeEventListener("scroll", onScrollForCostProbe);
+      if (costProbeFrameId !== null) cancelAnimationFrame(costProbeFrameId);
+      if (sampleFrameId !== null) cancelAnimationFrame(sampleFrameId);
+      reject(error);
+    };
+
+    // Once per displayed frame, after the setter has painted. The setTimeout
+    // driver moves several times per frame; the screen can only be in one place.
+    const sampleRendered = () => {
+      if (!logicalScroll?.rendered || settled) return;
+      const logicalNow = logicalScroll.get();
+      const renderedNow = logicalScroll.rendered();
+      lagSamples.push(Math.abs(logicalNow - renderedNow));
+      if (previousLogicalSample !== null) {
+        const logicalDelta = logicalNow - previousLogicalSample;
+        const renderedDelta = renderedNow - previousRenderedSample;
+        renderedDistance += Math.abs(renderedDelta);
+        if (Math.abs(logicalDelta) > 0.05) {
+          logicalFrameMoves++;
+          // 1px covers layout rounding. A larger gap is the screen trailing the write.
+          if (Math.abs(renderedDelta - logicalDelta) <= 1) renderedMovingFrames++;
+        }
+      }
+      previousLogicalSample = logicalNow;
+      previousRenderedSample = renderedNow;
     };
 
     // Start all loops
@@ -529,12 +627,7 @@ export const measurePointerFlingRun = async ({ viewport, content, getPosition, i
   let logicalMovingFrames = 0, domMovingFrames = 0, motionError;
   // Read a fresh row every frame. A recycled DOM node may now represent another
   // index; subtract its layout offset to compare the same screen-space origin.
-  const screenOrigin = () => {
-    const row = content.querySelector('[data-index]');
-    const index = row?.getAttribute('data-index');
-    if (index == null || !Number.isFinite(Number(index))) throw new Error('DOM motion check found no indexed row');
-    return row.getBoundingClientRect().top - Number(index) * itemHeight;
-  };
+  const screenOrigin = () => readScreenOrigin(content, itemHeight);
   let previousPosition = getPosition(), previousOrigin = screenOrigin();
   const captured = new Set();
   const names = ['setPointerCapture', 'hasPointerCapture', 'releasePointerCapture'];

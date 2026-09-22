@@ -30,16 +30,19 @@ import {
  * @param {Element} viewport - The scrollable element
  * @param {number} [timeoutMs=SCROLLTO_SETTLE_TIMEOUT_MS] - Max time to wait
  * @param {number} [settleFrames=SCROLLTO_SETTLE_FRAMES] - Consecutive stable frames needed
+ * @param {() => number} [readPosition] - Position to watch. Defaults to the browser scroll offset. Synthetic lists keep that offset at 0, so they pass their own position.
  * @returns {Promise<number>} time in ms from call to settled
  */
 export const waitForScrollSettle = (
   viewport,
   timeoutMs = SCROLLTO_SETTLE_TIMEOUT_MS,
   settleFrames = SCROLLTO_SETTLE_FRAMES,
+  readPosition,
 ) => {
+  const read = readPosition ?? (() => viewport.scrollTop);
   return new Promise((resolve) => {
     const start = performance.now();
-    let lastScrollTop = viewport.scrollTop;
+    let lastScrollTop = read();
     let stableFrames = 0;
 
     const check = () => {
@@ -51,7 +54,7 @@ export const waitForScrollSettle = (
         return;
       }
 
-      const currentScrollTop = viewport.scrollTop;
+      const currentScrollTop = read();
 
       if (Math.abs(currentScrollTop - lastScrollTop) < 1) {
         stableFrames++;
@@ -124,6 +127,7 @@ export const generateTargets = (totalItems, count) => {
  * @param {number} [opts.measureJumps=SCROLLTO_MEASURE_JUMPS] - Number of measured jumps
  * @param {number} [opts.settleTimeoutMs=SCROLLTO_SETTLE_TIMEOUT_MS] - Max settle wait
  * @param {number} [opts.settleFrames=SCROLLTO_SETTLE_FRAMES] - Frames to consider settled
+ * @param {() => number} [opts.readPosition] - Position to watch. Omit to watch the browser scroll offset.
  * @param {(msg: string) => void} [opts.onStatus] - Status callback
  * @returns {Promise<ScrollToResult>}
  */
@@ -145,27 +149,30 @@ export const measureScrollToPerformance = async ({
   measureJumps = SCROLLTO_MEASURE_JUMPS,
   settleTimeoutMs = SCROLLTO_SETTLE_TIMEOUT_MS,
   settleFrames = SCROLLTO_SETTLE_FRAMES,
+  readPosition,
   onStatus,
 }) => {
+  const settle = () => waitForScrollSettle(viewport, settleTimeoutMs, settleFrames, readPosition);
   // ── Warmup ─────────────────────────────────────────────────────────────
   if (onStatus) onStatus("Warming up...");
   const warmupTargets = generateTargets(itemCount, warmupJumps);
 
   for (const target of warmupTargets) {
     scrollToFn(target, "center");
-    await waitForScrollSettle(viewport, settleTimeoutMs, settleFrames);
+    await settle();
     await waitFrames(5);
   }
 
   // Reset to top before measuring
   scrollToFn(0, "start");
-  await waitForScrollSettle(viewport, settleTimeoutMs, settleFrames);
+  await settle();
   await tryGC();
   await waitFrames(10);
 
   // ── Measure ────────────────────────────────────────────────────────────
   const targets = generateTargets(itemCount, measureJumps);
   const times = [];
+  let moved = false;
 
   for (let i = 0; i < targets.length; i++) {
     const target = targets[i];
@@ -178,18 +185,17 @@ export const measureScrollToPerformance = async ({
     // Ensure we start from a stable position
     await waitFrames(3);
 
-    const start = performance.now();
+    const before = readPosition ? readPosition() : null;
     scrollToFn(target, "center");
-    const settleTime = await waitForScrollSettle(
-      viewport,
-      settleTimeoutMs,
-      settleFrames,
-    );
+    const settleTime = await settle();
+    if (readPosition && Math.abs(readPosition() - before) >= 1) moved = true;
     times.push(settleTime);
 
     // Small pause between jumps
     await waitFrames(5);
   }
+
+  if (readPosition && !moved) throw new Error("scrollToIndex did not move the list");
 
   // ── Compute stats ──────────────────────────────────────────────────────
   const sorted = [...times].sort((a, b) => a - b);

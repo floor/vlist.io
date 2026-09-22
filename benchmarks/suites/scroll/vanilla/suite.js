@@ -32,6 +32,7 @@ import {
   measureScrollRun,
   measurePointerFlingRun,
   computeScrollStats,
+  readScreenOrigin,
 } from "../../../engine/scroll.js";
 
 // =============================================================================
@@ -238,7 +239,7 @@ for (const mode of ["native", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]
   defineSuite({
     id: `scroll-logical-${mode}`,
     name: `Logical scroll (${mode})`,
-    description: "Matched logical-position writes; FPS and synchronous setter cost (not total rendering cost)",
+    description: "Matched logical-position writes; FPS, frame time, and where the rows actually are",
     hasScrollSpeed: true,
     run: async ({ itemCount, container, onStatus, scrollSpeed = BASE_SCROLL_SPEED }) => {
       const driver = createRefreshRateDriver();
@@ -259,15 +260,24 @@ for (const mode of ["native", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]
           // Native state updates asynchronously; use its position read here.
           get: () => mode === "native" ? viewport.scrollTop : list.getScrollPosition(),
         };
+        const content = container.querySelector(".vlist-content");
         await waitFrames(10);
-        onStatus(`Warming logical ${mode}...`);
+        onStatus("Warming up...");
         await measureScrollRun({ viewport, durationMs: 500, speedPxPerSec: scrollSpeed, logicalScroll: source });
         source.set(0); await waitFrames(5);
-        onStatus(`Scrolling logical ${mode}...`);
+        // Captured at rest so a constant page offset drops out. Scrolling down
+        // moves the origin up; the difference is the rendered scroll position.
+        const originAtRest = readScreenOrigin(content, ITEM_HEIGHT);
+        source.rendered = () => originAtRest - readScreenOrigin(content, ITEM_HEIGHT);
+        onStatus("Scrolling...");
         const result = await measureScrollRun({ viewport, durationMs: SCROLL_DURATION_MS,
           speedPxPerSec: scrollSpeed, logicalScroll: source });
         if (!(result.distance > 0) || !result.inputWorkTimes.length) throw new Error("Logical scroll driver did not move the list");
-        if (mode === "synthetic" && (viewport.scrollTop !== 0 || container.querySelector('.vlist-content').scrollTop !== 0)) {
+        if (!(result.renderedDistance > 0)) throw new Error("Rendered position did not move");
+        if (result.logicalFrameMoves > 10 && result.renderedMovingFrames < result.logicalFrameMoves * 0.95) {
+          throw new Error(`Rendered position missed logical movement: ${result.renderedMovingFrames} of ${result.logicalFrameMoves} frames`);
+        }
+        if (mode === "synthetic" && (viewport.scrollTop !== 0 || content.scrollTop !== 0)) {
           throw new Error("Synthetic benchmark moved a native main-axis scroll offset");
         }
         const { avgFps, droppedPct } = computeScrollStats(result, SCROLL_DURATION_MS);
@@ -276,11 +286,14 @@ for (const mode of ["native", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]
         return [
           { label: "Avg FPS", value: avgFps, unit: "fps", better: "higher" },
           { label: "Dropped", value: droppedPct, unit: "%", better: "lower" },
+          { label: "Frame p95", value: result.p95FrameTime, unit: "ms", better: "lower" },
           { label: "Input JS mean", value: round(total / samples.length, 4), unit: "ms", better: "lower" },
           { label: "Input JS p95", value: round(samples[Math.floor((samples.length - 1) * .95)], 4), unit: "ms", better: "lower" },
           { label: "Input JS total", value: round(total, 2), unit: "ms", better: "lower" },
           { label: "Driver ticks", value: samples.length, unit: "", better: "higher" },
           { label: "Distance", value: round(result.distance, 1), unit: "px", better: "higher" },
+          { label: "Rendered distance", value: result.renderedDistance, unit: "px", better: "higher" },
+          { label: "Position lag", value: result.positionLagP95, unit: "px", better: "lower" },
         ];
       } finally { list?.destroy(); driver.stop(); container.innerHTML = ""; }
     },

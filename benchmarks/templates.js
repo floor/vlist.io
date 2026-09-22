@@ -30,14 +30,21 @@ function getVlistVersion() {
 // Suite Page Template
 // =============================================================================
 
-export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
+export function buildSuitePageHTML(suite, variantSwitcherHTML = "", options = {}) {
+  const itemCount = options.itemCount ?? INITIAL_ITEM_COUNT;
+  const scrollSpeed = options.scrollSpeed ?? SCROLL_SPEEDS[0].pxPerSec;
+  const vlistEntry = options.vlistEntry ?? null;
+  const title = options.title ?? suite.name;
+  const description = options.description ?? suite.description;
+  const entryButton = (entry, label) =>
+    `<button class="ui-segmented__btn bench-entry-btn${vlistEntry === entry ? " ui-segmented__btn--active" : ""}" data-entry="${entry}">${label}</button>`;
   return `
     ${variantSwitcherHTML}
     <div class="bench-page">
       <!-- Header -->
       <header class="bench-header">
-        <h1 class="bench-header__title">${escapeHtml(suite.name)}</h1>
-        <p class="bench-header__desc">${escapeHtml(suite.description)}</p>
+        <h1 class="bench-header__title">${escapeHtml(title)}</h1>
+        <p class="bench-header__desc">${escapeHtml(description)}</p>
         <div class="bench-header__meta">
           <span class="bench-tag bench-tag--accent">vlist ${getVlistVersion()}</span>
           <span class="bench-tag">${navigator.userAgent.includes("Chrome") ? "Chrome — full metrics" : "⚠️ Use Chrome for memory metrics"}</span>
@@ -51,7 +58,7 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
         <div class="ui-segmented" id="bench-sizes">
           ${ITEM_COUNTS.map(
             (count) =>
-              `<button class="ui-segmented__btn${count === INITIAL_ITEM_COUNT ? " ui-segmented__btn--active" : ""}" data-count="${count}">${formatItemCount(count)}</button>`,
+              `<button class="ui-segmented__btn${count === itemCount ? " ui-segmented__btn--active" : ""}" data-count="${count}">${formatItemCount(count)}</button>`,
           ).join("")}
         </div>
         ${
@@ -76,10 +83,21 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "") {
         <div class="ui-segmented" id="bench-scroll-speed">
           ${SCROLL_SPEEDS.map(
             (speed, i) =>
-              `<button class="ui-segmented__btn bench-speed-btn${i === 0 ? " ui-segmented__btn--active" : ""}" data-speed="${speed.pxPerSec}" title="${speed.pxPerSec.toLocaleString()} px/s — ${speed.id} scroll speed">${speed.label}</button>`,
+              `<button class="ui-segmented__btn bench-speed-btn${speed.pxPerSec === scrollSpeed ? " ui-segmented__btn--active" : ""}" data-speed="${speed.pxPerSec}" title="${speed.pxPerSec.toLocaleString()} px/s — ${speed.id} scroll speed">${speed.label}</button>`,
           ).join("")}
         </div>
         `
+            : ""
+        }
+        ${
+          vlistEntry
+            ? `
+        <div class="bench-controls__sep"></div>
+        <span class="bench-controls__label">Mode</span>
+        <div class="ui-segmented" id="bench-vlist-entry" title="Native creates the list from vlist. Synthetic creates it from vlist/synthetic. Other lists are unchanged.">
+          ${entryButton("native", "Native")}
+          ${entryButton("synthetic", "Synthetic")}
+        </div>`
             : ""
         }
         <div class="bench-controls__sep"></div>
