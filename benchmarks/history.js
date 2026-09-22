@@ -42,6 +42,7 @@ const COLORS = {
 // =============================================================================
 
 let currentSuiteId = "";
+let currentMode = "native";
 let currentItemCount = 10_000;
 let currentVersion = "";
 let currentDays = 30;
@@ -134,6 +135,15 @@ function wireFilters() {
     });
   }
 
+  const modeSelect = document.getElementById("history-mode");
+  if (modeSelect) {
+    modeSelect.addEventListener("change", () => {
+      currentMode = modeSelect.value === "synthetic" ? "synthetic" : "native";
+      currentMetric = "";
+      refreshStats();
+    });
+  }
+
   // Item count buttons
   const itemCountContainer = document.getElementById("history-item-count");
   if (itemCountContainer) {
@@ -190,6 +200,7 @@ async function refreshStats() {
   const params = new URLSearchParams({
     suiteId: currentSuiteId,
     itemCount: String(currentItemCount),
+    mode: currentMode,
   });
   if (currentVersion) params.set("version", currentVersion);
 
@@ -228,6 +239,7 @@ async function refreshChart() {
     itemCount: String(currentItemCount),
     metric: currentMetric,
     days: String(currentDays),
+    mode: currentMode,
   });
   if (currentVersion) params.set("version", currentVersion);
 

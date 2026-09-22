@@ -74,6 +74,7 @@ const SUITE_DISPLAY_NAMES = {
 // =============================================================================
 
 let currentSuiteId = "";
+let currentMode = "native";
 let currentItemCount = 0; // 0 = all item counts
 let currentVersion = ""; // used for stats table filtering only
 let currentMetric = "";
@@ -94,7 +95,7 @@ export function buildSuiteHistoryPage(root) {
   // Load initial data in parallel — all requests include ?type=suite
   Promise.all([
     fetchJSON(`${API_BASE}/summary?type=suite`),
-    fetchJSON(`${API_BASE}/suites?type=suite`),
+    fetchJSON(`${API_BASE}/suites?type=suite&mode=native`),
     fetchJSON(`${API_BASE}/versions?type=suite`),
     fetchJSON(`${API_BASE}/browsers?type=suite`),
   ])
@@ -170,6 +171,24 @@ function wireFilters() {
     });
   }
 
+  const modeSelect = document.getElementById("suite-history-mode");
+  if (modeSelect) {
+    modeSelect.addEventListener("change", async () => {
+      currentMode = modeSelect.value === "synthetic" ? "synthetic" : "native";
+      currentMetric = "";
+      const suites = await fetchJSON(`${API_BASE}/suites?type=suite&mode=${currentMode}`);
+      suitesData = suites?.items ?? [];
+      populateSuiteSelect(suitesData);
+      const stillThere = suitesData.some((suite) => suite.suiteId === currentSuiteId);
+      currentSuiteId = stillThere
+        ? currentSuiteId
+        : (suitesData.find((suite) => suite.suiteId.endsWith("-vanilla")) ?? suitesData[0])?.suiteId ?? "";
+      const select = document.getElementById("suite-history-suite");
+      if (select) select.value = currentSuiteId;
+      refreshStats();
+    });
+  }
+
   // Item count buttons
   const itemCountContainer = document.getElementById(
     "suite-history-item-count",
@@ -224,6 +243,7 @@ async function refreshStats() {
   const params = new URLSearchParams({
     suiteId: currentSuiteId,
     type: "suite",
+    mode: currentMode,
   });
   if (currentItemCount > 0) params.set("itemCount", String(currentItemCount));
   if (currentVersion) params.set("version", currentVersion);
@@ -270,6 +290,7 @@ async function refreshVersionChart() {
   const params = new URLSearchParams({
     suiteId: currentSuiteId,
     type: "suite",
+    mode: currentMode,
     limit: "200",
   });
   if (currentItemCount > 0) params.set("itemCount", String(currentItemCount));

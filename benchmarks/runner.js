@@ -451,6 +451,7 @@ export const runBenchmarks = async (options) => {
     suiteIds,
     stressMs = 0,
     scrollSpeed = 0,
+    mode = "native",
     intensity,
     container,
     getContainer,
@@ -510,6 +511,7 @@ export const runBenchmarks = async (options) => {
           onStatus: status,
           stressMs,
           scrollSpeed,
+          mode,
           intensity,
         });
 

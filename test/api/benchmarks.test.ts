@@ -820,6 +820,82 @@ describe("benchmarks API", () => {
   // ---------------------------------------------------------------------------
 
   describe("GET /api/benchmarks/stats", () => {
+    test("keeps native and synthetic suite runs in the suite table", async () => {
+      const version = "9.9.9-suite-mode";
+      const native = await routeBenchmarks(
+        ...Object.values(post("/api/benchmarks", validSuitePayload({
+          version,
+          suiteId: "render-vanilla",
+          itemCount: 1_000,
+          mode: "native",
+          metrics: [{ label: "Median", value: 1.2, unit: "ms", better: "lower", rating: "good" }],
+        }))),
+      );
+      const synthetic = await routeBenchmarks(
+        ...Object.values(post("/api/benchmarks", validSuitePayload({
+          version,
+          suiteId: "render-vanilla",
+          itemCount: 1_000,
+          mode: "synthetic",
+          metrics: [{ label: "Median", value: 1.8, unit: "ms", better: "lower", rating: "good" }],
+        }))),
+      );
+      expect(native!.status).toBe(201);
+      expect((await json<{ table: string }>(native!)).table).toBe("suite");
+      expect(synthetic!.status).toBe(201);
+
+      const nativeStats = await json<{ items: Array<{ totalRuns: number; metrics: Array<{ median: number }> }> }>(
+        (await routeBenchmarks(...Object.values(get("/api/benchmarks/stats?type=suite&suiteId=render-vanilla&itemCount=1000&version=9.9.9-suite-mode&mode=native"))))!,
+      );
+      const syntheticStats = await json<{ items: Array<{ metrics: Array<{ median: number }> }> }>(
+        (await routeBenchmarks(...Object.values(get("/api/benchmarks/stats?type=suite&suiteId=render-vanilla&itemCount=1000&version=9.9.9-suite-mode&mode=synthetic"))))!,
+      );
+      expect(nativeStats.items[0].metrics[0].median).toBe(1.2);
+      expect(syntheticStats.items[0].metrics[0].median).toBe(1.8);
+    });
+
+    test("keeps native and synthetic comparison runs in separate series", async () => {
+      const version = "9.9.9-mode";
+      const native = await routeBenchmarks(
+        ...Object.values(post("/api/benchmarks", validComparisonPayload({
+          version,
+          suiteId: "virtua",
+          itemCount: 1_000,
+          mode: "native",
+          metrics: [{ label: "vlist Scroll FPS", value: 60, unit: "fps", better: "higher", rating: "good" }],
+        }))),
+      );
+      const synthetic = await routeBenchmarks(
+        ...Object.values(post("/api/benchmarks", validComparisonPayload({
+          version,
+          suiteId: "virtua",
+          itemCount: 1_000,
+          mode: "synthetic",
+          metrics: [{ label: "vlist synthetic Scroll FPS", value: 55, unit: "fps", better: "higher", rating: "good" }],
+        }))),
+      );
+      expect(native!.status).toBe(201);
+      expect(synthetic!.status).toBe(201);
+
+      const nativeStats = await json<{ items: Array<{ totalRuns: number; metrics: Array<{ label: string; median: number }> }> }>(
+        (await routeBenchmarks(...Object.values(get("/api/benchmarks/stats?suiteId=virtua&itemCount=1000&version=9.9.9-mode&mode=native"))))!,
+      );
+      const syntheticStats = await json<{ items: Array<{ totalRuns: number; metrics: Array<{ label: string; median: number }> }> }>(
+        (await routeBenchmarks(...Object.values(get("/api/benchmarks/stats?suiteId=virtua&itemCount=1000&version=9.9.9-mode&mode=synthetic"))))!,
+      );
+
+      expect(nativeStats.items[0].metrics.map((metric) => metric.label)).toContain("vlist Scroll FPS");
+      expect(nativeStats.items[0].metrics.map((metric) => metric.label)).not.toContain("vlist synthetic Scroll FPS");
+      expect(syntheticStats.items[0].metrics.map((metric) => metric.label)).toContain("vlist synthetic Scroll FPS");
+      expect(syntheticStats.items[0].metrics.map((metric) => metric.label)).not.toContain("vlist Scroll FPS");
+    });
+
+    test("rejects an unknown comparison mode", async () => {
+      const { req, url } = post("/api/benchmarks", validComparisonPayload({ mode: "bounded" }));
+      const result = await routeBenchmarks(req, url);
+      expect(result!.status).toBe(400);
+    });
+
     test("returns aggregated stats for a suite", async () => {
       const { req, url } = get(
         "/api/benchmarks/stats?suiteId=react-window&itemCount=10000",

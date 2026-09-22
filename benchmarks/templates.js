@@ -356,6 +356,13 @@ export function buildHistoryPageHTML() {
           </select>
         </div>
         <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Mode</label>
+          <select class="bench-history__select" id="history-mode">
+            <option value="native" selected>Native</option>
+            <option value="synthetic">Synthetic</option>
+          </select>
+        </div>
+        <div class="bench-history__filter-group">
           <label class="bench-history__filter-label">Item Count</label>
           <div class="ui-segmented" id="history-item-count">
             ${HISTORY_ITEM_COUNTS.map(
@@ -473,6 +480,13 @@ export function buildSuiteHistoryPageHTML() {
           <label class="bench-history__filter-label">Suite</label>
           <select class="bench-history__select" id="suite-history-suite">
             <option value="">Loading…</option>
+          </select>
+        </div>
+        <div class="bench-history__filter-group">
+          <label class="bench-history__filter-label">Mode</label>
+          <select class="bench-history__select" id="suite-history-mode">
+            <option value="native" selected>Native</option>
+            <option value="synthetic">Synthetic</option>
           </select>
         </div>
         <div class="bench-history__filter-group">

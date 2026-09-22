@@ -39,7 +39,7 @@ const persistResult = (result, extra = {}) => {
 
   const payload = {
     version: vlistPackage.version,
-    suiteId: result.suiteId,
+    suiteId: extra.suiteId ?? result.suiteId,
     itemCount: result.itemCount,
     metrics: result.metrics.map((m) => ({
       label: m.label,
@@ -53,6 +53,7 @@ const persistResult = (result, extra = {}) => {
     error: result.error ?? undefined,
     stressMs: extra.stressMs ?? 0,
     scrollSpeed: extra.scrollSpeed ?? 0,
+    mode: extra.mode ?? "native",
 
     // Environment
     userAgent: navigator.userAgent,
@@ -140,29 +141,41 @@ function detectVariants(benchmark) {
 }
 
 /**
- * vlist's own input entry. Synthetic exists only for vlist, and only on the
- * vanilla host. Comparison pages keep measuring the other list as itself;
- * this choice is which vlist they would be compared with.
+ * vlist's own input mode. Synthetic exists only for vlist. Comparison pages
+ * keep measuring the other list as itself.
+ * Scroll FPS uses the position-write measurement for every host. The old
+ * scrollTop suites stay registered for CI and are not what this page runs.
  */
+const FRAMEWORKS = ["react", "vue", "svelte", "solidjs"];
+
+function modeTable(vanilla, frameworkNative) {
+  const table = { vanilla };
+  for (const host of FRAMEWORKS) {
+    table[host] = {
+      native: frameworkNative(host),
+      synthetic: `${vanilla.synthetic}-${host}`,
+    };
+  }
+  return table;
+}
+
 const VLIST_ENTRY_SUITES = {
-  // Both entries are driven by the same position write. The scrollTop suite
-  // stays registered for CI; this page is the comparison a visitor can run.
-  scroll: {
-    native: "scroll-logical-native",
-    synthetic: "scroll-logical-synthetic",
-  },
-  scrollto: {
-    native: "scrollto-vanilla",
-    synthetic: "scrollto-synthetic",
-  },
-  render: {
-    native: "render-vanilla",
-    synthetic: "render-synthetic",
-  },
-  memory: {
-    native: "memory-vanilla",
-    synthetic: "memory-synthetic",
-  },
+  scroll: modeTable(
+    { native: "scroll-logical-native", synthetic: "scroll-logical-synthetic" },
+    (host) => `scroll-logical-native-${host}`,
+  ),
+  scrollto: modeTable(
+    { native: "scrollto-vanilla", synthetic: "scrollto-synthetic" },
+    (host) => `scrollto-${host}`,
+  ),
+  render: modeTable(
+    { native: "render-vanilla", synthetic: "render-synthetic" },
+    (host) => `render-${host}`,
+  ),
+  memory: modeTable(
+    { native: "memory-vanilla", synthetic: "memory-synthetic" },
+    (host) => `memory-${host}`,
+  ),
 };
 
 const SCROLL_PAGE_COPY = {
@@ -209,8 +222,32 @@ function writeEntryUrl(entry) {
   stampModeLinks(entry);
 }
 
+const COMPARISON_PAGES = new Set([
+  "react-window",
+  "react-virtuoso",
+  "tanstack-virtual",
+  "virtua",
+  "vue-virtual-scroller",
+  "solidjs",
+  "legend-list",
+  "clusterize",
+]);
+
+function savedBenchmark(suiteId) {
+  if (COMPARISON_PAGES.has(suiteId)) {
+    return { suiteId, mode: parseEntry() };
+  }
+  const synthetic = /(?:^|-)synthetic(?:$|-)/.test(suiteId) || suiteId.includes("logical-synthetic");
+  let id = suiteId;
+  id = id.replace(/^scroll-logical-(?:native|synthetic)-/, "scroll-");
+  id = id.replace(/^scroll-logical-(?:native|synthetic)$/, "scroll-vanilla");
+  id = id.replace(/-synthetic-/, "-");
+  id = id.replace(/-synthetic$/, "-vanilla");
+  return { suiteId: id, mode: synthetic ? "synthetic" : "native" };
+}
+
 function stampModeLinks(entry) {
-  const pages = new Set(Object.keys(VLIST_ENTRY_SUITES));
+  const pages = new Set([...Object.keys(VLIST_ENTRY_SUITES), ...COMPARISON_PAGES]);
   document.querySelectorAll("a.sidebar__link").forEach((link) => {
     const href = link.getAttribute("href");
     if (!href || href.startsWith("http")) return;
@@ -224,14 +261,15 @@ function stampModeLinks(entry) {
   });
 }
 
-function vlistEntryFor(page, variant) {
-  if (!VLIST_ENTRY_SUITES[page]) return null;
-  if (variant && variant !== "vanilla") return null;
+function vlistEntryFor(page) {
+  if (!VLIST_ENTRY_SUITES[page] && !COMPARISON_PAGES.has(page)) return null;
   return parseEntry();
 }
 
 function suiteIdFor(page, variant, entry) {
-  if (entry) return VLIST_ENTRY_SUITES[page][entry];
+  if (entry && VLIST_ENTRY_SUITES[page]) {
+    return VLIST_ENTRY_SUITES[page][variant || "vanilla"][entry];
+  }
   if (variant) return `${page}-${variant}`;
   return page;
 }
@@ -416,7 +454,7 @@ function mountInteractiveSuite(root, page) {
   currentPage = page;
   const variants = detectVariants(page);
   const variant = variants.length > 0 ? parseVariant() : null;
-  const entry = vlistEntryFor(page, variant);
+  const entry = vlistEntryFor(page);
   if (entry) writeEntryUrl(entry);
   else stampModeLinks(parseEntry());
   const suite = getSuite(suiteIdFor(page, variant, entry));
@@ -427,7 +465,10 @@ function mountInteractiveSuite(root, page) {
   }
   buildSuitePage(root, suite, {
     vlistEntry: entry,
-    ...(page === "scroll" && entry ? SCROLL_PAGE_COPY : {}),
+    ...(page === "scroll" && entry && (!variant || variant === "vanilla") ? SCROLL_PAGE_COPY : {}),
+    ...(suite.comparison && entry === "synthetic"
+      ? { description: suite.description.replace("Compare vlist", "Compare vlist synthetic") }
+      : {}),
   });
 }
 
@@ -664,6 +705,7 @@ const handleSuiteRunClick = async (suiteId) => {
       suiteIds: [suiteId],
       stressMs: selectedStressMs,
       scrollSpeed: selectedScrollSpeed,
+      mode: parseEntry(),
       getContainer: (sid) => getViewportContainer(sid),
       signal: abortController.signal,
 
@@ -829,9 +871,12 @@ const handleSuiteRunClick = async (suiteId) => {
 
 const storeResult = (result) => {
   results[result.suiteId] = result;
+  const saved = savedBenchmark(result.suiteId);
   persistResult(result, {
     stressMs: selectedStressMs,
     scrollSpeed: selectedScrollSpeed,
+    suiteId: saved.suiteId,
+    mode: saved.mode,
   });
 };
 
