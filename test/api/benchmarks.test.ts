@@ -820,6 +820,42 @@ describe("benchmarks API", () => {
   // ---------------------------------------------------------------------------
 
   describe("GET /api/benchmarks/stats", () => {
+    test("folds legacy synthetic suite ids into the suite and its mode", async () => {
+      const database = new Database(DB_PATH);
+      const info = database
+        .prepare(
+          `INSERT INTO benchmark_runs (version, suite_id, item_count, duration_ms, success, mode)
+           VALUES ('9.9.9-legacy', 'scroll-logical-synthetic', 1000, 10, 1, 'native')`,
+        )
+        .run();
+      database
+        .prepare(
+          `INSERT INTO benchmark_metrics (run_id, label, value, unit, better, rating)
+           VALUES (?, 'Avg FPS', 60, 'fps', 'higher', 'good')`,
+        )
+        .run(Number(info.lastInsertRowid));
+      database.close();
+      setDbPath(DB_PATH);
+
+      const folded = await json<{ items: Array<{ metrics: Array<{ label: string; median: number }> }> }>(
+        (await routeBenchmarks(
+          ...Object.values(get(
+            "/api/benchmarks/stats?type=suite&suiteId=scroll-vanilla&itemCount=1000&version=9.9.9-legacy&mode=synthetic",
+          )),
+        ))!,
+      );
+      const asNative = await json<{ items: unknown[] }>(
+        (await routeBenchmarks(
+          ...Object.values(get(
+            "/api/benchmarks/stats?type=suite&suiteId=scroll-vanilla&itemCount=1000&version=9.9.9-legacy&mode=native",
+          )),
+        ))!,
+      );
+      expect(folded.items[0].metrics[0].label).toBe("Avg FPS");
+      expect(folded.items[0].metrics[0].median).toBe(60);
+      expect(asNative.items).toHaveLength(0);
+    });
+
     test("keeps native and synthetic suite runs in the suite table", async () => {
       const version = "9.9.9-suite-mode";
       const native = await routeBenchmarks(

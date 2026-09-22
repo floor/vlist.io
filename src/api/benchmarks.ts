@@ -72,8 +72,94 @@ function getDb(): Database {
     db.run("PRAGMA foreign_keys = ON");
     ensureModeColumn(db, "comparison_runs");
     ensureModeColumn(db, "benchmark_runs");
+    foldLegacySuiteIds(db);
   }
   return db;
+}
+
+/**
+ * Older suite rows encoded native/synthetic in the suite id. Fold them into
+ * the measurement suite and set mode, so Suite History does not list
+ * "Render (Synthetic)" or "Logical scroll" as their own suites.
+ */
+function foldLegacySuiteIds(database: Database): void {
+  const fold = database.transaction(() => {
+    const exact: [string, string, string][] = [
+      ["render-synthetic", "render-vanilla", "synthetic"],
+      ["memory-synthetic", "memory-vanilla", "synthetic"],
+      ["scrollto-synthetic", "scrollto-vanilla", "synthetic"],
+      ["scroll-logical-native", "scroll-vanilla", "native"],
+      ["scroll-logical-synthetic", "scroll-vanilla", "synthetic"],
+    ];
+    const updateExact = database.prepare(
+      `UPDATE benchmark_runs SET suite_id = ?, mode = ? WHERE suite_id = ?`,
+    );
+    for (const [from, to, mode] of exact) updateExact.run(to, mode, from);
+
+    const prefix = database.prepare(
+      `UPDATE benchmark_runs
+       SET mode = ?, suite_id = ? || substr(suite_id, length(?) + 1)
+       WHERE suite_id LIKE ?`,
+    );
+    prefix.run("synthetic", "render-", "render-synthetic-", "render-synthetic-%");
+    prefix.run("synthetic", "memory-", "memory-synthetic-", "memory-synthetic-%");
+    prefix.run("synthetic", "scrollto-", "scrollto-synthetic-", "scrollto-synthetic-%");
+    prefix.run("native", "scroll-", "scroll-logical-native-", "scroll-logical-native-%");
+    prefix.run("synthetic", "scroll-", "scroll-logical-synthetic-", "scroll-logical-synthetic-%");
+
+    // A synthetic comparison was briefly saved as its own suite id in the
+    // suite table. Move it back to the comparison series.
+    const misplaced = database
+      .prepare(
+        `SELECT id, created_at, version, suite_id, item_count, user_agent,
+                hardware_concurrency, device_memory, screen_width, screen_height,
+                duration_ms, success, error, stress_ms, scroll_speed
+         FROM benchmark_runs WHERE suite_id LIKE '%-synthetic'`,
+      )
+      .all() as {
+        id: number;
+        created_at: string;
+        version: string;
+        suite_id: string;
+        item_count: number;
+        user_agent: string | null;
+        hardware_concurrency: number | null;
+        device_memory: number | null;
+        screen_width: number | null;
+        screen_height: number | null;
+        duration_ms: number | null;
+        success: number;
+        error: string | null;
+        stress_ms: number | null;
+        scroll_speed: number | null;
+      }[];
+    const insertComparison = database.prepare(
+      `INSERT INTO comparison_runs (
+         created_at, version, suite_id, item_count, user_agent, hardware_concurrency,
+         device_memory, screen_width, screen_height, duration_ms, success, error,
+         stress_ms, scroll_speed, mode
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synthetic')`,
+    );
+    const copyMetrics = database.prepare(
+      `INSERT INTO comparison_metrics (run_id, label, value, unit, better, rating)
+       SELECT ?, label, value, unit, better, rating FROM benchmark_metrics WHERE run_id = ?`,
+    );
+    const deleteMetrics = database.prepare(`DELETE FROM benchmark_metrics WHERE run_id = ?`);
+    const deleteRun = database.prepare(`DELETE FROM benchmark_runs WHERE id = ?`);
+    for (const row of misplaced) {
+      const suiteId = row.suite_id.slice(0, -"-synthetic".length);
+      if (!COMPARISON_SUITE_IDS.has(suiteId)) continue;
+      const info = insertComparison.run(
+        row.created_at, row.version, suiteId, row.item_count, row.user_agent,
+        row.hardware_concurrency, row.device_memory, row.screen_width, row.screen_height,
+        row.duration_ms, row.success, row.error, row.stress_ms, row.scroll_speed,
+      );
+      copyMetrics.run(Number(info.lastInsertRowid), row.id);
+      deleteMetrics.run(row.id);
+      deleteRun.run(row.id);
+    }
+  });
+  fold();
 }
 
 /** Native and synthetic results must not share a series. Existing rows are native. */
