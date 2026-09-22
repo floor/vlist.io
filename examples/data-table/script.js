@@ -4,7 +4,6 @@
 // Data loads lazily in chunks as the user scrolls — not all at once.
 
 import {
-  createVList,
   table,
   selection,
   data as dataPlugin,
@@ -12,9 +11,15 @@ import {
   snapshots,
   scrollbar,
 } from "vlist";
+import { factoryFor } from "../scroll-mode.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import { initControls } from "./controls.js";
+
+// 33k rows. Synthetic owns the scroll position, so a fast scrollbar drag
+// paints the new rows (placeholders included) instead of sliding the native
+// content out from under them.
+const createVList = factoryFor("synthetic");
 
 // =============================================================================
 // Constants
@@ -43,7 +48,7 @@ export let searchQuery = "";
 export let filterContinent = "";
 export let loadRequests = 0;
 export let loadedCount = 0;
-export let useCustomScrollbar = false;
+export let useCustomScrollbar = true;
 export let useGroups = true;
 
 export function setUseGroups(v) {
