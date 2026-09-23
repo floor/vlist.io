@@ -25,7 +25,7 @@ how the example shell applies them.
 | [Contact List](/examples/contact-list) | A–Z groups, sticky or inline headers, and selection. |
 | [Data Table](/examples/data-table) | Resizable columns, sortable headers, and row selection. |
 | [Social Feed](/examples/social-feed) | Variable-height posts measured with `autosize()`. |
-| [Carousel](/examples/carousel) | Infinite snap carousel. Scroll mode is locked. |
+| [Carousel](/examples/carousel) | Infinite snap carousel. Follows the scroll switch. |
 | [Plugin Wizard](/examples/plugin-wizard) | Carousel used as a plugin explorer. |
 | [Window Scroll](/examples/window-scroll) | The document scrolls, not an inner list. Scroll mode is locked. |
 | [Track List](/examples/track-list) | Lazy music library. List, grid, and table. Chooses the entry itself. |
@@ -75,7 +75,7 @@ are left alone.
 A page with `data-scroll-mode="locked"` does not show the switch and stays native.
 The list on that page is not a normal scroller:
 
-- [Carousel](/examples/carousel) and [Phone pass](/examples/phone-pass) own their own motion.
+- [Phone pass](/examples/phone-pass) owns its own motion.
 - [Window Scroll](/examples/window-scroll) scrolls the document.
 
 ### Pages that choose the entry themselves
