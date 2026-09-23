@@ -497,6 +497,9 @@ function buildExtraBody(
 
   const scrollSwitch = `<script>
 (function () {
+  if (document.querySelector("[data-scrollbar-owned]")) {
+    window.__VLIST_SCROLLBAR_OWNED = true;
+  }
   if (document.querySelector("[data-scroll-mode='locked']")) {
     window.__VLIST_SCROLL_LOCKED = true;
     return;
