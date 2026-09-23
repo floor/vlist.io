@@ -340,10 +340,18 @@ function updateContext(count, mode) {
 // Scroll mode selector buttons
 // =============================================================================
 
-bindScrollModeSelector(modeButtons, currentMode, (mode) => {
+const scrollModeControl = bindScrollModeSelector(modeButtons, currentMode, (mode) => {
   currentMode = mode;
   createList(currentSize);
 });
+
+// 100K is the last size that still fits in a native element (100,000 × 48px).
+// A larger choice selects Synthetic. Native stays on the switch.
+function preferSynthetic(sizeKey) {
+  if (SIZES[sizeKey] <= SIZES["100k"] || currentMode === "synthetic") return;
+  currentMode = "synthetic";
+  scrollModeControl.setMode("synthetic");
+}
 
 // =============================================================================
 // Layout selector buttons
@@ -386,6 +394,7 @@ sizeButtons.addEventListener("click", (e) => {
     b.classList.toggle("ui-segmented__btn--active", b.dataset.size === size);
   });
 
+  preferSynthetic(size);
   createList(size);
 });
 

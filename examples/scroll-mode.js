@@ -31,15 +31,28 @@ export function bindScrollModeSelector(element, initialMode, onChange) {
       );
     });
   };
+  const writeUrl = () => {
+    const url = new URL(location.href);
+    url.searchParams.set("mode", current);
+    history.replaceState(null, "", url);
+  };
   sync();
   element.addEventListener("click", (event) => {
     const button = event.target.closest("[data-mode]");
     if (!button || button.disabled || button.dataset.mode === current) return;
     current = button.dataset.mode;
-    const url = new URL(location.href);
-    url.searchParams.set("mode", current);
-    history.replaceState(null, "", url);
+    writeUrl();
     sync();
     onChange(current);
   });
+  return {
+    /** Move the switch without treating it as a click. `notify` still runs onChange. */
+    setMode(mode, notify = false) {
+      if (!SCROLL_MODES.includes(mode) || mode === current) return;
+      current = mode;
+      writeUrl();
+      sync();
+      if (notify) onChange(current);
+    },
+  };
 }
