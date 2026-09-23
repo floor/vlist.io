@@ -1,6 +1,6 @@
 ---
 created: 2026-09-15
-updated: 2026-09-16
+updated: 2026-09-23
 status: published
 ---
 
@@ -90,6 +90,70 @@ const { containerRef } = useVList({
   item: { height: 48, template: item => String(item.id) },
 });
 ```
+
+## Measured on 3.0.0-next.3
+
+Vanilla lists, three runs each, median reported. The window was on a MacBook built-in display running at 120 Hz. Browsers: Chrome 153, Chromium 130, Firefox 156, Safari 26.4.
+
+Inside one browser, native and synthetic match. The gap between browsers is the frame rate that browser delivered, not a difference between the two entries. Dropped frames were 0% and position lag was 0 px on every scroll that completed.
+
+### Initial render
+
+Median time to create the list, in milliseconds.
+
+| Items | Mode | Chrome | Chromium | Firefox | Safari |
+|:---:|:---|:---:|:---:|:---:|:---:|
+| 10K | Native | 0.6 ms | 0.9 ms | 1 ms | 2 ms |
+| 10K | Synthetic | 0.6 ms | 0.7 ms | 1 ms | 2 ms |
+| 100K | Native | 0.6 ms | 0.8 ms | 2 ms | 2 ms |
+| 100K | Synthetic | 0.6 ms | 0.8 ms | 2 ms | 2 ms |
+| 1M | Native | 1.5 ms | 3.7 ms | 10 ms | 5 ms |
+| 1M | Synthetic | 1.4 ms | 3.8 ms | 12 ms | 5 ms |
+
+### Scroll
+
+The scroll test moves about 36,000 px. It does not walk the whole list, so a native 1M run is not a test of the element-size clamp.
+
+| Items | Mode | Chrome | Chromium | Firefox | Safari |
+|:---:|:---|:---:|:---:|:---:|:---:|
+| 10K | Native | 120 fps | 120 fps | 30 fps | 60 fps |
+| 10K | Synthetic | 120 fps | 120 fps | 30 fps | 60 fps |
+| 100K | Native | 120 fps | 120 fps | 30 fps | 60 fps |
+| 100K | Synthetic | 120 fps | 120 fps | 30 fps | 60 fps |
+| 1M | Native | 120 fps | 120 fps | — | 60 fps |
+| 1M | Synthetic | 120 fps | 120 fps | 30 fps | 60 fps |
+
+Frame time at p95 follows that rate: about 9.2 ms in Chrome and Chromium, 18 ms in Safari, 34 ms in Firefox. Native and synthetic stay on the same figure.
+
+Firefox, native, 1M did not scroll. The benchmark reported that the scroll driver did not move the list, on three attempts. Synthetic at 1M did scroll.
+
+### Scroll to an index
+
+Median time for a `scrollTo`, in milliseconds. The time depends on the browser and does not depend on the entry or the list length.
+
+| Items | Mode | Chrome | Chromium | Firefox | Safari |
+|:---:|:---|:---:|:---:|:---:|:---:|
+| 10K | Native | 41 ms | 41 ms | 166 ms | 81 ms |
+| 10K | Synthetic | 41 ms | 41 ms | 166 ms | 81 ms |
+| 100K | Native | 42 ms | 41 ms | 166 ms | 81 ms |
+| 100K | Synthetic | 41 ms | 41 ms | 166 ms | 82 ms |
+| 1M | Native | 42 ms | 41 ms | 167 ms | 80 ms |
+| 1M | Synthetic | 41 ms | 41 ms | 166 ms | 82 ms |
+
+### Memory
+
+`performance.memory` exists in Chrome and Chromium only. Firefox and Safari saved a Memory row with status 0 and no heap numbers. Those rows are not a measurement.
+
+Heap allocated by creating the list, in MB. Native and synthetic match. The resident heap is noisier, because a later GC moves it, so it is a poor comparison.
+
+| Items | Mode | Chrome | Chromium |
+|:---:|:---|:---:|:---:|
+| 10K | Native | 0.07 MB | 0.11 MB |
+| 10K | Synthetic | 0.08 MB | 0.13 MB |
+| 100K | Native | 0.41 MB | 0.45 MB |
+| 100K | Synthetic | 0.43 MB | 0.46 MB |
+| 1M | Native | 3.85 MB | 3.88 MB |
+| 1M | Synthetic | 3.86 MB | 3.88 MB |
 
 ## Choosing
 
