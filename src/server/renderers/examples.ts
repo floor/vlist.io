@@ -495,7 +495,55 @@ function buildExtraBody(
 })();
 </script>`;
 
-  return `<script type="module" src="${scriptPath}"></script>\n${skipLinkTarget}\n${mobileSettings}`;
+  const scrollSwitch = `<script>
+(function () {
+  if (document.querySelector("[data-scroll-mode='locked']")) {
+    window.__VLIST_SCROLL_LOCKED = true;
+    return;
+  }
+  var panel = document.querySelector("aside.split-panel");
+  if (!panel || document.getElementById("example-scroll-mode")) return;
+  var params = new URLSearchParams(location.search);
+  var fromUrl = params.get("mode");
+  var match = document.cookie.match(/(?:^|; )vlist-scroll-mode=([^;]*)/);
+  var fromCookie = match ? decodeURIComponent(match[1]) : "";
+  var mode = fromUrl === "native" || fromUrl === "synthetic"
+    ? fromUrl
+    : fromCookie === "native" || fromCookie === "synthetic"
+      ? fromCookie
+      : "native";
+  var section = document.createElement("section");
+  section.className = "ui-section";
+  section.id = "example-scroll-mode";
+  section.innerHTML = '<h3 class="ui-title">Scroll</h3><div class="ui-row"><div class="ui-segmented" role="group" aria-label="Scroll mode">'
+    + '<button type="button" class="ui-segmented__btn" data-scroll="native">Native</button>'
+    + '<button type="button" class="ui-segmented__btn" data-scroll="synthetic">Synthetic</button>'
+    + '</div></div>';
+  panel.insertBefore(section, panel.firstChild);
+  section.querySelectorAll("[data-scroll]").forEach(function (button) {
+    button.classList.toggle("ui-segmented__btn--active", button.dataset.scroll === mode);
+    button.addEventListener("click", function () {
+      var next = button.dataset.scroll;
+      if (!next || next === mode) return;
+      document.cookie = "vlist-scroll-mode=" + next + "; path=/; samesite=lax";
+      var url = new URL(location.href);
+      url.searchParams.set("mode", next);
+      history.replaceState(null, "", url);
+      mode = next;
+      section.querySelectorAll("[data-scroll]").forEach(function (other) {
+        other.classList.toggle("ui-segmented__btn--active", other.dataset.scroll === next);
+      });
+      if (typeof window.__vlistSetScrollMode === "function") {
+        window.__vlistSetScrollMode(next);
+        return;
+      }
+      location.assign(url);
+    });
+  });
+})();
+</script>`;
+
+  return `<script type="module" src="${scriptPath}"></script>\n${skipLinkTarget}\n${scrollSwitch}\n${mobileSettings}`;
 }
 
 // =============================================================================

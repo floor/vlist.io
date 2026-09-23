@@ -4,7 +4,7 @@
 // Supports List, Grid and Table layout modes
 
 import { scrollbar, table, grid, selection } from "vlist";
-import { bindScrollModeSelector, factoryFor, getScrollMode } from "../../scroll-mode.js";
+import { factoryFor, getScrollMode, rememberScrollMode } from "../../scroll-mode.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -173,7 +173,6 @@ const scrollDirEl = document.getElementById("scroll-direction");
 const rangeEl = document.getElementById("visible-range");
 const sizeButtons = document.getElementById("size-buttons");
 const layoutButtons = document.getElementById("layout-buttons");
-const modeButtons = document.getElementById("mode-buttons");
 
 // Info bar right-side elements
 const infoVirtualizedEl = document.getElementById("info-virtualized");
@@ -340,17 +339,18 @@ function updateContext(count, mode) {
 // Scroll mode selector buttons
 // =============================================================================
 
-const scrollModeControl = bindScrollModeSelector(modeButtons, currentMode, (mode) => {
-  currentMode = mode;
-  createList(currentSize);
-});
-
 // 100K is the last size that still fits in a native element (100,000 × 48px).
-// A larger choice selects Synthetic. Native stays on the switch.
+// A larger choice selects Synthetic. The shell switch can turn Native back on.
 function preferSynthetic(sizeKey) {
   if (SIZES[sizeKey] <= SIZES["100k"] || currentMode === "synthetic") return;
   currentMode = "synthetic";
-  scrollModeControl.setMode("synthetic");
+  rememberScrollMode("synthetic");
+  const url = new URL(location.href);
+  url.searchParams.set("mode", "synthetic");
+  history.replaceState(null, "", url);
+  document.querySelectorAll("#example-scroll-mode [data-scroll]").forEach((button) => {
+    button.classList.toggle("ui-segmented__btn--active", button.dataset.scroll === "synthetic");
+  });
 }
 
 // =============================================================================

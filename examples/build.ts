@@ -115,6 +115,12 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       const entry = VLIST_JS_ENTRIES[args.path];
       if (!entry) return;
       const path = join(vlistDist, entry);
+      // Example scripts keep `import { createVList } from "vlist"`. The shell
+      // switch chooses native or synthetic; this wrapper reads that choice.
+      // Imports from inside vlist itself stay on the real entry.
+      if (args.path === "vlist" && !args.importer.startsWith(vlistDist)) {
+        return { path: "vlist-example-entry", namespace: "vlist-example" };
+      }
       // Optional entries (vlist/synthetic ships in 2.7) fall back to a stub that
       // delegates to core and throws only when the missing mode is requested, so
       // an older vlist (npm production, or a staging clone behind the site) still
@@ -128,6 +134,64 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       }
       return { path };
     });
+    build.onLoad({ filter: /^vlist-example-entry$/, namespace: "vlist-example" }, () => ({
+      contents: [
+        `import * as Native from ${JSON.stringify(join(vlistDist, "index.js"))};`,
+        `import { createVList as createSynthetic } from "vlist/synthetic";`,
+        `export * from ${JSON.stringify(join(vlistDist, "index.js"))};`,
+        "function exampleScrollMode() {",
+        "  if (globalThis.__VLIST_SCROLL_LOCKED) return \"native\";",
+        "  const fromUrl = new URLSearchParams(location.search).get(\"mode\");",
+        "  if (fromUrl === \"native\" || fromUrl === \"synthetic\") return fromUrl;",
+        "  const match = document.cookie.match(/(?:^|; )vlist-scroll-mode=([^;]*)/);",
+        "  const fromCookie = match ? decodeURIComponent(match[1]) : \"\";",
+        "  return fromCookie === \"synthetic\" ? \"synthetic\" : \"native\";",
+        "}",
+        "let activeList = null;",
+        "let activeConfig = null;",
+        "let activePlugins = null;",
+        "function pluginsFor(mode, plugins, snapshotPlugin) {",
+        "  const list = (Array.isArray(plugins) ? plugins : []).filter(Boolean);",
+        "  // A mode switch passes the snapshot plugin rebuild() built. Replace the",
+        "  // example's own one so restore happens once. A normal createVList keeps",
+        "  // the example's plugin — contact-list and sortable restore scroll with it.",
+        "  const base = snapshotPlugin ? list.filter((plugin) => plugin.name !== \"snapshots\") : list;",
+        "  const withSnap = snapshotPlugin ? [...base, snapshotPlugin] : base;",
+        "  if (mode !== \"synthetic\") return withSnap;",
+        "  if (withSnap.some((plugin) => plugin && plugin.name === \"scrollbar\")) return withSnap;",
+        "  return [...withSnap, Native.scrollbar({ autoHide: true })];",
+        "}",
+        "function makeList(mode, config, plugins, snapshotPlugin) {",
+        "  const next = pluginsFor(mode, plugins, snapshotPlugin);",
+        "  return mode === \"synthetic\" ? createSynthetic(config, next) : Native.createVList(config, next);",
+        "}",
+        "function track(list, config, plugins) {",
+        "  activeList = list;",
+        "  activeConfig = config;",
+        "  activePlugins = plugins;",
+        "  const destroy = list.destroy.bind(list);",
+        "  list.destroy = () => {",
+        "    if (activeList === list) activeList = null;",
+        "    destroy();",
+        "  };",
+        "  return list;",
+        "}",
+        "export function createVList(config, plugins) {",
+        "  return track(makeList(exampleScrollMode(), config, plugins), config, plugins);",
+        "}",
+        "globalThis.__vlistSetScrollMode = async (mode) => {",
+        "  if (!activeList) return false;",
+        "  const config = activeConfig;",
+        "  const plugins = activePlugins;",
+        "  const next = await Native.rebuild(activeList, (snapshotPlugin) => makeList(mode, config, plugins, snapshotPlugin));",
+        "  track(next, config, plugins);",
+        "  const items = config && Array.isArray(config.items) ? config.items : null;",
+        "  if (items && items.length > 0 && next.element.querySelectorAll(\".vlist-item\").length === 0) next.setItems(items.slice());",
+        "  return true;",
+        "};",
+      ].join("\n"),
+      loader: "js",
+    }));
     build.onLoad({ filter: /^vlist-native-unavailable$/, namespace: "vlist-optional" }, () => ({
       contents: [
         'export { createVList } from "vlist";',

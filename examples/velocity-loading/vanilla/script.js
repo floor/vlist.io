@@ -2,8 +2,8 @@
 // Demonstrates smart loading that adapts to scroll velocity
 // Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
 
-import { selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
-import { bindScrollModeSelector, factoryFor, getScrollMode } from "../../scroll-mode.js";
+import { createVList, selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
+import { getScrollMode } from "../../scroll-mode.js";
 import {
   LOAD_VELOCITY_THRESHOLD,
   TOTAL_ITEMS,
@@ -104,7 +104,6 @@ function updateContext() {
 
 // Scroll mode (?mode=native|synthetic). Synthetic by default: a million rows
 // exceed the native element size limit.
-let scrollMode = getScrollMode("synthetic");
 let list = null;
 
 // Build list — snapshots({ autoSave }) handles save/restore automatically.
@@ -119,7 +118,7 @@ function createList() {
     document.getElementById("list-container").innerHTML = "";
   }
 
-  list = factoryFor(scrollMode)(
+  list = createVList(
     {
       container: "#list-container",
       ariaLabel: "Virtual user list with velocity-based loading",
@@ -185,7 +184,7 @@ function createList() {
   });
 
   const infoModeEl = document.getElementById("info-mode");
-  if (infoModeEl) infoModeEl.textContent = scrollMode.toUpperCase();
+  if (infoModeEl) infoModeEl.textContent = getScrollMode("native").toUpperCase();
 }
 
 // =============================================================================
@@ -224,11 +223,6 @@ const btnRandom = document.getElementById("btn-random");
 const btnReload = document.getElementById("btn-reload");
 const btnResetStats = document.getElementById("btn-reset-stats");
 
-// Scroll mode selector, then the first list
-bindScrollModeSelector(document.getElementById("mode-buttons"), scrollMode, (mode) => {
-  scrollMode = mode;
-  createList();
-});
 createList();
 
 // Update button states
