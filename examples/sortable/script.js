@@ -147,6 +147,10 @@ const updateInfo = createInfoUpdater(stats);
 // Create / Recreate list
 // =============================================================================
 
+// The shell's native/synthetic switch calls this so sorting is wired to a
+// fresh plugin. Reusing the live one clears its drag state on teardown.
+globalThis.__vlistRecreate = () => createList();
+
 export function createList() {
   let snapshot = null;
   if (list) {
@@ -260,16 +264,19 @@ export function createList() {
   // Keyboard drop doesn't emit a dedicated event. The sortable feature
   // blocks keydown via stopImmediatePropagation, so we listen on keyup
   // instead — it fires after the drop has been processed.
-  container.addEventListener("keyup", (e) => {
-    if (e.key === " " || e.key === "Enter" || e.key === "Escape") {
-      queueMicrotask(() => {
-        if (!list.isSorting()) {
-          setSortState("Idle", false);
-          setControlsDisabled(false);
-        }
-      });
-    }
-  });
+  if (!container.dataset.sortKeys) {
+    container.dataset.sortKeys = "1";
+    container.addEventListener("keyup", (e) => {
+      if (e.key === " " || e.key === "Enter" || e.key === "Escape") {
+        queueMicrotask(() => {
+          if (!list.isSorting()) {
+            setSortState("Idle", false);
+            setControlsDisabled(false);
+          }
+        });
+      }
+    });
+  }
 
   updateInfo();
   updateContext();
