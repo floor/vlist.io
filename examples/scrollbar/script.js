@@ -5,6 +5,7 @@ import { createVList, scrollbar, selection, rebuild } from "vlist";
 // vlist 3.0: synthetic input is the default and has no browser scrollbar; the
 // "native" mode of this demo uses the native entry to show the real one.
 import { createVList as createNativeVList } from "vlist/native";
+import { createVList as createSyntheticVList } from "vlist/synthetic";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -150,31 +151,42 @@ const updateInfo = createInfoUpdater(stats);
 
 let listVersion = 0;
 
+export function shellIsSynthetic() {
+  const fromUrl = new URLSearchParams(location.search).get("mode");
+  if (fromUrl === "synthetic") return true;
+  if (fromUrl === "native") return false;
+  return /(?:^|; )vlist-scroll-mode=synthetic(?:;|$)/.test(document.cookie);
+}
+
+function scrollbarPlugin() {
+  return scrollbar({
+    autoHide,
+    autoHideDelay,
+    gutter: gutterEnabled,
+    showOnHover,
+    showOnViewportEnter,
+    padding: { top: paddingY, right: paddingX, bottom: paddingY, left: paddingX },
+    clickBehavior,
+    minThumbSize,
+    width,
+    radius,
+  });
+}
+
 export async function createList() {
   const version = ++listVersion;
 
-  // "native": the browser scrollbar from the native entry. "custom": the plugin
-  // on synthetic input. "none": synthetic input with no scrollbar at all.
-  const factory = mode === "native" ? createNativeVList : createVList;
+  // "native" is the browser bar. The shell disables that choice while Synthetic
+  // is selected. "none" stays synthetic with no bar.
+  const factory = mode === "none"
+    ? createSyntheticVList
+    : mode === "native"
+      ? createNativeVList
+      : createVList;
 
   const newList = await rebuild(list, (snap) => {
     const plugins = [];
-    if (mode === "custom") {
-      plugins.push(
-        scrollbar({
-          autoHide,
-          autoHideDelay,
-          gutter: gutterEnabled,
-          showOnHover,
-          showOnViewportEnter,
-          padding: { top: paddingY, right: paddingX, bottom: paddingY, left: paddingX },
-          clickBehavior,
-          minThumbSize,
-          width,
-          radius,
-        }),
-      );
-    }
+    if (mode === "custom") plugins.push(scrollbarPlugin());
 
     plugins.push(selection());
     plugins.push(snap);
