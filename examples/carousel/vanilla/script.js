@@ -239,6 +239,10 @@ function onReady(l) {
   if (infoVariantEl) infoVariantEl.textContent = currentVariant;
 }
 
+// The shell's native/synthetic switch calls this so the carousel is built
+// again with a fresh plugin, instead of reusing the one on screen.
+globalThis.__vlistRecreate = () => createList();
+
 async function createList() {
   items = getItems(currentVariant);
   imagesPreloaded = false;
