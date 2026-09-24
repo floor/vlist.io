@@ -15,7 +15,7 @@
     cursor: grab;
 }
 
-#list-container .vlist--sorting .vlist-item {
+#list-container .vlist--sorting:not(.vlist--scrolling) .vlist-item {
     transition: transform 0.15s ease;
 }
 
