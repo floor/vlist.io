@@ -408,19 +408,25 @@ function zoom() {
   // the reference and produced a gap the viewport offset could not explain.
   // The sortable plugin ignores pointers other than the one it is dragging
   // with, so the page must too, or it measures its own error.
-  let fingerX = 0, fingerY = 0, fingerId = null, fingerPage = "";
+  let fingerX = NaN, fingerY = NaN, fingerId = null, fingerPage = "", moves = 0;
   let pointersDown = 0, maxPointersDown = 0;
   let worst = null;
   host.addEventListener("pointerdown", (e) => {
     pointersDown++; maxPointersDown = Math.max(maxPointersDown, pointersDown);
-    if (e.isPrimary && fingerId === null) fingerId = e.pointerId;
+    if (e.isPrimary && fingerId === null) {
+      fingerId = e.pointerId;
+      // A new press: forget the last gesture's position. The first report of
+      // this card compared a fresh ghost against the finger's position from
+      // the scroll before the drag, and called it a 582 px gap.
+      fingerX = NaN; fingerY = NaN; fingerPage = ""; moves = 0;
+    }
   }, { passive: true });
   const release = (e) => { pointersDown = Math.max(0, pointersDown - 1); if (e.pointerId === fingerId) fingerId = null; };
   host.addEventListener("pointerup", release, { passive: true });
   host.addEventListener("pointercancel", release, { passive: true });
   host.addEventListener("pointermove", (e) => {
     if (fingerId !== null && e.pointerId !== fingerId) return;
-    fingerX = e.clientX; fingerY = e.clientY;
+    fingerX = e.clientX; fingerY = e.clientY; moves++;
     fingerPage = `${Math.round(e.pageX)},${Math.round(e.pageY)}`;
   }, { passive: true });
 
@@ -428,8 +434,15 @@ function zoom() {
     if (!dragging) return;
     const ghost = document.querySelector(".vlist-sort-ghost");
     const v = vv();
-    if (ghost && fingerY) {
+    // Only after the finger has moved in this drag: at sort:start there is
+    // nothing yet to compare the ghost against.
+    if (ghost && moves > 0 && Number.isFinite(fingerY)) {
       const r = ghost.getBoundingClientRect();
+      // The row being dragged is an ordinary element; its rect and the ghost's
+      // are in the same space, so the two together say whether the ghost sits
+      // where the row is, whatever the pointer's space turns out to be.
+      const row = host.querySelector(".vlist-item--drag-source");
+      const rr = row ? row.getBoundingClientRect() : null;
       // The finger should be inside the row it is dragging. Measure how far
       // outside it is, on each axis, and keep the worst.
       const dy = fingerY < r.top ? r.top - fingerY : fingerY > r.bottom ? fingerY - r.bottom : 0;
@@ -442,7 +455,8 @@ function zoom() {
         // same coordinate space afterwards, frozen at the worst moment.
         worst = `finger client ${Math.round(fingerX)},${Math.round(fingerY)} page ${fingerPage}`
           + ` · ghost ${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}×${Math.round(r.height)}`
-          + ` inline ${ghost.style.left},${ghost.style.top}`
+          + ` inline ${ghost.style.left},${ghost.style.top} ${ghost.style.position}`
+          + (rr ? ` · dragged row ${Math.round(rr.left)},${Math.round(rr.top)}` : " · dragged row not found")
           + (v ? ` · vv scale ${v.scale.toFixed(2)} offset ${Math.round(v.offsetLeft)},${Math.round(v.offsetTop)} size ${Math.round(v.width)}×${Math.round(v.height)}` : " · no visualViewport")
           + ` · window scroll ${Math.round(window.scrollX)},${Math.round(window.scrollY)}`
           + ` · pointers down now ${pointersDown}, most ${maxPointersDown}`;

@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
 import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
-import { SITE, IS_PROD, VLIST_VERSION, SITE_VERSION } from "./config";
+import { SITE, IS_PROD, VLIST_VERSION, ASSET_VERSION } from "./config";
 import {
   loadShell,
   loadNavigation,
@@ -413,7 +413,7 @@ function buildExtraHead(
   const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));
   if (existsSync(sharedCssPath)) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/examples/${slug}/styles.css?v=${SITE_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/examples/${slug}/styles.css?v=${ASSET_VERSION}" />`,
     );
   }
 
@@ -424,7 +424,7 @@ function buildExtraHead(
     );
     if (existsSync(variantCssPath)) {
       tags.push(
-        `<link rel="stylesheet" href="/dist/examples/${slug}/${variant}/styles.css?v=${SITE_VERSION}" />`,
+        `<link rel="stylesheet" href="/dist/examples/${slug}/${variant}/styles.css?v=${ASSET_VERSION}" />`,
       );
     }
   }
@@ -441,8 +441,8 @@ function buildExtraBody(
 
   // Script path — check variant subdirectory first
   const scriptPath = variant
-    ? `/dist/examples/${slug}/${variant}/script.js?v=${SITE_VERSION}`
-    : `/dist/examples/${slug}/script.js?v=${SITE_VERSION}`;
+    ? `/dist/examples/${slug}/${variant}/script.js?v=${ASSET_VERSION}`
+    : `/dist/examples/${slug}/script.js?v=${ASSET_VERSION}`;
 
   // When the skip link is activated, focus the actual .vlist element inside #list-container
   const skipLinkTarget = `<script>
@@ -584,7 +584,7 @@ function assemblePage(
     CONTENT: content,
 
     // Styles & scripts
-    EXTRA_STYLES: `<link rel="stylesheet" href="/dist/examples/styles.css?v=${SITE_VERSION}" />`,
+    EXTRA_STYLES: `<link rel="stylesheet" href="/dist/examples/styles.css?v=${ASSET_VERSION}" />`,
     EXTRA_HEAD: buildExtraHead(slug, example, variant),
     EXTRA_BODY: buildExtraBody(slug, example, variant),
     MAIN_CLASS: "",

@@ -54,3 +54,24 @@ export const SITE_VERSION = (() => {
     return "0.0.0";
   }
 })();
+
+/**
+ * The deploy's git commit, short. Example and benchmark bundles are served
+ * `immutable` for a year under a `?v=` key; keyed on SITE_VERSION alone, a
+ * bundle rebuilt by a push to `next` stayed invisible on any phone that had
+ * visited the page before, until the site version moved (2026-09-25: the
+ * phone-pass card was re-run twice against a stale bundle). The deploy
+ * script checks out the commit with git, so the commit is on the server.
+ */
+export const BUILD_ID = (() => {
+  try {
+    const out = Bun.spawnSync(["git", "rev-parse", "--short", "HEAD"], { cwd: ROOT });
+    const sha = out.stdout.toString().trim();
+    return /^[0-9a-f]{7,}$/.test(sha) ? sha : "";
+  } catch {
+    return "";
+  }
+})();
+
+/** Cache key for built example and benchmark assets: site version plus the deploy's commit. */
+export const ASSET_VERSION = BUILD_ID ? `${SITE_VERSION}-${BUILD_ID}` : SITE_VERSION;
