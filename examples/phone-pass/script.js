@@ -398,12 +398,31 @@ function zoom() {
 
   const reorder = wireReorder(list, rows(40));
 
-  list.on("sort:start", () => { dragging = true; worstGap = 0; worstOffset = 0; sample(); });
+  list.on("sort:start", () => { dragging = true; worstGap = 0; worstOffset = 0; worst = null; maxPointersDown = pointersDown; sample(); });
   list.on("sort:end", ({ fromIndex, toIndex }) => { reorder(fromIndex, toIndex); dragging = false; settle(); });
   list.on("sort:cancel", () => { dragging = false; settle(); });
 
-  let fingerX = 0, fingerY = 0;
-  host.addEventListener("pointermove", (e) => { fingerX = e.clientX; fingerY = e.clientY; }, { passive: true });
+  // Only the pointer that pressed the row counts as "the finger". The first
+  // run of this card took every pointermove on the host, so a second finger
+  // resting on the glass -- or the pinch itself, re-adjusted mid-drag -- became
+  // the reference and produced a gap the viewport offset could not explain.
+  // The sortable plugin ignores pointers other than the one it is dragging
+  // with, so the page must too, or it measures its own error.
+  let fingerX = 0, fingerY = 0, fingerId = null, fingerPage = "";
+  let pointersDown = 0, maxPointersDown = 0;
+  let worst = null;
+  host.addEventListener("pointerdown", (e) => {
+    pointersDown++; maxPointersDown = Math.max(maxPointersDown, pointersDown);
+    if (e.isPrimary && fingerId === null) fingerId = e.pointerId;
+  }, { passive: true });
+  const release = (e) => { pointersDown = Math.max(0, pointersDown - 1); if (e.pointerId === fingerId) fingerId = null; };
+  host.addEventListener("pointerup", release, { passive: true });
+  host.addEventListener("pointercancel", release, { passive: true });
+  host.addEventListener("pointermove", (e) => {
+    if (fingerId !== null && e.pointerId !== fingerId) return;
+    fingerX = e.clientX; fingerY = e.clientY;
+    fingerPage = `${Math.round(e.pageX)},${Math.round(e.pageY)}`;
+  }, { passive: true });
 
   function sample() {
     if (!dragging) return;
@@ -419,6 +438,14 @@ function zoom() {
       if (gap > worstGap) {
         worstGap = gap;
         worstOffset = v ? Math.max(Math.abs(v.offsetLeft), Math.abs(v.offsetTop)) : 0;
+        // Everything a reader needs to place the ghost and the finger in the
+        // same coordinate space afterwards, frozen at the worst moment.
+        worst = `finger client ${Math.round(fingerX)},${Math.round(fingerY)} page ${fingerPage}`
+          + ` · ghost ${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}×${Math.round(r.height)}`
+          + ` inline ${ghost.style.left},${ghost.style.top}`
+          + (v ? ` · vv scale ${v.scale.toFixed(2)} offset ${Math.round(v.offsetLeft)},${Math.round(v.offsetTop)} size ${Math.round(v.width)}×${Math.round(v.height)}` : " · no visualViewport")
+          + ` · window scroll ${Math.round(window.scrollX)},${Math.round(window.scrollY)}`
+          + ` · pointers down now ${pointersDown}, most ${maxPointersDown}`;
         set("zo-gap", `${Math.round(worstGap)} px`, worstGap > 8 ? "bad" : "good");
         // Within a few pixels of the visual viewport's own offset is the
         // signature of the layout/visual viewport split, rather than some
@@ -438,7 +465,8 @@ function zoom() {
     const zoomed = (vv()?.scale ?? 1) > 1.05;
     mark("zoom", worstGap <= 8,
       `${zoomed ? "zoomed" : "unzoomed"} ${(vv()?.scale ?? 1).toFixed(2)}×, worst finger-to-row gap ${Math.round(worstGap)} px` +
-      (explained === true ? ", matching the visual viewport offset" : explained === false ? ", not explained by the viewport offset" : ""));
+      (explained === true ? ", matching the visual viewport offset" : explained === false ? ", not explained by the viewport offset" : "") +
+      (worst && worstGap > 8 ? `\n      at worst: ${worst}` : ""));
   }
 
   return list;
