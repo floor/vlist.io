@@ -485,8 +485,13 @@ function zoom() {
   }
 
   function settle() {
-    if (worstGap === 0) return;
+    // A drag that never left the finger has a worst gap of 0 -- that is the
+    // pass, not "nothing to report". The first correct run of this card on an
+    // iPhone showed "not run" for exactly that reason. Only a drag with no
+    // move at all has nothing to judge.
+    if (moves === 0) return;
     const zoomed = (vv()?.scale ?? 1) > 1.05;
+    if (!zoomed) { set("zo-explains", "drag was not zoomed — pinch first", "warn"); return; }
     mark("zoom", worstGap <= 8,
       `${zoomed ? "zoomed" : "unzoomed"} ${(vv()?.scale ?? 1).toFixed(2)}×, worst finger-to-row gap ${Math.round(worstGap)} px` +
       (explained === true ? ", matching the visual viewport offset" : explained === false ? ", not explained by the viewport offset" : "") +
