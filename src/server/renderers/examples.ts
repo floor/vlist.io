@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
 import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
-import { SITE, IS_PROD, VLIST_VERSION, ASSET_VERSION } from "./config";
+import { SITE, IS_PROD, vlistVersion, ASSET_VERSION } from "./config";
 import {
   loadShell,
   loadNavigation,
@@ -374,38 +374,38 @@ function buildExtraHead(
 
   // vlist styles — always needed for examples
   tags.push(
-    `<link rel="stylesheet" href="/dist/vlist.css?v=${VLIST_VERSION}" />`,
+    `<link rel="stylesheet" href="/dist/vlist.css?v=${vlistVersion()}" />`,
   );
 
   // Plugin-specific styles
   if (example?.plugins?.includes("table")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-table.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-table.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("grid")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-grid.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-grid.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("masonry")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-masonry.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-masonry.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("tree")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-tree.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-tree.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("search")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-search.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-search.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("carousel")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-carousel.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-carousel.css?v=${vlistVersion()}" />`,
     );
   }
 

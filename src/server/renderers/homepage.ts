@@ -5,7 +5,7 @@ import { Eta } from "eta";
 import { join, resolve } from "path";
 import { readFileSync, existsSync } from "fs";
 
-import { SITE, IS_PROD } from "./config";
+import { SITE, IS_PROD, vlistVersion } from "./config";
 import { VLIST_ROOT } from "../config";
 import { htmlHeaders } from "../cache";
 
@@ -79,7 +79,6 @@ const QUICKSTART_CODE = `<span class="kw">import</span> { <span class="fn">creat
 let templateCache: string | null = null;
 let navCache: NavItem[] | null = null;
 let exampleGroupsCache: ExampleGroup[] | null = null;
-let versionCache: string | null = null;
 let bundleSizeCache: string | null = null;
 let pageCache: string | null = null;
 
@@ -110,17 +109,7 @@ function loadExampleGroups(): ExampleGroup[] {
 }
 
 function loadVersion(): string {
-  if (!versionCache && VLIST_ROOT) {
-    try {
-      const pkgPath = resolve(VLIST_ROOT, "package.json");
-      const pkgData = readFileSync(pkgPath, "utf-8");
-      const pkg = JSON.parse(pkgData);
-      versionCache = pkg.version || "1.0.0";
-    } catch {
-      versionCache = "1.0.0";
-    }
-  }
-  return versionCache || "1.0.0";
+  return vlistVersion();
 }
 
 function loadBundleSize(): string {
@@ -226,7 +215,6 @@ export function clearCache(): void {
   templateCache = null;
   navCache = null;
   exampleGroupsCache = null;
-  versionCache = null;
   bundleSizeCache = null;
   pageCache = null;
 }

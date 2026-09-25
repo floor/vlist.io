@@ -1,7 +1,7 @@
 // src/server/config.ts
 // Server-wide constants and package resolution.
 
-import { existsSync, realpathSync, readFileSync } from "fs";
+import { existsSync, realpathSync, readFileSync, statSync } from "fs";
 import { join, resolve } from "path";
 
 /** True when running on production/staging servers (Linux + NODE_ENV=production).
@@ -33,17 +33,35 @@ function resolvePackagePath(packageName: string): string | null {
 export const VLIST_ROOT = resolvePackagePath("vlist");
 
 /** vlist package version — used as cache-buster for library CSS. */
-export const VLIST_VERSION = (() => {
-  if (!VLIST_ROOT) return "0.0.0";
+/**
+ * The version of the vlist the site actually serves. Read from the built
+ * bundle's stamp (`dist/version.json`, written by vlist's build) when it
+ * exists, else from the package's package.json -- and re-read whenever that
+ * file changes, so a rebuilt or relinked vlist shows without a restart. The
+ * homepage badge read this once at startup and said next.3 for a week of
+ * next.4 and next.5 bundles.
+ */
+const versionSource = (): string | null => {
+  if (!VLIST_ROOT) return null;
+  const stamp = join(VLIST_ROOT, "dist", "version.json");
+  return existsSync(stamp) ? stamp : join(VLIST_ROOT, "package.json");
+};
+let versionCache: { path: string; mtimeMs: number; value: string } | null = null;
+export const vlistVersion = (): string => {
+  const path = versionSource();
+  if (!path) return "0.0.0";
   try {
-    const pkg = JSON.parse(
-      readFileSync(join(VLIST_ROOT, "package.json"), "utf-8"),
-    );
-    return pkg.version ?? "0.0.0";
+    const mtimeMs = statSync(path).mtimeMs;
+    if (versionCache && versionCache.path === path && versionCache.mtimeMs === mtimeMs) return versionCache.value;
+    const value = (JSON.parse(readFileSync(path, "utf-8")).version as string | undefined) ?? "0.0.0";
+    versionCache = { path, mtimeMs, value };
+    return value;
   } catch {
-    return "0.0.0";
+    return versionCache?.value ?? "0.0.0";
   }
-})();
+};
+/** @deprecated read at import time; use vlistVersion() so a rebuilt vlist is seen without a restart. */
+export const VLIST_VERSION = vlistVersion();
 
 /** vlist.io site version — used as cache-buster for example JS/CSS. */
 export const SITE_VERSION = (() => {
