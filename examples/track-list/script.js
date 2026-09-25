@@ -13,6 +13,8 @@ import {
   transition,
 } from "vlist";
 import * as vlistNative from "vlist/native";
+// vlist 3 keeps native scrolling as the default; huge lists opt into synthetic input.
+import * as vlistSynthetic from "vlist/synthetic";
 
 // vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
 // bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
@@ -50,8 +52,7 @@ let list = null;
 let totalTracks = 0;
 let currentSelectionMode = "single";
 let currentLayoutMode = "list";
-// 3.0 synthetic input has no browser scrollbar, so the custom one starts on.
-let currentScrollbarEnabled = VLIST3;
+let currentScrollbarEnabled = false;
 let currentBoundedEnabled = false;
 let currentFocusOnClick = false;
 let loadRequests = 0;
@@ -148,12 +149,9 @@ const updateInfo = createInfoUpdater(stats);
 // Layout
 const layoutModeEl = document.getElementById("layout-mode");
 const scrollbarToggle = document.getElementById("scrollbar-toggle");
-if (VLIST3 && scrollbarToggle) scrollbarToggle.checked = true;
 const boundedToggle = document.getElementById("bounded-toggle");
 if (VLIST3 && boundedToggle) {
-  boundedToggle.checked = false;
-  boundedToggle.disabled = true;
-  boundedToggle.title = "Removed in vlist 3.0: synthetic input handles large lists";
+  boundedToggle.title = "vlist 3.0: switches this list to synthetic input (vlist/synthetic)";
 }
 const focusOnClickToggle = document.getElementById("focus-on-click-toggle");
 
@@ -162,6 +160,10 @@ const selectionModeEl = document.getElementById("selection-mode");
 const btnSelectAll = document.getElementById("btn-select-all");
 const btnClear = document.getElementById("btn-clear");
 const selectionCountEl = document.getElementById("selection-count");
+
+// Navigation
+const btnSelectPrev = document.getElementById("btn-select-prev");
+const btnSelectNext = document.getElementById("btn-select-next");
 
 // Actions
 const btnAddTrack = document.getElementById("btn-add-track");
@@ -257,6 +259,10 @@ function applyScrollbar(plugins) {
 const boundedScroll = () =>
   !VLIST3 && currentBoundedEnabled ? { scroll: { mode: "bounded" } } : {};
 
+// 3.0 has no bounded mode: the same toggle selects the synthetic input entry.
+const listFactory = () =>
+  VLIST3 && currentBoundedEnabled ? vlistSynthetic.createVList : createVList;
+
 // =============================================================================
 // List View (default — vertical list with 80px rows)
 // =============================================================================
@@ -270,7 +276,7 @@ function createListView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = createVList(
+  list = listFactory()(
     {
       container: "#list-container",
       ariaLabel: "Track list",
@@ -304,7 +310,7 @@ function createGridView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = createVList(
+  list = listFactory()(
     {
       container: "#list-container",
       ariaLabel: "Track list",
@@ -349,7 +355,7 @@ function createTableView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = createVList(
+  list = listFactory()(
     {
       container: "#list-container",
       ariaLabel: "Track list",
@@ -497,6 +503,14 @@ btnSelectAll.addEventListener("click", () => {
 
 btnClear.addEventListener("click", () => {
   list.clearSelection();
+});
+
+btnSelectPrev.addEventListener("click", () => {
+  list.selectPrevious();
+});
+
+btnSelectNext.addEventListener("click", () => {
+  list.selectNext();
 });
 
 function updateSelectionCount(selected) {

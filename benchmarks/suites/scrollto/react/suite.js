@@ -6,6 +6,7 @@
 
 import { createRoot } from "react-dom/client";
 import { useVList } from "vlist-react";
+import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -24,13 +25,14 @@ import { measureScrollToPerformance } from "../../../engine/scrollto.js";
 
 let listApiRef = null;
 
-function BenchmarkList({ items, target }) {
+function BenchmarkList({ items, target, factory }) {
   const vlistApi = useVList({
     items,
     item: {
       height: ITEM_HEIGHT,
       template: benchmarkTemplate,
     },
+    ...(factory ? { factory } : {}),
   });
 
   vlistApi.containerRef.current = target;
@@ -127,5 +129,48 @@ defineSuite({
         rating: rateLower(result.max, goodThreshold * 2, okThreshold * 2),
       },
     ];
+  },
+});
+
+if (__BENCH_HAS_SYNTHETIC__) defineSuite({
+  id: "scrollto-synthetic-react",
+  name: "scrollToIndex (React)",
+  description: "Latency of scrollToIndex() in synthetic mode, through the React adapter",
+  icon: "🎯",
+  run: async ({ itemCount, container, onStatus }) => {
+    const items = generateItems(itemCount);
+    container.innerHTML = "";
+    listApiRef = null;
+    const root = createRoot(container);
+    root.render(<BenchmarkList items={items} target={container} factory={createSynthetic} />);
+    try {
+      await waitFrames(15);
+      const viewport = findViewport(container);
+      const instance = listApiRef?.getInstance();
+      const content = container.querySelector(".vlist-content");
+      if (!viewport || !instance) throw new Error("Could not get the synthetic React list");
+      const result = await measureScrollToPerformance({
+        viewport,
+        scrollToFn: (index, align) => instance.scrollToIndex(index, align),
+        readPosition: () => instance.getScrollPosition(),
+        itemCount,
+        onStatus,
+      });
+      if (viewport.scrollTop !== 0 || content.scrollTop !== 0) {
+        throw new Error("Synthetic scrollToIndex moved a native main-axis scroll offset");
+      }
+      const goodThreshold = itemCount <= 100_000 ? 500 : 700;
+      const okThreshold = itemCount <= 100_000 ? 1000 : 1400;
+      return [
+        { label: "Median", value: result.median, unit: "ms", better: "lower", rating: rateLower(result.median, goodThreshold, okThreshold) },
+        { label: "Min", value: result.min, unit: "ms", better: "lower", rating: rateLower(result.min, goodThreshold, okThreshold) },
+        { label: "p95", value: result.p95, unit: "ms", better: "lower", rating: rateLower(result.p95, goodThreshold * 1.5, okThreshold * 1.5) },
+        { label: "Max", value: result.max, unit: "ms", better: "lower", rating: rateLower(result.max, goodThreshold * 2, okThreshold * 2) },
+      ];
+    } finally {
+      root.unmount();
+      container.innerHTML = "";
+      listApiRef = null;
+    }
   },
 });

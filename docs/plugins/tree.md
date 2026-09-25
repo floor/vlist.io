@@ -1,6 +1,6 @@
 ---
 created: 2026-05-29
-updated: 2026-05-29
+updated: 2026-09-16
 status: published
 rfc: RFC-007
 ---
@@ -200,12 +200,11 @@ ArrowDown/Up/Home/End are handled by the `selection` or `a11y` plugin when prese
 |--------|-------------|
 | **selection** | Works — selection operates on the flat visible list |
 | **scrollbar** | Works |
-| **scale** | Works — compression-aware render pipeline |
 | **autosize** | Works |
 | **snapshots** | Works |
 | **grid, masonry, table** | Conflict — tree is a list layout |
 | **groups** | Conflict — tree manages its own hierarchy |
-| **data** | Conflict — use `loadChildren` for async tree data |
+| **data** | Conflict — creating a list with both throws; use `loadChildren` for async tree data |
 
 ## Notes
 

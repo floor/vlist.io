@@ -1,6 +1,6 @@
 ---
 created: 2026-02-14
-updated: 2026-05-28
+updated: 2026-09-16
 status: published
 ---
 
@@ -83,24 +83,27 @@ window.addEventListener("resize", updateColumns);
 
 ## Large datasets
 
-Combine with [scale](/docs/plugins/scale) for grids with 1M+ items. Compression is handled automatically — range calculation and item positioning switch to viewport-relative mode when the total content height exceeds the browser limit.
+Native content stops at the browser's element size limit, about 16 million pixels. For grids past it, import `createVList` from `vlist/synthetic`; the grid positions rows relative to the scroll origin, so no extra plugin is needed.
 
 ```ts
+import { createVList } from "vlist/synthetic";
+import { grid, scrollbar } from "vlist";
+
 const list = createVList({
   container: "#app",
   item: { height: 120, template: renderCard },
   items: millionItems,
-}, [grid({ columns: 4, gap: 8 }), scale(), scrollbar()]);
+}, [grid({ columns: 4, gap: 8 }), scrollbar()]);
 ```
 
 ## Notes
 
 - Keyboard nav: arrows move in 2D (left/right between columns, up/down between rows)
-- Works with scale plugin for 1M+ item grids
+- Works with `vlist/synthetic` for grids past the browser size limit
 - Conflicts with: masonry, table
 
 ## Examples
 
 - [Photo Album](/examples/photo-album) — responsive gallery with grid and masonry toggle
-- [Large Dataset](/examples/large-list) — 1M+ items with grid + scale compression
+- [Large Dataset](/examples/large-list) — 1M+ items with native and synthetic input
 - [File Browser](/examples/file-browser) — Finder-like grid and table views

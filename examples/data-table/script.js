@@ -43,7 +43,7 @@ export let searchQuery = "";
 export let filterContinent = "";
 export let loadRequests = 0;
 export let loadedCount = 0;
-export let useCustomScrollbar = false;
+export let useCustomScrollbar = true;
 export let useGroups = true;
 
 export function setUseGroups(v) {

@@ -297,7 +297,7 @@ The search bar displays a match counter:
 | **scale** | Works — compression recalculates after filter |
 | **grid** | Works — grid re-renders with filtered items |
 | **table** | Works — Phase 2 adds column-aware search |
-| **tree** | Works — delegates to `filterTree()` with ancestor preservation |
+| **tree** | Not supported as of 3.0 — `search()` declares a conflict with `tree()`. `filterTree()` was specified here and in RFC-007 but never implemented, so the delegation described below has never run. |
 | **groups** | Works — filter mode preserves group structure (groups with no matches collapse) |
 | **data** | Phase 2 — server-side search integration |
 | **autosize** | Works — measurements apply to filtered items |

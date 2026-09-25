@@ -1,9 +1,10 @@
 // Sortable — Drag-and-drop reordering
 // Demonstrates sortable plugin with configurable drag handles
 
-// vlist 3.0: drag-and-drop reordering needs the native entry.
-import { createVList } from "vlist/native";
-import { sortable, selection, snapshots } from "vlist";
+// Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
+// On touch, a long press starts a drag; with the handle grip, the handle drags.
+import { createVList, sortable, selection, snapshots } from "vlist";
+import { getScrollMode } from "../scroll-mode.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 
@@ -93,6 +94,7 @@ export let list = null;
 export let useHandle = false;
 export let moveCount = 0;
 
+
 export function setUseHandle(v) {
   useHandle = v;
 }
@@ -144,6 +146,10 @@ const updateInfo = createInfoUpdater(stats);
 // =============================================================================
 // Create / Recreate list
 // =============================================================================
+
+// The shell's native/synthetic switch calls this so sorting is wired to a
+// fresh plugin. Reusing the live one clears its drag state on teardown.
+globalThis.__vlistRecreate = () => createList();
 
 export function createList() {
   let snapshot = null;
@@ -258,16 +264,19 @@ export function createList() {
   // Keyboard drop doesn't emit a dedicated event. The sortable feature
   // blocks keydown via stopImmediatePropagation, so we listen on keyup
   // instead — it fires after the drop has been processed.
-  container.addEventListener("keyup", (e) => {
-    if (e.key === " " || e.key === "Enter" || e.key === "Escape") {
-      queueMicrotask(() => {
-        if (!list.isSorting()) {
-          setSortState("Idle", false);
-          setControlsDisabled(false);
-        }
-      });
-    }
-  });
+  if (!container.dataset.sortKeys) {
+    container.dataset.sortKeys = "1";
+    container.addEventListener("keyup", (e) => {
+      if (e.key === " " || e.key === "Enter" || e.key === "Escape") {
+        queueMicrotask(() => {
+          if (!list.isSorting()) {
+            setSortState("Idle", false);
+            setControlsDisabled(false);
+          }
+        });
+      }
+    });
+  }
 
   updateInfo();
   updateContext();
@@ -321,9 +330,11 @@ function setControlsDisabled(disabled) {
 
 // Footer context
 const infoHandle = document.getElementById("info-handle");
+const infoMode = document.getElementById("info-mode");
 
 export function updateContext() {
   if (infoHandle) infoHandle.textContent = useHandle ? "handle" : "free";
+  if (infoMode) infoMode.textContent = getScrollMode("native").toUpperCase();
   const container = document.getElementById("list-container");
   if (container) {
     container.setAttribute("data-grip", useHandle ? "handle" : "free");

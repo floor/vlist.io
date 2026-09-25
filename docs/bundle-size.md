@@ -1,6 +1,6 @@
 ---
 created: 2026-02-12
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -13,25 +13,28 @@ All measurements are for ESM output with minification enabled. Gzipped delta is 
 | Plugin | Minified | Gzipped | Delta |
 |--------|----------|---------|-------|
 | Base (`createVList`) | {{size:base:min}} KB | {{size:base:gz}} KB | — |
+| `vlist/synthetic` entry | {{size:synthetic:min}} KB | {{size:synthetic:gz}} KB | +{{size:synthetic:delta}} KB |
 | a11y | {{size:a11y:min}} KB | {{size:a11y:gz}} KB | +{{size:a11y:delta}} KB |
 | selection | {{size:selection:min}} KB | {{size:selection:gz}} KB | +{{size:selection:delta}} KB |
 | data | {{size:data:min}} KB | {{size:data:gz}} KB | +{{size:data:delta}} KB |
 | scrollbar | {{size:scrollbar:min}} KB | {{size:scrollbar:gz}} KB | +{{size:scrollbar:delta}} KB |
 | sortable | {{size:sortable:min}} KB | {{size:sortable:gz}} KB | +{{size:sortable:delta}} KB |
 | groups | {{size:groups:min}} KB | {{size:groups:gz}} KB | +{{size:groups:delta}} KB |
-| scale | — | — | no-op stub (deprecated, removed in 3.0) |
 | page | {{size:page:min}} KB | {{size:page:gz}} KB | +{{size:page:delta}} KB |
 | snapshots | {{size:snapshots:min}} KB | {{size:snapshots:gz}} KB | +{{size:snapshots:delta}} KB |
 | transition | {{size:transition:min}} KB | {{size:transition:gz}} KB | +{{size:transition:delta}} KB |
 | autosize | {{size:autosize:min}} KB | {{size:autosize:gz}} KB | +{{size:autosize:delta}} KB |
+| search | {{size:search:min}} KB | {{size:search:gz}} KB | +{{size:search:delta}} KB |
+| carousel | {{size:carousel:min}} KB | {{size:carousel:gz}} KB | +{{size:carousel:delta}} KB |
 | **Layout** | | | |
 | grid | {{size:grid:min}} KB | {{size:grid:gz}} KB | +{{size:grid:delta}} KB |
 | table | {{size:table:min}} KB | {{size:table:gz}} KB | +{{size:table:delta}} KB |
 | masonry | {{size:masonry:min}} KB | {{size:masonry:gz}} KB | +{{size:masonry:delta}} KB |
+| tree | {{size:tree:min}} KB | {{size:tree:gz}} KB | +{{size:tree:delta}} KB |
 
 ## Tree-Shaking
 
-Only imported plugins are bundled. Dead code elimination has been verified for all 13 plugins.
+Only imported plugins are bundled. Dead code elimination has been verified for all 16 plugins.
 
 Example: importing only `createVList` + `selection` produces a **{{size:selection:gz}} KB** gzipped bundle — no cost for unused plugins.
 

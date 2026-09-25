@@ -7,6 +7,7 @@
 // comparison benchmarks use the exact same methodology as suite benchmarks.
 
 import { createVList } from "vlist";
+import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   benchmarkTemplate,
   nextFrame,
@@ -20,6 +21,7 @@ import {
 
 // Engine modules — single source of truth for measurement methodology
 import { findViewport } from "../engine/viewport.js";
+import { scrollCapturePlugin } from "../engine/logical-scroll.js";
 import { measureRenderPerformance } from "../engine/render.js";
 import { measureScrollRun } from "../engine/scroll.js";
 import { measureMemoryWithRetries } from "../engine/memory.js";
@@ -209,11 +211,25 @@ export const benchmarkVList = async (
   itemCount,
   onStatus,
   stressMs = 0,
+  mode = "native",
 ) => {
-  onStatus("Testing vlist - preparing...");
+  const synthetic = mode === "synthetic";
+  const vlistName = synthetic ? "vlist synthetic" : "vlist";
+  onStatus(`Testing ${vlistName} - preparing...`);
 
   // Generate minimal items array with id property (required by vlist dev check)
   const items = Array.from({ length: itemCount }, (_, i) => ({ id: i }));
+  let write;
+  const create = (target) => {
+    const config = {
+      container: target,
+      overscan: VLIST_OVERSCAN,
+      item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
+      items,
+    };
+    if (!synthetic) return createVList(config);
+    return createSynthetic(config, [scrollCapturePlugin((set) => { write = set; })]);
+  };
 
   // ── Phase 1: TIMING ────────────────────────────────────────────────────
   // Uses the unified engine: 2 warmup + 7 measured iterations, median reported.
@@ -222,20 +238,10 @@ export const benchmarkVList = async (
 
   const renderResult = await measureRenderPerformance({
     container,
-    createFn: async (c) => {
-      return createVList({
-        container: c,
-        overscan: VLIST_OVERSCAN,
-        item: {
-          height: ITEM_HEIGHT,
-          template: benchmarkTemplate,
-        },
-        items,
-      });
-    },
+    createFn: async (c) => create(c),
     destroyFn: (list) => list.destroy(),
-    label: "vlist",
-    onStatus: (msg) => onStatus(`Testing vlist - ${msg.toLowerCase()}`),
+    label: vlistName,
+    onStatus: (msg) => onStatus(`Testing ${vlistName} - ${msg.toLowerCase()}`),
   });
 
   // ── Phase 2: MEMORY ────────────────────────────────────────────────────
@@ -243,22 +249,13 @@ export const benchmarkVList = async (
   // readings is used; null only when ALL attempts fail.
   // The last attempt's instance is kept alive for Phase 3 (scroll).
 
+  write = null;
   const { memoryUsedMB, instance: list } = await measureMemoryWithRetries({
     container,
-    createFn: () => {
-      return createVList({
-        container,
-        overscan: VLIST_OVERSCAN,
-        item: {
-          height: ITEM_HEIGHT,
-          template: benchmarkTemplate,
-        },
-        items,
-      });
-    },
+    createFn: () => create(container),
     destroyFn: (l) => l.destroy(),
     onStatus,
-    label: "vlist",
+    label: vlistName,
   });
 
   // ── Phase 3: SCROLL ────────────────────────────────────────────────────
@@ -277,10 +274,11 @@ export const benchmarkVList = async (
 
   for (const speed of COMPARISON_SCROLL_SPEEDS) {
     const stressLabel = stressMs > 0 ? ` (stress ${stressMs}ms)` : "";
-    onStatus(`Testing vlist - scrolling ${speed.label}${stressLabel}...`);
+    onStatus(`Testing ${vlistName} - scrolling ${speed.label}${stressLabel}...`);
 
-    // Reset scroll position between speed runs
-    if (viewport) viewport.scrollTop = 0;
+    // Reset scroll position between speed runs. Synthetic ignores scrollTop.
+    if (synthetic && write) write(0);
+    else if (viewport) viewport.scrollTop = 0;
     await nextFrame();
 
     const scrollMetrics = await measureScrollRun({
@@ -288,7 +286,20 @@ export const benchmarkVList = async (
       durationMs: COMPARISON_SCROLL_DURATION_MS,
       speedPxPerSec: speed.pxPerSec,
       stressMs,
+      ...(synthetic && write ? {
+        logicalScroll: {
+          max: itemCount * ITEM_HEIGHT - viewport.clientHeight,
+          set: (position) => write(position),
+          get: () => list.getScrollPosition(),
+        },
+      } : {}),
     });
+    if (synthetic && write && !(scrollMetrics.distance > 0)) {
+      throw new Error("Synthetic comparison scroll did not move the list");
+    }
+    if (synthetic && write && viewport.scrollTop !== 0) {
+      throw new Error("Synthetic comparison moved a native main-axis scroll offset");
+    }
 
     scrollResults.push({
       speed,
@@ -302,7 +313,7 @@ export const benchmarkVList = async (
   container.innerHTML = "";
 
   return {
-    library: "vlist",
+    library: vlistName,
     renderTime: renderResult.median,
     memoryUsed: memoryUsedMB,
     scrollResults,
@@ -455,6 +466,7 @@ export const calculateComparisonMetrics = (
   libraryName,
   rateLower,
   rateHigher,
+  vlistName = "vlist",
 ) => {
   const metrics = [];
 
@@ -464,7 +476,7 @@ export const calculateComparisonMetrics = (
     const pct = round((diff / libResults.renderTime) * 100, 1);
 
     metrics.push({
-      label: "vlist Render Time",
+      label: `${vlistName} Render Time`,
       value: vlistResults.renderTime,
       unit: "ms",
       better: "lower",
@@ -489,7 +501,7 @@ export const calculateComparisonMetrics = (
         pct === 0
           ? undefined
           : pct < 0
-            ? "vlist is faster"
+            ? `${vlistName} is faster`
             : `${libraryName} is faster`,
     });
   }
@@ -508,7 +520,7 @@ export const calculateComparisonMetrics = (
     const pct = round((diff / libResults.memoryUsed) * 100, 1);
 
     metrics.push({
-      label: "vlist Memory Usage",
+      label: `${vlistName} Memory Usage`,
       value: vlistResults.memoryUsed,
       unit: "MB",
       better: "lower",
@@ -533,7 +545,7 @@ export const calculateComparisonMetrics = (
         pct === 0
           ? undefined
           : pct < 0
-            ? "vlist uses less"
+            ? `${vlistName} uses less`
             : `${libraryName} uses less`,
     });
   } else {
@@ -548,7 +560,7 @@ export const calculateComparisonMetrics = (
     const libValid = libMem != null && libMem > 0;
 
     metrics.push({
-      label: "vlist Memory Usage",
+      label: `${vlistName} Memory Usage`,
       value: vlistValid ? vlistMem : 0,
       unit: vlistValid ? "MB" : "",
       better: "lower",
@@ -608,7 +620,7 @@ export const calculateComparisonMetrics = (
       const pct = round((diff / libAvgFPS) * 100, 1);
 
       metrics.push({
-        label: "vlist Scroll FPS",
+        label: `${vlistName} Scroll FPS`,
         value: vlistAvgFPS,
         unit: "fps",
         better: "higher",
@@ -633,7 +645,7 @@ export const calculateComparisonMetrics = (
           pct === 0
             ? undefined
             : pct > 0
-              ? "vlist is smoother"
+              ? `${vlistName} is smoother`
               : `${libraryName} is smoother`,
       });
     }
@@ -641,7 +653,7 @@ export const calculateComparisonMetrics = (
     // P95 Frame Time
     if (vlistAvgP95 && libAvgP95) {
       metrics.push({
-        label: "vlist P95 Frame Time",
+        label: `${vlistName} P95 Frame Time`,
         value: vlistAvgP95,
         unit: "ms",
         better: "lower",
@@ -707,6 +719,7 @@ export const runComparison = async ({
   itemCount,
   onStatus,
   stressMs = 0,
+  mode = "native",
   libraryName,
   benchmarkCompetitor,
   rateLower: rateLowerFn,
@@ -714,14 +727,15 @@ export const runComparison = async ({
 }) => {
   onStatus("Preparing benchmark...");
 
+  const vlistName = mode === "synthetic" ? "vlist synthetic" : "vlist";
   const vlistFirst = Math.random() < 0.5;
-  const firstRunner = vlistFirst ? "vlist" : libraryName;
+  const firstRunner = vlistFirst ? vlistName : libraryName;
 
   let vlistResults;
   let libResults;
 
   const runVList = async () => {
-    return benchmarkVList(container, itemCount, onStatus, stressMs);
+    return benchmarkVList(container, itemCount, onStatus, stressMs, mode);
   };
 
   const runCompetitor = async () => {
@@ -762,6 +776,7 @@ export const runComparison = async ({
     libraryName,
     rateLowerFn,
     rateHigherFn,
+    vlistName,
   );
 
   // Append execution order note for transparency

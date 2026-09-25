@@ -254,17 +254,18 @@ createVList({
 })
 ```
 
-### Bounded scroll
+### Huge lists
 
-For very large lists (millions of items), browser scroll containers hit coordinate precision limits around 16 million pixels. vlist's bounded scroll keeps the physical scroll space within safe bounds while mapping to the full logical range. It activates automatically — no configuration needed.
+For very large lists (millions of items), native scroll containers hit the browser's element size limit around 16 million pixels. Import `createVList` from `vlist/synthetic` for those lists: vlist owns the scroll position, so there is no element-size limit.
 
 ```javascript
-// Explicit if you want to force it:
+import { createVList } from 'vlist/synthetic'
+import { scrollbar } from 'vlist'
+
 createVList({
   container: '#list',
-  scroll: { mode: 'bounded' },
   // ...
-})
+}, [scrollbar()])
 ```
 
 

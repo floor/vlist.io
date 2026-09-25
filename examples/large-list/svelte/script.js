@@ -1,19 +1,18 @@
 // Large List — Svelte implementation with vlist action
-// Uses bounded scroll mode (RFC-012) + scrollbar plugin
-// Demonstrates handling 100K–5M items with a viewport-sized content runway
+// Synthetic input (vlist/synthetic) + scrollbar: no browser element size limit
+// Demonstrates handling 100K–5M items
 
 import { vlist, onVListEvent } from "vlist-svelte";
-import * as vlistNative from "vlist/native";
-
-// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
-// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
-const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
+// vlist 3 scrolls natively by default; lists this large opt into synthetic input.
+import { createVList as createSyntheticVList } from "vlist/synthetic";
 
 // =============================================================================
 // Constants
 // =============================================================================
 
 const ITEM_HEIGHT = 48;
+// vlist's MAX_VIRTUAL_SIZE: past it, native scrolling cannot reach the end.
+const NATIVE_LIMIT = 16_000_000;
 const SIZES = {
   "100k": 100_000,
   "500k": 500_000,
@@ -99,7 +98,7 @@ function scheduleStatsUpdate() {
   statsRaf = requestAnimationFrame(() => {
     statsRaf = null;
     updateStats(SIZES[currentSize]);
-    updateCompressionInfo(SIZES[currentSize]);
+    updateExtentInfo(SIZES[currentSize]);
   });
 }
 
@@ -119,19 +118,13 @@ function updateStats(count, genTime, buildTime) {
   statsEl.innerHTML = html;
 }
 
-function updateCompressionInfo(count) {
+function updateExtentInfo(count) {
   const totalHeight = count * ITEM_HEIGHT;
-  const maxHeight = 16_777_216; // browser limit ~16.7M px
-  const bounded = totalHeight > maxHeight;
-  const ratio = bounded ? (totalHeight / maxHeight).toFixed(1) : "1.0";
-
-  let html = `<span class="ui-badge ui-badge--pill ${bounded ? "ui-badge--success" : "ui-badge--muted"}">`;
-  html += bounded ? "BOUNDED" : "NATIVE";
-  html += "</span>";
+  let html = `<span class="ui-badge ui-badge--pill ui-badge--success">SYNTHETIC</span>`;
   html += ` <span class="compression-detail">`;
   html += `Virtual height: <strong>${(totalHeight / 1_000_000).toFixed(1)}M px</strong>`;
-  html += ` · Ratio: <strong>${ratio}×</strong>`;
-  html += ` · Limit: <strong>16.7M px</strong>`;
+  html += ` · Native limit: <strong>16M px</strong>`;
+  if (totalHeight > NATIVE_LIMIT) html += ` · <strong>beyond native scrolling</strong>`;
   html += `</span>`;
   compressionEl.innerHTML = html;
 }
@@ -161,7 +154,8 @@ function createList(sizeKey) {
     config: {
       ariaLabel: `${count.toLocaleString()} items list`,
       // vlist/config installs the scrollbar plugin from scroll.scrollbar options.
-      scroll: VLIST3 ? { scrollbar: { autoHide: true } } : { mode: "bounded", scrollbar: { autoHide: true } },
+      factory: createSyntheticVList,
+      scroll: { scrollbar: { autoHide: true } },
       item: {
         height: ITEM_HEIGHT,
         template: itemTemplate,
@@ -188,7 +182,7 @@ function createList(sizeKey) {
 
       // Show initial stats
       updateStats(count, genTime, buildTime);
-      updateCompressionInfo(count);
+      updateExtentInfo(count);
     },
   });
 }

@@ -1,6 +1,6 @@
 ---
 created: 2026-02-10
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -62,11 +62,11 @@ Style the scrollbar via CSS custom properties:
 ## Notes
 
 - Provides consistent cross-browser scrollbar appearance
-- Used internally by the scale plugin for compressed scroll
+- Provides the visible scrollbar for `vlist/synthetic` lists, which have no native scrollbar
 - `gutter: true` reserves layout space so content doesn't shift when the scrollbar appears — useful for tables and grids where the last column shouldn't be clipped
 - The custom scrollbar is an overlay — it does not consume layout space (unlike native scrollbars on Windows/Linux). This avoids the ~17px width discrepancy that affects `autosize()` measurement
 
 ## Examples
 
 - [Scrollbar](/examples/scrollbar) — native, custom, and none with configuration options
-- [Large Dataset](/examples/large-list) — custom scrollbar with compressed scroll
+- [Large Dataset](/examples/large-list) — custom scrollbar with native and synthetic input

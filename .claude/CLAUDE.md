@@ -10,7 +10,7 @@ Interactive docs, examples, and benchmarks for the [vlist](https://github.com/fl
 
 ## Git Workflow
 
-**Working branch is `staging`.** The `main` branch is protected and requires a pull request.
+**Working branch is `next` for 3.0 work** (branched from `staging` on 2026-09-16): it runs locally and on staging.vlist.io, built against vlist `next`. **`staging` stays the 2.x line** that feeds `main` and production; do not merge `next` into it before the 3.0 release. The `main` branch is protected and requires a pull request.
 
 - ❌ **NEVER push directly to `main`** — it is protected on GitHub and will be rejected
 - ❌ **NEVER commit on `main`** — always work on `staging` or feature branches
@@ -50,7 +50,8 @@ bun run deploy               # Trigger GitHub Actions deploy workflow
 
 ### Key Paths
 - `/` → Server-rendered landing page
-- `/docs/*`, `/tutorials/*` → Markdown → HTML
+- `/docs/*`, `/tutorials/*` → Markdown → HTML (current v3 docs)
+- `/docs/v1/*`, `/docs/v2/*`, `/tutorials/v1/*`, `/tutorials/v2/*` → archived docs; `src/server/versions.ts` drives the v1/v2/v3 switcher, canonicals, search and sitemap. Pages removed from v3 redirect to their v2 copy
 - `/examples/*` → Interactive examples (18 total, multi-framework)
 - `/benchmarks/*` → Performance suites + library comparisons
 - `/api/*` → REST API (users, cities, tracks, posts, files, recipes)
@@ -98,19 +99,19 @@ Two environments deployed via GitHub Actions:
 | Environment | URL | Branch | vlist Source |
 |-------------|-----|--------|-------------|
 | **Production** | vlist.io | `main` | npm `latest` |
-| **Staging** | staging.vlist.io | `staging` | Local clone (latest staging code) |
+| **Staging** | staging.vlist.io | `next` | Local clone of vlist `next` (3.0 prerelease line) |
 
 ### Server Layout
 ```
 /home/floor/
 ├── vlist/                 # vlist production (main)
 ├── vlist.io/              # vlist.io production (port 3338)
-├── staging.vlist/         # vlist staging (staging branch)
+├── staging.vlist/         # vlist clone for staging (next branch)
 └── staging.vlist.io/      # vlist.io staging (port 3339)
 ```
 
 ### Cross-Repo Deploy
-Pushing to `vlist` staging triggers a `repository_dispatch` → `staging.vlist.io` auto-redeploys.
+Pushing to `vlist` next triggers a `repository_dispatch` → `staging.vlist.io` auto-redeploys.
 
 **Stack:** Bun → PM2 → nginx → Cloudflare
 

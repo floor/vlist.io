@@ -1,12 +1,12 @@
 ---
 created: 2026-05-27
-updated: 2026-06-07
+updated: 2026-09-16
 status: published
 ---
 
 # Plugin Overview
 
-vlist v2 ships 17 plugins. Each plugin is tree-shaken — only what you import is bundled.
+vlist 3.0 ships 16 plugins. Each plugin is tree-shaken — only what you import is bundled.
 
 Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 
@@ -21,7 +21,6 @@ Base (`createVList` only): **{{size:base:gz}} KB** gzipped.
 | scrollbar | `scrollbar()` | +{{size:scrollbar:delta}} KB | Custom scrollbar UI |
 | sortable | `sortable()` | +{{size:sortable:delta}} KB | Drag-and-drop reordering |
 | groups | `groups()` | +{{size:groups:delta}} KB | Grouped lists with sticky headers |
-| scale | `scale()` | no-op | **Deprecated** — use `scroll: { mode: "bounded" }` in 2.x or synthetic mode from `vlist/synthetic`; removed in 3.0. See [Scroll modes](/docs/scroll-modes) |
 | page | `page()` | +{{size:page:delta}} KB | Document/window scroll mode |
 | snapshots | `snapshots()` | +{{size:snapshots:delta}} KB | Scroll save/restore |
 | transition | `transition()` | +{{size:transition:delta}} KB | FLIP-based enter/exit animations |
@@ -47,20 +46,21 @@ const list = createVList(config, [
 
 Plugins are passed as the second argument to `createVList`. Order in the array does not matter — priorities are fixed internally per plugin.
 
+Every plugin works with both entries, `vlist` (native scrolling) and `vlist/synthetic`. See [Scroll modes](/docs/scroll-modes).
+
 ## Compatibility
 
 Not all plugins can be combined. Layout plugins are mutually exclusive, and some plugins only support flat lists.
 
-| | grid | masonry | table | tree | scale | carousel | transition | sortable |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **grid** | — | ❌ | ❌ | ❌ | — | ❌ | ❌ | ❌ |
-| **masonry** | ❌ | — | ❌ | ❌ | — | ❌ | ❌ | ❌ |
-| **table** | ❌ | ❌ | — | ❌ | — | ❌ | ❌ | ❌ |
-| **tree** | ❌ | ❌ | ❌ | — | — | ❌ | — | ❌ |
-| **scale** | — | — | — | — | — | ❌ | — | ❌ |
-| **carousel** | ❌ | ❌ | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-| **transition** | ❌ | ❌ | ❌ | — | — | ❌ | — | — |
-| **sortable** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | — | — |
+| | grid | masonry | table | tree | carousel | transition | sortable |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **grid** | — | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **masonry** | ❌ | — | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **table** | ❌ | ❌ | — | ❌ | ❌ | ❌ | ❌ |
+| **tree** | ❌ | ❌ | ❌ | — | ❌ | — | ❌ |
+| **carousel** | ❌ | ❌ | ❌ | ❌ | — | ❌ | ❌ |
+| **transition** | ❌ | ❌ | ❌ | — | ❌ | — | — |
+| **sortable** | ❌ | ❌ | ❌ | ❌ | ❌ | — | — |
 
 All combinations not listed above are ✅ compatible.
 
@@ -68,11 +68,11 @@ Incompatibility reasons:
 
 - **grid + masonry / grid + table / masonry + table / tree + any layout** — only one layout plugin can be active at a time.
 - **tree + groups** — tree manages its own hierarchy; groups is for flat grouped lists.
-- **carousel + scale** — both plugins own virtual scroll space.
+- **carousel + page**: page scrolling cannot wrap, so creation throws.
 - **carousel + groups** — infinite wrap doesn't map to grouped sections.
 - **carousel + grid/masonry/table/tree** — carousel manages its own single-axis layout.
 - **transition + grid/table/masonry/carousel** — transition uses FLIP animations designed for flat lists only.
-- **sortable + grid/masonry/table/tree/scale/carousel** — drag-and-drop reordering requires a flat, fixed-height list.
+- **sortable + grid/masonry/table/tree/carousel** — drag-and-drop reordering requires a flat, fixed-height list.
 
 ## Priority Order
 

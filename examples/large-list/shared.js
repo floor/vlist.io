@@ -66,23 +66,6 @@ export const itemTemplate = (item, index) => `
   </div>
 `;
 
-// =============================================================================
-// Compression Info
-// =============================================================================
-
-export function getCompressionInfo(count, itemHeight = ITEM_HEIGHT) {
-  const totalHeight = count * itemHeight;
-  const maxHeight = 16_777_216; // browser limit ~16.7M px
-  const isCompressed = totalHeight > maxHeight;
-  const ratio = isCompressed ? (totalHeight / maxHeight).toFixed(1) : "1.0";
-
-  return {
-    isCompressed,
-    virtualHeight: totalHeight,
-    ratio,
-  };
-}
-
 // Format virtualization percentage
 export function calculateVirtualization(domNodes, total) {
   if (total > 0 && domNodes > 0) {

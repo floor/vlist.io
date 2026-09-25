@@ -95,6 +95,84 @@ export const scrollViewport = (
   });
 };
 
+/**
+ * Same bounce as scrollViewport, driven by a position setter.
+ *
+ * Synthetic lists ignore scrollTop. The setter is the list's own scroll
+ * (`ctx.scroll.to`). `max` is the logical range in pixels.
+ *
+ * @param {{ max: number, set: (position: number) => void }} setter
+ * @param {number} durationMs
+ * @param {number} [speedPxPerFrame]
+ * @param {(progress: number) => void} [onProgress]
+ * @returns {Promise<void>}
+ */
+export const scrollWithSetter = (
+  setter,
+  durationMs,
+  speedPxPerFrame = MEMORY_SCROLL_SPEED_PX_PER_FRAME,
+  onProgress,
+) => {
+  return new Promise((resolve, reject) => {
+    const maxScroll = setter.max;
+    if (!(maxScroll > 0)) {
+      reject(new Error("Position scroll requires a positive range"));
+      return;
+    }
+
+    let startTime = 0;
+    let scrollPos = 0;
+    let direction = 1;
+    let travelled = 0;
+    let lastProgressUpdate = 0;
+
+    const tick = (timestamp) => {
+      if (startTime === 0) {
+        startTime = timestamp;
+        requestAnimationFrame(tick);
+        return;
+      }
+
+      const elapsed = timestamp - startTime;
+      if (elapsed >= durationMs) {
+        if (!(travelled > 0)) {
+          reject(new Error("Position scroll did not move"));
+          return;
+        }
+        if (onProgress) onProgress(1);
+        resolve();
+        return;
+      }
+
+      if (onProgress && elapsed - lastProgressUpdate > 100) {
+        onProgress(elapsed / durationMs);
+        lastProgressUpdate = elapsed;
+      }
+
+      const previous = scrollPos;
+      scrollPos += speedPxPerFrame * direction;
+      if (scrollPos >= maxScroll) {
+        scrollPos = maxScroll;
+        direction = -1;
+      } else if (scrollPos <= 0) {
+        scrollPos = 0;
+        direction = 1;
+      }
+
+      try {
+        setter.set(scrollPos);
+      } catch (error) {
+        reject(error);
+        return;
+      }
+      travelled += Math.abs(scrollPos - previous);
+      requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+  });
+};
+
 // =============================================================================
 // Mode 1: Full Memory Profile (suite mode)
 // =============================================================================
@@ -121,6 +199,8 @@ export const scrollViewport = (
  * @param {number} [opts.settleFrames] - Frames to wait for GC to settle
  * @param {(msg: string) => void} [opts.onStatus] - Status callback
  * @param {(progress: number) => void} [opts.onProgress] - Scroll progress callback
+ * @param {(durationMs: number, speedPxPerFrame: number, onProgress?: (progress: number) => void) => Promise<void>} [opts.scrollFn]
+ *   Replaces the scrollTop driver. Synthetic lists scroll through their position setter.
  * @returns {Promise<MemoryProfileResult>}
  *
  * @typedef {Object} MemoryProfileResult
@@ -145,6 +225,7 @@ export const measureMemoryProfile = async ({
   settleFrames = MEMORY_SETTLE_FRAMES,
   onStatus,
   onProgress,
+  scrollFn,
 }) => {
   // Check API availability
   const testHeap = getHeapUsed();
@@ -194,13 +275,21 @@ export const measureMemoryProfile = async ({
   }
 
   if (onStatus) onStatus(`Scrolling for ${scrollDurationMs / 1000}s...`);
-  await scrollViewport(viewport, scrollDurationMs, scrollSpeedPxPerFrame, (progress) => {
+  const reportScroll = (progress) => {
     if (onProgress) onProgress(progress);
     if (onStatus) {
       const remaining = Math.ceil((1 - progress) * (scrollDurationMs / 1000));
       onStatus(`Scrolling... ${remaining}s remaining`);
     }
-  });
+  };
+  try {
+    if (scrollFn) await scrollFn(scrollDurationMs, scrollSpeedPxPerFrame, reportScroll);
+    else await scrollViewport(viewport, scrollDurationMs, scrollSpeedPxPerFrame, reportScroll);
+  } catch (error) {
+    await destroyFn(instance);
+    container.innerHTML = "";
+    throw error;
+  }
 
   // Let GC settle after scrolling
   await waitFrames(settleFrames);

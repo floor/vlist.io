@@ -15,7 +15,7 @@
       {
         "slug": "scroll-modes",
         "name": "Scroll modes",
-        "desc": "Native, bounded and synthetic input: what each owns and when to use it"
+        "desc": "Native and synthetic input: what each owns and when to use it"
       },
       {
         "slug": "types",
@@ -46,7 +46,7 @@
       {
         "slug": "migration-v3",
         "name": "Migration (v2 → v3)",
-        "desc": "Synthetic input becomes core; what the deprecation ladder removes"
+        "desc": "Native default, opt-in synthetic input, and what 3.0 removes"
       }
     ]
   },
@@ -92,11 +92,6 @@
         "slug": "plugins/groups",
         "name": "Groups",
         "desc": "Grouped lists with sticky headers"
-      },
-      {
-        "slug": "plugins/scale",
-        "name": "Scale",
-        "desc": "1M+ items support"
       },
       {
         "slug": "plugins/page",
@@ -178,6 +173,11 @@
   {
     "label": "Resources",
     "items": [
+      {
+        "slug": "examples",
+        "name": "Examples",
+        "desc": "Example catalog, scroll switch, and scrollbar rules"
+      },
       {
         "slug": "benchmarks",
         "name": "Benchmarks",

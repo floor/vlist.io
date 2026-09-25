@@ -157,6 +157,10 @@ export function setCreateView(fn) {
   _createViewFn = fn;
 }
 
+// The shell's native/synthetic switch calls this so the album rebuilds with
+// fresh plugins and its own snapshot, instead of reusing the live grid.
+globalThis.__vlistRecreate = () => createView();
+
 export async function createView() {
   if (_factory) {
     const version = ++_viewVersion;

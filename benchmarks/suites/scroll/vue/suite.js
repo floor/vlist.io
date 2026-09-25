@@ -1,248 +1,63 @@
-// benchmarks/suites/scroll/vue/suite.js — Scroll FPS Benchmark (Vue)
-//
-// Thin wrapper around the shared engine scroll measurement.
-// Defines the Vue useVList create/destroy lifecycle, calls engine functions,
-// and formats results with rating thresholds.
+// Scroll FPS for Vue. Both modes use the same position write.
 
 import { createApp } from "vue";
 import { useVList } from "vlist-vue";
-import {
-  defineSuite,
-  generateItems,
-  benchmarkTemplate,
-  waitFrames,
-  tryGC,
-  rateHigher,
-  rateLower,
-} from "../../../runner.js";
-import {
-  ITEM_HEIGHT,
-  SCROLL_DURATION_MS,
-  BASE_SCROLL_SPEED,
-  PREFLIGHT_DURATION_MS,
-  WAKEUP_DURATION_MS,
-  THROTTLE_WARNING_FPS,
-} from "../../../engine/constants.js";
+import { createVList as createSynthetic } from "vlist/synthetic";
+import { defineSuite, benchmarkTemplate, waitFrames } from "../../../runner.js";
+import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
-import {
-  createRefreshRateDriver,
-  wakeUpDisplay,
-  measureRawRAFRate,
-  measureScrollRun,
-  computeScrollStats,
-} from "../../../engine/scroll.js";
+import { runLogicalScroll, scrollCapturePlugin } from "../../../engine/logical-scroll.js";
 
-// =============================================================================
-// Vue Component
-// =============================================================================
+const DESCRIPTION = "Sustained scrolling for 5s. Native and synthetic are driven by the same position write, then the rows are checked.";
 
-const BenchmarkList = {
-  props: {
-    items: Array,
-    target: Object,
-  },
-  setup(props) {
-    const { containerRef } = useVList({
-      items: props.items,
-      item: {
-        height: ITEM_HEIGHT,
-        template: benchmarkTemplate,
-      },
-    });
-
-    containerRef.value = props.target;
-
-    return () => null;
-  },
+const mount = (container, items, factory) => {
+  let write;
+  let instance = null;
+  const List = {
+    props: { items: Array, target: Object },
+    setup(props) {
+      const api = useVList({
+        items: props.items,
+        item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
+        ...(factory ? { factory } : {}),
+        plugins: [scrollCapturePlugin((set) => { write = set; })],
+      });
+      api.containerRef.value = props.target;
+      instance = api.instance;
+      return () => null;
+    },
+  };
+  const app = createApp(List, { items, target: container });
+  app.mount(container);
+  return {
+    ready: waitFrames(5).then(() => {
+      if (!write) throw new Error("Vue list did not install the scroll writer");
+    }),
+    set: (position) => write(position),
+    get: () => (factory ? instance?.value?.getScrollPosition?.() : findViewport(container).scrollTop),
+    destroy: () => app.unmount(),
+  };
 };
 
-// =============================================================================
-// Suite
-// =============================================================================
-
-defineSuite({
-  id: "scroll-vue",
-  name: "Scroll FPS (Vue)",
-  description: `Sustained programmatic scrolling for ${SCROLL_DURATION_MS / 1000}s — measures rendering throughput`,
-  icon: "📜",
-  hasScrollSpeed: true,
-
-  run: async ({
-    itemCount,
-    container,
-    onStatus,
-    scrollSpeed = BASE_SCROLL_SPEED,
-  }) => {
-    const items = generateItems(itemCount);
-
-    // =====================================================================
-    // Phase 0: Start the canvas refresh rate driver
-    // =====================================================================
-    const refreshDriver = createRefreshRateDriver();
-
-    // =====================================================================
-    // Phase 1: Wake up the display
-    // =====================================================================
-    onStatus("Waking up display...");
-    await wakeUpDisplay(container, WAKEUP_DURATION_MS);
-
-    // =====================================================================
-    // Phase 2: Pre-flight rAF rate check (with canvas driver active)
-    // =====================================================================
-    onStatus("Checking rAF rate...");
-    const rawRate = await measureRawRAFRate(PREFLIGHT_DURATION_MS);
-
-    const isThrottled = rawRate < THROTTLE_WARNING_FPS;
-
-    // =====================================================================
-    // Phase 3: Warmup — short scroll to let JIT optimize
-    // =====================================================================
-    onStatus("Warming up...");
-    {
-      const warmupItems = generateItems(Math.min(itemCount, 10_000));
-      container.innerHTML = "";
-      const warmupApp = createApp(BenchmarkList, { items: warmupItems, target: container });
-      warmupApp.mount(container);
-      await waitFrames(15);
-
-      const vp = findViewport(container);
-      if (vp) {
-        const warmupStart = performance.now();
-        let pos = 0;
-        await new Promise((resolve) => {
-          const tick = () => {
-            const now = performance.now();
-            if (now - warmupStart > 500) {
-              resolve();
-              return;
-            }
-            pos += 200;
-            vp.scrollTop = pos;
-            setTimeout(tick, 0);
-          };
-          setTimeout(tick, 0);
-        });
-      }
-
-      warmupApp.unmount();
-      container.innerHTML = "";
-      await tryGC();
-    }
-
-    // =====================================================================
-    // Phase 4: Create Vue vlist and measure scroll performance
-    // =====================================================================
-    container.innerHTML = "";
-    const app = createApp(BenchmarkList, { items, target: container });
-    app.mount(container);
-    await waitFrames(10);
-    await waitFrames(5); // Vue needs extra frames to settle
-
-    const viewport = findViewport(container);
-
-    if (!viewport) {
-      app.unmount();
-      container.innerHTML = "";
-      throw new Error("Could not find vlist viewport element");
-    }
-
-    const speedLabel = `${scrollSpeed / 1000} px/ms`;
-    onStatus(`Scrolling at ${speedLabel} for ${SCROLL_DURATION_MS / 1000}s...`);
-
-    const runResult = await measureScrollRun({
-      viewport,
-      durationMs: SCROLL_DURATION_MS,
-      speedPxPerSec: scrollSpeed,
-      onProgress: (progress) => {
-        const remaining = Math.ceil(
-          (1 - progress) * (SCROLL_DURATION_MS / 1000),
-        );
-        onStatus(`Scrolling at ${speedLabel}... ${remaining}s remaining`);
+function defineMode(mode) {
+  defineSuite({
+    id: `scroll-logical-${mode}-vue`,
+    name: "Scroll FPS (Vue)",
+    description: DESCRIPTION,
+    icon: "📜",
+    hasScrollSpeed: true,
+    run: (ctx) => runLogicalScroll({
+      ...ctx,
+      mode,
+      settleFrames: 0,
+      createList: async (target, items) => {
+        const created = mount(target, items, mode === "synthetic" ? createSynthetic : undefined);
+        await created.ready;
+        return created;
       },
-    });
+    }),
+  });
+}
 
-    // Stop the canvas driver now that measurement is complete
-    refreshDriver.stop();
-
-    // Clean up
-    app.unmount();
-    container.innerHTML = "";
-    await tryGC();
-
-    // =====================================================================
-    // Phase 5: Compute stats
-    // =====================================================================
-    const { avgFps, droppedPct, avgWorkMs, p95WorkMs, estimatedMaxFps } =
-      computeScrollStats(runResult, SCROLL_DURATION_MS);
-
-    const { totalFrames } = runResult;
-
-    // =====================================================================
-    // Phase 6: Build result metrics
-    // =====================================================================
-    const metrics = [
-      {
-        label: "Avg FPS",
-        value: avgFps,
-        unit: "fps",
-        better: "higher",
-        rating: isThrottled
-          ? rateHigher(avgFps, rawRate * 0.95, rawRate * 0.8)
-          : rateHigher(avgFps, 55, 40),
-      },
-      ...(droppedPct > 0
-        ? [
-            {
-              label: "Dropped",
-              value: droppedPct,
-              unit: "%",
-              better: "lower",
-              rating: rateLower(droppedPct, 5, 15),
-            },
-          ]
-        : []),
-      {
-        label: "Frame budget",
-        value: avgWorkMs,
-        unit: "ms",
-        better: "lower",
-        rating: rateLower(avgWorkMs, 5, 12),
-      },
-      {
-        label: "Budget p95",
-        value: p95WorkMs,
-        unit: "ms",
-        better: "lower",
-        rating: rateLower(p95WorkMs, 10, 20),
-      },
-      {
-        label: "Total frames",
-        value: totalFrames,
-        unit: "",
-        better: "higher",
-      },
-    ];
-
-    // If display is throttled, add throughput estimate and warning.
-    if (isThrottled) {
-      metrics.push(
-        {
-          label: "Est. throughput",
-          value: Math.min(estimatedMaxFps, 999),
-          unit: estimatedMaxFps > 999 ? "+fps" : "fps",
-          better: "higher",
-          rating: rateHigher(estimatedMaxFps, 120, 60),
-        },
-        {
-          label: "⚠️ rAF throttled (external screen? power saving?)",
-          value: rawRate,
-          unit: "fps",
-          better: "higher",
-          rating: "bad",
-        },
-      );
-    }
-
-    return metrics;
-  },
-});
+defineMode("native");
+if (__BENCH_HAS_SYNTHETIC__) defineMode("synthetic");

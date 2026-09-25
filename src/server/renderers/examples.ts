@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
 import { render, loadNavigation as loadHeaderNavigation } from "../config/eta";
-import { SITE, IS_PROD, VLIST_VERSION, SITE_VERSION } from "./config";
+import { SITE, IS_PROD, vlistVersion, ASSET_VERSION } from "./config";
 import {
   loadShell,
   loadNavigation,
@@ -374,38 +374,38 @@ function buildExtraHead(
 
   // vlist styles — always needed for examples
   tags.push(
-    `<link rel="stylesheet" href="/dist/vlist.css?v=${VLIST_VERSION}" />`,
+    `<link rel="stylesheet" href="/dist/vlist.css?v=${vlistVersion()}" />`,
   );
 
   // Plugin-specific styles
   if (example?.plugins?.includes("table")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-table.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-table.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("grid")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-grid.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-grid.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("masonry")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-masonry.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-masonry.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("tree")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-tree.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-tree.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("search")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-search.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-search.css?v=${vlistVersion()}" />`,
     );
   }
   if (example?.plugins?.includes("carousel")) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/vlist-carousel.css?v=${VLIST_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/vlist-carousel.css?v=${vlistVersion()}" />`,
     );
   }
 
@@ -413,7 +413,7 @@ function buildExtraHead(
   const sharedCssPath = resolve(join("dist", "examples", slug, "styles.css"));
   if (existsSync(sharedCssPath)) {
     tags.push(
-      `<link rel="stylesheet" href="/dist/examples/${slug}/styles.css?v=${SITE_VERSION}" />`,
+      `<link rel="stylesheet" href="/dist/examples/${slug}/styles.css?v=${ASSET_VERSION}" />`,
     );
   }
 
@@ -424,7 +424,7 @@ function buildExtraHead(
     );
     if (existsSync(variantCssPath)) {
       tags.push(
-        `<link rel="stylesheet" href="/dist/examples/${slug}/${variant}/styles.css?v=${SITE_VERSION}" />`,
+        `<link rel="stylesheet" href="/dist/examples/${slug}/${variant}/styles.css?v=${ASSET_VERSION}" />`,
       );
     }
   }
@@ -441,8 +441,8 @@ function buildExtraBody(
 
   // Script path — check variant subdirectory first
   const scriptPath = variant
-    ? `/dist/examples/${slug}/${variant}/script.js?v=${SITE_VERSION}`
-    : `/dist/examples/${slug}/script.js?v=${SITE_VERSION}`;
+    ? `/dist/examples/${slug}/${variant}/script.js?v=${ASSET_VERSION}`
+    : `/dist/examples/${slug}/script.js?v=${ASSET_VERSION}`;
 
   // When the skip link is activated, focus the actual .vlist element inside #list-container
   const skipLinkTarget = `<script>
@@ -495,7 +495,58 @@ function buildExtraBody(
 })();
 </script>`;
 
-  return `<script type="module" src="${scriptPath}"></script>\n${skipLinkTarget}\n${mobileSettings}`;
+  const scrollSwitch = `<script>
+(function () {
+  if (document.querySelector("[data-scrollbar-owned]")) {
+    window.__VLIST_SCROLLBAR_OWNED = true;
+  }
+  if (document.querySelector("[data-scroll-mode='locked']")) {
+    window.__VLIST_SCROLL_LOCKED = true;
+    return;
+  }
+  var panel = document.querySelector("aside.split-panel");
+  if (!panel || document.getElementById("example-scroll-mode")) return;
+  var params = new URLSearchParams(location.search);
+  var fromUrl = params.get("mode");
+  var match = document.cookie.match(/(?:^|; )vlist-scroll-mode=([^;]*)/);
+  var fromCookie = match ? decodeURIComponent(match[1]) : "";
+  var mode = fromUrl === "native" || fromUrl === "synthetic"
+    ? fromUrl
+    : fromCookie === "native" || fromCookie === "synthetic"
+      ? fromCookie
+      : "native";
+  var section = document.createElement("section");
+  section.className = "ui-section";
+  section.id = "example-scroll-mode";
+  section.innerHTML = '<h3 class="ui-title">Scroll</h3><div class="ui-row"><div class="ui-segmented" role="group" aria-label="Scroll mode">'
+    + '<button type="button" class="ui-segmented__btn" data-scroll="native">Native</button>'
+    + '<button type="button" class="ui-segmented__btn" data-scroll="synthetic">Synthetic</button>'
+    + '</div></div>';
+  panel.insertBefore(section, panel.firstChild);
+  section.querySelectorAll("[data-scroll]").forEach(function (button) {
+    button.classList.toggle("ui-segmented__btn--active", button.dataset.scroll === mode);
+    button.addEventListener("click", function () {
+      var next = button.dataset.scroll;
+      if (!next || next === mode) return;
+      document.cookie = "vlist-scroll-mode=" + next + "; path=/; samesite=lax";
+      var url = new URL(location.href);
+      url.searchParams.set("mode", next);
+      history.replaceState(null, "", url);
+      mode = next;
+      section.querySelectorAll("[data-scroll]").forEach(function (other) {
+        other.classList.toggle("ui-segmented__btn--active", other.dataset.scroll === next);
+      });
+      if (typeof window.__vlistSetScrollMode === "function") {
+        window.__vlistSetScrollMode(next);
+        return;
+      }
+      location.assign(url);
+    });
+  });
+})();
+</script>`;
+
+  return `<script type="module" src="${scriptPath}"></script>\n${skipLinkTarget}\n${scrollSwitch}\n${mobileSettings}`;
 }
 
 // =============================================================================
@@ -533,7 +584,7 @@ function assemblePage(
     CONTENT: content,
 
     // Styles & scripts
-    EXTRA_STYLES: `<link rel="stylesheet" href="/dist/examples/styles.css?v=${SITE_VERSION}" />`,
+    EXTRA_STYLES: `<link rel="stylesheet" href="/dist/examples/styles.css?v=${ASSET_VERSION}" />`,
     EXTRA_HEAD: buildExtraHead(slug, example, variant),
     EXTRA_BODY: buildExtraBody(slug, example, variant),
     MAIN_CLASS: "",

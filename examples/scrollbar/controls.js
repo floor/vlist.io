@@ -24,12 +24,45 @@ function getViewport() {
 
 const modeButtons = document.getElementById("mode-buttons");
 
+let modeBeforeSynthetic = null;
+
+function paintModeButtons() {
+  modeButtons.querySelectorAll("button").forEach((b) => {
+    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === app.mode);
+  });
+}
+
+/** Native scrollbar only exists while the shell scroll mode is native. */
+export function syncShellScrollbarMode() {
+  const synthetic = app.shellIsSynthetic();
+  const nativeBtn = modeButtons.querySelector('[data-mode="native"]');
+  nativeBtn.disabled = synthetic;
+  if (synthetic && app.mode === "native") {
+    modeBeforeSynthetic = "native";
+    app.setMode("custom");
+  } else if (!synthetic && modeBeforeSynthetic === "native" && app.mode === "custom") {
+    modeBeforeSynthetic = null;
+    app.setMode("native");
+  } else if (!synthetic) {
+    modeBeforeSynthetic = null;
+  }
+  paintModeButtons();
+  syncPanelMode();
+}
+
+globalThis.__vlistRecreate = async () => {
+  syncShellScrollbarMode();
+  await app.createList();
+  if (app.mode === "native") applyNativeSettings();
+};
+
 modeButtons.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-mode]");
-  if (!btn) return;
+  if (!btn || btn.disabled) return;
 
   const mode = btn.dataset.mode;
   if (mode === app.mode) return;
+  modeBeforeSynthetic = null;
   app.setMode(mode);
 
   modeButtons.querySelectorAll("button").forEach((b) => {
@@ -314,10 +347,7 @@ export function restoreFromStorage() {
   }
 
   // Always sync UI to match current state (saved or defaults)
-  modeButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === app.mode);
-  });
-  syncPanelMode();
+  syncShellScrollbarMode();
 
   document.getElementById("toggle-autohide").checked = app.autoHide;
   document.getElementById("toggle-show-hover").checked = app.showOnHover;

@@ -25,6 +25,8 @@ const action = vlist(container, {
   config: {
     orientation: "horizontal",
     scroll: { wheel: true },
+    // Custom overlay scrollbar: vlist/config leaves the native one unless asked.
+    scrollbar: true,
     ariaLabel: "Horizontal card carousel",
     item: {
       height: ITEM_HEIGHT,

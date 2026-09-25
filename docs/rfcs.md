@@ -6,7 +6,7 @@ RFCs are discussed in [GitHub Discussions](https://github.com/floor/vlist/discus
 
 | RFC | Status | Topic |
 |-----|--------|-------|
-| [RFC-014: Scroll Input Model](/docs/rfcs/RFC-014-Scroll-Input-Model) | Draft | Who owns scroll input: hardened native runway or synthetic touch, decided on device results |
+| [RFC-014: Scroll Input Model](/docs/rfcs/RFC-014-Scroll-Input-Model) | Shipped (opt-in) | Who owns scroll input: native by default, synthetic input as the opt-in `vlist/synthetic` entry |
 | [RFC-013: Unified Scroll Model](/docs/rfcs/RFC-013-Unified-Scroll-Model) | Rejected | Bounded-only model with native path removed; superseded by RFC-014 |
 | [RFC-012: Logical Scroll Model](/docs/rfcs/RFC-012-Logical-Scroll-Model) | Partially implemented | Viewport-sized content with logical scroll; scrollbar, RTL, adapter adoption and page mode carried by RFC-014 as 3.0 gates |
 | [RFC-011: Carousel Plugin](/docs/rfcs/RFC-011-Carousel-Plugin) | Implemented | Paged carousel with infinite loop, snap, and focal scaling |

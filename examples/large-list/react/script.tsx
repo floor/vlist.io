@@ -1,10 +1,12 @@
 // Large List — React implementation with useVList hook
-// Uses builder pattern with compression + scrollbar plugins
-// Demonstrates handling 100K–5M items with automatic scroll compression
+// Synthetic input (vlist/synthetic) + scrollbar: no browser element size limit
+// Demonstrates handling 100K–5M items
 
 import { useState, useCallback, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { useVList, useVListEvent } from "vlist-react";
+// vlist 3 scrolls natively by default; lists this large opt into synthetic input.
+import { createVList as createSyntheticVList } from "vlist/synthetic";
 import type { VList } from "vlist";
 
 // =============================================================================
@@ -12,6 +14,8 @@ import type { VList } from "vlist";
 // =============================================================================
 
 const ITEM_HEIGHT = 48;
+// vlist's MAX_VIRTUAL_SIZE: past it, native scrolling cannot reach the end.
+const NATIVE_LIMIT = 16_000_000;
 const SIZES = {
   "100k": 100_000,
   "500k": 500_000,
@@ -89,10 +93,9 @@ function App() {
     direction: "–" as string,
     range: "–" as string,
   });
-  const [compression, setCompression] = useState({
-    isCompressed: false,
+  const [extent, setExtent] = useState({
+    overNativeLimit: false,
     virtualHeight: 0,
-    ratio: "1.0",
   });
 
   const startTimeRef = useRef(0);
@@ -107,14 +110,15 @@ function App() {
     items,
     // vlist/config installs the scrollbar plugin from these options. A user
     // plugin named "scrollbar" would replace it, so no descriptor here.
+    factory: createSyntheticVList,
     scroll: { scrollbar: { autoHide: true } },
   });
 
   // Track scroll events
-  useVListEvent(instanceRef, "scroll", ({ scrollTop, direction }) => {
+  useVListEvent(instanceRef, "scroll", ({ scrollPosition, direction }) => {
     setViewport((prev) => ({
       ...prev,
-      scrollPos: Math.round(scrollTop),
+      scrollPos: Math.round(scrollPosition),
       direction: direction === "up" ? "↑ up" : "↓ down",
     }));
   });
@@ -129,17 +133,12 @@ function App() {
     }));
   });
 
-  // Update compression info when size changes
-  const updateCompressionInfo = useCallback((count: number) => {
+  // Update the virtual extent when size changes
+  const updateExtent = useCallback((count: number) => {
     const totalHeight = count * ITEM_HEIGHT;
-    const maxHeight = 16_777_216; // browser limit ~16.7M px
-    const isCompressed = totalHeight > maxHeight;
-    const ratio = isCompressed ? (totalHeight / maxHeight).toFixed(1) : "1.0";
-
-    setCompression({
-      isCompressed,
+    setExtent({
+      overNativeLimit: totalHeight > NATIVE_LIMIT,
       virtualHeight: totalHeight,
-      ratio,
     });
   }, []);
 
@@ -159,9 +158,9 @@ function App() {
         genTime,
         buildTime: performance.now() - startTimeRef.current,
       });
-      updateCompressionInfo(count);
+      updateExtent(count);
     },
-    [updateCompressionInfo],
+    [updateExtent],
   );
 
   // Navigation handlers
@@ -226,9 +225,8 @@ function App() {
         <h1>Large List</h1>
         <p className="description">
           React implementation with <code>useVList</code> hook +{" "}
-          <code>scale</code> + <code>scrollbar</code> plugins. Handles
-          100K–5M items with automatic scroll scaling when total height exceeds
-          the browser's 16.7M pixel limit.
+          <code>vlist/synthetic</code> + <code>scrollbar</code>. Handles
+          100K–5M items: synthetic input has no browser element size limit.
         </p>
       </header>
 
@@ -253,22 +251,22 @@ function App() {
       </div>
 
       <div className="compression-bar" id="compression-info">
-        <span
-          className={`ui-badge ui-badge--pill ${
-            compression.isCompressed ? "ui-badge--success" : "ui-badge--muted"
-          }`}
-        >
-          {compression.isCompressed ? "COMPRESSED" : "NATIVE"}
+        <span className="ui-badge ui-badge--pill ui-badge--success">
+          SYNTHETIC
         </span>
         <span className="compression-detail">
           Virtual height:{" "}
           <strong>
-            {(compression.virtualHeight / 1_000_000).toFixed(1)}M px
+            {(extent.virtualHeight / 1_000_000).toFixed(1)}M px
           </strong>
           {" · "}
-          Ratio: <strong>{compression.ratio}×</strong>
-          {" · "}
-          Limit: <strong>16.7M px</strong>
+          Native limit: <strong>16M px</strong>
+          {extent.overNativeLimit && (
+            <>
+              {" · "}
+              <strong>beyond native scrolling</strong>
+            </>
+          )}
         </span>
       </div>
 
@@ -403,10 +401,10 @@ function App() {
 
       <footer>
         <p>
-          Compression activates automatically when the virtual height exceeds
-          ~16.7 million pixels. The React hook integrates seamlessly with the
-          builder's plugin system — compression logic is only loaded when you
-          configure the <code>compression</code> plugin. ⚛️
+          Synthetic input owns the scroll position, so the list has no browser
+          element size limit; native scrolling stops at about 16 million pixels.
+          Pass <code>factory: createVList</code> from <code>vlist/synthetic</code>{" "}
+          to <code>useVList</code> to opt in. ⚛️
         </p>
       </footer>
     </div>

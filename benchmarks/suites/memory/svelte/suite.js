@@ -5,6 +5,7 @@
 // results with rating thresholds.
 
 import { vlist } from "vlist-svelte";
+import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -13,7 +14,10 @@ import {
   rateLower,
 } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
-import { measureMemoryProfile } from "../../../engine/memory.js";
+import { measureMemoryProfile, scrollWithSetter } from "../../../engine/memory.js";
+import { findViewport } from "../../../engine/viewport.js";
+import { scrollCapturePlugin } from "../../../engine/logical-scroll.js";
+import { formatMemoryMetrics } from "../format.js";
 
 // =============================================================================
 // Suite
@@ -110,5 +114,53 @@ defineSuite({
         better: "lower",
       },
     ];
+  },
+});
+
+if (__BENCH_HAS_SYNTHETIC__) defineSuite({
+  id: "memory-synthetic-svelte",
+  name: "Memory (Svelte)",
+  description: "Heap of a synthetic list created through the Svelte adapter, after render and after scrolling its position",
+  icon: "🧠",
+  run: async ({ itemCount, container, onStatus, intensity }) => {
+    const items = generateItems(itemCount);
+    const capture = { current: null };
+    const result = await measureMemoryProfile({
+      container,
+      createFn: async () => {
+        const action = vlist(container, {
+          config: {
+            item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
+            items,
+            factory: createSynthetic,
+            plugins: [scrollCapturePlugin((set) => { capture.current = set; })],
+          },
+        });
+        if (!capture.current) throw new Error("Svelte list did not install the scroll writer");
+        return { instance: action };
+      },
+      destroyFn: (action) => action?.destroy?.(),
+      scrollFn: (durationMs, speedPxPerFrame, onProgress) => {
+        const viewport = findViewport(container);
+        const content = container.querySelector(".vlist-content");
+        return scrollWithSetter({
+          max: items.length * ITEM_HEIGHT - viewport.clientHeight,
+          set(position) {
+            capture.current(position);
+            if (viewport.scrollTop !== 0 || content.scrollTop !== 0) {
+              throw new Error("Synthetic memory scroll moved a native main-axis scroll offset");
+            }
+          },
+        }, durationMs, speedPxPerFrame, onProgress);
+      },
+      onStatus,
+      ...(intensity?.memoryScrollMs && { scrollDurationMs: intensity.memoryScrollMs }),
+    });
+    return formatMemoryMetrics(result, {
+      scrollLeakGood: itemCount <= 100_000 ? 1 : 3,
+      scrollLeakOk: itemCount <= 100_000 ? 5 : 10,
+      renderGood: itemCount <= 10_000 ? 5 : itemCount <= 100_000 ? 15 : 80,
+      renderOk: itemCount <= 10_000 ? 15 : itemCount <= 100_000 ? 40 : 200,
+    });
   },
 });

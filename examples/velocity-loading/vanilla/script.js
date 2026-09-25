@@ -1,12 +1,9 @@
 // Velocity-Based Loading - Pure Vanilla JavaScript
 // Demonstrates smart loading that adapts to scroll velocity
+// Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
 
 import { createVList, selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
-import * as vlistNative from "vlist/native";
-
-// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
-// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
-const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
+import { getScrollMode } from "../../scroll-mode.js";
 import {
   LOAD_VELOCITY_THRESHOLD,
   TOTAL_ITEMS,
@@ -105,46 +102,90 @@ function updateContext() {
   if (infoLoadedEl) infoLoadedEl.textContent = formatLoadedCount(loadedCount);
 }
 
+// Scroll mode (?mode=native|synthetic). Synthetic by default: a million rows
+// exceed the native element size limit.
+let list = null;
+
 // Build list — snapshots({ autoSave }) handles save/restore automatically.
 // On first visit, autoLoad fetches data. On return visits, the snapshot provides
 // the total and scroll position, and autoLoad is cancelled automatically.
-const list = createVList(
-  {
-    container: "#list-container",
-    ariaLabel: "Virtual user list with velocity-based loading",
-    ...(VLIST3 ? {} : { scroll: { mode: "bounded" } }),
-    item: {
-      height: ITEM_HEIGHT,
-      template: itemTemplate,
+// Switching the scroll mode destroys the list (which saves the snapshot) and
+// builds it again with the other factory, so the position carries over.
+function createList() {
+  if (list) {
+    list.destroy();
+    list = null;
+    document.getElementById("list-container").innerHTML = "";
+  }
+
+  list = createVList(
+    {
+      container: "#list-container",
+      ariaLabel: "Virtual user list with velocity-based loading",
+      item: {
+        height: ITEM_HEIGHT,
+        template: itemTemplate,
+      },
     },
-  },
-  [
-    selection({ mode: "single" }),
-    dataPlugin({
-      adapter: {
-        read: async ({ offset, limit }) => {
-          loadRequests++;
-          isLoading = true;
-          updateControls();
-          updateContext();
-          const result = await fetchItems(offset, limit);
-          isLoading = false;
-          updateControls();
-          updateContext();
-          return result;
+    [
+      selection({ mode: "single" }),
+      dataPlugin({
+        adapter: {
+          read: async ({ offset, limit }) => {
+            loadRequests++;
+            isLoading = true;
+            updateControls();
+            updateContext();
+            const result = await fetchItems(offset, limit);
+            isLoading = false;
+            updateControls();
+            updateContext();
+            return result;
+          },
         },
-      },
-      storage: {
-        chunkSize: 25,
-      },
-      loading: {
-        cancelThreshold: LOAD_VELOCITY_THRESHOLD,
-      },
-    }),
-    scrollbar({ autoHide: true }),
-    snapshots({ autoSave: STORAGE_KEY }),
-  ],
-);
+        storage: {
+          chunkSize: 25,
+        },
+        loading: {
+          cancelThreshold: LOAD_VELOCITY_THRESHOLD,
+        },
+      }),
+      scrollbar({ autoHide: true }),
+      snapshots({ autoSave: STORAGE_KEY }),
+    ],
+  );
+
+  list.on("scroll", () => {
+    updateInfo();
+  });
+
+  list.on("range:change", () => {
+    updateInfo();
+  });
+
+  list.on("velocity:change", ({ velocity }) => {
+    currentVelocity = velocity;
+    stats.onVelocity(velocity);
+    updateInfo();
+    updateControls();
+  });
+
+  list.on("load:start", () => {
+    isLoading = true;
+    updateControls();
+    updateContext();
+  });
+
+  list.on("load:end", ({ items }) => {
+    isLoading = false;
+    loadedCount += items.length;
+    updateControls();
+    updateContext();
+  });
+
+  const infoModeEl = document.getElementById("info-mode");
+  if (infoModeEl) infoModeEl.textContent = getScrollMode("native").toUpperCase();
+}
 
 // =============================================================================
 // Shared footer stats (left side — progress, velocity, items)
@@ -182,34 +223,7 @@ const btnRandom = document.getElementById("btn-random");
 const btnReload = document.getElementById("btn-reload");
 const btnResetStats = document.getElementById("btn-reset-stats");
 
-// Event bindings
-list.on("scroll", () => {
-  updateInfo();
-});
-
-list.on("range:change", () => {
-  updateInfo();
-});
-
-list.on("velocity:change", ({ velocity }) => {
-  currentVelocity = velocity;
-  stats.onVelocity(velocity);
-  updateInfo();
-  updateControls();
-});
-
-list.on("load:start", () => {
-  isLoading = true;
-  updateControls();
-  updateContext();
-});
-
-list.on("load:end", ({ items }) => {
-  isLoading = false;
-  loadedCount += items.length;
-  updateControls();
-  updateContext();
-});
+createList();
 
 // Update button states
 function updateDataSourceButtons() {

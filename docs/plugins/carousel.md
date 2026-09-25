@@ -1,6 +1,6 @@
 ---
 created: 2026-06-06
-updated: 2026-06-09
+updated: 2026-09-16
 status: published
 ---
 
@@ -226,11 +226,15 @@ Set `--vlist-carousel-radius` on the slide to control border-radius:
 
 ## How it works
 
-The plugin creates a **bounded virtual scroll window** — the content is repeated across multiple cycles with items mapped via modulo. Scrolling past the last item seamlessly continues to the first.
+The plugin creates a **repeating virtual scroll window** — the content is repeated across multiple cycles with items mapped via modulo. Scrolling past the last item seamlessly continues to the first.
 
-Internally, the carousel delegates to the **bounded scroll handler** (RFC-012) via `ctx.setBoundedWrap`. When the scroll position drifts too far from the middle cycle, the handler folds the logical position back by whole laps — the user sees continuous forward or backward motion with no visual discontinuity.
+Internally, the carousel supplies its own wrap handler through `ctx.setBoundedWrap`. When the scroll position drifts too far from the middle cycle, the handler folds the logical position back by whole laps, so the user sees continuous forward or backward motion with no visual discontinuity. With `vlist/synthetic`, the synthetic input handler performs the same fold while a drag, a fling or a snap animation continues.
 
 ## Compatibility
+
+Every combination below has been measured. The ones marked incompatible throw at
+creation, so you find out immediately rather than through a list that renders
+wrongly.
 
 | Plugin | Status |
 |--------|--------|
@@ -238,8 +242,23 @@ Internally, the carousel delegates to the **bounded scroll handler** (RFC-012) v
 | `a11y()` | Compatible |
 | `scrollbar()` | Compatible (lap progress indicator) |
 | `autosize()` | Compatible |
-| `scale()` | **Not compatible** — both own virtual scroll space |
+| `snapshots()` | Compatible — a restore lands in the home lap |
+| `transition()` | Compatible |
+| `data()` | Compatible |
+| `grid()` | **Not compatible** — two layout owners; creation throws |
+| `table()` | **Not compatible** — two layout owners; creation throws |
+| `masonry()` | **Not compatible** — two layout owners; creation throws |
+| `tree()` | **Not compatible** — two layout owners; creation throws |
 | `groups()` | **Not compatible** — infinite wrap doesn't map to grouped sections |
+| `page()` | **Not compatible** — page scrolling cannot wrap; creation throws |
+| `search()` | **Not yet** — filter mode replaces the accessors the carousel window owns, and the laps do not come back when the query is cleared. Creation throws today; this one is fixable and may be allowed in a later release |
+| `sortable()` | **Not yet** — a drop is computed in the carousel's virtual index space, so it reports an index outside the list. Creation throws today; also fixable |
+
+The distinction in the last two rows is deliberate. A searchable carousel and a
+sortable carousel are reasonable things to want, and both are broken for reasons
+that can be fixed rather than fundamental ones. They throw now because a clear
+error beats a list that silently corrupts itself, and allowing a combination
+later breaks nobody while forbidding one later breaks everybody who shipped it.
 
 ## Accessibility
 

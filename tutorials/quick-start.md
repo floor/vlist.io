@@ -176,7 +176,8 @@ const feed = createVList({
 ### 7. Large Dataset (1M+ Items)
 
 ```typescript
-import { createVList, scale, scrollbar } from 'vlist';
+import { createVList } from 'vlist/synthetic';
+import { scrollbar } from 'vlist';
 
 const bigList = createVList({
   container: '#list',
@@ -186,10 +187,11 @@ const bigList = createVList({
     template: (item) => `<div>#${item.id}: ${item.name}</div>`,
   },
 }, [
-  scale(),
   scrollbar({ autoHide: true })
 ]);
 ```
+
+Lists past the browser's element size limit use the synthetic input entry. See [Scroll modes](/docs/scroll-modes).
 
 ---
 
@@ -263,7 +265,6 @@ list.removeItem(5);
 | `groups()` | Grouped lists with sticky/inline headers |
 | `data()` | Async data loading |
 | `selection()` | Single/multiple selection + 2D keyboard nav |
-| `scale()` | Handle 1M+ items |
 | `scrollbar()` | Custom scrollbar |
 | `page()` | Page-level scrolling |
 | `snapshots()` | Scroll save/restore |

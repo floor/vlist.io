@@ -9,15 +9,18 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { ROOT, SITE } from "./config";
 import { CACHE_META } from "./cache";
-import { V1_TO_V2_DOCS, V1_TO_V2_TUTORIALS } from "./version-map";
+import { CURRENT_DOC_VERSION, mapSlug, versionFromPath } from "./versions";
 import {
   DOC_GROUPS,
   TUTORIAL_GROUPS,
   DOC_V1_GROUPS,
+  DOC_V2_GROUPS,
   TUTORIAL_V1_GROUPS,
+  TUTORIAL_V2_GROUPS,
   BLOG_GROUPS,
   EXAMPLE_GROUPS,
   BENCH_GROUPS,
+  getDocSlugSets,
 } from "./renderers";
 
 // =============================================================================
@@ -185,6 +188,26 @@ function buildLastmodMap(): Map<string, string> {
     }
   }
 
+  // Docs v2 overview
+  map.set(
+    "/docs/v2/",
+    resolveDate(
+      allDates,
+      "docs/v2/navigation.json",
+      "src/server/shells/content.html",
+      "styles/content.css",
+    ),
+  );
+
+  // Docs v2 pages
+  for (const group of DOC_V2_GROUPS) {
+    for (const item of group.items) {
+      if (item.slug === "") continue;
+      const file = `docs/v2/${item.slug}.md`;
+      map.set(`/docs/v2/${item.slug}`, resolveDate(allDates, file));
+    }
+  }
+
   // Tutorials overview → navigation config, plus shared shell
   map.set(
     "/tutorials/",
@@ -220,6 +243,25 @@ function buildLastmodMap(): Map<string, string> {
     for (const item of group.items) {
       const file = `tutorials/v1/${item.slug}.md`;
       map.set(`/tutorials/v1/${item.slug}`, resolveDate(allDates, file));
+    }
+  }
+
+  // Tutorials v2 overview
+  map.set(
+    "/tutorials/v2/",
+    resolveDate(
+      allDates,
+      "tutorials/v2/navigation.json",
+      "src/server/shells/content.html",
+      "styles/content.css",
+    ),
+  );
+
+  // Tutorials v2 pages
+  for (const group of TUTORIAL_V2_GROUPS) {
+    for (const item of group.items) {
+      const file = `tutorials/v2/${item.slug}.md`;
+      map.set(`/tutorials/v2/${item.slug}`, resolveDate(allDates, file));
     }
   }
 
@@ -314,13 +356,23 @@ export function renderSitemap(): Response {
     urls.push({ loc: `/docs/${slug}`, priority: "0.6" });
   }
 
-  // Docs v1 — pages with a v2 equivalent get lower priority (canonical points to v2)
+  // Archived docs (v1, v2) — pages with a current equivalent get lower priority
+  // (their canonical points to it)
+  const docSlugs = getDocSlugSets("/docs");
   urls.push({ loc: "/docs/v1/", priority: "0.5" });
   for (const group of DOC_V1_GROUPS) {
     for (const item of group.items) {
       if (item.slug === "") continue;
-      const hasV2 = item.slug in V1_TO_V2_DOCS;
-      urls.push({ loc: `/docs/v1/${item.slug}`, priority: hasV2 ? "0.3" : "0.4" });
+      const hasCurrent = mapSlug("/docs", "v1", CURRENT_DOC_VERSION, item.slug, docSlugs) !== null;
+      urls.push({ loc: `/docs/v1/${item.slug}`, priority: hasCurrent ? "0.3" : "0.4" });
+    }
+  }
+  urls.push({ loc: "/docs/v2/", priority: "0.5" });
+  for (const group of DOC_V2_GROUPS) {
+    for (const item of group.items) {
+      if (item.slug === "") continue;
+      const hasCurrent = mapSlug("/docs", "v2", CURRENT_DOC_VERSION, item.slug, docSlugs) !== null;
+      urls.push({ loc: `/docs/v2/${item.slug}`, priority: hasCurrent ? "0.3" : "0.4" });
     }
   }
 
@@ -332,12 +384,20 @@ export function renderSitemap(): Response {
     }
   }
 
-  // Tutorials v1 — pages with a v2 equivalent get lower priority
+  // Archived tutorials (v1, v2) — pages with a current equivalent get lower priority
+  const tutorialSlugs = getDocSlugSets("/tutorials");
   urls.push({ loc: "/tutorials/v1/", priority: "0.5" });
   for (const group of TUTORIAL_V1_GROUPS) {
     for (const item of group.items) {
-      const hasV2 = item.slug in V1_TO_V2_TUTORIALS;
-      urls.push({ loc: `/tutorials/v1/${item.slug}`, priority: hasV2 ? "0.3" : "0.4" });
+      const hasCurrent = mapSlug("/tutorials", "v1", CURRENT_DOC_VERSION, item.slug, tutorialSlugs) !== null;
+      urls.push({ loc: `/tutorials/v1/${item.slug}`, priority: hasCurrent ? "0.3" : "0.4" });
+    }
+  }
+  urls.push({ loc: "/tutorials/v2/", priority: "0.5" });
+  for (const group of TUTORIAL_V2_GROUPS) {
+    for (const item of group.items) {
+      const hasCurrent = mapSlug("/tutorials", "v2", CURRENT_DOC_VERSION, item.slug, tutorialSlugs) !== null;
+      urls.push({ loc: `/tutorials/v2/${item.slug}`, priority: hasCurrent ? "0.3" : "0.4" });
     }
   }
 
@@ -370,8 +430,8 @@ export function renderSitemap(): Response {
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
     ...urls.map((u) => {
       const lastmod = LASTMOD.get(u.loc) ?? FALLBACK_DATE;
-      const isV1 = u.loc.includes("/v1/") || u.loc.endsWith("/v1");
-    const changefreq = isV1
+      const archived = versionFromPath(u.loc) !== CURRENT_DOC_VERSION;
+      const changefreq = archived
         ? "yearly"
         : u.priority === "1.0"
           ? "weekly"

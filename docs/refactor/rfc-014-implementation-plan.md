@@ -273,6 +273,139 @@ desk, the migration guide and scroll-modes page, and a 3.0.0-next.2 prerelease. 
 gate becomes the 2.8 base, 9.9 KB, for the native default. The bullets below describe the
 superseded 2026-09-14 shape.
 
+**2.8.1 released 2026-09-15** (npm `latest`): corrected the 2.8 deprecation notices for
+the native-default shape (native stays the default, synthetic input opt-in, the scrollbar
+strings not deprecated), the carousel resize fix and the prerelease-aware publish workflow;
+two README size rows refreshed. vlist.io deployed with the rewritten migration guide.
+Series 8 PR a merged into `next` (floor/vlist#162): the carousel supplies its own wrap
+runway; native entry 9,537 gzip bytes (-856), carousel row +893. PR b (native default) and
+the test geometry-mock cleanup are in progress.
+Series 8 PR b merged into `next` (floor/vlist#164): `vlist` is native by default,
+`vlist/synthetic` is the first-class opt-in entry, `vlist/native` a deprecated re-export
+alias; the scrollbar strings are valid again on `vlist`, `scroll.mode`/`scroll.runway`
+still throw. Default base **9,523 gzip bytes**, 665 under the 9.9 KB gate; synthetic
+entry 11,687; every plugin row about -2.1 KB; carousel 14,031. Verified from a clean
+export: 3,641 tests in default and Linux order, coverage, 19 size scenarios, build,
+browser suite 32/0. The test geometry-mock cleanup merged into `staging`
+(floor/vlist#163: 37 files restored, per-file guard). Series 8 closed.
+
+**3.0.0-next.2 published 2026-09-15** (npm `next` dist-tag; `latest` stays 2.8.1; GitHub
+prerelease): the native-default shape, after Dr Jones's local test round on the examples.
+`next` first took staging 2.8.1 and the geometry-mock cleanup, then the release commit and
+a README wording fix. Verified from a clean export before tagging: 3,641 tests in default
+and Linux order, coverage, build, base 9.3 KB and synthetic entry 11.4 KB, pack of 107
+files. Next consumers: the radiooooo monorepo (desk) and web v4 move their pin from
+3.0.0-next.1.
+
+**Series 9 PR a merged 2026-09-16** (floor/vlist#165): `carousel()` works with
+`vlist/synthetic`. The synthetic handler folds whole laps with the non-cancelling motion
+shift, so drags, flings, smooth navigation and directional snapping continue across a fold.
+Two native carousel defects found on the way are fixed in separate commits: a fold spiked
+`velocity:change` and could suppress a scroll event, and a pending next/previous target
+stayed in the old lap. Both handlers notify core and the wrap owner through optional
+internal `onFold` fields on the published plugin types. Sortable stays rejected on synthetic.
+Verified from a clean export: 3,687 tests in default and Linux order, coverage, 20 size
+scenarios, build, pack, browser suites 32/0 and 38/0; the largest item movement on a fold
+frame is 35 px, with 0 px deviation from the home-cycle layout. Base 9,543 gzip bytes (+20),
+synthetic 11,820 (+133), carousel 14,080 (+49), synthetic + carousel 16,343. The carousel
+still carries its native runway on either entry.
+
+**Series 9 PR b merged 2026-09-16** (floor/vlist#166): `sortable()` works with
+`vlist/synthetic`. Dr Jones decided the touch gesture: without a handle, a long press
+(`touchDelay`, default 350 ms) starts the drag and earlier movement scrolls; with `handle`,
+the handle drags at `dragThreshold` as before. The same gestures apply on native `vlist`,
+where the measured baseline showed native panning cancelling all 8 touch sorts. The claim
+stays inside the plugin (document-capture interception, non-passive `touchmove` on document
+and on the original target, which survives row recycling, pointer capture on the content
+element) with no core seam; the only core change removes the guard. Also fixed: item shifts
+subtract the render origin, horizontal drops no longer count `scrollLeft` twice, and a drop
+after returning from edge auto-scroll resolves without another pointer move. Verified from a
+clean export: 3,749 tests in default and Linux order, coverage, 21 size scenarios, build,
+pack, browser suites 52/0 (sortable), 38/0, 32/0 and 4/0. Base 9,514 gzip bytes (-29),
+synthetic 11,790, sortable 13,095 (+565), synthetic + sortable 15,429. Physical-device passes
+(iOS and Android callouts, momentum catching, pen) are still to do.
+
+**Stats fix merged 2026-09-16** (floor/vlist#167): `createStats` no longer maps positions
+through the removed scale compression ratio, which made a 1,000,000-row synthetic list report
+100% halfway. Both entries now use the unscaled logical position, clamped to the real range;
+native lists past the browser limit may stop short of 100%, documented with the
+`content:size:overflow` error. Verified from a clean export: 3,756 tests in both orders,
+coverage, 23 size scenarios, build, pack, browser suites 52/0, 38/0, 32/0 and 4/0 (the RTL
+suite passed twice in isolation after one failure Codex saw when suites ran together). Base
+unchanged at 9,514 gzip bytes; createStats 9,744 (-28).
+
+**3.0 freeze cycle opened 2026-09-16.** Dr Jones shared a critical review of 3.0 by Grok
+(via Cursor); Claude verified every finding against `next` (four read-only checks) and
+documented them in the private floor docs. Verdict: hold 3.0.0 stable until the contracts
+are fixed. Claude implements the fixes directly and Grok reviews afterwards.
+First change merged (floor/vlist#168): the public types no longer rely on index signatures.
+`VListItem` requires only an `id`, so ordinary interfaces satisfy it; `VList` rejects unknown
+property names; each plugin declares the methods it adds and `createVList` infers them from
+the plugins array. An explicit item type argument skips that inference (TypeScript forbids
+partial type argument lists), so the docs tell consumers to type the config instead. Also
+exported `GridPluginConfig`, `A11yPluginConfig`, the thirteen method types and the
+`PluginMethods` helper; removed the deprecated `ScrollbarConfig` export. New strict type
+tests (`test/types/`, `tsconfig.types.json`) run in `bun run typecheck`. Verified from a clean
+export: 3,756 tests in both orders, coverage, 23 size scenarios, build, pack, browser suites
+4/0, 32/0, 38/0 and 52/0; bundle sizes unchanged (types only).
+
+**Method bus merged 2026-09-16** (floor/vlist#169): public method names are a contract.
+`registerMethod` throws when a second plugin claims one; internal underscore names stay
+overridable (groups, masonry and page each provide `_scrollItemIntoView`) and no longer reach
+the public instance. grid, groups and masonry install their scroll implementation through
+`setScrollToIndexFn` instead of shadowing the public method, so core keeps `scrollToIndex`
+and the scroll held before the list has a total. Two ordering bugs surfaced and are fixed:
+the held scroll flushed before the plugins rebuilt their layout (0 with grid, masonry and
+groups; now it matches the same request made with items present), and core clamped the index
+against the plugin's own virtual total, so with grid every index past 100 collapsed onto one
+position. A plugin whose `setup()` throws is now logged outside production, which is what
+makes the duplicate-name error observable at all. Base 9,627 gzip bytes (+114 over the type
+surface merge), attributed piece by piece in the PR: duplicate check 47, underscore skip 12,
+console line 58, ordering fixes free. Still open and unchanged: `[groups, grid]` loses a held
+scroll and hook ownership is last-writer-wins when both are present; grid and groups leak
+their internal counts through `list.total`.
+
+**Adapter config path merged 2026-09-16** (floor/vlist#170): `vlist/config` wires only the
+plugins the config asks for. It used to add `selection({ mode: "none" })`, `snapshots()` and the
+custom overlay scrollbar to every list, so an adapter list and a core list built from the same
+options did not behave the same — and that always-on selection claimed `role="listbox"`,
+`tabindex="0"` and an option role per item with no keyboard handler behind any of it. Selection
+follows its field, `mode: "none"` no longer claims the role, and `snapshots: true`, `scrollbar:
+true` and `a11y: true` are opt-in fields. The groups config is passed to the plugin as it stands:
+rebuilding it field by field dropped the documented `header` shape and collapsed a function
+`headerHeight` to the first group's value. A `layout` without its options throws. Both READMEs
+stopped claiming every list is accessible by default and stopped pointing at `interactive`, an
+option no version has ever read.
+
+**Behaviour contracts merged 2026-09-16** (floor/vlist#171): `item:click`, `item:dblclick` and
+`item:contextmenu` report the data index rather than the layout index, so a grouped list no longer
+announces data row 3 as row 5 and the index can be fed back to `getItemAt` or `removeItem`.
+`createVList` copies the items array it is given, since `insertItem`, `removeItem` and
+`removeItems` splice in place and were rewriting the caller's array while `setItems` had always
+copied. `reverse` finally does what the README documents: a reverse list sitting at the end stays
+pinned to it as `appendItems` adds, while one scrolled back through history stays put. Core had
+only ever passed the flag to plugins.
+
+**Horizontal RTL rejected 2026-09-16** (floor/vlist#172): a horizontal list in an RTL container
+throws at creation in `vlist` as well as `vlist/synthetic`. The native entry used to accept it and
+render a first page that never moved — RTL makes `scrollLeft` negative, the wheel clamp pins it at
+0, items translate the wrong way — while both READMEs sold native horizontal RTL as a reason to
+prefer that entry. Dr Jones chose rejecting over fixing: a real implementation needs a sign at
+every logical/DOM boundary and in all twelve files that write their own transform, none of it
+covered by a browser test. Going from a throw to an implementation later is additive. Vertical RTL
+and RTL tables are untouched.
+
+**Release gate and hygiene 2026-09-16** (floor/vlist#173): CI runs on `next`, so 3.0 pull requests
+are checked automatically for the first time — every merge before this one was gated by hand
+against a clean export. The four browser suites run in CI against an in-repo Chrome launcher
+(`scripts/browser-driver.mjs`); they previously required a driver module from the vlist.io
+repository, so nothing but a local checkout with a sibling clone could run them. `bun run size`
+now fails above the base bundle's 9.9 KB gzip budget and prints exact bytes (9,688 of 10,137).
+Hygiene: 88 "vlist v2" headers, a CONTRIBUTING source tree listing folders deleted or never
+created, and carousel's and sortable's conflicts with the removed `scale` plugin. Q2 is only
+partly closed — it also asks for a heap assertion, and the memory tests assert DOM, listener and
+observer behaviour, never heap.
+
 - Core: synthetic input is the default and the only model in core. Bounded mode,
   `scroll.mode`, the runway, rebase and `baseOffset` are removed. `scale()` is removed.
 - Native scrolling moves to an opt-in `vlist/native` entry, kept unless the gate review
