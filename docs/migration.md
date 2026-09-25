@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -55,7 +55,7 @@ const list = createVList({
 | `withGrid()` | `grid()` |
 | `withSelection()` | `selection()` |
 | `withScrollbar()` | `scrollbar()` |
-| `withScale()` | `scale()` |
+| `withScale()` | `scale()` (removed in 3.0, see [Migration: v2 to v3](/docs/migration-v3)) |
 | `withPage()` | `page()` |
 | `withSnapshots()` | `snapshots()` |
 | `withTransition()` | `transition()` |

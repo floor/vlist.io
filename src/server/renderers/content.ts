@@ -21,12 +21,12 @@ import {
 } from "./base";
 import { htmlHeaders } from "../cache";
 import {
-  MATCH_VERSION_SLUGS,
-  V2_TO_V1_DOCS,
-  V1_TO_V2_DOCS,
-  V2_TO_V1_TUTORIALS,
-  V1_TO_V2_TUTORIALS,
-} from "../version-map";
+  buildVersionSwitcher,
+  canonicalPath,
+  versionFromPath,
+  type DocSection,
+  type SlugSets,
+} from "../versions";
 
 // =============================================================================
 // Types
@@ -703,34 +703,6 @@ export function createContentRenderer(config: ContentConfig) {
   }
 
   // ===========================================================================
-  // Version Switcher
-  // ===========================================================================
-
-  function buildVersionSwitcher(sectionBase: string, isV1: boolean, slug: string | null): string {
-    let v1Url = `${sectionBase}/v1/`;
-    let v2Url = `${sectionBase}/`;
-
-    if (MATCH_VERSION_SLUGS && slug) {
-      const v2ToV1 = sectionBase === "/docs" ? V2_TO_V1_DOCS : V2_TO_V1_TUTORIALS;
-      const v1ToV2 = sectionBase === "/docs" ? V1_TO_V2_DOCS : V1_TO_V2_TUTORIALS;
-      if (isV1) {
-        const mapped = v1ToV2[slug];
-        if (mapped) v2Url = `${sectionBase}/${mapped}`;
-      } else {
-        const mapped = v2ToV1[slug];
-        if (mapped) v1Url = `${sectionBase}/v1/${mapped}`;
-      }
-    }
-
-    const v1Active = isV1 ? " ui-segmented__btn--active" : "";
-    const v2Active = isV1 ? "" : " ui-segmented__btn--active";
-    return `<div class="ui-segmented version-switcher">`
-      + `<a href="${v1Url}" class="ui-segmented__btn${v1Active}">v1</a>`
-      + `<a href="${v2Url}" class="ui-segmented__btn${v2Active}">v2</a>`
-      + `</div>`;
-  }
-
-  // ===========================================================================
   // Page Assembly
   // ===========================================================================
 
@@ -744,22 +716,20 @@ export function createContentRenderer(config: ContentConfig) {
     const shell = loadShell();
     const url = slug ? `${SITE}${urlPrefix}/${slug}` : `${SITE}${urlPrefix}/`;
 
-    const sectionBase = urlPrefix.startsWith("/docs")
+    const section: DocSection | null = urlPrefix.startsWith("/docs")
       ? "/docs"
       : urlPrefix.startsWith("/tutorials")
         ? "/tutorials"
         : null;
-    const isV1 = urlPrefix.includes("/v1");
-    const versionSwitcher = sectionBase
-      ? buildVersionSwitcher(sectionBase, isV1, slug)
+    const version = versionFromPath(urlPrefix);
+    const slugSets = section ? getDocSlugSets(section) : null;
+    const versionSwitcher = section && slugSets
+      ? buildVersionSwitcher(section, version, slug, slugSets)
       : "";
-
-    let canonicalUrl: string | null = null;
-    if (isV1 && slug && sectionBase) {
-      const v1ToV2 = sectionBase === "/docs" ? V1_TO_V2_DOCS : V1_TO_V2_TUTORIALS;
-      const v2Slug = v1ToV2[slug];
-      if (v2Slug) canonicalUrl = `${SITE}${sectionBase}/${v2Slug}`;
-    }
+    const canonical = section && slugSets
+      ? canonicalPath(section, version, slug, slugSets)
+      : null;
+    const canonicalUrl = canonical ? `${SITE}${canonical}` : null;
 
     return renderEta(shell, {
       // Page content
@@ -908,6 +878,7 @@ export function createContentRenderer(config: ContentConfig) {
     render,
     clearCache,
     loadNavigation,
+    getValidSlugs,
   };
 }
 
@@ -951,7 +922,7 @@ export const docsV1Renderer = createContentRenderer({
     "vlist v1 documentation — API reference, configuration, events, methods, styling, and more.",
   overviewTitle: "Documentation (v1)",
   overviewTagline:
-    'Reference documentation for vlist v1. For the latest version, see <a href="/docs">v2 Docs</a>.',
+    'Reference documentation for vlist v1. For the latest version, see <a href="/docs">the current docs</a>.',
   overviewSectionsPath: "overview.json",
 });
 
@@ -964,7 +935,32 @@ export const tutorialsV1Renderer = createContentRenderer({
   defaultDescription: "Step-by-step tutorials for vlist v1",
   overviewTitle: "vlist v1 Tutorials",
   overviewTagline:
-    'Step-by-step guides for vlist v1. For the latest version, see <a href="/tutorials">v2 Tutorials</a>.',
+    'Step-by-step guides for vlist v1. For the latest version, see <a href="/tutorials">the current tutorials</a>.',
+});
+
+export const docsV2Renderer = createContentRenderer({
+  contentDir: "./docs/v2",
+  urlPrefix: "/docs/v2",
+  sectionName: "Docs (v2)",
+  titleSuffix: "vlist v2 docs",
+  defaultTitle: "vlist v2 — Docs",
+  defaultDescription:
+    "vlist 2.x documentation — API reference, plugins, scroll modes, and migration guides.",
+  overviewTitle: "Documentation (v2)",
+  overviewTagline:
+    'Reference documentation for vlist 2.x. For the latest version, see <a href="/docs">the current docs</a>.',
+});
+
+export const tutorialsV2Renderer = createContentRenderer({
+  contentDir: "./tutorials/v2",
+  urlPrefix: "/tutorials/v2",
+  sectionName: "Tutorials (v2)",
+  titleSuffix: "vlist v2 Tutorials",
+  defaultTitle: "Tutorials (v2) — vlist",
+  defaultDescription: "Step-by-step tutorials for vlist 2.x",
+  overviewTitle: "vlist v2 Tutorials",
+  overviewTagline:
+    'Step-by-step guides for vlist 2.x. For the latest version, see <a href="/tutorials">the current tutorials</a>.',
 });
 
 export const blogRenderer = createContentRenderer({
@@ -984,6 +980,8 @@ export const DOC_GROUPS = docsRenderer.loadNavigation();
 export const TUTORIAL_GROUPS = tutorialsRenderer.loadNavigation();
 export const DOC_V1_GROUPS = docsV1Renderer.loadNavigation();
 export const TUTORIAL_V1_GROUPS = tutorialsV1Renderer.loadNavigation();
+export const DOC_V2_GROUPS = docsV2Renderer.loadNavigation();
+export const TUTORIAL_V2_GROUPS = tutorialsV2Renderer.loadNavigation();
 export const BLOG_GROUPS = blogRenderer.loadNavigation();
 
 export function renderDocsPage(slug: string | null): Response | null {
@@ -1028,6 +1026,48 @@ export function clearDocsV1Cache(): void {
 
 export function clearTutorialsV1Cache(): void {
   tutorialsV1Renderer.clearCache();
+}
+
+export function renderDocsV2Page(slug: string | null): Response {
+  const response = docsV2Renderer.render(slug);
+  if (!response) {
+    return new Response("v2 doc not found", { status: 404 });
+  }
+  return response;
+}
+
+export function renderTutorialV2Page(slug: string | null): Response {
+  const response = tutorialsV2Renderer.render(slug);
+  if (!response) {
+    return new Response("v2 tutorial not found", { status: 404 });
+  }
+  return response;
+}
+
+export function clearDocsV2Cache(): void {
+  docsV2Renderer.clearCache();
+}
+
+export function clearTutorialsV2Cache(): void {
+  tutorialsV2Renderer.clearCache();
+}
+
+/**
+ * Valid slugs of every docs version for one section: used by the version switcher,
+ * canonical tags, archive redirects and the sitemap.
+ */
+export function getDocSlugSets(section: DocSection): SlugSets {
+  return section === "/docs"
+    ? {
+        v1: docsV1Renderer.getValidSlugs(),
+        v2: docsV2Renderer.getValidSlugs(),
+        v3: docsRenderer.getValidSlugs(),
+      }
+    : {
+        v1: tutorialsV1Renderer.getValidSlugs(),
+        v2: tutorialsV2Renderer.getValidSlugs(),
+        v3: tutorialsRenderer.getValidSlugs(),
+      };
 }
 
 export function renderBlogPage(slug: string | null): Response {

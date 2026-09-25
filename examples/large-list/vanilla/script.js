@@ -1,21 +1,10 @@
-// Builder Million Items — Composable entry point
-// Scroll mode is selectable: native, bounded (RFC-012) or synthetic (RFC-014).
-// Demonstrates handling 1M+ items with a viewport-sized content runway
-// Supports List and Table layout modes
+// Large List — Composable entry point
+// Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
+// Demonstrates handling 100K–20M items
+// Supports List, Grid and Table layout modes
 
 import { scrollbar, table, grid, selection } from "vlist";
-// The opt-in entry handles all three modes; it delegates native/bounded to core.
-// When the installed vlist has no synthetic entry, the examples bundler substitutes
-// a stub that throws for synthetic mode only, so the example degrades to two modes.
-import * as syntheticEntry from "vlist/synthetic";
-// vlist 3.0: synthetic input is the core default and native scrolling lives in the
-// "vlist/native" entry. On 2.x the bundler substitutes a stub that delegates to core.
-import * as nativeEntry from "vlist/native";
-
-const { createVList } = syntheticEntry;
-// Only the bundler stubs define these flags; the real entries leave them undefined.
-const SYNTHETIC_AVAILABLE = syntheticEntry.SYNTHETIC_AVAILABLE !== false;
-const NATIVE_AVAILABLE = nativeEntry.NATIVE_AVAILABLE !== false;
+import { factoryFor, getScrollMode, rememberScrollMode } from "../../scroll-mode.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -28,6 +17,8 @@ const TABLE_ROW_HEIGHT = 36;
 const GRID_ITEM_HEIGHT = 120;
 const GRID_COLUMNS = 4;
 const GRID_GAP = 8;
+// vlist's MAX_VIRTUAL_SIZE: native content past it cannot be scrolled to the end.
+const NATIVE_LIMIT = 16_000_000;
 const SIZES = {
   "100k": 100_000,
   "500k": 500_000,
@@ -182,7 +173,6 @@ const scrollDirEl = document.getElementById("scroll-direction");
 const rangeEl = document.getElementById("visible-range");
 const sizeButtons = document.getElementById("size-buttons");
 const layoutButtons = document.getElementById("layout-buttons");
-const modeButtons = document.getElementById("mode-buttons");
 
 // Info bar right-side elements
 const infoVirtualizedEl = document.getElementById("info-virtualized");
@@ -219,20 +209,9 @@ let currentSize = "1m";
 let currentLayout = "list";
 let list = null;
 
-// Scroll mode: "auto" keeps the example's historical rule (bounded above 100K,
-// native below); "native", "bounded" and "synthetic" force a mode. The choice
-// lives in the URL so a reload keeps it.
-const MODES = ["auto", "native", "bounded", "synthetic"];
-const initialMode = new URLSearchParams(location.search).get("mode");
-let currentMode = MODES.includes(initialMode) ? initialMode : "auto";
-
-const resolveMode = (count) =>
-  currentMode === "auto"
-    ? (NATIVE_AVAILABLE
-        // 3.0: native by default; synthetic input past the browser element limit.
-        ? (count > 300_000 ? "synthetic" : "native")
-        : count > 100_000 ? "bounded" : "native")
-    : currentMode;
+// Scroll mode (?mode=native|synthetic). Synthetic by default: most sizes here
+// exceed the native element size limit.
+let currentMode = getScrollMode("synthetic");
 
 // =============================================================================
 // Create / Recreate list
@@ -255,10 +234,9 @@ function createList(sizeKey) {
   const plugins = [
     selection({ mode: "single", followFocus: true, focusOnClick: true }),
   ];
-  const mode = resolveMode(count);
-  // Bounded and synthetic have no native main-axis scrollbar; synthetic requires
-  // the custom one.
-  if (mode !== "native") plugins.push(scrollbar({ autoHide: true }));
+  const mode = currentMode;
+  // Synthetic input has no browser scrollbar; add the custom one.
+  if (mode === "synthetic") plugins.push(scrollbar({ autoHide: true }));
 
   const isTable = currentLayout === "table";
   const isGrid = currentLayout === "grid";
@@ -285,34 +263,19 @@ function createList(sizeKey) {
     plugins.push(grid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
   }
 
-  // 3.0: native and bounded come from the vlist/native entry; synthetic is core.
-  const factory = NATIVE_AVAILABLE && mode !== "synthetic" ? nativeEntry.createVList : createVList;
-
-  try {
-    if (NATIVE_AVAILABLE && mode === "bounded") throw new Error("vlist 3.0: bounded mode was removed");
-    list = factory(
-      {
-        container: "#list-container",
-        ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
-        padding,
-        // 2.x selects the model with scroll.mode; 3.0 selects it by entry.
-        ...(!NATIVE_AVAILABLE && mode !== "native" ? { scroll: { mode } } : {}),
-        item: {
-          height: rowHeight,
-          template,
-        },
-        items,
+  list = factoryFor(mode)(
+    {
+      container: "#list-container",
+      ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
+      padding,
+      item: {
+        height: rowHeight,
+        template,
       },
-      plugins,
-    );
-  } catch (error) {
-    // Mode unavailable in this build (synthetic on 2.6, bounded after the 3.0
-    // removals): fall back to auto and say so.
-    console.warn(error);
-    infoModeEl.textContent = "UNAVAILABLE";
-    if (currentMode !== "auto") { selectMode("auto"); return; }
-    throw error;
-  }
+      items,
+    },
+    plugins,
+  );
 
   // Bind events
   list.on("scroll", ({ scrollPosition, direction }) => {
@@ -348,15 +311,12 @@ function updateContext(count, mode) {
     effectiveRows * (itemHeight + (currentLayout === "grid" ? GRID_GAP : 0));
   const containerSize =
     document.querySelector("#list-container")?.clientHeight ?? 1;
-  // Bounded content is a viewport-multiple runway (2x); synthetic content is
-  // exactly viewport-sized. The ratio of the virtual extent to the rendered
-  // content is the savings factor.
+  // Synthetic content is exactly viewport-sized, so the ratio of the virtual
+  // extent to the rendered content is the savings factor. Native content is laid
+  // out at full size and stops at the browser's element size limit.
+  const overLimit = mode === "native" && totalHeight > NATIVE_LIMIT;
   const ratio =
-    mode === "bounded"
-      ? (totalHeight / (containerSize * 2)).toFixed(1)
-      : mode === "synthetic"
-        ? (totalHeight / containerSize).toFixed(1)
-        : "1.0";
+    mode === "synthetic" ? (totalHeight / containerSize).toFixed(1) : "1.0";
   const selector =
     currentLayout === "table"
       ? ".vlist-table-row"
@@ -367,44 +327,31 @@ function updateContext(count, mode) {
   const virtualized = ((1 - domNodes / count) * 100).toFixed(2);
 
   infoVirtualizedEl.textContent = `${virtualized}%`;
-  infoScaleEl.textContent = `${ratio}×`;
+  infoScaleEl.textContent = overLimit ? "over limit" : `${ratio}×`;
   infoModeEl.textContent = mode.toUpperCase();
-  infoModeStatEl.className = `example-info__stat ${mode === "native" ? "example-info__stat--ok" : "example-info__stat--warn"}`;
+  infoModeStatEl.className = `example-info__stat ${overLimit ? "example-info__stat--warn" : "example-info__stat--ok"}`;
+  infoModeStatEl.title = overLimit
+    ? "Content exceeds the browser's element size limit: native scrolling cannot reach the end. Use synthetic."
+    : "";
 }
 
 // =============================================================================
 // Scroll mode selector buttons
 // =============================================================================
 
-function selectMode(mode) {
-  currentMode = mode;
-  modeButtons.querySelectorAll("button").forEach((b) => {
-    b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === mode);
-  });
+// 100K is the last size that still fits in a native element (100,000 × 48px).
+// A larger choice selects Synthetic. The shell switch can turn Native back on.
+function preferSynthetic(sizeKey) {
+  if (SIZES[sizeKey] <= SIZES["100k"] || currentMode === "synthetic") return;
+  currentMode = "synthetic";
+  rememberScrollMode("synthetic");
   const url = new URL(location.href);
-  if (mode === "auto") url.searchParams.delete("mode");
-  else url.searchParams.set("mode", mode);
+  url.searchParams.set("mode", "synthetic");
   history.replaceState(null, "", url);
-  createList(currentSize);
+  document.querySelectorAll("#example-scroll-mode [data-scroll]").forEach((button) => {
+    button.classList.toggle("ui-segmented__btn--active", button.dataset.scroll === "synthetic");
+  });
 }
-
-const syntheticButton = modeButtons.querySelector('[data-mode="synthetic"]');
-if (!SYNTHETIC_AVAILABLE) {
-  syntheticButton.disabled = true;
-  syntheticButton.title = "Requires vlist 2.7 (vlist/synthetic entry)";
-  if (currentMode === "synthetic") currentMode = "auto";
-}
-modeButtons.querySelectorAll("button").forEach((b) => {
-  b.classList.toggle("ui-segmented__btn--active", b.dataset.mode === currentMode);
-});
-
-modeButtons.addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-mode]");
-  if (!btn || btn.disabled) return;
-  const mode = btn.dataset.mode;
-  if (mode === currentMode) return;
-  selectMode(mode);
-});
 
 // =============================================================================
 // Layout selector buttons
@@ -447,6 +394,7 @@ sizeButtons.addEventListener("click", (e) => {
     b.classList.toggle("ui-segmented__btn--active", b.dataset.size === size);
   });
 
+  preferSynthetic(size);
   createList(size);
 });
 

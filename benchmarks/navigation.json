@@ -12,7 +12,7 @@
         "slug": "scroll",
         "name": "Scroll FPS",
         "icon": "📊",
-        "desc": "Sustained scroll performance and frame budget"
+        "desc": "Sustained scrolling for 5s. On Vanilla, choose native or synthetic"
       },
       {
         "slug": "memory",
@@ -24,7 +24,7 @@
         "slug": "scrollto",
         "name": "ScrollTo",
         "icon": "🎯",
-        "desc": "Latency of smooth scrollToIndex() animations"
+        "desc": "Latency of scrollToIndex(). On Vanilla, choose native or synthetic"
       }
     ]
   },

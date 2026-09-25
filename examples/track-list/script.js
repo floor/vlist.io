@@ -161,6 +161,10 @@ const btnSelectAll = document.getElementById("btn-select-all");
 const btnClear = document.getElementById("btn-clear");
 const selectionCountEl = document.getElementById("selection-count");
 
+// Navigation
+const btnSelectPrev = document.getElementById("btn-select-prev");
+const btnSelectNext = document.getElementById("btn-select-next");
+
 // Actions
 const btnAddTrack = document.getElementById("btn-add-track");
 const btnDeleteSelected = document.getElementById("btn-delete-selected");
@@ -499,6 +503,14 @@ btnSelectAll.addEventListener("click", () => {
 
 btnClear.addEventListener("click", () => {
   list.clearSelection();
+});
+
+btnSelectPrev.addEventListener("click", () => {
+  list.selectPrevious();
+});
+
+btnSelectNext.addEventListener("click", () => {
+  list.selectNext();
 });
 
 function updateSelectionCount(selected) {

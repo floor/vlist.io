@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -38,8 +38,10 @@ const list = createVList(config, [plugin1(), plugin2()]);
 | `scroll.wheel` | `boolean` | `true` | Mouse wheel scrolling |
 | `scroll.gutter` | `"auto" \| "stable"` | `"auto"` | Scrollbar space reservation |
 | `scroll.idleTimeout` | `number` | `150` | Idle detection timeout (ms) |
-| `scroll.mode` | `"native" \| "bounded" \| "synthetic"` | `"native"` | Scroll model; `"synthetic"` needs the `vlist/synthetic` entry. See [Scroll modes](/docs/scroll-modes) |
-| `scroll.runway` | `number` | `2` | Bounded mode runway as a multiple of the viewport (min 1.5) |
+| `scroll.scrollbar` | `"native" \| "none" \| ScrollbarOptions` | `"native"` | Browser scrollbar visibility; the strings are rejected by `vlist/synthetic` |
+
+`createVList` from `vlist` scrolls natively. Import it from `vlist/synthetic` for synthetic
+input; the config is the same. See [Scroll modes](/docs/scroll-modes).
 
 ## Instance Properties
 

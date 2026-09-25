@@ -1,6 +1,6 @@
 ---
 created: 2026-02-17
-updated: 2026-05-27
+updated: 2026-09-16
 status: published
 ---
 
@@ -47,7 +47,6 @@ const list = createVList(config, [snapshots({ restore: saved })]);
 ## Notes
 
 - Captures: scroll position, first visible item index, sub-pixel offset, selection state, focus
-- Survives compression mode changes (scale plugin)
 - Works with async data — polls until container is ready, then restores
 
 ## Examples

@@ -9,11 +9,14 @@ import { routeApi } from "../api/router";
 import {
   renderDocsPage,
   renderDocsV1Page,
+  renderDocsV2Page,
   renderTutorialPage,
   renderTutorialV1Page,
+  renderTutorialV2Page,
   renderBlogPage,
   renderExamplesPage,
   renderBenchmarkPage,
+  getDocSlugSets,
 } from "./renderers";
 import { renderHomepage } from "./renderers/homepage";
 import { resolveExperiment } from "./renderers/experiments";
@@ -21,6 +24,7 @@ import { resolveStatic } from "./static";
 import { compressResponse } from "./compression";
 import { renderSitemap, renderRobots } from "./sitemap";
 import { V1_TO_V2_DOCS, V1_TO_V2_TUTORIALS } from "./version-map";
+import { versionUrl, type DocSection } from "./versions";
 
 // =============================================================================
 // Section Resolvers
@@ -39,24 +43,36 @@ function resolveHomepage(pathname: string): Response | null {
   return null;
 }
 
-function resolveDocsV1(pathname: string): Response | null {
-  if (pathname === "/docs/v1" || pathname === "/docs/v1/") {
-    return renderDocsV1Page(null);
+/** Archived documentation versions, each served from its own folder. */
+const ARCHIVE_ROUTES: readonly { base: string; render: (slug: string | null) => Response }[] = [
+  { base: "/docs/v1", render: renderDocsV1Page },
+  { base: "/docs/v2", render: renderDocsV2Page },
+  { base: "/tutorials/v1", render: renderTutorialV1Page },
+  { base: "/tutorials/v2", render: renderTutorialV2Page },
+];
+
+const ARCHIVE_SLUG_RE = /^([a-zA-Z0-9/_-]+?)(\.md)?\/?$/;
+
+function resolveArchivedDocs(pathname: string): Response | null {
+  for (const route of ARCHIVE_ROUTES) {
+    if (pathname === route.base || pathname === `${route.base}/`) {
+      return route.render(null);
+    }
+    if (!pathname.startsWith(`${route.base}/`)) continue;
+    const match = pathname.slice(route.base.length + 1).match(ARCHIVE_SLUG_RE);
+    return match ? route.render(match[1] as string) : null;
   }
-  const match = pathname.match(/^\/docs\/v1\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
-  if (match) return renderDocsV1Page(match[1]);
   return null;
 }
 
-function resolveTutorialsV1(pathname: string): Response | null {
-  if (pathname === "/tutorials/v1" || pathname === "/tutorials/v1/") {
-    return renderTutorialV1Page(null);
-  }
-  const match = pathname.match(
-    /^\/tutorials\/v1\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/,
-  );
-  if (match) return renderTutorialV1Page(match[1]);
-  return null;
+/** A page removed from the current docs but kept in the v2 archive redirects to its copy. */
+function archivedRedirect(section: DocSection, slug: string): Response | null {
+  const slugs = getDocSlugSets(section);
+  if (slugs.v3.has(slug) || !slugs.v2.has(slug)) return null;
+  return new Response(null, {
+    status: 301,
+    headers: { Location: versionUrl(section, "v2", slug) },
+  });
 }
 
 const DOCS_REDIRECTS: Record<string, string> = {
@@ -85,7 +101,7 @@ function resolveDocs(pathname: string): Response | null {
     return renderDocsPage(null);
   }
   const match = pathname.match(/^\/docs\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
-  if (match) return renderDocsPage(match[1]);
+  if (match) return archivedRedirect("/docs", match[1] as string) ?? renderDocsPage(match[1] as string);
   return null;
 }
 
@@ -99,7 +115,7 @@ function resolveTutorials(pathname: string): Response | null {
     return renderTutorialPage(null);
   }
   const match = pathname.match(/^\/tutorials\/([a-zA-Z0-9/_-]+?)(\.md)?\/?$/);
-  if (match) return renderTutorialPage(match[1]);
+  if (match) return archivedRedirect("/tutorials", match[1] as string) ?? renderTutorialPage(match[1] as string);
   return null;
 }
 
@@ -162,8 +178,7 @@ export function handleRequest(req: Request): Response | Promise<Response> {
     resolveExperiment(pathname) ??
     resolveHomepage(pathname) ??
     resolveExamples(pathname, url) ??
-    resolveDocsV1(pathname) ??
-    resolveTutorialsV1(pathname) ??
+    resolveArchivedDocs(pathname) ??
     resolveDocs(pathname) ??
     resolveTutorials(pathname) ??
     resolveBlog(pathname) ??

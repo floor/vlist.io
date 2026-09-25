@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-06-02
+updated: 2026-09-16
 status: published
 ---
 
@@ -52,9 +52,6 @@ interface ViewportState {
   scrollPosition: number;
   containerSize: number;
   totalSize: number;
-  actualSize: number;
-  isCompressed: boolean;
-  compressionRatio: number;
   visibleRange: Range;
   renderRange: Range;
 }

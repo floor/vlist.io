@@ -1236,7 +1236,7 @@ createVList({
 | `a11y()` | Compatible |
 | `scrollbar()` | Compatible (lap progress indicator) |
 | `autosize()` | Compatible |
-| `scale()` | **Not compatible** — both own virtual scroll space |
+| `page()` | **Not compatible**: page scrolling cannot wrap, and creation throws |
 | `groups()` | **Not compatible** — infinite wrap doesn't map to grouped sections |
 
 

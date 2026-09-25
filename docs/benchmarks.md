@@ -1,6 +1,6 @@
 ---
 created: 2026-02-10
-updated: 2026-05-27
+updated: 2026-09-22
 status: published
 ---
 
@@ -75,6 +75,43 @@ Library PRs automatically trigger benchmarks via `.github/workflows/bench.yml`, 
 | ScrollTo | http://localhost:3338/benchmarks/scrollto |
 
 Append `?variant=react|vue|svelte|solidjs` for framework variants.
+
+On Vanilla, React, Vue, Svelte, and Solid the control bar has **Mode: Native | Synthetic**. The choice is remembered across suite and comparison pages, and a link can pin it with `?entry=synthetic`.
+
+## Native and synthetic
+
+**Native** creates the list from `vlist`. **Synthetic** creates it from `vlist/synthetic`. The other library in a comparison never changes.
+
+| Page | Native | Synthetic |
+|------|--------|-----------|
+| Initial Render | Time to first paint | Same measurement, `vlist/synthetic` |
+| Scroll FPS | Position write (`ctx.scroll.to`), then the rows are checked each frame | The same driver and the same checks |
+| Memory | Heap after render, then after a scroll | The scroll goes through the position setter. `scrollTop` would leave a synthetic list still. |
+| ScrollTo | `scrollToIndex` until the browser scroll offset settles | `scrollToIndex` until the list position settles. The browser offset stays at 0. |
+| Comparisons | vlist side uses `vlist` and the browser scroll offset | vlist side uses `vlist/synthetic` and the position write. The other library keeps its own scroll. |
+
+Scroll FPS on the page is that matched position-write run. CI still runs `scroll-vanilla`, which writes `scrollTop` and reports frame budget. Those are different measurements. The page does not run `scroll-vanilla`.
+
+Framework suites pass `factory` through the adapter (`useVList({ factory })`). SolidJS Scroll FPS, Initial Render, and ScrollTo call the entry directly, which is how those three already measured. SolidJS Memory goes through the adapter.
+
+## History
+
+Two tables, two pages. A run never crosses from one to the other.
+
+| What ran | Table | Page |
+|----------|-------|------|
+| vlist alone (Render, Scroll, Memory, ScrollTo) | `benchmark_runs` | http://localhost:3338/benchmarks/suite-history |
+| vlist against another library | `comparison_runs` | http://localhost:3338/benchmarks/history |
+
+Both tables have a `mode` column, `native` or `synthetic`. The suite id does not encode the mode.
+
+A Scroll FPS run on Vanilla is saved as `scroll-vanilla`. On React it is `scroll-react`. Native and synthetic are two series of that same suite. Render, Memory, and ScrollTo follow the same pattern (`render-vanilla`, `memory-react`, `scrollto-vue`).
+
+A comparison is saved under the other library's id. `react-window` with `mode = synthetic` is react-window against `vlist/synthetic`. The react-window side is the same as the native series.
+
+Older suite rows that used ids such as `render-synthetic` or `scroll-logical-native` are folded into the suite above, and `mode` is set from the old id. A synthetic comparison that was briefly stored as `react-window-synthetic` in the suite table is moved to `comparison_runs` as `react-window` / `synthetic`.
+
+Both history pages have a Mode filter. It is the only native/synthetic split in the suite list. The list itself is the measurement and the framework: Render, Scroll, Memory, ScrollTo.
 
 ## Baseline workflow
 

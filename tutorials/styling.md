@@ -109,7 +109,7 @@ import 'vlist/styles/extras';
 
 ### Custom Scrollbar Classes
 
-Used in compressed mode (1M+ items):
+Used by the `scrollbar()` plugin, which `vlist/synthetic` lists need for a visible scrollbar:
 
 | Class | Description |
 |-------|-------------|

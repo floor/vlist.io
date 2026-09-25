@@ -79,10 +79,18 @@ The build defines `__BENCH_HAS_SYNTHETIC__` from the presence of that build's
 `dist/synthetic.js`. Pre-RFC builds omit synthetic suite registration and get a
 throwing import stub; they never benchmark native mode under a synthetic label.
 
-Select `scroll-logical-native`, `scroll-logical-bounded` and
-`scroll-logical-synthetic` for matched absolute logical writes. “Input JS” is
-synchronous setter time only; native rendering can be deferred, so these values
-are not a comparison of total rendering or main-thread cost.
+Select `scroll-logical-native` and `scroll-logical-synthetic` for matched
+absolute logical writes. Bounded mode is gone; `scroll-logical-bounded` keeps
+its old rows and is not registered. “Input JS” is synchronous setter time only.
+“Frame p95” is the animation-frame interval. “Rendered distance” and
+“Position lag” come from one screen-position sample per frame (a recycled row's
+origin, normalized by index and the fixed item height). Lag is the p95 gap
+between that position and the logical one. These are not a total main-thread cost.
+
+`render-synthetic` and `memory-synthetic` are the same creation-time and heap
+measurements as the vanilla suites, on the synthetic entry. The memory scroll
+goes through the position setter, because writing `scrollTop` does not move a
+synthetic list. None of these ids have a budget in `ci/config.json`.
 
 Select `scroll-fling-synthetic` to exercise pointer dispatch, axis intent,
 velocity sampling and inertia through repeated back-and-forth gestures. It waits

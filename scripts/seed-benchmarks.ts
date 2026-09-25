@@ -138,6 +138,10 @@ const CI_RUNS_COLUMNS = `
 // =============================================================================
 
 db.run(`CREATE TABLE IF NOT EXISTS benchmark_runs (${RUNS_COLUMNS})`);
+const suiteColumns = db.prepare("PRAGMA table_info(benchmark_runs)").all() as { name: string }[];
+if (!suiteColumns.some((column) => column.name === "mode")) {
+  db.run("ALTER TABLE benchmark_runs ADD COLUMN mode TEXT NOT NULL DEFAULT 'native'");
+}
 db.run(
   `CREATE TABLE IF NOT EXISTS benchmark_metrics (${METRICS_COLUMNS("benchmark_runs")})`,
 );
@@ -166,6 +170,10 @@ db.run(
 // =============================================================================
 
 db.run(`CREATE TABLE IF NOT EXISTS comparison_runs (${RUNS_COLUMNS})`);
+const comparisonColumns = db.prepare("PRAGMA table_info(comparison_runs)").all() as { name: string }[];
+if (!comparisonColumns.some((column) => column.name === "mode")) {
+  db.run("ALTER TABLE comparison_runs ADD COLUMN mode TEXT NOT NULL DEFAULT 'native'");
+}
 db.run(
   `CREATE TABLE IF NOT EXISTS comparison_metrics (${METRICS_COLUMNS("comparison_runs")})`,
 );

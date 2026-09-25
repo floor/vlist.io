@@ -33,6 +33,7 @@ import {
   measurePointerFlingRun,
   computeScrollStats,
 } from "../../../engine/scroll.js";
+import { runLogicalScroll, scrollCapturePlugin } from "../../../engine/logical-scroll.js";
 
 // =============================================================================
 // Suite
@@ -229,53 +230,35 @@ defineSuite({
 // Matched public logical-position writes. These measure programmatic navigation,
 // not touch sampling or fling physics. Input JS timing excludes deferred native
 // rendering/layout and must not be presented as total frame/main-thread cost.
-for (const mode of ["native", "bounded", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]) {
+// vlist 3.0 removed `scroll.mode` and with it bounded mode, so the entry point
+// is the only thing that selects the input model: `vlist` scrolls natively,
+// `vlist/synthetic` does its own. The suite ids are unchanged so the recorded
+// history still lines up; `scroll-logical-bounded` keeps its past results and
+// simply stops gaining new ones.
+for (const mode of ["native", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]) {
   defineSuite({
     id: `scroll-logical-${mode}`,
     name: `Logical scroll (${mode})`,
-    description: "Matched logical-position writes; FPS and synchronous setter cost (not total rendering cost)",
+    description: "Matched logical-position writes; FPS, frame time, and where the rows actually are",
     hasScrollSpeed: true,
-    run: async ({ itemCount, container, onStatus, scrollSpeed = BASE_SCROLL_SPEED }) => {
-      const driver = createRefreshRateDriver();
-      let list;
-      try {
-        container.innerHTML = "";
+    run: (ctx) => runLogicalScroll({
+      ...ctx,
+      mode,
+      createList(container, items) {
         let write;
-        list = (mode === "synthetic" ? createSynthetic : createVList)({
-          container, items: generateItems(itemCount),
-          item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode },
-        }, [{ name: "benchmark-logical-input", setup(ctx) { write = ctx.scrollTo; } }]);
+        const list = (mode === "synthetic" ? createSynthetic : createVList)({
+          container,
+          items,
+          item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
+        }, [scrollCapturePlugin((set) => { write = set; })]);
         const viewport = findViewport(container);
-        const source = { max: itemCount * ITEM_HEIGHT - viewport.clientHeight,
-          set: position => write(position),
-          // Native state updates asynchronously; use its position read here.
+        return {
+          set: (position) => write(position),
           get: () => mode === "native" ? viewport.scrollTop : list.getScrollPosition(),
+          destroy: () => list.destroy(),
         };
-        await waitFrames(10);
-        onStatus(`Warming logical ${mode}...`);
-        await measureScrollRun({ viewport, durationMs: 500, speedPxPerSec: scrollSpeed, logicalScroll: source });
-        source.set(0); await waitFrames(5);
-        onStatus(`Scrolling logical ${mode}...`);
-        const result = await measureScrollRun({ viewport, durationMs: SCROLL_DURATION_MS,
-          speedPxPerSec: scrollSpeed, logicalScroll: source });
-        if (!(result.distance > 0) || !result.inputWorkTimes.length) throw new Error("Logical scroll driver did not move the list");
-        if (mode === "synthetic" && (viewport.scrollTop !== 0 || container.querySelector('.vlist-content').scrollTop !== 0)) {
-          throw new Error("Synthetic benchmark moved a native main-axis scroll offset");
-        }
-        const { avgFps, droppedPct } = computeScrollStats(result, SCROLL_DURATION_MS);
-        const samples = [...result.inputWorkTimes].sort((a,b) => a-b);
-        const total = samples.reduce((sum, value) => sum + value, 0);
-        return [
-          { label: "Avg FPS", value: avgFps, unit: "fps", better: "higher" },
-          { label: "Dropped", value: droppedPct, unit: "%", better: "lower" },
-          { label: "Input JS mean", value: round(total / samples.length, 4), unit: "ms", better: "lower" },
-          { label: "Input JS p95", value: round(samples[Math.floor((samples.length - 1) * .95)], 4), unit: "ms", better: "lower" },
-          { label: "Input JS total", value: round(total, 2), unit: "ms", better: "lower" },
-          { label: "Driver ticks", value: samples.length, unit: "", better: "higher" },
-          { label: "Distance", value: round(result.distance, 1), unit: "px", better: "higher" },
-        ];
-      } finally { list?.destroy(); driver.stop(); container.innerHTML = ""; }
-    },
+      },
+    }),
   });
 }
 
@@ -289,7 +272,7 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
     let list;
     try {
       list = createSynthetic({ container, items: generateItems(itemCount),
-        item: { height: ITEM_HEIGHT, template: benchmarkTemplate }, scroll: { mode: "synthetic" } });
+        item: { height: ITEM_HEIGHT, template: benchmarkTemplate } });
       list.scrollToIndex(Math.floor(itemCount / 2));
       await waitFrames(10);
       const options = { itemHeight: ITEM_HEIGHT, viewport: findViewport(container), content: container.querySelector('.vlist-content'), getPosition: () => list.getScrollPosition() };

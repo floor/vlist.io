@@ -1,0 +1,112 @@
+<div class="pp" data-scroll-mode="locked">
+    <header class="pp__head">
+        <h1>Phone pass</h1>
+        <p class="pp__lead">
+            Five things that only a real finger on a real phone can answer.
+            Work down the page. Each card says what to do and what should
+            happen, and reports what it actually measured while you did it.
+        </p>
+        <div class="pp__device" id="device"></div>
+    </header>
+
+    <!-- 1 ------------------------------------------------------------------>
+    <section class="pp__card" data-test="longpress">
+        <div class="pp__num">1</div>
+        <h2>Long press starts a drag, and nothing else</h2>
+        <p class="pp__do"><b>Do:</b> press and hold a row for about a second, then drag it up or down and let go.</p>
+        <p class="pp__want"><b>Should:</b> the row lifts and follows your finger. No text gets selected, no magnifier appears, and no copy/paste or share menu pops up.</p>
+        <div id="list-longpress" class="pp__list"></div>
+        <dl class="pp__read">
+            <div><dt>Pointer</dt><dd id="lp-pointer">—</dd></div>
+            <div><dt>Drag started</dt><dd id="lp-start">—</dd></div>
+            <div><dt>Selection callout</dt><dd id="lp-callout">—</dd></div>
+            <div><dt>Reordered</dt><dd id="lp-moved">—</dd></div>
+        </dl>
+        <div class="pp__verdict" data-for="longpress"></div>
+    </section>
+
+    <!-- 2 ------------------------------------------------------------------>
+    <section class="pp__card" data-test="handle">
+        <div class="pp__num">2</div>
+        <h2>With a handle, only the handle drags</h2>
+        <p class="pp__do"><b>Do:</b> first drag a row by its grip <span class="pp__grip">⠿</span> and drop it somewhere else. Then try to drag the same row by its text instead.</p>
+        <p class="pp__want"><b>Should:</b> the grip reorders. Dragging the text scrolls the list instead, and never starts a drag.</p>
+        <div id="list-handle" class="pp__list"></div>
+        <dl class="pp__read">
+            <div><dt>Grip drags</dt><dd id="hd-grip">—</dd></div>
+            <div><dt>Body scrolls</dt><dd id="hd-body">—</dd></div>
+            <div><dt>Body started a drag</dt><dd id="hd-leak">—</dd></div>
+        </dl>
+        <div class="pp__verdict" data-for="handle"></div>
+    </section>
+
+    <!-- 3 ------------------------------------------------------------------>
+    <section class="pp__card" data-test="momentum">
+        <div class="pp__num">3</div>
+        <h2>Catching a list in mid-flight</h2>
+        <p class="pp__do"><b>Do:</b> flick the list hard so it keeps coasting, then put a finger down on it while it is still moving.</p>
+        <p class="pp__want"><b>Should:</b> it stops dead under your finger. It should not keep sliding, and it should not jump.</p>
+        <div id="list-momentum" class="pp__list"></div>
+        <dl class="pp__read">
+            <div><dt>Speed when caught</dt><dd id="mo-speed">—</dd></div>
+            <div><dt>Slid after catch</dt><dd id="mo-drift">—</dd></div>
+            <div><dt>Catches measured</dt><dd id="mo-count">0</dd></div>
+        </dl>
+        <div class="pp__verdict" data-for="momentum"></div>
+    </section>
+
+    <!-- 4 ------------------------------------------------------------------>
+    <section class="pp__card" data-test="pen">
+        <div class="pp__num">4</div>
+        <h2>A stylus behaves like a finger</h2>
+        <p class="pp__do"><b>Do:</b> with a pencil or stylus, scroll this list, then long-press and drag a row. Skip this card if you have no stylus.</p>
+        <p class="pp__want"><b>Should:</b> exactly what a finger does. The reading below should say <code>pen</code>.</p>
+        <div id="list-pen" class="pp__list"></div>
+        <dl class="pp__read">
+            <div><dt>Pointer types seen</dt><dd id="pe-types">—</dd></div>
+            <div><dt>Drag started</dt><dd id="pe-start">—</dd></div>
+        </dl>
+        <div class="pp__verdict" data-for="pen"></div>
+    </section>
+
+    <!-- 5 ------------------------------------------------------------------>
+    <section class="pp__card" data-test="fold">
+        <div class="pp__num">5</div>
+        <h2>The carousel never shows its seam</h2>
+        <p class="pp__do"><b>Do:</b> swipe this carousel sideways, repeatedly and fast, for several seconds. Go well past the end and keep going.</p>
+        <p class="pp__want"><b>Should:</b> it loops forever with no jump, flash or stutter at any point. You should not be able to tell where it wraps.</p>
+        <div id="list-fold" class="pp__carousel"></div>
+        <dl class="pp__read">
+            <div><dt>Wraps performed</dt><dd id="fo-folds">0</dd></div>
+            <div><dt>Biggest frame jump</dt><dd id="fo-jump">—</dd></div>
+            <div><dt>Frames sampled</dt><dd id="fo-frames">0</dd></div>
+        </dl>
+        <p class="pp__note">The jump figure is the largest distance the picture moved between two frames while you were swiping. A wrap you can see would show up as one big number here.</p>
+        <div class="pp__verdict" data-for="fold"></div>
+    </section>
+
+    <!-- 6 ------------------------------------------------------------------>
+    <section class="pp__card" data-test="zoom">
+        <div class="pp__num">6</div>
+        <h2>Dragging while the page is zoomed</h2>
+        <p class="pp__do"><b>Do:</b> pinch to zoom in on this list, pan so it is not centred, then long-press a row and drag it slowly.</p>
+        <p class="pp__want"><b>Should:</b> the row stays under your finger the whole time. If it sits above, below or beside your finger, that is the defect — keep dragging for a second so the numbers below settle, then tap Failed.</p>
+        <div id="list-zoom" class="pp__list"></div>
+        <dl class="pp__read">
+            <div><dt>Zoom</dt><dd id="zo-scale">—</dd></div>
+            <div><dt>Visual viewport offset</dt><dd id="zo-offset">—</dd></div>
+            <div><dt>Finger to row, worst</dt><dd id="zo-gap">—</dd></div>
+            <div><dt>Matches the offset</dt><dd id="zo-explains">—</dd></div>
+        </dl>
+        <p class="pp__note">"Finger to row" is how far the dragged row sits from where your finger actually is. At rest it should be a pixel or two. The last line says whether that gap is explained by the page being panned while zoomed, which is the thing being tested.</p>
+        <div class="pp__verdict" data-for="zoom"></div>
+    </section>
+
+    <!-- summary ------------------------------------------------------------>
+    <section class="pp__summary">
+        <h2>Result</h2>
+        <p class="pp__lead">Tap to copy, and paste it back to whoever asked you to run this.</p>
+        <pre id="summary" class="pp__pre">Nothing recorded yet.</pre>
+        <button id="copy" class="pp__copy" type="button">Copy result</button>
+    </section>
+</div>

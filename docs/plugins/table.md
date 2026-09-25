@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-06-02
+updated: 2026-09-16
 status: published
 ---
 
@@ -96,20 +96,23 @@ Use `"stretch"` when you want columns to consume all available space, and `"spac
 
 ## Large datasets
 
-Combine with [scale](/docs/plugins/scale) for tables with 1M+ rows. Compression is handled automatically — the table switches to compressed range calculation and viewport-relative row positioning when content exceeds the browser limit.
+Native content stops at the browser's element size limit, about 16 million pixels. For tables past it, import `createVList` from `vlist/synthetic`; rows are positioned relative to the scroll origin and the header stays aligned, so no extra plugin is needed.
 
 ```ts
+import { createVList } from "vlist/synthetic";
+import { table, scrollbar } from "vlist";
+
 const list = createVList({
   container: "#app",
   items: millionRows,
-}, [table({ columns, rowHeight: 36 }), scale(), scrollbar()]);
+}, [table({ columns, rowHeight: 36 }), scrollbar()]);
 ```
 
 ## Notes
 
 - Sorting is visual only — the plugin emits `column:sort`, you re-sort data and call `setItems()`
 - Sticky header row
-- Works with scale plugin for 1M+ row tables
+- Works with `vlist/synthetic` for tables past the browser size limit
 - Conflicts with: grid, masonry
 
 ## Examples

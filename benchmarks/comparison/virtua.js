@@ -131,12 +131,13 @@ defineSuite({
   icon: "",
   comparison: true,
 
-  run: async ({ itemCount, container, onStatus, stressMs = 0 }) => {
+  run: async ({ itemCount, container, onStatus, stressMs = 0, mode = "native" }) => {
     return runComparison({
       container,
       itemCount,
       onStatus,
       stressMs,
+      mode,
       libraryName: "Virtua",
       benchmarkCompetitor: benchmarkVirtua,
       rateLower,

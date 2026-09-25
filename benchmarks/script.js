@@ -39,7 +39,7 @@ const persistResult = (result, extra = {}) => {
 
   const payload = {
     version: vlistPackage.version,
-    suiteId: result.suiteId,
+    suiteId: extra.suiteId ?? result.suiteId,
     itemCount: result.itemCount,
     metrics: result.metrics.map((m) => ({
       label: m.label,
@@ -53,6 +53,7 @@ const persistResult = (result, extra = {}) => {
     error: result.error ?? undefined,
     stressMs: extra.stressMs ?? 0,
     scrollSpeed: extra.scrollSpeed ?? 0,
+    mode: extra.mode ?? "native",
 
     // Environment
     userAgent: navigator.userAgent,
@@ -140,6 +141,140 @@ function detectVariants(benchmark) {
 }
 
 /**
+ * vlist's own input mode. Synthetic exists only for vlist. Comparison pages
+ * keep measuring the other list as itself.
+ * Scroll FPS uses the position-write measurement for every host. The old
+ * scrollTop suites stay registered for CI and are not what this page runs.
+ */
+const FRAMEWORKS = ["react", "vue", "svelte", "solidjs"];
+
+function modeTable(vanilla, frameworkNative) {
+  const table = { vanilla };
+  for (const host of FRAMEWORKS) {
+    table[host] = {
+      native: frameworkNative(host),
+      synthetic: `${vanilla.synthetic}-${host}`,
+    };
+  }
+  return table;
+}
+
+const VLIST_ENTRY_SUITES = {
+  scroll: modeTable(
+    { native: "scroll-logical-native", synthetic: "scroll-logical-synthetic" },
+    (host) => `scroll-logical-native-${host}`,
+  ),
+  scrollto: modeTable(
+    { native: "scrollto-vanilla", synthetic: "scrollto-synthetic" },
+    (host) => `scrollto-${host}`,
+  ),
+  render: modeTable(
+    { native: "render-vanilla", synthetic: "render-synthetic" },
+    (host) => `render-${host}`,
+  ),
+  memory: modeTable(
+    { native: "memory-vanilla", synthetic: "memory-synthetic" },
+    (host) => `memory-${host}`,
+  ),
+};
+
+const SCROLL_PAGE_COPY = {
+  title: "Scroll FPS (Vanilla)",
+  description: "Sustained scrolling for 5s. Native and synthetic are driven by the same position write, then the rows are checked.",
+};
+
+const VLIST_MODE_KEY = "vlist-bench-mode";
+
+function readStoredMode() {
+  try {
+    const value = localStorage.getItem(VLIST_MODE_KEY);
+    return value === "synthetic" || value === "native" ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeMode(entry) {
+  try {
+    localStorage.setItem(VLIST_MODE_KEY, entry);
+  } catch {
+    // Private browsing can reject storage. The URL still carries the choice.
+  }
+}
+
+function parseEntry() {
+  const fromUrl = new URLSearchParams(window.location.search).get("entry");
+  if (fromUrl === "synthetic" || fromUrl === "native") {
+    storeMode(fromUrl);
+    return fromUrl;
+  }
+  return readStoredMode() ?? "native";
+}
+
+function writeEntryUrl(entry) {
+  const params = new URLSearchParams(window.location.search);
+  if (entry === "native") params.delete("entry");
+  else params.set("entry", entry);
+  const query = params.toString();
+  const next = `${window.location.pathname}${query ? `?${query}` : ""}`;
+  const current = `${window.location.pathname}${window.location.search}`;
+  if (next !== current) history.replaceState(null, "", next);
+  stampModeLinks(entry);
+}
+
+const COMPARISON_PAGES = new Set([
+  "react-window",
+  "react-virtuoso",
+  "tanstack-virtual",
+  "virtua",
+  "vue-virtual-scroller",
+  "solidjs",
+  "legend-list",
+  "clusterize",
+]);
+
+function savedBenchmark(suiteId) {
+  if (COMPARISON_PAGES.has(suiteId)) {
+    return { suiteId, mode: parseEntry() };
+  }
+  const synthetic = /(?:^|-)synthetic(?:$|-)/.test(suiteId) || suiteId.includes("logical-synthetic");
+  let id = suiteId;
+  id = id.replace(/^scroll-logical-(?:native|synthetic)-/, "scroll-");
+  id = id.replace(/^scroll-logical-(?:native|synthetic)$/, "scroll-vanilla");
+  id = id.replace(/-synthetic-/, "-");
+  id = id.replace(/-synthetic$/, "-vanilla");
+  return { suiteId: id, mode: synthetic ? "synthetic" : "native" };
+}
+
+function stampModeLinks(entry) {
+  const pages = new Set([...Object.keys(VLIST_ENTRY_SUITES), ...COMPARISON_PAGES]);
+  document.querySelectorAll("a.sidebar__link").forEach((link) => {
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("http")) return;
+    const url = new URL(href, window.location.origin);
+    const slug = url.pathname.replace(/^\/benchmarks\/?/, "").replace(/\/$/, "");
+    if (!pages.has(slug)) return;
+    if (entry === "native") url.searchParams.delete("entry");
+    else url.searchParams.set("entry", entry);
+    const query = url.searchParams.toString();
+    link.setAttribute("href", `${url.pathname}${query ? `?${query}` : ""}`);
+  });
+}
+
+function vlistEntryFor(page) {
+  if (!VLIST_ENTRY_SUITES[page] && !COMPARISON_PAGES.has(page)) return null;
+  return parseEntry();
+}
+
+function suiteIdFor(page, variant, entry) {
+  if (entry && VLIST_ENTRY_SUITES[page]) {
+    return VLIST_ENTRY_SUITES[page][variant || "vanilla"][entry];
+  }
+  if (variant) return `${page}-${variant}`;
+  return page;
+}
+
+/**
  * Build variant switcher HTML (client-side version)
  */
 function buildVariantSwitcher(benchmark, activeVariant) {
@@ -211,6 +346,7 @@ const FEATURE_DATA = FEATURES_DATA.features.map((f) => [f.name, ...f.support]);
 let selectedItemCount = INITIAL_ITEM_COUNT;
 let selectedStressMs = 0;
 let selectedScrollSpeed = SCROLL_SPEEDS[0].pxPerSec;
+let currentPage = null;
 let isRunning = false;
 let abortController = null;
 
@@ -223,20 +359,27 @@ const dom = {
   suitesContainer: null,
   suiteCards: new Map(), // suiteId → { card, statusEl, progressContainer, progressBar, progressText, metricsContainer, viewport, viewportInner }
   sizeBtns: [],
+  entryBtns: [],
 };
 
 // =============================================================================
 // Suite Page
 // =============================================================================
 
-function buildSuitePage(root, suite) {
+function buildSuitePage(root, suite, options = {}) {
   // Preserve server-rendered variant switcher if it exists
   const existingVariantSwitcher = root.querySelector(".variant-switcher");
   const variantSwitcherHTML = existingVariantSwitcher
     ? existingVariantSwitcher.outerHTML
     : "";
 
-  root.innerHTML = buildSuitePageHTML(suite, variantSwitcherHTML);
+  root.innerHTML = buildSuitePageHTML(suite, variantSwitcherHTML, {
+    vlistEntry: options.vlistEntry ?? null,
+    itemCount: selectedItemCount,
+    scrollSpeed: selectedScrollSpeed,
+    title: options.title,
+    description: options.description,
+  });
 
   // Cache DOM refs
   dom.runBtn = root.querySelector("#bench-run");
@@ -281,11 +424,52 @@ function buildSuitePage(root, suite) {
     });
   }
 
+  wireVlistEntry(root.querySelector("#bench-vlist-entry"));
+
   // Build suite card (single)
   buildSuiteCards(root.querySelector("#bench-suites"), [suite]);
 
   // Wire up run button
   dom.runBtn.addEventListener("click", () => handleSuiteRunClick(suite.id));
+}
+
+function wireVlistEntry(container) {
+  dom.entryBtns = container
+    ? Array.from(container.querySelectorAll(".bench-entry-btn"))
+    : [];
+  dom.entryBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (isRunning) return;
+      const entry = btn.dataset.entry;
+      if (entry !== "native" && entry !== "synthetic") return;
+      if (btn.classList.contains("ui-segmented__btn--active")) return;
+      storeMode(entry);
+      writeEntryUrl(entry);
+      mountInteractiveSuite(document.getElementById("content"), currentPage);
+    });
+  });
+}
+
+function mountInteractiveSuite(root, page) {
+  currentPage = page;
+  const variants = detectVariants(page);
+  const variant = variants.length > 0 ? parseVariant() : null;
+  const entry = vlistEntryFor(page);
+  if (entry) writeEntryUrl(entry);
+  else stampModeLinks(parseEntry());
+  const suite = getSuite(suiteIdFor(page, variant, entry));
+  if (!suite) {
+    const label = variant ? `Variant "${variant}"` : `Suite "${page}"`;
+    root.innerHTML = `<div class="bench-page"><p>${label} not found for "${page}"</p></div>`;
+    return;
+  }
+  buildSuitePage(root, suite, {
+    vlistEntry: entry,
+    ...(page === "scroll" && entry && (!variant || variant === "vanilla") ? SCROLL_PAGE_COPY : {}),
+    ...(suite.comparison && entry === "synthetic"
+      ? { description: suite.description.replace("Compare vlist", "Compare vlist synthetic") }
+      : {}),
+  });
 }
 
 // =============================================================================
@@ -521,6 +705,7 @@ const handleSuiteRunClick = async (suiteId) => {
       suiteIds: [suiteId],
       stressMs: selectedStressMs,
       scrollSpeed: selectedScrollSpeed,
+      mode: parseEntry(),
       getContainer: (sid) => getViewportContainer(sid),
       signal: abortController.signal,
 
@@ -686,9 +871,12 @@ const handleSuiteRunClick = async (suiteId) => {
 
 const storeResult = (result) => {
   results[result.suiteId] = result;
+  const saved = savedBenchmark(result.suiteId);
   persistResult(result, {
     stressMs: selectedStressMs,
     scrollSpeed: selectedScrollSpeed,
+    suiteId: saved.suiteId,
+    mode: saved.mode,
   });
 };
 
@@ -701,6 +889,10 @@ const setRunningState = (running) => {
 
   // Disable size buttons while running
   dom.sizeBtns.forEach((btn) => {
+    btn.disabled = running;
+    btn.classList.toggle("ui-segmented__btn--disabled", running);
+  });
+  dom.entryBtns.forEach((btn) => {
     btn.disabled = running;
     btn.classList.toggle("ui-segmented__btn--disabled", running);
   });
@@ -843,27 +1035,6 @@ if (root) {
   } else if (page === "ci-results") {
     buildCiResultsPage(root);
   } else {
-    // Suite page (render, scroll, memory, scrollto)
-    const variants = detectVariants(page);
-
-    if (variants.length > 0) {
-      // New variant-based structure - suites are statically imported
-      const variant = parseVariant();
-      const variantSwitcher = buildVariantSwitcher(page, variant);
-      const suiteId = `${page}-${variant}`;
-      const suite = getSuite(suiteId);
-
-      if (suite) {
-        buildSuitePage(root, suite);
-      } else {
-        root.innerHTML = `<div class="bench-page"><p>Variant "${variant}" not found for "${page}"</p></div>`;
-      }
-    } else {
-      // Legacy structure (scroll, memory, scrollto)
-      const suite = getSuite(page);
-      if (suite) {
-        buildSuitePage(root, suite);
-      }
-    }
+    mountInteractiveSuite(root, page);
   }
 }

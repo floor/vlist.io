@@ -285,6 +285,11 @@
     letter-spacing: 0.5px;
 }
 
+.md thead th[align="center"],
+.md tbody td[align="center"] {
+    text-align: center;
+}
+
 .md tbody td {
     padding: 8px 12px;
     border-bottom: 1px solid var(--border);

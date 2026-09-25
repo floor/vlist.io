@@ -15,6 +15,8 @@ vlist(document.getElementById("list-container"), {
     ariaLabel: "Orders",
     items,
     padding: 8,
+    // Custom overlay scrollbar: vlist/config leaves the native one unless asked.
+    scrollbar: true,
     item: {
       height: ITEM_HEIGHT,
       striped: true,

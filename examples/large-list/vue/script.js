@@ -1,22 +1,19 @@
 // Large List — Vue implementation with useVList composable
-// Uses bounded scroll mode (RFC-012) + scrollbar plugin
-// Demonstrates handling 100K–5M items with a viewport-sized content runway
+// Synthetic input (vlist/synthetic) + scrollbar: no browser element size limit
+// Demonstrates handling 100K–5M items
 
 import { createApp, ref, computed, watch } from "vue";
 import { useVList, useVListEvent } from "vlist-vue";
-import * as vlistNative from "vlist/native";
-// vlist 3 keeps native scrolling as the default; huge lists opt into synthetic input.
-import * as vlistSynthetic from "vlist/synthetic";
-
-// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
-// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
-const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
+// vlist 3 scrolls natively by default; lists this large opt into synthetic input.
+import { createVList as createSyntheticVList } from "vlist/synthetic";
 
 // =============================================================================
 // Constants
 // =============================================================================
 
 const ITEM_HEIGHT = 48;
+// vlist's MAX_VIRTUAL_SIZE: past it, native scrolling cannot reach the end.
+const NATIVE_LIMIT = 16_000_000;
 const SIZES = {
   "100k": 100_000,
   "500k": 500_000,
@@ -99,8 +96,8 @@ const App = {
       // A plain string: the DOM layer escapes ariaLabel and cannot read a ref.
       ariaLabel: `${SIZES[currentSize.value].toLocaleString()} items list`,
       // vlist/config installs the scrollbar plugin from scroll.scrollbar options.
-      ...(VLIST3 ? { factory: vlistSynthetic.createVList } : {}),
-      scroll: VLIST3 ? { scrollbar: { autoHide: true } } : { mode: "bounded", scrollbar: { autoHide: true } },
+      factory: createSyntheticVList,
+      scroll: { scrollbar: { autoHide: true } },
       item: {
         height: ITEM_HEIGHT,
         template: itemTemplate,
@@ -127,18 +124,12 @@ const App = {
       };
     });
 
-    // Compression info
-    const compression = computed(() => {
-      const count = SIZES[currentSize.value];
-      const totalHeight = count * ITEM_HEIGHT;
-      const maxHeight = 16_777_216; // browser limit ~16.7M px
-      const isCompressed = totalHeight > maxHeight;
-      const ratio = isCompressed ? (totalHeight / maxHeight).toFixed(1) : "1.0";
-
+    // Virtual extent against the native element size limit
+    const extent = computed(() => {
+      const totalHeight = SIZES[currentSize.value] * ITEM_HEIGHT;
       return {
-        isCompressed,
+        overNativeLimit: totalHeight > NATIVE_LIMIT,
         virtualHeight: totalHeight,
-        ratio,
       };
     });
 
@@ -222,7 +213,7 @@ const App = {
       currentSize,
       stats,
       viewport,
-      compression,
+      extent,
       virtualized,
       scrollIndex,
       scrollAlign,
@@ -244,9 +235,9 @@ const App = {
         <h1>Large List</h1>
         <p class="description">
           Vue implementation with <code>useVList</code> composable +
-          <code>scroll: { mode: "bounded" }</code> + <code>scrollbar</code>.
-          Handles 100K–5M items with a viewport-sized content runway, avoiding
-          the browser's 16.7M pixel element limit.
+          <code>vlist/synthetic</code> + <code>scrollbar</code>.
+          Handles 100K–5M items: synthetic input has no browser element size
+          limit.
         </p>
       </header>
 
@@ -267,15 +258,15 @@ const App = {
       </div>
 
       <div class="compression-bar">
-        <span :class="['ui-badge ui-badge--pill', compression.isCompressed ? 'ui-badge--success' : 'ui-badge--muted']">
-          {{ compression.isCompressed ? 'BOUNDED' : 'NATIVE' }}
-        </span>
+        <span class="ui-badge ui-badge--pill ui-badge--success">SYNTHETIC</span>
         <span class="compression-detail">
-          Virtual height: <strong>{{ (compression.virtualHeight / 1_000_000).toFixed(1) }}M px</strong>
+          Virtual height: <strong>{{ (extent.virtualHeight / 1_000_000).toFixed(1) }}M px</strong>
           ·
-          Ratio: <strong>{{ compression.ratio }}×</strong>
-          ·
-          Limit: <strong>16.7M px</strong>
+          Native limit: <strong>16M px</strong>
+          <template v-if="extent.overNativeLimit">
+            ·
+            <strong>beyond native scrolling</strong>
+          </template>
         </span>
       </div>
 
@@ -375,10 +366,10 @@ const App = {
 
       <footer>
         <p>
-          Bounded mode keeps the content element a small viewport-sized runway,
-          sidestepping the browser's ~16.7 million pixel element limit. The Vue
-          composable integrates seamlessly with the builder — enable it with
-          <code>scroll: { mode: "bounded" }</code>. 💚
+          Synthetic input owns the scroll position, so the list has no browser
+          element size limit; native scrolling stops at about 16 million pixels.
+          Pass <code>factory: createVList</code> from <code>vlist/synthetic</code>
+          to <code>useVList</code> to opt in. 💚
         </p>
       </footer>
     </div>

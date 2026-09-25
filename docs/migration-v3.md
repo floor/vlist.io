@@ -1,6 +1,6 @@
 ---
 created: 2026-09-15
-updated: 2026-09-15
+updated: 2026-09-16
 status: draft
 ---
 
@@ -22,7 +22,8 @@ default is native again.
 npm install vlist@next
 ```
 
-`latest` stays on 2.8 until 3.0 ships.
+`latest` stays on 2.8 until 3.0 ships. The 2.x documentation stays available under
+[/docs/v2](/docs/v2/).
 
 ## What changes in 3.0
 
@@ -35,6 +36,7 @@ npm install vlist@next
 | `scale()` | Remove the plugin | Use `vlist/synthetic` for huge lists. |
 | `PluginContext.setScrollFns(get, set)` | `ctx.setScrollSource({ write, onContentSize? })` | Sources commit positions through `ctx.commitScroll(px)`. |
 | `PluginContext.disableDefaultScroll()` | Implied by `setScrollSource` | No separate call. |
+| `ctx.setBoundedWrap(config)` | `ctx.setBoundedWrap(config, createHandler)` | Custom wrap providers pass their handler factory. |
 | `scroll.scrollbar: "native"` or `"none"` | Unchanged on `vlist` | Rejected by `vlist/synthetic`, which has no native scrollbar; add `scrollbar()` there. |
 | Framework adapters | Unchanged | Pass `factory: createVList` from `vlist/synthetic` to opt in, as since 2.8. |
 
@@ -45,8 +47,9 @@ npm install vlist@next
   emits an error when content passes the limit.
 - **Synthetic lists need a scrollbar plugin.** Synthetic input has no browser scrollbar;
   add `scrollbar()`.
-- **Synthetic input does not support** carousel, sortable or horizontal right-to-left
-  lists yet. Keep those on `vlist`.
+- **Horizontal right-to-left lists are not supported** by either entry: both throw at
+  creation. Vertical right-to-left lists and tables work in both. Carousel and sortable work
+  with both entries; sortable uses a long press on touch unless a `handle` is set.
 - **Programmatic scrolls are synchronous** in both entries: `scrollTo`, `scrollToIndex`
   and plugin corrections update `getScrollPosition()` and emit `scroll` in the call.
 - **3.0.0-next.1 users:** `vlist/native` remains as a deprecated alias of `vlist`.

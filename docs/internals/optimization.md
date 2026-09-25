@@ -395,22 +395,20 @@ Most templates don't need this — only use it if profiling shows template execu
 
 
 
-## Bounded Scroll
+## Large Lists
 
-For very large lists (millions of items), browser scroll containers hit coordinate precision limits around 16 million pixels. vlist solves this with **bounded scroll** — a runway-based approach that keeps the physical scroll space within safe bounds while mapping to the full logical range.
+Native scroll containers hit the browser's element size limit around 16 million pixels. With the default `vlist` entry, the list emits an `error` event once when content passes that size.
 
-This replaced the earlier compression approach and is now the default for large lists. It activates automatically when the total content size exceeds the browser's safe coordinate range.
+For larger lists, `vlist/synthetic` owns the scroll position instead of the browser. The viewport clips its content, input events move a logical position, and the pipeline subtracts the scroll adapter's render origin when positioning items, so absolute virtual offsets stay within the viewport. This is transparent to templates and event handlers: `data-index` and all public APIs use real indices.
 
 ```typescript
-// Bounded scroll is automatic, but you can configure it:
+import { createVList } from 'vlist/synthetic'
+
 createVList({
   container: '#list',
-  scroll: { mode: 'bounded' },
   // ...
 })
 ```
-
-The pipeline subtracts a `baseOffset` when positioning items, so absolute virtual offsets map into the bounded runway. This is transparent to templates and event handlers — `data-index` and all public APIs use real indices.
 
 
 
@@ -474,7 +472,7 @@ With vlist's built-in optimizations:
 | **Memory** | Sparse storage + LRU | Chunk-based eviction for large async datasets |
 | **Memory** | Batched LRU timestamps | Single `Date.now()` per render cycle |
 | **Loading** | Velocity-based loading | Skip/preload/defer based on scroll speed |
-| **Scale** | Bounded scroll | Runway mapping for lists exceeding 16M px |
+| **Large lists** | Synthetic input entry | Owned logical position with no element-size limit (`vlist/synthetic`) |
 
 ## Further Reading
 

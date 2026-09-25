@@ -139,12 +139,18 @@ Instead of importing and passing plugins, you can set convenience fields and the
 | `layout: "masonry"` + `masonry: { … }` | `masonry` |
 | `groups: { … }` | `groups` |
 | `selection: { mode: … }` | `selection` |
-| `scrollbar: { … }` — custom overlay scrollbar (the default when omitted) | `scrollbar` |
+| `a11y: true` or `a11y: { … }` | `a11y` |
+| `scrollbar: true` or `scrollbar: { … }` — custom overlay scrollbar | `scrollbar` |
+| `snapshots: true` | `snapshots` |
 | `adapter` (+ optional `loading`) | `data` |
 | `item.estimatedHeight` / `estimatedWidth` (no explicit size) | `autosize` |
 | `scroll: { element: window }` | `page` |
 
-By default the adapters use vlist's **custom overlay scrollbar** (auto-hiding). To use the browser's **native** scrollbar instead, set `scroll: { scrollbar: "native" }`; to hide the scrollbar entirely, use `scroll: { scrollbar: "none" }`.
+Each field wires one plugin and nothing more: a config with no feature fields creates the same list as `createVList` with no plugins. That includes accessibility — a list gets the WAI-ARIA listbox roles and keyboard navigation from `a11y: true` or a `selection` mode, and without either stays a display-only `role="list"` outside the tab order.
+
+The adapters leave the browser's **native** scrollbar in place. Set `scrollbar: true` (or pass options) for vlist's auto-hiding **custom overlay scrollbar**; to hide the scrollbar entirely, use `scroll: { scrollbar: "none" }`.
+
+A `layout` without its options object throws, rather than quietly rendering a plain list.
 
 For example, this is enough to render a 3-column grid — no plugin import needed:
 
