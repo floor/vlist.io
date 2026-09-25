@@ -86,9 +86,15 @@ function longPress() {
   const reorder = wireReorder(list, rows(40));
 
   host.addEventListener("pointerdown", (e) => set("lp-pointer", e.pointerType, "info"), { passive: true });
-  // A callout or a selection starting means the browser took the gesture.
+  // A callout or a selection starting means the browser took the gesture --
+  // if the event went through. Android Chrome dispatches `contextmenu` on
+  // every long press and the plugin cancels it (a capture listener on the
+  // document, so it has run by the time this one sees the event); a cancelled
+  // event is the plugin winning, not the browser. The first Pixel run failed
+  // this card on a cancelled contextmenu with no menu on screen.
   for (const type of ["contextmenu", "selectstart"]) {
-    host.addEventListener(type, () => {
+    host.addEventListener(type, (e) => {
+      if (e.defaultPrevented) { set("lp-callout", `${type} cancelled by the plugin`, "good"); return; }
       callout = type;
       set("lp-callout", `${type} fired`, "bad");
       mark("longpress", false, `${type} fired during the press`);
@@ -398,7 +404,7 @@ function zoom() {
 
   const reorder = wireReorder(list, rows(40));
 
-  list.on("sort:start", () => { dragging = true; worstGap = 0; worstOffset = 0; worst = null; maxPointersDown = pointersDown; sample(); });
+  list.on("sort:start", () => { dragging = true; worstGap = 0; worstOffset = 0; worst = null; pinched = 0; maxPointersDown = pointersDown; sample(); });
   list.on("sort:end", ({ fromIndex, toIndex }) => { reorder(fromIndex, toIndex); dragging = false; settle(); });
   list.on("sort:cancel", () => { dragging = false; settle(); });
 
@@ -409,7 +415,7 @@ function zoom() {
   // The sortable plugin ignores pointers other than the one it is dragging
   // with, so the page must too, or it measures its own error.
   let fingerX = NaN, fingerY = NaN, fingerId = null, fingerPage = "", moves = 0;
-  let pointersDown = 0, maxPointersDown = 0;
+  let pointersDown = 0, maxPointersDown = 0, pinched = 0;
   let worst = null;
   host.addEventListener("pointerdown", (e) => {
     pointersDown++; maxPointersDown = Math.max(maxPointersDown, pointersDown);
@@ -436,7 +442,11 @@ function zoom() {
     const v = vv();
     // Only after the finger has moved in this drag: at sort:start there is
     // nothing yet to compare the ghost against.
-    if (ghost && moves > 0 && Number.isFinite(fingerY)) {
+    // A second finger on the glass (a pinch mid-drag, or a rest) makes the
+    // browser's gesture, not the plugin's; the first Pixel run recorded its
+    // worst gap with two pointers down. Those frames are counted, not judged.
+    if (pointersDown > 1) { pinched++; }
+    else if (ghost && moves > 0 && Number.isFinite(fingerY)) {
       const r = ghost.getBoundingClientRect();
       // The row being dragged is an ordinary element; its rect and the ghost's
       // are in the same space, so the two together say whether the ghost sits
@@ -480,7 +490,8 @@ function zoom() {
     mark("zoom", worstGap <= 8,
       `${zoomed ? "zoomed" : "unzoomed"} ${(vv()?.scale ?? 1).toFixed(2)}×, worst finger-to-row gap ${Math.round(worstGap)} px` +
       (explained === true ? ", matching the visual viewport offset" : explained === false ? ", not explained by the viewport offset" : "") +
-      (worst && worstGap > 8 ? `\n      at worst: ${worst}` : ""));
+      (worst && worstGap > 8 ? `\n      at worst: ${worst}` : "") +
+      (pinched > 0 ? `\n      ${pinched} frames with two fingers down were not judged` : ""));
   }
 
   return list;
