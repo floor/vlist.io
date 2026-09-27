@@ -83,11 +83,14 @@ window.addEventListener("resize", updateColumns);
 
 ## Large datasets
 
-Native content stops at the browser's element size limit, about 16 million pixels. For grids past it, import `createVList` from `vlist/synthetic`; the grid positions rows relative to the scroll origin, so no extra plugin is needed.
+Native content stops at the browser's element size limit, about 16 million pixels. A grid
+past it needs nothing extra: with the default `scroll.mode: "auto"` the list hands its
+input to synthetic scrolling in place when it grows that large, and the grid positions
+rows relative to the scroll origin. Add `scrollbar()`, since a synthetic list has no
+browser scrollbar.
 
 ```ts
-import { createVList } from "vlist/synthetic";
-import { grid, scrollbar } from "vlist";
+import { createVList, grid, scrollbar } from "vlist";
 
 const list = createVList({
   container: "#app",
@@ -96,10 +99,13 @@ const list = createVList({
 }, [grid({ columns: 4, gap: 8 }), scrollbar()]);
 ```
 
+`scroll: { mode: "synthetic" }` makes the grid synthetic from the start. See
+[Scroll modes](/docs/scroll-modes).
+
 ## Notes
 
 - Keyboard nav: arrows move in 2D (left/right between columns, up/down between rows)
-- Works with `vlist/synthetic` for grids past the browser size limit
+- Grids past the browser size limit go synthetic by themselves (`scroll.mode: "auto"`)
 - Conflicts with: masonry, table
 
 ## Examples

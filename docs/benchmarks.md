@@ -80,19 +80,19 @@ On Vanilla, React, Vue, Svelte, and Solid the control bar has **Mode: Native | S
 
 ## Native and synthetic
 
-**Native** creates the list from `vlist`. **Synthetic** creates it from `vlist/synthetic`. The other library in a comparison never changes.
+**Native** creates the list with `scroll: { mode: "native" }`. **Synthetic** creates it with `scroll: { mode: "synthetic" }`. Both come from `vlist`; the mode is pinned, so neither series swaps input on the way, as the default `"auto"` would past the browser's size limit. The other library in a comparison never changes.
 
 | Page | Native | Synthetic |
 |------|--------|-----------|
-| Initial Render | Time to first paint | Same measurement, `vlist/synthetic` |
+| Initial Render | Time to first paint | Same measurement, `mode: "synthetic"` |
 | Scroll FPS | Position write (`ctx.scroll.to`), then the rows are checked each frame | The same driver and the same checks |
 | Memory | Heap after render, then after a scroll | The scroll goes through the position setter. `scrollTop` would leave a synthetic list still. |
 | ScrollTo | `scrollToIndex` until the browser scroll offset settles | `scrollToIndex` until the list position settles. The browser offset stays at 0. |
-| Comparisons | vlist side uses `vlist` and the browser scroll offset | vlist side uses `vlist/synthetic` and the position write. The other library keeps its own scroll. |
+| Comparisons | vlist side uses `mode: "native"` and the browser scroll offset | vlist side uses `mode: "synthetic"` and the position write. The other library keeps its own scroll. |
 
 Scroll FPS on the page is that matched position-write run. CI still runs `scroll-vanilla`, which writes `scrollTop` and reports frame budget. Those are different measurements. The page does not run `scroll-vanilla`.
 
-Framework suites pass `factory` through the adapter (`useVList({ factory })`). SolidJS Scroll FPS, Initial Render, and ScrollTo call the entry directly, which is how those three already measured. SolidJS Memory goes through the adapter.
+Framework suites pass the mode through the adapter (`useVList({ scroll: { mode } })`). SolidJS Scroll FPS, Initial Render, and ScrollTo call `createVList` directly, which is how those three already measured. SolidJS Memory goes through the adapter.
 
 ## History
 
@@ -107,7 +107,7 @@ Both tables have a `mode` column, `native` or `synthetic`. The suite id does not
 
 A Scroll FPS run on Vanilla is saved as `scroll-vanilla`. On React it is `scroll-react`. Native and synthetic are two series of that same suite. Render, Memory, and ScrollTo follow the same pattern (`render-vanilla`, `memory-react`, `scrollto-vue`).
 
-A comparison is saved under the other library's id. `react-window` with `mode = synthetic` is react-window against `vlist/synthetic`. The react-window side is the same as the native series.
+A comparison is saved under the other library's id. `react-window` with `mode = synthetic` is react-window against vlist with `scroll.mode: "synthetic"`. The react-window side is the same as the native series.
 
 Older suite rows that used ids such as `render-synthetic` or `scroll-logical-native` are folded into the suite above, and `mode` is set from the old id. A synthetic comparison that was briefly stored as `react-window-synthetic` in the suite table is moved to `comparison_runs` as `react-window` / `synthetic`.
 

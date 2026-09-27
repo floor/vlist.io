@@ -2,10 +2,6 @@
 // Uses a contact list as the canvas to demonstrate native, custom, and none modes.
 
 import { createVList, scrollbar, selection, rebuild } from "vlist";
-// vlist 3.0: synthetic input is the default and has no browser scrollbar; the
-// "native" mode of this demo uses the native entry to show the real one.
-import { createVList as createNativeVList } from "vlist/native";
-import { createVList as createSyntheticVList } from "vlist/synthetic";
 import { makeContacts } from "../../src/data/people.js";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -176,13 +172,10 @@ function scrollbarPlugin() {
 export async function createList() {
   const version = ++listVersion;
 
-  // "native" is the browser bar. The shell disables that choice while Synthetic
-  // is selected. "none" stays synthetic with no bar.
-  const factory = mode === "none"
-    ? createSyntheticVList
-    : mode === "native"
-      ? createNativeVList
-      : createVList;
+  // "native" is the browser bar, which the shell disables while Synthetic is
+  // selected; "none" is synthetic input, which has no bar. Both pin scroll.mode.
+  // "custom" follows the page's scroll switch.
+  const scrollMode = mode === "none" ? "synthetic" : mode === "native" ? "native" : undefined;
 
   const newList = await rebuild(list, (snap) => {
     const plugins = [];
@@ -191,12 +184,13 @@ export async function createList() {
     plugins.push(selection());
     plugins.push(snap);
 
-    return factory(
+    return createVList(
       {
         container: "#list-container",
         ariaLabel: "Scrollbar demo — contact list",
         item: { height: ITEM_HEIGHT, template: renderContact },
         items: contacts,
+        ...(scrollMode ? { scroll: { mode: scrollMode } } : {}),
       },
       plugins,
     );

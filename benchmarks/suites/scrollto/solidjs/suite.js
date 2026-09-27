@@ -7,7 +7,6 @@
 // Uses the core vlist library directly (no SolidJS runtime in benchmarks).
 
 import { createVList } from "vlist";
-import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -19,6 +18,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
 import { measureScrollToPerformance } from "../../../engine/scrollto.js";
+import { loadSynthetic, withScrollMode } from "../../../engine/synthetic.js";
 
 // =============================================================================
 // Suite
@@ -44,6 +44,7 @@ defineSuite({
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
+      scroll: { mode: "native" },
     });
 
     // Let initial render settle
@@ -113,13 +114,14 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   description: "Latency of scrollToIndex() in synthetic mode",
   icon: "🎯",
   run: async ({ itemCount, container, onStatus }) => {
+    await loadSynthetic();
     const items = generateItems(itemCount);
     container.innerHTML = "";
-    const instance = createSynthetic({
+    const instance = createVList(withScrollMode({
       container,
       items,
       item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-    });
+    }, "synthetic"));
     try {
       await waitFrames(10);
       const viewport = findViewport(container);

@@ -6,7 +6,7 @@
 
 import { createApp } from "vue";
 import { useVList } from "vlist-vue";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import {
   defineSuite,
   generateItems,
@@ -18,6 +18,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
 import { measureScrollToPerformance } from "../../../engine/scrollto.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 
 // =============================================================================
 // Vue Component
@@ -29,7 +30,7 @@ const BenchmarkList = {
   props: {
     items: Array,
     target: Object,
-    factory: Function,
+    mode: String,
   },
   setup(props) {
     const vlistApi = useVList({
@@ -38,7 +39,7 @@ const BenchmarkList = {
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
-      ...(props.factory ? { factory: props.factory } : {}),
+      scroll: { mode: props.mode },
     });
 
     vlistApi.containerRef.value = props.target;
@@ -66,7 +67,7 @@ defineSuite({
     container.innerHTML = "";
     listApiRef = null;
 
-    const app = createApp(BenchmarkList, { items, target: container });
+    const app = createApp(BenchmarkList, { items, target: container, mode: "native" });
     app.mount(container);
 
     // Let initial render settle (Vue needs extra frames)
@@ -146,10 +147,11 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   description: "Latency of scrollToIndex() in synthetic mode, through the Vue adapter",
   icon: "🎯",
   run: async ({ itemCount, container, onStatus }) => {
+    await loadSynthetic(createVListFromConfig);
     const items = generateItems(itemCount);
     container.innerHTML = "";
     listApiRef = null;
-    const app = createApp(BenchmarkList, { items, target: container, factory: createSynthetic });
+    const app = createApp(BenchmarkList, { items, target: container, mode: "synthetic" });
     app.mount(container);
     try {
       await waitFrames(15);

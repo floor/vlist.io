@@ -4,7 +4,6 @@
 // Defines the vlist create/destroy lifecycle and formats results with rating thresholds.
 
 import { createVList } from "vlist";
-import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -13,6 +12,7 @@ import {
 } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureRenderPerformance } from "../../../engine/render.js";
+import { loadSynthetic, withScrollMode } from "../../../engine/synthetic.js";
 
 const formatRenderMetrics = (itemCount, result) => {
   const goodThreshold = itemCount <= 10_000 ? 5 : itemCount <= 100_000 ? 10 : 50;
@@ -42,17 +42,22 @@ const formatRenderMetrics = (itemCount, result) => {
   ];
 };
 
-const defineRenderSuite = (id, name, description, label, create) => {
+const defineRenderSuite = (id, name, description, label, mode) => {
   defineSuite({
     id,
     name,
     description,
     icon: "⚡",
     run: async ({ itemCount, container, onStatus, intensity }) => {
+      if (mode === "synthetic") await loadSynthetic();
       const items = generateItems(itemCount);
       const result = await measureRenderPerformance({
         container,
-        createFn: async (target) => create(target, items),
+        createFn: async (target) => createVList(withScrollMode({
+          container: target,
+          item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
+          items,
+        }, mode)),
         destroyFn: (list) => list.destroy(),
         label,
         onStatus,
@@ -69,21 +74,13 @@ defineRenderSuite(
   "Initial Render (Vanilla)",
   "JS execution time of vlist() initial render",
   "vlist-vanilla",
-  (container, items) => createVList({
-    container,
-    item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-    items,
-  }),
+  "native",
 );
 
 if (__BENCH_HAS_SYNTHETIC__) defineRenderSuite(
   "render-synthetic",
   "Initial Render (Synthetic)",
-  "JS execution time of the synthetic entry's initial render",
+  "JS execution time of a synthetic list's initial render",
   "vlist-synthetic",
-  (container, items) => createSynthetic({
-    container,
-    item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-    items,
-  }),
+  "synthetic",
 );

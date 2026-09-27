@@ -228,7 +228,7 @@ Set `--vlist-carousel-radius` on the slide to control border-radius:
 
 The plugin creates a **repeating virtual scroll window** — the content is repeated across multiple cycles with items mapped via modulo. Scrolling past the last item seamlessly continues to the first.
 
-Internally, the carousel supplies its own wrap handler through `ctx.setBoundedWrap`. When the scroll position drifts too far from the middle cycle, the handler folds the logical position back by whole laps, so the user sees continuous forward or backward motion with no visual discontinuity. With `vlist/synthetic`, the synthetic input handler performs the same fold while a drag, a fling or a snap animation continues.
+Internally, the carousel supplies its own wrap handler, the runway, through `ctx.scroll.setWrap`. When the scroll position drifts too far from the middle cycle, the handler folds the logical position back by whole laps, so the user sees continuous forward or backward motion with no visual discontinuity. A carousel keeps this handler whatever `scroll.mode` says. With the deprecated `vlist/synthetic` entry, the synthetic input handler performs the same fold while a drag, a fling or a snap animation continues.
 
 ## Compatibility
 

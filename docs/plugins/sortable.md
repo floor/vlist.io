@@ -41,7 +41,7 @@ list.on("sort:end", ({ fromIndex, toIndex }) => {
 
 ## Touch and pen
 
-Sortable works with both entries, `vlist` and `vlist/synthetic`, with the same gestures.
+Sortable works in every scroll mode, native and synthetic, with the same gestures.
 
 - **Without a handle**, a long press of `touchDelay` (350 ms) on an item starts the drag. Moving `dragThreshold` pixels before the press completes scrolls the list instead, so a quick flick never reorders.
 - **With `handle`**, the handle drags as soon as the pointer moves `dragThreshold` pixels, with no long press. Touching elsewhere on the item scrolls.
@@ -79,7 +79,7 @@ sortable({ handle: ".drag-handle" })
 - Auto-scroll at viewport edges
 - Full ARIA support (`aria-roledescription`, grab/drop announcements)
 - Conflicts with: grid, masonry, table
-- Works with `createVList` from `vlist` or `vlist/synthetic`
+- Works in every `scroll.mode`: `"auto"`, `"native"` and `"synthetic"`
 
 ## Examples
 

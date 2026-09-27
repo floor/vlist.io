@@ -397,20 +397,19 @@ Most templates don't need this — only use it if profiling shows template execu
 
 ## Large Lists
 
-Native scroll containers hit the browser's element size limit around 16 million pixels. With the default `vlist` entry, the list emits an `error` event once when content passes that size.
+Native scroll containers hit the browser's element size limit around 16 million pixels. With the default `scroll.mode: "auto"`, a list that grows past it hands its input to synthetic scrolling in place; with `"native"`, it emits an `error` event once instead.
 
-For larger lists, `vlist/synthetic` owns the scroll position instead of the browser. The viewport clips its content, input events move a logical position, and the pipeline subtracts the scroll adapter's render origin when positioning items, so absolute virtual offsets stay within the viewport. This is transparent to templates and event handlers: `data-index` and all public APIs use real indices.
+Synthetic input owns the scroll position instead of the browser. The viewport clips its content, input events move a logical position, and the pipeline subtracts the scroll adapter's render origin when positioning items, so absolute virtual offsets stay within the viewport. This is transparent to templates and event handlers: `data-index` and all public APIs use real indices. The driver is a separate file, loaded the first time a list needs it.
 
 ```typescript
-import { createVList } from 'vlist/synthetic'
+import { createVList } from 'vlist'
 
 createVList({
   container: '#list',
+  scroll: { mode: 'synthetic' }, // or leave the default, 'auto'
   // ...
 })
 ```
-
-
 
 ## Measuring Performance
 
@@ -472,7 +471,7 @@ With vlist's built-in optimizations:
 | **Memory** | Sparse storage + LRU | Chunk-based eviction for large async datasets |
 | **Memory** | Batched LRU timestamps | Single `Date.now()` per render cycle |
 | **Loading** | Velocity-based loading | Skip/preload/defer based on scroll speed |
-| **Large lists** | Synthetic input entry | Owned logical position with no element-size limit (`vlist/synthetic`) |
+| **Large lists** | Synthetic input (`scroll.mode`) | Owned logical position with no element-size limit; `"auto"` switches to it past the limit, loading the driver on demand |
 
 ## Further Reading
 

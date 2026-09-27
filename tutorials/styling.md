@@ -109,7 +109,7 @@ import 'vlist/styles/extras';
 
 ### Custom Scrollbar Classes
 
-Used by the `scrollbar()` plugin, which `vlist/synthetic` lists need for a visible scrollbar:
+Used by the `scrollbar()` plugin, which synthetic lists (`scroll.mode: "synthetic"`, or `"auto"` past the size limit) need for a visible scrollbar:
 
 | Class | Description |
 |-------|-------------|
