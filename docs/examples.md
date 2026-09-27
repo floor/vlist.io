@@ -81,10 +81,8 @@ The list on that page is not a normal scroller:
 
 ### Pages that choose the mode themselves
 
-[Phone pass](/examples/phone-pass) sets `scroll.mode: "synthetic"` on its momentum test.
-Its carousel test still imports the deprecated `vlist/synthetic`: on the `vlist` entry a
-carousel keeps its own runway whatever the mode, and that test drives the carousel under
-synthetic input.
+[Phone pass](/examples/phone-pass) sets `scroll.mode: "synthetic"` on its momentum and
+carousel tests, which drive touch under synthetic input.
 
 [Scrollbar](/examples/scrollbar) pins `"native"` for its Native choice (the browser bar)
 and `"synthetic"` for None (no bar); Custom follows the switch.

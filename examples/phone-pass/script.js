@@ -12,10 +12,6 @@
 
 import { sortable, carousel } from "vlist";
 import { createVList } from "vlist";
-// The fold test drives carousel() under synthetic input. On the vlist entry a
-// carousel keeps its own runway whatever scroll.mode says, so this one list
-// still needs the deprecated entry.
-import { createVList as createSyntheticVList } from "vlist/synthetic";
 
 const ITEM_H = 64;
 const TESTS = ["longpress", "handle", "momentum", "pen", "fold", "zoom"];
@@ -313,12 +309,15 @@ function fold() {
   let sampling = false;
   let last = null;
 
-  const list = createSyntheticVList(
+  // The fold test drives carousel() under synthetic input: scroll.mode
+  // "synthetic" runs a carousel on the synthetic handler (vlist 3.1).
+  const list = createVList(
     {
       container: host,
       orientation: "horizontal",
       items: rows(12),
       item: { height: 160, width: 140, template: slideTemplate },
+      scroll: { mode: "synthetic" },
     },
     [carousel({ snap: false, gap: 8 })],
   );

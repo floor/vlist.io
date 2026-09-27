@@ -1,16 +1,16 @@
 ---
 created: 2026-09-27
-updated: 2026-09-27
-status: draft
+updated: 2026-09-28
+status: implemented
 ---
 
 # RFC-015: Overflow Handoff
 
-**Status:** Draft — implemented in [vlist#319](https://github.com/floor/vlist/pull/319), not merged  
+**Status:** Implemented — vlist#319, #322, #324, #326; shipped in 3.1.0-next.2  
 **Author:** floor  
 **Type:** Core Architecture  
 **Created:** 2026-09-27  
-**Target:** vlist 3.0.x (additive; `vlist/synthetic` keeps working)  
+**Target:** vlist 3.1.0 (additive; `vlist/synthetic` keeps working, deprecated)  
 **Amends:** [RFC-014: Scroll Input Model](RFC-014-Scroll-Input-Model.md) — one entry again, with `scroll.mode` as the input choice  
 **Issue:** FLO-247  
 
@@ -153,7 +153,10 @@ it invisible, and the documentation says so:
 
 - **`page()`** scrolls the document; there is no content element to hand over.
   The mode does not apply, and page's own size warning stands.
-- **`carousel()`** owns its input already (its wrap runway). The mode does not apply.
+- **`carousel()`** runs its own wrap runway with `"auto"` and `"native"`. With
+  `"synthetic"` it runs on the synthetic handler (vlist#326): the carousel, not the
+  core, switches its runway in place once the driver loads and it is idle
+  (`core/switching.ts`); the core only exposes the mode as `config.scrollMode`.
 - **`vlist/synthetic`**, deprecated, is synthetic whatever the mode.
 
 `scroll.scrollbar` strings style the native scrollbar; with `mode: "synthetic"`
@@ -194,14 +197,15 @@ A trim pass took the first version's +405 B down to +301 B: 56 B of it from fold
 2. **Adapters.** A `scrollMode` prop on the React, Vue, Svelte and Solid
    components, passed through as `scroll.mode`. Recommendation: yes, in the same
    3.0.x.
-3. **Threshold per browser.** Firefox caps element size lower than Chrome
-   (around 17.9M px, to be measured). One conservative default below every
-   engine's cap is simpler than detection. Recommendation: keep 16,000,000 px,
-   measure Firefox and Safari before release.
-4. **Semver.** A new option is a feature, and features normally ship in a minor
-   release. It is additive, the default only changes lists that are broken today,
-   and no 3.1 is planned. It ships in a 3.0.x patch, listed under *Added*.
-5. **Budgets.** Raise the base to 10.3 kB, and every scenario by 0.3 kB.
+3. **Threshold per browser.** Decided 2026-09-27 (vlist#324): measured, Firefox 156
+   lays out at most 17,895,697 px and collapses a taller element to 0; Chrome 153
+   clamps at 33,554,428 px. One default below both, 16,000,000 px, stays; native
+   content is also capped there, so native input reaches the same rows everywhere.
+   Safari checked by hand.
+4. **Semver.** Decided 2026-09-28: a new option is a feature, so it ships as 3.1.0
+   (prereleases 3.0.1-next.1, then 3.1.0-next.2).
+5. **Budgets.** Decided: the base went to 10.3 kB, every scenario by the headroom
+   rule; carousel budgets rose again for its synthetic switch.
 
 ## Gates
 
