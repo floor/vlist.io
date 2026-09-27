@@ -1,12 +1,12 @@
 ---
 created: 2026-06-02
-updated: 2026-06-02
-status: draft
+updated: 2026-09-27
+status: implemented
 ---
 
 # RFC-010: Externalized UI Text
 
-**Status:** Draft  
+**Status:** Implemented — the search bar carries no built-in human-language text since vlist 2.3.0 (`77b6fae`)  
 **Author:** floor  
 **Type:** Architecture / Accessibility  
 **Created:** 2026-06-02  

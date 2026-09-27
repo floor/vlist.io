@@ -1,12 +1,12 @@
 ---
 created: 2026-06-06
-updated: 2026-06-06
-status: spec-locked
+updated: 2026-09-27
+status: implemented
 ---
 
 # RFC-011: Carousel Plugin
 
-**Status:** Spec locked ([discussion #105](https://github.com/floor/vlist/discussions/105))  
+**Status:** Implemented — `carousel()` shipped in vlist 2.4.0 ([discussion #105](https://github.com/floor/vlist/discussions/105)). Revised in 3.0.0: three laps with a symmetric fold instead of 101, works with both entries, incompatible with `page()`  
 **Author:** floor  
 **Type:** Plugin / Feature  
 **Created:** 2026-06-06  
