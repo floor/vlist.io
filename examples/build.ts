@@ -108,7 +108,7 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     const VLIST_JS_ENTRIES: Record<string, string> = {
       vlist: "index.js",
       "vlist/internals": "internals.js",
-      // Deprecated; phone-pass still needs it for carousel() under synthetic input.
+      // Deprecated; kept resolvable for code that still imports it.
       "vlist/synthetic": "synthetic.js",
       "vlist/native": "native.js",
     };

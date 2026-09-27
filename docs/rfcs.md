@@ -6,7 +6,7 @@ RFCs are discussed in [GitHub Discussions](https://github.com/floor/vlist/discus
 
 | RFC | Status | Topic |
 |-----|--------|-------|
-| [RFC-015: Overflow Handoff](/docs/rfcs/RFC-015-Overflow-Handoff) | Draft | `scroll.mode` on the one `vlist` entry: `"auto"` scrolls natively and hands input to the lazily loaded synthetic driver in place past the browser size limit |
+| [RFC-015: Overflow Handoff](/docs/rfcs/RFC-015-Overflow-Handoff) | Implemented (3.1) | `scroll.mode` on the one `vlist` entry: `"auto"` scrolls natively and hands input to the lazily loaded synthetic driver in place past the browser size limit |
 | [RFC-014: Scroll Input Model](/docs/rfcs/RFC-014-Scroll-Input-Model) | Shipped (opt-in) | Who owns scroll input: native by default, synthetic input as the opt-in `vlist/synthetic` entry |
 | [RFC-013: Unified Scroll Model](/docs/rfcs/RFC-013-Unified-Scroll-Model) | Rejected | Bounded-only model with native path removed; superseded by RFC-014 |
 | [RFC-012: Logical Scroll Model](/docs/rfcs/RFC-012-Logical-Scroll-Model) | Implemented, narrowed in 3.0 | Viewport-sized content with logical scroll; since 3.0 only the carousel's wrap uses it — huge lists moved to RFC-014. Scrollbar, RTL, adapter adoption and page mode carried by RFC-014 as 3.0 gates |
