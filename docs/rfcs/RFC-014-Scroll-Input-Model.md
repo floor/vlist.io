@@ -1,12 +1,12 @@
 ---
 created: 2026-09-10
-updated: 2026-09-15
-status: shipped-opt-in
+updated: 2026-09-27
+status: shipped
 ---
 
 # RFC-014: Scroll Input Model
 
-**Status:** Opt-in mode shipped in vlist 2.7.0 (2026-09-14); 3.0 keeps native scrolling as the default and synthetic input opt-in (shape revised 2026-09-15)  
+**Status:** Shipped — opt-in synthetic input since vlist 2.7.0; in 3.0.0 `vlist` scrolls natively by default and `vlist/synthetic` is the opt-in entry for huge lists and application-owned touch motion  
 **Author:** floor  
 **Type:** Core Architecture  
 **Created:** 2026-09-10  

@@ -1,12 +1,12 @@
 ---
 created: 2026-05-29
-updated: 2026-05-29
-status: draft
+updated: 2026-09-27
+status: partially-implemented
 ---
 
 # RFC-009: Configuration Immutability
 
-**Status:** Draft  
+**Status:** Phase 2 implemented — `rebuild()` shipped in vlist 2.0.5 (scroll restore without a snapshots plugin since 3.0.0). Phase 1, runtime setters, is not implemented  
 **Author:** floor  
 **Type:** Architecture  
 **Created:** 2026-05-29  
