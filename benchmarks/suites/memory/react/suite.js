@@ -6,7 +6,7 @@
 
 import { createRoot } from "react-dom/client";
 import { useVList } from "vlist-react";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import {
   defineSuite,
   generateItems,
@@ -18,6 +18,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureMemoryProfile, scrollWithSetter } from "../../../engine/memory.js";
 import { findViewport } from "../../../engine/viewport.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 import { scrollCapturePlugin } from "../../../engine/logical-scroll.js";
 import { formatMemoryMetrics } from "../format.js";
 
@@ -25,14 +26,14 @@ import { formatMemoryMetrics } from "../format.js";
 // React Component
 // =============================================================================
 
-function BenchmarkList({ items, target, factory, capture }) {
+function BenchmarkList({ items, target, mode, capture }) {
   const { containerRef } = useVList({
     items,
     item: {
       height: ITEM_HEIGHT,
       template: benchmarkTemplate,
     },
-    ...(factory ? { factory } : {}),
+    scroll: { mode },
     ...(capture ? { plugins: [scrollCapturePlugin((set) => { capture.current = set; })] } : {}),
   });
 
@@ -59,7 +60,7 @@ defineSuite({
       container,
       createFn: async () => {
         const root = createRoot(container);
-        root.render(<BenchmarkList items={items} target={container} />);
+        root.render(<BenchmarkList items={items} target={container} mode="native" />);
         await waitFrames(5); // React needs extra frames to settle
         return { instance: root };
       },
@@ -136,13 +137,14 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   description: "Heap of a synthetic list created through the React adapter, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
+    await loadSynthetic(createVListFromConfig);
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({
       container,
       createFn: async () => {
         const root = createRoot(container);
-        root.render(<BenchmarkList items={items} target={container} factory={createSynthetic} capture={capture} />);
+        root.render(<BenchmarkList items={items} target={container} mode="synthetic" capture={capture} />);
         await waitFrames(5);
         return { instance: root };
       },

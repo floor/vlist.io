@@ -1,9 +1,9 @@
-// Initial Render for React. Synthetic passes factory from vlist/synthetic.
+// Initial Render for React. Synthetic passes scroll.mode through the adapter.
 
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { useVList } from "vlist-react";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import {
   defineSuite,
   generateItems,
@@ -12,12 +12,13 @@ import {
 } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureRenderPerformance } from "../../../engine/render.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 
-function BenchmarkList({ items, target, factory }) {
+function BenchmarkList({ items, target, mode }) {
   const { containerRef } = useVList({
     items,
     item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-    ...(factory ? { factory } : {}),
+    scroll: { mode },
   });
   containerRef.current = target;
   return null;
@@ -30,14 +31,14 @@ function defineMode(mode) {
     description: "Time from useVList() hook to first painted frame",
     icon: "⚡",
     run: async ({ itemCount, container, onStatus, intensity }) => {
+      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
       const items = generateItems(itemCount);
-      const factory = mode === "synthetic" ? createSynthetic : undefined;
       const result = await measureRenderPerformance({
         container,
         createFn: async (target) => {
           const root = createRoot(target);
           flushSync(() => {
-            root.render(<BenchmarkList items={items} target={target} factory={factory} />);
+            root.render(<BenchmarkList items={items} target={target} mode={mode} />);
           });
           return root;
         },

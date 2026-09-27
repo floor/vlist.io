@@ -7,7 +7,6 @@
 // comparison benchmarks use the exact same methodology as suite benchmarks.
 
 import { createVList } from "vlist";
-import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   benchmarkTemplate,
   nextFrame,
@@ -22,6 +21,7 @@ import {
 // Engine modules — single source of truth for measurement methodology
 import { findViewport } from "../engine/viewport.js";
 import { scrollCapturePlugin } from "../engine/logical-scroll.js";
+import { loadSynthetic, withScrollMode } from "../engine/synthetic.js";
 import { measureRenderPerformance } from "../engine/render.js";
 import { measureScrollRun } from "../engine/scroll.js";
 import { measureMemoryWithRetries } from "../engine/memory.js";
@@ -219,16 +219,18 @@ export const benchmarkVList = async (
 
   // Generate minimal items array with id property (required by vlist dev check)
   const items = Array.from({ length: itemCount }, (_, i) => ({ id: i }));
+  if (synthetic) await loadSynthetic();
   let write;
+  // Native is scrolled through scrollTop, so it stays native at every size.
   const create = (target) => {
-    const config = {
+    const config = withScrollMode({
       container: target,
       overscan: VLIST_OVERSCAN,
       item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
       items,
-    };
+    }, mode);
     if (!synthetic) return createVList(config);
-    return createSynthetic(config, [scrollCapturePlugin((set) => { write = set; })]);
+    return createVList(config, [scrollCapturePlugin((set) => { write = set; })]);
   };
 
   // ── Phase 1: TIMING ────────────────────────────────────────────────────

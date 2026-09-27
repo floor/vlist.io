@@ -5,7 +5,6 @@
 // rating thresholds.
 
 import { createVList } from "vlist";
-import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -17,6 +16,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
 import { measureScrollToPerformance } from "../../../engine/scrollto.js";
+import { loadSynthetic, withScrollMode } from "../../../engine/synthetic.js";
 
 // =============================================================================
 // Suite
@@ -35,6 +35,7 @@ defineSuite({
     // ── Create vlist ───────────────────────────────────────────────────
     container.innerHTML = "";
 
+    // Watched through the browser scroll offset: native at every size.
     const list = createVList({
       container,
       item: {
@@ -42,6 +43,7 @@ defineSuite({
         template: benchmarkTemplate,
       },
       items,
+      scroll: { mode: "native" },
     });
 
     // Let initial render settle
@@ -108,9 +110,9 @@ defineSuite({
   },
 });
 
-// scrollToIndex jumps on both entries. The native suite watches the browser
-// scroll offset; that offset stays 0 on vlist/synthetic, so this suite watches
-// the list position instead.
+// scrollToIndex jumps in both modes. The native suite watches the browser
+// scroll offset; that offset stays 0 on a synthetic list, so this suite
+// watches the list position instead.
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "scrollto-synthetic",
   name: "scrollToIndex (Synthetic)",
@@ -118,13 +120,14 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   icon: "🎯",
 
   run: async ({ itemCount, container, onStatus, intensity }) => {
+    await loadSynthetic();
     const items = generateItems(itemCount);
     container.innerHTML = "";
-    const list = createSynthetic({
+    const list = createVList(withScrollMode({
       container,
       item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
       items,
-    });
+    }, "synthetic"));
     try {
       await waitFrames(10);
       const viewport = findViewport(container);

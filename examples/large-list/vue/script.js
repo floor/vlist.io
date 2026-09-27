@@ -1,11 +1,10 @@
 // Large List — Vue implementation with useVList composable
-// Synthetic input (vlist/synthetic) + scrollbar: no browser element size limit
+// scroll.mode "auto" (the default) + scrollbar: past the browser's element
+// size limit, the list hands itself to synthetic input
 // Demonstrates handling 100K–5M items
 
 import { createApp, ref, computed, watch } from "vue";
 import { useVList, useVListEvent } from "vlist-vue";
-// vlist 3 scrolls natively by default; lists this large opt into synthetic input.
-import { createVList as createSyntheticVList } from "vlist/synthetic";
 
 // =============================================================================
 // Constants
@@ -96,7 +95,7 @@ const App = {
       // A plain string: the DOM layer escapes ariaLabel and cannot read a ref.
       ariaLabel: `${SIZES[currentSize.value].toLocaleString()} items list`,
       // vlist/config installs the scrollbar plugin from scroll.scrollbar options.
-      factory: createSyntheticVList,
+      // No scroll.mode: the default "auto" goes synthetic past the size limit.
       scroll: { scrollbar: { autoHide: true } },
       item: {
         height: ITEM_HEIGHT,
@@ -235,9 +234,9 @@ const App = {
         <h1>Large List</h1>
         <p class="description">
           Vue implementation with <code>useVList</code> composable +
-          <code>vlist/synthetic</code> + <code>scrollbar</code>.
-          Handles 100K–5M items: synthetic input has no browser element size
-          limit.
+          <code>scrollbar</code>. Handles 100K–5M items: the default
+          <code>scroll.mode</code>, <code>auto</code>, hands lists past the
+          browser's element size limit to synthetic input.
         </p>
       </header>
 
@@ -366,10 +365,9 @@ const App = {
 
       <footer>
         <p>
-          Synthetic input owns the scroll position, so the list has no browser
-          element size limit; native scrolling stops at about 16 million pixels.
-          Pass <code>factory: createVList</code> from <code>vlist/synthetic</code>
-          to <code>useVList</code> to opt in. 💚
+          Native scrolling stops at about 16 million pixels; past that, the
+          default <code>scroll.mode: "auto"</code> hands the list to synthetic
+          input in place, with nothing to configure in <code>useVList</code>. 💚
         </p>
       </footer>
     </div>

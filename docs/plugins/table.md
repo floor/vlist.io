@@ -96,11 +96,14 @@ Use `"stretch"` when you want columns to consume all available space, and `"spac
 
 ## Large datasets
 
-Native content stops at the browser's element size limit, about 16 million pixels. For tables past it, import `createVList` from `vlist/synthetic`; rows are positioned relative to the scroll origin and the header stays aligned, so no extra plugin is needed.
+Native content stops at the browser's element size limit, about 16 million pixels. A table
+past it needs nothing extra: with the default `scroll.mode: "auto"` the list hands its
+input to synthetic scrolling in place when it grows that large. Rows are positioned
+relative to the scroll origin and the header stays aligned. Add `scrollbar()`, since a
+synthetic list has no browser scrollbar.
 
 ```ts
-import { createVList } from "vlist/synthetic";
-import { table, scrollbar } from "vlist";
+import { createVList, table, scrollbar } from "vlist";
 
 const list = createVList({
   container: "#app",
@@ -108,11 +111,14 @@ const list = createVList({
 }, [table({ columns, rowHeight: 36 }), scrollbar()]);
 ```
 
+`scroll: { mode: "synthetic" }` makes the table synthetic from the start. See
+[Scroll modes](/docs/scroll-modes).
+
 ## Notes
 
 - Sorting is visual only — the plugin emits `column:sort`, you re-sort data and call `setItems()`
 - Sticky header row
-- Works with `vlist/synthetic` for tables past the browser size limit
+- Tables past the browser size limit go synthetic by themselves (`scroll.mode: "auto"`)
 - Conflicts with: grid, masonry
 
 ## Examples

@@ -5,7 +5,7 @@
 
 import { createApp } from "vue";
 import { useVList } from "vlist-vue";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import {
   defineSuite,
   generateItems,
@@ -16,6 +16,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureMemoryProfile, scrollWithSetter } from "../../../engine/memory.js";
 import { findViewport } from "../../../engine/viewport.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 import { scrollCapturePlugin } from "../../../engine/logical-scroll.js";
 import { formatMemoryMetrics } from "../format.js";
 
@@ -27,7 +28,7 @@ const BenchmarkList = {
   props: {
     items: Array,
     target: Object,
-    factory: Function,
+    mode: String,
     capture: Object,
   },
   setup(props) {
@@ -37,7 +38,7 @@ const BenchmarkList = {
         height: ITEM_HEIGHT,
         template: benchmarkTemplate,
       },
-      ...(props.factory ? { factory: props.factory } : {}),
+      scroll: { mode: props.mode },
       ...(props.capture ? { plugins: [scrollCapturePlugin((set) => { props.capture.current = set; })] } : {}),
     });
 
@@ -64,7 +65,7 @@ defineSuite({
     const result = await measureMemoryProfile({
       container,
       createFn: async () => {
-        const app = createApp(BenchmarkList, { items, target: container });
+        const app = createApp(BenchmarkList, { items, target: container, mode: "native" });
         app.mount(container);
         return { instance: app };
       },
@@ -141,12 +142,13 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   description: "Heap of a synthetic list created through the Vue adapter, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
+    await loadSynthetic(createVListFromConfig);
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({
       container,
       createFn: async () => {
-        const app = createApp(BenchmarkList, { items, target: container, factory: createSynthetic, capture });
+        const app = createApp(BenchmarkList, { items, target: container, mode: "synthetic", capture });
         app.mount(container);
         if (!capture.current) throw new Error("Vue list did not install the scroll writer");
         return { instance: app };

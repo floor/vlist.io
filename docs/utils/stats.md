@@ -87,10 +87,10 @@ const stats = createStats({
 
 ## Large lists
 
-Both entries report an unscaled logical position, so progress and item counts follow the real content size.
+Every scroll mode reports an unscaled logical position, so progress and item counts follow the real content size.
 
-- **`vlist/synthetic`:** any list size reaches 100% at the end.
-- **`vlist` past the browser's element size limit** (about 16 million px): the browser cannot scroll to the end of the declared content, so progress stops short of 100%. The list emits an `error` event with the context `content:size:overflow` when this happens; use `vlist/synthetic` for lists that large.
+- **Synthetic input** (`scroll.mode: "synthetic"`, or `"auto"` past the browser's element size limit): any list size reaches 100% at the end.
+- **`scroll.mode: "native"` past the browser's element size limit** (about 16 million px): the browser cannot scroll to the end of the declared content, so progress stops short of 100%. The list emits an `error` event with the context `content:size:overflow` when this happens; leave the default `"auto"` for lists that large.
 
 ## Examples
 

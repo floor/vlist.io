@@ -3,9 +3,9 @@
         <h1>Large List</h1>
         <p class="description">
             Svelte implementation with <code>vlist</code> action +
-            <code>vlist/synthetic</code> + <code>scrollbar</code>.
-            Handles 100K–5M items: synthetic input has no browser element size
-            limit.
+            <code>scrollbar</code>. Handles 100K–5M items: the default
+            <code>scroll.mode</code>, <code>auto</code>, hands lists past the
+            browser's element size limit to synthetic input.
         </p>
     </header>
 
@@ -131,10 +131,9 @@
 
     <footer>
         <p>
-            Synthetic input owns the scroll position, so the list has no browser
-            element size limit; native scrolling stops at about 16 million
-            pixels. Pass <code>factory: createVList</code> from
-            <code>vlist/synthetic</code> in the action config to opt in. 🎯
+            Native scrolling stops at about 16 million pixels; past that, the
+            default <code>scroll.mode: "auto"</code> hands the list to
+            synthetic input in place, with nothing to configure in the action. 🎯
         </p>
     </footer>
 </div>

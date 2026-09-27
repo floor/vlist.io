@@ -11,8 +11,11 @@
 // place while the pixels say otherwise, and on this page the pixels win.
 
 import { sortable, carousel } from "vlist";
-import { createVList } from "vlist/synthetic";
-import { createVList as createNativeVList } from "vlist";
+import { createVList } from "vlist";
+// The fold test drives carousel() under synthetic input. On the vlist entry a
+// carousel keeps its own runway whatever scroll.mode says, so this one list
+// still needs the deprecated entry.
+import { createVList as createSyntheticVList } from "vlist/synthetic";
 
 const ITEM_H = 64;
 const TESTS = ["longpress", "handle", "momentum", "pen", "fold", "zoom"];
@@ -79,7 +82,7 @@ function longPress() {
   let started = false;
   let callout = null;
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );
@@ -154,7 +157,7 @@ function handle() {
   let downOnGrip = false;
   let scrollAtDown = 0;
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable({ handle: ".ppr__grip" })],
   );
@@ -240,7 +243,7 @@ function momentum() {
   let worst = 0;
 
   const list = createVList(
-    { container: host, items: rows(400), item: { height: ITEM_H, template: rowTemplate } },
+    { container: host, items: rows(400), item: { height: ITEM_H, template: rowTemplate }, scroll: { mode: "synthetic" } },
     [],
   );
   list.on("velocity:change", ({ velocity: v }) => { velocity = Math.abs(v); });
@@ -273,7 +276,7 @@ function pen() {
   const host = $("list-pen");
   const seen = new Set();
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );
@@ -310,7 +313,7 @@ function fold() {
   let sampling = false;
   let last = null;
 
-  const list = createVList(
+  const list = createSyntheticVList(
     {
       container: host,
       orientation: "horizontal",
@@ -386,7 +389,7 @@ function zoom() {
   let worstOffset = 0;
   let explained = null;
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );

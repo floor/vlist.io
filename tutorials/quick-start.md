@@ -176,8 +176,7 @@ const feed = createVList({
 ### 7. Large Dataset (1M+ Items)
 
 ```typescript
-import { createVList } from 'vlist/synthetic';
-import { scrollbar } from 'vlist';
+import { createVList, scrollbar } from 'vlist';
 
 const bigList = createVList({
   container: '#list',
@@ -191,7 +190,7 @@ const bigList = createVList({
 ]);
 ```
 
-Lists past the browser's element size limit use the synthetic input entry. See [Scroll modes](/docs/scroll-modes).
+At 48 px a row, five million rows are far past the browser's element size limit. With the default `scroll.mode: "auto"` the list switches to synthetic input by itself; `scrollbar()` gives it a scrollbar there. See [Scroll modes](/docs/scroll-modes).
 
 ---
 

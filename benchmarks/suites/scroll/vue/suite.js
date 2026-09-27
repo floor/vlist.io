@@ -2,15 +2,16 @@
 
 import { createApp } from "vue";
 import { useVList } from "vlist-vue";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import { defineSuite, benchmarkTemplate, waitFrames } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
 import { runLogicalScroll, scrollCapturePlugin } from "../../../engine/logical-scroll.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 
 const DESCRIPTION = "Sustained scrolling for 5s. Native and synthetic are driven by the same position write, then the rows are checked.";
 
-const mount = (container, items, factory) => {
+const mount = (container, items, mode) => {
   let write;
   let instance = null;
   const List = {
@@ -19,7 +20,7 @@ const mount = (container, items, factory) => {
       const api = useVList({
         items: props.items,
         item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-        ...(factory ? { factory } : {}),
+        scroll: { mode },
         plugins: [scrollCapturePlugin((set) => { write = set; })],
       });
       api.containerRef.value = props.target;
@@ -34,7 +35,7 @@ const mount = (container, items, factory) => {
       if (!write) throw new Error("Vue list did not install the scroll writer");
     }),
     set: (position) => write(position),
-    get: () => (factory ? instance?.value?.getScrollPosition?.() : findViewport(container).scrollTop),
+    get: () => (mode === "synthetic" ? instance?.value?.getScrollPosition?.() : findViewport(container).scrollTop),
     destroy: () => app.unmount(),
   };
 };
@@ -46,16 +47,19 @@ function defineMode(mode) {
     description: DESCRIPTION,
     icon: "📜",
     hasScrollSpeed: true,
-    run: (ctx) => runLogicalScroll({
-      ...ctx,
-      mode,
-      settleFrames: 0,
-      createList: async (target, items) => {
-        const created = mount(target, items, mode === "synthetic" ? createSynthetic : undefined);
-        await created.ready;
-        return created;
-      },
-    }),
+    run: async (ctx) => {
+      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
+      return runLogicalScroll({
+        ...ctx,
+        mode,
+        settleFrames: 0,
+        createList: async (target, items) => {
+          const created = mount(target, items, mode);
+          await created.ready;
+          return created;
+        },
+      });
+    },
   });
 }
 

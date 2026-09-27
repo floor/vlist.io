@@ -71,6 +71,7 @@ const list = createVList({
 | `reverse` | `boolean` | `false` | Reverse scroll direction |
 | `ariaLabel` | `string` | — | Container aria-label |
 | `scroll.idleTimeout` | `number` | `150` | Idle detection timeout (ms) |
+| `scroll.mode` | `"auto" \| "native" \| "synthetic"` | `"auto"` | Who owns scroll input ([Scroll modes](/docs/scroll-modes)) |
 
 ## Sizing Modes
 
@@ -153,6 +154,7 @@ unsub();
 | `item:contextmenu` | `{ item, index, event }` |
 | `scroll` | `{ scrollPosition, direction }` |
 | `scroll:idle` | `{ scrollPosition }` |
+| `scroll:mode` | `{ mode }` |
 | `range:change` | `{ range: { start, end } }` |
 | `resize` | `{ width, height }` |
 | `data:change` | `{ type, id }` |

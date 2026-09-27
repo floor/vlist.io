@@ -1,7 +1,7 @@
 // Sortable — Drag-and-drop reordering
 // Demonstrates sortable plugin with configurable drag handles
 
-// Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
+// Scroll mode is selectable (scroll.mode): auto, native or synthetic.
 // On touch, a long press starts a drag; with the handle grip, the handle drags.
 import { createVList, sortable, selection, snapshots } from "vlist";
 import { getScrollMode } from "../scroll-mode.js";
@@ -147,7 +147,7 @@ const updateInfo = createInfoUpdater(stats);
 // Create / Recreate list
 // =============================================================================
 
-// The shell's native/synthetic switch calls this so sorting is wired to a
+// The shell's scroll mode switch calls this so sorting is wired to a
 // fresh plugin. Reusing the live one clears its drag state on teardown.
 globalThis.__vlistRecreate = () => createList();
 
@@ -334,7 +334,7 @@ const infoMode = document.getElementById("info-mode");
 
 export function updateContext() {
   if (infoHandle) infoHandle.textContent = useHandle ? "handle" : "free";
-  if (infoMode) infoMode.textContent = getScrollMode("native").toUpperCase();
+  if (infoMode) infoMode.textContent = getScrollMode().toUpperCase();
   const container = document.getElementById("list-container");
   if (container) {
     container.setAttribute("data-grip", useHandle ? "handle" : "free");

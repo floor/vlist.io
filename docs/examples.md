@@ -53,12 +53,13 @@ how the example shell applies them.
 
 ## Scroll switch
 
-Every example side panel starts with a **Scroll** control: Native or Synthetic. It is
-injected by the example shell, not copied into each example.
+Every example side panel starts with a **Scroll** control: Auto, Native or Synthetic,
+the three values of [`scroll.mode`](/docs/scroll-modes). It is injected by the example
+shell, not copied into each example.
 
 The choice is remembered for the browser session in the cookie `vlist-scroll-mode`.
-`?mode=native` or `?mode=synthetic` wins over the cookie. With neither, the page is
-native.
+`?mode=auto`, `?mode=native` or `?mode=synthetic` wins over the cookie. With neither,
+the page uses Auto, the library's default.
 
 Switching modes does not reload the page. The shell calls `rebuild()`
 ([Rebuild](/docs/utils/rebuild)): the new list is drawn hidden at the previous size,
@@ -67,8 +68,8 @@ being drawn it is pinned to the old list's width and height, so a layout plugin 
 skips a zero-size container still paints the first frame.
 
 An example that imports `createVList` from `"vlist"` gets this automatically. The
-example bundler wraps that one export. Imports of `vlist/synthetic` or `vlist/native`
-are left alone.
+example bundler wraps that one export and passes the switch as `scroll.mode`. An example
+that sets `scroll.mode` in its own config keeps it: the switch does not override it.
 
 ### Locked pages
 
@@ -78,25 +79,29 @@ The list on that page is not a normal scroller:
 - [Phone pass](/examples/phone-pass) owns its own motion.
 - [Window Scroll](/examples/window-scroll) scrolls the document.
 
-### Pages that choose the entry themselves
+### Pages that choose the mode themselves
 
-[Track List](/examples/track-list) creates its list with `vlist/synthetic` on vlist 3.
-The shell switch does not rebuild it, because that call does not go through the wrapped
-`createVList`.
+[Phone pass](/examples/phone-pass) sets `scroll.mode: "synthetic"` on its momentum test.
+Its carousel test still imports the deprecated `vlist/synthetic`: on the `vlist` entry a
+carousel keeps its own runway whatever the mode, and that test drives the carousel under
+synthetic input.
 
-[Large Dataset](/examples/large-list) reads the same cookie and `?mode=`. Choosing a
-size above 100,000 items selects Synthetic and updates the switch. 100,000 rows of 48px
-still fit in a native element; the next size does not. Native can be turned back on
-after that. The list is created through its own factory, so the shell click stores the
-mode and the list picks it up the next time that page creates a list.
+[Scrollbar](/examples/scrollbar) pins `"native"` for its Native choice (the browser bar)
+and `"synthetic"` for None (no bar); Custom follows the switch.
+
+[Large Dataset](/examples/large-list) follows the switch. Under Auto, its info bar shows
+who owns input right now (`AUTO · SYNTHETIC` above about 330,000 rows of 48px), from the
+list's `scroll:mode` event. With Native, sizes past the browser's limit are flagged: the
+list cannot reach its last rows.
 
 ## Scrollbar
 
 Native mode shows the browser scrollbar. Synthetic mode has no browser bar, because the
-viewport does not scroll.
+viewport does not scroll. Auto is native until a list passes the browser's size limit.
 
 - In Synthetic, the shell adds `scrollbar({ autoHide: false })` when the example did not pass one. An example that already passes `scrollbar()` keeps that instance.
 - In Native, the shell removes a custom `scrollbar()` plugin so the browser bar is visible.
+- In Auto, the shell leaves the example's plugins alone: the browser bar, as in the library, unless the example passes `scrollbar()`. The examples with lists past the limit (Large Dataset, Velocity Loading, Books) do, so they keep a bar after the handoff.
 - [Scrollbar](/examples/scrollbar) is marked `data-scrollbar-owned`. The shell leaves its plugins alone, and its own Native / Custom / None control stays in charge.
 
 ## Recreating a list inside an example

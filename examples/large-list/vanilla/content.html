@@ -2,12 +2,12 @@
     <header>
         <h1>Large List</h1>
         <p class="description">
-            Plugin architecture with a selectable scroll mode:
-            <code>native</code> (the default <code>vlist</code> entry) or
-            <code>synthetic</code> (<code>vlist/synthetic</code>, owned input) +
-            <code>scrollbar</code>. Handles 100K–20M items: synthetic input has
-            no element size limit, while native scrolling stops at the browser's
-            limit of about 16 million pixels.
+            Plugin architecture with a selectable <code>scroll.mode</code>:
+            <code>auto</code> (the default) scrolls natively and hands the list
+            to synthetic input past the browser's limit of about 16 million
+            pixels; <code>native</code> stops at that limit; <code>synthetic</code>
+            owns input from the start. With <code>scrollbar</code>, it handles
+            100K–20M items.
         </p>
     </header>
 

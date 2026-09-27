@@ -39,7 +39,7 @@ function fixture() {
     return list;
   };
   const native = {
-    createVList: (config: { items: object[] }, plugins: Plugin[]) => make("native", config, plugins),
+    createVList: (config: { items: object[]; scroll?: { mode?: string } }, plugins: Plugin[]) => make(config.scroll?.mode ?? "native", config, plugins),
     rebuild: async (previous: List, create: (snapshot: Plugin) => List) => {
       const next = create(plugin("snapshots"));
       previous.destroy();

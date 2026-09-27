@@ -20,7 +20,9 @@ const OUT_DIR = "./dist/benchmarks";
 
 const PROJECT_ROOT = "./";
 const VLIST_ROOT = resolve(PROJECT_ROOT, process.env.VLIST_BENCH_ROOT ?? "../vlist");
-const hasSynthetic = existsSync(resolve(VLIST_ROOT, "dist/synthetic.js"));
+// Synthetic input is `scroll.mode: "synthetic"`, whose driver ships as its own
+// file. A vlist without it registers native suites only.
+const hasSynthetic = existsSync(resolve(VLIST_ROOT, "dist/synthetic-driver.js"));
 
 const BUILD_OPTIONS = {
   format: "esm" as const,
@@ -32,7 +34,6 @@ function resolveVlistFallback(path: string): string | null {
   const candidates: Record<string, string> = {
     "": resolve(VLIST_ROOT, "dist/index.js"),
     config: resolve(VLIST_ROOT, "dist/config.js"),
-    synthetic: resolve(VLIST_ROOT, "dist/synthetic.js"),
     internals: resolve(VLIST_ROOT, "dist/internals.js"),
     "package.json": resolve(VLIST_ROOT, "package.json"),
     styles: resolve(VLIST_ROOT, "dist/vlist.css"),
@@ -67,11 +68,6 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     // "vlist" → "vlist"
     // "vlist/react" → "vlist/react"
     build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
-      if (args.path === "vlist/synthetic" && !hasSynthetic) {
-        // A pre-RFC build has no synthetic entry. Register only native/bounded;
-        // this stub fails closed if any caller nevertheless tries to use it.
-        return { path: "unavailable-synthetic", namespace: "benchmark" };
-      }
       if (process.env.VLIST_BENCH_ROOT) {
         const path = resolveVlistFallback(args.path);
         if (!path) throw new Error(`Missing benchmark artifact ${args.path} in ${VLIST_ROOT}`);
@@ -88,10 +84,6 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         return fallback ? { path: fallback } : undefined;
       }
     });
-
-    build.onLoad({ filter: /^unavailable-synthetic$/, namespace: "benchmark" }, () => ({
-      contents: 'export function createVList(){throw new Error("Synthetic entry unavailable in this benchmark build")}', loader: "js",
-    }));
 
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {

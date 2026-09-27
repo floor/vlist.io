@@ -1,7 +1,7 @@
-// Initial Render for Svelte. Synthetic passes factory from vlist/synthetic.
+// Initial Render for Svelte. Synthetic passes scroll.mode through the action.
 
 import { vlist } from "vlist-svelte";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import {
   defineSuite,
   generateItems,
@@ -10,6 +10,7 @@ import {
 } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureRenderPerformance } from "../../../engine/render.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 
 function defineMode(mode) {
   defineSuite({
@@ -18,6 +19,7 @@ function defineMode(mode) {
     description: "Time from vlist() action to first painted frame",
     icon: "⚡",
     run: async ({ itemCount, container, onStatus, intensity }) => {
+      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
       const items = generateItems(itemCount);
       const result = await measureRenderPerformance({
         container,
@@ -25,7 +27,7 @@ function defineMode(mode) {
           config: {
             item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
             items,
-            ...(mode === "synthetic" ? { factory: createSynthetic } : {}),
+            scroll: { mode },
           },
         }),
         destroyFn: (action) => action?.destroy?.(),

@@ -5,7 +5,6 @@
 // and formats results with rating thresholds.
 
 import { createVList } from "vlist";
-import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -25,6 +24,7 @@ import {
   THROTTLE_WARNING_FPS,
 } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
+import { loadSynthetic, whenSynthetic, withScrollMode } from "../../../engine/synthetic.js";
 import {
   createRefreshRateDriver,
   wakeUpDisplay,
@@ -116,10 +116,13 @@ defineSuite({
     // Phase 4: Create vlist and measure scroll performance
     // =====================================================================
     container.innerHTML = "";
+    // Driven through scrollTop: native, even past the size where "auto" would
+    // hand the list to synthetic input.
     const list = createVList({
       container,
       item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
       items,
+      scroll: { mode: "native" },
     });
     await waitFrames(10);
 
@@ -230,35 +233,37 @@ defineSuite({
 // Matched public logical-position writes. These measure programmatic navigation,
 // not touch sampling or fling physics. Input JS timing excludes deferred native
 // rendering/layout and must not be presented as total frame/main-thread cost.
-// vlist 3.0 removed `scroll.mode` and with it bounded mode, so the entry point
-// is the only thing that selects the input model: `vlist` scrolls natively,
-// `vlist/synthetic` does its own. The suite ids are unchanged so the recorded
-// history still lines up; `scroll-logical-bounded` keeps its past results and
-// simply stops gaining new ones.
+// `scroll.mode` selects the input model: "native" or "synthetic" (bounded mode
+// is gone). The suite ids are unchanged so the recorded history still lines
+// up; `scroll-logical-bounded` keeps its past results and simply stops gaining
+// new ones.
 for (const mode of ["native", ...(__BENCH_HAS_SYNTHETIC__ ? ["synthetic"] : [])]) {
   defineSuite({
     id: `scroll-logical-${mode}`,
     name: `Logical scroll (${mode})`,
     description: "Matched logical-position writes; FPS, frame time, and where the rows actually are",
     hasScrollSpeed: true,
-    run: (ctx) => runLogicalScroll({
-      ...ctx,
-      mode,
-      createList(container, items) {
-        let write;
-        const list = (mode === "synthetic" ? createSynthetic : createVList)({
-          container,
-          items,
-          item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-        }, [scrollCapturePlugin((set) => { write = set; })]);
-        const viewport = findViewport(container);
-        return {
-          set: (position) => write(position),
-          get: () => mode === "native" ? viewport.scrollTop : list.getScrollPosition(),
-          destroy: () => list.destroy(),
-        };
-      },
-    }),
+    run: async (ctx) => {
+      if (mode === "synthetic") await loadSynthetic();
+      return runLogicalScroll({
+        ...ctx,
+        mode,
+        createList(container, items) {
+          let write;
+          const list = createVList(withScrollMode({
+            container,
+            items,
+            item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
+          }, mode), [scrollCapturePlugin((set) => { write = set; })]);
+          const viewport = findViewport(container);
+          return {
+            set: (position) => write(position),
+            get: () => mode === "native" ? viewport.scrollTop : list.getScrollPosition(),
+            destroy: () => list.destroy(),
+          };
+        },
+      });
+    },
   });
 }
 
@@ -271,8 +276,10 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
     const driver = createRefreshRateDriver();
     let list;
     try {
-      list = createSynthetic({ container, items: generateItems(itemCount),
-        item: { height: ITEM_HEIGHT, template: benchmarkTemplate } });
+      await loadSynthetic();
+      list = createVList(withScrollMode({ container, items: generateItems(itemCount),
+        item: { height: ITEM_HEIGHT, template: benchmarkTemplate } }, "synthetic"));
+      await whenSynthetic(list);
       list.scrollToIndex(Math.floor(itemCount / 2));
       await waitFrames(10);
       const options = { itemHeight: ITEM_HEIGHT, viewport: findViewport(container), content: container.querySelector('.vlist-content'), getPosition: () => list.getScrollPosition() };

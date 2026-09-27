@@ -8,7 +8,7 @@
 
 import { createRoot, createSignal } from "solid-js";
 import { createVList } from "vlist-solidjs";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import {
   defineSuite,
   generateItems,
@@ -19,6 +19,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureMemoryProfile, scrollWithSetter } from "../../../engine/memory.js";
 import { findViewport } from "../../../engine/viewport.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 import { scrollCapturePlugin } from "../../../engine/logical-scroll.js";
 import { formatMemoryMetrics } from "../format.js";
 
@@ -52,6 +53,7 @@ defineSuite({
               height: ITEM_HEIGHT,
               template: benchmarkTemplate,
             },
+            scroll: { mode: "native" },
           });
 
           const { setRef } = createVList(config);
@@ -136,6 +138,7 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   description: "Heap of a synthetic list created through the SolidJS adapter, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
+    await loadSynthetic(createVListFromConfig);
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({
@@ -147,7 +150,7 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
           const [config] = createSignal({
             items,
             item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-            factory: createSynthetic,
+            scroll: { mode: "synthetic" },
             plugins: [scrollCapturePlugin((set) => { capture.current = set; })],
           });
           const { setRef } = createVList(config);

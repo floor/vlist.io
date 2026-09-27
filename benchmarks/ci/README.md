@@ -70,14 +70,19 @@ The broader default config in `config.json` also includes `scroll-vanilla` and
 ### RFC-014 input scenarios and isolated artifacts
 
 Set `VLIST_BENCH_ROOT` to an absolute path containing the chosen vlist build
-(`dist/index.js`, `dist/config.js`, CSS and optionally `dist/synthetic.js`) when
+(`dist/index.js`, `dist/config.js`, CSS and optionally `dist/synthetic-driver.js`) when
 running `bun run build:bench`. An explicit root fails on missing artifacts instead
 of falling back to the main checkout. Ensure the site's worktree dependency/CSS
 also resolves to the selected build when serving the benchmark page.
 
 The build defines `__BENCH_HAS_SYNTHETIC__` from the presence of that build's
-`dist/synthetic.js`. Pre-RFC builds omit synthetic suite registration and get a
-throwing import stub; they never benchmark native mode under a synthetic label.
+`dist/synthetic-driver.js`, the driver behind `scroll.mode: "synthetic"`. Builds
+without it omit synthetic suite registration; they never benchmark native mode
+under a synthetic label. Every native suite sets `scroll.mode: "native"`: the
+default, `"auto"`, would hand a list past 16,000,000 px (a million 48 px rows)
+to synthetic input, and the suites that drive `scrollTop` would stand still.
+Synthetic suites load the driver first (`engine/synthetic.js`), so every
+measured list is synthetic from its first frame.
 
 Select `scroll-logical-native` and `scroll-logical-synthetic` for matched
 absolute logical writes. Bounded mode is gone; `scroll-logical-bounded` keeps
@@ -88,7 +93,7 @@ origin, normalized by index and the fixed item height). Lag is the p95 gap
 between that position and the logical one. These are not a total main-thread cost.
 
 `render-synthetic` and `memory-synthetic` are the same creation-time and heap
-measurements as the vanilla suites, on the synthetic entry. The memory scroll
+measurements as the vanilla suites, on a synthetic list. The memory scroll
 goes through the position setter, because writing `scrollTop` does not move a
 synthetic list. None of these ids have a budget in `ci/config.json`.
 

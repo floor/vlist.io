@@ -5,7 +5,7 @@
 // results with rating thresholds.
 
 import { vlist } from "vlist-svelte";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { createVListFromConfig } from "vlist/config";
 import {
   defineSuite,
   generateItems,
@@ -17,6 +17,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
 import { measureScrollToPerformance } from "../../../engine/scrollto.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 
 // =============================================================================
 // Suite
@@ -42,6 +43,7 @@ defineSuite({
           template: benchmarkTemplate,
         },
         items,
+        scroll: { mode: "native" },
       },
     });
 
@@ -116,13 +118,14 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   description: "Latency of scrollToIndex() in synthetic mode, through the Svelte adapter",
   icon: "🎯",
   run: async ({ itemCount, container, onStatus }) => {
+    await loadSynthetic(createVListFromConfig);
     const items = generateItems(itemCount);
     container.innerHTML = "";
     const action = vlist(container, {
       config: {
         item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
         items,
-        factory: createSynthetic,
+        scroll: { mode: "synthetic" },
       },
     });
     try {

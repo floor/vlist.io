@@ -1,6 +1,6 @@
 // Velocity-Based Loading - Pure Vanilla JavaScript
 // Demonstrates smart loading that adapts to scroll velocity
-// Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
+// Scroll mode is selectable (scroll.mode): auto, native or synthetic.
 
 import { createVList, selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
 import { getScrollMode } from "../../scroll-mode.js";
@@ -102,15 +102,15 @@ function updateContext() {
   if (infoLoadedEl) infoLoadedEl.textContent = formatLoadedCount(loadedCount);
 }
 
-// Scroll mode (?mode=native|synthetic). Synthetic by default: a million rows
-// exceed the native element size limit.
+// Scroll mode (?mode=auto|native|synthetic), applied by createVList. A million
+// rows exceed the native element size limit: auto hands them to synthetic input.
 let list = null;
 
 // Build list — snapshots({ autoSave }) handles save/restore automatically.
 // On first visit, autoLoad fetches data. On return visits, the snapshot provides
 // the total and scroll position, and autoLoad is cancelled automatically.
 // Switching the scroll mode destroys the list (which saves the snapshot) and
-// builds it again with the other factory, so the position carries over.
+// builds it again in the other mode, so the position carries over.
 function createList() {
   if (list) {
     list.destroy();
@@ -183,8 +183,14 @@ function createList() {
     updateContext();
   });
 
+  // Under auto, the input changes with the list's size: show who owns it now.
   const infoModeEl = document.getElementById("info-mode");
-  if (infoModeEl) infoModeEl.textContent = getScrollMode("native").toUpperCase();
+  const mode = getScrollMode();
+  const showMode = (input) => {
+    if (infoModeEl) infoModeEl.textContent = mode === "auto" ? `AUTO · ${input.toUpperCase()}` : mode.toUpperCase();
+  };
+  showMode(mode === "synthetic" ? "synthetic" : "native");
+  list.on("scroll:mode", ({ mode: input }) => showMode(input));
 }
 
 // =============================================================================

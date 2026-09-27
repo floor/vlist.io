@@ -16,8 +16,8 @@ status: published
 // Public API — stable
 import { createVList, grid, selection, scrollbar } from "vlist";
 
-// Synthetic input entry: same config, vlist owns the scroll position
-import { createVList as createSyntheticVList } from "vlist/synthetic";
+// Synthetic input: an option, not an entry — createVList({ ..., scroll: { mode: "synthetic" } })
+// (vlist/synthetic still exports createVList, deprecated)
 
 // Internals — advanced, use at your own risk
 import { createSizeCache, calculateScrollToIndex } from "vlist/internals";

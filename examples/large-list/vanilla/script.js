@@ -1,10 +1,12 @@
 // Large List — Composable entry point
-// Scroll mode is selectable: native (vlist) or synthetic (vlist/synthetic).
+// Scroll mode is selectable (scroll.mode): auto, native or synthetic.
 // Demonstrates handling 100K–20M items
 // Supports List, Grid and Table layout modes
 
 import { scrollbar, table, grid, selection } from "vlist";
-import { factoryFor, getScrollMode, rememberScrollMode } from "../../scroll-mode.js";
+// createVList from "vlist" follows the page's scroll switch (scroll.mode).
+import { createVList } from "vlist";
+import { getScrollMode } from "../../scroll-mode.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -209,9 +211,11 @@ let currentSize = "1m";
 let currentLayout = "list";
 let list = null;
 
-// Scroll mode (?mode=native|synthetic). Synthetic by default: most sizes here
-// exceed the native element size limit.
-let currentMode = getScrollMode("synthetic");
+// Scroll mode (?mode=auto|native|synthetic). Auto by default: most sizes here
+// exceed the native element size limit, and auto hands those to synthetic input.
+let currentMode = getScrollMode();
+// Who owns input right now; under auto it changes with the list's size.
+let currentInput = "native";
 
 // =============================================================================
 // Create / Recreate list
@@ -235,8 +239,11 @@ function createList(sizeKey) {
     selection({ mode: "single", followFocus: true, focusOnClick: true }),
   ];
   const mode = currentMode;
-  // Synthetic input has no browser scrollbar; add the custom one.
-  if (mode === "synthetic") plugins.push(scrollbar({ autoHide: true }));
+  // Synthetic input has no browser scrollbar, and auto goes synthetic past the
+  // limit: both get the custom one.
+  if (mode !== "native") plugins.push(scrollbar({ autoHide: true }));
+  // Every list starts native; `scroll:mode` reports the handoff.
+  currentInput = "native";
 
   const isTable = currentLayout === "table";
   const isGrid = currentLayout === "grid";
@@ -263,7 +270,7 @@ function createList(sizeKey) {
     plugins.push(grid({ columns: GRID_COLUMNS, gap: GRID_GAP }));
   }
 
-  list = factoryFor(mode)(
+  list = createVList(
     {
       container: "#list-container",
       ariaLabel: `${count.toLocaleString()} items ${currentLayout}`,
@@ -278,6 +285,11 @@ function createList(sizeKey) {
   );
 
   // Bind events
+  list.on("scroll:mode", ({ mode: input }) => {
+    currentInput = input;
+    updateContext(count);
+  });
+
   list.on("scroll", ({ scrollPosition, direction }) => {
     scrollPosEl.textContent = `${Math.round(scrollPosition).toLocaleString()}px`;
     scrollDirEl.textContent = direction === "up" ? "↑ up" : "↓ down";
@@ -296,14 +308,17 @@ function createList(sizeKey) {
 
   // Update info bar
   updateInfo();
-  updateContext(count, mode);
+  updateContext(count);
 }
 
 // =============================================================================
 // Info bar right side — context (virtualized %, scroll mode)
 // =============================================================================
 
-function updateContext(count, mode) {
+function updateContext(count) {
+  // Read, not cached: the page's scroll switch rebuilds the list in place.
+  const mode = getScrollMode();
+  if (mode === "native") currentInput = "native";
   const itemHeight = getItemSize();
   const effectiveRows =
     currentLayout === "grid" ? Math.ceil(count / GRID_COLUMNS) : count;
@@ -316,7 +331,7 @@ function updateContext(count, mode) {
   // out at full size and stops at the browser's element size limit.
   const overLimit = mode === "native" && totalHeight > NATIVE_LIMIT;
   const ratio =
-    mode === "synthetic" ? (totalHeight / containerSize).toFixed(1) : "1.0";
+    currentInput === "synthetic" ? (totalHeight / containerSize).toFixed(1) : "1.0";
   const selector =
     currentLayout === "table"
       ? ".vlist-table-row"
@@ -328,29 +343,13 @@ function updateContext(count, mode) {
 
   infoVirtualizedEl.textContent = `${virtualized}%`;
   infoScaleEl.textContent = overLimit ? "over limit" : `${ratio}×`;
-  infoModeEl.textContent = mode.toUpperCase();
+  infoModeEl.textContent = mode === "auto"
+    ? `AUTO · ${currentInput.toUpperCase()}`
+    : mode.toUpperCase();
   infoModeStatEl.className = `example-info__stat ${overLimit ? "example-info__stat--warn" : "example-info__stat--ok"}`;
   infoModeStatEl.title = overLimit
-    ? "Content exceeds the browser's element size limit: native scrolling cannot reach the end. Use synthetic."
+    ? "Content exceeds the browser's element size limit: native scrolling cannot reach the end. Use auto or synthetic."
     : "";
-}
-
-// =============================================================================
-// Scroll mode selector buttons
-// =============================================================================
-
-// 100K is the last size that still fits in a native element (100,000 × 48px).
-// A larger choice selects Synthetic. The shell switch can turn Native back on.
-function preferSynthetic(sizeKey) {
-  if (SIZES[sizeKey] <= SIZES["100k"] || currentMode === "synthetic") return;
-  currentMode = "synthetic";
-  rememberScrollMode("synthetic");
-  const url = new URL(location.href);
-  url.searchParams.set("mode", "synthetic");
-  history.replaceState(null, "", url);
-  document.querySelectorAll("#example-scroll-mode [data-scroll]").forEach((button) => {
-    button.classList.toggle("ui-segmented__btn--active", button.dataset.scroll === "synthetic");
-  });
 }
 
 // =============================================================================
@@ -394,7 +393,6 @@ sizeButtons.addEventListener("click", (e) => {
     b.classList.toggle("ui-segmented__btn--active", b.dataset.size === size);
   });
 
-  preferSynthetic(size);
   createList(size);
 });
 

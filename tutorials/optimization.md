@@ -256,14 +256,14 @@ createVList({
 
 ### Huge lists
 
-For very large lists (millions of items), native scroll containers hit the browser's element size limit around 16 million pixels. Import `createVList` from `vlist/synthetic` for those lists: vlist owns the scroll position, so there is no element-size limit.
+For very large lists (millions of items), native scroll containers hit the browser's element size limit around 16 million pixels. You don't have to do anything about it: with the default `scroll.mode: "auto"`, a list that grows past the limit switches to synthetic scrolling in place, where vlist owns the scroll position and there is no element-size limit. Add `scrollbar()`, since a synthetic list has no browser scrollbar.
 
 ```javascript
-import { createVList } from 'vlist/synthetic'
-import { scrollbar } from 'vlist'
+import { createVList, scrollbar } from 'vlist'
 
 createVList({
   container: '#list',
+  // scroll: { mode: 'synthetic' } to start synthetic instead of switching
   // ...
 }, [scrollbar()])
 ```
