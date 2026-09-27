@@ -94,7 +94,7 @@ export function buildSuitePageHTML(suite, variantSwitcherHTML = "", options = {}
             ? `
         <div class="bench-controls__sep"></div>
         <span class="bench-controls__label">Mode</span>
-        <div class="ui-segmented" id="bench-vlist-entry" title="Native creates the list from vlist. Synthetic creates it from vlist/synthetic. Other lists are unchanged.">
+        <div class="ui-segmented" id="bench-vlist-entry" title="Sets scroll.mode on the vlist list: native or synthetic input. Other lists are unchanged.">
           ${entryButton("native", "Native")}
           ${entryButton("synthetic", "Synthetic")}
         </div>`

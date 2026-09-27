@@ -12,13 +12,6 @@ import {
   snapshots,
   transition,
 } from "vlist";
-import * as vlistNative from "vlist/native";
-// vlist 3 keeps native scrolling as the default; huge lists opt into synthetic input.
-import * as vlistSynthetic from "vlist/synthetic";
-
-// vlist 3.0 removed bounded mode and selects the input model by entry. On 2.x the
-// bundler stubs "vlist/native" (NATIVE_AVAILABLE false) and the old option stays.
-const VLIST3 = vlistNative.NATIVE_AVAILABLE !== false;
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
 import {
@@ -53,7 +46,6 @@ let totalTracks = 0;
 let currentSelectionMode = "single";
 let currentLayoutMode = "list";
 let currentScrollbarEnabled = false;
-let currentBoundedEnabled = false;
 let currentFocusOnClick = false;
 let loadRequests = 0;
 let loadedCount = 0;
@@ -149,10 +141,6 @@ const updateInfo = createInfoUpdater(stats);
 // Layout
 const layoutModeEl = document.getElementById("layout-mode");
 const scrollbarToggle = document.getElementById("scrollbar-toggle");
-const boundedToggle = document.getElementById("bounded-toggle");
-if (VLIST3 && boundedToggle) {
-  boundedToggle.title = "vlist 3.0: switches this list to synthetic input (vlist/synthetic)";
-}
 const focusOnClickToggle = document.getElementById("focus-on-click-toggle");
 
 // Selection
@@ -253,17 +241,6 @@ function applyScrollbar(plugins) {
 }
 
 // =============================================================================
-// Bounded scroll mode config (RFC-012) — viewport-sized content runway
-// =============================================================================
-
-const boundedScroll = () =>
-  !VLIST3 && currentBoundedEnabled ? { scroll: { mode: "bounded" } } : {};
-
-// 3.0 has no bounded mode: the same toggle selects the synthetic input entry.
-const listFactory = () =>
-  VLIST3 && currentBoundedEnabled ? vlistSynthetic.createVList : createVList;
-
-// =============================================================================
 // List View (default — vertical list with 80px rows)
 // =============================================================================
 
@@ -276,11 +253,10 @@ function createListView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = listFactory()(
+  list = createVList(
     {
       container: "#list-container",
       ariaLabel: "Track list",
-      ...boundedScroll(),
       item: {
         height: ITEM_HEIGHT,
         template: trackTemplate,
@@ -310,11 +286,10 @@ function createGridView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = listFactory()(
+  list = createVList(
     {
       container: "#list-container",
       ariaLabel: "Track list",
-      ...boundedScroll(),
       item: {
         height: (_index, ctx) =>
           ctx ? Math.round(ctx.columnWidth * 1.3) : cardHeight,
@@ -355,11 +330,10 @@ function createTableView(selectionMode) {
   );
   plugins.push(snapshots({ autoSave: SNAPSHOT_KEY }));
 
-  list = listFactory()(
+  list = createVList(
     {
       container: "#list-container",
       ariaLabel: "Track list",
-      ...boundedScroll(),
       item: {
         height: TABLE_ROW_HEIGHT,
         striped: "odd",
@@ -435,23 +409,6 @@ layoutModeEl.addEventListener("click", (e) => {
 
 scrollbarToggle.addEventListener("change", (e) => {
   currentScrollbarEnabled = e.target.checked;
-  createList(currentSelectionMode);
-});
-
-// =============================================================================
-// Bounded Scroll Toggle
-// =============================================================================
-
-boundedToggle.addEventListener("change", (e) => {
-  currentBoundedEnabled = e.target.checked;
-  // Bounded mode pairs with the custom scrollbar — lock the toggle on
-  if (currentBoundedEnabled) {
-    scrollbarToggle.checked = true;
-    scrollbarToggle.disabled = true;
-    currentScrollbarEnabled = true;
-  } else {
-    scrollbarToggle.disabled = false;
-  }
   createList(currentSelectionMode);
 });
 

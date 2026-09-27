@@ -108,6 +108,7 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     const VLIST_JS_ENTRIES: Record<string, string> = {
       vlist: "index.js",
       "vlist/internals": "internals.js",
+      // Deprecated; phone-pass still needs it for carousel() under synthetic input.
       "vlist/synthetic": "synthetic.js",
       "vlist/native": "native.js",
     };
@@ -116,17 +117,10 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       if (!entry) return;
       const path = join(vlistDist, entry);
       // Example scripts keep `import { createVList } from "vlist"`. The shell
-      // switch chooses native or synthetic; this wrapper reads that choice.
+      // switch chooses the scroll mode; this wrapper passes it as scroll.mode.
       // Imports from inside vlist itself stay on the real entry.
       if (args.path === "vlist" && !args.importer.startsWith(vlistDist)) {
         return { path: "vlist-example-entry", namespace: "vlist-example" };
-      }
-      // Optional entries (vlist/synthetic ships in 2.7) fall back to a stub that
-      // delegates to core and throws only when the missing mode is requested, so
-      // an older vlist (npm production, or a staging clone behind the site) still
-      // builds every example.
-      if (args.path === "vlist/synthetic" && (process.env.VLIST_NO_SYNTHETIC === "1" || !existsSync(path))) {
-        return { path: "vlist-synthetic-unavailable", namespace: "vlist-optional" };
       }
       // vlist/native ships with 3.0; on 2.x core already handles native and bounded.
       if (args.path === "vlist/native" && !existsSync(path)) {
@@ -137,15 +131,15 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     build.onLoad({ filter: /^vlist-example-entry$/, namespace: "vlist-example" }, () => ({
       contents: [
         `import * as Native from ${JSON.stringify(join(vlistDist, "index.js"))};`,
-        `import { createVList as createSynthetic } from "vlist/synthetic";`,
         `export * from ${JSON.stringify(join(vlistDist, "index.js"))};`,
+        "const SCROLL_MODES = [\"auto\", \"native\", \"synthetic\"];",
         "function exampleScrollMode() {",
         "  if (globalThis.__VLIST_SCROLL_LOCKED) return \"native\";",
         "  const fromUrl = new URLSearchParams(location.search).get(\"mode\");",
-        "  if (fromUrl === \"native\" || fromUrl === \"synthetic\") return fromUrl;",
+        "  if (SCROLL_MODES.includes(fromUrl)) return fromUrl;",
         "  const match = document.cookie.match(/(?:^|; )vlist-scroll-mode=([^;]*)/);",
         "  const fromCookie = match ? decodeURIComponent(match[1]) : \"\";",
-        "  return fromCookie === \"synthetic\" ? \"synthetic\" : \"native\";",
+        "  return SCROLL_MODES.includes(fromCookie) ? fromCookie : \"auto\";",
         "}",
         "let activeList = null;",
         "let activeConfig = null;",
@@ -163,11 +157,16 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         "    if (withSnap.some((plugin) => plugin && plugin.name === \"scrollbar\")) return withSnap;",
         "    return [...withSnap, Native.scrollbar({ autoHide: false })];",
         "  }",
+        "  // Auto scrolls natively below the browser's size limit, with the browser's",
+        "  // scrollbar as in the library; an example with lists past it passes scrollbar().",
+        "  if (mode === \"auto\") return withSnap;",
         "  return withSnap.filter((plugin) => plugin.name !== \"scrollbar\");",
         "}",
-        "function makeList(mode, config, plugins, snapshotPlugin) {",
+        "function makeList(switchMode, config, plugins, snapshotPlugin) {",
+        "  // An example that sets scroll.mode itself owns it; the others follow the switch.",
+        "  const mode = config?.scroll?.mode ?? switchMode;",
         "  const next = pluginsFor(mode, plugins, snapshotPlugin);",
-        "  return mode === \"synthetic\" ? createSynthetic(config, next) : Native.createVList(config, next);",
+        "  return Native.createVList({ ...config, scroll: { ...config?.scroll, mode } }, next);",
         "}",
         "function track(list, config, plugins) {",
         "  let current = list;",
@@ -249,17 +248,6 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       contents: [
         'export { createVList } from "vlist";',
         "export const NATIVE_AVAILABLE = false;",
-      ].join("\n"),
-      loader: "js",
-    }));
-    build.onLoad({ filter: /^vlist-synthetic-unavailable$/, namespace: "vlist-optional" }, () => ({
-      contents: [
-        'import { createVList as core } from "vlist";',
-        "export function createVList(config, plugins) {",
-        '  if (config?.scroll?.mode === "synthetic") throw new Error("vlist/synthetic is not available in this vlist build");',
-        "  return core(config, plugins);",
-        "}",
-        "export const SYNTHETIC_AVAILABLE = false;",
       ].join("\n"),
       loader: "js",
     }));

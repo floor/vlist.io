@@ -38,10 +38,12 @@ const list = createVList(config, [plugin1(), plugin2()]);
 | `scroll.wheel` | `boolean` | `true` | Mouse wheel scrolling |
 | `scroll.gutter` | `"auto" \| "stable"` | `"auto"` | Scrollbar space reservation |
 | `scroll.idleTimeout` | `number` | `150` | Idle detection timeout (ms) |
-| `scroll.scrollbar` | `"native" \| "none" \| ScrollbarOptions` | `"native"` | Browser scrollbar visibility; the strings are rejected by `vlist/synthetic` |
+| `scroll.scrollbar` | `"native" \| "none" \| ScrollbarOptions` | `"native"` | Browser scrollbar visibility; the strings are rejected with `scroll.mode: "synthetic"` |
+| `scroll.mode` | `"auto" \| "native" \| "synthetic"` | `"auto"` | Who owns scroll input. `"auto"` is native, and hands a list past the browser's size limit to synthetic input in place |
 
-`createVList` from `vlist` scrolls natively. Import it from `vlist/synthetic` for synthetic
-input; the config is the same. See [Scroll modes](/docs/scroll-modes).
+`createVList` scrolls natively by default and switches to synthetic input by itself past
+the browser's element size limit. `scroll.mode` pins either one; the rest of the config is
+the same. See [Scroll modes](/docs/scroll-modes).
 
 ## Instance Properties
 
@@ -133,6 +135,7 @@ Only the most recent request is held, and only until it is used.
 | `item:contextmenu` | `{ item, index, event: MouseEvent }` | Item right-clicked |
 | `scroll` | `{ scrollPosition, direction: "up" \| "down" \| "left" \| "right" }` | Scroll position changed |
 | `scroll:idle` | `{ scrollPosition }` | Scrolling stopped |
+| `scroll:mode` | `{ mode: "native" \| "synthetic" }` | Input swapped in place (`scroll.mode`, see [Scroll modes](/docs/scroll-modes)) |
 | `velocity:change` | `{ velocity, reliable }` | Scroll velocity changed |
 | `range:change` | `{ range: { start, end } }` | Visible range changed |
 | `resize` | `{ width, height }` | Container resized |

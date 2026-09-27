@@ -1,30 +1,47 @@
 ---
 created: 2026-09-15
-updated: 2026-09-23
+updated: 2026-09-27
 status: published
 ---
 
 # Scroll modes
 
-vlist 3.0 has two ways to move a list, chosen by the entry you import. They differ in who
-owns the scroll position and how large the content element gets. Plugins and the public
-API are the same with both.
+A vlist list moves in one of two ways. They differ in who owns the scroll position and
+how large the content element gets. `scroll.mode` chooses between them, and its default
+chooses for you. Plugins and the public API are the same either way.
 
-| Entry | Owner of the position | Content element | List size | Best for |
+| Input | Owner of the position | Content element | List size | Best for |
 |---|---|---|---|---|
-| `vlist` (default) | The browser viewport | Full virtual size | Up to the browser's element size limit, about 16 million px | Native scrollbar, native touch momentum, parent scroll handoff, find-in-page |
-| `vlist/synthetic` (opt-in) | vlist, from pointer, wheel and keyboard events | The viewport itself | Unbounded | Huge lists and application-owned touch motion |
-
-Bounded mode, `scroll.mode`, `scroll.runway` and `scale()` were removed in 3.0. See
-[Migration: v2 to v3](/docs/migration-v3), or the [2.x scroll modes page](/docs/v2/scroll-modes).
-
-## Native
+| Native | The browser viewport | Full virtual size | Up to the browser's element size limit, about 16 million px | Native scrollbar, native touch momentum, parent scroll handoff, find-in-page |
+| Synthetic | vlist, from pointer, wheel and keyboard events | The viewport itself | Unbounded | Huge lists and application-owned touch motion |
 
 ```ts
 import { createVList } from "vlist";
 
-const list = createVList({ container: "#app", items, item: { height: 48, template } });
+const list = createVList({
+  container: "#app",
+  items,
+  item: { height: 48, template },
+  scroll: { mode: "auto" }, // the default: "auto" | "native" | "synthetic"
+});
 ```
+
+| `scroll.mode` | Input |
+|---|---|
+| `"auto"` (default) | Native. Past 16,000,000 px of content the list hands its input to the synthetic handler in place, and takes native input back below 12,000,000 px |
+| `"native"` | Always native. Past the limit the last rows are out of reach, and the list says so |
+| `"synthetic"` | Synthetic from the start |
+
+The synthetic driver is not in the `vlist` bundle. It is a separate file,
+`synthetic-driver.js` (about 3.4 KB gzipped), downloaded the first time a list needs it.
+A list that stays native never downloads it; until it arrives, a list scrolls natively.
+
+Bounded mode, `scroll.runway` and `scale()` were removed in 3.0 and are still refused.
+`scroll.mode` came back in 3.0.x as this choice of input
+([RFC-015](/docs/rfcs/RFC-015-Overflow-Handoff)). See
+[Migration: v2 to v3](/docs/migration-v3), or the [2.x scroll modes page](/docs/v2/scroll-modes).
+
+## Native
 
 The list is a normal scrolling element: rows sit inside a content element sized to the
 full virtual height, and the browser scrolls it. Everything the browser does with a
@@ -32,62 +49,88 @@ scroller keeps working, including the native scrollbar, find-in-page and handing
 to a parent scroller at the edges. `scroll.scrollbar: "none"` hides the browser scrollbar,
 and `scrollbar()` replaces it with a custom one.
 
-The limit is the element size the browser will lay out. When content grows past
-16,000,000 px, the list emits an `error` event once, with the context
-`content:size:overflow`, pointing to `vlist/synthetic`.
+The limit is the element size the browser will lay out (Chrome stops at 33,554,428 px).
+vlist treats 16,000,000 px of content as the limit. With `scroll.mode: "native"`, a list
+that grows past it emits an `error` event once, with the context `content:size:overflow`,
+and the rows past the browser's cap cannot be reached.
 
 ## Synthetic
 
 ```ts
-import { createVList } from "vlist/synthetic";
-import { scrollbar } from "vlist";
+import { createVList, scrollbar } from "vlist";
 import "vlist/styles";
 
 const list = createVList({
   container: "#app",
   items,
   item: { height: 48, template },
+  scroll: { mode: "synthetic" },
 }, [scrollbar()]);
 ```
 
-Importing the factory selects synthetic input; there is no option to set. vlist owns the
-position. The viewport clips its content, pointer events (`touch-action: pan-x pinch-zoom`
-on vertical lists), wheel and keyboard events feed a small motion model with
-exponential-decay inertia, and rows are placed relative to the owned position. There is no
-element-size limit ([RFC-014](/docs/rfcs/RFC-014-Scroll-Input-Model)).
+vlist owns the position. The viewport clips its content, pointer events (`touch-action:
+pan-x pinch-zoom` on vertical lists), wheel and keyboard events feed a small motion model
+with exponential-decay inertia, and rows are placed relative to the owned position. There
+is no element-size limit ([RFC-014](/docs/rfcs/RFC-014-Scroll-Input-Model)).
 
 What changes for you:
 
 - **No native scrollbar.** Add `scrollbar()`; it applies platform defaults (thin
   overlay on macOS and Android, classic on Windows), reads `scrollbar-width` and
   `scrollbar-color` from the container, and is keyboard and screen-reader accessible.
-  The entry rejects the `"native"` and `"none"` scrollbar strings.
+  The `"native"` and `"none"` scrollbar strings style the browser scrollbar, so
+  `mode: "synthetic"` rejects them.
 - **Programmatic scrolls commit synchronously.** `scrollTo`, `scrollToIndex` and
   plugin corrections update `getScrollPosition()`, render and emit `scroll` in the
-  call, as with the native entry.
-- **Plugins:** every plugin works with this entry, including `carousel()`, `sortable()` and
-  `page()`. Horizontal lists on right-to-left pages throw at creation — in this entry and in
-  `vlist`; vertical lists and tables on right-to-left pages are supported in both.
-  `page()` keeps native document scrolling with either entry. Plugin conflicts are
-  unchanged.
+  call, as with native input.
+- **Plugins:** every plugin works with synthetic input, including `sortable()`.
+  `page()` scrolls the document and `carousel()` runs its own loop, so `scroll.mode`
+  does not apply to them. Horizontal lists on right-to-left pages throw at creation in
+  every mode; vertical lists and tables on right-to-left pages are supported. Plugin
+  conflicts are unchanged.
 - **Boundaries:** same-axis touch stops at the list's edges without handing off to the
-  parent page. Use `vlist` when boundary gestures must scroll the page.
-- **Cost:** the `vlist/synthetic` entry adds {{size:synthetic:delta}} KB gzipped to the
-  base; the default `vlist` entry does not include the driver.
+  parent page. Use `mode: "native"` when boundary gestures must scroll the page.
+- **First frames:** with `mode: "synthetic"` the driver is downloaded when the list is
+  created, so a wheel or touch in the first moments is still native. The deprecated
+  `vlist/synthetic` entry bundles the driver instead, for lists that must be synthetic
+  from their first frame; it adds {{size:synthetic:delta}} KB gzipped to the base.
+
+## Auto
+
+`"auto"` is the default because it needs no decision: a list scrolls natively for as long
+as the browser can lay it out, and only a list that grows past the limit changes input.
+
+- **In place.** The list, its DOM, its plugins, the selection, focus and the scroll
+  position stay. Only who owns input and the size of the content element change.
+- **Never mid-gesture.** A swap waits until the list is idle, so a fling or a smooth
+  scroll is never cut off. Until then the browser clamps the list, which vlist renders
+  correctly.
+- **Jumps land.** A `scrollToIndex` the browser could not apply while a swap was
+  pending, such as the last row right after `setItems`, lands where it was asked once
+  the list is synthetic.
+- **Both ways.** A list that shrinks below 12,000,000 px takes native input back, on
+  the same row. The gap between the two thresholds keeps a list that hovers around the
+  limit, a filter toggled on and off, from swapping on every change.
+- **Observable.** Each swap emits `scroll:mode` with `{ mode: "native" | "synthetic" }`.
+- **Scrollbar.** Past the limit the list has no native scrollbar. Lists that can grow
+  that large should carry `scrollbar()`, which looks the same in both modes.
+
+```ts
+list.on("scroll:mode", ({ mode }) => console.log(`input is ${mode} now`));
+```
 
 ### Framework adapters
 
-The adapters go through `vlist/config`. Pass the synthetic factory as `factory`; the
-driver is only bundled when you import it:
+The adapters go through `vlist/config`, which passes `scroll` through. Set the mode like
+any other option:
 
 ```tsx
 import { useVList } from "vlist-react";
-import { createVList } from "vlist/synthetic";
 
 const { containerRef } = useVList({
-  factory: createVList,
   items,
   item: { height: 48, template: item => String(item.id) },
+  scroll: { mode: "synthetic" },
 });
 ```
 
@@ -95,7 +138,8 @@ const { containerRef } = useVList({
 
 Vanilla lists, three runs each, median reported. The window was on a MacBook built-in display running at 120 Hz. Browsers: Chrome 153, Chromium 130, Firefox 156, Safari 26.4.
 
-Inside one browser, native and synthetic match. The gap between browsers is the frame rate that browser delivered, not a difference between the two entries. Dropped frames were 0% and position lag was 0 px on every scroll that completed.
+These runs used the `vlist` and `vlist/synthetic` entries of that release; the engines
+are the ones `scroll.mode` selects today. Inside one browser, native and synthetic match. The gap between browsers is the frame rate that browser delivered, not a difference between the two entries. Dropped frames were 0% and position lag was 0 px on every scroll that completed.
 
 ### Initial render
 
@@ -157,10 +201,11 @@ Heap allocated by creating the list, in MB. Native and synthetic match. The resi
 
 ## Choosing
 
-- Lists within the browser's element size limit, or when native scrolling behaviour
-  matters: `vlist`.
-- Lists past the limit: `vlist/synthetic`.
-- Touch-heavy lists that should move the same way on every platform: `vlist/synthetic`.
-- Document scrolling with `page()`: either entry, within the element limit.
+- Most lists: leave the default, `"auto"`. Native while the browser can lay the list
+  out, synthetic past that, with nothing to configure.
+- When native behaviour must hold whatever the size (parent scroll handoff,
+  find-in-page), and you accept the limit: `"native"`.
+- Touch-heavy lists that should move the same way on every platform: `"synthetic"`.
+- Document scrolling with `page()`: native, within the element limit.
 
-Try both in the [large list example](/examples/large-list).
+Try the modes in the [large list example](/examples/large-list).

@@ -510,15 +510,18 @@ function buildExtraBody(
   var fromUrl = params.get("mode");
   var match = document.cookie.match(/(?:^|; )vlist-scroll-mode=([^;]*)/);
   var fromCookie = match ? decodeURIComponent(match[1]) : "";
-  var mode = fromUrl === "native" || fromUrl === "synthetic"
+  // scroll.mode: "auto" (the library's default), "native" or "synthetic".
+  var modes = ["auto", "native", "synthetic"];
+  var mode = modes.indexOf(fromUrl) !== -1
     ? fromUrl
-    : fromCookie === "native" || fromCookie === "synthetic"
+    : modes.indexOf(fromCookie) !== -1
       ? fromCookie
-      : "native";
+      : "auto";
   var section = document.createElement("section");
   section.className = "ui-section";
   section.id = "example-scroll-mode";
   section.innerHTML = '<h3 class="ui-title">Scroll</h3><div class="ui-row"><div class="ui-segmented" role="group" aria-label="Scroll mode">'
+    + '<button type="button" class="ui-segmented__btn" data-scroll="auto" title="Native, and synthetic past the browser size limit">Auto</button>'
     + '<button type="button" class="ui-segmented__btn" data-scroll="native">Native</button>'
     + '<button type="button" class="ui-segmented__btn" data-scroll="synthetic">Synthetic</button>'
     + '</div></div>';
