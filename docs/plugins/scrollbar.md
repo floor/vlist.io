@@ -62,7 +62,7 @@ Style the scrollbar via CSS custom properties:
 ## Notes
 
 - Provides consistent cross-browser scrollbar appearance
-- Provides the visible scrollbar for synthetic lists (`scroll.mode: "synthetic"`, or `"auto"` past the size limit), which have no native scrollbar
+- Is the scrollbar a synthetic list draws by default (`scroll.mode: "synthetic"`, or `"auto"` past the size limit); install it yourself to use it in native mode too, or to configure it through its own options
 - `gutter: true` reserves layout space so content doesn't shift when the scrollbar appears — useful for tables and grids where the last column shouldn't be clipped
 - The custom scrollbar is an overlay — it does not consume layout space (unlike native scrollbars on Windows/Linux). This avoids the ~17px width discrepancy that affects `autosize()` measurement
 

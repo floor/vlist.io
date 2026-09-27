@@ -96,12 +96,12 @@ list cannot reach its last rows.
 
 ## Scrollbar
 
-Native mode shows the browser scrollbar. Synthetic mode has no browser bar, because the
-viewport does not scroll. Auto is native until a list passes the browser's size limit.
+Native mode shows the browser scrollbar. Synthetic input has none, because the viewport
+does not scroll: a synthetic list draws its own, and Auto is native until a list passes the
+browser's size limit.
 
-- In Synthetic, the shell adds `scrollbar({ autoHide: false })` when the example did not pass one. An example that already passes `scrollbar()` keeps that instance.
 - In Native, the shell removes a custom `scrollbar()` plugin so the browser bar is visible.
-- In Auto, the shell leaves the example's plugins alone: the browser bar, as in the library, unless the example passes `scrollbar()`. The examples with lists past the limit (Large Dataset, Velocity Loading, Books) do, so they keep a bar after the handoff.
+- Otherwise the shell leaves the example's plugins alone: a list that goes synthetic draws its scrollbar by itself, or uses the example's `scrollbar()` if it passed one.
 - [Scrollbar](/examples/scrollbar) is marked `data-scrollbar-owned`. The shell leaves its plugins alone, and its own Native / Custom / None control stays in charge.
 
 ## Recreating a list inside an example

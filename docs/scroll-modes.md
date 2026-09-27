@@ -75,11 +75,14 @@ is no element-size limit ([RFC-014](/docs/rfcs/RFC-014-Scroll-Input-Model)).
 
 What changes for you:
 
-- **No native scrollbar.** Add `scrollbar()`; it applies platform defaults (thin
-  overlay on macOS and Android, classic on Windows), reads `scrollbar-width` and
-  `scrollbar-color` from the container, and is keyboard and screen-reader accessible.
-  The `"native"` and `"none"` scrollbar strings style the browser scrollbar, so
-  `mode: "synthetic"` rejects them.
+- **Its own scrollbar.** The browser draws none for synthetic content, so the list
+  draws one: the `scrollbar()` plugin's, downloaded with the synthetic driver and
+  mounted when the list goes synthetic (removed if it goes back to native). It applies
+  platform defaults (thin overlay on macOS and Android, classic on Windows), reads
+  `scrollbar-width` and `scrollbar-color` from the container, and is keyboard and
+  screen-reader accessible. `scroll.scrollbar` options configure it, `"none"` skips it,
+  and a list with `scrollbar()` keeps that one. `"native"` asks for the browser's
+  scrollbar, so `mode: "synthetic"` rejects it.
 - **Programmatic scrolls commit synchronously.** `scrollTo`, `scrollToIndex` and
   plugin corrections update `getScrollPosition()`, render and emit `scroll` in the
   call, as with native input.

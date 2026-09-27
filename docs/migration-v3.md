@@ -44,7 +44,7 @@ npm install vlist@next
 | `PluginContext.setScrollFns(get, set)` | `ctx.setScrollSource({ write, onContentSize? })` | Sources commit positions through `ctx.commitScroll(px)`. |
 | `PluginContext.disableDefaultScroll()` | Implied by `setScrollSource` | No separate call. |
 | `ctx.setBoundedWrap(config)` | `ctx.setBoundedWrap(config, createHandler)` | Custom wrap providers pass their handler factory. Renamed `ctx.scroll.setWrap` in 3.0.x; the old name still works. |
-| `scroll.scrollbar: "native"` or `"none"` | Unchanged on `vlist` | Rejected by `vlist/synthetic`, which has no native scrollbar; add `scrollbar()` there. |
+| `scroll.scrollbar: "native"` or `"none"` | Unchanged on `vlist` | `"native"` is rejected with synthetic input, which has no browser scrollbar. In 3.0.x a synthetic list draws its own; `"none"` skips it. |
 | Framework adapters | Unchanged | Pass `factory: createVList` from `vlist/synthetic` to opt in, as since 2.8. |
 
 ## 3.0.x: `scroll.mode`
@@ -60,8 +60,10 @@ file that a list downloads only when it needs it, so the `vlist` bundle stays sm
 | `content:size:overflow` past the limit | Only with `scroll.mode: "native"` | `"auto"` handles the size instead of warning. |
 | `ctx.scroll.setBoundedWrap` | `ctx.scroll.setWrap` | Deprecated alias kept through 3.x. |
 
-A list that goes synthetic has no native scrollbar: lists that can grow past the limit
-should carry `scrollbar()`. Each swap emits `scroll:mode`. See
+A list that goes synthetic has no browser scrollbar, so it draws one: the same
+scrollbar as `scrollbar()`, loaded with the synthetic driver. `scroll.scrollbar` options
+configure it, `"none"` skips it, and a list with `scrollbar()` keeps that one. Each swap
+emits `scroll:mode`. See
 [Scroll modes](/docs/scroll-modes).
 
 ## Behaviour to check
@@ -70,8 +72,8 @@ should carry `scrollbar()`. Each swap emits `scroll:mode`. See
   used bounded mode or `scale()`, switch that list to `vlist/synthetic`; the native entry
   emits an error when content passes the limit. In 3.0.x, the default `scroll.mode:
   "auto"` handles it with no change.
-- **Synthetic lists need a scrollbar plugin.** Synthetic input has no browser scrollbar;
-  add `scrollbar()`.
+- **Synthetic lists and the scrollbar.** Synthetic input has no browser scrollbar. With
+  `vlist/synthetic`, add `scrollbar()`; in 3.0.x a `scroll.mode` list draws one by itself.
 - **Horizontal right-to-left lists are not supported** by either entry: both throw at
   creation. Vertical right-to-left lists and tables work in both. Carousel and sortable work
   with both entries; sortable uses a long press on touch unless a `handle` is set.

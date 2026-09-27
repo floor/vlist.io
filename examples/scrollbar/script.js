@@ -173,9 +173,11 @@ export async function createList() {
   const version = ++listVersion;
 
   // "native" is the browser bar, which the shell disables while Synthetic is
-  // selected; "none" is synthetic input, which has no bar. Both pin scroll.mode.
-  // "custom" follows the page's scroll switch.
-  const scrollMode = mode === "none" ? "synthetic" : mode === "native" ? "native" : undefined;
+  // selected; "none" is synthetic input with its drawn bar skipped. Both pin
+  // scroll.mode. "custom" follows the page's scroll switch.
+  const scroll = mode === "none"
+    ? { mode: "synthetic", scrollbar: "none" }
+    : mode === "native" ? { mode: "native" } : undefined;
 
   const newList = await rebuild(list, (snap) => {
     const plugins = [];
@@ -190,7 +192,7 @@ export async function createList() {
         ariaLabel: "Scrollbar demo — contact list",
         item: { height: ITEM_HEIGHT, template: renderContact },
         items: contacts,
-        ...(scrollMode ? { scroll: { mode: scrollMode } } : {}),
+        ...(scroll ? { scroll } : {}),
       },
       plugins,
     );

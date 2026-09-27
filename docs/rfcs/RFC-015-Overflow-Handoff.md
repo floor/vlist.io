@@ -142,9 +142,8 @@ A handoff is a change of input model. `"auto"` makes it automatic; it cannot mak
 it invisible, and the documentation says so:
 
 - **The scrollbar.** Synthetic content is the size of its viewport, so there is
-  no native scrollbar. A list with `scrollbar()` keeps the same custom scrollbar
-  in both modes. A list without it loses its scrollbar at the swap. See the
-  first open question.
+  no native scrollbar: the list draws one when it goes synthetic, and removes it
+  if it goes back. A list with `scrollbar()` keeps that one in both modes.
 - **Touch inertia** is vlist's own (RFC-014 motion model) instead of the
   platform's, on lists past the limit only.
 - **Keys and wheel** are handled by vlist, as in synthetic mode. Scroll events,
@@ -179,18 +178,19 @@ they throw, as they do with the synthetic entry.
 
 | | `next` | This RFC |
 |---|---|---|
-| `vlist` base (`createVList`) | 10,213 B | 10,514 B (+301 B) |
-| `dist/synthetic-driver.js`, loaded on demand | — | 3,516 B |
+| `vlist` base (`createVList`) | 10,213 B | 10,531 B (+318 B, of which 17 B for the drawn scrollbar) |
+| `dist/synthetic-driver.js` (driver and scrollbar), loaded on demand | — | 6,381 B |
 
 A trim pass took the first version's +405 B down to +301 B: 56 B of it from folding five copies of a validation check into one. The base's 10.0 kB budget is a promise, and every other budget sits within
 0.4 KB of its measurement, so all of them go red. See the fifth open question.
 
 ## Open questions
 
-1. **Scrollbar without `scrollbar()`.** Should an `"auto"` list show the custom
-   scrollbar once synthetic (the scrollbar's bytes would join the lazy driver),
-   or should the documentation pair large lists with `scrollbar()`?
-   Recommendation: ship it in the lazy file, so `"auto"` needs nothing else.
+1. **Scrollbar without `scrollbar()`.** Decided 2026-09-27
+   ([vlist#322](https://github.com/floor/vlist/pull/322)): a synthetic list draws the
+   `scrollbar()` plugin's bar by default, shipped in the lazy driver.
+   `scroll.scrollbar` options configure it, `"none"` skips it, and a list with
+   `scrollbar()` keeps that one.
 2. **Adapters.** A `scrollMode` prop on the React, Vue, Svelte and Solid
    components, passed through as `scroll.mode`. Recommendation: yes, in the same
    3.0.x.
