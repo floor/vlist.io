@@ -86,17 +86,16 @@ window.addEventListener("resize", updateColumns);
 Native content stops at the browser's element size limit, about 16 million pixels. A grid
 past it needs nothing extra: with the default `scroll.mode: "auto"` the list hands its
 input to synthetic scrolling in place when it grows that large, and the grid positions
-rows relative to the scroll origin. Add `scrollbar()`, since a synthetic list has no
-browser scrollbar.
+rows relative to the scroll origin. A synthetic list draws its own scrollbar.
 
 ```ts
-import { createVList, grid, scrollbar } from "vlist";
+import { createVList, grid } from "vlist";
 
 const list = createVList({
   container: "#app",
   item: { height: 120, template: renderCard },
   items: millionItems,
-}, [grid({ columns: 4, gap: 8 }), scrollbar()]);
+}, [grid({ columns: 4, gap: 8 })]);
 ```
 
 `scroll: { mode: "synthetic" }` makes the grid synthetic from the start. See

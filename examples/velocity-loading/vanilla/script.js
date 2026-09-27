@@ -2,7 +2,7 @@
 // Demonstrates smart loading that adapts to scroll velocity
 // Scroll mode is selectable (scroll.mode): auto, native or synthetic.
 
-import { createVList, selection, data as dataPlugin, scrollbar, snapshots } from "vlist";
+import { createVList, selection, data as dataPlugin, snapshots } from "vlist";
 import { getScrollMode } from "../../scroll-mode.js";
 import {
   LOAD_VELOCITY_THRESHOLD,
@@ -150,7 +150,6 @@ function createList() {
           cancelThreshold: LOAD_VELOCITY_THRESHOLD,
         },
       }),
-      scrollbar({ autoHide: true }),
       snapshots({ autoSave: STORAGE_KEY }),
     ],
   );

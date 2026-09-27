@@ -99,16 +99,16 @@ Use `"stretch"` when you want columns to consume all available space, and `"spac
 Native content stops at the browser's element size limit, about 16 million pixels. A table
 past it needs nothing extra: with the default `scroll.mode: "auto"` the list hands its
 input to synthetic scrolling in place when it grows that large. Rows are positioned
-relative to the scroll origin and the header stays aligned. Add `scrollbar()`, since a
-synthetic list has no browser scrollbar.
+relative to the scroll origin and the header stays aligned. A synthetic list draws its
+own scrollbar.
 
 ```ts
-import { createVList, table, scrollbar } from "vlist";
+import { createVList, table } from "vlist";
 
 const list = createVList({
   container: "#app",
   items: millionRows,
-}, [table({ columns, rowHeight: 36 }), scrollbar()]);
+}, [table({ columns, rowHeight: 36 })]);
 ```
 
 `scroll: { mode: "synthetic" }` makes the table synthetic from the start. See

@@ -1,6 +1,6 @@
 // Large List — React implementation with useVList hook
-// scroll.mode "auto" (the default) + scrollbar: past the browser's element
-// size limit, the list hands itself to synthetic input
+// scroll.mode "auto" (the default): past the browser's element size limit,
+// the list hands itself to synthetic input and draws its scrollbar
 // Demonstrates handling 100K–5M items
 
 import { useState, useCallback, useRef } from "react";
@@ -107,10 +107,8 @@ function App() {
       template: itemTemplate,
     },
     items,
-    // vlist/config installs the scrollbar plugin from these options. A user
-    // plugin named "scrollbar" would replace it, so no descriptor here. No
-    // scroll.mode: the default "auto" goes synthetic past the size limit.
-    scroll: { scrollbar: { autoHide: true } },
+    // Nothing to configure: the default scroll.mode, "auto", goes synthetic past
+    // the size limit, and a synthetic list draws its own scrollbar.
   });
 
   // Track scroll events
@@ -223,10 +221,10 @@ function App() {
       <header>
         <h1>Large List</h1>
         <p className="description">
-          React implementation with <code>useVList</code> hook +{" "}
-          <code>scrollbar</code>. Handles 100K–5M items: the default{" "}
-          <code>scroll.mode</code>, <code>auto</code>, hands lists past the
-          browser's element size limit to synthetic input.
+          React implementation with <code>useVList</code> hook. Handles
+          100K–5M items: the default <code>scroll.mode</code>,{" "}
+          <code>auto</code>, hands lists past the browser's element size limit
+          to synthetic input, which draws its own scrollbar.
         </p>
       </header>
 
