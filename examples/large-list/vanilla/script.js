@@ -3,7 +3,7 @@
 // Demonstrates handling 100K–20M items
 // Supports List, Grid and Table layout modes
 
-import { scrollbar, table, grid, selection } from "vlist";
+import { table, grid, selection } from "vlist";
 // createVList from "vlist" follows the page's scroll switch (scroll.mode).
 import { createVList } from "vlist";
 import { getScrollMode } from "../../scroll-mode.js";
@@ -239,9 +239,6 @@ function createList(sizeKey) {
     selection({ mode: "single", followFocus: true, focusOnClick: true }),
   ];
   const mode = currentMode;
-  // Synthetic input has no browser scrollbar, and auto goes synthetic past the
-  // limit: both get the custom one.
-  if (mode !== "native") plugins.push(scrollbar({ autoHide: true }));
   // Every list starts native; `scroll:mode` reports the handoff.
   currentInput = "native";
 

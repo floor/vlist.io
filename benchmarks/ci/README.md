@@ -84,6 +84,10 @@ to synthetic input, and the suites that drive `scrollTop` would stand still.
 Synthetic suites load the driver first (`engine/synthetic.js`), so every
 measured list is synthetic from its first frame.
 
+Since vlist#322 a synthetic list draws its scrollbar by default, and the
+suites measure that default. Synthetic series step at that change (the bar's
+DOM, and its sync each frame); compare across it with that in mind.
+
 Select `scroll-logical-native` and `scroll-logical-synthetic` for matched
 absolute logical writes. Bounded mode is gone; `scroll-logical-bounded` keeps
 its old rows and is not registered. “Input JS” is synchronous setter time only.

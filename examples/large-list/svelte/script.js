@@ -1,6 +1,6 @@
 // Large List — Svelte implementation with vlist action
-// scroll.mode "auto" (the default) + scrollbar: past the browser's element
-// size limit, the list hands itself to synthetic input
+// scroll.mode "auto" (the default): past the browser's element size limit,
+// the list hands itself to synthetic input and draws its scrollbar
 // Demonstrates handling 100K–5M items
 
 import { vlist, onVListEvent } from "vlist-svelte";
@@ -152,9 +152,8 @@ function createList(sizeKey) {
   action = vlist(container, {
     config: {
       ariaLabel: `${count.toLocaleString()} items list`,
-      // vlist/config installs the scrollbar plugin from scroll.scrollbar options.
-      // No scroll.mode: the default "auto" goes synthetic past the size limit.
-      scroll: { scrollbar: { autoHide: true } },
+      // Nothing to configure: the default scroll.mode, "auto", goes synthetic past
+      // the size limit, and a synthetic list draws its own scrollbar.
       item: {
         height: ITEM_HEIGHT,
         template: itemTemplate,

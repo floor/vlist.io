@@ -8,7 +8,6 @@ import {
   table,
   selection,
   data as dataPlugin,
-  scrollbar,
 } from "vlist";
 import { createStats } from "../stats.js";
 import { createInfoUpdater } from "../info.js";
@@ -642,7 +641,6 @@ export function createList() {
         sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
       }),
       selection({ mode: "single" }),
-      scrollbar({ autoHide: true }),
     ],
   );
 
