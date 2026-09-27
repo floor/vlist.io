@@ -46,6 +46,17 @@ const versionSource = (): string | null => {
   const stamp = join(VLIST_ROOT, "dist", "version.json");
   return existsSync(stamp) ? stamp : join(VLIST_ROOT, "package.json");
 };
+/**
+ * The version a stamp or package.json names. A build that is not the release
+ * (vlist's stamp says `released: false`: staging builds next, which keeps the
+ * last released version until the release bump) gets its commit as semver
+ * build metadata, `3.0.0+071835c`, so the badge and every `?v=` cache key
+ * change with each build instead of saying v3.0.0 on 3.0.1 work.
+ */
+export const versionFrom = (json: { version?: string; commit?: string | null; released?: boolean }): string => {
+  const version = json.version ?? "0.0.0";
+  return json.released === false && json.commit ? `${version}+${json.commit}` : version;
+};
 let versionCache: { path: string; mtimeMs: number; value: string } | null = null;
 export const vlistVersion = (): string => {
   const path = versionSource();
@@ -53,7 +64,7 @@ export const vlistVersion = (): string => {
   try {
     const mtimeMs = statSync(path).mtimeMs;
     if (versionCache && versionCache.path === path && versionCache.mtimeMs === mtimeMs) return versionCache.value;
-    const value = (JSON.parse(readFileSync(path, "utf-8")).version as string | undefined) ?? "0.0.0";
+    const value = versionFrom(JSON.parse(readFileSync(path, "utf-8")));
     versionCache = { path, mtimeMs, value };
     return value;
   } catch {

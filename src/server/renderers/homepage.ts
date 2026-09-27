@@ -198,7 +198,11 @@ export function renderHomepage(): Response {
       description:
         "Accessible virtual list for Vue, Svelte, Solid, React, and vanilla JS. Grid, masonry, table, WAI-ARIA keyboard navigation — 10.5 KB, zero dependencies.",
       canonicalUrl: SITE,
-      version: loadVersion(),
+      version,
+      // `3.0.0+071835c`: an unreleased build, named by its commit.
+      versionTitle: version.includes("+")
+        ? `Unreleased build of vlist next, commit ${version.split("+")[1]}`
+        : `vlist ${version}`,
       bundleSize: loadBundleSize(),
       navItems: loadNavigation(),
       exampleGroups: loadExampleGroups(),

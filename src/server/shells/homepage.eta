@@ -181,7 +181,7 @@
                 </div>
 
                 <div class="hero__badges">
-                    <span class="badge badge--accent">v<%= it.version %></span>
+                    <span class="badge badge--accent" title="<%= it.versionTitle %>">v<%= it.version %></span>
                     <span class="badge"><%= it.bundleSize %> KB gzipped</span>
                     <span class="badge">Zero Dependencies</span>
                     <span class="badge badge--accent">WAI-ARIA Accessible</span>
