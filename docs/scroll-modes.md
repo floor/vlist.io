@@ -87,8 +87,9 @@ What changes for you:
   plugin corrections update `getScrollPosition()`, render and emit `scroll` in the
   call, as with native input.
 - **Plugins:** every plugin works with synthetic input, including `sortable()`.
-  `page()` scrolls the document and `carousel()` runs its own loop, so `scroll.mode`
-  does not apply to them. Horizontal lists on right-to-left pages throw at creation in
+  `page()` scrolls the document, so `scroll.mode` does not apply to it. `carousel()`
+  runs its own loop on its runway with `"auto"` and `"native"`, and on the synthetic
+  handler with `"synthetic"`. Horizontal lists on right-to-left pages throw at creation in
   every mode; vertical lists and tables on right-to-left pages are supported. Plugin
   conflicts are unchanged.
 - **Boundaries:** same-axis touch stops at the list's edges without handing off to the
