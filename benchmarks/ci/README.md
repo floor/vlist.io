@@ -70,7 +70,8 @@ The broader default config in `config.json` also includes `scroll-vanilla` and
 ### RFC-014 input scenarios and isolated artifacts
 
 Set `VLIST_BENCH_ROOT` to an absolute path containing the chosen vlist build
-(`dist/index.js`, `dist/config.js`, CSS and optionally `dist/synthetic-driver.js`) when
+(`dist/index.js`, `dist/config.js`, the framework entries `dist/{react,vue,svelte,solid}.js`,
+CSS and optionally `dist/synthetic-driver.js`) when
 running `bun run build:bench`. An explicit root fails on missing artifacts instead
 of falling back to the main checkout. Ensure the site's worktree dependency/CSS
 also resolves to the selected build when serving the benchmark page.

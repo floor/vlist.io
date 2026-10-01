@@ -34,6 +34,10 @@ function resolveVlistFallback(path: string): string | null {
   const candidates: Record<string, string> = {
     "": resolve(VLIST_ROOT, "dist/index.js"),
     config: resolve(VLIST_ROOT, "dist/config.js"),
+    react: resolve(VLIST_ROOT, "dist/react.js"),
+    vue: resolve(VLIST_ROOT, "dist/vue.js"),
+    svelte: resolve(VLIST_ROOT, "dist/svelte.js"),
+    solid: resolve(VLIST_ROOT, "dist/solid.js"),
     internals: resolve(VLIST_ROOT, "dist/internals.js"),
     "package.json": resolve(VLIST_ROOT, "package.json"),
     styles: resolve(VLIST_ROOT, "dist/vlist.css"),
