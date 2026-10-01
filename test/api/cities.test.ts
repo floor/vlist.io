@@ -1,5 +1,6 @@
 // test/api/cities.test.ts
 import { describe, test, expect } from "bun:test";
+import { missing } from "./local-data";
 import {
   getCities,
   getCityById,
@@ -11,7 +12,7 @@ import {
   DEFAULT_LIMIT,
 } from "../../src/api/cities";
 
-describe("cities", () => {
+describe.skipIf(missing("cities"))("cities", () => {
   describe("getCities", () => {
     test("returns paginated results with defaults", () => {
       const result = getCities({
