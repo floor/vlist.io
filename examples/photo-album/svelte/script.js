@@ -1,8 +1,9 @@
 // Photo Album — Svelte variant
-// Uses vlist-svelte action with declarative layout config
+// Uses the vlist/svelte action, with the layout passed as a plugin
 // Layout mode toggle: Grid ↔ Masonry
 
-import { vlist, onVListEvent } from "vlist-svelte";
+import { grid, masonry, scrollbar } from "vlist";
+import { vlist, onVListEvent } from "vlist/svelte";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 import {
@@ -111,23 +112,21 @@ function createView() {
   const columns = currentColumns;
   const gap = currentGap;
 
-  const layoutConfig =
-    mode === "masonry"
-      ? { layout: "masonry", masonry: { columns, gap } }
-      : { layout: "grid", grid: { columns, gap } };
+  const layout =
+    mode === "masonry" ? masonry({ columns, gap }) : grid({ columns, gap });
 
-  // Create vlist via Svelte action with declarative config
+  // Create vlist via the Svelte action; plugins are read once at mount
   action = vlist(container, {
     config: {
       ariaLabel: "Photo gallery",
       orientation,
-      ...layoutConfig,
       item: getItemConfig(mode, orientation),
       items,
       scroll: {
         scrollbar: { autoHide: true },
       },
     },
+    plugins: [layout, scrollbar({ autoHide: true })],
     onInstance: (inst) => {
       setList(inst);
 

@@ -1,10 +1,11 @@
 // Photo Album — React variant
-// Uses useVList hook from vlist-react with declarative layout config
+// Uses the useVList hook from vlist/react, with the layout passed as a plugin
 // Layout mode toggle: Grid ↔ Masonry
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { useVList, useVListEvent } from "vlist-react";
+import { useVList, useVListEvent } from "vlist/react";
+import { grid, masonry, scrollbar } from "vlist";
 import type { ItemConfig } from "vlist";
 import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
@@ -36,21 +37,19 @@ function GridContainer({
 }) {
   const itemConfig = getItemConfig(mode, orientation, columns, gap);
 
-  const layoutConfig =
-    mode === "masonry"
-      ? { layout: "masonry" as const, masonry: { columns, gap } }
-      : { layout: "grid" as const, grid: { columns, gap } };
+  // Plugins are read once at mount; the parent's key remounts on change.
+  const layout =
+    mode === "masonry" ? masonry({ columns, gap }) : grid({ columns, gap });
 
   const { containerRef, instanceRef } = useVList({
     ariaLabel: "Photo gallery",
     orientation,
-    ...layoutConfig,
     item: itemConfig,
     items,
     scroll: {
       scrollbar: { autoHide: true },
     },
-  });
+  }, [layout, scrollbar({ autoHide: true })]);
 
   // Wire stats
   useEffect(() => {

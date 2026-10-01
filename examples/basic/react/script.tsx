@@ -1,8 +1,9 @@
-// Basic List — React implementation using vlist-react adapter
+// Basic List — React implementation using the vlist/react hook
 // Demonstrates core vlist with 100,000 items.
 
 import { createRoot } from "react-dom/client";
-import { useVList } from "vlist-react";
+import { scrollbar } from "vlist";
+import { useVList } from "vlist/react";
 import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
@@ -16,14 +17,12 @@ function App() {
     ariaLabel: "Orders",
     items,
     padding: 8,
-    // Custom overlay scrollbar: vlist/config leaves the native one unless asked.
-    scrollbar: true,
     item: {
       height: ITEM_HEIGHT,
       striped: true,
       template: itemTemplate,
     },
-  });
+  }, [scrollbar()]);
 
   return (
     <div className="container">
@@ -50,8 +49,8 @@ function App() {
               rate stays constant.
             </p>
             <p className="ui-text">
-              Built with <strong>vlist-react</strong>, the React adapter for
-              vlist. One hook, zero boilerplate.
+              Built with <code>vlist/react</code>, the React entry of vlist.
+              One hook, zero boilerplate.
             </p>
           </section>
 

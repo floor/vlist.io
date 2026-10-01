@@ -1,8 +1,7 @@
 // Scroll FPS for Vue. Both modes use the same position write.
 
 import { createApp } from "vue";
-import { useVList } from "vlist-vue";
-import { createVListFromConfig } from "vlist/config";
+import { useVList } from "vlist/vue";
 import { defineSuite, benchmarkTemplate, waitFrames } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
@@ -21,8 +20,7 @@ const mount = (container, items, mode) => {
         items: props.items,
         item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
         scroll: { mode },
-        plugins: [scrollCapturePlugin((set) => { write = set; })],
-      });
+      }, [scrollCapturePlugin((set) => { write = set; })]);
       api.containerRef.value = props.target;
       instance = api.instance;
       return () => null;
@@ -48,7 +46,7 @@ function defineMode(mode) {
     icon: "📜",
     hasScrollSpeed: true,
     run: async (ctx) => {
-      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
+      if (mode === "synthetic") await loadSynthetic();
       return runLogicalScroll({
         ...ctx,
         mode,

@@ -7,8 +7,7 @@
 // Chrome-only (requires performance.memory API).
 
 import { createRoot, createSignal } from "solid-js";
-import { createVList } from "vlist-solidjs";
-import { createVListFromConfig } from "vlist/config";
+import { createVList } from "vlist/solid";
 import {
   defineSuite,
   generateItems,
@@ -135,10 +134,10 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "memory-synthetic-solidjs",
   name: "Memory (SolidJS)",
-  description: "Heap of a synthetic list created through the SolidJS adapter, after render and after scrolling its position",
+  description: "Heap of a synthetic list created through vlist/solid, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
-    await loadSynthetic(createVListFromConfig);
+    await loadSynthetic();
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({
@@ -151,9 +150,8 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
             items,
             item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
             scroll: { mode: "synthetic" },
-            plugins: [scrollCapturePlugin((set) => { capture.current = set; })],
           });
-          const { setRef } = createVList(config);
+          const { setRef } = createVList(config, [scrollCapturePlugin((set) => { capture.current = set; })]);
           const el = document.createElement("div");
           el.style.cssText = "height:100%;width:100%;";
           container.appendChild(el);

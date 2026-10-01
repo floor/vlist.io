@@ -1,9 +1,8 @@
-// Initial Render for React. Synthetic passes scroll.mode through the adapter.
+// Initial Render for React. Synthetic passes scroll.mode through vlist/react.
 
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
-import { useVList } from "vlist-react";
-import { createVListFromConfig } from "vlist/config";
+import { useVList } from "vlist/react";
 import {
   defineSuite,
   generateItems,
@@ -31,7 +30,7 @@ function defineMode(mode) {
     description: "Time from useVList() hook to first painted frame",
     icon: "⚡",
     run: async ({ itemCount, container, onStatus, intensity }) => {
-      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
+      if (mode === "synthetic") await loadSynthetic();
       const items = generateItems(itemCount);
       const result = await measureRenderPerformance({
         container,

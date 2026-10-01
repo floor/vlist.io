@@ -5,8 +5,7 @@
 // rating thresholds (slightly more lenient for React overhead).
 
 import { createRoot } from "react-dom/client";
-import { useVList } from "vlist-react";
-import { createVListFromConfig } from "vlist/config";
+import { useVList } from "vlist/react";
 import {
   defineSuite,
   generateItems,
@@ -34,8 +33,7 @@ function BenchmarkList({ items, target, mode, capture }) {
       template: benchmarkTemplate,
     },
     scroll: { mode },
-    ...(capture ? { plugins: [scrollCapturePlugin((set) => { capture.current = set; })] } : {}),
-  });
+  }, capture ? [scrollCapturePlugin((set) => { capture.current = set; })] : []);
 
   containerRef.current = target;
 
@@ -134,10 +132,10 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "memory-synthetic-react",
   name: "Memory (React)",
-  description: "Heap of a synthetic list created through the React adapter, after render and after scrolling its position",
+  description: "Heap of a synthetic list created through vlist/react, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
-    await loadSynthetic(createVListFromConfig);
+    await loadSynthetic();
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({
