@@ -34,7 +34,7 @@ describe("files", () => {
     });
   });
 
-  describe.skipIf(missing("checkouts"))("listDirectory", () => {
+  describe("listDirectory", () => {
     test("returns path and items for empty path (root)", async () => {
       const result = await listDirectory("");
 
@@ -67,7 +67,7 @@ describe("files", () => {
       }
     });
 
-    test("can list vlist.io directory", async () => {
+    test.skipIf(missing("checkouts"))("can list vlist.io directory", async () => {
       const result = await listDirectory("vlist.io");
 
       expect(result.path).toBe("vlist.io");
@@ -79,7 +79,7 @@ describe("files", () => {
       expect(names).toContain("package.json");
     });
 
-    test("directories are sorted before files", async () => {
+    test.skipIf(missing("checkouts"))("directories are sorted before files", async () => {
       const result = await listDirectory("vlist.io");
 
       const types = result.items.map((item) => item.type);
@@ -91,7 +91,7 @@ describe("files", () => {
       }
     });
 
-    test("hidden files are filtered out", async () => {
+    test.skipIf(missing("checkouts"))("hidden files are filtered out", async () => {
       const result = await listDirectory("vlist.io");
       const names = result.items.map((item) => item.name);
 
@@ -119,7 +119,7 @@ describe("files", () => {
       );
     });
 
-    test("modified is an ISO date string", async () => {
+    test.skipIf(missing("checkouts"))("modified is an ISO date string", async () => {
       const result = await listDirectory("vlist.io");
 
       for (const item of result.items) {
@@ -130,7 +130,7 @@ describe("files", () => {
       }
     });
 
-    test("file extension is extracted correctly", async () => {
+    test.skipIf(missing("checkouts"))("file extension is extracted correctly", async () => {
       const result = await listDirectory("vlist.io");
 
       const jsonFile = result.items.find((item) => item.name === "package.json");
@@ -146,7 +146,7 @@ describe("files", () => {
       }
     });
 
-    test("size is a non-negative number", async () => {
+    test.skipIf(missing("checkouts"))("size is a non-negative number", async () => {
       const result = await listDirectory("vlist.io");
 
       for (const item of result.items) {

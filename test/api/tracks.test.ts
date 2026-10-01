@@ -16,9 +16,9 @@ import {
   DEFAULT_LIMIT,
 } from "../../src/api/tracks";
 
-describe.skipIf(missing("tracks"))("tracks", () => {
+describe("tracks", () => {
   describe("getTracks", () => {
-    test("returns paginated results with defaults", () => {
+    test.skipIf(missing("tracks"))("returns paginated results with defaults", () => {
       const result = getTracks({
         offset: 0,
         limit: 10,
@@ -31,7 +31,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(typeof result.hasMore).toBe("boolean");
     });
 
-    test("each track has all required fields", () => {
+    test.skipIf(missing("tracks"))("each track has all required fields", () => {
       const result = getTracks({
         offset: 0,
         limit: 1,
@@ -47,7 +47,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(track).toHaveProperty("created_at");
     });
 
-    test("respects offset parameter", () => {
+    test.skipIf(missing("tracks"))("respects offset parameter", () => {
       const page1 = getTracks({
         offset: 0,
         limit: 5,
@@ -64,7 +64,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(page1.items[0].id).not.toBe(page2.items[0].id);
     });
 
-    test("clamps limit to MAX_LIMIT", () => {
+    test.skipIf(missing("tracks"))("clamps limit to MAX_LIMIT", () => {
       const result = getTracks({
         offset: 0,
         limit: 999,
@@ -75,7 +75,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(result.items.length).toBeLessThanOrEqual(MAX_LIMIT);
     });
 
-    test("sorts by id descending", () => {
+    test.skipIf(missing("tracks"))("sorts by id descending", () => {
       const result = getTracks({
         offset: 0,
         limit: 10,
@@ -88,7 +88,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       }
     });
 
-    test("sorts ascending", () => {
+    test.skipIf(missing("tracks"))("sorts ascending", () => {
       const result = getTracks({
         offset: 0,
         limit: 10,
@@ -101,7 +101,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       }
     });
 
-    test("sorts by title with COLLATE NOCASE", () => {
+    test.skipIf(missing("tracks"))("sorts by title with COLLATE NOCASE", () => {
       const result = getTracks({
         offset: 0,
         limit: 10,
@@ -112,7 +112,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("sorts by artist with COLLATE NOCASE", () => {
+    test.skipIf(missing("tracks"))("sorts by artist with COLLATE NOCASE", () => {
       const result = getTracks({
         offset: 0,
         limit: 10,
@@ -123,7 +123,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("falls back to id sort for invalid column", () => {
+    test.skipIf(missing("tracks"))("falls back to id sort for invalid column", () => {
       const result = getTracks({
         offset: 0,
         limit: 10,
@@ -134,7 +134,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("falls back to desc for invalid direction", () => {
+    test.skipIf(missing("tracks"))("falls back to desc for invalid direction", () => {
       const result = getTracks({
         offset: 0,
         limit: 10,
@@ -145,7 +145,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("filters by search term (title or artist)", () => {
+    test.skipIf(missing("tracks"))("filters by search term (title or artist)", () => {
       // Get a known track to search for
       const all = getTracks({
         offset: 0,
@@ -166,7 +166,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("filters by country", () => {
+    test.skipIf(missing("tracks"))("filters by country", () => {
       // Find a country that exists
       const countries = getCountries();
       if (countries.length === 0) return;
@@ -186,7 +186,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       }
     });
 
-    test("filters by decade", () => {
+    test.skipIf(missing("tracks"))("filters by decade", () => {
       const decades = getDecades();
       if (decades.length === 0) return;
 
@@ -205,7 +205,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       }
     });
 
-    test("filters by category", () => {
+    test.skipIf(missing("tracks"))("filters by category", () => {
       const categories = getCategories();
       if (categories.length === 0) return;
 
@@ -224,7 +224,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       }
     });
 
-    test("filters by artist (partial match)", () => {
+    test.skipIf(missing("tracks"))("filters by artist (partial match)", () => {
       const all = getTracks({
         offset: 0,
         limit: 1,
@@ -244,7 +244,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("filters by minYear and maxYear", () => {
+    test.skipIf(missing("tracks"))("filters by minYear and maxYear", () => {
       const result = getTracks({
         offset: 0,
         limit: 50,
@@ -262,7 +262,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       }
     });
 
-    test("hasMore is true when more results exist", () => {
+    test.skipIf(missing("tracks"))("hasMore is true when more results exist", () => {
       const result = getTracks({
         offset: 0,
         limit: 1,
@@ -275,7 +275,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
   });
 
   describe("getTrackById", () => {
-    test("returns a track by ID", () => {
+    test.skipIf(missing("tracks"))("returns a track by ID", () => {
       // Get a known existing ID first
       const first = getTracks({
         offset: 0,
@@ -290,7 +290,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(track!.id).toBe(id);
     });
 
-    test("returns null for non-existent ID", () => {
+    test.skipIf(missing("tracks"))("returns null for non-existent ID", () => {
       const track = getTrackById(999_999_999);
       expect(track).toBeNull();
     });
@@ -299,7 +299,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
   describe("CRUD operations", () => {
     let createdId: number;
 
-    test.serial("createTrack creates a new track", () => {
+    test.serial.skipIf(missing("tracks"))("createTrack creates a new track", () => {
       const track = createTrack({
         title: "Test Track",
         artist: "Test Artist",
@@ -323,7 +323,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       createdId = track.id;
     });
 
-    test.serial("createTrack with minimal fields", () => {
+    test.serial.skipIf(missing("tracks"))("createTrack with minimal fields", () => {
       const track = createTrack({
         title: "Minimal Track",
         artist: "Minimal Artist",
@@ -338,7 +338,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       deleteTrack(track.id);
     });
 
-    test.serial("updateTrack updates specific fields", () => {
+    test.serial.skipIf(missing("tracks"))("updateTrack updates specific fields", () => {
       const updated = updateTrack(createdId, {
         title: "Updated Title",
         year: 2025,
@@ -351,7 +351,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(updated!.artist).toBe("Test Artist");
     });
 
-    test.serial("updateTrack with all fields", () => {
+    test.serial.skipIf(missing("tracks"))("updateTrack with all fields", () => {
       const updated = updateTrack(createdId, {
         title: "Fully Updated",
         artist: "New Artist",
@@ -368,7 +368,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(updated!.country).toBe("GB");
     });
 
-    test.serial("updateTrack with empty input returns existing track", () => {
+    test.serial.skipIf(missing("tracks"))("updateTrack with empty input returns existing track", () => {
       const existing = getTrackById(createdId);
       const updated = updateTrack(createdId, {});
 
@@ -376,12 +376,12 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(updated!.id).toBe(existing!.id);
     });
 
-    test.serial("updateTrack returns null for non-existent ID", () => {
+    test.serial.skipIf(missing("tracks"))("updateTrack returns null for non-existent ID", () => {
       const updated = updateTrack(999_999_999, { title: "Nope" });
       expect(updated).toBeNull();
     });
 
-    test.serial("deleteTrack removes the track", () => {
+    test.serial.skipIf(missing("tracks"))("deleteTrack removes the track", () => {
       const deleted = deleteTrack(createdId);
       expect(deleted).toBe(true);
 
@@ -389,14 +389,14 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(track).toBeNull();
     });
 
-    test.serial("deleteTrack returns false for non-existent ID", () => {
+    test.serial.skipIf(missing("tracks"))("deleteTrack returns false for non-existent ID", () => {
       const deleted = deleteTrack(999_999_999);
       expect(deleted).toBe(false);
     });
   });
 
   describe("getCountries", () => {
-    test("returns country codes with counts", () => {
+    test.skipIf(missing("tracks"))("returns country codes with counts", () => {
       const countries = getCountries();
 
       expect(countries.length).toBeGreaterThan(0);
@@ -405,7 +405,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(countries[0].count).toBeGreaterThan(0);
     });
 
-    test("is sorted by count descending", () => {
+    test.skipIf(missing("tracks"))("is sorted by count descending", () => {
       const countries = getCountries();
 
       for (let i = 1; i < countries.length; i++) {
@@ -417,7 +417,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
   });
 
   describe("getDecades", () => {
-    test("returns decades with counts", () => {
+    test.skipIf(missing("tracks"))("returns decades with counts", () => {
       const decades = getDecades();
 
       expect(decades.length).toBeGreaterThan(0);
@@ -425,7 +425,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(decades[0]).toHaveProperty("count");
     });
 
-    test("is sorted by decade descending", () => {
+    test.skipIf(missing("tracks"))("is sorted by decade descending", () => {
       const decades = getDecades();
 
       for (let i = 1; i < decades.length; i++) {
@@ -437,7 +437,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
   });
 
   describe("getCategories", () => {
-    test("returns categories with counts", () => {
+    test.skipIf(missing("tracks"))("returns categories with counts", () => {
       const categories = getCategories();
 
       expect(categories.length).toBeGreaterThan(0);
@@ -447,7 +447,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
   });
 
   describe("getStats", () => {
-    test("returns aggregate statistics", () => {
+    test.skipIf(missing("tracks"))("returns aggregate statistics", () => {
       const stats = getStats();
 
       expect(stats.total).toBeGreaterThan(0);
@@ -458,7 +458,7 @@ describe.skipIf(missing("tracks"))("tracks", () => {
       expect(stats.topArtists.length).toBeLessThanOrEqual(10);
     });
 
-    test("yearRange has min and max", () => {
+    test.skipIf(missing("tracks"))("yearRange has min and max", () => {
       const stats = getStats();
 
       expect(stats.yearRange.min).not.toBeNull();
