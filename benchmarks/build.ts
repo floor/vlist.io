@@ -54,7 +54,7 @@ function resolveVlistFallback(path: string): string | null {
 // =============================================================================
 // Framework dedupe plugin
 // =============================================================================
-// When vlist is linked (symlink), its node_modules/{react,vue} are separate
+// When vlist is linked (symlink), its node_modules/{react,vue,solid-js} are separate
 // copies from vlist.io/node_modules/. Framework hooks/reactivity crash if two
 // copies coexist. This plugin forces all framework imports to resolve from
 // vlist.io's node_modules, guaranteeing a single instance in the bundle.
@@ -124,6 +124,16 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         return undefined;
       }
     });
+
+    // SolidJS — vlist/solid imports solid-js from inside the linked vlist,
+    // whose own node_modules holds a second copy. Its onMount would then run
+    // under no owner and never fire, so pin the browser builds here.
+    build.onResolve({ filter: /^solid-js$/ }, () => ({
+      path: resolve(PROJECT_ROOT, "node_modules/solid-js/dist/solid.js"),
+    }));
+    build.onResolve({ filter: /^solid-js\/web$/ }, () => ({
+      path: resolve(PROJECT_ROOT, "node_modules/solid-js/web/dist/web.js"),
+    }));
   },
 };
 
