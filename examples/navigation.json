@@ -148,6 +148,12 @@
         ]
       },
       {
+        "slug": "horizontal/basic",
+        "name": "Horizontal Scrolling",
+        "desc": "orientation: 'horizontal' with a fixed item width, scrolled with the mouse wheel",
+        "plugins": []
+      },
+      {
         "slug": "variable-sizes",
         "name": "Variable Sizes",
         "desc": "Per-item height functions and auto-measured DOM sizing",
