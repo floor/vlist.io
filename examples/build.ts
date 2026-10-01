@@ -104,10 +104,17 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     // vlist — resolve bare "vlist" and JS subpaths like "vlist/internals"
     // "vlist"           → dist/index.js
     // "vlist/internals" → dist/internals.js
+    // "vlist/react"     → dist/react.js (likewise vue, svelte, solid)
     // Other subpaths (e.g. "vlist/styles") fall through to default resolution.
+    // The framework entries import the core as "./index.js", so they share the
+    // one copy of it and build their lists with the plain core createVList.
     const VLIST_JS_ENTRIES: Record<string, string> = {
       vlist: "index.js",
       "vlist/internals": "internals.js",
+      "vlist/react": "react.js",
+      "vlist/vue": "vue.js",
+      "vlist/svelte": "svelte.js",
+      "vlist/solid": "solid.js",
       // Deprecated; kept resolvable for code that still imports it.
       "vlist/synthetic": "synthetic.js",
       "vlist/native": "native.js",
@@ -247,25 +254,6 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       ].join("\n"),
       loader: "js",
     }));
-
-    // vlist adapters — resolve to separate packages
-    // "vlist-react" → "vlist-react"
-    // "vlist-vue" → "vlist-vue"
-    // "vlist-svelte" → "vlist-svelte"
-    // "vlist-solidjs" → "vlist-solidjs"
-    build.onResolve(
-      { filter: /^vlist-(react|vue|svelte|solidjs)$/ },
-      (args) => {
-        try {
-          const resolved = require.resolve(args.path, {
-            paths: [PROJECT_ROOT],
-          });
-          return { path: resolved };
-        } catch {
-          return undefined;
-        }
-      },
-    );
 
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
