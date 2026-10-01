@@ -147,6 +147,12 @@ let _viewVersion = 0;
 export function setFactory(fn, options) {
   _factory = fn;
   _rebuildOptions = options || {};
+  // The shell's native/synthetic switch calls this so the album rebuilds with
+  // fresh plugins and its own snapshot, instead of reusing the live grid. Only
+  // a variant that registers a factory (vanilla) can rebuild this way; the
+  // framework variants import this file for its data and take the switch's
+  // own rebuild (vlist.io#91).
+  globalThis.__vlistRecreate = () => createView();
 }
 
 export function onReady(fn) {
@@ -156,10 +162,6 @@ export function onReady(fn) {
 export function setCreateView(fn) {
   _createViewFn = fn;
 }
-
-// The shell's native/synthetic switch calls this so the album rebuilds with
-// fresh plugins and its own snapshot, instead of reusing the live grid.
-globalThis.__vlistRecreate = () => createView();
 
 export async function createView() {
   if (_factory) {
