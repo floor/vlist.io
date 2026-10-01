@@ -1,7 +1,8 @@
 // Horizontal Scrolling — Svelte implementation with vlist action
 // Demonstrates orientation: 'horizontal' with item.width
 
-import { vlist, onVListEvent } from "vlist-svelte";
+import { scrollbar } from "vlist";
+import { vlist, onVListEvent } from "vlist/svelte";
 import {
   items,
   itemTemplate,
@@ -25,8 +26,6 @@ const action = vlist(container, {
   config: {
     orientation: "horizontal",
     scroll: { wheel: true },
-    // Custom overlay scrollbar: vlist/config leaves the native one unless asked.
-    scrollbar: true,
     ariaLabel: "Horizontal card carousel",
     item: {
       height: ITEM_HEIGHT,
@@ -35,6 +34,7 @@ const action = vlist(container, {
     },
     items,
   },
+  plugins: [scrollbar()],
   onInstance: (instance) => {
     // Update stats
     const updateStats = () => {

@@ -1,8 +1,9 @@
-// Basic List — SolidJS implementation using vlist-solidjs adapter
+// Basic List — SolidJS implementation using the vlist/solid primitive
 // Demonstrates core vlist with 100,000 items.
 
 import { render } from "solid-js/web";
-import { createVList } from "vlist-solidjs";
+import { scrollbar } from "vlist";
+import { createVList } from "vlist/solid";
 import { COUNT, ITEM_HEIGHT, makeItems, itemTemplate } from "../shared.js";
 
 // =============================================================================
@@ -16,14 +17,12 @@ function App() {
     ariaLabel: "Orders",
     items,
     padding: 8,
-    // Custom overlay scrollbar: vlist/config leaves the native one unless asked.
-    scrollbar: true,
     item: {
       height: ITEM_HEIGHT,
       striped: true,
       template: itemTemplate,
     },
-  }));
+  }), [scrollbar()]);
 
   return (
     <div class="container">
@@ -50,8 +49,8 @@ function App() {
               rate stays constant.
             </p>
             <p class="ui-text">
-              Built with <strong>vlist-solidjs</strong>, the SolidJS adapter for
-              vlist. One primitive, zero boilerplate.
+              Built with <code>vlist/solid</code>, the SolidJS entry of vlist.
+              One primitive, zero boilerplate.
             </p>
           </section>
 

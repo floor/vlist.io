@@ -5,8 +5,7 @@
 // with rating thresholds.
 
 import { createApp } from "vue";
-import { useVList } from "vlist-vue";
-import { createVListFromConfig } from "vlist/config";
+import { useVList } from "vlist/vue";
 import {
   defineSuite,
   generateItems,
@@ -86,7 +85,7 @@ defineSuite({
     if (!instance) {
       app.unmount();
       container.innerHTML = "";
-      throw new Error("Could not get vlist instance from Vue adapter");
+      throw new Error("Could not get vlist instance from vlist/vue");
     }
 
     // ── Measure with engine ────────────────────────────────────────────
@@ -144,10 +143,10 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "scrollto-synthetic-vue",
   name: "scrollToIndex (Vue)",
-  description: "Latency of scrollToIndex() in synthetic mode, through the Vue adapter",
+  description: "Latency of scrollToIndex() in synthetic mode, through vlist/vue",
   icon: "🎯",
   run: async ({ itemCount, container, onStatus }) => {
-    await loadSynthetic(createVListFromConfig);
+    await loadSynthetic();
     const items = generateItems(itemCount);
     container.innerHTML = "";
     listApiRef = null;

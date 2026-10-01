@@ -4,8 +4,7 @@
 // Defines the Vue create/destroy lifecycle and formats results with ratings.
 
 import { createApp } from "vue";
-import { useVList } from "vlist-vue";
-import { createVListFromConfig } from "vlist/config";
+import { useVList } from "vlist/vue";
 import {
   defineSuite,
   generateItems,
@@ -39,8 +38,7 @@ const BenchmarkList = {
         template: benchmarkTemplate,
       },
       scroll: { mode: props.mode },
-      ...(props.capture ? { plugins: [scrollCapturePlugin((set) => { props.capture.current = set; })] } : {}),
-    });
+    }, props.capture ? [scrollCapturePlugin((set) => { props.capture.current = set; })] : []);
 
     containerRef.value = props.target;
 
@@ -139,10 +137,10 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "memory-synthetic-vue",
   name: "Memory (Vue)",
-  description: "Heap of a synthetic list created through the Vue adapter, after render and after scrolling its position",
+  description: "Heap of a synthetic list created through vlist/vue, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
-    await loadSynthetic(createVListFromConfig);
+    await loadSynthetic();
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({

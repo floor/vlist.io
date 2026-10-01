@@ -1,11 +1,10 @@
 // benchmarks/suites/memory/svelte/suite.js — Memory Benchmark (Svelte)
 //
 // Thin wrapper around engine/memory.js measureMemoryProfile.
-// Defines the vlist-svelte action create/destroy lifecycle and formats
+// Defines the vlist/svelte action create/destroy lifecycle and formats
 // results with rating thresholds.
 
-import { vlist } from "vlist-svelte";
-import { createVListFromConfig } from "vlist/config";
+import { vlist } from "vlist/svelte";
 import {
   defineSuite,
   generateItems,
@@ -122,10 +121,10 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "memory-synthetic-svelte",
   name: "Memory (Svelte)",
-  description: "Heap of a synthetic list created through the Svelte adapter, after render and after scrolling its position",
+  description: "Heap of a synthetic list created through vlist/svelte, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
-    await loadSynthetic(createVListFromConfig);
+    await loadSynthetic();
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({
@@ -136,8 +135,8 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
             item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
             items,
             scroll: { mode: "synthetic" },
-            plugins: [scrollCapturePlugin((set) => { capture.current = set; })],
           },
+          plugins: [scrollCapturePlugin((set) => { capture.current = set; })],
         });
         if (!capture.current) throw new Error("Svelte list did not install the scroll writer");
         return { instance: action };

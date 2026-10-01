@@ -1,8 +1,7 @@
-// Initial Render for Vue. Synthetic passes scroll.mode through the adapter.
+// Initial Render for Vue. Synthetic passes scroll.mode through vlist/vue.
 
 import { createApp } from "vue";
-import { useVList } from "vlist-vue";
-import { createVListFromConfig } from "vlist/config";
+import { useVList } from "vlist/vue";
 import {
   defineSuite,
   generateItems,
@@ -33,7 +32,7 @@ function defineMode(mode) {
     description: "Time from useVList() composable to first painted frame",
     icon: "⚡",
     run: async ({ itemCount, container, onStatus, intensity }) => {
-      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
+      if (mode === "synthetic") await loadSynthetic();
       const items = generateItems(itemCount);
       const result = await measureRenderPerformance({
         container,
