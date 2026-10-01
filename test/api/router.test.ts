@@ -1,5 +1,6 @@
 // test/api/router.test.ts
 import { describe, test, expect, afterAll } from "bun:test";
+import { missing } from "./local-data";
 import { routeApi } from "../../src/api/router";
 
 // Helper to create a mock request
@@ -213,7 +214,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/files", () => {
+  describe.skipIf(missing("checkouts"))("GET /api/files", () => {
     test("returns directory listing", async () => {
       const { req, url } = createRequest("/api/files?path=vlist.io");
       const result = await routeApi(req, url);
@@ -414,7 +415,7 @@ describe("router", () => {
   // Cities (SQLite-backed)
   // ===========================================================================
 
-  describe("GET /api/cities", () => {
+  describe.skipIf(missing("cities"))("GET /api/cities", () => {
     test("returns paginated cities", async () => {
       const { req, url } = createRequest("/api/cities?limit=10");
       const result = await routeApi(req, url);
@@ -452,7 +453,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/cities/:id", () => {
+  describe.skipIf(missing("cities"))("GET /api/cities/:id", () => {
     test("returns single city by ID", async () => {
       const { req, url } = createRequest("/api/cities/1");
       const result = await routeApi(req, url);
@@ -470,7 +471,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/cities/countries", () => {
+  describe.skipIf(missing("cities"))("GET /api/cities/countries", () => {
     test("returns country list", async () => {
       const { req, url } = createRequest("/api/cities/countries");
       const result = await routeApi(req, url);
@@ -484,7 +485,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/cities/continents", () => {
+  describe.skipIf(missing("cities"))("GET /api/cities/continents", () => {
     test("returns continent list", async () => {
       const { req, url } = createRequest("/api/cities/continents");
       const result = await routeApi(req, url);
@@ -498,7 +499,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/cities/stats", () => {
+  describe.skipIf(missing("cities"))("GET /api/cities/stats", () => {
     test("returns aggregate statistics", async () => {
       const { req, url } = createRequest("/api/cities/stats");
       const result = await routeApi(req, url);
@@ -517,7 +518,7 @@ describe("router", () => {
   // Tracks (SQLite-backed with CRUD)
   // ===========================================================================
 
-  describe("GET /api/tracks", () => {
+  describe.skipIf(missing("tracks"))("GET /api/tracks", () => {
     test("returns paginated tracks", async () => {
       const { req, url } = createRequest("/api/tracks?limit=10");
       const result = await routeApi(req, url);
@@ -542,7 +543,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/tracks/:id", () => {
+  describe.skipIf(missing("tracks"))("GET /api/tracks/:id", () => {
     test("returns single track by ID", async () => {
       // Get a known existing track ID first
       const { req: listReq, url: listUrl } = createRequest(
@@ -570,7 +571,7 @@ describe("router", () => {
     });
   });
 
-  describe("POST /api/tracks", () => {
+  describe.skipIf(missing("tracks"))("POST /api/tracks", () => {
     let createdTrackId: number;
 
     test("creates a new track", async () => {
@@ -679,7 +680,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/tracks/countries", () => {
+  describe.skipIf(missing("tracks"))("GET /api/tracks/countries", () => {
     test("returns country list", async () => {
       const { req, url } = createRequest("/api/tracks/countries");
       const result = await routeApi(req, url);
@@ -693,7 +694,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/tracks/decades", () => {
+  describe.skipIf(missing("tracks"))("GET /api/tracks/decades", () => {
     test("returns decades list", async () => {
       const { req, url } = createRequest("/api/tracks/decades");
       const result = await routeApi(req, url);
@@ -707,7 +708,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/tracks/categories", () => {
+  describe.skipIf(missing("tracks"))("GET /api/tracks/categories", () => {
     test("returns categories list", async () => {
       const { req, url } = createRequest("/api/tracks/categories");
       const result = await routeApi(req, url);
@@ -721,7 +722,7 @@ describe("router", () => {
     });
   });
 
-  describe("GET /api/tracks/stats", () => {
+  describe.skipIf(missing("tracks"))("GET /api/tracks/stats", () => {
     test("returns aggregate statistics", async () => {
       const { req, url } = createRequest("/api/tracks/stats");
       const result = await routeApi(req, url);

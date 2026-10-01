@@ -1,5 +1,6 @@
 // test/api/files.test.ts
 import { describe, test, expect } from "bun:test";
+import { missing } from "./local-data";
 import { listDirectory, getFilesBrowserInfo, type FileItem } from "../../src/api/files";
 
 describe("files", () => {
@@ -33,7 +34,7 @@ describe("files", () => {
     });
   });
 
-  describe("listDirectory", () => {
+  describe.skipIf(missing("checkouts"))("listDirectory", () => {
     test("returns path and items for empty path (root)", async () => {
       const result = await listDirectory("");
 

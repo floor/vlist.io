@@ -1,5 +1,6 @@
 // test/api/tracks.test.ts
 import { describe, test, expect } from "bun:test";
+import { missing } from "./local-data";
 import {
   getTracks,
   getTrackById,
@@ -15,7 +16,7 @@ import {
   DEFAULT_LIMIT,
 } from "../../src/api/tracks";
 
-describe("tracks", () => {
+describe.skipIf(missing("tracks"))("tracks", () => {
   describe("getTracks", () => {
     test("returns paginated results with defaults", () => {
       const result = getTracks({
