@@ -130,5 +130,6 @@ in `vlist` first, then a forced example build.
 
 `?variant=` selects a framework directory when the example has one (`vanilla`, `react`,
 `vue`, `svelte`, `solidjs`). The scroll wrapper applies to `createVList` imported from
-`"vlist"`. React, Svelte, and Solid pages talk to their adapters (`vlist-react`,
-`vlist-svelte`, `vlist-solidjs`) and are not wrapped.
+`"vlist"`. Pages that use a framework entry (`vlist/react`, `vlist/vue`,
+`vlist/svelte`, `vlist/solid`) are not wrapped: the entry builds its list with the
+core `createVList` directly.
