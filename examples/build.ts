@@ -135,6 +135,15 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       }
       return { path };
     });
+    // The framework entries (vlist/react, vue, svelte, solid) build their
+    // lists with the core they import as "./index.js". Give them the same
+    // wrapper, so framework pages follow the switch too (vlist.io#91). Inside
+    // the core and every other vlist file, "./index.js" stays the real one.
+    const FRAMEWORK_ENTRIES = new Set(["react.js", "vue.js", "svelte.js", "solid.js"].map((file) => join(vlistDist, file)));
+    build.onResolve({ filter: /^\.\/index\.js$/ }, (args) => {
+      if (!FRAMEWORK_ENTRIES.has(args.importer)) return;
+      return { path: "vlist-example-entry", namespace: "vlist-example" };
+    });
     build.onLoad({ filter: /^vlist-example-entry$/, namespace: "vlist-example" }, () => ({
       contents: [
         `import * as Native from ${JSON.stringify(join(vlistDist, "index.js"))};`,
