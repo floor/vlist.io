@@ -123,13 +123,13 @@ as the browser can lay it out, and only a list that grows past the limit changes
 list.on("scroll:mode", ({ mode }) => console.log(`input is ${mode} now`));
 ```
 
-### Framework adapters
+### Framework entries
 
-The adapters go through `vlist/config`, which passes `scroll` through. Set the mode like
-any other option:
+The framework entries (`vlist/vue`, `vlist/svelte`, `vlist/solid`, `vlist/react`) pass
+`scroll` to the core. Set the mode like any other option. It takes effect at mount:
 
 ```tsx
-import { useVList } from "vlist-react";
+import { useVList } from "vlist/react";
 
 const { containerRef } = useVList({
   items,

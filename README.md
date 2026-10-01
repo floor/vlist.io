@@ -264,8 +264,7 @@ bash scripts/setup-server.sh
 
 | Package | Purpose |
 |---------|---------|
-| `vlist` | The library being documented (`file:../vlist` locally, `latest` in production) |
-| `vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-solidjs` | Framework adapters for multi-framework examples |
+| `vlist` | The library being documented (`file:../vlist` locally, `latest` in production); its `vlist/vue`, `vlist/svelte`, `vlist/solid` and `vlist/react` entries drive the multi-framework examples |
 | `eta` | HTML templating for server-rendered pages |
 | `marked` | Markdown to HTML rendering |
 | `mongodb` | Data storage |
