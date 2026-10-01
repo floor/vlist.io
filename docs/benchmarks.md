@@ -92,7 +92,7 @@ On Vanilla, React, Vue, Svelte, and Solid the control bar has **Mode: Native | S
 
 Scroll FPS on the page is that matched position-write run. CI still runs `scroll-vanilla`, which writes `scrollTop` and reports frame budget. Those are different measurements. The page does not run `scroll-vanilla`.
 
-Framework suites pass the mode through the adapter (`useVList({ scroll: { mode } })`). SolidJS Scroll FPS, Initial Render, and ScrollTo call `createVList` directly, which is how those three already measured. SolidJS Memory goes through the adapter.
+Framework suites pass the mode through the framework entry (`useVList({ scroll: { mode } })` from `vlist/react` or `vlist/vue`, the `vlist/svelte` action, `createVList` from `vlist/solid`). SolidJS Scroll FPS, Initial Render, and ScrollTo call the core `createVList` directly, which is how those three already measured. SolidJS Memory goes through `vlist/solid`.
 
 ## History
 

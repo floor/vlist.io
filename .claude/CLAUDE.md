@@ -134,8 +134,7 @@ Conventional Commits: `type(scope): description`
 
 | Package | Purpose |
 |---------|---------|
-| `vlist` | The library (`file:../vlist` locally, `latest` in production) |
-| `vlist-react`, `vlist-vue`, `vlist-svelte`, `vlist-solidjs` | Framework adapters for examples |
+| `vlist` | The library (`file:../vlist` locally, `latest` in production); its `vlist/vue`, `vlist/svelte`, `vlist/solid`, `vlist/react` entries drive the framework examples |
 | `eta` | HTML templating |
 | `marked` | Markdown → HTML |
 

@@ -1,7 +1,6 @@
 // Scroll FPS for Svelte. Both modes use the same position write.
 
-import { vlist } from "vlist-svelte";
-import { createVListFromConfig } from "vlist/config";
+import { vlist } from "vlist/svelte";
 import { defineSuite, benchmarkTemplate } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
@@ -18,7 +17,7 @@ function defineMode(mode) {
     icon: "📜",
     hasScrollSpeed: true,
     run: async (ctx) => {
-      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
+      if (mode === "synthetic") await loadSynthetic();
       return runLogicalScroll({
         ...ctx,
         mode,
@@ -30,8 +29,8 @@ function defineMode(mode) {
               items,
               item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
               scroll: { mode },
-              plugins: [scrollCapturePlugin((set) => { write = set; })],
             },
+            plugins: [scrollCapturePlugin((set) => { write = set; })],
             onInstance: (value) => { instance = value; },
           });
           if (!write) throw new Error("Svelte list did not install the scroll writer");

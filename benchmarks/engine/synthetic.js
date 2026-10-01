@@ -6,8 +6,8 @@
 // loads it before measuring, through the factory it measures: once loaded, a
 // list is synthetic from its first frame, so no sample sees the native start.
 //
-// Each vlist bundle keeps its own copy of the loaded driver: `vlist` for core,
-// `vlist/config` for the framework adapters. Load it through the one in use.
+// The framework entries (`vlist/react`, `vlist/vue`, …) build on the same core
+// as `vlist`, so loading the driver through core `createVList` covers them too.
 
 import { createVList } from "vlist";
 import { ITEM_HEIGHT } from "./constants.js";

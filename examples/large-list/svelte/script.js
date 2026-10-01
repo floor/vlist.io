@@ -3,7 +3,7 @@
 // the list hands itself to synthetic input and draws its scrollbar
 // Demonstrates handling 100K–5M items
 
-import { vlist, onVListEvent } from "vlist-svelte";
+import { vlist, onVListEvent } from "vlist/svelte";
 
 // =============================================================================
 // Constants

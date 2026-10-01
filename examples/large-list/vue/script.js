@@ -4,7 +4,7 @@
 // Demonstrates handling 100K–5M items
 
 import { createApp, ref, computed, watch } from "vue";
-import { useVList, useVListEvent } from "vlist-vue";
+import { useVList, useVListEvent } from "vlist/vue";
 
 // =============================================================================
 // Constants
@@ -150,7 +150,7 @@ const App = {
 
       // Update vlist with new items
       if (instance.value) {
-        instance.value.update({ items: newItems });
+        instance.value.setItems(newItems);
       }
 
       stats.value = {

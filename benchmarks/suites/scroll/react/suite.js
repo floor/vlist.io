@@ -1,9 +1,8 @@
 // Scroll FPS for React. Both modes use the same position write.
-// Synthetic passes scroll.mode through the adapter.
+// Synthetic passes scroll.mode through vlist/react.
 
 import { createRoot } from "react-dom/client";
-import { useVList } from "vlist-react";
-import { createVListFromConfig } from "vlist/config";
+import { useVList } from "vlist/react";
 import { defineSuite, benchmarkTemplate, waitFrames } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
@@ -20,8 +19,7 @@ function mount(container, items, mode) {
       items,
       item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
       scroll: { mode },
-      plugins: [scrollCapturePlugin((set) => { write = set; })],
-    });
+    }, [scrollCapturePlugin((set) => { write = set; })]);
     api.containerRef.current = container;
     readInstance = () => api.getInstance();
     return null;
@@ -46,7 +44,7 @@ function defineMode(mode) {
     icon: "📜",
     hasScrollSpeed: true,
     run: async (ctx) => {
-      if (mode === "synthetic") await loadSynthetic(createVListFromConfig);
+      if (mode === "synthetic") await loadSynthetic();
       return runLogicalScroll({
         ...ctx,
         mode,

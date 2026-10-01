@@ -30,8 +30,8 @@
       },
       {
         "slug": "adapters",
-        "name": "Adapters",
-        "desc": "React, Vue, Svelte, and SolidJS integration"
+        "name": "Frameworks",
+        "desc": "Vue, Svelte, SolidJS and React entries"
       },
       {
         "slug": "accessibility",
