@@ -12,9 +12,9 @@ import {
   DEFAULT_LIMIT,
 } from "../../src/api/cities";
 
-describe.skipIf(missing("cities"))("cities", () => {
+describe("cities", () => {
   describe("getCities", () => {
-    test("returns paginated results with defaults", () => {
+    test.skipIf(missing("cities"))("returns paginated results with defaults", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -27,7 +27,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(typeof result.hasMore).toBe("boolean");
     });
 
-    test("each city has all required fields", () => {
+    test.skipIf(missing("cities"))("each city has all required fields", () => {
       const result = getCities({
         offset: 0,
         limit: 1,
@@ -45,7 +45,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(city).toHaveProperty("continent");
     });
 
-    test("respects offset parameter", () => {
+    test.skipIf(missing("cities"))("respects offset parameter", () => {
       const page1 = getCities({
         offset: 0,
         limit: 5,
@@ -62,7 +62,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(page1.items[0].id).not.toBe(page2.items[0].id);
     });
 
-    test("clamps limit to MAX_LIMIT", () => {
+    test.skipIf(missing("cities"))("clamps limit to MAX_LIMIT", () => {
       const result = getCities({
         offset: 0,
         limit: 999,
@@ -73,7 +73,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(result.items.length).toBeLessThanOrEqual(MAX_LIMIT);
     });
 
-    test("sorts by population descending by default", () => {
+    test.skipIf(missing("cities"))("sorts by population descending by default", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -88,7 +88,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("sorts ascending when direction is asc", () => {
+    test.skipIf(missing("cities"))("sorts ascending when direction is asc", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -103,7 +103,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("sorts by name with COLLATE NOCASE", () => {
+    test.skipIf(missing("cities"))("sorts by name with COLLATE NOCASE", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -114,7 +114,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("falls back to population sort for invalid column", () => {
+    test.skipIf(missing("cities"))("falls back to population sort for invalid column", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -126,7 +126,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("falls back to desc for invalid direction", () => {
+    test.skipIf(missing("cities"))("falls back to desc for invalid direction", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -137,7 +137,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(result.items.length).toBeGreaterThan(0);
     });
 
-    test("filters by search term", () => {
+    test.skipIf(missing("cities"))("filters by search term", () => {
       const result = getCities({
         offset: 0,
         limit: 50,
@@ -152,7 +152,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("filters by single country code", () => {
+    test.skipIf(missing("cities"))("filters by single country code", () => {
       const result = getCities({
         offset: 0,
         limit: 50,
@@ -167,7 +167,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("filters by multiple country codes (comma-separated)", () => {
+    test.skipIf(missing("cities"))("filters by multiple country codes (comma-separated)", () => {
       const result = getCities({
         offset: 0,
         limit: 50,
@@ -182,7 +182,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("filters by continent", () => {
+    test.skipIf(missing("cities"))("filters by continent", () => {
       const result = getCities({
         offset: 0,
         limit: 50,
@@ -197,7 +197,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("filters by minPop", () => {
+    test.skipIf(missing("cities"))("filters by minPop", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -212,7 +212,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("filters by maxPop", () => {
+    test.skipIf(missing("cities"))("filters by maxPop", () => {
       const result = getCities({
         offset: 0,
         limit: 10,
@@ -227,7 +227,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("combines multiple filters", () => {
+    test.skipIf(missing("cities"))("combines multiple filters", () => {
       const result = getCities({
         offset: 0,
         limit: 50,
@@ -243,7 +243,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       }
     });
 
-    test("hasMore is true when more results exist", () => {
+    test.skipIf(missing("cities"))("hasMore is true when more results exist", () => {
       const result = getCities({
         offset: 0,
         limit: 1,
@@ -254,7 +254,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(result.hasMore).toBe(true);
     });
 
-    test("hasMore is false at end of dataset", () => {
+    test.skipIf(missing("cities"))("hasMore is false at end of dataset", () => {
       const all = getCities({
         offset: 0,
         limit: 1,
@@ -274,20 +274,20 @@ describe.skipIf(missing("cities"))("cities", () => {
   });
 
   describe("getCityById", () => {
-    test("returns a city by ID", () => {
+    test.skipIf(missing("cities"))("returns a city by ID", () => {
       const city = getCityById(1);
       expect(city).not.toBeNull();
       expect(city!.id).toBe(1);
     });
 
-    test("returns null for non-existent ID", () => {
+    test.skipIf(missing("cities"))("returns null for non-existent ID", () => {
       const city = getCityById(999_999_999);
       expect(city).toBeNull();
     });
   });
 
   describe("getCountries", () => {
-    test("returns country codes with counts", () => {
+    test.skipIf(missing("cities"))("returns country codes with counts", () => {
       const countries = getCountries();
 
       expect(countries.length).toBeGreaterThan(0);
@@ -296,7 +296,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(countries[0].count).toBeGreaterThan(0);
     });
 
-    test("is sorted by count descending", () => {
+    test.skipIf(missing("cities"))("is sorted by count descending", () => {
       const countries = getCountries();
 
       for (let i = 1; i < countries.length; i++) {
@@ -308,7 +308,7 @@ describe.skipIf(missing("cities"))("cities", () => {
   });
 
   describe("getContinents", () => {
-    test("returns continents with counts", () => {
+    test.skipIf(missing("cities"))("returns continents with counts", () => {
       const continents = getContinents();
 
       expect(continents.length).toBeGreaterThan(0);
@@ -318,7 +318,7 @@ describe.skipIf(missing("cities"))("cities", () => {
   });
 
   describe("getStats", () => {
-    test("returns aggregate statistics", () => {
+    test.skipIf(missing("cities"))("returns aggregate statistics", () => {
       const stats = getStats();
 
       expect(stats.total).toBeGreaterThan(0);
@@ -330,7 +330,7 @@ describe.skipIf(missing("cities"))("cities", () => {
       expect(stats.populationRange.max).toBeGreaterThan(stats.populationRange.min);
     });
 
-    test("top cities have required fields", () => {
+    test.skipIf(missing("cities"))("top cities have required fields", () => {
       const stats = getStats();
       const top = stats.topCities[0];
 
