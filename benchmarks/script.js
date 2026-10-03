@@ -55,12 +55,10 @@ const persistResult = (result, extra = {}) => {
     scrollSpeed: extra.scrollSpeed ?? 0,
     mode: extra.mode ?? "native",
 
-    // Environment
+    // Environment — device memory and screen size are deliberately not
+    // collected (privacy); the API stores NULL for those columns.
     userAgent: navigator.userAgent,
     hardwareConcurrency: navigator.hardwareConcurrency || null,
-    deviceMemory: navigator.deviceMemory || null,
-    screenWidth: screen.width,
-    screenHeight: screen.height,
   };
 
   fetch("/api/benchmarks", {
