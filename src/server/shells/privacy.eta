@@ -107,7 +107,7 @@
 
                 <h2>How the site reaches you</h2>
                 <p>vlist.io is served through Cloudflare. To deliver the pages, Cloudflare processes information about your request, including your IP address. Cloudflare describes this in its <a href="https://www.cloudflare.com/privacypolicy/">privacy policy</a>.</p>
-                <p>Cloudflare also collects network-error reports for the site at <code>a.nel.cloudflare.com</code> when a request fails; the header the site sends samples no successful requests for them (<code>success_fraction</code> 0).</p>
+                <p>Cloudflare's responses also ask your browser to report failed requests: if a request to vlist.io fails, a browser that supports this may send a report of the failure to Cloudflare, at <code>a.nel.cloudflare.com</code>.</p>
 
                 <h2>Counting visits</h2>
                 <p>Visits are counted with Cloudflare Web Analytics. If your visit reaches Cloudflare through one of its data centers in the EU, the EEA, Switzerland or the UK, the analytics script isn't loaded (<a href="https://developers.cloudflare.com/speed/observatory/rum-beacon/">Cloudflare's description</a>, read on 3 October 2026). Otherwise, your browser loads it from <code>static.cloudflareinsights.com</code>, and the beacon reports to this site's own <code>/cdn-cgi/rum</code>, which Cloudflare handles at its edge.</p>
@@ -115,25 +115,26 @@
 
                 <h2>Cookies and other sites</h2>
                 <p>The server sets no cookies. The example pages keep one choice — how they scroll — in a first-party cookie named <code>vlist-scroll-mode</code>, written by their own code and sent only back to vlist.io.</p>
-                <p>One request leaves for another host: the analytics script, where it is loaded, comes from Cloudflare's <code>static.cloudflareinsights.com</code>. Everything else — fonts, styles, scripts — comes from vlist.io itself.</p>
-                <p>The social-feed example is the exception by design: it shows Reddit posts, so it loads their images from Reddit, and an RSS feed you enter is fetched by our server from that feed's host.</p>
+                <p>Some examples show pictures from other sites: the photo album and the carousel load photos from <code>picsum.photos</code>, the variable-sizes example loads avatars from <code>i.pravatar.cc</code>, the track list loads cover art from <code>asset.radiooooo.com</code>, and the social-feed example loads Reddit's images. Your browser requests those images from those hosts.</p>
+                <p>The analytics script, where it is loaded, comes from Cloudflare's <code>static.cloudflareinsights.com</code>. Everything else — fonts, styles, scripts — comes from vlist.io itself.</p>
+                <p>An RSS feed you add to the social-feed example is fetched by our server from that feed's host.</p>
 
-                <h2>What stays in your browser</h2>
+                <h2>What the site remembers</h2>
                 <p>The site keeps your choices in your browser, and only once you change one of them:</p>
                 <ul>
                     <li>light or dark appearance for the site;</li>
-                    <li>the scroll mode of the examples (in the cookie above, not in local storage);</li>
+                    <li>the scroll mode of the examples (in the cookie above, not in local storage; it lasts until you close the browser);</li>
                     <li>the scrollbar example's list and settings;</li>
                     <li>the scroll-restore example's saved list snapshot;</li>
                     <li>the track-list example's saved scroll position;</li>
                     <li>the social-feed example's source, mode, subreddit or feed;</li>
                     <li>the benchmarks page's native or synthetic mode.</li>
                 </ul>
-                <p>These values never leave your browser: the site doesn't send them anywhere. To remove them, clear the site data for vlist.io in your browser's settings.</p>
+                <p>The site doesn't send these to anyone else. The scroll-mode cookie goes back to vlist.io with your requests and the server ignores it, and the social feed's subreddit or feed address is sent to our server to fetch the feed. To remove them, clear the site data for vlist.io in your browser's settings.</p>
 
                 <h2>If you run a benchmark</h2>
                 <p>When a benchmark run on the benchmarks page succeeds, the page sends the result to our server, which stores it in the site's SQLite database, <code>data/benchmarks.db</code>: the benchmark's scores, the user agent your browser reports, and the number of CPU cores. A run that fails is not stored, and nothing else about you is attached.</p>
-                <p>Submissions are rate-limited by IP address, so one visitor cannot fill the database: the address is held in memory for 60 seconds to count submissions and never written down.</p>
+                <p>Submissions are rate-limited by IP address, so one visitor cannot fill the database: the address is held in memory for a few minutes at most, to count submissions, and never written down.</p>
 
                 <h2>Contact</h2>
                 <p>Questions about this page: open an issue on <a href="https://github.com/floor/vlist.io/issues">GitHub</a>.</p>
