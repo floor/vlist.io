@@ -72,9 +72,49 @@ function getDb(): Database {
     db.run("PRAGMA foreign_keys = ON");
     ensureModeColumn(db, "comparison_runs");
     ensureModeColumn(db, "benchmark_runs");
+    nullEnvironmentFields(db);
     foldLegacySuiteIds(db);
   }
   return db;
+}
+
+/** Marker id for the one-time environment-fields migration below. */
+const MIGRATION_NULL_ENVIRONMENT_FIELDS = "null-device-memory-screen-size";
+
+/**
+ * One-time migration: clear device_memory / screen_width / screen_height from
+ * every stored run. The columns stay (old rows and queries keep reading), but
+ * these values are no longer collected. Recorded in `migrations` so it runs
+ * once and is a no-op on every later startup.
+ *
+ * CI rows (ci_benchmark_runs.device_memory) are deliberately left alone: they
+ * come from our own runner, not from visitors.
+ */
+function nullEnvironmentFields(database: Database): void {
+  database.run(`
+    CREATE TABLE IF NOT EXISTS migrations (
+      id         TEXT PRIMARY KEY,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  const applied = database
+    .prepare(`SELECT 1 FROM migrations WHERE id = ?`)
+    .get(MIGRATION_NULL_ENVIRONMENT_FIELDS);
+  if (applied) return;
+
+  const migrate = database.transaction(() => {
+    for (const table of ["benchmark_runs", "comparison_runs"]) {
+      database.run(
+        `UPDATE ${table}
+         SET device_memory = NULL, screen_width = NULL, screen_height = NULL`,
+      );
+    }
+    database.run(`INSERT INTO migrations (id) VALUES (?)`, [
+      MIGRATION_NULL_ENVIRONMENT_FIELDS,
+    ]);
+  });
+  migrate();
 }
 
 /**
@@ -234,9 +274,8 @@ interface BenchmarkResultInput {
   // Environment (sent by client)
   userAgent?: string;
   hardwareConcurrency?: number;
-  deviceMemory?: number;
-  screenWidth?: number;
-  screenHeight?: number;
+  // device_memory / screen_width / screen_height are no longer collected.
+  // The columns stay in the schema for old rows; new rows store NULL.
 }
 
 interface AggregatedMetric {
@@ -512,16 +551,8 @@ function validateResult(data: unknown): {
         typeof d.hardwareConcurrency === "number"
           ? d.hardwareConcurrency
           : undefined,
-      deviceMemory:
-        typeof d.deviceMemory === "number" ? d.deviceMemory : undefined,
-      screenWidth:
-        typeof d.screenWidth === "number"
-          ? Math.round(d.screenWidth as number)
-          : undefined,
-      screenHeight:
-        typeof d.screenHeight === "number"
-          ? Math.round(d.screenHeight as number)
-          : undefined,
+      // deviceMemory / screenWidth / screenHeight are ignored on purpose:
+      // the columns stay in the schema but always store NULL (privacy).
     },
   };
 }
@@ -559,9 +590,10 @@ function storeResult(result: BenchmarkResultInput): {
       result.itemCount,
       result.userAgent ?? null,
       result.hardwareConcurrency ?? null,
-      result.deviceMemory ?? null,
-      result.screenWidth ?? null,
-      result.screenHeight ?? null,
+      // Not collected — always NULL, whatever a client sends.
+      null,
+      null,
+      null,
       result.duration,
       result.success ? 1 : 0,
       result.error ?? null,
