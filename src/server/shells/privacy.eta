@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="<%= it.description %>" />
+        <title><%= it.title %></title>
+
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="canonical" href="<%= it.canonicalUrl %>" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="<%= it.canonicalUrl %>" />
+        <meta property="og:title" content="<%= it.title %>" />
+        <meta property="og:description" content="<%= it.description %>" />
+        <meta property="og:image" content="https://vlist.io/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="vlist — the virtual list library for every framework" />
+        <meta property="og:site_name" content="vlist" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="<%= it.canonicalUrl %>" />
+        <meta name="twitter:title" content="<%= it.title %>" />
+        <meta name="twitter:description" content="<%= it.description %>" />
+        <meta name="twitter:image" content="https://vlist.io/og-image.png" />
+
+        <!-- Additional SEO -->
+        <meta name="author" content="Floor IO" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+        <link rel="preload" href="/fonts/DIN-Alternate-Regular.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/DIN-Alternate-Bold.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="stylesheet" href="/styles/tokens.css" />
+        <link rel="stylesheet" href="/styles/shell.css" />
+        <link rel="stylesheet" href="/styles/ui.css" />
+        <link rel="stylesheet" href="/styles/content.css" />
+        <link rel="stylesheet" href="/styles/search.css" />
+        <link rel="stylesheet" href="/dist/vlist.css" />
+
+        <!-- Theme: apply before paint to prevent flash -->
+        <script>
+            (function () {
+                var t = localStorage.getItem("vlist-theme-mode");
+                if (!t)
+                    t = window.matchMedia("(prefers-color-scheme: light)")
+                        .matches
+                        ? "light"
+                        : "dark";
+                document.documentElement.setAttribute("data-theme-mode", t);
+            })();
+        </script>
+    </head>
+    <body class="no-sidebar">
+        <header class="header">
+            <div class="header__inner">
+                <a href="/" class="header__logo">vlist</a>
+                <nav class="header__nav">
+                    <% it.navItems.forEach(function(item) { %>
+                    <a href="<%= item.href %>"<% if (item.external) { %> target="_blank"<% } %>><%= item.label %></a>
+                    <% }); %>
+                </nav>
+                <button class="header__search" id="search-trigger" aria-label="Search" type="button">
+                    <svg class="header__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <span class="header__search-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
+                </button>
+                <button class="header__theme" id="theme-toggle" aria-label="Toggle theme">
+                    <svg class="header__theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg class="header__theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+                <button class="header__hamburger" id="hamburger" aria-label="Toggle menu">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                        <rect y="3" width="20" height="2" rx="1" />
+                        <rect y="9" width="20" height="2" rx="1" />
+                        <rect y="15" width="20" height="2" rx="1" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <nav class="dropdown" id="dropdown">
+            <% it.navItems.forEach(function(item) { %>
+            <a href="<%= item.href %>"<% if (item.external) { %> target="_blank"<% } %>><%= item.label %></a>
+            <% }); %>
+        </nav>
+
+        <main>
+            <article class="md">
+                <h1>Privacy</h1>
+
+                <h2>How the site reaches you</h2>
+                <p>vlist.io is served through Cloudflare. To deliver the pages, Cloudflare processes information about your request, including your IP address. Cloudflare describes this in its <a href="https://www.cloudflare.com/privacypolicy/">privacy policy</a>.</p>
+                <p>Cloudflare's responses also ask your browser to report failed requests: if a request to vlist.io fails, a browser that supports this may send a report of the failure to Cloudflare, at <code>a.nel.cloudflare.com</code>.</p>
+
+                <h2>Counting visits</h2>
+                <p>Visits are counted with Cloudflare Web Analytics. If your visit reaches Cloudflare through one of its data centers in the EU, the EEA, Switzerland or the UK, the analytics script isn't loaded (<a href="https://developers.cloudflare.com/speed/observatory/rum-beacon/">Cloudflare's description</a>, read on 3 October 2026). Otherwise, your browser loads it from <code>static.cloudflareinsights.com</code>, and the beacon reports to this site's own <code>/cdn-cgi/rum</code>, which Cloudflare handles at its edge.</p>
+                <p>Cloudflare says that Web Analytics "does not use any client-side state, such as cookies or localStorage, to collect usage metrics", and that it doesn't "fingerprint" individuals through their IP address, User Agent string, or any other data to display analytics. Source: <a href="https://www.cloudflare.com/web-analytics/">Cloudflare Web Analytics</a>, read on 3 October 2026.</p>
+
+                <h2>Cookies and other sites</h2>
+                <p>The server sets no cookies. The example pages keep one choice — how they scroll — in a first-party cookie named <code>vlist-scroll-mode</code>, written by their own code and sent only back to vlist.io.</p>
+                <p>Some examples show pictures from other sites: the photo album and the carousel load photos from <code>picsum.photos</code> (served from <code>fastly.picsum.photos</code>), the variable-sizes example loads avatars from <code>i.pravatar.cc</code>, the track list loads cover art from <code>asset.radiooooo.com</code>, and the social-feed example loads Reddit's images. Your browser requests those images from those hosts.</p>
+                <p>The analytics script, where it is loaded, comes from Cloudflare's <code>static.cloudflareinsights.com</code>. Everything else — fonts, styles, scripts — comes from vlist.io itself.</p>
+                <p>An RSS feed you add to the social-feed example is fetched by our server from that feed's host.</p>
+
+                <h2>What the site remembers</h2>
+                <p>The site keeps your choices in your browser, and only once you change one of them:</p>
+                <ul>
+                    <li>light or dark appearance for the site;</li>
+                    <li>the scroll mode of the examples (in the cookie above, not in local storage; it lasts until you close the browser);</li>
+                    <li>the scrollbar example's list and settings;</li>
+                    <li>the scroll-restore example's saved list snapshot;</li>
+                    <li>the track-list example's saved scroll position;</li>
+                    <li>the social-feed example's source, mode, subreddit or feed;</li>
+                    <li>the benchmarks page's native or synthetic mode.</li>
+                </ul>
+                <p>The site doesn't send these to anyone else. The scroll-mode cookie goes back to vlist.io with your requests and the server ignores it, and the social feed's subreddit or feed address is sent to our server to fetch the feed. To remove them, clear the site data for vlist.io in your browser's settings.</p>
+
+                <h2>If you run a benchmark</h2>
+                <p>When a benchmark run on the benchmarks page succeeds, the page sends the result to our server, which stores it in the site's SQLite database, <code>data/benchmarks.db</code>: the benchmark's scores, the user agent your browser reports, and the number of CPU cores. A run that fails is not stored, and nothing else about you is attached.</p>
+                <p>Submissions are rate-limited by IP address, so one visitor cannot fill the database: the address is held in memory for a few minutes at most, to count submissions, and never written down.</p>
+
+                <h2>Contact</h2>
+                <p>Questions about this page: open an issue on <a href="https://github.com/floor/vlist.io/issues">GitHub</a>.</p>
+                <p>Last updated 3 October 2026.</p>
+            </article>
+        </main>
+
+        <!-- ============================================================
+             Footer
+             ============================================================ -->
+
+        <footer>
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+                    <a href="https://www.npmjs.com/package/vlist" target="_blank">npm</a>
+                    <% it.navItems.forEach(function(item) { %>
+                    <% if (!item.external) { %>
+                    <a href="<%= item.href %>"><%= item.label %></a>
+                    <% } %>
+                    <% }); %>
+                    <a href="/privacy/">Privacy</a>
+                </div>
+                <p class="footer__built">
+                    Built by <a href="https://floor.io" target="_blank">Floor IO</a>
+                </p>
+            </div>
+        </footer>
+
+        <script>
+            (function () {
+                var h = document.getElementById("hamburger");
+                var d = document.getElementById("dropdown");
+                if (!h) return;
+                h.addEventListener("click", function () {
+                    d.classList.toggle("dropdown--open");
+                });
+                d.addEventListener("click", function (e) {
+                    if (e.target.closest("a"))
+                        d.classList.remove("dropdown--open");
+                });
+            })();
+        </script>
+
+        <!-- ─── Theme toggle ─────────────────────────────────── -->
+
+        <script>
+            (function () {
+                var btn = document.getElementById("theme-toggle");
+                if (!btn) return;
+                btn.addEventListener("click", function () {
+                    var current = document.documentElement.getAttribute("data-theme-mode");
+                    var next = current === "light" ? "dark" : "light";
+                    document.documentElement.setAttribute("data-theme-mode", next);
+                    localStorage.setItem("vlist-theme-mode", next);
+                });
+            })();
+        </script>
+
+        <%~ it.SEARCH_HTML %>
+    </body>
+</html>

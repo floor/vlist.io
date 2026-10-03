@@ -54,7 +54,9 @@ jobs:
             # production installs vlist from npm latest)
             VLIST_DIR="/home/floor/staging.vlist"
             cd $VLIST_DIR
-            git fetch origin next
+            # --tags: the version stamp marks the tagged prerelease as released,
+            # and git only follows a tag when this fetch downloads its commit.
+            git fetch --tags origin next
             git checkout -f -B next origin/next
             bun install --frozen-lockfile
             bun run build
@@ -71,12 +73,6 @@ jobs:
             # Clean install to ensure fresh resolution (avoid lockfile conflicts)
             rm -rf node_modules bun.lock
             bun install --force
-
-            # Framework adapters (vlist-react, vlist-vue, etc.) depend on @floor/vlist
-            # but the local file: link installs as "vlist". Create the @floor/vlist symlink
-            # so adapter packages can resolve it.
-            mkdir -p node_modules/@floor
-            ln -sfn ../vlist node_modules/@floor/vlist
 
             # Build sandbox examples and benchmarks (using the latest vlist next code).
             # The benchmark bundler resolves vlist from VLIST_BENCH_ROOT (default ../vlist,
