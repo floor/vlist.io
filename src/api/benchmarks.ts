@@ -70,6 +70,9 @@ function getDb(): Database {
     db.run("PRAGMA journal_mode = WAL");
     db.run("PRAGMA cache_size = -4000"); // 4 MB cache
     db.run("PRAGMA foreign_keys = ON");
+    // Production runs two pm2 processes on this file; wait for the other
+    // writer instead of failing at once with SQLITE_BUSY.
+    db.run("PRAGMA busy_timeout = 5000");
     ensureModeColumn(db, "comparison_runs");
     ensureModeColumn(db, "benchmark_runs");
     nullEnvironmentFields(db);
@@ -87,34 +90,40 @@ const MIGRATION_NULL_ENVIRONMENT_FIELDS = "null-device-memory-screen-size";
  * these values are no longer collected. Recorded in `migrations` so it runs
  * once and is a no-op on every later startup.
  *
+ * The whole check-and-write runs in one BEGIN IMMEDIATE transaction, because
+ * production runs two server processes on this file: with the marker read
+ * outside the lock, both could start the migration at once and one would die
+ * on SQLITE_BUSY or the primary key. Exported so tests can drive it on their
+ * own database handles.
+ *
  * CI rows (ci_benchmark_runs.device_memory) are deliberately left alone: they
  * come from our own runner, not from visitors.
  */
-function nullEnvironmentFields(database: Database): void {
-  database.run(`
-    CREATE TABLE IF NOT EXISTS migrations (
-      id         TEXT PRIMARY KEY,
-      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
-  `);
-
-  const applied = database
-    .prepare(`SELECT 1 FROM migrations WHERE id = ?`)
-    .get(MIGRATION_NULL_ENVIRONMENT_FIELDS);
-  if (applied) return;
-
+export function nullEnvironmentFields(database: Database): void {
   const migrate = database.transaction(() => {
+    database.run(`
+      CREATE TABLE IF NOT EXISTS migrations (
+        id         TEXT PRIMARY KEY,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+
+    const applied = database
+      .prepare(`SELECT 1 FROM migrations WHERE id = ?`)
+      .get(MIGRATION_NULL_ENVIRONMENT_FIELDS);
+    if (applied) return;
+
     for (const table of ["benchmark_runs", "comparison_runs"]) {
       database.run(
         `UPDATE ${table}
          SET device_memory = NULL, screen_width = NULL, screen_height = NULL`,
       );
     }
-    database.run(`INSERT INTO migrations (id) VALUES (?)`, [
+    database.run(`INSERT OR IGNORE INTO migrations (id) VALUES (?)`, [
       MIGRATION_NULL_ENVIRONMENT_FIELDS,
     ]);
   });
-  migrate();
+  migrate.immediate();
 }
 
 /**

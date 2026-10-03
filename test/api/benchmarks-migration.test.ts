@@ -8,7 +8,12 @@ import { describe, test, expect, beforeAll, afterAll } from "bun:test";
 import { Database } from "bun:sqlite";
 import { existsSync, unlinkSync, mkdirSync } from "fs";
 import { resolve, dirname } from "path";
-import { routeBenchmarks, setDbPath, resetDb } from "../../src/api/benchmarks";
+import {
+  routeBenchmarks,
+  setDbPath,
+  resetDb,
+  nullEnvironmentFields,
+} from "../../src/api/benchmarks";
 
 const DB_PATH = resolve(
   import.meta.dir,
@@ -182,5 +187,36 @@ describe("benchmarks environment-fields migration", () => {
     expect(row.screen_width).toBe(1920);
     expect(row.screen_height).toBe(1080);
     expect(markerCount.count).toBe(markersBefore.count);
+  });
+
+  test("a second connection with the marker recorded does not throw", () => {
+    // Two handles on the same file: the first records the marker, the second
+    // runs the migration. It must see the marker inside its own transaction —
+    // no SQLITE_BUSY, no primary-key error, no second migration.
+    const first = new Database(DB_PATH);
+    first.run(`
+      CREATE TABLE IF NOT EXISTS migrations (
+        id         TEXT PRIMARY KEY,
+        applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+    first.run(`INSERT OR IGNORE INTO migrations (id) VALUES (?)`, [MARKER]);
+    const before = first
+      .prepare(`SELECT device_memory FROM comparison_runs LIMIT 1`)
+      .get() as { device_memory: number | null };
+    first.close();
+
+    const second = new Database(DB_PATH);
+    expect(() => nullEnvironmentFields(second)).not.toThrow();
+    const after = second
+      .prepare(`SELECT device_memory FROM comparison_runs LIMIT 1`)
+      .get() as { device_memory: number | null };
+    const markerCount = second
+      .prepare(`SELECT COUNT(*) as count FROM migrations`)
+      .get() as { count: number };
+    second.close();
+
+    expect(markerCount.count).toBe(1);
+    expect(after.device_memory).toBe(before.device_memory);
   });
 });
