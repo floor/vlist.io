@@ -115,7 +115,7 @@
 
                 <h2>Cookies and other sites</h2>
                 <p>The server sets no cookies. The example pages keep one choice — how they scroll — in a first-party cookie named <code>vlist-scroll-mode</code>, written by their own code and sent only back to vlist.io.</p>
-                <p>Some examples show pictures from other sites: the photo album and the carousel load photos from <code>picsum.photos</code>, the variable-sizes example loads avatars from <code>i.pravatar.cc</code>, the track list loads cover art from <code>asset.radiooooo.com</code>, and the social-feed example loads Reddit's images. Your browser requests those images from those hosts.</p>
+                <p>Some examples show pictures from other sites: the photo album and the carousel load photos from <code>picsum.photos</code> (served from <code>fastly.picsum.photos</code>), the variable-sizes example loads avatars from <code>i.pravatar.cc</code>, the track list loads cover art from <code>asset.radiooooo.com</code>, and the social-feed example loads Reddit's images. Your browser requests those images from those hosts.</p>
                 <p>The analytics script, where it is loaded, comes from Cloudflare's <code>static.cloudflareinsights.com</code>. Everything else — fonts, styles, scripts — comes from vlist.io itself.</p>
                 <p>An RSS feed you add to the social-feed example is fetched by our server from that feed's host.</p>
 
