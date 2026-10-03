@@ -238,6 +238,28 @@
             <% if (it.HAS_TOC) { %><%~ it.TOC %><% } %>
         </div>
 
+        <!-- ============================================================
+             Footer — shared by every section page
+             ============================================================ -->
+
+        <footer>
+            <div class="container">
+                <div class="footer__links">
+                    <a href="https://github.com/floor/vlist" target="_blank">GitHub</a>
+                    <a href="https://www.npmjs.com/package/vlist" target="_blank">npm</a>
+                    <% it.NAV_ITEMS.forEach(function(item) { %>
+                    <% if (!item.external) { %>
+                    <a href="<%= item.href %>"><%= item.label %></a>
+                    <% } %>
+                    <% }); %>
+                    <a href="/privacy/">Privacy</a>
+                </div>
+                <p class="footer__built">
+                    Built by <a href="https://floor.io" target="_blank">Floor IO</a>
+                </p>
+            </div>
+        </footer>
+
         <%~ it.EXTRA_BODY %>
 
         <% if (it.HAS_SYNTAX_HIGHLIGHTING && !it.LAZY_SYNTAX_HIGHLIGHTING) { %>
