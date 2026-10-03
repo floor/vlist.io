@@ -12,6 +12,7 @@ import {
   jsonHeaders,
 } from "../../src/server/cache";
 import { IS_PROD } from "../../src/server/config";
+import { staticCachePolicy } from "../../src/server/static";
 
 const DEV_NOCACHE = "no-cache, no-store";
 
@@ -92,6 +93,24 @@ describe("cache", () => {
 
     test("CACHE_API_DOCS matches CACHE_PAGE in dev", () => {
       expect(CACHE_API_DOCS).toBe(CACHE_PAGE);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Static path → cache policy (environment-independent mapping)
+  // ---------------------------------------------------------------------------
+  describe("staticCachePolicy", () => {
+    test("/vendor/* is a deploy-only static asset (7 days, like /styles/)", () => {
+      expect(staticCachePolicy("/vendor/highlightjs/highlight.min.js")).toBe("static");
+      expect(staticCachePolicy("/vendor/highlightjs/languages/typescript.min.js")).toBe("static");
+    });
+
+    test("/styles/* is a deploy-only static asset", () => {
+      expect(staticCachePolicy("/styles/shell.css")).toBe("static");
+    });
+
+    test("other root assets are not cached", () => {
+      expect(staticCachePolicy("/og-image.png")).toBe("no-cache");
     });
   });
 
