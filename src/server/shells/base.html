@@ -265,12 +265,12 @@
         <% if (it.HAS_SYNTAX_HIGHLIGHTING && !it.LAZY_SYNTAX_HIGHLIGHTING) { %>
         <!-- ─── Syntax highlighting (eager — docs/tutorials with visible code blocks) ── -->
 
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/typescript.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/bash.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/css.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/scss.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/languages/xml.min.js"></script>
+        <script src="/vendor/highlightjs/highlight.min.js"></script>
+        <script src="/vendor/highlightjs/languages/typescript.min.js"></script>
+        <script src="/vendor/highlightjs/languages/bash.min.js"></script>
+        <script src="/vendor/highlightjs/languages/css.min.js"></script>
+        <script src="/vendor/highlightjs/languages/scss.min.js"></script>
+        <script src="/vendor/highlightjs/languages/xml.min.js"></script>
         <script>
             hljs.registerAliases(["vue", "svelte", "astro"], { languageName: "xml" });
             hljs.highlightAll();
@@ -283,19 +283,19 @@
         <script>
             (function () {
                 var loaded = false;
-                var CDN = "https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/";
+                var BASE = "/vendor/highlightjs/";
                 var langs = ["typescript", "bash", "css", "scss", "xml"];
 
                 function loadHljs(cb) {
                     if (loaded) { cb(); return; }
                     loaded = true;
                     var core = document.createElement("script");
-                    core.src = CDN + "highlight.min.js";
+                    core.src = BASE + "highlight.min.js";
                     core.onload = function () {
                         var remaining = langs.length;
                         langs.forEach(function (lang) {
                             var s = document.createElement("script");
-                            s.src = CDN + "languages/" + lang + ".min.js";
+                            s.src = BASE + "languages/" + lang + ".min.js";
                             s.onload = function () {
                                 if (--remaining === 0) cb();
                             };
