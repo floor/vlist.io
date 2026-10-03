@@ -697,9 +697,9 @@ The server auto-routes each POST to the correct tables based on the `suiteId`. B
 | `metrics` | All measured values (label, value, unit, better, rating) |
 | `user_agent` | `navigator.userAgent` |
 | `hardware_concurrency` | CPU core count |
-| `device_memory` | RAM in GB (where available) |
-| `screen_width` / `screen_height` | Display resolution |
 | `stress_ms` / `scroll_speed` | Active stress/speed config |
+
+The `device_memory`, `screen_width` and `screen_height` columns are no longer collected: new runs store `NULL`, and older runs' values were cleared. The columns remain in the table for schema compatibility.
 
 ### API Endpoints
 
