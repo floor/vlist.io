@@ -186,6 +186,9 @@
                     <span class="badge">Zero Dependencies</span>
                     <span class="badge badge--accent">WAI-ARIA Accessible</span>
                     <span class="badge">0.1 MB @ 1M items</span>
+                    <p class="hero__size-note">
+                        Bundlephobia's headline for the package (58.8 kB gzipped for 3.1.1) measures the root entry with every plugin at once: an app pays <%= it.bundleSize %> KB gzipped plus only the plugins it imports.
+                    </p>
                 </div>
 
                 <div class="hero__actions">
