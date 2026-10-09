@@ -79,6 +79,7 @@
 /* ─── Markdown body ──────────────────────────────────────────────────────── */
 
 .md {
+    width: 100%;
     max-width: 820px;
     margin: 0 auto;
     padding: 40px 48px 80px;
@@ -272,6 +273,9 @@
     border-collapse: collapse;
     margin-bottom: 16px;
     font-size: var(--fs-md);
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .md thead th {
