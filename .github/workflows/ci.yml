@@ -111,4 +111,3 @@ jobs:
 
       - name: Run browser tests
         run: bun run test:browser
-
