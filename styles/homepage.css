@@ -92,7 +92,17 @@
     justify-content: center;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 36px;
+    margin-bottom: 10px;
+}
+
+.hero__size-note {
+    max-width: 60ch;
+    margin: 0 auto 36px;
+    font-size: var(--fs-sm);
+    color: var(--text-muted);
+    line-height: 1.5;
+    text-align: center;
+    text-wrap: balance;
 }
 
 .hero__actions {
@@ -563,7 +573,7 @@ footer a:hover {
         padding: 5px 10px;
     }
 
-    .hero__badges {
+    .hero__size-note {
         margin-bottom: 28px;
     }
 
