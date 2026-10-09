@@ -14,7 +14,7 @@
  *   ]);
  */
 
-import { launchBrowser, openPage, parseArgs } from "./core.mjs";
+import { findChrome, launchBrowser, openPage, parseArgs } from "./core.mjs";
 import { createSession } from "./session.mjs";
 
 // =============================================================================
@@ -123,6 +123,8 @@ async function getFreePort() {
 
 export async function runBrowserSuite() {
   const root = resolve(import.meta.dir, "../..");
+  const chromePath = findChrome();
+  console.log(`Using Chrome: ${chromePath}`);
   const port = await getFreePort();
   const baseUrl = `http://localhost:${port}`;
 
