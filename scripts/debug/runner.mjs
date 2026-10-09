@@ -93,3 +93,125 @@ export async function suite(tests, opts = {}) {
 
 export { delay, parseArgs, selectors } from "./core.mjs";
 export { createSession } from "./session.mjs";
+
+// =============================================================================
+// CLI: test:browser suite runner
+// =============================================================================
+
+import { createServer } from "net";
+import { resolve, join } from "path";
+
+async function getFreePort() {
+  return new Promise((resolvePort, reject) => {
+    const srv = createServer();
+    srv.listen(0, "127.0.0.1", () => {
+      const port = srv.address().port;
+      srv.close(() => resolvePort(port));
+    });
+    srv.on("error", reject);
+  });
+}
+
+export async function runBrowserSuite() {
+  const root = resolve(import.meta.dir, "../..");
+  const port = await getFreePort();
+  const baseUrl = `http://localhost:${port}`;
+
+  console.log(`Starting test server on port ${port}...`);
+  const server = Bun.spawn(["bun", "server.ts"], {
+    cwd: root,
+    env: { ...process.env, PORT: String(port) },
+    stdout: "ignore",
+    stderr: "inherit",
+  });
+
+  const url = `${baseUrl}/`;
+  const startTime = Date.now();
+  let serverReady = false;
+  while (Date.now() - startTime < 15000) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        serverReady = true;
+        break;
+      }
+    } catch {}
+    await new Promise((r) => setTimeout(r, 100));
+  }
+
+  if (!serverReady) {
+    server.kill();
+    throw new Error(`Timed out waiting for server at ${url}`);
+  }
+
+  const tests = [
+    {
+      name: "carousel-snap-fling.mjs",
+      file: join(root, "scripts/debug/tests/carousel-snap-fling.mjs"),
+      args: [],
+    },
+    {
+      name: "synthetic-touch.mjs",
+      file: join(root, "scripts/debug/tests/synthetic-touch.mjs"),
+      args: [`--base=${baseUrl}/experiments/synthetic/`],
+    },
+    {
+      name: "tree-src-click.mjs",
+      file: join(root, "scripts/debug/tests/tree-src-click.mjs"),
+      args: [],
+    },
+  ];
+
+  let passed = 0;
+  let failed = 0;
+  const skipped = 0;
+
+  try {
+    for (const test of tests) {
+      const t0 = Date.now();
+      const proc = Bun.spawn(["bun", test.file, ...test.args], {
+        cwd: root,
+        env: {
+          ...process.env,
+          PORT: String(port),
+          VLIST_BASE: baseUrl,
+        },
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      const [stdout, stderr, exitCode] = await Promise.all([
+        new Response(proc.stdout).text(),
+        new Response(proc.stderr).text(),
+        proc.exited,
+      ]);
+
+      const duration = ((Date.now() - t0) / 1000).toFixed(1);
+
+      if (exitCode === 0) {
+        passed++;
+        console.log(`✓ ${test.name} (${duration}s)`);
+      } else {
+        failed++;
+        console.log(`✗ ${test.name} (${duration}s)`);
+        if (stdout.trim()) {
+          console.log(stdout.trim().split("\n").map(l => `    ${l}`).join("\n"));
+        }
+        if (stderr.trim()) {
+          console.error(stderr.trim().split("\n").map(l => `    ${l}`).join("\n"));
+        }
+      }
+    }
+  } finally {
+    server.kill();
+    await server.exited;
+  }
+
+  console.log(`\n${passed} passed, ${failed} failed, ${skipped} skipped`);
+  return { passed, failed, skipped };
+}
+
+if (import.meta.main) {
+  const result = await runBrowserSuite();
+  process.exit(result.failed > 0 ? 1 : 0);
+}
