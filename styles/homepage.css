@@ -97,11 +97,13 @@
 
 .hero__size-note {
     flex-basis: 100%;
-    margin: 2px 0 0;
+    max-width: 60ch;
+    margin: 2px auto 0;
     font-size: var(--fs-sm);
     color: var(--text-muted);
     line-height: 1.5;
     text-align: center;
+    text-wrap: balance;
 }
 
 .hero__actions {
