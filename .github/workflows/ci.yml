@@ -66,3 +66,49 @@ jobs:
 
       - name: Build benchmarks
         run: bun run build:bench
+
+  browser:
+    name: Browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Checkout sibling vlist
+        env:
+          TARGET_REF: ${{ github.base_ref || github.ref_name }}
+        run: |
+          if [ "$TARGET_REF" = "staging" ]; then
+            VLIST_REF="staging"
+          else
+            VLIST_REF="next"
+          fi
+          echo "Target ref is $TARGET_REF, fetching vlist at $VLIST_REF"
+          git init ../vlist
+          git -C ../vlist remote add origin "https://github.com/floor/vlist.git"
+          git -C ../vlist fetch --tags --depth=1 origin "$VLIST_REF"
+          git -C ../vlist checkout --detach FETCH_HEAD
+          git -C ../vlist log -1 --oneline
+
+      - name: Build sibling vlist
+        run: |
+          cd ../vlist
+          bun install --frozen-lockfile
+          bun run build
+
+      - name: Install dependencies
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+        run: bun install --frozen-lockfile
+
+      - name: Build examples
+        run: bun run build:examples
+
+      - name: Run browser tests
+        run: bun run test:browser
+
