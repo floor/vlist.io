@@ -30,7 +30,11 @@ export async function run(path, optsOrFn, maybeFn) {
   const session = createSession(page, browser, { ...opts, logs });
 
   try {
-    return await fn(session);
+    const result = await fn(session);
+    if (result === false || result?.pass === false) {
+      process.exitCode = 1;
+    }
+    return result;
   } finally {
     await session.close();
   }
@@ -63,6 +67,7 @@ export async function suite(tests, opts = {}) {
       let result;
       await run(test.path, { settle: test.settle || 1500, ...opts }, async (s) => {
         result = await test.test(s);
+        return result;
       });
       const status = result?.pass ? "PASS" : "FAIL";
       console.log(`  → ${status}`);
@@ -83,6 +88,10 @@ export async function suite(tests, opts = {}) {
     console.log(`  ${r.pass ? "✓" : "✗"} ${r.name}${r.error ? ` (${r.error})` : ""}`);
   }
   console.log(`\n  ${passed}/${results.length} passed, ${failed} failed`);
+
+  if (failed > 0) {
+    process.exitCode = 1;
+  }
 
   return results;
 }
