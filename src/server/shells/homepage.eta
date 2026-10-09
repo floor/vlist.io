@@ -509,6 +509,7 @@
                     <a href="<%= item.href %>"><%= item.label %></a>
                     <% } %>
                     <% }); %>
+                    <a href="/privacy/">Privacy</a>
                 </div>
                 <p class="footer__built">
                     Built by <a href="https://floor.io" target="_blank">Floor IO</a>
