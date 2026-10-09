@@ -37,7 +37,7 @@ jobs:
           echo "Target ref is $TARGET_REF, fetching vlist at $VLIST_REF"
           git init ../vlist
           git -C ../vlist remote add origin "https://github.com/floor/vlist.git"
-          git -C ../vlist fetch --depth=1 origin "$VLIST_REF"
+          git -C ../vlist fetch --tags --depth=1 origin "$VLIST_REF"
           git -C ../vlist checkout --detach FETCH_HEAD
           git -C ../vlist log -1 --oneline
 
