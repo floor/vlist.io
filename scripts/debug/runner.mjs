@@ -150,6 +150,7 @@ export async function runBrowserSuite() {
 
   if (!serverReady) {
     server.kill();
+    await server.exited;
     throw new Error(`Timed out waiting for server at ${url}`);
   }
 
