@@ -188,7 +188,7 @@
                     <span class="badge">0.1 MB @ 1M items</span>
                 </div>
                 <p class="hero__size-note">
-                    Bundlephobia's headline for the package (58.8 kB gzipped for 3.1.1) measures the root entry with every plugin at once: an app pays <%= it.bundleSize %> KB gzipped plus only the plugins it imports.
+                    Bundlephobia reports 58.8 kB gzipped for vlist@3.1.1. The package's root entry exports all 16 plugins. An app pays <%= it.bundleSize %> KB gzipped plus only the plugins it imports.
                 </p>
 
                 <div class="hero__actions">
