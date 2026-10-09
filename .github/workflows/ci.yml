@@ -58,6 +58,9 @@ jobs:
       - name: Test
         run: bun test test/
 
+      - name: Test (production cache)
+        run: NODE_ENV=production bun test test/server/cache.test.ts
+
       - name: Build examples
         run: bun run build:examples
 
