@@ -10,12 +10,12 @@
 
 .pp__head { padding: 0.5rem 0 1.5rem; }
 .pp__head h1 { margin: 0 0 0.5rem; font-size: 1.75rem; letter-spacing: -0.02em; }
-.pp__lead { margin: 0; color: var(--text-secondary, #64748b); line-height: 1.5; }
+.pp__lead { margin: 0; color: var(--text-muted, #64748b); line-height: 1.5; }
 
 .pp__device {
   margin-top: 0.75rem;
   font: 500 0.75rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-muted, #64748b);
   word-break: break-word;
 }
 
@@ -49,8 +49,8 @@
 
 .pp__card h2 { margin: 0 0 0.75rem; font-size: 1.05rem; line-height: 1.3; }
 .pp__do, .pp__want { margin: 0 0 0.5rem; font-size: 0.9rem; line-height: 1.5; }
-.pp__want { color: var(--text-secondary, #64748b); }
-.pp__note { margin: 0.75rem 0 0; font-size: 0.8rem; line-height: 1.45; color: var(--text-secondary, #64748b); }
+.pp__want { color: var(--text-muted, #64748b); }
+.pp__note { margin: 0.75rem 0 0; font-size: 0.8rem; line-height: 1.45; color: var(--text-muted, #64748b); }
 .pp__grip { font-size: 1.1em; }
 
 /* --- the lists ----------------------------------------------------------- */
@@ -90,13 +90,13 @@
   display: grid;
   place-items: center;
   font-size: 1.25rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-muted, #64748b);
   touch-action: none;
 }
 
 .ppr__text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
 .ppr__text b { font-weight: 600; font-size: 0.95rem; }
-.ppr__text em { font-style: normal; font-size: 0.75rem; color: var(--text-secondary, #94a3b8); }
+.ppr__text em { font-style: normal; font-size: 0.75rem; color: var(--text-muted, #64748b); }
 
 .pps {
   height: 100%;
@@ -104,7 +104,7 @@
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: hsl(var(--h) 65% 55%);
+  background: hsl(var(--h) 65% 50%);
   color: #fff;
   font: 600 0.85rem/1.2 system-ui, sans-serif;
   text-align: center;
@@ -125,12 +125,12 @@
 }
 
 .pp__read > div { display: flex; justify-content: space-between; gap: 1rem; }
-.pp__read dt { color: var(--text-secondary, #64748b); }
+.pp__read dt { color: var(--text-muted, #64748b); }
 .pp__read dd { margin: 0; text-align: right; font-weight: 600; }
-.pp__read dd[data-tone="good"] { color: #16a34a; }
-.pp__read dd[data-tone="bad"] { color: #dc2626; }
-.pp__read dd[data-tone="warn"] { color: #d97706; }
-.pp__read dd[data-tone="info"] { color: var(--accent, #2563eb); }
+.pp__read dd[data-tone="good"] { color: #166534; }
+.pp__read dd[data-tone="bad"] { color: #b91c1c; }
+.pp__read dd[data-tone="warn"] { color: #b45309; }
+.pp__read dd[data-tone="info"] { color: #1d4ed8; }
 
 /* --- verdict ------------------------------------------------------------- */
 
@@ -153,16 +153,16 @@
   cursor: pointer;
 }
 
-.pp__verdict button[data-pass="true"].is-on { background: #16a34a; border-color: #16a34a; color: #fff; }
-.pp__verdict button[data-pass="false"].is-on { background: #dc2626; border-color: #dc2626; color: #fff; }
+.pp__verdict button[data-pass="true"].is-on { background: #166534; border-color: #166534; color: #fff; }
+.pp__verdict button[data-pass="false"].is-on { background: #b91c1c; border-color: #b91c1c; color: #fff; }
 
 .pp__auto {
   flex: 1 1 100%;
   font: 500 0.75rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-muted, #64748b);
 }
-.pp__auto[data-tone="good"] { color: #16a34a; }
-.pp__auto[data-tone="bad"] { color: #dc2626; }
+.pp__auto[data-tone="good"] { color: #166534; }
+.pp__auto[data-tone="bad"] { color: #b91c1c; }
 
 /* --- summary ------------------------------------------------------------- */
 
@@ -188,8 +188,8 @@
   user-select: text;
 }
 
-.pp__copy[data-state="manual"] { background: #d97706; }
-.pp__copy[data-state="ok"] { background: #16a34a; }
+.pp__copy[data-state="manual"] { background: #b45309; }
+.pp__copy[data-state="ok"] { background: #166534; }
 
 .pp__copy {
   width: 100%;
@@ -203,8 +203,47 @@
   padding: 0.5rem 0.75rem;
 }
 
+[data-theme-mode="dark"] .pp__card,
+[data-theme-mode="dark"] .pp__pre { background: #0f172a; }
+[data-theme-mode="dark"] .pp__read,
+[data-theme-mode="dark"] .pp__summary { background: #1e293b; }
+[data-theme-mode="dark"] .pp__verdict button { background: #0f172a; }
+
+[data-theme-mode="dark"] .pp__card .pp__want,
+[data-theme-mode="dark"] .pp__card .pp__note,
+[data-theme-mode="dark"] .pp__card .pp__read dt,
+[data-theme-mode="dark"] .pp__card .pp__auto,
+[data-theme-mode="dark"] .ppr__grip,
+[data-theme-mode="dark"] .ppr__text em {
+  color: var(--text-muted, #a8a8ba);
+}
+
+[data-theme-mode="dark"] .pp__read dd[data-tone="good"] { color: #4ade80; }
+[data-theme-mode="dark"] .pp__read dd[data-tone="bad"] { color: #f87171; }
+[data-theme-mode="dark"] .pp__read dd[data-tone="warn"] { color: #fbbf24; }
+[data-theme-mode="dark"] .pp__read dd[data-tone="info"] { color: #60a5fa; }
+
+[data-theme-mode="dark"] .pp__card .pp__auto[data-tone="good"] { color: #4ade80; }
+[data-theme-mode="dark"] .pp__card .pp__auto[data-tone="bad"] { color: #f87171; }
+
 @media (prefers-color-scheme: dark) {
-  .pp__card, .pp__pre { background: #0f172a; }
-  .pp__read, .pp__summary { background: #1e293b; }
-  .pp__verdict button { background: #0f172a; }
+  :root:not([data-theme-mode="light"]) .pp__card,
+  :root:not([data-theme-mode="light"]) .pp__pre { background: #0f172a; }
+  :root:not([data-theme-mode="light"]) .pp__read,
+  :root:not([data-theme-mode="light"]) .pp__summary { background: #1e293b; }
+  :root:not([data-theme-mode="light"]) .pp__verdict button { background: #0f172a; }
+  :root:not([data-theme-mode="light"]) .pp__card .pp__want,
+  :root:not([data-theme-mode="light"]) .pp__card .pp__note,
+  :root:not([data-theme-mode="light"]) .pp__card .pp__read dt,
+  :root:not([data-theme-mode="light"]) .pp__card .pp__auto,
+  :root:not([data-theme-mode="light"]) .ppr__grip,
+  :root:not([data-theme-mode="light"]) .ppr__text em {
+    color: var(--text-muted, #a8a8ba);
+  }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="good"] { color: #4ade80; }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="bad"] { color: #f87171; }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="warn"] { color: #fbbf24; }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="info"] { color: #60a5fa; }
+  :root:not([data-theme-mode="light"]) .pp__card .pp__auto[data-tone="good"] { color: #4ade80; }
+  :root:not([data-theme-mode="light"]) .pp__card .pp__auto[data-tone="bad"] { color: #f87171; }
 }
