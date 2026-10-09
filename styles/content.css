@@ -268,14 +268,25 @@
 
 /* ─── Tables ─────────────────────────────────────────────────────────────── */
 
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 16px;
+}
+
+.table-wrapper:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.table-wrapper table,
 .md table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 16px;
+    margin-bottom: 0;
     font-size: var(--fs-md);
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    display: table;
 }
 
 .md thead th {
@@ -396,11 +407,14 @@
         white-space: pre-wrap;
     }
 
+    .table-wrapper {
+        margin-bottom: 16px;
+    }
+
+    .table-wrapper table,
     .md table {
         font-size: 14px;
-        display: block;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        display: table;
     }
 
     .md thead th {
@@ -409,13 +423,5 @@
 
     .md tbody td code {
         font-size: 13px;
-    }
-
-    .md table thead,
-    .md table tbody,
-    .md table tr {
-        display: table;
-        width: 100%;
-        table-layout: fixed;
     }
 }
