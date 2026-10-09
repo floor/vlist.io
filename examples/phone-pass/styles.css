@@ -90,13 +90,13 @@
   display: grid;
   place-items: center;
   font-size: 1.25rem;
-  color: var(--text-secondary, #94a3b8);
+  color: var(--text-secondary, #64748b);
   touch-action: none;
 }
 
 .ppr__text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
 .ppr__text b { font-weight: 600; font-size: 0.95rem; }
-.ppr__text em { font-style: normal; font-size: 0.75rem; color: var(--text-secondary, #94a3b8); }
+.ppr__text em { font-style: normal; font-size: 0.75rem; color: var(--text-secondary, #64748b); }
 
 .pps {
   height: 100%;
@@ -127,10 +127,10 @@
 .pp__read > div { display: flex; justify-content: space-between; gap: 1rem; }
 .pp__read dt { color: var(--text-secondary, #64748b); }
 .pp__read dd { margin: 0; text-align: right; font-weight: 600; }
-.pp__read dd[data-tone="good"] { color: #16a34a; }
-.pp__read dd[data-tone="bad"] { color: #dc2626; }
-.pp__read dd[data-tone="warn"] { color: #d97706; }
-.pp__read dd[data-tone="info"] { color: var(--accent, #2563eb); }
+.pp__read dd[data-tone="good"] { color: #166534; }
+.pp__read dd[data-tone="bad"] { color: #b91c1c; }
+.pp__read dd[data-tone="warn"] { color: #b45309; }
+.pp__read dd[data-tone="info"] { color: #1d4ed8; }
 
 /* --- verdict ------------------------------------------------------------- */
 
@@ -153,16 +153,16 @@
   cursor: pointer;
 }
 
-.pp__verdict button[data-pass="true"].is-on { background: #16a34a; border-color: #16a34a; color: #fff; }
-.pp__verdict button[data-pass="false"].is-on { background: #dc2626; border-color: #dc2626; color: #fff; }
+.pp__verdict button[data-pass="true"].is-on { background: #166534; border-color: #166534; color: #fff; }
+.pp__verdict button[data-pass="false"].is-on { background: #b91c1c; border-color: #b91c1c; color: #fff; }
 
 .pp__auto {
   flex: 1 1 100%;
   font: 500 0.75rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
   color: var(--text-secondary, #64748b);
 }
-.pp__auto[data-tone="good"] { color: #16a34a; }
-.pp__auto[data-tone="bad"] { color: #dc2626; }
+.pp__auto[data-tone="good"] { color: #166534; }
+.pp__auto[data-tone="bad"] { color: #b91c1c; }
 
 /* --- summary ------------------------------------------------------------- */
 
@@ -188,8 +188,8 @@
   user-select: text;
 }
 
-.pp__copy[data-state="manual"] { background: #d97706; }
-.pp__copy[data-state="ok"] { background: #16a34a; }
+.pp__copy[data-state="manual"] { background: #b45309; }
+.pp__copy[data-state="ok"] { background: #166534; }
 
 .pp__copy {
   width: 100%;
@@ -212,9 +212,19 @@
 [data-theme-mode="dark"] .pp__card .pp__want,
 [data-theme-mode="dark"] .pp__card .pp__note,
 [data-theme-mode="dark"] .pp__card .pp__read dt,
-[data-theme-mode="dark"] .pp__card .pp__auto {
+[data-theme-mode="dark"] .pp__card .pp__auto,
+[data-theme-mode="dark"] .ppr__grip,
+[data-theme-mode="dark"] .ppr__text em {
   color: #94a3b8;
 }
+
+[data-theme-mode="dark"] .pp__read dd[data-tone="good"] { color: #4ade80; }
+[data-theme-mode="dark"] .pp__read dd[data-tone="bad"] { color: #f87171; }
+[data-theme-mode="dark"] .pp__read dd[data-tone="warn"] { color: #fbbf24; }
+[data-theme-mode="dark"] .pp__read dd[data-tone="info"] { color: #60a5fa; }
+
+[data-theme-mode="dark"] .pp__card .pp__auto[data-tone="good"] { color: #4ade80; }
+[data-theme-mode="dark"] .pp__card .pp__auto[data-tone="bad"] { color: #f87171; }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme-mode="light"]) .pp__card,
@@ -225,8 +235,15 @@
   :root:not([data-theme-mode="light"]) .pp__card .pp__want,
   :root:not([data-theme-mode="light"]) .pp__card .pp__note,
   :root:not([data-theme-mode="light"]) .pp__card .pp__read dt,
-  :root:not([data-theme-mode="light"]) .pp__card .pp__auto {
+  :root:not([data-theme-mode="light"]) .pp__card .pp__auto,
+  :root:not([data-theme-mode="light"]) .ppr__grip,
+  :root:not([data-theme-mode="light"]) .ppr__text em {
     color: #94a3b8;
   }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="good"] { color: #4ade80; }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="bad"] { color: #f87171; }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="warn"] { color: #fbbf24; }
+  :root:not([data-theme-mode="light"]) .pp__read dd[data-tone="info"] { color: #60a5fa; }
+  :root:not([data-theme-mode="light"]) .pp__card .pp__auto[data-tone="good"] { color: #4ade80; }
+  :root:not([data-theme-mode="light"]) .pp__card .pp__auto[data-tone="bad"] { color: #f87171; }
 }
-
