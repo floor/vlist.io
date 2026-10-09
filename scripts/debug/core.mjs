@@ -51,6 +51,8 @@ export function findChrome(override) {
 
 export async function launchBrowser(opts = {}) {
   const { headless = DEFAULTS.headless, chrome, windowPosition = "100,100" } = opts;
+  const executablePath = findChrome(chrome);
+  console.log(`[browser] Using Chrome executable: ${executablePath}`);
   const args = [
     ...(process.env.CI ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"] : []),
   ];
