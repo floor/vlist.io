@@ -12,7 +12,7 @@ import { existsSync } from "fs";
 // =============================================================================
 
 export const DEFAULTS = {
-  base: "http://localhost:3338",
+  base: process.env.VLIST_BASE || (process.env.PORT ? `http://localhost:${process.env.PORT}` : "http://localhost:3338"),
   screenshotDir: "/tmp/vlist-debug",
   width: 1200,
   height: 800,
@@ -35,6 +35,8 @@ const CHROME_PATHS = [
 
 export function findChrome(override) {
   if (override) return override;
+  if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
+  if (process.env.PUPPETEER_EXECUTABLE_PATH && existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) return process.env.PUPPETEER_EXECUTABLE_PATH;
   for (const p of CHROME_PATHS) {
     if (existsSync(p)) return p;
   }
@@ -49,7 +51,11 @@ export function findChrome(override) {
 
 export async function launchBrowser(opts = {}) {
   const { headless = DEFAULTS.headless, chrome, windowPosition = "100,100" } = opts;
-  const args = [];
+  const executablePath = findChrome(chrome);
+  console.log(`[browser] Using Chrome executable: ${executablePath}`);
+  const args = [
+    ...(process.env.CI ? ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"] : []),
+  ];
   if (!headless && windowPosition) args.push(`--window-position=${windowPosition}`);
   return puppeteer.launch({
     headless,
