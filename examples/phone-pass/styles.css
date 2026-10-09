@@ -203,8 +203,30 @@
   padding: 0.5rem 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .pp__card, .pp__pre { background: #0f172a; }
-  .pp__read, .pp__summary { background: #1e293b; }
-  .pp__verdict button { background: #0f172a; }
+[data-theme-mode="dark"] .pp__card,
+[data-theme-mode="dark"] .pp__pre { background: #0f172a; }
+[data-theme-mode="dark"] .pp__read,
+[data-theme-mode="dark"] .pp__summary { background: #1e293b; }
+[data-theme-mode="dark"] .pp__verdict button { background: #0f172a; }
+
+[data-theme-mode="dark"] .pp__card .pp__want,
+[data-theme-mode="dark"] .pp__card .pp__note,
+[data-theme-mode="dark"] .pp__card .pp__read dt,
+[data-theme-mode="dark"] .pp__card .pp__auto {
+  color: #94a3b8;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme-mode="light"]) .pp__card,
+  :root:not([data-theme-mode="light"]) .pp__pre { background: #0f172a; }
+  :root:not([data-theme-mode="light"]) .pp__read,
+  :root:not([data-theme-mode="light"]) .pp__summary { background: #1e293b; }
+  :root:not([data-theme-mode="light"]) .pp__verdict button { background: #0f172a; }
+  :root:not([data-theme-mode="light"]) .pp__card .pp__want,
+  :root:not([data-theme-mode="light"]) .pp__card .pp__note,
+  :root:not([data-theme-mode="light"]) .pp__card .pp__read dt,
+  :root:not([data-theme-mode="light"]) .pp__card .pp__auto {
+    color: #94a3b8;
+  }
+}
+
