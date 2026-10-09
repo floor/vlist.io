@@ -5,7 +5,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
-import { Marked, type Tokens } from "marked";
+import { Marked, Renderer, type Tokens } from "marked";
 import {
   render as renderEta,
   loadNavigation as loadHeaderNavigation,
@@ -464,11 +464,14 @@ export function createContentRenderer(config: ContentConfig) {
       ? currentSlug.split("/").slice(0, -1).join("/")
       : "";
 
-    // Custom renderer — heading anchors + link rewriting
+    let lastHeading = "";
+
+    // Custom renderer — heading anchors + link rewriting + accessible table wrapper
     const renderer = {
       heading({ text, depth }: Tokens.Heading): string {
         // Extract raw text for slug (strip HTML tags from the rendered inline text)
         const raw = text.replace(/<[^>]*>/g, "");
+        lastHeading = raw.trim();
         const slug = raw
           .toLowerCase()
           .replace(/[^\w\s-]/g, "")
@@ -476,6 +479,12 @@ export function createContentRenderer(config: ContentConfig) {
           .replace(/-+/g, "-")
           .trim();
         return `<h${depth} id="${slug}">${text} <a class="anchor" href="#${slug}">#</a></h${depth}>\n`;
+      },
+
+      table(token: Tokens.Table): string {
+        const tableHtml = Renderer.prototype.table.call(this, token);
+        const name = (lastHeading || "Table").replace(/"/g, "&quot;");
+        return `<div class="table-wrapper" tabindex="0" role="region" aria-label="${name}">\n${tableHtml}</div>\n`;
       },
 
       link({ href, title, text }: Tokens.Link): string {
