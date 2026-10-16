@@ -1127,8 +1127,16 @@ html[data-theme] .vlist-item {
         gap: 12px;
     }
 
+    .bench-history__metric-select-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
     .bench-history__select {
-        min-width: 100%;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
     }
 
     .bench-history__table {
