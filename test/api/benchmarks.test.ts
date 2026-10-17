@@ -407,6 +407,39 @@ describe("benchmarks API", () => {
       expect(result!.status).toBe(201);
     });
 
+    test("stores NULL for device memory and screen fields, whatever the client sends", async () => {
+      // validComparisonPayload still carries the three fields on purpose:
+      // a client that has not been updated yet must not get them stored.
+      const { req, url } = post("/api/benchmarks", validComparisonPayload());
+      const result = await routeBenchmarks(req, url);
+      expect(result!.status).toBe(201);
+
+      const body = await json<{ runId: number }>(result!);
+
+      const db = new Database(DB_PATH);
+      const row = db
+        .prepare(
+          `SELECT device_memory, screen_width, screen_height,
+                  user_agent, hardware_concurrency
+           FROM comparison_runs WHERE id = ?`,
+        )
+        .get(body.runId) as {
+        device_memory: number | null;
+        screen_width: number | null;
+        screen_height: number | null;
+        user_agent: string | null;
+        hardware_concurrency: number | null;
+      };
+      db.close();
+
+      expect(row.device_memory).toBeNull();
+      expect(row.screen_width).toBeNull();
+      expect(row.screen_height).toBeNull();
+      // The environment fields that are still collected are stored.
+      expect(row.user_agent).toContain("Chrome/");
+      expect(row.hardware_concurrency).toBe(10);
+    });
+
     test("stores all metrics from the payload", async () => {
       const payload = validComparisonPayload({ suiteId: "virtua" });
       const { req, url } = post("/api/benchmarks", payload);
