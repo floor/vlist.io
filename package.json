@@ -24,6 +24,7 @@
     "test": "bun test test/",
     "test:watch": "bun test --watch test/",
     "test:coverage": "NODE_ENV=production bun test --coverage test/",
+    "test:browser": "bun scripts/debug/runner.mjs",
     "typecheck": "tsc --noEmit",
     "deploy": "bun run scripts/deploy.ts",
     "deploy:staging": "bun run scripts/deploy.ts staging"
