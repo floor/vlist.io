@@ -342,6 +342,9 @@ export function renderSitemap(): Response {
   // Landing
   urls.push({ loc: "/", priority: "1.0" });
 
+  // Privacy — outside the sections
+  urls.push({ loc: "/privacy/", priority: "0.3" });
+
   // Docs
   urls.push({ loc: "/docs/", priority: "0.9" });
   for (const group of DOC_GROUPS) {

@@ -19,6 +19,7 @@ import {
   getDocSlugSets,
 } from "./renderers";
 import { renderHomepage } from "./renderers/homepage";
+import { renderPrivacy } from "./renderers/privacy";
 import { resolveExperiment } from "./renderers/experiments";
 import { resolveStatic } from "./static";
 import { compressResponse } from "./compression";
@@ -39,6 +40,14 @@ function routeSystem(pathname: string): Response | null {
 function resolveHomepage(pathname: string): Response | null {
   if (pathname === "/" || pathname === "") {
     return renderHomepage();
+  }
+  return null;
+}
+
+/** The privacy page stands outside the sections: no sidebar, no breadcrumb. */
+function resolvePrivacy(pathname: string): Response | null {
+  if (pathname === "/privacy" || pathname === "/privacy/") {
+    return renderPrivacy();
   }
   return null;
 }
@@ -177,6 +186,7 @@ export function handleRequest(req: Request): Response | Promise<Response> {
     routeSystem(pathname) ??
     resolveExperiment(pathname) ??
     resolveHomepage(pathname) ??
+    resolvePrivacy(pathname) ??
     resolveExamples(pathname, url) ??
     resolveArchivedDocs(pathname) ??
     resolveDocs(pathname) ??

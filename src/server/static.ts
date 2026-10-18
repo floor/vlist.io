@@ -65,38 +65,55 @@ export const getMimeType = (filePath: string): string => {
 // =============================================================================
 
 /**
- * Determine the Cache-Control header for a given URL pathname.
+ * Which cache policy a static path gets — the mapping half of getCacheControl,
+ * independent of environment. Exported for tests: the header values themselves
+ * are computed from IS_PROD, which is false on macOS by design (config.ts), so
+ * the mapping is only observable through this.
  *
- * Immutable (1 year, hashed filenames):
+ * "immutable" (1 year, hashed filenames):
  *   - /dist/*            — bundled JS/CSS build output (examples, benchmarks, vlist)
  *   - Fonts (.woff, .woff2, .ttf)
  *   - /favicon.ico
  *
- * Static (7 days, non-hashed but deploy-only):
+ * "static" (7 days, non-hashed but deploy-only):
  *   - /styles/*          — shared CSS (shell, ui, content, syntax, tokens)
+ *   - /vendor/*          — vendored third-party assets (highlight.js)
  *
- * No-cache (revalidate every time):
+ * "no-cache" (revalidate every time):
  *   - Everything else (HTML, markdown, source .ts/.js, images)
  */
-function getCacheControl(pathname: string): string {
-  if (!IS_PROD) return "no-cache, no-store";
-
+export function staticCachePolicy(pathname: string): "immutable" | "static" | "no-cache" {
   // Build output directories (contain pre-compressed .br/.gz siblings)
-  if (/\/dist\//.test(pathname)) return CACHE_IMMUTABLE;
+  if (/\/dist\//.test(pathname)) return "immutable";
 
   // Fonts rarely change
   const ext = extname(pathname).toLowerCase();
-  if (ext === ".woff" || ext === ".woff2" || ext === ".ttf") {
-    return CACHE_IMMUTABLE;
-  }
+  if (ext === ".woff" || ext === ".woff2" || ext === ".ttf") return "immutable";
 
   // Favicon
-  if (pathname === "/favicon.ico") return CACHE_IMMUTABLE;
+  if (pathname === "/favicon.ico") return "immutable";
 
-  // Non-hashed static assets that only change on deploy
-  if (pathname.startsWith("/styles/")) return CACHE_STATIC;
+  // Non-hashed assets that only change on deploy
+  if (pathname.startsWith("/styles/")) return "static";
 
-  return "no-cache, no-store";
+  // Vendored third-party assets (highlight.js) — same deploy-only caching
+  if (pathname.startsWith("/vendor/")) return "static";
+
+  return "no-cache";
+}
+
+/** Determine the Cache-Control header for a given URL pathname (dev bypasses every cache). */
+function getCacheControl(pathname: string): string {
+  if (!IS_PROD) return "no-cache, no-store";
+
+  switch (staticCachePolicy(pathname)) {
+    case "immutable":
+      return CACHE_IMMUTABLE;
+    case "static":
+      return CACHE_STATIC;
+    default:
+      return "no-cache, no-store";
+  }
 }
 
 // =============================================================================
