@@ -114,17 +114,46 @@ jobs:
             # backoff (10 s, 20 s, … 50 s: about 2.5 minutes over six tries),
             # bypassing bun's manifest cache, then fail rather than build on
             # the previous version.
-            rm -rf node_modules bun.lockb
+            #
+            # A failed install must not leave the live site without its modules:
+            # 3.3.1's deploy deleted node_modules and then failed, and the pm2
+            # process kept serving /dist/* from a directory that no longer
+            # existed. Move the current modules aside instead of deleting them,
+            # and put them back if every install attempt fails.
+            if [ -d node_modules ]; then
+              rm -rf node_modules.prev
+              mv node_modules node_modules.prev
+            fi
+            if [ -f bun.lockb ]; then
+              mv bun.lockb bun.lockb.prev
+            fi
+            install_ok=0
             for try in $(seq 1 6); do
               if bun install --force --no-cache; then
+                install_ok=1
                 break
               fi
-              if [ "$try" = 6 ]; then
-                echo "❌ bun install could not resolve vlist@$VLIST_SPEC after 6 attempts"
-                exit 1
+              if [ "$try" != 6 ]; then
+                sleep $((try * 10))
               fi
-              sleep $((try * 10))
             done
+            if [ "$install_ok" != 1 ]; then
+              echo "❌ bun install could not resolve vlist@$VLIST_SPEC after 6 attempts"
+              # Roll back: drop the partial tree the failed install may have
+              # written, then put the modules the live process was serving
+              # from back where it expects them, and restore package.json.
+              rm -rf node_modules
+              if [ -d node_modules.prev ]; then
+                mv node_modules.prev node_modules
+              fi
+              if [ -f bun.lockb.prev ]; then
+                mv bun.lockb.prev bun.lockb
+              fi
+              git checkout -- package.json
+              exit 1
+            fi
+            rm -rf node_modules.prev
+            rm -f bun.lockb.prev
 
             # Build sandbox examples and benchmarks (now that vlist is installed from npm)
             bun run build:examples
