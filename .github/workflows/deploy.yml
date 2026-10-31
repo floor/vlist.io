@@ -120,8 +120,11 @@ jobs:
             # process kept serving /dist/* from a directory that no longer
             # existed. Move the current modules aside instead of deleting them,
             # and put them back if every install attempt fails.
-            if [ -d node_modules ]; then
-              rm -rf node_modules.prev
+            # A run killed between the move and the restore leaves the last
+            # good tree in node_modules.prev. Keep it until an install
+            # succeeds; the partial tree the killed run left is installed
+            # over, and a failure below still restores the aside copy.
+            if [ ! -d node_modules.prev ] && [ -d node_modules ]; then
               mv node_modules node_modules.prev
             fi
             if [ -f bun.lockb ]; then
