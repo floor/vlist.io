@@ -29,7 +29,7 @@ jobs:
   deploy:
     name: Deploy to floor.io
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
 
     steps:
       # The version is interpolated into the server's shell, so only a plain
@@ -56,7 +56,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           envs: VLIST_VERSION
-          command_timeout: 14m
+          command_timeout: 16m
           script: |
             set -e
 
@@ -81,11 +81,14 @@ jobs:
             # A release dispatch names its version. The registry serves a fresh
             # publish minutes late, so wait for it rather than install the
             # previous one. A push or a manual run takes npm latest, as before.
+            # Wait on the abbreviated manifest — the view bun install resolves
+            # from. It can lag the full manifest `npm view` reads: on 3.3.1,
+            # npm view saw the version and bun install still did not.
             VLIST_SPEC="latest"
             if [ -n "$VLIST_VERSION" ]; then
               VLIST_SPEC="$VLIST_VERSION"
               for attempt in $(seq 1 60); do
-                if [ "$(npm view "vlist@$VLIST_VERSION" version 2>/dev/null)" = "$VLIST_VERSION" ]; then
+                if curl -sf -H "Accept: application/vnd.npm.install-v1+json" https://registry.npmjs.org/vlist | grep -qF "\"$VLIST_VERSION\""; then
                   break
                 fi
                 if [ "$attempt" = 60 ]; then
@@ -106,9 +109,22 @@ jobs:
             echo "🔗 Resolving production dependencies (vlist@$VLIST_SPEC)..."
             sed -i "s|\"vlist\": \"file:../vlist\"|\"vlist\": \"$VLIST_SPEC\"|" package.json
 
-            # Clean install to ensure fresh resolution (avoid lockfile conflicts)
+            # Clean install to ensure fresh resolution (avoid lockfile conflicts).
+            # The registry can still lag after the wait, so retry with a bounded
+            # backoff (10 s, 20 s, … 50 s: about 2.5 minutes over six tries),
+            # bypassing bun's manifest cache, then fail rather than build on
+            # the previous version.
             rm -rf node_modules bun.lockb
-            bun install --force
+            for try in $(seq 1 6); do
+              if bun install --force --no-cache; then
+                break
+              fi
+              if [ "$try" = 6 ]; then
+                echo "❌ bun install could not resolve vlist@$VLIST_SPEC after 6 attempts"
+                exit 1
+              fi
+              sleep $((try * 10))
+            done
 
             # Build sandbox examples and benchmarks (now that vlist is installed from npm)
             bun run build:examples

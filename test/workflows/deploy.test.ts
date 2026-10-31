@@ -34,7 +34,7 @@ describe("production deploy follows vlist releases", () => {
 
   test("the released version is installed exactly, once the registry serves it", () => {
     expect(steps[indexOf("Deploy via SSH")]?.with?.envs).toContain("VLIST_VERSION");
-    expect(script).toContain('npm view "vlist@$VLIST_VERSION" version');
+    expect(script).toContain('grep -qF "\\"$VLIST_VERSION\\""');
     expect(script).toMatch(/sed -i .*file:\.\.\/vlist.*\$VLIST_SPEC/);
     expect(script).not.toContain('"vlist": "latest"|');
   });
