@@ -1,5 +1,6 @@
 # GitHub Actions — Deploy vlist.io to floor.io
-# Triggers on push to main branch
+# Triggers on push to main branch, on a vlist release, or by hand.
+# This file must stay identical on staging, the default branch: repository_dispatch runs its copy.
 # SSHs into the server and runs deploy commands
 # After deploy, purges Cloudflare edge cache so users get fresh content
 
@@ -9,23 +10,53 @@ on:
   push:
     branches: [main]
 
+  # Sent by vlist's publish workflow after a stable release is on npm, with
+  # the tag in client_payload.version. Without it, production kept serving
+  # the version installed at its last push or manual run.
+  repository_dispatch:
+    types: [vlist-released]
+
   # Allow manual trigger from Actions tab
   workflow_dispatch:
+
+# A vlist release and a vlist.io push can fire close together. Queue instead
+# of cancelling: an in-flight SSH deploy must not be aborted mid-run.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 jobs:
   deploy:
     name: Deploy to floor.io
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
 
     steps:
+      # The version is interpolated into the server's shell, so only a plain
+      # semver gets through. Empty (a push or a manual run) means npm latest.
+      - name: Check the requested version
+        id: version
+        env:
+          REQUESTED: ${{ github.event.client_payload.version }}
+        run: |
+          version="${REQUESTED#v}"
+          if [ -n "$version" ] && ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::not a plain semver: $REQUESTED"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
+        env:
+          VLIST_VERSION: ${{ steps.version.outputs.version }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
+          envs: VLIST_VERSION
+          command_timeout: 14m
           script: |
             set -e
 
@@ -38,13 +69,32 @@ jobs:
 
             echo "📦 Deploying vlist.io..."
 
-            # Pull latest vlist (used by file browser API + staleness check)
+            # Pull the released vlist (used by file browser API + staleness check).
+            # main is the released line; staging is the frozen 2.x maintenance branch.
             VLIST_DIR="/home/floor/vlist"
             cd $VLIST_DIR
-            git fetch origin staging
-            git reset --hard origin/staging
+            git fetch origin main
+            git reset --hard origin/main
             bun install --frozen-lockfile
             bun run build
+
+            # A release dispatch names its version. The registry serves a fresh
+            # publish minutes late, so wait for it rather than install the
+            # previous one. A push or a manual run takes npm latest, as before.
+            VLIST_SPEC="latest"
+            if [ -n "$VLIST_VERSION" ]; then
+              VLIST_SPEC="$VLIST_VERSION"
+              for attempt in $(seq 1 60); do
+                if [ "$(npm view "vlist@$VLIST_VERSION" version 2>/dev/null)" = "$VLIST_VERSION" ]; then
+                  break
+                fi
+                if [ "$attempt" = 60 ]; then
+                  echo "❌ npm does not serve vlist@$VLIST_VERSION after 10 minutes"
+                  exit 1
+                fi
+                sleep 10
+              done
+            fi
 
             # Pull latest vlist.io
             cd $APP_DIR
@@ -53,8 +103,8 @@ jobs:
 
             # Replace file: dependencies with npm registry versions BEFORE building
             # (file: paths are for local dev only — they don't exist on the server)
-            echo "🔗 Resolving production dependencies..."
-            sed -i 's|"vlist": "file:../vlist"|"vlist": "latest"|' package.json
+            echo "🔗 Resolving production dependencies (vlist@$VLIST_SPEC)..."
+            sed -i "s|\"vlist\": \"file:../vlist\"|\"vlist\": \"$VLIST_SPEC\"|" package.json
 
             # Clean install to ensure fresh resolution (avoid lockfile conflicts)
             rm -rf node_modules bun.lockb
@@ -80,3 +130,21 @@ jobs:
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}'
           echo "🧹 Cloudflare cache purged"
+
+      # The site shows the version of the vlist it serves (dist/version.json of
+      # the installed package). A deploy that left it behind fails here instead
+      # of reporting success.
+      - name: Verify the live version
+        env:
+          REQUESTED: ${{ steps.version.outputs.version }}
+        run: |
+          expected="${REQUESTED:-$(npm view vlist version)}"
+          for attempt in $(seq 1 12); do
+            if curl -sf https://vlist.io | grep -qF "v$expected"; then
+              echo "✅ vlist.io serves vlist $expected"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::vlist.io does not show v$expected two minutes after the deploy"
+          exit 1
