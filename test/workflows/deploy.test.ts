@@ -107,4 +107,18 @@ describe("a failed install leaves the running site's modules in place", () => {
     expect(cleanupAt).toBeGreaterThan(exitAt);
     expect(cleanupAt).toBeLessThan(script.indexOf("pm2 reload"));
   });
+
+  // A run killed between the move and the restore leaves the last good tree
+  // in node_modules.prev. The next deploy must keep it until an install
+  // succeeds, and install over the partial tree the killed run left behind.
+  test("an aside copy left by an interrupted run is kept until an install succeeds", () => {
+    const asideAt = script.indexOf("mv node_modules node_modules.prev");
+    expect(asideAt).toBeGreaterThan(-1);
+    expect(asideAt).toBeLessThan(installAt);
+    // The move only runs when no aside copy exists: a killed run's .prev is
+    // the last good tree, so it is never deleted before the install.
+    const guardAt = script.lastIndexOf("if [", asideAt);
+    expect(script.slice(guardAt, asideAt)).toContain("! -d node_modules.prev");
+    expect(script.slice(0, installAt)).not.toContain("rm -rf node_modules.prev");
+  });
 });
