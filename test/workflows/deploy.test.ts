@@ -39,6 +39,23 @@ describe("production deploy follows vlist releases", () => {
     expect(script).not.toContain('"vlist": "latest"|');
   });
 
+  // 3.3.1's first release deploy: `npm view` saw the version, then `bun install`
+  // reported "No version matching" a minute later. The installer reads the
+  // abbreviated manifest, which can lag the full one; wait on that view, and
+  // retry the install itself with a bounded backoff in case it still lags.
+  test("the registry wait checks the view the installer reads", () => {
+    expect(script).toContain("application/vnd.npm.install-v1+json");
+    expect(script).toContain("https://registry.npmjs.org/vlist");
+  });
+
+  test("the production install retries with a bounded backoff, then fails", () => {
+    const install = script.slice(script.indexOf("Resolving production dependencies"));
+    expect(install).toMatch(/for try in \$\(seq 1 6\)/);
+    expect(install).toContain("bun install --force --no-cache");
+    expect(install).toMatch(/sleep \$\(\(try \* 10\)\)/);
+    expect(install).toMatch(/after 6 attempts[\s\S]*exit 1/);
+  });
+
   test("a version that is not a plain semver never reaches the server's shell", () => {
     const check = steps[indexOf("Check the requested version")];
     expect(check).toBeDefined();
