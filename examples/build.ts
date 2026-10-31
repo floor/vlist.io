@@ -123,7 +123,7 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       }
       // Optional entries (vlist/synthetic ships in 2.7) fall back to a stub that
       // delegates to core and throws only when the missing mode is requested, so
-      // an older vlist (npm production, or a staging clone behind the site) still
+      // an older vlist (npm production, or a checkout behind the site) still
       // builds every example.
       if (args.path === "vlist/synthetic" && (process.env.VLIST_NO_SYNTHETIC === "1" || !existsSync(path))) {
         return { path: "vlist-synthetic-unavailable", namespace: "vlist-optional" };

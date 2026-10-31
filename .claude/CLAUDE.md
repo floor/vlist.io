@@ -4,13 +4,12 @@ Interactive docs, examples, and benchmarks for the [vlist](https://github.com/fl
 
 - **Repo:** `github.com/floor/vlist.io`
 - **Production:** [vlist.io](https://vlist.io)
-- **Staging:** [staging.vlist.io](https://staging.vlist.io)
 - **License:** GPL-3.0-or-later
 - **Runtime:** Bun
 
 ## Git Workflow
 
-**Working branch is `next` for 3.0 work** (branched from `staging` on 2026-09-16): it runs locally and on staging.vlist.io, built against vlist `next`. **`staging` stays the 2.x line** that feeds `main` and production; do not merge `next` into it before the 3.0 release. The `main` branch is protected and requires a pull request.
+**Working branch is `next` for 3.0 work** (branched from `staging` on 2026-09-16), built against vlist `next`. **`staging` stays the 2.x line** that feeds `main` and production; do not merge `next` into it before the 3.0 release. The `main` branch is protected and requires a pull request.
 
 - ❌ **NEVER push directly to `main`** — it is protected on GitHub and will be rejected
 - ❌ **NEVER commit on `main`** — always work on `staging` or feature branches
@@ -42,7 +41,7 @@ bun run deploy               # Trigger GitHub Actions deploy workflow
 ## Architecture
 
 ### Server
-- **Entry point:** `server.ts` — Bun HTTP server (port 3338 production, 3339 staging)
+- **Entry point:** `server.ts` — Bun HTTP server (port 3338)
 - **Routing:** `src/server/router.ts` — all request handling
 - **Config:** `src/server/config.ts` — PORT, paths, package resolution
 - **Templates:** Eta templates in `src/server/shells/`
@@ -85,33 +84,28 @@ vlist.io/
 ├── test/                      # Test suites
 ├── scripts/                   # Server setup, data seeders
 ├── .github/workflows/
-│   ├── deploy.yml             # Production deploy (push to main)
-│   └── deploy-staging.yml     # Staging deploy (push to staging + vlist dispatch)
+│   └── deploy.yml             # Production deploy (push to main + vlist release)
 ├── server.ts                  # Entry point
-├── ecosystem.config.cjs       # PM2 config (production, port 3338)
-└── ecosystem.staging.config.cjs  # PM2 config (staging, port 3339)  [server-side only]
+└── ecosystem.config.cjs       # PM2 config (production, port 3338)
 ```
 
 ## Deployment
 
-Two environments deployed via GitHub Actions:
+Production is deployed via GitHub Actions:
 
 | Environment | URL | Branch | vlist Source |
 |-------------|-----|--------|-------------|
-| **Production** | vlist.io | `main` | npm `latest` |
-| **Staging** | staging.vlist.io | `next` | Local clone of vlist `next` (3.0 prerelease line) |
+| **Production** | vlist.io | `main` | npm `latest`, or the version in a release dispatch |
 
 ### Server Layout
 ```
 /home/floor/
 ├── vlist/                 # vlist production (main)
-├── vlist.io/              # vlist.io production (port 3338)
-├── staging.vlist/         # vlist clone for staging (next branch)
-└── staging.vlist.io/      # vlist.io staging (port 3339)
+└── vlist.io/              # vlist.io production (port 3338)
 ```
 
-### Cross-Repo Deploy
-Pushing to `vlist` next triggers a `repository_dispatch` → `staging.vlist.io` auto-redeploys.
+### Release Deploy
+A stable `vlist` release publishes to npm and sends a `vlist-released` `repository_dispatch`; `deploy.yml` installs that exact version and redeploys production. A push to `main` or a manual run installs npm `latest`.
 
 **Stack:** Bun → PM2 → nginx → Cloudflare
 
@@ -120,7 +114,7 @@ Pushing to `vlist` next triggers a `repository_dispatch` → `staging.vlist.io` 
 Conventional Commits: `type(scope): description`
 
 - **Types:** `feat`, `fix`, `docs`, `test`, `refactor`, `style`, `chore`, `perf`
-- **Scopes:** `server`, `api`, `examples`, `benchmarks`, `docs`, `tutorials`, `styles`, `ci`, `staging`
+- **Scopes:** `server`, `api`, `examples`, `benchmarks`, `docs`, `tutorials`, `styles`, `ci`
 
 ## TypeScript Rules
 
@@ -141,7 +135,7 @@ Conventional Commits: `type(scope): description`
 
 ## Common Pitfalls
 
-- **`file:` dependencies** — local dev uses `file:../vlist`, production swaps to npm `latest`, staging links to `../staging.vlist`. Never commit the swapped version.
-- **Port conflicts** — production is 3338, staging is 3339. Don't mix them.
+- **`file:` dependencies** — local dev uses `file:../vlist`, production swaps to npm `latest`. Never commit the swapped version.
+- **Port** — production serves on 3338 (`PORT`).
 - **Example builds** — must run `bun run build:examples` after changing example source code.
-- **vlist changes** — if you change the vlist library, staging.vlist.io picks it up automatically via cross-repo dispatch. Production requires a new npm publish.
+- **vlist changes** — production picks up a vlist change only after a new npm release and its dispatch; local dev uses `file:../vlist`.
