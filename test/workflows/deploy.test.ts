@@ -74,3 +74,37 @@ describe("production deploy follows vlist releases", () => {
     expect(steps[indexOf("Verify the live version")]?.run).toContain("https://vlist.io");
   });
 });
+
+// 3.3.1's deploy deleted node_modules, the install then failed on a registry
+// lag, and the live process was left serving assets from a directory that no
+// longer existed. The previous modules must survive a failed install.
+describe("a failed install leaves the running site's modules in place", () => {
+  const installAt = script.indexOf("bun install --force --no-cache");
+  const failAt = script.indexOf("after 6 attempts");
+  const exitAt = script.indexOf("exit 1", failAt);
+  // The failure branch: from the error line to the exit that ends the script.
+  const failureBranch = script.slice(failAt, exitAt);
+  // The post-success cleanup (the earlier rm only clears a stale aside copy).
+  const cleanupAt = script.lastIndexOf("rm -rf node_modules.prev");
+
+  test("the previous modules are moved aside, not deleted, before the install", () => {
+    const moveAt = script.indexOf("mv node_modules node_modules.prev");
+    expect(moveAt).toBeGreaterThan(-1);
+    expect(moveAt).toBeLessThan(installAt);
+    // Before the install, the live tree is never deleted: the only allowed rm
+    // there clears the aside copy, node_modules.prev.
+    expect(script.slice(0, installAt)).not.toMatch(/rm -rf node_modules(?![.\w])/);
+  });
+
+  test("a failed install puts the previous modules and package.json back, then exits", () => {
+    expect(failAt).toBeGreaterThan(installAt);
+    expect(exitAt).toBeGreaterThan(failAt);
+    expect(failureBranch).toContain("mv node_modules.prev node_modules");
+    expect(failureBranch).toContain("git checkout -- package.json");
+  });
+
+  test("the previous modules are removed only after a successful install, before pm2", () => {
+    expect(cleanupAt).toBeGreaterThan(exitAt);
+    expect(cleanupAt).toBeLessThan(script.indexOf("pm2 reload"));
+  });
+});
