@@ -6,14 +6,17 @@
  *
  * Usage:
  *   bun run deploy            # deploy production (main)
- *   bun run deploy staging    # deploy staging
  */
 
 const REPO = "floor/vlist.io"
 
-const target = process.argv[2] as "staging" | undefined
-const workflow = target === "staging" ? "deploy-staging.yml" : "deploy.yml"
-const label = target === "staging" ? "staging.vlist.io" : "vlist.io"
+if (process.argv.length > 2) {
+  console.error("Usage: bun run deploy")
+  process.exit(1)
+}
+
+const workflow = "deploy.yml"
+const label = "vlist.io"
 
 async function run(cmd: string[]): Promise<string> {
   const proc = Bun.spawn(cmd, { stdout: "pipe", stderr: "pipe" })

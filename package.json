@@ -25,8 +25,7 @@
     "test:watch": "bun test --watch test/",
     "test:coverage": "NODE_ENV=production bun test --coverage test/",
     "typecheck": "tsc --noEmit",
-    "deploy": "bun run scripts/deploy.ts",
-    "deploy:staging": "bun run scripts/deploy.ts staging"
+    "deploy": "bun run scripts/deploy.ts"
   },
   "dependencies": {
     "@legendapp/list": "3.0.0-beta.40",
