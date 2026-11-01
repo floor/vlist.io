@@ -3,7 +3,6 @@
 Documentation, examples, tutorials, and benchmarks site for the [vlist](https://github.com/floor/vlist) virtual list library.
 
 **Live:** [https://vlist.io](https://vlist.io)
-**Staging:** [https://staging.vlist.io](https://staging.vlist.io)
 
 ## What's Inside
 
@@ -180,8 +179,7 @@ vlist.io/
 │   ├── seed-tracks.ts         # Tracks database seeder
 │   └── build-utils.ts         # Shared build utilities
 ├── .github/workflows/
-│   ├── deploy.yml             # Production deploy → SSH + Cloudflare cache purge
-│   └── deploy-staging.yml     # Staging deploy → SSH (triggered by push or vlist dispatch)
+│   └── deploy.yml             # Production deploy → SSH + Cloudflare cache purge
 ├── server.ts                  # Entry point (Bun.serve)
 ├── ecosystem.config.cjs       # PM2 process config (2 fork instances, SO_REUSEPORT)
 ├── package.json
@@ -205,42 +203,32 @@ All pages are server-rendered using Eta templates. No client-side framework for 
 
 ## Deployment
 
-Two environments, both deployed via GitHub Actions:
+Production is deployed via GitHub Actions:
 
 | Environment | URL | Branch | Trigger |
 |-------------|-----|--------|---------|
-| **Production** | [vlist.io](https://vlist.io) | `main` | PR merge from `staging` |
-| **Staging** | [staging.vlist.io](https://staging.vlist.io) | `staging` | Push to `staging` |
+| **Production** | [vlist.io](https://vlist.io) | `main` | Push to `main`, a vlist release dispatch, or a manual run |
 
 **Stack:** Bun → PM2 → nginx → Cloudflare
 
 ### Production (`vlist.io`)
 
-1. Merge PR from `staging` → `main`
+1. Merge a PR into `main`, or a stable vlist release sends `vlist-released`
 2. `.github/workflows/deploy.yml` triggers
-3. SSHs into server, pulls `main`, installs npm vlist, builds, reloads PM2
+3. SSHs into server, pulls `main`, installs the dispatched vlist version (npm `latest` on a push or manual run), builds, reloads PM2
 4. Purges Cloudflare edge cache
-
-### Staging (`staging.vlist.io`)
-
-1. Push to `staging` (or vlist repo staging update triggers cross-repo dispatch)
-2. `.github/workflows/deploy-staging.yml` triggers
-3. SSHs into server, pulls `staging`, links local vlist staging clone, builds, reloads PM2
-4. Staging uses the latest **unpublished** vlist code from the staging branch
 
 ### Server Layout
 
 ```
 /home/floor/
 ├── vlist/                 # vlist — production (main branch)
-├── vlist.io/              # vlist.io — production (main branch, port 3338)
-├── staging.vlist/         # vlist — staging (staging branch)
-└── staging.vlist.io/      # vlist.io — staging (staging branch, port 3339)
+└── vlist.io/              # vlist.io — production (main branch, port 3338)
 ```
 
-### Cross-Repo Deploy
+### Release Deploy
 
-When the `vlist` staging branch is updated, it automatically triggers a `staging.vlist.io` redeploy via `repository_dispatch`, so the staging site always reflects the latest library code.
+A stable `vlist` release publishes to npm and sends a `vlist-released` `repository_dispatch`; `deploy.yml` installs that exact version, so production follows the released library without a vlist.io change.
 
 **First-time server setup:**
 
