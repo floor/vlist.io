@@ -1,6 +1,6 @@
 // test/workflows/deploy.test.ts
 import { describe, test, expect } from "bun:test";
-import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, symlinkSync, readlinkSync, lstatSync } from "fs";
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, symlinkSync, readlinkSync, lstatSync, readdirSync, statSync, existsSync } from "fs";
 import { tmpdir } from "os";
 import { join, resolve } from "path";
 
@@ -129,12 +129,20 @@ describe("the live path is published by one atomic operation", () => {
     expect(Bun.spawnSync(["bun", helper, "swap", ".deploy-link.tmp", "node_modules"], { cwd: dir }).exitCode).toBe(0);
     expect(readlinkSync(join(dir, "node_modules"))).toBe("new");
     expect(readFileSync(join(dir, "node_modules/vlist/dist/version.json"), "utf-8")).toBe("NEW");
+    // Nothing else appears at the directory level: a two-step swap that moves
+    // the live link aside first leaves its intermediate name behind.
+    expect(readdirSync(dir).sort()).toEqual(["new", "node_modules", "old", "swap.ts"]);
 
     // Migration: a real tree is hardlink-copied, then exchanged with a link in
     // one syscall. Both paths keep a full tree at every instant.
     mkdirSync(join(dir, "legacy/vlist/dist"), { recursive: true });
     writeFileSync(join(dir, "legacy/vlist/dist/version.json"), "LEGACY");
     expect(Bun.spawnSync(["bun", helper, "hardlink", "new", "legacy-copy"], { cwd: dir }).exitCode).toBe(0);
+    // The copy shares inodes with the tree it will replace: a reader that
+    // cached the live path sees the same files at the instant of the exchange.
+    expect(statSync(join(dir, "legacy-copy/vlist/dist/version.json")).ino).toBe(
+      statSync(join(dir, "new/vlist/dist/version.json")).ino,
+    );
     symlinkSync("legacy-copy", join(dir, ".deploy-exchange.tmp"));
     expect(Bun.spawnSync(["bun", helper, "exchange", "new", ".deploy-exchange.tmp"], { cwd: dir }).exitCode).toBe(0);
     expect(lstatSync(join(dir, "new")).isSymbolicLink()).toBe(true);
@@ -143,10 +151,128 @@ describe("the live path is published by one atomic operation", () => {
     expect(readFileSync(join(dir, ".deploy-exchange.tmp/vlist/dist/version.json"), "utf-8")).toBe("NEW");
   });
 
+  // Codex's round-3 re-review: replacing the swap's one rename with
+  // `renameSync(b, b + ".previous"); renameSync(a, b)` leaves the live path
+  // absent between the calls but produces the same final state, so final-state
+  // assertions alone cannot catch it. The publication and the migration are
+  // each one operation, and the helper holds exactly one rename.
+  test("the swap and the exchange are each one operation, not a pair", () => {
+    const swapCase = helperSource.match(/case "swap":\s*([^\n]*)/)?.[1] ?? "";
+    expect(swapCase).not.toBe("");
+    expect(swapCase.match(/renameSync\(/g) ?? []).toHaveLength(1);
+    expect(swapCase).toContain("renameSync(a, b)");
+    expect(swapCase).not.toMatch(/unlinkSync|rmSync|renameSync\(b|copyFileSync|linkSync|symlinkSync/);
+
+    const exchangeCase = helperSource.match(/case "exchange":\s*([^\n]*)/)?.[1] ?? "";
+    expect(exchangeCase).not.toBe("");
+    expect(exchangeCase.match(/exchange\(/g) ?? []).toHaveLength(1);
+    expect(exchangeCase).not.toMatch(/renameSync|unlinkSync|rmSync/);
+
+    // One rename in the whole helper: a second one anywhere is a two-step
+    // publication, including one that tidies its intermediate name.
+    expect((helperSource.match(/renameSync\(/g) ?? []).length).toBe(1);
+  });
+
+  // The behavioral half of the same correction: a separate process lstats the
+  // live entries (the entries themselves, never through the link) while the
+  // helper publishes ten times and exchanges eight times. One rename and one
+  // exchange never leave an entry absent; both multi-step mutations do, even
+  // unpaused (measured: 717 absent samples in 60 two-rename swaps and 54 in 10
+  // three-rename exchanges, against 0 in ~1M samples for the shipped helper).
+  // Final-state assertions cannot see either mutation, which is why this
+  // watches the window between the operations instead.
+  test("the live entries are never absent while the helper publishes", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "deploy-continuity-"));
+    writeFileSync(join(dir, "swap.ts"), helperSource);
+    // Steady state: two generations and the live link the swap replaces.
+    for (const name of ["old", "new"]) {
+      mkdirSync(join(dir, name, "vlist/dist"), { recursive: true });
+      writeFileSync(join(dir, name, "vlist/dist/version.json"), name);
+    }
+    symlinkSync("old", join(dir, "node_modules"));
+    // Migration shape: a real tree and a link the exchange swaps.
+    mkdirSync(join(dir, "tree/vlist/dist"), { recursive: true });
+    writeFileSync(join(dir, "tree/vlist/dist/version.json"), "OLD");
+    mkdirSync(join(dir, "legacy/vlist/dist"), { recursive: true });
+    writeFileSync(join(dir, "legacy/vlist/dist/version.json"), "OLD");
+    symlinkSync("legacy", join(dir, "link"));
+
+    const ready = join(dir, ".observer-ready");
+    const stop = join(dir, ".observer-stop");
+    const observerSource = `
+      import { existsSync, lstatSync, writeFileSync } from "node:fs";
+      const [dir, namesArg, readyPath, stopPath] = process.argv.slice(2);
+      const targets = namesArg.split(",").map((name) => dir + "/" + name);
+      const missing: Record<string, number> = {};
+      let samples = 0;
+      function sample() {
+        for (const target of targets) {
+          samples++;
+          try {
+            lstatSync(target);
+          } catch (error) {
+            const code = (error as NodeJS.ErrnoException).code;
+            missing[target + " " + String(code)] = (missing[target + " " + String(code)] ?? 0) + 1;
+          }
+        }
+      }
+      for (let i = 0; i < 200; i++) sample();
+      writeFileSync(readyPath, String(process.pid));
+      while (!existsSync(stopPath)) sample();
+      console.log(JSON.stringify({ samples, missing }));
+    `;
+    writeFileSync(join(dir, "observer.ts"), observerSource);
+    const observer = Bun.spawn(
+      ["bun", join(dir, "observer.ts"), dir, "node_modules,tree,link", ready, stop],
+      { cwd: dir, stdout: "pipe", stderr: "pipe" },
+    );
+    try {
+      for (let waited = 0; !existsSync(ready) && waited < 10_000; waited += 10) Bun.sleepSync(10);
+      expect(existsSync(ready)).toBe(true);
+
+      // Ten publications and eight exchanges: an even number returns the
+      // migration pair to its starting layout, so both fixtures stay valid.
+      for (let i = 0; i < 10; i++) {
+        symlinkSync(i % 2 === 0 ? "new" : "old", join(dir, "next"));
+        expect(Bun.spawnSync(["bun", join(dir, "swap.ts"), "swap", "next", "node_modules"], { cwd: dir }).exitCode).toBe(0);
+        // The helper did publish: an absent helper must not pass by no-op.
+        if (i === 0) expect(readlinkSync(join(dir, "node_modules"))).toBe("new");
+      }
+      for (let i = 0; i < 8; i++) {
+        expect(Bun.spawnSync(["bun", join(dir, "swap.ts"), "exchange", "tree", "link"], { cwd: dir }).exitCode).toBe(0);
+        if (i === 0) {
+          expect(lstatSync(join(dir, "tree")).isSymbolicLink()).toBe(true);
+          expect(lstatSync(join(dir, "link")).isDirectory()).toBe(true);
+        }
+      }
+
+      writeFileSync(stop, "1");
+      const observed = JSON.parse(await new Response(observer.stdout).text()) as {
+        samples: number;
+        missing: Record<string, number>;
+      };
+      expect(await observer.exited).toBe(0);
+      expect(observed.samples).toBeGreaterThan(10_000);
+      expect(observed.missing).toEqual({});
+      expect(readlinkSync(join(dir, "node_modules"))).toBe("old");
+      expect(lstatSync(join(dir, "tree")).isDirectory()).toBe(true);
+      expect(readlinkSync(join(dir, "link"))).toBe("legacy");
+    } finally {
+      try { writeFileSync(stop, "1"); } catch {}
+      try { observer.kill(); } catch {}
+    }
+  }, 30000);
+
   test("a real node_modules is migrated by an exchange, never by a pair of renames", () => {
     const migration = shellFunction("migrate_to_link");
     expect(migration).toContain("hardlink");
     expect((migration.match(/"\$APP_DIR\/\.deploy-swap\.ts" exchange/g) ?? []).length).toBe(1);
+    // The hardlink copy is complete before the exchange: both names hold the
+    // same tree when they swap, so a cached-path reader sees identical files.
+    const hardlinkAt = migration.indexOf(" hardlink ");
+    const exchangeAt = migration.indexOf(" exchange ");
+    expect(hardlinkAt).toBeGreaterThan(-1);
+    expect(exchangeAt).toBeGreaterThan(hardlinkAt);
     expect(migration).not.toMatch(/\bmv node_modules\b/);
     expect(script).not.toContain("mv node_modules .deploy-prev");
     expect(script).not.toContain("mv .deploy-next/node_modules node_modules");
