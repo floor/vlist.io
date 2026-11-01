@@ -16,6 +16,7 @@ umask 077
 mode=${1:---check}
 [[ $# -le 1 && ( "$mode" == --check || "$mode" == --apply ) ]] || {
   echo 'Usage: bash scripts/retire-staging-server.sh [--check|--apply]' >&2
+  echo 'nothing was changed by this run'
   exit 1
 }
 NGINX_DIR=${NGINX_DIR:-/etc/nginx}
@@ -29,16 +30,23 @@ STAGING_PARENT=${STAGING_PARENT:-/home/floor}
 STAGING_ECOSYSTEM=${STAGING_ECOSYSTEM:-}
 host=staging.vlist.io
 vhost='' backup='' ecosystem='' rows=''
+rollback_ready=false
+changed=false
 
 rollback_commands() {
-  [[ -n "$vhost" && -n "$backup" && -n "$ecosystem" ]] || return 0
+  [[ "$rollback_ready" == true && -f "$backup" && -n "$vhost" && -n "$ecosystem" ]] || return 0
   echo 'Rollback (owner, same nginx permissions and PM2 daemon):'
   printf '  cp -p -- %q %q &&\n' "$backup" "$vhost"
   printf '  %q -t && %q -s reload &&\n' "$NGINX_BIN" "$NGINX_BIN"
   printf '  (cd %q && %q start %q --only %q && %q save)\n' \
     "$(dirname "$ecosystem")" "$PM2_BIN" "$ecosystem" "$host" "$PM2_BIN"
 }
-die() { echo "ERROR: $*" >&2; rollback_commands; exit 1; }
+die() {
+  echo "ERROR: $*" >&2
+  if [[ "$changed" == false ]]; then echo 'nothing was changed by this run'; fi
+  rollback_commands
+  exit 1
+}
 
 # One embedded parser: read nginx syntax without executing includes or configs;
 # emit only selected nginx directives and permitted PM2 table columns.
@@ -257,7 +265,10 @@ PY
 load_pm2() {
   local table
   table=$("$PM2_BIN" list 2>/dev/null) || die 'pm2 list failed'
-  rows=$(inspect pm2 "$table") || die 'PM2 inventory refused'
+  rows=$(inspect pm2 "$table") || {
+    printf '%s\n' "$rows"
+    die 'PM2 inventory refused'
+  }
   while IFS=$'\t' read -r id name status restarts; do
     printf 'pm2 id=%s name=%s status=%s restarts=%s\n' "$id" "$name" "$status" "$restarts"
   done <<< "$rows"
@@ -319,7 +330,13 @@ vhost=$(printf '%s\n' "$inventory" | sed -n 's/^VHOST_PATH=//p')
 state=$(printf '%s\n' "$inventory" | sed -n 's/^STATE=//p')
 backup=$(printf '%s\n' "$inventory" | sed -n 's/^BACKUP_PATH=//p')
 complete=$(printf '%s\n' "$inventory" | sed -n 's/^COMPLETE=//p')
-ecosystem_inventory=$(inspect ecosystem "$STAGING_PARENT" "$STAGING_ECOSYSTEM") || die 'rollback ecosystem inventory refused'
+# Check may describe a previous run's verified backup. Apply may print a
+# rollback only after its own backup copy succeeds, never for a planned path.
+if [[ "$mode" == --check && "$state" == retired ]]; then rollback_ready=true; fi
+ecosystem_inventory=$(inspect ecosystem "$STAGING_PARENT" "$STAGING_ECOSYSTEM") || {
+  printf '%s\n' "$ecosystem_inventory"
+  die 'rollback ecosystem inventory refused'
+}
 printf '%s\n' "$ecosystem_inventory"
 ecosystem=$(printf '%s\n' "$ecosystem_inventory" | sed -n 's/^ECOSYSTEM_PATH=//p')
 load_pm2
@@ -356,6 +373,7 @@ if [[ "$mode" == --check ]]; then
     fi
     echo 'would change: only after origin and Cloudflare both return 301, pm2 stop staging.vlist.io; pm2 delete staging.vlist.io; pm2 save; verify production and free port 3339; record a completion comment in the backed-up vhost'
   fi
+  echo 'nothing was changed by this run'
   rollback_commands
   exit 0
 fi
@@ -363,11 +381,17 @@ fi
 # (a) Replace only the verified staging vhost, preserving every TLS directive.
 if [[ "$state" == retired ]]; then
   echo 'already done: nginx redirect configuration (retained dated backup)'
+  echo 'Use --check for rollback commands from the verified prior-run backup.'
 else
   [[ ! -e "$backup" ]] || die 'dated backup already exists; refusing to overwrite it'
-  replacement=$(inspect render "$vhost" "$backup") || die 'could not render a safe staging-only replacement'
-  mkdir -p -- "$(dirname "$backup")"
-  cp -p -- "$vhost" "$backup"
+  replacement=$(inspect render "$vhost" "$backup") || {
+    printf '%s\n' "$replacement"
+    die 'could not render a safe staging-only replacement'
+  }
+  mkdir -p -- "$(dirname "$backup")" || die 'could not create backup directory'
+  changed=true
+  cp -p -- "$vhost" "$backup" || die 'backup copy failed; no rollback available from this run'
+  rollback_ready=true
   echo "dated backup retained: $backup"
   if ! printf '%s\n' "$replacement" > "$vhost"; then
     cp -p -- "$backup" "$vhost"
@@ -392,6 +416,7 @@ assert_staging "$staging_id"
 if [[ "$staging_count" == 0 ]]; then
   echo 'already done: pm2 staging entry absent; production unchanged'
 else
+  changed=true
   "$PM2_BIN" stop "$host" >/dev/null 2>&1 || die 'staging PM2 stop failed'
   assert_production
   assert_staging "$staging_id"
@@ -414,7 +439,10 @@ if [[ "$complete" != yes ]]; then
   # A comment-only receipt distinguishes successful save/checks from a run
   # interrupted after delete but before save. An incomplete zero-entry state
   # requires owner rollback, rather than incorrectly claiming it was saved.
-  completed_content=$(inspect complete "$vhost") || die 'could not record completed retirement'
+  completed_content=$(inspect complete "$vhost") || {
+    printf '%s\n' "$completed_content"
+    die 'could not record completed retirement'
+  }
   printf '%s\n' "$completed_content" > "$vhost" || die 'could not record completed retirement'
 fi
 echo 'already done: DNS retained (no action); staging directories, ecosystem file and certificates retained'

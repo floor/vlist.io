@@ -156,7 +156,7 @@ server {
     def commands(self):
         return [json.loads(x) for x in self.log.read_text().splitlines()] if self.log.exists() else []
 
-    def run_script(self, mode="--check"):
+    def run_script(self, mode="--check", setup=""):
         functions = """
 fake_pm2() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake pm2 "$@"; }
 fake_nginx() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake nginx "$@"; }
@@ -170,6 +170,7 @@ if [[ -n "$MODE" ]]; then source "$SCRIPT" "$MODE"; else source "$SCRIPT"; fi
                    STAGING_PARENT=str(self.root), NGINX_BIN="fake_nginx", PM2_BIN="fake_pm2",
                    CURL_BIN="fake_curl", SS_BIN="fake_ss", PYTHON_BIN=sys.executable,
                    SCRIPT=str(SCRIPT), MODE=mode)
+        functions = functions.replace('if [[ -n "$MODE" ]]', setup + '\nif [[ -n "$MODE" ]]', 1)
         p = subprocess.run(["bash", "-c", functions], env=env, text=True,
                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=30)
         print(f"\nCASE {self._testMethodName} {mode}: exit={p.returncode}\n{p.stdout}", flush=True)
@@ -198,6 +199,90 @@ if [[ -n "$MODE" ]]; then source "$SCRIPT" "$MODE"; else source "$SCRIPT"; fi
         self.assertEqual(before, digest(self.root))
         print("CHECK TREE CHECKSUM before=" + tree_checksum(before) + " after=" + tree_checksum(digest(self.root)), flush=True)
         self.assertEqual(self.commands(), [])
+
+    def test_active_check_has_no_runnable_rollback(self):
+        before = digest(self.root)
+        p = self.run_script()
+        self.assertEqual(p.returncode, 0)
+        self.assertNotIn("  cp -p --", p.stdout)
+        self.assertNotIn("Rollback (", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
+    def test_pre_backup_apply_failure_says_nothing_changed(self):
+        self.state["version"] = "0.0.0"
+        self.save()
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("nothing was changed", p.stdout)
+        self.assertNotIn("  cp -p --", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
+    def test_backup_collision_never_offers_unrelated_restore(self):
+        # Fix only this invocation's date, and reserve exactly its PID path.
+        # The collision is fixture setup; the script must neither copy it back
+        # nor print a command that would do so.
+        setup = """
+date() { printf '%s\\n' '20000101T000000Z'; }
+mkdir -p -- "$NGINX_DIR/staging-retirement-backups"
+collision="$NGINX_DIR/staging-retirement-backups/staging.vlist.io-20000101T000000Z-$$.conf.bak"
+printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
+"""
+        p = self.run_script("--apply", setup=setup)
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("dated backup already exists", p.stdout)
+        self.assertIn("nothing was changed", p.stdout)
+        self.assertNotIn("cp -p", p.stdout)
+        self.assertEqual(self.vhost.read_text(), self.original)
+        backups = list((self.nginx / "staging-retirement-backups").glob("*"))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0].read_text(), "UNRELATED BACKUP\n")
+        self.assertEqual(self.commands(), [])
+
+    def test_ecosystem_ambiguity_keeps_candidates_and_remedy(self):
+        other = self.root / "staging.vlist/ecosystem.staging.config.cjs"
+        other.parent.mkdir()
+        other.write_text("// second retained clone\n")
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("ecosystem candidate: " + str(other.resolve()), p.stdout)
+        self.assertIn("ecosystem candidate: " + str((self.root / "staging.vlist.io/ecosystem.staging.config.cjs").resolve()), p.stdout)
+        self.assertIn("set STAGING_ECOSYSTEM", p.stdout)
+        self.assertIn("nothing was changed", p.stdout)
+        self.assertNotIn("  cp -p --", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
+    def test_only_near_name_pm2_processes_are_zero_exact_matches(self):
+        for name in ("other.staging.vlist.io", "staging.vlist.io-old"):
+            with self.subTest(name=name):
+                self.state["processes"][2]["name"] = name
+                self.save()
+                before = digest(self.root)
+                p = self.run_script()
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("found 0 exact staging PM2 matches", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertNotIn("would change:", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_only_near_name_vhost_is_zero_exact_matches(self):
+        # Filename still resembles staging; selection must use server_name.
+        for name in ("other.staging.vlist.io", "staging.vlist.io.bak"):
+            with self.subTest(name=name):
+                self.vhost.write_text(self.original.replace("server_name staging.vlist.io;", "server_name " + name + ";"))
+                before = digest(self.root)
+                p = self.run_script()
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("found 0 staging vhosts", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertNotIn("would change:", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
 
     def test_default_is_read_only(self):
         before = digest(self.root)
@@ -318,6 +403,8 @@ if [[ -n "$MODE" ]]; then source "$SCRIPT" "$MODE"; else source "$SCRIPT"; fi
         checked = self.run_script()
         self.assertEqual(checked.returncode, 0)
         self.assertIn("nothing to do", checked.stdout)
+        backup = next((self.nginx / "staging-retirement-backups").glob("*"))
+        self.assertIn("  cp -p -- " + str(backup), checked.stdout)
         self.assertEqual(before, digest(self.root))
 
     def test_production_change_stops_before_delete(self):
