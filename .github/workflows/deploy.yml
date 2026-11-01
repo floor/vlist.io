@@ -1,6 +1,6 @@
 # GitHub Actions — Deploy vlist.io to floor.io
 # Triggers on push to main branch, on a vlist release, or by hand.
-# This file must stay identical on staging, the default branch: repository_dispatch runs its copy.
+# repository_dispatch runs the default branch's copy of this workflow; main is the default branch.
 # SSHs into the server and runs deploy commands
 # After deploy, purges Cloudflare edge cache so users get fresh content
 
