@@ -66,8 +66,231 @@ jobs:
             eval "$(fnm env)"
 
             APP_DIR="/home/floor/vlist.io"
+            cd "$APP_DIR"
 
             echo "📦 Deploying vlist.io..."
+
+            # The live path is node_modules/vlist: src/server/config.ts resolves
+            # it with realpathSync at startup, so a running worker keeps the
+            # generation it started with until pm2 reload. node_modules is
+            # therefore a link to a generation directory, and publishing is one
+            # rename over that link: rename(2) replaces the link atomically, and
+            # the one-time conversion of today's real directory swaps it with a
+            # hardlink copy in one renameat2(RENAME_EXCHANGE) (renamex_np on
+            # Darwin, where the regression harness runs). A pair of renames
+            # leaves the path absent between them; a killed run proved that is
+            # not safe. Recovery therefore runs before the helper that writes
+            # the live path is even created, and restores an absent path with
+            # one rename of its own.
+
+            # A live tree is one whose package.json is readable through the
+            # node_modules path — the same path the server opened at startup.
+            live_ok() { [ -f node_modules/vlist/package.json ]; }
+
+            # Publish a generation as the live link in one rename. The temp
+            # link is created under a name no reader uses; the rename then
+            # replaces the old link with the new one atomically.
+            publish_link() {
+              ln -s "$1" .deploy-link.tmp
+              bun "$APP_DIR/.deploy-swap.ts" swap .deploy-link.tmp node_modules
+            }
+
+            # Put a complete tree at the live path with one rename. Only called
+            # while the path is absent or dangling, so no readable tree is lost;
+            # an incomplete real directory is refused rather than replaced. It
+            # uses no helper, because it must run before one exists.
+            adopt_live() {
+              if [ -e node_modules ] && [ ! -L node_modules ]; then
+                echo "❌ cannot restore node_modules over an incomplete directory"
+                exit 1
+              fi
+              rm -f node_modules
+              mv "$1" node_modules
+            }
+
+            # Repair whatever a killed run left BEFORE any fetch, install or
+            # build can fail. A run killed during install leaves a partial side
+            # directory; during the exchange, the old tree at the temp name or
+            # a dangling temp link; under the old script, the tree in
+            # .deploy-prev with no node_modules. It runs before the swap helper
+            # is written and uses only shell commands.
+            recover_live_path() {
+              rm -rf .deploy-probe
+              if live_ok; then
+                # The live path is valid. Leftovers are unreferenced: an old
+                # tree at the temp name (cleanup died after an exchange), or a
+                # temp link from a publication that never happened.
+                if [ -L .deploy-link.tmp ]; then rm -f .deploy-link.tmp; else rm -rf .deploy-link.tmp; fi
+                return 0
+              fi
+              # The live path is absent or dangling. Restore a valid tree before
+              # anything else runs, from the first source that has one.
+              if [ -L .deploy-link.tmp ] && [ -f .deploy-link.tmp/vlist/package.json ]; then
+                adopt_live .deploy-link.tmp
+              elif [ -d .deploy-prev ] && [ -f .deploy-prev/vlist/package.json ]; then
+                # The old script's swap left the previous tree here. The live
+                # path is already absent, so one rename can restore it.
+                adopt_live .deploy-prev
+              else
+                newest=""
+                for candidate in .deploy-nodes/*; do
+                  [ -f "$candidate/vlist/package.json" ] || continue
+                  newest="$candidate"
+                done
+                if [ -n "$newest" ]; then
+                  ln -s "$newest" .deploy-link.tmp
+                  adopt_live .deploy-link.tmp
+                else
+                  echo "❌ node_modules is gone and no generation can restore it"
+                  exit 1
+                fi
+              fi
+              if ! live_ok; then
+                echo "❌ recovery did not restore node_modules/vlist"
+                exit 1
+              fi
+              rm -f .deploy-link.tmp
+            }
+
+            # One-time conversion of today's real node_modules directory to the
+            # link layout. A hardlink copy is complete before the exchange, so
+            # both names hold a full tree; the exchange then swaps them in one
+            # syscall. A kill at any step leaves either the original layout
+            # untouched, an unreferenced hardlink copy, or the link layout
+            # already in place — never a missing live path.
+            migrate_to_link() {
+              if [ -L node_modules ]; then return 0; fi
+              if [ ! -d node_modules ] || ! live_ok; then
+                echo "❌ cannot migrate: node_modules is not a complete live tree"
+                exit 1
+              fi
+              mkdir -p .deploy-nodes
+              stamp="$(date -u +%Y%m%dT%H%M%SZ)-$$"
+              generation=".deploy-nodes/legacy-$stamp"
+              partial="$generation.partial"
+              rm -rf "$partial"
+              bun "$APP_DIR/.deploy-swap.ts" hardlink node_modules "$partial"
+              mv "$partial" "$generation"
+              ln -s "$generation" .deploy-link.tmp
+              if ! bun "$APP_DIR/.deploy-swap.ts" exchange node_modules .deploy-link.tmp; then
+                rm -f .deploy-link.tmp
+                echo "❌ atomic exchange is unavailable; node_modules was not touched"
+                exit 1
+              fi
+              # The old real directory is now at the temp name. Readers kept a
+              # complete tree at the live path the whole time.
+              rm -rf .deploy-link.tmp
+              if ! live_ok; then
+                echo "❌ migration did not leave a readable live path"
+                exit 1
+              fi
+            }
+
+            # Prove the mechanisms before the install can fail. The exchange is
+            # needed only for the one-time migration; a steady-state server
+            # publishes with rename alone.
+            probe_publication() {
+              mkdir -p .deploy-probe
+              ln -s one .deploy-probe/a
+              ln -s two .deploy-probe/b
+              if ! bun "$APP_DIR/.deploy-swap.ts" swap .deploy-probe/a .deploy-probe/b; then
+                echo "❌ cannot publish node_modules with one rename"
+                exit 1
+              fi
+              if [ ! -L .deploy-probe/b ]; then
+                echo "❌ the rename did not replace the link"
+                exit 1
+              fi
+              rm -rf .deploy-probe
+              if [ ! -L node_modules ]; then
+                mkdir -p .deploy-probe/dir
+                ln -s .deploy-probe/dir .deploy-probe/link
+                if ! bun "$APP_DIR/.deploy-swap.ts" exchange .deploy-probe/dir .deploy-probe/link; then
+                  echo "❌ atomic exchange is unavailable on this server's filesystem"
+                  exit 1
+                fi
+                rm -rf .deploy-probe
+              fi
+            }
+
+            # A build failure after publication flips the live link back to the
+            # generation the workers started on, removes the unused new
+            # generation, and restores the manifest.
+            rollback() {
+              previous="$1"
+              new_generation="$2"
+              if ! publish_link "$previous"; then
+                echo "❌ build failed and the live link could not be rolled back; keeping both generations"
+                rm -rf .deploy-next .deploy-link.tmp
+                git checkout -- package.json
+                exit 1
+              fi
+              rm -rf "$new_generation" .deploy-next .deploy-link.tmp
+              git checkout -- package.json
+              echo "❌ build failed after publication; the live link is back on $previous"
+              exit 1
+            }
+
+            recover_live_path
+            cat > .deploy-swap.ts <<'DEPLOY_SWAP'
+            import { lstatSync, readdirSync, readlinkSync, symlinkSync, mkdirSync, linkSync, copyFileSync, renameSync } from "node:fs";
+            import { join } from "node:path";
+
+            const [cmd, a, b] = process.argv.slice(2);
+
+            async function exchange(from: string, to: string): Promise<boolean> {
+              const { dlopen, FFIType } = await import("bun:ffi");
+              if (process.platform === "linux") {
+                for (const name of ["libc.so.6", "libc.so"]) {
+                  try {
+                    const { symbols } = dlopen(name, {
+                      renameat2: {
+                        args: [FFIType.i32, FFIType.cstring, FFIType.i32, FFIType.cstring, FFIType.u32],
+                        returns: FFIType.i32,
+                      },
+                    });
+                    // AT_FDCWD, RENAME_EXCHANGE: both names remain valid.
+                    return symbols.renameat2(-100, from, -100, to, 2) === 0;
+                  } catch {}
+                }
+                return false;
+              }
+              try {
+                const { symbols } = dlopen("/usr/lib/libSystem.B.dylib", {
+                  renamex_np: { args: [FFIType.cstring, FFIType.cstring, FFIType.u32], returns: FFIType.i32 },
+                });
+                // RENAME_SWAP: atomic, and source and target may differ in type.
+                return symbols.renamex_np(from, to, 2) === 0;
+              } catch {
+                return false;
+              }
+            }
+
+            function hardlink(src: string, dst: string): void {
+              const stat = lstatSync(src);
+              if (stat.isSymbolicLink()) return symlinkSync(readlinkSync(src), dst);
+              if (stat.isDirectory()) {
+                mkdirSync(dst, { recursive: true });
+                for (const entry of readdirSync(src)) hardlink(join(src, entry), join(dst, entry));
+                return;
+              }
+              if (stat.isFile()) {
+                try { linkSync(src, dst); } catch { copyFileSync(src, dst); }
+                return;
+              }
+              throw new Error("cannot copy " + src);
+            }
+
+            switch (cmd) {
+              case "exchange": if (!(await exchange(a, b))) process.exit(1); break;
+              case "swap": renameSync(a, b); break;
+              case "hardlink": hardlink(a, b); break;
+              default: console.error("usage: exchange|swap|hardlink"); process.exit(2);
+            }
+            DEPLOY_SWAP
+            probe_publication
+            migrate_to_link
+            git checkout -- package.json
 
             # Pull the released vlist (used by file browser API + staleness check).
             # main is the released line; staging is the frozen 2.x maintenance branch.
@@ -115,11 +338,6 @@ jobs:
             # path that no longer existed. The live path must stay present for
             # the whole install, which can take minutes with the retry backoff.
             #
-            # A run killed between the two swap renames below leaves the last
-            # good tree in .deploy-prev and no node_modules; put it back first.
-            if [ ! -d node_modules ] && [ -d .deploy-prev ]; then
-              mv .deploy-prev node_modules
-            fi
             # A killed run can only leave a partial tree in .deploy-next: the
             # live tree is node_modules, never the side directory.
             rm -rf .deploy-next
@@ -151,38 +369,68 @@ jobs:
             if [ "$install_ok" != 1 ]; then
               echo "❌ bun install could not resolve vlist@$VLIST_SPEC after 6 attempts"
               # The live tree was never touched: drop the side directory and
-              # restore the manifest, then fail before anything is swapped in.
+              # restore the manifest, then fail before anything is published.
               rm -rf .deploy-next
               git checkout -- package.json
               exit 1
             fi
 
-            # The install succeeded: swap the new tree in. Both renames are on
-            # the same filesystem, so the live path is absent only between the
-            # two calls — microseconds, never while the install runs. The old
-            # tree stays at .deploy-prev until pm2 has reloaded.
-            # A .deploy-prev left here by a killed run is stale (the live tree
-            # is node_modules); clear it so the rename has a free name.
-            rm -rf .deploy-prev
-            if [ -e node_modules ] || [ -L node_modules ]; then
-              mv node_modules .deploy-prev
+            # The install succeeded: move the side tree to a new generation.
+            # No reader looks at this name, so this rename is not a publication.
+            mkdir -p .deploy-nodes
+            generation=".deploy-nodes/vlist-$VLIST_SPEC-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+            mv .deploy-next/node_modules "$generation"
+            if [ ! -L node_modules ]; then
+              echo "❌ node_modules is not a generation link; refusing to publish"
+              rm -rf "$generation" .deploy-next
+              git checkout -- package.json
+              exit 1
             fi
-            mv .deploy-next/node_modules node_modules
+            prev_target="$(readlink node_modules)"
+
+            # Publish the new generation in one rename. The previous generation
+            # stays where it is: the workers started on it keep reading it until
+            # pm2 reload has completed.
+            if ! publish_link "$generation"; then
+              echo "❌ publishing the new generation failed; the live link was not replaced"
+              rm -rf "$generation" .deploy-next .deploy-link.tmp
+              git checkout -- package.json
+              exit 1
+            fi
 
             # Build sandbox examples and benchmarks against the tree just
             # installed: the build resolves vlist from node_modules.
-            bun run build:examples
-            bun run build:bench
+            if ! bun run build:examples; then rollback "$prev_target" "$generation"; fi
+            if ! bun run build:bench; then rollback "$prev_target" "$generation"; fi
 
             # Restore package.json (keep git clean for next pull)
             git checkout -- package.json
 
-            # Restart PM2 process
-            pm2 reload vlist.io --update-env || pm2 start ecosystem.config.cjs
+            # Restart PM2 process. If this fails, the old workers may still be
+            # on the previous generation while some new ones may have started:
+            # keep both until a later successful reload retires the older one.
+            if ! (pm2 reload vlist.io --update-env || pm2 start ecosystem.config.cjs); then
+              rm -rf .deploy-next
+              git checkout -- package.json
+              echo "❌ pm2 reload failed; keeping $generation and $prev_target"
+              exit 1
+            fi
 
-            # The new processes are serving; the previous tree and the side
-            # directory can go.
-            rm -rf .deploy-prev .deploy-next
+            # The new workers are serving and every old worker is gone. Retire
+            # generations older than the one before the current one; the
+            # previous generation stays until the next successful reload.
+            current_name="$(basename "$(readlink node_modules)")"
+            prev_name="$(basename "$prev_target")"
+            for candidate in .deploy-nodes/*; do
+              [ -e "$candidate" ] || continue
+              name="$(basename "$candidate")"
+              if [ "$name" = "$current_name" ] || [ "$name" = "$prev_name" ]; then
+                continue
+              fi
+              rm -rf "$candidate"
+            done
+            rm -rf .deploy-prev .deploy-next .deploy-probe .deploy-link.tmp
+            rm -f .deploy-swap.ts
 
             echo "✅ Deployed successfully"
 
