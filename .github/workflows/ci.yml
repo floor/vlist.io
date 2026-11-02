@@ -46,6 +46,12 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
+      - name: Build examples
+        run: bun run build:examples
+
+      - name: Build benchmarks
+        run: bun run build:bench
+
       # These suites run without the optional local API datasets.
       - name: Unit tests
         run: bun test --max-concurrency=1 ./test/server ./test/benchmarks ./test/scripts ./test/workflows ./test/synthetic-experiment.test.ts
