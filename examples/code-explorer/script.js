@@ -176,7 +176,7 @@ function buildTree() {
         connectorLines: true,
       }),
       selection({ mode: "single", followFocus: true, focusOnClick: true }),
-      scrollbar({ autoHide: false, padding: 0 }),
+      scrollbar({ autoHide: false, padding: 0, gutter: true }),
     ],
   );
 
@@ -284,7 +284,7 @@ function buildRight() {
     );
   }
   plugins.push(autosize());
-  plugins.push(scrollbar({ autoHide: false, padding: 0 }));
+  plugins.push(scrollbar({ autoHide: false, padding: 0, gutter: true }));
   plugins.push(selection({ mode: "single" }));
 
   rightList = createVList(
