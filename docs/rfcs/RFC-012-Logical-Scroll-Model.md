@@ -1,12 +1,12 @@
 ---
 created: 2026-06-06
-updated: 2026-06-07
-status: approved
+updated: 2026-09-27
+status: implemented-narrowed
 ---
 
 # RFC-012: Logical Scroll Model
 
-**Status:** Approved (with required amendments)  
+**Status:** Implemented in vlist 2.4.0, narrowed in 3.0.0 — the public bounded mode (`scroll.mode`, `scroll.runway`) was removed in 3.0.0-next.1; the runway engine remains only for carousel wrap. Huge lists moved to `vlist/synthetic` ([RFC-014](RFC-014-Scroll-Input-Model.md))  
 **Author:** floor  
 **Type:** Core Architecture  
 **Created:** 2026-06-06  

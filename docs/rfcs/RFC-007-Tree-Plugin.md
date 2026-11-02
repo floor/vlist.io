@@ -1,12 +1,12 @@
 ---
 created: 2026-05-28
-updated: 2026-05-29
-status: draft
+updated: 2026-09-27
+status: implemented
 ---
 
 # RFC-007: Tree Plugin
 
-**Status:** Draft  
+**Status:** Implemented — `tree()` shipped in vlist 2.1.0, and was refined through 3.0.0 (keyboard expand and type-ahead with `a11y()`, guide lines, updates inside closed folders)  
 **Author:** floor  
 **Type:** Plugin / Feature  
 **Created:** 2026-05-28  

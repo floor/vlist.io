@@ -187,6 +187,23 @@
     font-family: var(--font-mono);
 }
 
+/* A readout beside a range input keeps one width for every value the demos
+   show ("12", "32px", "100%", "3000ms"). Otherwise the track slides and
+   resizes under the pointer when the text gains a digit. */
+.ui-row:has(input[type="range"]) > .ui-value,
+.ui-row:has(input[type="range"]) .ui-label > .ui-value,
+.ui-row:has(input[type="range"]) .ui-label__unit {
+    display: inline-block;
+    flex: 0 0 6ch;
+    width: 6ch;
+    min-width: 6ch;
+    max-width: 6ch;
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
+    text-align: right;
+    white-space: nowrap;
+}
+
 /* ============================================================================
    Text — paragraph text inside panels (previously undefined in CSS)
    ============================================================================ */

@@ -32,6 +32,9 @@ All measurements are for ESM output with minification enabled. Gzipped delta is 
 | masonry | {{size:masonry:min}} KB | {{size:masonry:gz}} KB | +{{size:masonry:delta}} KB |
 | tree | {{size:tree:min}} KB | {{size:tree:gz}} KB | +{{size:tree:delta}} KB |
 
+Bundlephobia reports **58.8 kB gzipped for `vlist@3.1.1`**. The package's root entry exports all 16 plugins. An app pays the base, **{{size:base:gz}} KB gzipped**, plus only the plugins it imports.
+
+
 ## Tree-Shaking
 
 Only imported plugins are bundled. Dead code elimination has been verified for all 16 plugins.
