@@ -130,7 +130,9 @@ export async function createList() {
         expandOnClick: true,
         connectorLines: true,
         loadChildren: async (item) => {
-          return fetchDir(item.id);
+          // Keep loaded children in the demo data when scroll mode rebuilds the tree.
+          item.children = await fetchDir(item.id);
+          return item.children;
         },
       }),
       selection({ mode: "single", followFocus: true, focusOnClick: true }),

@@ -11,12 +11,13 @@ function fixture() {
   const end = build.indexOf('].join("\\n")', start);
   const source = new Function("join", "vlistDist", `return ${build.slice(start + 10, end + 1)}`)(join, "/library").join("\n") as string;
   let sequence = 0;
-  type Plugin = { name: string; serial: number; owner?: List };
+  type Plugin = { name: string; serial: number; options?: { expanded?: string[] }; owner?: List };
   type List = {
     mode: string; plugins: Plugin[]; destroyed: boolean; items: { all(): object[] };
     element: { querySelectorAll(): number[] }; pings: number;
-    on(event: string, handler: () => void): void; off(event: string, handler: () => void): void;
+    on(event: string, handler: () => void): () => void; off(event: string, handler: () => void): void;
     emit(event: string): void; destroy(): void; refreshScrollbar(): void;
+    expanded: string[]; getExpanded(): string[]; query: string; getQuery(): string; setQuery(query: string): void;
   };
   const made: List[] = [];
   const plugin = (name: string): Plugin => ({ name, serial: sequence++ });
@@ -25,7 +26,9 @@ function fixture() {
     const list: List = {
       mode, plugins, destroyed: false, items: { all: () => config.items },
       element: { querySelectorAll: () => [1] }, pings: 0,
-      on(event, handler) { if (!handlers.has(event)) handlers.set(event, new Set()); handlers.get(event)!.add(handler); },
+      expanded: plugins.find(p => p.name === "tree")?.options?.expanded ?? [],
+      getExpanded() { return list.expanded; }, query: "", getQuery() { return list.query; }, setQuery(query) { list.query = query; },
+      on(event, handler) { if (!handlers.has(event)) handlers.set(event, new Set()); handlers.get(event)!.add(handler); return () => handlers.get(event)?.delete(handler); },
       off(event, handler) { handlers.get(event)?.delete(handler); },
       emit(event) { for (const handler of handlers.get(event) ?? []) handler(); },
       destroy() { list.destroyed = true; for (const p of plugins) if (p.owner) p.owner.pings = -1; },
@@ -42,7 +45,7 @@ function fixture() {
       previous.destroy();
       return next;
     },
-    ...Object.fromEntries(["scrollbar", "grid", "a11y", "selection", "page", "snapshots", "transition", "autosize", "masonry", "data", "groups", "table", "sortable", "tree", "search", "carousel"].map(name => [name, () => plugin(name)])),
+    ...Object.fromEntries(["scrollbar", "grid", "a11y", "selection", "page", "snapshots", "transition", "autosize", "masonry", "data", "groups", "table", "sortable", "tree", "search", "carousel"].map(name => [name, (options?: { expanded?: string[] }) => ({ ...plugin(name), options })])),
   };
   const scope = {
     Native: native, createSynthetic: (config: { items: object[] }, plugins: Plugin[]) => make("synthetic", config, plugins),
@@ -96,4 +99,30 @@ test("destroying one list does not unregister another list on the page", async (
   expect(made).toHaveLength(3);
   expect(left.mode).toBe("synthetic");
   expect(right.destroyed).toBe(true);
+});
+
+
+test("the subscription disposer follows its list through a mode switch", async () => {
+  const { api } = fixture();
+  const list = api.createVList({ items: [{ id: 1 }] }, [api.selection()]);
+  let events = 0;
+  const dispose = list.on("change", () => events++);
+  await api.switchMode("synthetic");
+  list.emit("change");
+  expect(events).toBe(1);
+  dispose();
+  list.emit("change");
+  expect(events).toBe(1);
+});
+
+
+test("tree expansion and the search query survive fresh plugin creation", async () => {
+  const { api, made } = fixture();
+  const list = api.createVList({ items: [{ id: "src" }] }, [api.tree()]);
+  list.expanded = ["src", "src/core"];
+  list.setQuery("create");
+  await api.switchMode("synthetic");
+  expect(list.getExpanded()).toEqual(["src", "src/core"]);
+  expect(made.at(-1)!.plugins.find(p => p.name === "tree")!.options!.expanded).toEqual(["src", "src/core"]);
+  expect(list.getQuery()).toBe("create");
 });

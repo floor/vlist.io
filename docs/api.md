@@ -16,6 +16,10 @@ import { createVList } from "vlist";
 const list = createVList(config, [plugin1(), plugin2()]);
 ```
 
+Plugin instances hold list-specific state. Call each plugin factory again for every
+new list, including a replacement created inside a `rebuild()` callback; do not
+share one plugin instance between lists.
+
 ## Config
 
 | Option | Type | Default | Description |
