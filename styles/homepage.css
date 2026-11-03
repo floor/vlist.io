@@ -92,17 +92,7 @@
     justify-content: center;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 10px;
-}
-
-.hero__size-note {
-    max-width: 60ch;
-    margin: 0 auto 36px;
-    font-size: var(--fs-sm);
-    color: var(--text-muted);
-    line-height: 1.5;
-    text-align: center;
-    text-wrap: balance;
+    margin-bottom: 36px;
 }
 
 .hero__actions {
@@ -532,7 +522,7 @@
         padding: 5px 10px;
     }
 
-    .hero__size-note {
+    .hero__badges {
         margin-bottom: 28px;
     }
 
