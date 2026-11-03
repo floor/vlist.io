@@ -1,5 +1,6 @@
 // test/api/router.test.ts
 import { describe, test, expect, afterAll } from "bun:test";
+import { missing } from "./local-data";
 import { routeApi } from "../../src/api/router";
 
 // Helper to create a mock request
@@ -214,7 +215,7 @@ describe("router", () => {
   });
 
   describe("GET /api/files", () => {
-    test("returns directory listing", async () => {
+    test.skipIf(missing("checkouts"))("returns directory listing", async () => {
       const { req, url } = createRequest("/api/files?path=vlist.io");
       const result = await routeApi(req, url);
 
@@ -415,7 +416,7 @@ describe("router", () => {
   // ===========================================================================
 
   describe("GET /api/cities", () => {
-    test("returns paginated cities", async () => {
+    test.skipIf(missing("cities"))("returns paginated cities", async () => {
       const { req, url } = createRequest("/api/cities?limit=10");
       const result = await routeApi(req, url);
 
@@ -431,7 +432,7 @@ describe("router", () => {
       expect(body.total).toBeGreaterThan(0);
     });
 
-    test("supports search filter", async () => {
+    test.skipIf(missing("cities"))("supports search filter", async () => {
       const { req, url } = createRequest(
         "/api/cities?search=Paris&limit=10",
       );
@@ -444,7 +445,7 @@ describe("router", () => {
       expect(body.items.length).toBeGreaterThan(0);
     });
 
-    test("trailing slash also works", async () => {
+    test.skipIf(missing("cities"))("trailing slash also works", async () => {
       const { req, url } = createRequest("/api/cities/");
       const result = await routeApi(req, url);
 
@@ -453,7 +454,7 @@ describe("router", () => {
   });
 
   describe("GET /api/cities/:id", () => {
-    test("returns single city by ID", async () => {
+    test.skipIf(missing("cities"))("returns single city by ID", async () => {
       const { req, url } = createRequest("/api/cities/1");
       const result = await routeApi(req, url);
 
@@ -462,7 +463,7 @@ describe("router", () => {
       expect(body.id).toBe(1);
     });
 
-    test("returns 404 for non-existent city", async () => {
+    test.skipIf(missing("cities"))("returns 404 for non-existent city", async () => {
       const { req, url } = createRequest("/api/cities/999999999");
       const result = await routeApi(req, url);
 
@@ -471,7 +472,7 @@ describe("router", () => {
   });
 
   describe("GET /api/cities/countries", () => {
-    test("returns country list", async () => {
+    test.skipIf(missing("cities"))("returns country list", async () => {
       const { req, url } = createRequest("/api/cities/countries");
       const result = await routeApi(req, url);
 
@@ -485,7 +486,7 @@ describe("router", () => {
   });
 
   describe("GET /api/cities/continents", () => {
-    test("returns continent list", async () => {
+    test.skipIf(missing("cities"))("returns continent list", async () => {
       const { req, url } = createRequest("/api/cities/continents");
       const result = await routeApi(req, url);
 
@@ -499,7 +500,7 @@ describe("router", () => {
   });
 
   describe("GET /api/cities/stats", () => {
-    test("returns aggregate statistics", async () => {
+    test.skipIf(missing("cities"))("returns aggregate statistics", async () => {
       const { req, url } = createRequest("/api/cities/stats");
       const result = await routeApi(req, url);
 
@@ -518,7 +519,7 @@ describe("router", () => {
   // ===========================================================================
 
   describe("GET /api/tracks", () => {
-    test("returns paginated tracks", async () => {
+    test.skipIf(missing("tracks"))("returns paginated tracks", async () => {
       const { req, url } = createRequest("/api/tracks?limit=10");
       const result = await routeApi(req, url);
 
@@ -534,7 +535,7 @@ describe("router", () => {
       expect(body.total).toBeGreaterThan(0);
     });
 
-    test("trailing slash also works", async () => {
+    test.skipIf(missing("tracks"))("trailing slash also works", async () => {
       const { req, url } = createRequest("/api/tracks/");
       const result = await routeApi(req, url);
 
@@ -543,7 +544,7 @@ describe("router", () => {
   });
 
   describe("GET /api/tracks/:id", () => {
-    test("returns single track by ID", async () => {
+    test.skipIf(missing("tracks"))("returns single track by ID", async () => {
       // Get a known existing track ID first
       const { req: listReq, url: listUrl } = createRequest(
         "/api/tracks?limit=1",
@@ -562,7 +563,7 @@ describe("router", () => {
       expect(body.id).toBe(trackId);
     });
 
-    test("returns 404 for non-existent track", async () => {
+    test.skipIf(missing("tracks"))("returns 404 for non-existent track", async () => {
       const { req, url } = createRequest("/api/tracks/999999999");
       const result = await routeApi(req, url);
 
@@ -573,7 +574,7 @@ describe("router", () => {
   describe("POST /api/tracks", () => {
     let createdTrackId: number;
 
-    test("creates a new track", async () => {
+    test.skipIf(missing("tracks"))("creates a new track", async () => {
       const body = JSON.stringify({
         title: "Router Test Track",
         artist: "Router Test Artist",
@@ -622,7 +623,7 @@ describe("router", () => {
     });
 
     // Cleanup: use the createdTrackId in later tests
-    test("PUT updates the created track", async () => {
+    test.skipIf(missing("tracks"))("PUT updates the created track", async () => {
       const body = JSON.stringify({ title: "Updated Router Track" });
       const url = new URL(`https://vlist.io/api/tracks/${createdTrackId}`);
       const req = new Request(url.toString(), {
@@ -637,7 +638,7 @@ describe("router", () => {
       expect(responseBody.title).toBe("Updated Router Track");
     });
 
-    test("PUT returns 404 for non-existent track", async () => {
+    test.skipIf(missing("tracks"))("PUT returns 404 for non-existent track", async () => {
       const body = JSON.stringify({ title: "Nope" });
       const url = new URL("https://vlist.io/api/tracks/999999999");
       const req = new Request(url.toString(), {
@@ -650,7 +651,7 @@ describe("router", () => {
       expect(result?.status).toBe(404);
     });
 
-    test("DELETE removes the created track", async () => {
+    test.skipIf(missing("tracks"))("DELETE removes the created track", async () => {
       const url = new URL(`https://vlist.io/api/tracks/${createdTrackId}`);
       const req = new Request(url.toString(), { method: "DELETE" });
       const result = await routeApi(req, url);
@@ -660,7 +661,7 @@ describe("router", () => {
       expect(responseBody.success).toBe(true);
     });
 
-    test("DELETE returns 404 for non-existent track", async () => {
+    test.skipIf(missing("tracks"))("DELETE returns 404 for non-existent track", async () => {
       const url = new URL("https://vlist.io/api/tracks/999999999");
       const req = new Request(url.toString(), { method: "DELETE" });
       const result = await routeApi(req, url);
@@ -680,7 +681,7 @@ describe("router", () => {
   });
 
   describe("GET /api/tracks/countries", () => {
-    test("returns country list", async () => {
+    test.skipIf(missing("tracks"))("returns country list", async () => {
       const { req, url } = createRequest("/api/tracks/countries");
       const result = await routeApi(req, url);
 
@@ -694,7 +695,7 @@ describe("router", () => {
   });
 
   describe("GET /api/tracks/decades", () => {
-    test("returns decades list", async () => {
+    test.skipIf(missing("tracks"))("returns decades list", async () => {
       const { req, url } = createRequest("/api/tracks/decades");
       const result = await routeApi(req, url);
 
@@ -708,7 +709,7 @@ describe("router", () => {
   });
 
   describe("GET /api/tracks/categories", () => {
-    test("returns categories list", async () => {
+    test.skipIf(missing("tracks"))("returns categories list", async () => {
       const { req, url } = createRequest("/api/tracks/categories");
       const result = await routeApi(req, url);
 
@@ -722,7 +723,7 @@ describe("router", () => {
   });
 
   describe("GET /api/tracks/stats", () => {
-    test("returns aggregate statistics", async () => {
+    test.skipIf(missing("tracks"))("returns aggregate statistics", async () => {
       const { req, url } = createRequest("/api/tracks/stats");
       const result = await routeApi(req, url);
 

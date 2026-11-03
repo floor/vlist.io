@@ -4,8 +4,7 @@
 // Defines the Svelte vlist action create/destroy lifecycle and formats
 // results with rating thresholds.
 
-import { vlist } from "vlist-svelte";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { vlist } from "vlist/svelte";
 import {
   defineSuite,
   generateItems,
@@ -17,6 +16,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
 import { measureScrollToPerformance } from "../../../engine/scrollto.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 
 // =============================================================================
 // Suite
@@ -35,6 +35,8 @@ defineSuite({
     // ── Create vlist via Svelte action ─────────────────────────────────
     container.innerHTML = "";
 
+    // The action returns { update, destroy }; the list comes via onInstance.
+    let list = null;
     const action = vlist(container, {
       config: {
         item: {
@@ -42,7 +44,9 @@ defineSuite({
           template: benchmarkTemplate,
         },
         items,
+        scroll: { mode: "native" },
       },
+      onInstance: (instance) => { list = instance; },
     });
 
     // Let initial render settle
@@ -50,7 +54,7 @@ defineSuite({
 
     const viewport = findViewport(container);
 
-    if (!viewport || !action || !action.scrollToIndex) {
+    if (!viewport || !list) {
       if (action && action.destroy) {
         action.destroy();
       }
@@ -61,7 +65,7 @@ defineSuite({
     // ── Measure with engine ────────────────────────────────────────────
     const result = await measureScrollToPerformance({
       viewport,
-      scrollToFn: (index, align) => action.scrollToIndex(index, align),
+      scrollToFn: (index, align) => list.scrollToIndex(index, align),
       itemCount,
       onStatus,
     });
@@ -113,27 +117,30 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "scrollto-synthetic-svelte",
   name: "scrollToIndex (Svelte)",
-  description: "Latency of scrollToIndex() in synthetic mode, through the Svelte adapter",
+  description: "Latency of scrollToIndex() in synthetic mode, through vlist/svelte",
   icon: "🎯",
   run: async ({ itemCount, container, onStatus }) => {
+    await loadSynthetic();
     const items = generateItems(itemCount);
     container.innerHTML = "";
+    let list = null;
     const action = vlist(container, {
       config: {
         item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
         items,
-        factory: createSynthetic,
+        scroll: { mode: "synthetic" },
       },
+      onInstance: (instance) => { list = instance; },
     });
     try {
       await waitFrames(10);
       const viewport = findViewport(container);
       const content = container.querySelector(".vlist-content");
-      if (!viewport || !action?.scrollToIndex) throw new Error("Could not get the synthetic Svelte list");
+      if (!viewport || !list) throw new Error("Could not get the synthetic Svelte list");
       const result = await measureScrollToPerformance({
         viewport,
-        scrollToFn: (index, align) => action.scrollToIndex(index, align),
-        readPosition: () => action.getScrollPosition(),
+        scrollToFn: (index, align) => list.scrollToIndex(index, align),
+        readPosition: () => list.getScrollPosition(),
         itemCount,
         onStatus,
       });

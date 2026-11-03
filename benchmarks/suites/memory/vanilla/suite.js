@@ -4,7 +4,6 @@
 // Defines the vlist create/destroy lifecycle and formats results with ratings.
 
 import { createVList } from "vlist";
-import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -15,6 +14,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureMemoryProfile, scrollWithSetter } from "../../../engine/memory.js";
 import { findViewport } from "../../../engine/viewport.js";
+import { loadSynthetic, withScrollMode } from "../../../engine/synthetic.js";
 
 const formatMemoryMetrics = (itemCount, result) => {
   if (!result.available) {
@@ -84,6 +84,7 @@ defineSuite({
     const result = await measureMemoryProfile({
       container,
       createFn: async () => {
+        // Scrolled through scrollTop: native at every size.
         const list = createVList({
           container,
           item: {
@@ -91,6 +92,7 @@ defineSuite({
             template: benchmarkTemplate,
           },
           items,
+          scroll: { mode: "native" },
         });
         return { instance: list };
       },
@@ -103,28 +105,30 @@ defineSuite({
   },
 });
 
-// Heap of the synthetic entry. The scroll phase goes through ctx.scroll.to:
+// Heap of a synthetic list. The scroll phase goes through ctx.scroll.to:
 // writing scrollTop does not move a synthetic list, so it would measure a
 // list sitting still.
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "memory-synthetic",
   name: "Memory (Synthetic)",
   description:
-    "Heap of the synthetic entry after render and after scrolling its position setter",
+    "Heap of a synthetic list after render and after scrolling its position setter",
   icon: "🧠",
 
   run: async ({ itemCount, container, onStatus, intensity }) => {
+    // Loaded before the baseline, as the synthetic entry's driver was.
+    await loadSynthetic();
     const items = generateItems(itemCount);
     let write;
 
     const result = await measureMemoryProfile({
       container,
       createFn: async () => {
-        const instance = createSynthetic({
+        const instance = createVList(withScrollMode({
           container,
           item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
           items,
-        }, [{
+        }, "synthetic"), [{
           name: "benchmark-memory-scroll",
           setup(ctx) { write = (position) => ctx.scroll.to(position); },
         }]);

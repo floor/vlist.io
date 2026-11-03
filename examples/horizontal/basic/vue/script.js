@@ -2,7 +2,8 @@
 // Demonstrates orientation: 'horizontal' with item.width
 
 import { createApp, ref } from "vue";
-import { useVList, useVListEvent } from "vlist-vue";
+import { scrollbar } from "vlist";
+import { useVList, useVListEvent } from "vlist/vue";
 import {
   items,
   itemTemplate,
@@ -27,8 +28,6 @@ const App = {
     const { containerRef, instance } = useVList({
       orientation: "horizontal",
       scroll: { wheel: true },
-      // Custom overlay scrollbar: vlist/config leaves the native one unless asked.
-      scrollbar: true,
       ariaLabel: "Horizontal card carousel",
       item: {
         height: ITEM_HEIGHT,
@@ -36,7 +35,7 @@ const App = {
         template: itemTemplate,
       },
       items,
-    });
+    }, [scrollbar()]);
 
     // Update stats
     const updateStats = () => {

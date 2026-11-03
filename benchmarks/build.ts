@@ -20,7 +20,9 @@ const OUT_DIR = "./dist/benchmarks";
 
 const PROJECT_ROOT = "./";
 const VLIST_ROOT = resolve(PROJECT_ROOT, process.env.VLIST_BENCH_ROOT ?? "../vlist");
-const hasSynthetic = existsSync(resolve(VLIST_ROOT, "dist/synthetic.js"));
+// Synthetic input is `scroll.mode: "synthetic"`, whose driver ships as its own
+// file. A vlist without it registers native suites only.
+const hasSynthetic = existsSync(resolve(VLIST_ROOT, "dist/synthetic-driver.js"));
 
 const BUILD_OPTIONS = {
   format: "esm" as const,
@@ -32,7 +34,10 @@ function resolveVlistFallback(path: string): string | null {
   const candidates: Record<string, string> = {
     "": resolve(VLIST_ROOT, "dist/index.js"),
     config: resolve(VLIST_ROOT, "dist/config.js"),
-    synthetic: resolve(VLIST_ROOT, "dist/synthetic.js"),
+    react: resolve(VLIST_ROOT, "dist/react.js"),
+    vue: resolve(VLIST_ROOT, "dist/vue.js"),
+    svelte: resolve(VLIST_ROOT, "dist/svelte.js"),
+    solid: resolve(VLIST_ROOT, "dist/solid.js"),
     internals: resolve(VLIST_ROOT, "dist/internals.js"),
     "package.json": resolve(VLIST_ROOT, "package.json"),
     styles: resolve(VLIST_ROOT, "dist/vlist.css"),
@@ -49,7 +54,7 @@ function resolveVlistFallback(path: string): string | null {
 // =============================================================================
 // Framework dedupe plugin
 // =============================================================================
-// When vlist is linked (symlink), its node_modules/{react,vue} are separate
+// When vlist is linked (symlink), its node_modules/{react,vue,solid-js} are separate
 // copies from vlist.io/node_modules/. Framework hooks/reactivity crash if two
 // copies coexist. This plugin forces all framework imports to resolve from
 // vlist.io's node_modules, guaranteeing a single instance in the bundle.
@@ -67,11 +72,6 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     // "vlist" → "vlist"
     // "vlist/react" → "vlist/react"
     build.onResolve({ filter: /^vlist(\/.*)?$/ }, (args) => {
-      if (args.path === "vlist/synthetic" && !hasSynthetic) {
-        // A pre-RFC build has no synthetic entry. Register only native/bounded;
-        // this stub fails closed if any caller nevertheless tries to use it.
-        return { path: "unavailable-synthetic", namespace: "benchmark" };
-      }
       if (process.env.VLIST_BENCH_ROOT) {
         const path = resolveVlistFallback(args.path);
         if (!path) throw new Error(`Missing benchmark artifact ${args.path} in ${VLIST_ROOT}`);
@@ -88,10 +88,6 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         return fallback ? { path: fallback } : undefined;
       }
     });
-
-    build.onLoad({ filter: /^unavailable-synthetic$/, namespace: "benchmark" }, () => ({
-      contents: 'export function createVList(){throw new Error("Synthetic entry unavailable in this benchmark build")}', loader: "js",
-    }));
 
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {
@@ -128,6 +124,16 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         return undefined;
       }
     });
+
+    // SolidJS — vlist/solid imports solid-js from inside the linked vlist,
+    // whose own node_modules holds a second copy. Its onMount would then run
+    // under no owner and never fire, so pin the browser builds here.
+    build.onResolve({ filter: /^solid-js$/ }, () => ({
+      path: resolve(PROJECT_ROOT, "node_modules/solid-js/dist/solid.js"),
+    }));
+    build.onResolve({ filter: /^solid-js\/web$/ }, () => ({
+      path: resolve(PROJECT_ROOT, "node_modules/solid-js/web/dist/web.js"),
+    }));
   },
 };
 

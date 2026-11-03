@@ -172,6 +172,7 @@ interface VListEvents<T extends VListItem = VListItem> {
   // Scroll
   scroll: { scrollPosition: number; direction: "up" | "down" | "left" | "right" };
   "scroll:idle": { scrollPosition: number };
+  "scroll:mode": { mode: "native" | "synthetic" };
   "velocity:change": { velocity: number; reliable: boolean };
   "range:change": { range: Range };
   resize: { height: number; width: number };

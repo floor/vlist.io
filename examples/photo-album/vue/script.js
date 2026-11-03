@@ -1,9 +1,10 @@
 // Photo Album — Vue variant
-// Uses useVList composable from vlist-vue with declarative layout config
+// Builds the list with core createVList, the layout passed as a plugin: a
+// layout change remounts the list, which plugins read once at mount require
 // Layout mode toggle: Grid ↔ Masonry
 
 import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { useVList, useVListEvent } from "vlist-vue";
+import { createVList, grid, masonry, scrollbar } from "vlist";
 import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
@@ -64,7 +65,7 @@ const App = {
     const gap = ref(8);
     const selectedPhoto = ref(null);
 
-    // Computed layout config for useVList
+    // Computed layout config
     const vlistConfig = computed(() => {
       const m = mode.value;
       const o = orientation.value;
@@ -91,79 +92,74 @@ const App = {
     const containerRef = ref(null);
     const instance = ref(null);
 
-    // Manual lifecycle — useVList doesn't support config changes (needs remount)
+    // Manual lifecycle: plugins are read once at mount, so a layout change
+    // destroys the list and builds a new one
     let cleanup = null;
 
     function mount() {
       if (!containerRef.value) return;
 
       const config = vlistConfig.value;
-      const { useVList: _, ...rest } = config; // just use config directly
 
-      // Import and build manually since useVList is designed for single mount
-      import("vlist").then(
-        ({ createVList, grid, masonry, scrollbar }) => {
-          const plugins = [];
-          if (config.layout === "grid" && config.grid) {
-            plugins.push(grid(config.grid));
-          }
-          if (config.layout === "masonry" && config.masonry) {
-            plugins.push(masonry(config.masonry));
-          }
-          plugins.push(scrollbar({ autoHide: true }));
+      const plugins = [];
+      if (config.layout === "grid" && config.grid) {
+        plugins.push(grid(config.grid));
+      }
+      if (config.layout === "masonry" && config.masonry) {
+        plugins.push(masonry(config.masonry));
+      }
+      plugins.push(scrollbar({ autoHide: true }));
 
-          const inst = createVList({
-            ...config,
-            container: containerRef.value,
-          }, plugins);
-          instance.value = inst;
+      const inst = createVList({
+        ...config,
+        container: containerRef.value,
+      }, plugins);
+      instance.value = inst;
 
-          // Stats
-          if (!statsInstance) {
-            statsInstance = createStats({
-              getScrollPosition: () => instance.value?.getScrollPosition() ?? 0,
-              getTotal: () => ITEM_COUNT,
-              getItemSize: () => {
-                const el = containerRef.value;
-                if (!el) return 200;
-                const innerWidth = el.clientWidth - 2;
-                const colW =
-                  (innerWidth - (columns.value - 1) * gap.value) /
-                  columns.value;
-                return mode.value === "masonry"
-                  ? Math.round(colW * 1.05)
-                  : Math.round(colW * ASPECT_RATIO);
-              },
-              getColumns: () => columns.value,
-              getContainerSize: () => {
-                const el = containerRef.value;
-                if (!el) return 0;
-                return orientation.value === "horizontal"
-                  ? el.clientWidth
-                  : el.clientHeight;
-              },
-            });
-          }
+      // Stats
+      if (!statsInstance) {
+        statsInstance = createStats({
+          getScrollPosition: () => instance.value?.getScrollPosition() ?? 0,
+          getTotal: () => ITEM_COUNT,
+          getItemSize: () => {
+            const el = containerRef.value;
+            if (!el) return 200;
+            const innerWidth = el.clientWidth - 2;
+            const colW =
+              (innerWidth - (columns.value - 1) * gap.value) /
+              columns.value;
+            return mode.value === "masonry"
+              ? Math.round(colW * 1.05)
+              : Math.round(colW * ASPECT_RATIO);
+          },
+          getColumns: () => columns.value,
+          getContainerSize: () => {
+            const el = containerRef.value;
+            if (!el) return 0;
+            return orientation.value === "horizontal"
+              ? el.clientWidth
+              : el.clientHeight;
+          },
+        });
+      }
 
-          if (!infoUpdater) {
-            infoUpdater = createInfoUpdater(statsInstance);
-          }
+      if (!infoUpdater) {
+        infoUpdater = createInfoUpdater(statsInstance);
+      }
 
-          // Events
-          inst.on("scroll", () => infoUpdater());
-          inst.on("range:change", () => infoUpdater());
-          inst.on("velocity:change", ({ velocity }) => {
-            statsInstance.onVelocity(velocity);
-            infoUpdater();
-          });
-          inst.on("item:click", ({ item }) => {
-            selectedPhoto.value = item;
-          });
+      // Events
+      inst.on("scroll", () => infoUpdater());
+      inst.on("range:change", () => infoUpdater());
+      inst.on("velocity:change", ({ velocity }) => {
+        statsInstance.onVelocity(velocity);
+        infoUpdater();
+      });
+      inst.on("item:click", ({ item }) => {
+        selectedPhoto.value = item;
+      });
 
-          infoUpdater();
-          updateInfoContext();
-        },
-      );
+      infoUpdater();
+      updateInfoContext();
     }
 
     function unmount() {

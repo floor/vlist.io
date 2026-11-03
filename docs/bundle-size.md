@@ -13,7 +13,7 @@ All measurements are for ESM output with minification enabled. Gzipped delta is 
 | Plugin | Minified | Gzipped | Delta |
 |--------|----------|---------|-------|
 | Base (`createVList`) | {{size:base:min}} KB | {{size:base:gz}} KB | — |
-| `vlist/synthetic` entry | {{size:synthetic:min}} KB | {{size:synthetic:gz}} KB | +{{size:synthetic:delta}} KB |
+| `vlist/synthetic` entry (deprecated) | {{size:synthetic:min}} KB | {{size:synthetic:gz}} KB | +{{size:synthetic:delta}} KB |
 | a11y | {{size:a11y:min}} KB | {{size:a11y:gz}} KB | +{{size:a11y:delta}} KB |
 | selection | {{size:selection:min}} KB | {{size:selection:gz}} KB | +{{size:selection:delta}} KB |
 | data | {{size:data:min}} KB | {{size:data:gz}} KB | +{{size:data:delta}} KB |
@@ -32,8 +32,11 @@ All measurements are for ESM output with minification enabled. Gzipped delta is 
 | masonry | {{size:masonry:min}} KB | {{size:masonry:gz}} KB | +{{size:masonry:delta}} KB |
 | tree | {{size:tree:min}} KB | {{size:tree:gz}} KB | +{{size:tree:delta}} KB |
 
-Bundlephobia reports **58.8 kB gzipped for `vlist@3.1.1`**. The package's root entry exports all 16 plugins. An app pays the base, **{{size:base:gz}} KB gzipped**, plus only the plugins it imports.
+The synthetic driver is not in the base. A list that goes synthetic, with `scroll.mode:
+"synthetic"` or `"auto"` past the browser's size limit, downloads it as a separate file,
+`synthetic-driver.js` (about 3.4 KB gzipped), the first time it needs it.
 
+Bundlephobia reports **58.8 kB gzipped for `vlist@3.1.1`**. The package's root entry exports all 16 plugins. An app pays the base, **{{size:base:gz}} KB gzipped**, plus only the plugins it imports.
 
 ## Tree-Shaking
 

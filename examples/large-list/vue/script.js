@@ -1,11 +1,10 @@
 // Large List — Vue implementation with useVList composable
-// Synthetic input (vlist/synthetic) + scrollbar: no browser element size limit
+// scroll.mode "auto" (the default): past the browser's element size limit,
+// the list hands itself to synthetic input and draws its scrollbar
 // Demonstrates handling 100K–5M items
 
 import { createApp, ref, computed, watch } from "vue";
-import { useVList, useVListEvent } from "vlist-vue";
-// vlist 3 scrolls natively by default; lists this large opt into synthetic input.
-import { createVList as createSyntheticVList } from "vlist/synthetic";
+import { useVList, useVListEvent } from "vlist/vue";
 
 // =============================================================================
 // Constants
@@ -95,9 +94,8 @@ const App = {
     const { containerRef, instance } = useVList({
       // A plain string: the DOM layer escapes ariaLabel and cannot read a ref.
       ariaLabel: `${SIZES[currentSize.value].toLocaleString()} items list`,
-      // vlist/config installs the scrollbar plugin from scroll.scrollbar options.
-      factory: createSyntheticVList,
-      scroll: { scrollbar: { autoHide: true } },
+      // Nothing to configure: the default scroll.mode, "auto", goes synthetic past
+      // the size limit, and a synthetic list draws its own scrollbar.
       item: {
         height: ITEM_HEIGHT,
         template: itemTemplate,
@@ -152,7 +150,7 @@ const App = {
 
       // Update vlist with new items
       if (instance.value) {
-        instance.value.update({ items: newItems });
+        instance.value.setItems(newItems);
       }
 
       stats.value = {
@@ -234,10 +232,10 @@ const App = {
       <header>
         <h1>Large List</h1>
         <p class="description">
-          Vue implementation with <code>useVList</code> composable +
-          <code>vlist/synthetic</code> + <code>scrollbar</code>.
-          Handles 100K–5M items: synthetic input has no browser element size
-          limit.
+          Vue implementation with <code>useVList</code> composable. Handles
+          100K–5M items: the default <code>scroll.mode</code>,
+          <code>auto</code>, hands lists past the browser's element size limit
+          to synthetic input, which draws its own scrollbar.
         </p>
       </header>
 
@@ -366,10 +364,9 @@ const App = {
 
       <footer>
         <p>
-          Synthetic input owns the scroll position, so the list has no browser
-          element size limit; native scrolling stops at about 16 million pixels.
-          Pass <code>factory: createVList</code> from <code>vlist/synthetic</code>
-          to <code>useVList</code> to opt in. 💚
+          Native scrolling stops at about 16 million pixels; past that, the
+          default <code>scroll.mode: "auto"</code> hands the list to synthetic
+          input in place, with nothing to configure in <code>useVList</code>. 💚
         </p>
       </footer>
     </div>

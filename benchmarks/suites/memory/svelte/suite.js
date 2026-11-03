@@ -1,11 +1,10 @@
 // benchmarks/suites/memory/svelte/suite.js — Memory Benchmark (Svelte)
 //
 // Thin wrapper around engine/memory.js measureMemoryProfile.
-// Defines the vlist-svelte action create/destroy lifecycle and formats
+// Defines the vlist/svelte action create/destroy lifecycle and formats
 // results with rating thresholds.
 
-import { vlist } from "vlist-svelte";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { vlist } from "vlist/svelte";
 import {
   defineSuite,
   generateItems,
@@ -16,6 +15,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureMemoryProfile, scrollWithSetter } from "../../../engine/memory.js";
 import { findViewport } from "../../../engine/viewport.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 import { scrollCapturePlugin } from "../../../engine/logical-scroll.js";
 import { formatMemoryMetrics } from "../format.js";
 
@@ -43,6 +43,7 @@ defineSuite({
               template: benchmarkTemplate,
             },
             items,
+            scroll: { mode: "native" },
           },
         });
         return { instance: action };
@@ -120,9 +121,10 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "memory-synthetic-svelte",
   name: "Memory (Svelte)",
-  description: "Heap of a synthetic list created through the Svelte adapter, after render and after scrolling its position",
+  description: "Heap of a synthetic list created through vlist/svelte, after render and after scrolling its position",
   icon: "🧠",
   run: async ({ itemCount, container, onStatus, intensity }) => {
+    await loadSynthetic();
     const items = generateItems(itemCount);
     const capture = { current: null };
     const result = await measureMemoryProfile({
@@ -132,9 +134,9 @@ if (__BENCH_HAS_SYNTHETIC__) defineSuite({
           config: {
             item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
             items,
-            factory: createSynthetic,
-            plugins: [scrollCapturePlugin((set) => { capture.current = set; })],
+            scroll: { mode: "synthetic" },
           },
+          plugins: [scrollCapturePlugin((set) => { capture.current = set; })],
         });
         if (!capture.current) throw new Error("Svelte list did not install the scroll writer");
         return { instance: action };

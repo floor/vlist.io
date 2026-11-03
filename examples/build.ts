@@ -104,10 +104,18 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
     // vlist — resolve bare "vlist" and JS subpaths like "vlist/internals"
     // "vlist"           → dist/index.js
     // "vlist/internals" → dist/internals.js
+    // "vlist/react"     → dist/react.js (likewise vue, svelte, solid)
     // Other subpaths (e.g. "vlist/styles") fall through to default resolution.
+    // The framework entries import the core as "./index.js", so they share the
+    // one copy of it and build their lists with the plain core createVList.
     const VLIST_JS_ENTRIES: Record<string, string> = {
       vlist: "index.js",
       "vlist/internals": "internals.js",
+      "vlist/react": "react.js",
+      "vlist/vue": "vue.js",
+      "vlist/svelte": "svelte.js",
+      "vlist/solid": "solid.js",
+      // Deprecated; kept resolvable for code that still imports it.
       "vlist/synthetic": "synthetic.js",
       "vlist/native": "native.js",
     };
@@ -116,17 +124,10 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       if (!entry) return;
       const path = join(vlistDist, entry);
       // Example scripts keep `import { createVList } from "vlist"`. The shell
-      // switch chooses native or synthetic; this wrapper reads that choice.
+      // switch chooses the scroll mode; this wrapper passes it as scroll.mode.
       // Imports from inside vlist itself stay on the real entry.
       if (args.path === "vlist" && !args.importer.startsWith(vlistDist)) {
         return { path: "vlist-example-entry", namespace: "vlist-example" };
-      }
-      // Optional entries (vlist/synthetic ships in 2.7) fall back to a stub that
-      // delegates to core and throws only when the missing mode is requested, so
-      // an older vlist (npm production, or a checkout behind the site) still
-      // builds every example.
-      if (args.path === "vlist/synthetic" && (process.env.VLIST_NO_SYNTHETIC === "1" || !existsSync(path))) {
-        return { path: "vlist-synthetic-unavailable", namespace: "vlist-optional" };
       }
       // vlist/native ships with 3.0; on 2.x core already handles native and bounded.
       if (args.path === "vlist/native" && !existsSync(path)) {
@@ -134,18 +135,27 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       }
       return { path };
     });
+    // The framework entries (vlist/react, vue, svelte, solid) build their
+    // lists with the core they import as "./index.js". Give them the same
+    // wrapper, so framework pages follow the switch too (vlist.io#91). Inside
+    // the core and every other vlist file, "./index.js" stays the real one.
+    const FRAMEWORK_ENTRIES = new Set(["react.js", "vue.js", "svelte.js", "solid.js"].map((file) => join(vlistDist, file)));
+    build.onResolve({ filter: /^\.\/index\.js$/ }, (args) => {
+      if (!FRAMEWORK_ENTRIES.has(args.importer)) return;
+      return { path: "vlist-example-entry", namespace: "vlist-example" };
+    });
     build.onLoad({ filter: /^vlist-example-entry$/, namespace: "vlist-example" }, () => ({
       contents: [
         `import * as Native from ${JSON.stringify(join(vlistDist, "index.js"))};`,
-        `import { createVList as createSynthetic } from "vlist/synthetic";`,
         `export * from ${JSON.stringify(join(vlistDist, "index.js"))};`,
+        "const SCROLL_MODES = [\"auto\", \"native\", \"synthetic\"];",
         "function exampleScrollMode() {",
         "  if (globalThis.__VLIST_SCROLL_LOCKED) return \"native\";",
         "  const fromUrl = new URLSearchParams(location.search).get(\"mode\");",
-        "  if (fromUrl === \"native\" || fromUrl === \"synthetic\") return fromUrl;",
+        "  if (SCROLL_MODES.includes(fromUrl)) return fromUrl;",
         "  const match = document.cookie.match(/(?:^|; )vlist-scroll-mode=([^;]*)/);",
         "  const fromCookie = match ? decodeURIComponent(match[1]) : \"\";",
-        "  return fromCookie === \"synthetic\" ? \"synthetic\" : \"native\";",
+        "  return SCROLL_MODES.includes(fromCookie) ? fromCookie : \"auto\";",
         "}",
         "const activeLists = new Set();",
         "const pluginFactories = new WeakMap();",
@@ -171,15 +181,16 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
         "  const fresh = snapshotPlugin ? base.map((plugin) => pluginFactories.get(plugin)?.(previous) ?? plugin) : base;",
         "  const withSnap = snapshotPlugin ? [...fresh, snapshotPlugin] : fresh;",
         "  if (globalThis.__VLIST_SCROLLBAR_OWNED) return withSnap;",
-        "  if (mode === \"synthetic\") {",
-        "    if (withSnap.some((plugin) => plugin && plugin.name === \"scrollbar\")) return withSnap;",
-        "    return [...withSnap, Native.scrollbar({ autoHide: false })];",
-        "  }",
-        "  return withSnap.filter((plugin) => plugin.name !== \"scrollbar\");",
+        "  // Native shows the browser's bar: drop a custom one. A synthetic list,",
+        "  // or an auto list past the size limit, draws its own when none was passed.",
+        "  if (mode === \"native\") return withSnap.filter((plugin) => plugin.name !== \"scrollbar\");",
+        "  return withSnap;",
         "}",
-        "function makeList(mode, config, plugins, snapshotPlugin, previous) {",
+        "function makeList(switchMode, config, plugins, snapshotPlugin, previous) {",
+        "  // An example that sets scroll.mode itself owns it; the others follow the switch.",
+        "  const mode = config?.scroll?.mode ?? switchMode;",
         "  const next = pluginsFor(mode, plugins, snapshotPlugin, previous);",
-        "  return mode === \"synthetic\" ? createSynthetic(config, next) : Native.createVList(config, next);",
+        "  return Native.createVList({ ...config, scroll: { ...config?.scroll, mode } }, next);",
         "}",
         "function track(list, config, plugins) {",
         "  let current = list;",
@@ -272,36 +283,6 @@ const frameworkDedupePlugin: import("bun").BunPlugin = {
       ].join("\n"),
       loader: "js",
     }));
-    build.onLoad({ filter: /^vlist-synthetic-unavailable$/, namespace: "vlist-optional" }, () => ({
-      contents: [
-        'import { createVList as core } from "vlist";',
-        "export function createVList(config, plugins) {",
-        '  if (config?.scroll?.mode === "synthetic") throw new Error("vlist/synthetic is not available in this vlist build");',
-        "  return core(config, plugins);",
-        "}",
-        "export const SYNTHETIC_AVAILABLE = false;",
-      ].join("\n"),
-      loader: "js",
-    }));
-
-    // vlist adapters — resolve to separate packages
-    // "vlist-react" → "vlist-react"
-    // "vlist-vue" → "vlist-vue"
-    // "vlist-svelte" → "vlist-svelte"
-    // "vlist-solidjs" → "vlist-solidjs"
-    build.onResolve(
-      { filter: /^vlist-(react|vue|svelte|solidjs)$/ },
-      (args) => {
-        try {
-          const resolved = require.resolve(args.path, {
-            paths: [PROJECT_ROOT],
-          });
-          return { path: resolved };
-        } catch {
-          return undefined;
-        }
-      },
-    );
 
     // React + ReactDOM
     build.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (args) => {

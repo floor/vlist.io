@@ -5,8 +5,7 @@
 // rating thresholds (more lenient for React overhead).
 
 import { createRoot } from "react-dom/client";
-import { useVList } from "vlist-react";
-import { createVList as createSynthetic } from "vlist/synthetic";
+import { useVList } from "vlist/react";
 import {
   defineSuite,
   generateItems,
@@ -18,6 +17,7 @@ import {
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { findViewport } from "../../../engine/viewport.js";
 import { measureScrollToPerformance } from "../../../engine/scrollto.js";
+import { loadSynthetic } from "../../../engine/synthetic.js";
 
 // =============================================================================
 // React Component
@@ -25,14 +25,14 @@ import { measureScrollToPerformance } from "../../../engine/scrollto.js";
 
 let listApiRef = null;
 
-function BenchmarkList({ items, target, factory }) {
+function BenchmarkList({ items, target, mode }) {
   const vlistApi = useVList({
     items,
     item: {
       height: ITEM_HEIGHT,
       template: benchmarkTemplate,
     },
-    ...(factory ? { factory } : {}),
+    scroll: { mode },
   });
 
   vlistApi.containerRef.current = target;
@@ -60,7 +60,7 @@ defineSuite({
     listApiRef = null;
 
     const root = createRoot(container);
-    root.render(<BenchmarkList items={items} target={container} />);
+    root.render(<BenchmarkList items={items} target={container} mode="native" />);
 
     // Let initial render settle — React needs extra frames
     await waitFrames(15);
@@ -77,7 +77,7 @@ defineSuite({
     if (!instance) {
       root.unmount();
       container.innerHTML = "";
-      throw new Error("Could not get vlist instance from React adapter");
+      throw new Error("Could not get vlist instance from vlist/react");
     }
 
     // ── Measure with engine ────────────────────────────────────────────
@@ -135,14 +135,15 @@ defineSuite({
 if (__BENCH_HAS_SYNTHETIC__) defineSuite({
   id: "scrollto-synthetic-react",
   name: "scrollToIndex (React)",
-  description: "Latency of scrollToIndex() in synthetic mode, through the React adapter",
+  description: "Latency of scrollToIndex() in synthetic mode, through vlist/react",
   icon: "🎯",
   run: async ({ itemCount, container, onStatus }) => {
+    await loadSynthetic();
     const items = generateItems(itemCount);
     container.innerHTML = "";
     listApiRef = null;
     const root = createRoot(container);
-    root.render(<BenchmarkList items={items} target={container} factory={createSynthetic} />);
+    root.render(<BenchmarkList items={items} target={container} mode="synthetic" />);
     try {
       await waitFrames(15);
       const viewport = findViewport(container);

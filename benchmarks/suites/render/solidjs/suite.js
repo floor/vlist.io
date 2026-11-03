@@ -1,8 +1,7 @@
 // Initial Render for the SolidJS page. The existing suite calls the vlist entry
-// directly, without the Solid runtime. Synthetic uses vlist/synthetic the same way.
+// directly, without the Solid runtime. Synthetic sets scroll.mode the same way.
 
 import { createVList } from "vlist";
-import { createVList as createSynthetic } from "vlist/synthetic";
 import {
   defineSuite,
   generateItems,
@@ -11,6 +10,7 @@ import {
 } from "../../../runner.js";
 import { ITEM_HEIGHT } from "../../../engine/constants.js";
 import { measureRenderPerformance } from "../../../engine/render.js";
+import { loadSynthetic, withScrollMode } from "../../../engine/synthetic.js";
 
 function defineMode(mode) {
   defineSuite({
@@ -19,15 +19,15 @@ function defineMode(mode) {
     description: "Time from vlist creation to first painted frame",
     icon: "⚡",
     run: async ({ itemCount, container, onStatus, intensity }) => {
+      if (mode === "synthetic") await loadSynthetic();
       const items = generateItems(itemCount);
-      const create = mode === "synthetic" ? createSynthetic : createVList;
       const result = await measureRenderPerformance({
         container,
-        createFn: async (target) => create({
+        createFn: async (target) => createVList(withScrollMode({
           container: target,
           items,
           item: { height: ITEM_HEIGHT, template: benchmarkTemplate },
-        }),
+        }, mode)),
         destroyFn: (instance) => instance.destroy(),
         label: mode === "synthetic" ? "vlist-solidjs-synthetic" : "vlist-solidjs",
         onStatus,

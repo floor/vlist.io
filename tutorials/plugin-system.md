@@ -83,7 +83,7 @@ No `.build()` step — `createVList` returns the instance directly. Plugin order
 | `grid()` + `groups()` | ✅ | Grouped grid |
 | `grid()` + `selection()` | ✅ | Selectable gallery |
 | `groups()` + `selection()` | ✅ | Selectable grouped list |
-| `data()` with `vlist/synthetic` | ✅ | Large async dataset past the browser size limit |
+| `data()` with synthetic input | ✅ | Large async dataset past the browser size limit |
 | `page()` + `data()` | ✅ | Infinite scroll feed |
 | `grid()` + `masonry()` | ❌ | Layout plugins are mutually exclusive |
 | `grid()` + `table()` | ❌ | Layout plugins are mutually exclusive |

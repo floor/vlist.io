@@ -11,8 +11,7 @@
 // place while the pixels say otherwise, and on this page the pixels win.
 
 import { sortable, carousel } from "vlist";
-import { createVList } from "vlist/synthetic";
-import { createVList as createNativeVList } from "vlist";
+import { createVList } from "vlist";
 
 const ITEM_H = 64;
 const TESTS = ["longpress", "handle", "momentum", "pen", "fold", "zoom"];
@@ -79,7 +78,7 @@ function longPress() {
   let started = false;
   let callout = null;
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );
@@ -154,7 +153,7 @@ function handle() {
   let downOnGrip = false;
   let scrollAtDown = 0;
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable({ handle: ".ppr__grip" })],
   );
@@ -240,7 +239,7 @@ function momentum() {
   let worst = 0;
 
   const list = createVList(
-    { container: host, items: rows(400), item: { height: ITEM_H, template: rowTemplate } },
+    { container: host, items: rows(400), item: { height: ITEM_H, template: rowTemplate }, scroll: { mode: "synthetic" } },
     [],
   );
   list.on("velocity:change", ({ velocity: v }) => { velocity = Math.abs(v); });
@@ -273,7 +272,7 @@ function pen() {
   const host = $("list-pen");
   const seen = new Set();
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );
@@ -310,12 +309,15 @@ function fold() {
   let sampling = false;
   let last = null;
 
+  // The fold test drives carousel() under synthetic input: scroll.mode
+  // "synthetic" runs a carousel on the synthetic handler (vlist 3.1).
   const list = createVList(
     {
       container: host,
       orientation: "horizontal",
       items: rows(12),
       item: { height: 160, width: 140, template: slideTemplate },
+      scroll: { mode: "synthetic" },
     },
     [carousel({ snap: false, gap: 8 })],
   );
@@ -386,7 +388,7 @@ function zoom() {
   let worstOffset = 0;
   let explained = null;
 
-  const list = createNativeVList(
+  const list = createVList(
     { container: host, items: rows(40), item: { height: ITEM_H, template: rowTemplate } },
     [sortable()],
   );
