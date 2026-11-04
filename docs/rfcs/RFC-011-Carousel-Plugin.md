@@ -264,7 +264,7 @@ The sizeCache remains uniform (for scroll math and item recycling). The visual l
 |---------|-------|
 | **Rename** | `variant` → `layout`, `slots` → `ratios`, `focalSlot` → `focal`, `SlotConfig` → `Layout` |
 | **Smooth wheel scroll** | Intercept wheel events for controlled stepping instead of raw pixel scroll |
-| **Parallax** | `--vlist-carousel-parallax` CSS variable, `prefers-reduced-motion` support |
+| ~~**Parallax**~~ | ~~`--vlist-carousel-parallax` CSS variable, `prefers-reduced-motion` support~~ — Superseded by `--vlist-carousel-focal-width` and the carousel stylesheet (`vlist-carousel.css`) |
 | **Template state** | `state.carousel` injected at render time |
 | **Accessibility** | ARIA roles, keyboard refinement, RTL support |
 | **Autoplay** | Auto-advance with pause-on-hover/focus |

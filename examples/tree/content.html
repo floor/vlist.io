@@ -54,19 +54,68 @@
             <!-- Display -->
             <section class="ui-section">
                 <h3 class="ui-title">Display</h3>
-                <div class="ui-row tree-toggle-row">
-                    <span>Chevrons</span>
-                    <label class="ui-switch">
-                        <input type="checkbox" id="toggle-chevrons" />
-                        <span class="ui-switch__track"></span>
-                    </label>
+                <div class="ui-row tree-display-row">
+                    <span class="ui-label">Expander</span>
+                    <div
+                        class="ui-segmented"
+                        id="expander-control"
+                        role="group"
+                        aria-label="Expander"
+                    >
+                        <button
+                            type="button"
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-expander="none"
+                        >
+                            None
+                        </button>
+                        <button
+                            type="button"
+                            class="ui-segmented__btn"
+                            data-expander="plus-minus"
+                            title="Old-school [+] and [-]"
+                        >
+                            Plus-minus
+                        </button>
+                        <button
+                            type="button"
+                            class="ui-segmented__btn"
+                            data-expander="chevron"
+                        >
+                            Chevron
+                        </button>
+                    </div>
                 </div>
-                <div class="ui-row tree-toggle-row">
-                    <span>Branches</span>
-                    <label class="ui-switch">
-                        <input type="checkbox" id="toggle-branches" />
-                        <span class="ui-switch__track"></span>
-                    </label>
+                <div class="ui-row tree-display-row no-margin">
+                    <span class="ui-label">Lines</span>
+                    <div
+                        class="ui-segmented"
+                        id="lines-control"
+                        role="group"
+                        aria-label="Lines"
+                    >
+                        <button
+                            type="button"
+                            class="ui-segmented__btn"
+                            data-lines="none"
+                        >
+                            None
+                        </button>
+                        <button
+                            type="button"
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-lines="simple"
+                        >
+                            Simple
+                        </button>
+                        <button
+                            type="button"
+                            class="ui-segmented__btn"
+                            data-lines="branches"
+                        >
+                            Branches
+                        </button>
+                    </div>
                 </div>
             </section>
 

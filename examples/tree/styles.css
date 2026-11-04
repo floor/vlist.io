@@ -107,7 +107,7 @@
 }
 
 /* ============================================================================
-   Display toggles
+   Display options
    ============================================================================ */
 
 .hide-chevrons .tree-node__chevron {
@@ -122,16 +122,65 @@
     --vlist-tree-guide-start: 14px;
 }
 
+.expander-plus-minus .tree-node__chevron svg {
+    display: none;
+}
+
+.expander-plus-minus .tree-node__chevron {
+    width: 20px;
+}
+
+.expander-plus-minus
+    .tree-node__chevron:not(.tree-node__chevron--leaf):not(
+        .tree-node__chevron--loading
+    ) {
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: var(--text-muted, #6b7280);
+}
+
+.expander-plus-minus
+    .tree-node__chevron:not(.tree-node__chevron--leaf):not(
+        .tree-node__chevron--loading
+    )::before {
+    content: "[+]";
+}
+
+.expander-plus-minus
+    .vlist-tree-node[aria-expanded="true"]
+    .tree-node__chevron:not(.tree-node__chevron--leaf):not(
+        .tree-node__chevron--loading
+    )::before {
+    content: "[-]";
+}
+
+.expander-plus-minus .vlist--tree-lines {
+    --vlist-tree-guide-start: 12px;
+}
+
+.hide-lines .vlist-tree-node::before,
+.hide-lines .vlist-tree-node::after {
+    display: none !important;
+}
+
 .hide-branches .vlist-tree-node::after {
     display: none !important;
 }
 
-.tree-toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 13px;
-    color: var(--text-muted, #6b7280);
+.tree-display-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.tree-display-row .ui-segmented {
+    width: 100%;
+}
+
+.tree-display-row .ui-segmented__btn {
+    flex: 1;
 }
 
 /* ============================================================================
