@@ -491,7 +491,9 @@
     border: none;
 }
 
-#browser-container .vlist--grid .vlist-item:hover {
+#browser-container .vlist--grid .vlist-item:hover,
+#browser-container .vlist--grid .vlist-item--selected,
+#browser-container .vlist--grid .vlist-item--selected:hover {
     background: transparent;
 }
 
