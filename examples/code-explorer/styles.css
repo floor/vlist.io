@@ -4,7 +4,8 @@
     height: 580px;
 }
 
-.ui-section--disabled {
+.ui-section--disabled,
+.ui-row--disabled {
     opacity: 0.4;
     pointer-events: none;
 }
