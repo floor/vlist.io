@@ -180,8 +180,8 @@ function getArrangementConfig(arrangeBy) {
       };
     case "name":
       return {
-        groupBy: "none",
-        getGroupKey: null,
+        groupBy: "name",
+        getGroupKey: getNameGroup,
         sortFn: (a, b) =>
           a.name.localeCompare(b.name, undefined, { numeric: true }),
       };
@@ -450,7 +450,7 @@ function createGridView() {
   const innerWidth = container.clientWidth - 2;
   const colWidth =
     (innerWidth - (currentColumns - 1) * currentGap) / currentColumns;
-  const height = colWidth * 0.8;
+  const height = Math.max(116, Math.round(colWidth * 0.95));
 
   const config = getArrangementConfig(currentArrangeBy);
   const sorted = [...items].sort(config.sortFn);
@@ -467,7 +467,11 @@ function createGridView() {
     });
   }
 
-  const plugins = [grid({ columns: currentColumns, gap: currentGap }), scrollbar()];
+  const plugins = [
+    grid({ columns: currentColumns, gap: currentGap }),
+    selection({ mode: "single" }),
+    scrollbar(),
+  ];
   if (groupMap) {
     plugins.push(
       groups({
@@ -501,8 +505,19 @@ function createGridView() {
     items: sorted,
   }, plugins);
 
+  list.on("selection:change", ({ items: selectedItems }) => {
+    if (selectedItems.length > 0) {
+      showFileDetail(selectedItems[0]);
+    } else {
+      clearFileDetail();
+    }
+  });
+
   list.on("item:click", ({ item, index }) => {
-    handleItemClick(item, index);
+    if (!item.__groupHeader) {
+      handleItemClick(item, index);
+      showFileDetail(item);
+    }
   });
 
   list.on("item:dblclick", ({ item }) => {
@@ -510,6 +525,8 @@ function createGridView() {
       handleItemDoubleClick(item);
     }
   });
+
+  updateSortDetail();
 }
 
 // =============================================================================
@@ -782,7 +799,7 @@ function updateSortDetail() {
     const arrangeLabel = arrangeLabels[currentArrangeBy] || currentArrangeBy;
     html += `
       <div class="sort-info">
-        <span class="sort-info__label">Arranged by</span>
+        <span class="sort-info__label">Grouped by</span>
         <span class="sort-info__key">${arrangeLabel}</span>
       </div>
     `;
