@@ -7,7 +7,7 @@
             a file to list its exported <strong>symbols</strong> (functions,
             constants, types…) and filter them; or switch to
             <strong>History</strong> to scrub the commits that touched that file
-            in <em>navigate</em> mode. clears.
+            in <em>navigate</em> mode.
         </p>
     </header>
 
@@ -57,13 +57,31 @@
             <section class="ui-section">
                 <h3 class="ui-title">Search</h3>
                 <div class="ui-row">
-                    <label class="ui-label" for="cx-search-toggle"
-                        >Enable</label
+                    <label class="ui-label" for="cx-search-bar">Bar</label>
+                    <select id="cx-search-bar" class="ui-select">
+                        <option value="visible" selected>Visible</option>
+                        <option value="hidden">Hidden</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
+                </div>
+                <div class="ui-row no-margin" id="cx-position-row">
+                    <span class="ui-label">Position</span>
+                    <div
+                        class="ui-segmented"
+                        id="cx-position-toggle"
+                        role="group"
+                        aria-label="Search bar position"
                     >
-                    <label class="ui-switch">
-                        <input type="checkbox" id="cx-search-toggle" checked />
-                        <span class="ui-switch__track"></span>
-                    </label>
+                        <button
+                            class="ui-segmented__btn ui-segmented__btn--active"
+                            data-value="top"
+                        >
+                            Top
+                        </button>
+                        <button class="ui-segmented__btn" data-value="bottom">
+                            Bottom
+                        </button>
+                    </div>
                 </div>
             </section>
 

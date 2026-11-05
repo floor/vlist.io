@@ -121,7 +121,8 @@ let selectedFile = null;
 let rightView = "symbols"; // "symbols" | "history"
 
 // Search config (driven by control panel)
-let searchEnabled = true;
+let searchBar = "visible"; // "visible" | "hidden" | "disabled"
+let searchPosition = "top"; // "top" | "bottom"
 let searchMode = "filter";
 let searchVariant = "default";
 let highlightEnabled = true;
@@ -269,10 +270,12 @@ function buildRight() {
     : `Search ${selectedFile ? "history of " + label : "all commits"}…`;
 
   const plugins = [];
+  const searchEnabled = searchBar !== "disabled";
   if (searchEnabled) {
     plugins.push(
       search({
         mode,
+        position: searchBar === "hidden" ? "none" : searchPosition,
         text: { placeholder: placeholderText },
         field: isSymbols
           ? "name"
@@ -306,6 +309,7 @@ function buildRight() {
 }
 
 function wireRight(total) {
+  const searchEnabled = searchBar !== "disabled";
   rightList.on("scroll", updateInfo);
   rightList.on("range:change", updateInfo);
   rightList.on("velocity:change", ({ velocity }) => {
@@ -347,7 +351,7 @@ function setActiveView(view) {
 function updateMatchInfo(matches, total, currentIndex) {
   const el = document.getElementById("info-matches");
   if (!el) return;
-  if (!searchEnabled) {
+  if (searchBar === "disabled") {
     el.textContent = "off";
     return;
   }
@@ -359,9 +363,13 @@ function updateMatchInfo(matches, total, currentIndex) {
 }
 
 function reflectControls() {
-  const off = !searchEnabled;
-  const isHistory = rightView === "history";
-  for (const id of ["cx-mode-section", "cx-style-section", "cx-highlight-section", "cx-options-section"]) {
+  const off = searchBar === "disabled";
+  const barVisible = searchBar === "visible";
+  const posRow = document.getElementById("cx-position-row");
+  if (posRow) posRow.classList.toggle("ui-row--disabled", !barVisible);
+  const styleSection = document.getElementById("cx-style-section");
+  if (styleSection) styleSection.classList.toggle("ui-section--disabled", !barVisible);
+  for (const id of ["cx-mode-section", "cx-highlight-section", "cx-options-section"]) {
     const el = document.getElementById(id);
     if (el) el.classList.toggle("ui-section--disabled", off);
   }
@@ -399,11 +407,14 @@ treeToggle?.addEventListener("click", () => {
   treeToggle.textContent = treeExpanded ? "Collapse all" : "Expand all";
 });
 
-// Search enable
-document.getElementById("cx-search-toggle")?.addEventListener("change", (e) => {
-  searchEnabled = e.target.checked;
+// Search bar visibility: visible | hidden | disabled
+document.getElementById("cx-search-bar")?.addEventListener("change", (e) => {
+  searchBar = e.target.value;
   buildRight();
 });
+
+// Search bar position: top | bottom
+wireSegment("cx-position-toggle", (v) => { searchPosition = v; buildRight(); });
 
 // Mode: filter / navigate
 wireSegment("cx-mode-toggle", (v) => { searchMode = v; buildRight(); });
