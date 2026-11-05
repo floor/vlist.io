@@ -70,23 +70,45 @@ if (resetBtn) {
 }
 
 // =============================================================================
-// Display toggles
+// Display options
 // =============================================================================
 
 const container = document.getElementById("list-container");
 
-const chevronToggle = document.getElementById("toggle-chevrons");
-if (chevronToggle) {
-  container?.classList.add("hide-chevrons");
-  chevronToggle.addEventListener("change", () => {
-    container?.classList.toggle("hide-chevrons", !chevronToggle.checked);
+function setExpanderMode(mode) {
+  if (!container) return;
+  container.classList.toggle("hide-chevrons", mode === "none");
+  container.classList.toggle("expander-plus-minus", mode === "plus-minus");
+}
+
+function setLinesMode(mode) {
+  if (!container) return;
+  container.classList.toggle("hide-lines", mode === "none");
+  container.classList.toggle("hide-branches", mode === "simple");
+}
+
+const expanderControl = document.getElementById("expander-control");
+if (expanderControl) {
+  setExpanderMode("none");
+  expanderControl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-expander]");
+    if (!btn) return;
+    expanderControl.querySelectorAll("[data-expander]").forEach((b) => {
+      b.classList.toggle("ui-segmented__btn--active", b === btn);
+    });
+    setExpanderMode(btn.dataset.expander);
   });
 }
 
-const branchToggle = document.getElementById("toggle-branches");
-if (branchToggle) {
-  container?.classList.add("hide-branches");
-  branchToggle.addEventListener("change", () => {
-    container?.classList.toggle("hide-branches", !branchToggle.checked);
+const linesControl = document.getElementById("lines-control");
+if (linesControl) {
+  setLinesMode("simple");
+  linesControl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-lines]");
+    if (!btn) return;
+    linesControl.querySelectorAll("[data-lines]").forEach((b) => {
+      b.classList.toggle("ui-segmented__btn--active", b === btn);
+    });
+    setLinesMode(btn.dataset.lines);
   });
 }
