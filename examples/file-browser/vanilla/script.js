@@ -74,7 +74,7 @@ let currentGap = 8;
 let list = null;
 let navigationHistory = [""];
 let historyIndex = 0;
-let selectedIndex = -1;
+let selectedItemId = null;
 let currentArrangeBy = "none";
 
 // Table sort state
@@ -180,8 +180,8 @@ function getArrangementConfig(arrangeBy) {
       };
     case "name":
       return {
-        groupBy: "none",
-        getGroupKey: null,
+        groupBy: "name",
+        getGroupKey: getNameGroup,
         sortFn: (a, b) =>
           a.name.localeCompare(b.name, undefined, { numeric: true }),
       };
@@ -423,6 +423,10 @@ async function fetchDirectory(path) {
 
 async function createBrowser(view = "list") {
   if (list) {
+    if (selectedItemId !== null && typeof list.getSelected === "function") {
+      const currentSelected = list.getSelected();
+      selectedItemId = currentSelected.length > 0 ? currentSelected[0] : null;
+    }
     list.destroy();
     list = null;
   }
@@ -441,6 +445,34 @@ async function createBrowser(view = "list") {
   updateNavigationState();
 }
 
+function bindSelection(currentItems) {
+  list.on("selection:change", ({ selected, items: selectedItems }) => {
+    if (selected && selected.length > 0) {
+      selectedItemId = selected[0];
+      const item =
+        (selectedItems && selectedItems[0]) ||
+        currentItems.find((entry) => entry.id === selectedItemId);
+      if (item) showFileDetail(item);
+    } else if (selectedItems && selectedItems.length > 0) {
+      selectedItemId = selectedItems[0].id;
+      showFileDetail(selectedItems[0]);
+    } else {
+      selectedItemId = null;
+      clearFileDetail();
+    }
+  });
+
+  if (
+    selectedItemId !== null &&
+    currentItems.some((item) => item.id === selectedItemId)
+  ) {
+    list.select(selectedItemId);
+  } else {
+    selectedItemId = null;
+    clearFileDetail();
+  }
+}
+
 // =============================================================================
 // Grid View (grid + groups plugins)
 // =============================================================================
@@ -450,7 +482,7 @@ function createGridView() {
   const innerWidth = container.clientWidth - 2;
   const colWidth =
     (innerWidth - (currentColumns - 1) * currentGap) / currentColumns;
-  const height = colWidth * 0.8;
+  const height = Math.max(116, Math.round(colWidth * 0.95));
 
   const config = getArrangementConfig(currentArrangeBy);
   const sorted = [...items].sort(config.sortFn);
@@ -467,7 +499,11 @@ function createGridView() {
     });
   }
 
-  const plugins = [grid({ columns: currentColumns, gap: currentGap }), scrollbar()];
+  const plugins = [
+    grid({ columns: currentColumns, gap: currentGap }),
+    selection({ mode: "single" }),
+    scrollbar(),
+  ];
   if (groupMap) {
     plugins.push(
       groups({
@@ -501,15 +537,15 @@ function createGridView() {
     items: sorted,
   }, plugins);
 
-  list.on("item:click", ({ item, index }) => {
-    handleItemClick(item, index);
-  });
+  bindSelection(sorted);
 
   list.on("item:dblclick", ({ item }) => {
     if (!item.__groupHeader) {
       handleItemDoubleClick(item);
     }
   });
+
+  updateSortDetail();
 }
 
 // =============================================================================
@@ -609,14 +645,8 @@ function createTableList() {
     }
   });
 
-  // Selection — show detail in panel
-  list.on("selection:change", ({ items: selectedItems }) => {
-    if (selectedItems.length > 0) {
-      showFileDetail(selectedItems[0]);
-    } else {
-      clearFileDetail();
-    }
-  });
+  // Selection — show detail in panel and restore across rebuilds
+  bindSelection(sortedItems);
 
   // Double-click row to navigate into folder
   list.on("item:dblclick", ({ item }) => {
@@ -637,7 +667,7 @@ async function navigateTo(path, addToHistory = true) {
   currentPath = data.path;
   items = data.items.map((item) => ({ ...item, id: item.name }));
 
-  selectedIndex = -1;
+  selectedItemId = null;
 
   if (addToHistory) {
     navigationHistory = navigationHistory.slice(0, historyIndex + 1);
@@ -651,22 +681,10 @@ async function navigateTo(path, addToHistory = true) {
   updateInfo();
 }
 
-function handleItemClick(item, index) {
-  if (selectedIndex >= 0) {
-    const prevEl = document.querySelector(`[data-index="${selectedIndex}"]`);
-    if (prevEl) prevEl.setAttribute("aria-selected", "false");
-  }
-
-  selectedIndex = index;
-
-  const currentEl = document.querySelector(`[data-index="${index}"]`);
-  if (currentEl) currentEl.setAttribute("aria-selected", "true");
-}
-
 function handleItemDoubleClick(item) {
   if (item.type === "directory") {
     const newPath = currentPath ? `${currentPath}/${item.name}` : item.name;
-    selectedIndex = -1;
+    selectedItemId = null;
     navigateTo(newPath);
   }
 }
@@ -782,7 +800,7 @@ function updateSortDetail() {
     const arrangeLabel = arrangeLabels[currentArrangeBy] || currentArrangeBy;
     html += `
       <div class="sort-info">
-        <span class="sort-info__label">Arranged by</span>
+        <span class="sort-info__label">Grouped by</span>
         <span class="sort-info__key">${arrangeLabel}</span>
       </div>
     `;

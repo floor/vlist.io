@@ -34,6 +34,12 @@
     padding-right: 0.75rem;
 }
 
+#browser-container .vlist-table-header-cell:focus,
+#browser-container .vlist-table-header-cell:focus-visible {
+    outline: none;
+    background-color: var(--vlist-bg-selected, rgba(59, 130, 246, 0.12));
+}
+
 #browser-container .vlist-table-header-sort {
     font-size: 1.1em;
 }
@@ -183,6 +189,13 @@
     flex-shrink: 0;
 }
 
+.toolbar__label {
+    font-size: 12px;
+    font-weight: var(--fw-medium, 500);
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
 .toolbar__btn {
     display: flex;
     align-items: center;
@@ -282,8 +295,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 4px;
     padding: 8px 6px;
     border-radius: 8px;
     background: transparent;
@@ -300,37 +313,39 @@
 }
 
 /* Finder-style selection — highlight name label only */
-.vlist-item[aria-selected="true"] .file-card {
+.vlist-item[aria-selected="true"] .file-card,
+.vlist-item--selected .file-card {
     background: transparent;
 }
 
-.vlist-item[aria-selected="true"] .file-card__name {
+.vlist-item[aria-selected="true"] .file-card__name,
+.vlist-item--selected .file-card__name {
     background: rgba(0, 122, 255, 0.8);
     color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
     box-decoration-break: clone;
     -webkit-box-decoration-break: clone;
 }
 
 .file-card__icon {
-    font-size: 52px;
+    font-size: 48px;
     line-height: 1;
-    margin-bottom: 6px;
+    flex-shrink: 0;
 }
 
 .file-card__name {
+    font-size: 12px;
     font-weight: var(--fw-bold);
     color: var(--text);
     text-align: center;
     width: 100%;
+    padding: 2px 6px;
+    border-radius: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    line-height: 1.3;
-    max-height: 2.6em;
+    line-height: 1.35;
     word-break: break-word;
 }
 
@@ -364,9 +379,9 @@
 
 /* Group headers in grid layout */
 .vlist--grid .group-header {
-    width: 100%
-    background: rgba(255, 255, 255, 0.03);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100%;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--vlist-border, var(--border));
     margin-top: 0;
     margin-bottom: 8px;
 }
@@ -378,11 +393,11 @@
 
 /* Sticky header enhancement */
 .vlist-item[data-sticky="true"] .group-header {
-    background: rgba(15, 23, 42, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--vlist-border, var(--border));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     z-index: 10;
 }
 
@@ -476,7 +491,9 @@
     border: none;
 }
 
-#browser-container .vlist--grid .vlist-item:hover {
+#browser-container .vlist--grid .vlist-item:hover,
+#browser-container .vlist--grid .vlist-item--selected,
+#browser-container .vlist--grid .vlist-item--selected:hover {
     background: transparent;
 }
 
