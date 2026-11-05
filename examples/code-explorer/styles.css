@@ -49,6 +49,12 @@
     font-family: var(--font-mono);
 }
 
+/* Auto hides the mounted bar until a letter opens it.
+   Two classes beat `.vlist-search { display: flex }` in the search stylesheet. */
+.explorer-list .vlist-search.cx-search--hidden {
+    display: none;
+}
+
 .explorer-list .vlist-content .vlist-item {
     font-size: 0.8em;
 }

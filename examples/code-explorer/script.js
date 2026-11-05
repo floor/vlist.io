@@ -6,6 +6,7 @@
 //   • Right: a controls panel demonstrating the search plugin's configuration.
 
 import { createVList, tree, search, selection, autosize, scrollbar } from "vlist";
+import { bindAutoSearch } from "./auto.js";
 import { VLIST_TREE } from "../../src/data/vlist-tree.js";
 import { VLIST_HISTORY } from "../../src/data/vlist-history.js";
 import { getIcon, getChevron } from "../tree/icons.js";
@@ -117,11 +118,12 @@ function commitsFor(nodeId) {
 
 let treeList = null;
 let rightList = null;
+let unbindAuto = null;
 let selectedFile = null;
 let rightView = "symbols"; // "symbols" | "history"
 
 // Search config (driven by control panel)
-let searchBar = "visible"; // "visible" | "hidden" | "disabled"
+let searchBar = "visible"; // "visible" | "auto" | "hidden" | "disabled"
 let searchPosition = "top"; // "top" | "bottom"
 let searchMode = "filter";
 let searchVariant = "default";
@@ -246,6 +248,8 @@ function resolveHighlight() {
 function buildRight() {
   updateContext();
   const prevQuery = rightList?.getQuery?.() ?? "";
+  unbindAuto?.();
+  unbindAuto = null;
   if (rightList) {
     rightList.destroy();
     rightList = null;
@@ -276,7 +280,10 @@ function buildRight() {
       search({
         mode,
         position: searchBar === "hidden" ? "none" : searchPosition,
-        text: { placeholder: placeholderText },
+        text: {
+          placeholder: placeholderText,
+          ...(searchBar === "auto" ? { clear: "Close search" } : {}),
+        },
         field: isSymbols
           ? "name"
           : (c) => `${c.subject} ${c.author} ${c.shortHash}`,
@@ -301,6 +308,7 @@ function buildRight() {
   );
 
   wireRight(items.length);
+  if (searchBar === "auto") unbindAuto = bindAutoSearch(rightList, c);
   reflectControls();
 
   if (prevQuery && searchEnabled) {
@@ -364,7 +372,7 @@ function updateMatchInfo(matches, total, currentIndex) {
 
 function reflectControls() {
   const off = searchBar === "disabled";
-  const barVisible = searchBar === "visible";
+  const barVisible = searchBar === "visible" || searchBar === "auto";
   const posRow = document.getElementById("cx-position-row");
   if (posRow) posRow.classList.toggle("ui-row--disabled", !barVisible);
   const styleSection = document.getElementById("cx-style-section");
@@ -407,7 +415,7 @@ treeToggle?.addEventListener("click", () => {
   treeToggle.textContent = treeExpanded ? "Collapse all" : "Expand all";
 });
 
-// Search bar visibility: visible | hidden | disabled
+// Search bar: visible | auto | hidden | disabled
 document.getElementById("cx-search-bar")?.addEventListener("change", (e) => {
   searchBar = e.target.value;
   buildRight();
