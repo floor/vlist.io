@@ -1,6 +1,6 @@
 ---
 created: 2026-02-17
-updated: 2026-09-16
+updated: 2026-11-08
 status: published
 ---
 
@@ -43,6 +43,14 @@ sessionStorage.setItem("scroll", JSON.stringify(snapshot));
 const saved = JSON.parse(sessionStorage.getItem("scroll"));
 const list = createVList(config, [snapshots({ restore: saved })]);
 ```
+
+## What restore brings back
+
+When the item count matches the saved snapshot, restore scrolls to the saved pixel position (`scrollTop`). It falls back to the saved item index and within-item offset when the total count has changed or `scrollTop` is not present.
+
+If rows above the saved position change size before restore — for example through `remeasureItem()` or a layout change with the same item count — the saved row moves to a new pixel offset while restore still returns to the original pixel position, landing on a different row than the one that was saved.
+
+Take snapshots after row sizes have settled. With `autosize()`, items above the viewport keep their estimated size until they are rendered and measured, so rows measured later can shift the position after restore.
 
 ## Notes
 
