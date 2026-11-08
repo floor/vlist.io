@@ -46,8 +46,6 @@ list.on("column:sort", ({ key, index, direction }) => {
 | `sort` | `{ key, direction }` | — | Initial sort state |
 | `features` | Array of table features | `[]` | Optional table features ([see below](#features)) |
 
-<!-- confirm against PR -->
-
 ## Filling the container width
 
 When the columns are narrower than the container, `fillWidth` controls whether — and how — rows extend to fill the remaining space:
@@ -76,8 +74,6 @@ Use `"stretch"` when you want columns to consume all available space, and `"spac
 
 ## Features
 
-<!-- confirm against PR -->
-
 Starting in 3.6.0, `table({ features: [...] })` enables optional table features.
 Import each feature from `vlist` and pass it inside the table configuration. Features
 are tree-shaken: only applications that import and enable a feature pay for its code.
@@ -105,13 +101,11 @@ const list = createVList({
 })]);
 ```
 
-Features are set up in array order. When combining these two, put `columnPin()`
-before `columnReorder()`. Both belong in `table({ features: [...] })`, rather than
-the outer `createVList` plugin array.
+`columnPin()` and `columnReorder()` work together in either array order. Both
+belong in `table({ features: [...] })`, rather than the outer `createVList` plugin
+array.
 
 ### columnPin()
-
-<!-- confirm against PR -->
 
 Keep columns visible at the left or right edge while the other columns scroll
 horizontally. Pinning applies to both header cells and body cells.
@@ -123,6 +117,10 @@ horizontally. Pinning applies to both header cells and body cells.
 
 Columns are arranged as left-pinned, unpinned, then right-pinned. Unpinning restores
 that column's original relative position among the unpinned columns.
+
+With a header focused, press **Shift+Alt+ArrowLeft** to pin its column to the left,
+or **Shift+Alt+ArrowRight** to pin it to the right. If the column is already pinned,
+either shortcut unpins it. Focus stays on the column's header.
 
 | Method | Description |
 |--------|-------------|
@@ -145,8 +143,6 @@ resolved column key `order`.
 
 #### Pinning styles
 
-<!-- confirm against PR -->
-
 The pinning styles are included in `vlist/styles/table`. Class names below use the
 default `vlist` prefix; a custom `classPrefix` changes the class names accordingly.
 
@@ -165,8 +161,6 @@ the feature's control. Pinned backgrounds and boundary borders use the existing
 `--vlist-bg-selected-hover`, and `--vlist-border` theme variables.
 
 ### columnReorder()
-
-<!-- confirm against PR -->
 
 Drag a column header to a new position and release it to commit the move. A drop
 indicator shows the destination, and dragging near the horizontal edges scrolls
@@ -204,10 +198,16 @@ unpinned, or right-pinned group; the destination is clamped to that group. Use
 
 ### Feature sizes
 
-<!-- confirm against PR -->
+Each measurement includes `table()` and the listed feature, gzipped after tree shaking.
 
-Bundle sizes for `table() + columnPin()`, `table() + columnReorder()`, and both
-features together: **pending CI measurements for 3.6.0**.
+| Bundle | Gzipped bytes |
+|--------|--------------:|
+| `table()` | 17,121 |
+| `table() + columnPin()` | 18,938 |
+| `table() + columnReorder()` | 19,292 |
+
+Measured in [main CI](https://github.com/floor/vlist/actions/runs/42501544031)
+at commit `e251524`.
 
 ## Methods
 
