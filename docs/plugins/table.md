@@ -44,7 +44,7 @@ list.on("column:sort", ({ key, index, direction }) => {
 | `rowBorders` | `boolean` | `true` | Show row borders |
 | `columnBorders` | `boolean` | `false` | Show column borders |
 | `sort` | `{ key, direction }` | — | Initial sort state |
-| `features` | `TableFeature[]` | `[]` | Optional table features ([see below](#features)) |
+| `features` | Array of table features | `[]` | Optional table features ([see below](#features)) |
 
 <!-- confirm against PR -->
 
