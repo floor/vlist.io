@@ -83,7 +83,7 @@ async function setupFileBrowser() {
     "../../examples/file-browser/vanilla/script.js",
   );
   const rawSource = readFileSync(scriptPath, "utf8");
-  const source = rawSource.replace(/^import\s+.*from\s+["']vlist["'];?\s*$/gm, "");
+  const source = rawSource.replace(/^import\s+[\s\S]*?from\s+["']vlist["'];?\s*$/gm, "");
 
   const elements = new Map<
     string,
@@ -92,6 +92,7 @@ async function setupFileBrowser() {
       innerHTML: string;
       textContent: string;
       disabled: boolean;
+      checked: boolean;
       clientWidth: number;
       value: string;
       classes: Set<string>;
@@ -116,6 +117,7 @@ async function setupFileBrowser() {
         innerHTML: "",
         textContent: "",
         disabled: false,
+        checked: true,
         clientWidth: 780,
         value: "none",
         classes,
@@ -156,6 +158,8 @@ async function setupFileBrowser() {
     "btn-view-grid",
     "btn-view-list",
     "arrange-by-select",
+    "pin-mode",
+    "reorder-toggle",
     "btn-nav-back",
     "btn-nav-forward",
   ]) {
@@ -247,6 +251,8 @@ async function setupFileBrowser() {
     grid: pluginFactory("grid"),
     groups: pluginFactory("groups"),
     table: pluginFactory("table"),
+    columnPin: pluginFactory("columnPin"),
+    columnReorder: pluginFactory("columnReorder"),
     selection: pluginFactory("selection"),
     scrollbar: pluginFactory("scrollbar"),
     document: {
@@ -358,5 +364,42 @@ describe("file-browser example selection persistence", () => {
     expect(getElement("file-detail").innerHTML).toContain(
       "Click a row to see details",
     );
+  });
+
+  test("list view configures columnPin and columnReorder features from panel controls", async () => {
+    const { getElement, currentList } = await setupFileBrowser();
+
+    const getTableFeatures = () => {
+      const tablePlugin = currentList().plugins.find((p) => p.name === "table");
+      return (tablePlugin?.options?.features as MockPlugin[]) ?? [];
+    };
+
+    // Default: Pin = none, Reorder = checked
+    expect(getTableFeatures().map((f) => f.name)).toEqual(["columnReorder"]);
+
+    // Pin: First column left
+    const pinSelect = getElement("pin-mode");
+    pinSelect.value = "first";
+    pinSelect.dispatch("change", { target: pinSelect });
+    expect(getTableFeatures().map((f) => f.name)).toEqual([
+      "columnPin",
+      "columnReorder",
+    ]);
+    expect(getTableFeatures()[0]?.options).toEqual({
+      pins: { name: "left" },
+    });
+
+    // Pin: First left + last right
+    pinSelect.value = "both";
+    pinSelect.dispatch("change", { target: pinSelect });
+    expect(getTableFeatures()[0]?.options).toEqual({
+      pins: { name: "left", kind: "right" },
+    });
+
+    // Toggle Reorder off
+    const reorderToggle = getElement("reorder-toggle");
+    reorderToggle.checked = false;
+    reorderToggle.dispatch("change", { target: reorderToggle });
+    expect(getTableFeatures().map((f) => f.name)).toEqual(["columnPin"]);
   });
 });

@@ -2,16 +2,7 @@
 // Grid view uses grid plugin, list view uses table plugin for resizable/sortable columns
 // Demonstrates switching between two layout modes with shared navigation
 
-import {
-  createVList,
-  grid,
-  groups,
-  table,
-  columnPin,
-  columnReorder,
-  selection,
-  scrollbar,
-} from "vlist";
+import { createVList, grid, groups, table, columnPin, columnReorder, selection, scrollbar } from "vlist";
 
 // =============================================================================
 // File Type Icons
