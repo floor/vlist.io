@@ -6,6 +6,8 @@
 import {
   createVList,
   table,
+  columnPin,
+  columnReorder,
   selection,
   data as dataPlugin,
   groups,
@@ -37,6 +39,8 @@ export let currentRowHeight = ROW_HEIGHT;
 export let currentPreset = "full";
 export let currentBorderMode = "both";
 export let currentFillMode = "spacer";
+export let currentPinMode = "none";
+export let useColumnReorder = true;
 export let sortKey = "population";
 export let sortDirection = "desc";
 export let searchQuery = "";
@@ -60,6 +64,12 @@ export function setCurrentBorderMode(v) {
 }
 export function setCurrentFillMode(v) {
   currentFillMode = v;
+}
+export function setCurrentPinMode(v) {
+  currentPinMode = v;
+}
+export function setUseColumnReorder(v) {
+  useColumnReorder = v;
 }
 export function setSearchQuery(v) {
   searchQuery = v;
@@ -241,7 +251,7 @@ const COLUMN_PRESETS = {
     {
       key: "name",
       label: "City",
-      width: 200,
+      width: 220,
       minWidth: 140,
       sortable: true,
       cell: nameCell,
@@ -249,7 +259,7 @@ const COLUMN_PRESETS = {
     {
       key: "country_code",
       label: "Country",
-      width: 100,
+      width: 110,
       minWidth: 70,
       align: "center",
       sortable: true,
@@ -257,7 +267,7 @@ const COLUMN_PRESETS = {
     {
       key: "population",
       label: "Population",
-      width: 136,
+      width: 140,
       minWidth: 100,
       align: "right",
       sortable: true,
@@ -266,7 +276,7 @@ const COLUMN_PRESETS = {
     {
       key: "continent",
       label: "Continent",
-      width: 130,
+      width: 140,
       minWidth: 100,
       sortable: true,
       cell: continentCell,
@@ -274,7 +284,7 @@ const COLUMN_PRESETS = {
     {
       key: "lat",
       label: "Lat",
-      width: 70,
+      width: 90,
       minWidth: 70,
       align: "right",
       sortable: true,
@@ -282,7 +292,7 @@ const COLUMN_PRESETS = {
     {
       key: "lng",
       label: "Lng",
-      width: 70,
+      width: 90,
       minWidth: 70,
       align: "right",
       sortable: true,
@@ -414,6 +424,18 @@ export function createList() {
   const isStriped = currentBorderMode === "striped";
   const columnBorders = currentBorderMode === "both";
   const rowBorders = !isStriped && currentBorderMode !== "none";
+  const firstKey = columns[0].key;
+  const lastKey = columns[columns.length - 1].key;
+  const pins =
+    currentPinMode === "first"
+      ? { [firstKey]: "left" }
+      : currentPinMode === "both"
+        ? { [firstKey]: "left", [lastKey]: "right" }
+        : null;
+  const features = [
+    ...(pins ? [columnPin({ pins })] : []),
+    ...(useColumnReorder ? [columnReorder()] : []),
+  ];
 
   list = createVList(
     {
@@ -449,6 +471,7 @@ export function createList() {
         minColumnWidth: 50,
         fillWidth: currentFillMode === "none" ? false : currentFillMode,
         sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
+        features,
       }),
       ...(useGroups
         ? [
@@ -609,3 +632,4 @@ export function updateContext() {
 
 initControls();
 createList();
+globalThis.__vlistRecreate = () => createList();

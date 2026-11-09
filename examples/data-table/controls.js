@@ -94,6 +94,32 @@ if (fillModeEl) {
 }
 
 // =============================================================================
+// Pin Mode — None ↔ First column left ↔ First left + last right (rebuilds list)
+// =============================================================================
+
+const pinModeSelect = document.getElementById("pin-mode");
+
+if (pinModeSelect) {
+  pinModeSelect.addEventListener("change", () => {
+    app.setCurrentPinMode(pinModeSelect.value);
+    app.createList();
+  });
+}
+
+// =============================================================================
+// Reorder Toggle — enable/disable column drag & Alt+Arrow (rebuilds list)
+// =============================================================================
+
+const reorderToggle = document.getElementById("reorder-toggle");
+
+if (reorderToggle) {
+  reorderToggle.addEventListener("change", () => {
+    app.setUseColumnReorder(reorderToggle.checked);
+    app.createList();
+  });
+}
+
+// =============================================================================
 // Search — debounced text input, triggers server-side search
 // =============================================================================
 
@@ -277,5 +303,15 @@ export function initControls() {
         b.dataset.fill === app.currentFillMode,
       );
     });
+  }
+
+  // Sync pin mode select
+  if (pinModeSelect) {
+    pinModeSelect.value = app.currentPinMode;
+  }
+
+  // Sync reorder switch
+  if (reorderToggle) {
+    reorderToggle.checked = app.useColumnReorder;
   }
 }
