@@ -72,6 +72,26 @@
         </div>
 
         <aside class="split-panel">
+            <!-- Columns -->
+            <section class="ui-section">
+                <h3 class="ui-title">Columns</h3>
+                <div class="ui-row">
+                    <label class="ui-label" for="pin-mode">Pin</label>
+                    <select id="pin-mode" class="ui-select">
+                        <option value="none" selected>None</option>
+                        <option value="first">First column left</option>
+                        <option value="both">First left + last right</option>
+                    </select>
+                </div>
+                <div class="ui-row">
+                    <label class="ui-label" for="reorder-toggle">Reorder</label>
+                    <label class="ui-switch">
+                        <input type="checkbox" id="reorder-toggle" checked />
+                        <span class="ui-switch__track"></span>
+                    </label>
+                </div>
+            </section>
+
             <!-- Sort State -->
             <section class="ui-section">
                 <h3 class="ui-title">Sort</h3>

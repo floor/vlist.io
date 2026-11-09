@@ -34,6 +34,11 @@
     padding-right: 0.75rem;
 }
 
+#browser-container .vlist-table-header-cell--pin-left,
+#browser-container .vlist-table-header-cell--pin-right {
+    background-color: var(--bg-card);
+}
+
 #browser-container .vlist-table-header-cell:focus,
 #browser-container .vlist-table-header-cell:focus-visible {
     outline: none;
