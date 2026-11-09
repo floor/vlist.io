@@ -2,7 +2,16 @@
 // Grid view uses grid plugin, list view uses table plugin for resizable/sortable columns
 // Demonstrates switching between two layout modes with shared navigation
 
-import { createVList, grid, groups, table, selection, scrollbar } from "vlist";
+import {
+  createVList,
+  grid,
+  groups,
+  table,
+  columnPin,
+  columnReorder,
+  selection,
+  scrollbar,
+} from "vlist";
 
 // =============================================================================
 // File Type Icons
@@ -77,9 +86,11 @@ let historyIndex = 0;
 let selectedItemId = null;
 let currentArrangeBy = "none";
 
-// Table sort state
+// Table sort & column feature state
 let sortKey = null;
 let sortDirection = "asc";
+let currentPinMode = "none";
+let useColumnReorder = true;
 
 // =============================================================================
 // Utility Functions
@@ -586,6 +597,19 @@ function createTableList() {
     });
   }
 
+  const firstKey = FILE_COLUMNS[0].key;
+  const lastKey = FILE_COLUMNS[FILE_COLUMNS.length - 1].key;
+  const pins =
+    currentPinMode === "first"
+      ? { [firstKey]: "left" }
+      : currentPinMode === "both"
+        ? { [firstKey]: "left", [lastKey]: "right" }
+        : null;
+  const features = [
+    ...(pins ? [columnPin({ pins })] : []),
+    ...(useColumnReorder ? [columnReorder()] : []),
+  ];
+
   const plugins = [
     table({
       columns: FILE_COLUMNS,
@@ -596,6 +620,7 @@ function createTableList() {
       rowBorders: false,
       minColumnWidth: 50,
       sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
+      features,
     }),
   ];
   if (groupMap) {
@@ -866,6 +891,30 @@ function updateSortDetail() {
       createBrowser(currentView);
     });
 
+  // Column pin mode (list view)
+  const pinModeSelect = document.getElementById("pin-mode");
+  if (pinModeSelect) {
+    pinModeSelect.value = currentPinMode;
+    pinModeSelect.addEventListener("change", () => {
+      currentPinMode = pinModeSelect.value;
+      if (currentView === "list") {
+        createBrowser("list");
+      }
+    });
+  }
+
+  // Column reorder toggle (list view)
+  const reorderToggle = document.getElementById("reorder-toggle");
+  if (reorderToggle) {
+    reorderToggle.checked = useColumnReorder;
+    reorderToggle.addEventListener("change", () => {
+      useColumnReorder = reorderToggle.checked;
+      if (currentView === "list") {
+        createBrowser("list");
+      }
+    });
+  }
+
   // Toolbar navigation
   document.getElementById("btn-back").addEventListener("click", () => {
     navigateBack();
@@ -900,4 +949,5 @@ function updateSortDetail() {
 
   // Initial load — start in vlist folder with list view
   await navigateTo("vlist");
+  globalThis.__vlistRecreate = () => createBrowser(currentView);
 })();
