@@ -81,7 +81,17 @@
    Placeholder skeleton — driven by .vlist-item--placeholder on the wrapper.
    The template is identical for real and placeholder items; mask characters
    (x) set the natural width, CSS hides them and shows skeleton blocks.
+   While scrolling above the cancel threshold, .vlist--fast blurs placeholders
+   until velocity drops and .vlist-item--replaced fades in the loaded rows.
    ============================================================================ */
+
+.vlist .vlist-item--placeholder {
+    transition: filter 0.15s ease;
+}
+
+.vlist--fast .vlist-item--placeholder {
+    filter: blur(2px);
+}
 
 .vlist-item--placeholder .item-avatar {
     background-color: rgba(102, 126, 234, 0.9);
