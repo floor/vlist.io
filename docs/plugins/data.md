@@ -1,6 +1,6 @@
 ---
 created: 2026-02-10
-updated: 2026-06-02
+updated: 2026-11-10
 status: published
 ---
 
@@ -75,6 +75,30 @@ interface VListAdapter<T> {
 | `load:start` | `{ offset, limit }` |
 | `load:end` | `{ items, total }` |
 | `error` | `{ error, context }` — `context` is `"load"`, `"ensureRange"`, or `"loadInitial"` |
+
+## Placeholders while scrolling fast
+
+When scroll velocity exceeds `loading.cancelThreshold` (default `15` px/ms), `data()` skips chunk fetches and renders unloaded rows as repeating placeholders marked with `.vlist-item--placeholder`. Once scrolling slows down or settles, the visible range loads and replaced rows receive `.vlist-item--replaced` (faded in by `vlist/styles`).
+
+To style placeholders differently during high-speed scroll (for example, adding motion blur), toggle a class on `list.element` from the `velocity:change` event:
+
+```ts
+list.on("velocity:change", ({ velocity, reliable }) => {
+  list.element.classList.toggle("vlist--fast", reliable && velocity > 15);
+});
+```
+
+```css
+.vlist .vlist-item--placeholder {
+  transition: filter 0.15s ease;
+}
+
+.vlist--fast .vlist-item--placeholder {
+  filter: blur(2px);
+}
+```
+
+See the [Velocity Loading example](/examples/velocity-loading) for a live demo.
 
 ## Loading resilience
 

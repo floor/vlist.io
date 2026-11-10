@@ -162,8 +162,12 @@ function createList() {
     updateInfo();
   });
 
-  list.on("velocity:change", ({ velocity }) => {
+  list.on("velocity:change", ({ velocity, reliable }) => {
     currentVelocity = velocity;
+    list.element.classList.toggle(
+      "vlist--fast",
+      reliable && velocity > LOAD_VELOCITY_THRESHOLD,
+    );
     stats.onVelocity(velocity);
     updateInfo();
     updateControls();
