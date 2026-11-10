@@ -22,7 +22,7 @@ tags: [plugin, table, header, sort, resize, keyboard, accessibility]
 - Resize handles: pointer drag on handles, MIN_DRAG_DELTA threshold, ignore non-resize elements, handle pointerup when not dragging, active class during drag
 - Scroll sync: translate scroll container by negative scrollLeft, handle zero scroll
 - Click interaction: onSort callback for sortable cells, onClick for any cell, sort cycling (asc to desc to null), no sort for non-sortable, ignore clicks on resize handles, no-op without layout
-- Keyboard navigation: tabindex management, ArrowRight/ArrowLeft focus movement, boundary guards, Home/End jump, Enter/Space triggers sort on sortable columns, sort direction cycling via keyboard, no sort on non-sortable, Ctrl+ArrowRight/Left column resize, non-resizable column rejection, ArrowDown returns focus to grid body
+- Keyboard navigation: tabindex management, ArrowRight/ArrowLeft focus movement, boundary guards, Home/End jump, Enter/Space triggers sort on sortable columns, sort direction cycling via keyboard, no sort on non-sortable, Ctrl+ArrowRight/Left and Shift+ArrowRight/Left column resize, non-resizable column rejection, ArrowDown returns focus to grid body
 - Visibility toggle: hide/show header, idempotent hide/show
 - Destroy: rowgroup removal, header height CSS variable clearance
 - Rebuild: cell clearing, sort indicator restoration, scroll container width, cell widths, width updates
@@ -36,7 +36,7 @@ tags: [plugin, table, header, sort, resize, keyboard, accessibility]
 - **syncScroll** (2 tests): negative scrollLeft translation, zero scroll
 - **click interaction** (6 tests): onSort on sortable click, onClick on any click, sort cycling, non-sortable rejection, resize handle click ignore, no layout no-op
 - **resize interaction** (5 tests): onResize during pointer drag, MIN_DRAG_DELTA threshold, non-resize element ignore, pointerup without drag, active class on handle
-- **keyboard navigation** (15 tests): tabindex setup (first=0, rest=-1), ArrowRight/Left focus, boundary guards (first/last), Home/End jump, Enter/Space sort trigger, sort direction cycling, non-sortable rejection, Ctrl+ArrowRight/Left resize, non-resizable rejection, ArrowDown to grid body
+- **keyboard navigation** (15 tests): tabindex setup (first=0, rest=-1), ArrowRight/Left focus, boundary guards (first/last), Home/End jump, Enter/Space sort trigger, sort direction cycling, non-sortable rejection, Ctrl+ArrowRight/Left and Shift+ArrowRight/Left resize, non-resizable rejection, ArrowDown to grid body
 - **visibility** (4 tests): hide, show after hide, idempotent show, idempotent hide
 - **destroy** (2 tests): rowgroup removal, CSS variable clearance
 
