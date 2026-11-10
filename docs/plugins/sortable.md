@@ -8,6 +8,8 @@ status: published
 
 Drag-and-drop and keyboard reordering.
 
+`sortable()` lets users drag rows to reorder them. To sort rows by a column, use the table's sort feature (`sortable: true` on a column).
+
 ```ts
 import { createVList, sortable } from "vlist";
 

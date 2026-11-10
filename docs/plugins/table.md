@@ -270,6 +270,7 @@ const list = createVList({
 ## Notes
 
 - Sorting is visual only — the plugin emits `column:sort`, you re-sort data and call `setItems()`
+- This sorts by clicking the header. It is not the `sortable()` plugin, which drags rows to reorder them.
 - Sticky header row
 - Tables past the browser size limit go synthetic by themselves (`scroll.mode: "auto"`)
 - Conflicts with: grid, masonry
