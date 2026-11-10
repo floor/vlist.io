@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-11-08
+updated: 2026-11-10
 status: published
 ---
 
@@ -71,6 +71,21 @@ table({
 ```
 
 Use `"stretch"` when you want columns to consume all available space, and `"spacer"` when column widths are meaningful (e.g. fixed numeric columns) but you still want full-width rows for consistent backgrounds, row borders, and striping. Try both in the [Data Table example](/examples/data-table) via the **Fill Mode** control.
+
+## Keyboard
+
+Header cells are focusable. With a header cell focused:
+
+| Key | Action |
+|-----|--------|
+| `ArrowLeft` / `ArrowRight` | Move focus to the previous / next header cell |
+| `Home` / `End` | Focus the first / last header cell |
+| `Ctrl+ArrowLeft` / `Ctrl+ArrowRight` (`Cmd` on macOS) | Resize the focused column by 10px |
+| `Shift+ArrowLeft` / `Shift+ArrowRight` | Resize the focused column by 10px (since 3.6.2, same as Ctrl/Cmd) |
+| `Enter` / `Space` | Sort by the focused column, when the column is sortable |
+| `ArrowDown` | Return focus to the table body |
+
+Resizing applies only to resizable columns, stops at the column's configured minimum and maximum width, and emits `column:resize` for each step. Column pinning and reordering add their own header shortcuts; see [Features](#features).
 
 ## Features
 
