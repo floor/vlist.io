@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-09-16
+updated: 2026-11-10
 status: published
 ---
 
@@ -157,6 +157,8 @@ interface TableColumn {
   headerTemplate?: (column: TableColumn) => string | HTMLElement;
 }
 ```
+
+`TableColumn` is exported from `vlist` since 3.7.0: `import type { TableColumn } from "vlist";`
 
 ## VListEvents
 

@@ -46,6 +46,8 @@ list.on("column:sort", ({ key, index, direction }) => {
 | `sort` | `{ key, direction }` | — | Initial sort state |
 | `features` | Array of table features | `[]` | Optional table features ([see below](#features)) |
 
+Since 3.7.0, the column type is exported from `vlist`: `import type { TableColumn } from "vlist";`
+
 ## Filling the container width
 
 When the columns are narrower than the container, `fillWidth` controls whether — and how — rows extend to fill the remaining space:
