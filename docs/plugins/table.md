@@ -1,6 +1,6 @@
 ---
 created: 2026-05-27
-updated: 2026-11-10
+updated: 2026-11-11
 status: published
 ---
 
@@ -94,7 +94,7 @@ Resizing applies only to resizable columns, stops at the column's configured min
 Starting in 3.6.0, `table({ features: [...] })` enables optional table features.
 Import each feature from `vlist` and pass it inside the table configuration. Features
 are tree-shaken: only applications that import and enable a feature pay for its code.
-A plain `table()` does not include column pinning or reordering.
+A plain `table()` does not include column pinning, column reordering, or row attributes.
 
 ```ts
 import { createVList, table, columnPin, columnReorder } from "vlist";
@@ -118,9 +118,9 @@ const list = createVList({
 })]);
 ```
 
-`columnPin()` and `columnReorder()` work together in either array order. Both
-belong in `table({ features: [...] })`, rather than the outer `createVList` plugin
-array.
+`columnPin()`, `columnReorder()`, and `rowAttributes()` work together in any array
+order. All belong in `table({ features: [...] })`, rather than the outer `createVList`
+plugin array.
 
 ### columnPin()
 
@@ -213,18 +213,54 @@ When pinning is enabled, a move stays within the column's current left-pinned,
 unpinned, or right-pinned group; the destination is clamped to that group. Use
 `setColumnPin()` to change a column's pin side.
 
+### rowAttributes()
+
+Since 3.8.0, `rowAttributes(fn)` adds extra CSS classes and HTML attributes to table
+data rows.
+
+```ts
+import { table, rowAttributes } from "vlist";
+
+table({
+  columns,
+  rowHeight: 40,
+  features: [
+    rowAttributes((item, index) => ({
+      class: item.archived ? "row--archived" : undefined,
+      attrs: { "data-status": item.status, "aria-busy": item.saving ? "true" : undefined },
+    })),
+  ],
+});
+```
+
+The callback receives `(item, index)` — the row's item (`T`) and its zero-based layout
+index (the same index a column cell callback receives as `rowIndex`) — and returns a
+`RowAttributes` object (`{ class?, attrs? }`) or `undefined`:
+
+| Field | Type | Behavior |
+|-------|------|----------|
+| `class` | `string` | Space-separated class names added after the table's built-in classes (`.vlist-item`, `.vlist-table-row`, `--odd`, `--placeholder`, `--selected`, `--focused`), so state classes always stay intact across selection and focus flips |
+| `attrs` | `Record<string, string \| number \| boolean \| null \| undefined>` | Attributes set on the row element: `true` sets `""`, numbers are converted to strings, and `null`, `undefined`, or `false` removes the attribute |
+
+- **Lifecycle and pool recycling:** The callback runs when a row is mounted for an item or when that row's item or index changes (including `updateItem()`), not on selection or focus changes. When a pooled row element is recycled for another item — or re-acquired as a group header — the classes and attribute names set by the previous item's record are removed automatically so nothing leaks between rows.
+- **Group headers and placeholders:** Group-header rows (`role="presentation"`) are never passed to the callback and never decorated. Placeholder rows (`role="row"`) are decorated while keeping `.vlist-item--placeholder`.
+- **Reserved attribute names:** The table renderer owns `id`, `role`, `data-index`, `data-id`, `aria-rowindex`, and `aria-selected`. Any entry in `attrs` naming one of these is ignored so the renderer's built-in values always win.
+
+The return type is exported from `vlist`: `import type { RowAttributes } from "vlist";`
+
 ### Feature sizes
 
 Each measurement includes `table()` and the listed feature, gzipped after tree shaking.
 
 | Bundle | Gzipped bytes |
 |--------|--------------:|
-| `table()` | 17,121 |
-| `table() + columnPin()` | 18,938 |
-| `table() + columnReorder()` | 19,292 |
+| `table()` | 17,137 |
+| `table() + rowAttributes()` | 17,573 |
+| `table() + columnPin()` | 19,145 |
+| `table() + columnReorder()` | 19,457 |
 
-Measured in [main CI](https://github.com/floor/vlist/actions/runs/42501544031)
-at commit `e251524`.
+Measured in [CI](https://github.com/floor/vlist/actions/runs/42961591499)
+at commit `abf5aff`.
 
 ## Methods
 
