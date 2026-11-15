@@ -7,6 +7,6 @@
 <rect width="800" height="500" fill="url(#bg)"/>
 <circle cx="424" cy="346" r="91" fill="#ffffff" opacity="0.10"/><circle cx="284" cy="118" r="131" fill="#ffffff" opacity="0.15"/><circle cx="674" cy="111" r="104" fill="#ffffff" opacity="0.08"/>
 <rect x="213" y="70" width="468" height="354" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(18 447 247)"/>
-<text x="40" y="60" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
-<text x="760" y="178" text-anchor="end" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="136" font-weight="700" fill="rgba(255,255,255,0.9)">940</text>
+<text x="400" y="60" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
+<text x="400" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="136" font-weight="700" fill="rgba(255,255,255,0.9)">940</text>
 </svg>
