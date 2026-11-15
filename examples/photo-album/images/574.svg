@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img">
+<title>Placeholder photo 574 — Photo 530, Space</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(89.6 62% 52%)"/>
+<stop offset="1" stop-color="hsl(131.6 48% 24%)"/>
+</linearGradient></defs>
+<rect width="400" height="300" fill="url(#bg)"/>
+<circle cx="365" cy="255" r="48" fill="#ffffff" opacity="0.08"/><circle cx="261" cy="85" r="36" fill="#ffffff" opacity="0.13"/><circle cx="154" cy="215" r="83" fill="#ffffff" opacity="0.11"/>
+<rect x="130" y="88" width="248" height="148" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(27 254 162)"/>
+<text x="200" y="36" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 400×300</text>
+<text x="200" y="174" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="60" font-weight="700" fill="rgba(255,255,255,0.9)">574</text>
+</svg>

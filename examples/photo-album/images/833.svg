@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img">
+<title>Placeholder photo 833 — Photo 745, Travel</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(64.2 62% 52%)"/>
+<stop offset="1" stop-color="hsl(106.2 48% 24%)"/>
+</linearGradient></defs>
+<rect width="400" height="300" fill="url(#bg)"/>
+<circle cx="112" cy="139" r="43" fill="#000000" opacity="0.06"/><circle cx="59" cy="63" r="98" fill="#000000" opacity="0.13"/><circle cx="335" cy="175" r="42" fill="#000000" opacity="0.07"/>
+<rect x="135" y="74" width="268" height="150" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(25 269 149)"/>
+<text x="200" y="36" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 400×300</text>
+<text x="200" y="174" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="60" font-weight="700" fill="rgba(255,255,255,0.9)">833</text>
+</svg>

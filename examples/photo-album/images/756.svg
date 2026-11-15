@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" role="img">
+<title>Placeholder photo 756 — Photo 676, Food</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(276.0 62% 52%)"/>
+<stop offset="1" stop-color="hsl(318.0 48% 24%)"/>
+</linearGradient></defs>
+<rect width="400" height="300" fill="url(#bg)"/>
+<circle cx="137" cy="180" r="47" fill="#000000" opacity="0.08"/><circle cx="313" cy="49" r="35" fill="#ffffff" opacity="0.10"/><circle cx="50" cy="151" r="34" fill="#ffffff" opacity="0.08"/>
+<rect x="80" y="110" width="222" height="164" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(-12 191 192)"/>
+<text x="200" y="36" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="11" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 400×300</text>
+<text x="200" y="174" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="60" font-weight="700" fill="rgba(255,255,255,0.9)">756</text>
+</svg>
