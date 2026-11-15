@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" role="img">
+<title>Placeholder photo 78 — Arched Doorway, Old Town</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(285.6 62% 52%)"/>
+<stop offset="1" stop-color="hsl(327.6 48% 24%)"/>
+</linearGradient></defs>
+<rect width="800" height="500" fill="url(#bg)"/>
+<circle cx="75" cy="337" r="69" fill="#ffffff" opacity="0.13"/><circle cx="603" cy="152" r="50" fill="#000000" opacity="0.11"/><circle cx="107" cy="341" r="146" fill="#000000" opacity="0.13"/>
+<rect x="147" y="-18" width="378" height="396" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(-29 336 180)"/>
+<text x="40" y="60" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
+<text x="760" y="178" text-anchor="end" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="136" font-weight="700" fill="rgba(255,255,255,0.9)">78</text>
+</svg>

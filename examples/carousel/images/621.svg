@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" role="img">
+<title>Placeholder photo 621 — Under the Bridge, Brisbane</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(72.5 62% 52%)"/>
+<stop offset="1" stop-color="hsl(114.5 48% 24%)"/>
+</linearGradient></defs>
+<rect width="800" height="500" fill="url(#bg)"/>
+<circle cx="618" cy="179" r="183" fill="#ffffff" opacity="0.13"/><circle cx="411" cy="123" r="175" fill="#ffffff" opacity="0.07"/><circle cx="525" cy="63" r="135" fill="#000000" opacity="0.11"/>
+<rect x="145" y="122" width="256" height="352" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(34 273 298)"/>
+<text x="40" y="60" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
+<text x="760" y="178" text-anchor="end" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="136" font-weight="700" fill="rgba(255,255,255,0.9)">621</text>
+</svg>
