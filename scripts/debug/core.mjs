@@ -64,6 +64,48 @@ export async function launchBrowser(opts = {}) {
   });
 }
 
+/**
+ * Abort every request that does not stay on the test server, so a test never
+ * waits on a host outside this machine.
+ *
+ * `/examples/carousel` preloads 24 picsum.photos images before its page is
+ * "loaded". When that host stalls, `goto(..., { waitUntil: "networkidle2" })`
+ * waits the full 30 s and the whole Browser job fails on an outside outage.
+ * Aborted requests finish at once, so the page settles and keeps its slides —
+ * which is what these tests are about. `base`'s host counts as local, along
+ * with localhost / 127.0.0.1 / ::1; data:, blob: and about: URLs pass.
+ *
+ * Returns the Set of hosts it blocked, so a caller can report them.
+ * Pass `{ allowExternal: true }` to openPage for a capture that needs the real
+ * third-party assets.
+ */
+export async function blockForeignRequests(page, base) {
+  const local = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+  try {
+    local.add(new URL(base).hostname);
+  } catch {}
+  const blocked = new Set();
+  await page.setRequestInterception(true);
+  page.on("request", (req) => {
+    const url = req.url();
+    if (/^(data|blob|about):/.test(url)) {
+      req.continue().catch(() => {});
+      return;
+    }
+    let host = "";
+    try {
+      host = new URL(url).hostname;
+    } catch {}
+    if (host && local.has(host)) {
+      req.continue().catch(() => {});
+      return;
+    }
+    blocked.add(host || url);
+    req.abort().catch(() => {});
+  });
+  return blocked;
+}
+
 export async function openPage(browser, path, opts = {}) {
   const {
     width = DEFAULTS.width,
@@ -72,10 +114,13 @@ export async function openPage(browser, path, opts = {}) {
     settle = DEFAULTS.settle,
     prefix = DEFAULTS.prefix,
     waitFor,
+    allowExternal = false,
   } = opts;
 
   const page = await browser.newPage();
   await page.setViewport({ width, height });
+  // Keep the page off outside hosts by default; see blockForeignRequests.
+  const blocked = allowExternal ? new Set() : await blockForeignRequests(page, base);
 
   const logs = [];
   page.on("console", (msg) => logs.push(msg.text()));
@@ -85,7 +130,7 @@ export async function openPage(browser, path, opts = {}) {
   await page.waitForSelector(selector);
   if (settle > 0) await delay(settle);
 
-  return { page, logs };
+  return { page, logs, blocked };
 }
 
 // =============================================================================
