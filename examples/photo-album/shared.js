@@ -73,6 +73,10 @@ export const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
 // Template
 // =============================================================================
 
+// The cards' pictures come from picsum.photos. When one fails to load — the
+// host is down, or the browser test harness blocks it — the handler swaps the
+// src once for the committed placeholder in examples/photo-album/images/ and
+// removes itself, so a missing placeholder cannot loop.
 export const itemTemplate = (item) => `
   <div class="card">
     <img
@@ -83,7 +87,7 @@ export const itemTemplate = (item) => `
       decoding="async"
       data-t="${performance.now()}"
       onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('card__img--loaded')"
-      onerror="this.style.transition='none';this.classList.add('card__img--loaded')"
+      onerror="this.onerror=null;this.src='/examples/photo-album/images/${item.picId}.svg';this.style.transition='none';this.classList.add('card__img--loaded')"
     />
     <div class="card__overlay">
       <span class="card__title">${item.title}</span>

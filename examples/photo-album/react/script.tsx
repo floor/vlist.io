@@ -317,6 +317,16 @@ function App() {
                     className="detail__img"
                     src={`https://picsum.photos/id/${selectedPhoto.picId}/400/300`}
                     alt={selectedPhoto.title}
+                    onError={(event) => {
+                      // The picture comes from picsum.photos. When it fails to
+                      // load — the host is down, or the browser test harness
+                      // blocks it — swap it once for the committed placeholder
+                      // and never again, so a missing placeholder cannot loop.
+                      const img = event.currentTarget;
+                      if (img.dataset.fallback) return;
+                      img.dataset.fallback = "1";
+                      img.src = `/examples/photo-album/images/${selectedPhoto.picId}.svg`;
+                    }}
                   />
                   <div className="detail__meta">
                     <strong>{selectedPhoto.title}</strong>

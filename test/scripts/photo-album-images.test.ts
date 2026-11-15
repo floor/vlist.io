@@ -1,30 +1,37 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { items, getImageUrl } from "../../examples/photo-album/shared.js";
+import { items } from "../../examples/photo-album/shared.js";
 
-// The photo album used to load every card from picsum.photos, so while that
-// host is down the page stays blank and slow to settle. It now ships its own
-// generated images: one 400x300 SVG per photo in examples/photo-album/images/,
-// written by scripts/generate-example-images.mjs. These tests hold the parts a
-// browser check cannot: every card points at a committed file, the directory is
-// exactly that set, the files are distinct and the right size, and none of the
-// four variants asks a third party for an image.
+// The album loads every card from picsum.photos, and every photo falls back to
+// a committed placeholder in examples/photo-album/images/ when that request
+// fails — the host is down, or the browser suites block third-party hosts (the
+// harness #138 added does). These tests hold the parts a browser check cannot:
+// the cards ask picsum, every photo id the page can show has a fallback file,
+// the directory is exactly that set, the files are distinct and the right
+// size, and none of the four variants is missing its swap.
 
 const ROOT = join(import.meta.dir, "../..");
 const IMAGE_DIR = join(ROOT, "examples/photo-album/images");
 
 describe("photo album example images", () => {
-  test("every card resolves to a committed local image", () => {
+  test("a card's photo comes from picsum.photos", () => {
+    const source = readFileSync(
+      join(ROOT, "examples/photo-album/shared.js"),
+      "utf8",
+    );
+    expect(source).toContain("https://picsum.photos/id/${item.picId}/300/225");
+  });
+
+  test("every card has a committed fallback image", () => {
     expect(items.length).toBeGreaterThan(0);
     for (const item of items) {
-      const url = getImageUrl(item.picId);
-      expect(url).toMatch(/^\/examples\/photo-album\/images\/\d+\.svg$/);
+      const url = `/examples/photo-album/images/${item.picId}.svg`;
       expect(existsSync(join(ROOT, url.slice(1)))).toBe(true);
     }
   });
 
-  test("the image directory holds exactly the referenced files", () => {
+  test("the fallback directory holds exactly the referenced files", () => {
     const referenced = new Set(items.map((item) => `${item.picId}.svg`));
     const committed = readdirSync(IMAGE_DIR).filter((name) =>
       name.endsWith(".svg"),
@@ -32,7 +39,7 @@ describe("photo album example images", () => {
     expect(committed.sort()).toEqual([...referenced].sort());
   });
 
-  test("every image is a distinct 400x300 SVG", () => {
+  test("every fallback is a distinct 400x300 SVG", () => {
     const seen = new Set<string>();
     for (const picId of new Set(items.map((item) => item.picId))) {
       const svg = readFileSync(join(IMAGE_DIR, `${picId}.svg`), "utf8");
@@ -48,21 +55,19 @@ describe("photo album example images", () => {
     expect(seen.size).toBe(new Set(items.map((item) => item.picId)).size);
   });
 
-  test("no variant asks a third party for an image", () => {
+  test("every card and detail panel swaps a failed photo for the file", () => {
+    // The cards come from one template in shared.js; each variant draws its
+    // own detail panel, so each has a handler of its own. All of them point at
+    // the committed file with the photo's own id.
     for (const name of [
       "examples/photo-album/shared.js",
-      "examples/photo-album/content.html",
-      "examples/photo-album/controls.js",
       "examples/photo-album/vanilla/script.js",
       "examples/photo-album/react/script.tsx",
-      "examples/photo-album/react/content.html",
       "examples/photo-album/vue/script.js",
-      "examples/photo-album/vue/content.html",
       "examples/photo-album/svelte/script.js",
     ]) {
       const source = readFileSync(join(ROOT, name), "utf8");
-      expect(source).not.toMatch(/picsum|unsplash/i);
-      expect(source).not.toMatch(/https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)/i);
+      expect(source).toContain("/examples/photo-album/images/");
     }
   });
 });

@@ -171,6 +171,7 @@ function showDetail(item) {
       class="detail__img"
       src="https://picsum.photos/id/${item.picId}/400/300"
       alt="${item.title}"
+      onerror="this.onerror=null;this.src='/examples/photo-album/images/${item.picId}.svg'"
     />
     <div class="detail__meta">
       <strong>${item.title}</strong>
