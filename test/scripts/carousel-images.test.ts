@@ -76,4 +76,15 @@ describe("carousel example images", () => {
       expect(source).not.toMatch(/https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)/i);
     }
   });
+
+  test("the carousel data carries no photo URLs", () => {
+    // The example stopped asking picsum.photos for its pictures, and the
+    // bundle used to carry the 993-record photo metadata module with it: a
+    // download_url and an unsplash author link per record. The data module
+    // now holds only ids, dimensions, titles and locations.
+    const source = readFileSync(join(ROOT, "src/data/carousel.js"), "utf8");
+    expect(source).not.toMatch(/picsum|unsplash/i);
+    expect(source).not.toMatch(/https?:\/\//);
+    expect(existsSync(join(ROOT, "src/data/lorem-picsum.js"))).toBe(false);
+  });
 });
