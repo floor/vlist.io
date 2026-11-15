@@ -1,12 +1,12 @@
 // Carousel — Curated photo sets by variant
-// Each variant uses its own set of photo ids with hand-written titles and
-// locations. The example renders the ids with its own generated placeholder
-// images (examples/carousel/images/), so no photo URL lives here.
+// Each variant uses a unique set of photos from Lorem Picsum with
+// hand-written titles and locations matching the actual photo content.
+
+import { getPhotoUrl } from "./lorem-picsum.js";
 
 // =============================================================================
 // Per-variant curated photo sets
-// { id, w, h, title, location } — w/h are the photo's native dimensions, used
-// for the slide's aspect ratio.
+// { id, w, h, title, location } — w/h are native Picsum dimensions
 // =============================================================================
 
 const SETS = {
@@ -225,4 +225,20 @@ export function getItemWidth(index, height, variant) {
   const set = SETS[variant] || SETS.hero;
   const entry = set[index % set.length];
   return Math.round(height * (entry.w / entry.h));
+}
+
+export { getPhotoUrl as getImageUrl };
+
+export function preloadImages(variant, width, height) {
+  const set = SETS[variant] || SETS.hero;
+  return Promise.all(
+    set.map(
+      (entry) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.onload = img.onerror = resolve;
+          img.src = getPhotoUrl(entry.id, width, height);
+        }),
+    ),
+  );
 }

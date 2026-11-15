@@ -11,7 +11,6 @@ import {
   ASPECT_RATIO,
   items,
   itemTemplate,
-  getImageUrl,
   currentMode,
   currentOrientation,
   currentColumns,
@@ -170,7 +169,7 @@ function showDetail(item) {
   detailEl.innerHTML = `
     <img
       class="detail__img"
-      src="${getImageUrl(item.picId)}"
+      src="https://picsum.photos/id/${item.picId}/400/300"
       alt="${item.title}"
     />
     <div class="detail__meta">
