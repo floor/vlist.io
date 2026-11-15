@@ -20,6 +20,21 @@ const args = parseArgs();
 const browser = await launchBrowser({ headless: !args.headful });
 const { page } = await openPage(browser, "/examples/carousel", { settle: 1500, width: 1400, height: 900 });
 
+// The page is worth testing only if the carousel rendered. openPage aborts
+// requests to hosts outside the test server (core.mjs blockForeignRequests), so
+// the photo slides arrive as empty boxes; the slides themselves must still be
+// here before the snap results mean anything.
+const rendered = await page.evaluate(() => ({
+  slides: document.querySelectorAll(".vlist-carousel-slide").length,
+  viewport: !!document.querySelector(".vlist-viewport"),
+}));
+console.log(`── 0. page ── ${rendered.slides} slides rendered`);
+if (!rendered.viewport || rendered.slides < 5) {
+  console.log(`✗ the carousel did not render: ${JSON.stringify(rendered)}`);
+  await browser.close();
+  process.exit(1);
+}
+
 // Enable snap (default is off) — the toggle recreates the list.
 await page.click("#toggle-snap");
 await delay(800);

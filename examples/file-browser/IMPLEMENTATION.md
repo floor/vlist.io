@@ -12,6 +12,13 @@ A Finder-like file browser built with **vlist** using the `grid` plugin. This ex
 
 - **Grid View**: Uses `grid` plugin for 2D virtualized layout with configurable columns (3-6) and gap (4-16px)
 - **List View**: Standard vlist with fixed 40px row height and columnar layout
+- **Column Sorting (list view)**: the `table` plugin runs with `multiSort: true`. A plain
+  header click sorts by that column alone; Shift/Ctrl/Cmd + click (or Enter/Space on a
+  focused header) adds a column, flips its direction, or removes it, and the header shows
+  each column's priority. The event's `sorts` array (primary key first) is stored in
+  `columnSorts`, used to re-sort the items, handed back with `setSort()`, and passed as the
+  table's `sort` option whenever the view is re-created, so the order survives view
+  switches and navigation. The right-hand Sort panel lists the order ("Name ▲, then Size ▼").
 - **Dynamic Templates**: `gridItemTemplate()` for icon-based cards, `listItemTemplate()` for rows
 - **Navigation**: Breadcrumb, back/up buttons, double-click to enter folders
 - **Event Handling**: Click to select, double-click to navigate
@@ -153,8 +160,15 @@ selection. The map goes back into the next table, so pins survive the re-creates
 on navigation and view switches.
 
 Changing the select calls `setColumnPin()` on the live table instead of
-re-creating it: a rebuild starts every column from `FILE_COLUMNS`' default
-width, so applying pins in place is what keeps resized columns at their widths.
+re-creating it: `columnPin` re-partitions the existing table, so the columns stay
+put under the user's pointer instead of the list being torn down and rebuilt for
+a change the table can make itself.
+
+Widths survive the re-creates of their own accord. The demo records every
+`column:resize` in `columnWidths` (keyed by column key) and `columnsWithWidths()`
+feeds those back into the `columns` option of every new table — view switches,
+navigation, Group by and the Reorder toggle. `FILE_COLUMNS` stays the default
+width for a column nobody has resized.
 
 ### API Integration
 
@@ -395,6 +409,10 @@ item:dblclick → handleItemDoubleClick(item)
    - [ ] Rows display with columns
    - [ ] Sizes formatted correctly
    - [ ] Dates display
+   - [ ] Clicking a header sorts by that column; the Sort panel names it
+   - [ ] Shift/Ctrl/Cmd + click a second header adds it with a priority badge,
+         the rows obey both keys in order, and the Sort panel reads "…, then …"
+   - [ ] A plain click on another header collapses the order back to one column
 5. **Test navigation**:
    - [ ] Breadcrumb updates
    - [ ] Back button works
@@ -406,6 +424,7 @@ item:dblclick → handleItemDoubleClick(item)
    - [ ] View switcher toggles
    - [ ] Pin select pins the first/last columns, and `Shift+Alt+Arrow` on a header updates the select
    - [ ] A resized column keeps its width when the Pin select changes
+   - [ ] A resized column keeps its width after switching views and after opening a folder
 7. **Test security**:
    - [ ] Can't browse outside allowed roots
    - [ ] Hidden files filtered
@@ -459,7 +478,6 @@ This is intended for local development. **Do NOT use in production** without:
 - Multi-select with Ctrl/Cmd
 - Context menu (right-click)
 - File preview (images, text)
-- Sorting options (name, size, date)
 - View preferences persistence (localStorage)
 - Dark mode support
 

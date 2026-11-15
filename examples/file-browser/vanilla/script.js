@@ -78,12 +78,17 @@ let selectedItemId = null;
 let currentArrangeBy = "none";
 
 // Table sort & column feature state
-let sortKey = null;
-let sortDirection = "asc";
+// Ordered list of { key, direction }, primary key first — what the table's
+// `sort` option and `setSort()` take once multiSort is on.
+let columnSorts = [];
 // Columns pinned right now, keyed by column key ("left" or "right"), exactly
 // as the table's columnPin feature reports them in `column:pin`. This is the
 // source of truth across re-creates; the Pin select mirrors it.
 let currentPins = {};
+// Widths the user gave columns with `column:resize`, keyed by column key.
+// Every re-create feeds them back into the table, so a resized column does not
+// fall back to FILE_COLUMNS' default width (the pin panel used to reset it).
+let columnWidths = {};
 let useColumnReorder = true;
 
 // =============================================================================
@@ -261,56 +266,59 @@ function getArrangementConfig(arrangeBy) {
 // =============================================================================
 
 /**
- * Sort items by a column key and direction.
- * Files and folders are interleaved (like macOS Finder column sort).
+ * Per-column comparison, ascending. Shared by single- and multi-column sort so
+ * the two can never drift: locale compare for names and kinds, numeric for
+ * size and date. Dates that do not parse sort last in both directions.
  */
-function sortByColumn(data, key, direction) {
-  const dir = direction === "desc" ? -1 : 1;
+const COLUMN_COMPARATORS = {
+  name: (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }),
 
+  size: (a, b) => (a.size || 0) - (b.size || 0),
+
+  modified: (a, b) => {
+    const aVal = new Date(a.modified).getTime();
+    const bVal = new Date(b.modified).getTime();
+    if (isNaN(aVal)) return 1;
+    if (isNaN(bVal)) return -1;
+    return aVal - bVal;
+  },
+
+  kind: (a, b) => getFileKind(a).localeCompare(getFileKind(b)),
+};
+
+function compareByColumn(key, a, b) {
+  const compare = COLUMN_COMPARATORS[key];
+  return compare ? compare(a, b) : 0;
+}
+
+/** Default order when no column is sorted: folders first, then by name. */
+function sortByName(data) {
   return [...data].sort((a, b) => {
-    let aVal, bVal;
-
-    switch (key) {
-      case "name":
-        return a.name.localeCompare(b.name, undefined, { numeric: true }) * dir;
-
-      case "size":
-        aVal = a.size || 0;
-        bVal = b.size || 0;
-        return (aVal - bVal) * dir;
-
-      case "modified":
-        aVal = new Date(a.modified).getTime();
-        bVal = new Date(b.modified).getTime();
-        if (isNaN(aVal)) return 1;
-        if (isNaN(bVal)) return -1;
-        return (aVal - bVal) * dir;
-
-      case "kind":
-        aVal = getFileKind(a);
-        bVal = getFileKind(b);
-        return aVal.localeCompare(bVal) * dir;
-
-      default:
-        return 0;
-    }
+    if (a.type === "directory" && b.type !== "directory") return -1;
+    if (a.type !== "directory" && b.type === "directory") return 1;
+    return a.name.localeCompare(b.name, undefined, { numeric: true });
   });
 }
 
-function applyColumnSort(key, direction) {
-  sortKey = key;
-  sortDirection = direction || "asc";
+/**
+ * Sort items by an ordered list of { key, direction }, primary key first.
+ * Files and folders are interleaved (like macOS Finder column sort).
+ */
+function sortByColumns(data, sorts) {
+  if (!sorts || sorts.length === 0) return sortByName(data);
 
-  if (key === null) {
-    // Reset to default name sort
-    sortedItems = [...items].sort((a, b) => {
-      if (a.type === "directory" && b.type !== "directory") return -1;
-      if (a.type !== "directory" && b.type === "directory") return 1;
-      return a.name.localeCompare(b.name, undefined, { numeric: true });
-    });
-  } else {
-    sortedItems = sortByColumn(items, key, direction);
-  }
+  return [...data].sort((a, b) => {
+    for (const { key, direction } of sorts) {
+      const result = compareByColumn(key, a, b);
+      if (result !== 0) return direction === "desc" ? -result : result;
+    }
+    return 0;
+  });
+}
+
+function applyColumnSorts(sorts) {
+  columnSorts = (sorts || []).map(({ key, direction }) => ({ key, direction }));
+  sortedItems = sortByColumns(items, columnSorts);
 
   if (list && currentView === "list") {
     list.setItems(sortedItems);
@@ -591,6 +599,17 @@ function syncPinModeSelect() {
   if (select) select.value = modeForPins(currentPins);
 }
 
+// The column definitions for a table re-create: FILE_COLUMNS with every width
+// the user has set, so navigating, switching view or toggling reorder does not
+// throw the resized columns back to their defaults.
+function columnsWithWidths() {
+  return FILE_COLUMNS.map((column) =>
+    columnWidths[column.key] === undefined
+      ? column
+      : { ...column, width: columnWidths[column.key] },
+  );
+}
+
 function createTableList() {
   const rowHeight = 28;
   const headerHeight = 28;
@@ -600,17 +619,11 @@ function createTableList() {
   const hasGroups = config.groupBy !== "none";
 
   // When grouping is active, use the arrangement sort (groups must be contiguous).
-  // Otherwise use column sort or default name sort.
+  // Otherwise use the column sorts or the default name sort.
   if (hasGroups) {
     sortedItems = [...items].sort(config.sortFn);
-  } else if (sortKey) {
-    sortedItems = sortByColumn(items, sortKey, sortDirection);
   } else {
-    sortedItems = [...items].sort((a, b) => {
-      if (a.type === "directory" && b.type !== "directory") return -1;
-      if (a.type !== "directory" && b.type === "directory") return 1;
-      return a.name.localeCompare(b.name, undefined, { numeric: true });
-    });
+    sortedItems = sortByColumns(items, columnSorts);
   }
 
   // Build group map if grouping is enabled
@@ -634,14 +647,19 @@ function createTableList() {
 
   const plugins = [
     table({
-      columns: FILE_COLUMNS,
+      columns: columnsWithWidths(),
       rowHeight,
       headerHeight,
       resizable: true,
       columnBorders: false,
       rowBorders: false,
       minColumnWidth: 50,
-      sort: sortKey ? { key: sortKey, direction: sortDirection } : undefined,
+      multiSort: true,
+      // Hand the table the whole order so the indicators and their priority
+      // badges survive a re-create; an empty list means "nothing sorted".
+      sort: columnSorts.length
+        ? columnSorts.map(({ key, direction }) => ({ key, direction }))
+        : undefined,
       features,
     }),
   ];
@@ -683,12 +701,15 @@ function createTableList() {
     items: sortedItems,
   }, plugins);
 
-  // Column sort — user clicks a sortable header
-  list.on("column:sort", ({ key, direction }) => {
-    applyColumnSort(direction === null ? null : key, direction);
+  // Column sort — a plain header click sorts by that column alone; Shift/Ctrl/
+  // Cmd + click (or Enter/Space) adds, flips or removes a column. The event
+  // carries the whole order in `sorts`, primary first.
+  list.on("column:sort", ({ key, direction, sorts }) => {
+    const next = Array.isArray(sorts) ? sorts : direction ? [{ key, direction }] : [];
+    applyColumnSorts(next);
 
     if (list.setSort) {
-      list.setSort(sortKey, sortDirection);
+      list.setSort(columnSorts);
     }
   });
 
@@ -697,6 +718,13 @@ function createTableList() {
   list.on("column:pin", ({ pins }) => {
     currentPins = { ...(pins || {}) };
     syncPinModeSelect();
+  });
+
+  // Column widths — remember what the user resized, so the next re-create
+  // (navigation, view switch, reorder toggle) feeds it back through
+  // columnsWithWidths() instead of using FILE_COLUMNS' default width.
+  list.on("column:resize", ({ key, width }) => {
+    if (key && typeof width === "number") columnWidths[key] = width;
   });
 
   // Selection — show detail in panel and restore across rebuilds
@@ -838,6 +866,11 @@ function clearFileDetail() {
 
 const sortDetailEl = document.getElementById("sort-detail");
 
+/** Column label for the Sort panel — "Kind", not the raw key. */
+function sortColumnLabel(key) {
+  return FILE_COLUMNS.find((column) => column.key === key)?.label ?? key;
+}
+
 function updateSortDetail() {
   if (!sortDetailEl) return;
 
@@ -860,21 +893,36 @@ function updateSortDetail() {
     `;
   }
 
-  // Show column sort info if active
-  if (sortKey !== null) {
-    const arrow = sortDirection === "asc" ? "▲" : "▼";
-    const label = sortDirection === "asc" ? "Ascending" : "Descending";
+  // Show the column sort order, primary key first
+  if (columnSorts.length === 1) {
+    const [{ key, direction }] = columnSorts;
+    const arrow = direction === "asc" ? "▲" : "▼";
+    const label = direction === "asc" ? "Ascending" : "Descending";
     html += `
       <div class="sort-info">
         <span class="sort-info__label">Sorted by</span>
-        <span class="sort-info__key">${sortKey}</span>
+        <span class="sort-info__key">${sortColumnLabel(key)}</span>
         <span class="sort-info__dir">${arrow} ${label}</span>
+      </div>
+    `;
+  } else if (columnSorts.length > 1) {
+    const parts = columnSorts.map(({ key, direction }) => {
+      const arrow = direction === "asc" ? "▲" : "▼";
+      return `
+        <span class="sort-info__key">${sortColumnLabel(key)}</span>
+        <span class="sort-info__dir">${arrow}</span>
+      `;
+    });
+    html += `
+      <div class="sort-info">
+        <span class="sort-info__label">Sorted by</span>
+        ${parts.join('<span class="sort-info__dir">then</span>')}
       </div>
     `;
   }
 
   if (!html) {
-    html = `<span class="ui-detail__empty">Click a column header to sort</span>`;
+    html = `<span class="ui-detail__empty">Click a column header to sort (Shift-click adds a column)</span>`;
   }
 
   sortDetailEl.innerHTML = html;
@@ -915,8 +963,7 @@ function updateSortDetail() {
       currentArrangeBy = e.target.value;
       // Arrange-by controls grouping, not column sort.
       // Reset column sort when changing arrangement, then rebuild.
-      sortKey = null;
-      sortDirection = "asc";
+      columnSorts = [];
       createBrowser(currentView);
     });
 
