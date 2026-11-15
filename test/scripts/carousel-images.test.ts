@@ -7,7 +7,7 @@ import { getImageUrl } from "../../examples/carousel/shared.js";
 // The carousel example used to load its photos from picsum.photos, and when
 // that host was down the page never finished loading. The example now ships
 // its own generated images: one 800x500 SVG per photo in
-// examples/carousel/images/, written by scripts/generate-carousel-images.mjs.
+// examples/carousel/images/, written by scripts/generate-example-images.mjs.
 // These tests hold the parts a browser gate cannot: every slide points at a
 // committed file, every file is the promised format and size, the files are
 // distinct, and the example asks no third party for an image.
