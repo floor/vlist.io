@@ -29,7 +29,8 @@ interface MockList {
   getSelected(): Array<string | number>;
   getSelectedItems(): FileEntry[];
   setItems(next: FileEntry[]): void;
-  setSort(key: string | null, direction: string): void;
+  setSort(keyOrSorts?: unknown, direction?: string): void;
+  sortCalls: unknown[];
   destroy(): void;
   clickItem(id: string): void;
   doubleClickItem(id: string): void;
@@ -63,6 +64,21 @@ const FIXTURE_DIRS: Record<string, FileEntry[]> = {
       type: "file",
       size: 4096,
       modified: "2026-11-03T09:00:00.000Z",
+      extension: "md",
+    },
+    // Same kind, different sizes — lets a test see a second sort key act.
+    {
+      name: "AGENTS.md",
+      type: "file",
+      size: 512,
+      modified: "2026-11-02T09:00:00.000Z",
+      extension: "md",
+    },
+    {
+      name: "NOTES.md",
+      type: "file",
+      size: 9000,
+      modified: "2026-11-01T09:00:00.000Z",
       extension: "md",
     },
   ],
@@ -223,7 +239,10 @@ async function setupFileBrowser() {
       setItems(next) {
         mockList.config.items = [...next];
       },
-      setSort() {},
+      setSort(keyOrSorts) {
+        mockList.sortCalls.push(keyOrSorts);
+      },
+      sortCalls: [],
       destroy() {
         mockList.destroyed = true;
       },
@@ -401,5 +420,141 @@ describe("file-browser example selection persistence", () => {
     reorderToggle.checked = false;
     reorderToggle.dispatch("change", { target: reorderToggle });
     expect(getTableFeatures().map((f) => f.name)).toEqual(["columnPin"]);
+  });
+});
+
+describe("file-browser example multi-column sort", () => {
+  const tableOptions = (list: MockList) =>
+    list.plugins.find((p) => p.name === "table")?.options;
+
+  const names = (list: MockList) => list.config.items.map((item) => item.name);
+
+  // What the table emits when Shift-clicking Kind after a plain click on Name.
+  const kindThenSize = {
+    key: "size",
+    index: 1,
+    direction: "desc",
+    sorts: [
+      { key: "kind", direction: "asc" },
+      { key: "size", direction: "desc" },
+    ],
+  };
+
+  test("the list table enables multiSort and starts with no sort order", async () => {
+    const { currentList } = await setupFileBrowser();
+
+    expect(tableOptions(currentList())?.multiSort).toBe(true);
+    expect(tableOptions(currentList())?.sort).toBeUndefined();
+    // Default order: folders first, then by name.
+    expect(names(currentList())).toEqual([
+      "briefs",
+      "src",
+      "AGENTS.md",
+      "NOTES.md",
+      "package.json",
+      "README.md",
+    ]);
+  });
+
+  test("an ordered sorts array orders rows by every key, primary first", async () => {
+    const { getElement, currentList } = await setupFileBrowser();
+
+    currentList().emit("column:sort", kindThenSize);
+
+    // Kind ascending, then Size descending within the same kind.
+    expect(names(currentList())).toEqual([
+      "briefs",
+      "src",
+      "package.json",
+      "NOTES.md",
+      "README.md",
+      "AGENTS.md",
+    ]);
+    // The whole order goes back to the table, so indicators and priority
+    // badges match the data.
+    expect(currentList().sortCalls.at(-1)).toEqual(kindThenSize.sorts);
+
+    const panel = getElement("sort-detail").innerHTML;
+    expect(panel).toContain("Sorted by");
+    expect(panel.indexOf("Kind")).toBeLessThan(panel.indexOf("Size"));
+    expect(panel).toContain("then");
+  });
+
+  test("a plain click collapses the order back to one column", async () => {
+    const { getElement, currentList } = await setupFileBrowser();
+
+    currentList().emit("column:sort", kindThenSize);
+    currentList().emit("column:sort", {
+      key: "size",
+      index: 1,
+      direction: "desc",
+      sorts: [{ key: "size", direction: "desc" }],
+    });
+
+    // Size descending alone; folders (size 0) last, in their input order.
+    expect(names(currentList())).toEqual([
+      "NOTES.md",
+      "README.md",
+      "package.json",
+      "AGENTS.md",
+      "briefs",
+      "src",
+    ]);
+    expect(currentList().sortCalls.at(-1)).toEqual([
+      { key: "size", direction: "desc" },
+    ]);
+
+    const panel = getElement("sort-detail").innerHTML;
+    expect(panel).not.toContain("then");
+    expect(panel).toContain("Size");
+    expect(panel).toContain("Descending");
+  });
+
+  test("the sort order survives a view switch and re-create", async () => {
+    const { getElement, currentList } = await setupFileBrowser();
+
+    currentList().emit("column:sort", kindThenSize);
+
+    getElement("btn-view-grid").dispatch("click");
+    expect(currentList().plugins.some((p) => p.name === "grid")).toBe(true);
+
+    getElement("btn-view-list").dispatch("click");
+    expect(currentList().plugins.some((p) => p.name === "table")).toBe(true);
+    // The re-created table is handed the full order…
+    expect(tableOptions(currentList())?.sort).toEqual(kindThenSize.sorts);
+    // …and the rows are still ordered by both keys.
+    expect(names(currentList())).toEqual([
+      "briefs",
+      "src",
+      "package.json",
+      "NOTES.md",
+      "README.md",
+      "AGENTS.md",
+    ]);
+  });
+
+  test("removing the last sorted column restores the default order", async () => {
+    const { getElement, currentList } = await setupFileBrowser();
+
+    currentList().emit("column:sort", kindThenSize);
+    currentList().emit("column:sort", {
+      key: "size",
+      index: 1,
+      direction: null,
+      sorts: [],
+    });
+
+    expect(names(currentList())).toEqual([
+      "briefs",
+      "src",
+      "AGENTS.md",
+      "NOTES.md",
+      "package.json",
+      "README.md",
+    ]);
+    expect(currentList().sortCalls.at(-1)).toEqual([]);
+    expect(getElement("sort-detail").innerHTML).toContain(
+      "Click a column header to sort",
+    );
   });
 });

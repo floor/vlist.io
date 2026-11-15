@@ -12,6 +12,13 @@ A Finder-like file browser built with **vlist** using the `grid` plugin. This ex
 
 - **Grid View**: Uses `grid` plugin for 2D virtualized layout with configurable columns (3-6) and gap (4-16px)
 - **List View**: Standard vlist with fixed 40px row height and columnar layout
+- **Column Sorting (list view)**: the `table` plugin runs with `multiSort: true`. A plain
+  header click sorts by that column alone; Shift/Ctrl/Cmd + click (or Enter/Space on a
+  focused header) adds a column, flips its direction, or removes it, and the header shows
+  each column's priority. The event's `sorts` array (primary key first) is stored in
+  `columnSorts`, used to re-sort the items, handed back with `setSort()`, and passed as the
+  table's `sort` option whenever the view is re-created, so the order survives view
+  switches and navigation. The right-hand Sort panel lists the order ("Name ▲, then Size ▼").
 - **Dynamic Templates**: `gridItemTemplate()` for icon-based cards, `listItemTemplate()` for rows
 - **Navigation**: Breadcrumb, back/up buttons, double-click to enter folders
 - **Event Handling**: Click to select, double-click to navigate
@@ -377,6 +384,10 @@ item:dblclick → handleItemDoubleClick(item)
    - [ ] Rows display with columns
    - [ ] Sizes formatted correctly
    - [ ] Dates display
+   - [ ] Clicking a header sorts by that column; the Sort panel names it
+   - [ ] Shift/Ctrl/Cmd + click a second header adds it with a priority badge,
+         the rows obey both keys in order, and the Sort panel reads "…, then …"
+   - [ ] A plain click on another header collapses the order back to one column
 5. **Test navigation**:
    - [ ] Breadcrumb updates
    - [ ] Back button works
@@ -439,7 +450,6 @@ This is intended for local development. **Do NOT use in production** without:
 - Multi-select with Ctrl/Cmd
 - Context menu (right-click)
 - File preview (images, text)
-- Sorting options (name, size, date)
 - View preferences persistence (localStorage)
 - Dark mode support
 
