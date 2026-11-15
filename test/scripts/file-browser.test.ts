@@ -30,6 +30,10 @@ interface MockList {
   getSelectedItems(): FileEntry[];
   setItems(next: FileEntry[]): void;
   setSort(key: string | null, direction: string): void;
+  pins: Record<string, "left" | "right">;
+  setColumnPinCalls: Array<[string, "left" | "right" | null]>;
+  setColumnPin(key: string, pin: "left" | "right" | null): void;
+  getColumnPins(): Record<string, "left" | "right">;
   destroy(): void;
   clickItem(id: string): void;
   doubleClickItem(id: string): void;
@@ -182,12 +186,18 @@ async function setupFileBrowser() {
     const handlers = new Map<string, Set<(payload: unknown) => void>>();
     const selPlugin = plugins.find((p) => p.name === "selection");
     const initial = (selPlugin?.options?.initial as Array<string | number> | undefined) ?? [];
+    const pinPlugin = plugins.find((p) => p.name === "columnPin");
+    const initialPins = {
+      ...((pinPlugin?.options?.pins as Record<string, "left" | "right"> | undefined) ?? {}),
+    };
 
     const mockList: MockList = {
       config: { ...config, items: [...config.items] },
       plugins,
       destroyed: false,
       selected: [...initial],
+      pins: initialPins,
+      setColumnPinCalls: [],
       on(event, handler) {
         if (!handlers.has(event)) handlers.set(event, new Set());
         handlers.get(event)!.add(handler);
@@ -224,6 +234,19 @@ async function setupFileBrowser() {
         mockList.config.items = [...next];
       },
       setSort() {},
+      setColumnPin(key, pin) {
+        mockList.setColumnPinCalls.push([key, pin]);
+        if (pin === null) delete mockList.pins[key];
+        else mockList.pins[key] = pin;
+        mockList.emit("column:pin", {
+          key,
+          pin,
+          pins: { ...mockList.pins },
+        });
+      },
+      getColumnPins() {
+        return { ...mockList.pins };
+      },
       destroy() {
         mockList.destroyed = true;
       },
@@ -366,7 +389,7 @@ describe("file-browser example selection persistence", () => {
     );
   });
 
-  test("list view configures columnPin and columnReorder features from panel controls", async () => {
+  test("list view always installs columnPin, so keyboard pinning works while Pin is None", async () => {
     const { getElement, currentList } = await setupFileBrowser();
 
     const getTableFeatures = () => {
@@ -374,32 +397,96 @@ describe("file-browser example selection persistence", () => {
       return (tablePlugin?.options?.features as MockPlugin[]) ?? [];
     };
 
-    // Default: Pin = none, Reorder = checked
-    expect(getTableFeatures().map((f) => f.name)).toEqual(["columnReorder"]);
-
-    // Pin: First column left
-    const pinSelect = getElement("pin-mode");
-    pinSelect.value = "first";
-    pinSelect.dispatch("change", { target: pinSelect });
+    // Default: Pin = none, Reorder = checked — columnPin is in the array even
+    // though nothing is pinned, because Shift+Alt+Arrow lives in the feature.
     expect(getTableFeatures().map((f) => f.name)).toEqual([
       "columnPin",
       "columnReorder",
     ]);
-    expect(getTableFeatures()[0]?.options).toEqual({
-      pins: { name: "left" },
-    });
+    expect(getTableFeatures()[0]?.options).toEqual({ pins: {} });
 
-    // Pin: First left + last right
-    pinSelect.value = "both";
-    pinSelect.dispatch("change", { target: pinSelect });
-    expect(getTableFeatures()[0]?.options).toEqual({
-      pins: { name: "left", kind: "right" },
-    });
-
-    // Toggle Reorder off
+    // Toggle Reorder off: columnPin stays
     const reorderToggle = getElement("reorder-toggle");
     reorderToggle.checked = false;
     reorderToggle.dispatch("change", { target: reorderToggle });
     expect(getTableFeatures().map((f) => f.name)).toEqual(["columnPin"]);
+  });
+
+  test("Pin select applies pins in place, so resized columns keep their widths", async () => {
+    const { getElement, createdLists, currentList } = await setupFileBrowser();
+    const before = createdLists.length;
+    const pinSelect = getElement("pin-mode");
+
+    pinSelect.value = "first";
+    pinSelect.dispatch("change", { target: pinSelect });
+    // No re-create: a new table would come up with FILE_COLUMNS' default widths.
+    expect(createdLists.length).toBe(before);
+    expect(currentList().setColumnPinCalls).toEqual([["name", "left"]]);
+    expect(pinSelect.value).toBe("first");
+
+    pinSelect.value = "both";
+    pinSelect.dispatch("change", { target: pinSelect });
+    expect(createdLists.length).toBe(before);
+    expect(currentList().setColumnPinCalls).toEqual([
+      ["name", "left"],
+      ["kind", "right"],
+    ]);
+    expect(currentList().getColumnPins()).toEqual({
+      name: "left",
+      kind: "right",
+    });
+
+    pinSelect.value = "none";
+    pinSelect.dispatch("change", { target: pinSelect });
+    expect(createdLists.length).toBe(before);
+    expect(currentList().setColumnPinCalls.slice(2)).toEqual([
+      ["name", null],
+      ["kind", null],
+    ]);
+    expect(currentList().getColumnPins()).toEqual({});
+    expect(pinSelect.value).toBe("none");
+  });
+
+  test("Pin select follows column:pin events, including keyboard pinning and re-creates", async () => {
+    const { getElement, currentList } = await setupFileBrowser();
+    const pinSelect = getElement("pin-mode");
+
+    // Shift+Alt+Arrow on the header of some other column: no preset matches.
+    currentList().emit("column:pin", {
+      key: "size",
+      pin: "right",
+      pins: { size: "right" },
+    });
+    expect(pinSelect.value).toBe("");
+
+    // Presets are recognised from the table's map.
+    currentList().emit("column:pin", {
+      key: "kind",
+      pin: "left",
+      pins: { name: "left" },
+    });
+    expect(pinSelect.value).toBe("first");
+    currentList().emit("column:pin", {
+      key: "kind",
+      pin: "right",
+      pins: { name: "left", kind: "right" },
+    });
+    expect(pinSelect.value).toBe("both");
+    currentList().emit("column:pin", { key: "name", pin: null, pins: {} });
+    expect(pinSelect.value).toBe("none");
+
+    // A keyboard pin survives a re-create (navigation builds a new table).
+    currentList().emit("column:pin", {
+      key: "size",
+      pin: "right",
+      pins: { size: "right" },
+    });
+    currentList().doubleClickItem("briefs");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const tablePlugin = currentList().plugins.find((p) => p.name === "table");
+    const features = (tablePlugin?.options?.features as MockPlugin[]) ?? [];
+    expect(features[0]?.name).toBe("columnPin");
+    expect(features[0]?.options).toEqual({ pins: { size: "right" } });
+    expect(pinSelect.value).toBe("");
   });
 });

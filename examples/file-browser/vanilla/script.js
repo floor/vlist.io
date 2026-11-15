@@ -80,7 +80,10 @@ let currentArrangeBy = "none";
 // Table sort & column feature state
 let sortKey = null;
 let sortDirection = "asc";
-let currentPinMode = "none";
+// Columns pinned right now, keyed by column key ("left" or "right"), exactly
+// as the table's columnPin feature reports them in `column:pin`. This is the
+// source of truth across re-creates; the Pin select mirrors it.
+let currentPins = {};
 let useColumnReorder = true;
 
 // =============================================================================
@@ -554,6 +557,40 @@ function createGridView() {
 // List View (table + selection plugins)
 // =============================================================================
 
+// The Pin select's two presets, as a pin map the table understands.
+function pinsForMode(mode) {
+  const firstKey = FILE_COLUMNS[0].key;
+  const lastKey = FILE_COLUMNS[FILE_COLUMNS.length - 1].key;
+  if (mode === "first") return { [firstKey]: "left" };
+  if (mode === "both") {
+    return { [firstKey]: "left", [lastKey]: "right" };
+  }
+  return {};
+}
+
+// The preset that describes the table's current pins, if any. Shift+Alt+Arrow
+// can pin columns the presets do not cover; the select then shows no selection.
+function modeForPins(pins) {
+  const firstKey = FILE_COLUMNS[0].key;
+  const lastKey = FILE_COLUMNS[FILE_COLUMNS.length - 1].key;
+  const keys = Object.keys(pins || {});
+  if (keys.length === 0) return "none";
+  if (keys.length === 1 && pins[firstKey] === "left") return "first";
+  if (
+    keys.length === 2 &&
+    pins[firstKey] === "left" &&
+    pins[lastKey] === "right"
+  ) {
+    return "both";
+  }
+  return "";
+}
+
+function syncPinModeSelect() {
+  const select = document.getElementById("pin-mode");
+  if (select) select.value = modeForPins(currentPins);
+}
+
 function createTableList() {
   const rowHeight = 28;
   const headerHeight = 28;
@@ -588,16 +625,10 @@ function createTableList() {
     });
   }
 
-  const firstKey = FILE_COLUMNS[0].key;
-  const lastKey = FILE_COLUMNS[FILE_COLUMNS.length - 1].key;
-  const pins =
-    currentPinMode === "first"
-      ? { [firstKey]: "left" }
-      : currentPinMode === "both"
-        ? { [firstKey]: "left", [lastKey]: "right" }
-        : null;
   const features = [
-    ...(pins ? [columnPin({ pins })] : []),
+    // Always installed: Shift+Alt+Arrow on a header pins or unpins that column
+    // even while Pin is None, and every pin change reaches the panel below.
+    columnPin({ pins: { ...currentPins } }),
     ...(useColumnReorder ? [columnReorder()] : []),
   ];
 
@@ -659,6 +690,13 @@ function createTableList() {
     if (list.setSort) {
       list.setSort(sortKey, sortDirection);
     }
+  });
+
+  // Column pin state — the table reports the whole map on every change, from
+  // the Pin select, a re-create, or Shift+Alt+Arrow on a header.
+  list.on("column:pin", ({ pins }) => {
+    currentPins = { ...(pins || {}) };
+    syncPinModeSelect();
   });
 
   // Selection — show detail in panel and restore across rebuilds
@@ -885,12 +923,27 @@ function updateSortDetail() {
   // Column pin mode (list view)
   const pinModeSelect = document.getElementById("pin-mode");
   if (pinModeSelect) {
-    pinModeSelect.value = currentPinMode;
+    pinModeSelect.value = modeForPins(currentPins);
     pinModeSelect.addEventListener("change", () => {
-      currentPinMode = pinModeSelect.value;
-      if (currentView === "list") {
-        createBrowser("list");
+      const target = pinsForMode(pinModeSelect.value);
+      // Apply in place: re-creating the table from FILE_COLUMNS would reset
+      // every resized column to its default width.
+      if (
+        currentView === "list" &&
+        list &&
+        typeof list.setColumnPin === "function"
+      ) {
+        const currentOf = () =>
+          typeof list.getColumnPins === "function" ? list.getColumnPins() : {};
+        for (const key of Object.keys(currentOf())) {
+          if (!(key in target)) list.setColumnPin(key, null);
+        }
+        for (const [key, pin] of Object.entries(target)) {
+          if (currentOf()[key] !== pin) list.setColumnPin(key, pin);
+        }
       }
+      currentPins = target;
+      syncPinModeSelect();
     });
   }
 

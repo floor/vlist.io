@@ -94,6 +94,7 @@ interface DirectoryListing {
 - Double click: Navigate into folder
 - Back button: Previous location
 - Up button: Parent directory
+- `Shift+Alt+ArrowLeft/Right`: Pin or unpin the focused column (works with Pin = None)
 
 ### Details Panel
 
@@ -137,6 +138,23 @@ currentView = "list"
 - Creates new vlist with appropriate plugins
 - Rebinds event handlers
 - Updates controls visibility
+
+### Column Pinning (list view)
+
+The Pin select maps to the table's `columnPin()` feature: `None`,
+`First column left`, `First left + last right`. `columnPin()` is always in the
+table's feature list, even with `None`, because `Shift+Alt+ArrowLeft/Right` on a
+focused header is part of that feature.
+
+The demo keeps the table's pin map (`currentPins`) and replaces it from every
+`column:pin` event, then updates the select from it. A pin the presets do not
+describe (a keyboard pin on another column) leaves the select with no
+selection. The map goes back into the next table, so pins survive the re-creates
+on navigation and view switches.
+
+Changing the select calls `setColumnPin()` on the live table instead of
+re-creating it: a rebuild starts every column from `FILE_COLUMNS`' default
+width, so applying pins in place is what keeps resized columns at their widths.
 
 ### API Integration
 
@@ -386,6 +404,8 @@ item:dblclick → handleItemDoubleClick(item)
    - [ ] Change columns (3-6)
    - [ ] Change gap (4-16px)
    - [ ] View switcher toggles
+   - [ ] Pin select pins the first/last columns, and `Shift+Alt+Arrow` on a header updates the select
+   - [ ] A resized column keeps its width when the Pin select changes
 7. **Test security**:
    - [ ] Can't browse outside allowed roots
    - [ ] Hidden files filtered
