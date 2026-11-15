@@ -8,5 +8,5 @@
 <circle cx="665" cy="107" r="160" fill="#ffffff" opacity="0.12"/><circle cx="395" cy="436" r="127" fill="#000000" opacity="0.12"/><circle cx="548" cy="332" r="193" fill="#ffffff" opacity="0.12"/>
 <rect x="112" y="145" width="366" height="296" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(-21 295 293)"/>
 <text x="400" y="60" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
-<text x="400" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="136" font-weight="700" fill="rgba(255,255,255,0.9)">947</text>
+<text x="400" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="100" font-weight="700" fill="rgba(255,255,255,0.9)">947</text>
 </svg>

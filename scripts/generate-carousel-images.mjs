@@ -78,9 +78,9 @@ function svgFor({ picId, title, location }) {
   const rx = Math.round(110 + next() * 190);
   const ry = Math.round(80 + next() * 130);
 
-  // The caption and the id sit on the centre line: the multi variants show
-  // these landscape files in portrait cards (object-fit: cover), so anything
-  // near a side edge would be cropped away.
+  // The caption and the id sit on the centre line, and the id is sized to fit
+  // the narrowest crop: the multi variants show these landscape files in
+  // portrait cards (object-fit: cover), which keeps roughly 375 of the 800px.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img">
 <title>Placeholder photo ${picId} — ${escapeXml(title)}, ${escapeXml(location)}</title>
 <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -91,7 +91,7 @@ function svgFor({ picId, title, location }) {
 ${circles}
 <rect x="${cx - rx}" y="${cy - ry}" width="${rx * 2}" height="${ry * 2}" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(${angle} ${cx} ${cy})"/>
 <text x="${WIDTH / 2}" y="60" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER ${WIDTH}×${HEIGHT}</text>
-<text x="${WIDTH / 2}" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="136" font-weight="700" fill="rgba(255,255,255,0.9)">${picId}</text>
+<text x="${WIDTH / 2}" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="100" font-weight="700" fill="rgba(255,255,255,0.9)">${picId}</text>
 </svg>
 `;
 }
