@@ -108,6 +108,7 @@ const App = {
     const instance = ref(null);
     const detailImgRef = ref(null);
     let detailWatch = null;
+    let stopWatchingCards = null;
 
     // Manual lifecycle: plugins are read once at mount, so a layout change
     // destroys the list and builds a new one
@@ -206,9 +207,13 @@ const App = {
     // list instance this component mounts into it, so one watch covers both.
     onMounted(() => {
       mount();
-      if (containerRef.value) watchPhotosIn(containerRef.value);
+      if (containerRef.value) {
+        stopWatchingCards = watchPhotosIn(containerRef.value);
+      }
     });
     onUnmounted(() => {
+      stopWatchingCards?.();
+      stopWatchingCards = null;
       detailWatch?.stop();
       unmount();
     });

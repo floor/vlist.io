@@ -42,6 +42,11 @@ const watched = new WeakMap();
 export function watchPhoto(img, fallbackUrl, timeoutMs = PHOTO_TIMEOUT_MS) {
   watched.get(img)?.stop();
 
+  // An element is reused for the next picture (a pooled item, or a detail
+  // panel that keeps its <img>): a src that is not the fallback means a new
+  // photo, so the marker from the picture before must not block its swap.
+  if (img.getAttribute("src") !== fallbackUrl) delete img.dataset.fallback;
+
   const state = { timer: null, observer: null, stopped: false };
 
   function stop() {
@@ -175,6 +180,11 @@ export function watchPhotosIn(root, timeoutMs = PHOTO_TIMEOUT_MS) {
     attributes: true,
     attributeFilter: ["src"],
   });
+
+  // The container can already hold pictures when this is called: a framework
+  // variant creates its list in an effect that runs before its own watch, so
+  // the initial cards are armed here, not only the ones the observer sees.
+  scan(root);
 
   return () => {
     observer.disconnect();
