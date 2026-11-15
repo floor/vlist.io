@@ -245,6 +245,16 @@
     color: var(--text-muted, #888);
 }
 
+/* "Photo by <author> on Unsplash" — the detail panels' credit line */
+.photo-credit {
+    font-size: 11px;
+    color: var(--text-muted, #888);
+    text-decoration: none;
+}
+.photo-credit:hover {
+    text-decoration: underline;
+}
+
 /* ============================================================================
    Variant button group wrap
    ============================================================================ */

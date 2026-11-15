@@ -16,6 +16,12 @@ import {
   watchPhotosIn,
 } from "../shared.js";
 import { createStats } from "../../stats.js";
+import {
+  photoUrl,
+  photoSrcSet,
+  photoPicsumUrl,
+  photoCredit,
+} from "../../../src/data/photos.js";
 import { createInfoUpdater } from "../../info.js";
 
 // =============================================================================
@@ -174,16 +180,17 @@ function App() {
 
   // Key forces full remount when layout config changes
   const listKey = `${mode}-${orientation}-${columns}-${gap}`;
+  const credit = selectedPhoto ? photoCredit(selectedPhoto.picId) : null;
 
   // The detail panel sits outside the list container, so its picture is armed
   // here, by hand: React mounts the panel on click and swaps it for the next.
   useEffect(() => {
     const img = detailImgRef.current;
     if (!img || !selectedPhoto) return;
-    return watchPhoto(
-      img,
+    return watchPhoto(img, [
+      photoPicsumUrl(selectedPhoto.picId, 400, 300),
       `/examples/photo-album/images/${selectedPhoto.picId}.svg`,
-    ).stop;
+    ]).stop;
   }, [selectedPhoto]);
 
   // Update info bar context
@@ -342,24 +349,25 @@ function App() {
                   <img
                     ref={detailImgRef}
                     className="detail__img"
-                    src={`https://picsum.photos/id/${selectedPhoto.picId}/400/300`}
+                    src={photoUrl(selectedPhoto.picId, 400, 300)}
+                    srcSet={photoSrcSet(selectedPhoto.picId, 400, 300)}
                     alt={selectedPhoto.title}
-                    onError={(event) => {
-                      // The picture comes from picsum.photos. When it fails to
-                      // load — the host is down, or the browser test harness
-                      // blocks it — swap it once for the committed placeholder
-                      // and never again, so a missing placeholder cannot loop.
-                      const img = event.currentTarget;
-                      if (img.dataset.fallback) return;
-                      img.dataset.fallback = "1";
-                      img.src = `/examples/photo-album/images/${selectedPhoto.picId}.svg`;
-                    }}
                   />
                   <div className="detail__meta">
                     <strong>{selectedPhoto.title}</strong>
                     <span>
                       {selectedPhoto.category} · ♥ {selectedPhoto.likes}
                     </span>
+                    {credit && (
+                      <a
+                        className="photo-credit"
+                        href={credit.url}
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        Photo by {credit.author} on Unsplash
+                      </a>
+                    )}
                   </div>
                 </>
               ) : (

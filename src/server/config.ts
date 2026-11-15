@@ -12,6 +12,16 @@ export const PORT = parseInt(process.env.PORT || "3338", 10);
 export const ROOT = resolve(".");
 export const SITE = "https://vlist.io";
 
+/**
+ * The demo photo set: its own repository, checked out next to this one in dev
+ * and pulled into /home/floor/vlist-io-photos on the server (deploy.yml). It is
+ * not part of this repo, so a missing directory is normal — the photos chain
+ * falls back to picsum and then to each photo's committed SVG.
+ */
+export const PHOTOS_DIR = process.env.PHOTOS_DIR
+  ? resolve(process.env.PHOTOS_DIR)
+  : resolve(ROOT, "..", "vlist.io-photos");
+
 // =============================================================================
 // Package Resolution
 // =============================================================================

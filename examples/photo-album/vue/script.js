@@ -22,6 +22,12 @@ import {
   watchPhotosIn,
 } from "../shared.js";
 import { createStats } from "../../stats.js";
+import {
+  photoUrl,
+  photoSrcSet,
+  photoPicsumUrl,
+  photoCredit,
+} from "../../../src/data/photos.js";
 import { createInfoUpdater } from "../../info.js";
 
 // =============================================================================
@@ -226,10 +232,10 @@ const App = {
       await nextTick();
       const img = detailImgRef.value;
       if (!img || !selectedPhoto.value) return;
-      detailWatch = watchPhoto(
-        img,
+      detailWatch = watchPhoto(img, [
+        photoPicsumUrl(selectedPhoto.value.picId, 400, 300),
         `/examples/photo-album/images/${selectedPhoto.value.picId}.svg`,
-      );
+      ]);
     });
 
     // Navigation
@@ -239,17 +245,6 @@ const App = {
     const scrollToLast = () =>
       instance.value?.scrollToIndex(ITEM_COUNT - 1, "end");
 
-    // The detail panel's picture comes from picsum.photos. When it fails to
-    // load — the host is down, or the browser test harness blocks it — swap it
-    // once for the committed placeholder and never again, so a missing
-    // placeholder cannot loop.
-    function onPhotoError(event, picId) {
-      const img = event.currentTarget;
-      if (img.dataset.fallback) return;
-      img.dataset.fallback = "1";
-      img.src = `/examples/photo-album/images/${picId}.svg`;
-    }
-
     return {
       mode,
       orientation,
@@ -258,10 +253,12 @@ const App = {
       selectedPhoto,
       containerRef,
       detailImgRef,
+      photoUrl,
+      photoSrcSet,
       scrollToFirst,
       scrollToMiddle,
       scrollToLast,
-      onPhotoError,
+      photoCredit,
       ITEM_COUNT,
     };
   },
@@ -371,13 +368,20 @@ const App = {
                 <img
                   ref="detailImgRef"
                   class="detail__img"
-                  :src="'https://picsum.photos/id/' + selectedPhoto.picId + '/400/300'"
+                  :src="photoUrl(selectedPhoto.picId, 400, 300)"
+                  :srcset="photoSrcSet(selectedPhoto.picId, 400, 300)"
                   :alt="selectedPhoto.title"
-                  @error="onPhotoError($event, selectedPhoto.picId)"
                 />
                 <div class="detail__meta">
                   <strong>{{ selectedPhoto.title }}</strong>
                   <span>{{ selectedPhoto.category }} · ♥ {{ selectedPhoto.likes }}</span>
+                  <a
+                    v-if="photoCredit(selectedPhoto.picId)"
+                    class="photo-credit"
+                    :href="photoCredit(selectedPhoto.picId).url"
+                    target="_blank"
+                    rel="noopener"
+                  >Photo by {{ photoCredit(selectedPhoto.picId).author }} on Unsplash</a>
                 </div>
               </template>
               <span v-else class="ui-detail__empty">Click a photo to see details</span>

@@ -11,6 +11,11 @@ import {
   watchPhoto,
   watchPhotosIn,
 } from "../shared.js";
+import {
+  photoSrcSet,
+  photoPicsumUrl,
+  photoCredit,
+} from "../../../src/data/photos.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -63,10 +68,10 @@ function isFull() {
   return currentVariant === "full" || currentVariant === "full-h";
 }
 
-// The slides' pictures come from picsum.photos. When one fails to load — the
-// host is down, or the browser test harness blocks it — the handler swaps the
-// src once for the committed placeholder in examples/carousel/images/ and
-// removes itself, so a missing placeholder cannot loop.
+// A slide's picture comes from the self-hosted set (/photos/<id>-<w>x<h>.webp),
+// with its 2x file in srcset. watchPhoto walks the chain when a source is
+// missing or hangs: the self-hosted file, then the picsum URL of the same box,
+// then the committed placeholder in examples/carousel/images/.
 function itemTemplate(item) {
   const isH = !isVertical();
   const isMultiAspect = currentVariant === "multi-aspect";
@@ -82,6 +87,9 @@ function itemTemplate(item) {
     imgH = isH ? 500 : 800;
   }
   const url = getImageUrl(item.picId, imgW, imgH);
+  const srcset = photoSrcSet(item.picId, imgW, imgH);
+  const picsum = photoPicsumUrl(item.picId, imgW, imgH);
+  const svg = `/examples/carousel/images/${item.picId}.svg`;
 
   if (imagesPreloaded) {
     return `
@@ -89,10 +97,11 @@ function itemTemplate(item) {
         <img
           class="vlist-carousel-slide__media photo-slide__img photo-slide__img--loaded"
           src="${url}"
+          srcset="${srcset}"
           alt="${esc(item.title)}"
           decoding="sync"
-          data-photo-fallback="/examples/carousel/images/${item.picId}.svg"
-          onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg'"
+          data-photo-fallback="${picsum}"
+          data-photo-svg="${svg}"
         />
         <div class="vlist-carousel-slide__overlay photo-slide__overlay">
           <span class="vlist-carousel-slide__title photo-slide__title">${esc(item.title)}</span>
@@ -107,12 +116,13 @@ function itemTemplate(item) {
       <img
         class="vlist-carousel-slide__media photo-slide__img"
         src="${url}"
+        srcset="${srcset}"
         alt="${esc(item.title)}"
         decoding="async"
-        data-photo-fallback="/examples/carousel/images/${item.picId}.svg"
+        data-photo-fallback="${picsum}"
+        data-photo-svg="${svg}"
         data-t="${performance.now()}"
         onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('photo-slide__img--loaded')"
-        onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg';this.style.transition='none';this.classList.add('photo-slide__img--loaded')"
       />
       <div class="vlist-carousel-slide__overlay photo-slide__overlay">
         <span class="vlist-carousel-slide__title photo-slide__title">${esc(item.title)}</span>
@@ -179,7 +189,13 @@ function updateDetail() {
   const pw = item.w ?? 300;
   const ph = item.h ?? 300;
   const scale = 300 / Math.max(pw, ph);
-  const url = getImageUrl(item.picId, Math.round(pw * scale), Math.round(ph * scale));
+  const detailW = Math.round(pw * scale);
+  const detailH = Math.round(ph * scale);
+  const url = getImageUrl(item.picId, detailW, detailH);
+  const srcset = photoSrcSet(item.picId, detailW, detailH);
+  const picsum = photoPicsumUrl(item.picId, detailW, detailH);
+  const svg = `/examples/carousel/images/${item.picId}.svg`;
+  const credit = photoCredit(item.picId);
   detailWatch?.stop();
   detailEl.innerHTML = `
     <div class="photo-detail">
@@ -187,21 +203,21 @@ function updateDetail() {
         <img
           class="photo-detail__img"
           src="${url}"
+          srcset="${srcset}"
           alt="${esc(item.title)}"
-          onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg'"
         />
       </div>
       <div class="photo-detail__meta">
         <strong>${esc(item.title)}</strong>
         <span>${esc(item.location)} · #${item.id}</span>
+        ${credit ? `<a class="photo-credit" href="${esc(credit.url)}" target="_blank" rel="noopener">Photo by ${esc(credit.author)} on Unsplash</a>` : ""}
       </div>
     </div>
   `;
-  // The detail panel is outside the carousel's container: arm it by hand.
+  // The detail panel is outside the carousel's container: arm it by hand, with
+  // the same chain the slides carry.
   const img = detailEl.querySelector(".photo-detail__img");
-  detailWatch = img
-    ? watchPhoto(img, `/examples/carousel/images/${item.picId}.svg`)
-    : null;
+  detailWatch = img ? watchPhoto(img, [picsum, svg]) : null;
 }
 
 function updateStep() {
