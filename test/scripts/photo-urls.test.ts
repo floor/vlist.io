@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import {
   photoUrl,
   photoSrcSet,
@@ -11,6 +11,7 @@ import { getImageUrl } from "../../src/data/carousel.js";
 import { getPhotoUrl } from "../../src/data/lorem-picsum.js";
 import { usedIds, boxesFor } from "../../scripts/photo-boxes.mjs";
 import { staticCachePolicy, servePhoto } from "../../src/server/static.js";
+import { PHOTOS_DIR } from "../../src/server/config.js";
 
 // The pages show the self-hosted photo set first (/photos/<id>-<w>x<h>.webp,
 // served from PHOTOS_DIR), then picsum, then the photo's committed SVG. These
@@ -59,6 +60,27 @@ describe("photo URLs", () => {
     expect(servePhoto("/photos/../package.json")).toBeNull();
     expect(servePhoto("/photos/manifest.json")).toBeNull();
     expect(servePhoto("/photos/29-800x500.png")).toBeNull();
+  });
+});
+
+describe("the photo set's directory", () => {
+  test("one spelling, and the same directory deploy.yml fills", () => {
+    // The default (config.ts, and the mirror script) and the deploy clone must
+    // name the same directory, or production 404s every /photos/* file.
+    const deploy = readFileSync(
+      join(ROOT, ".github/workflows/deploy.yml"),
+      "utf8",
+    );
+    const deployed = deploy.match(/PHOTOS_DIR="([^"]+)"/)?.[1];
+    expect(deployed).toBe("/home/floor/vlist-io-photos");
+    expect(basename(PHOTOS_DIR)).toBe("vlist-io-photos");
+    expect(deployed?.endsWith(`/${basename(PHOTOS_DIR)}`)).toBe(true);
+  });
+
+  test("the mirror writes where the server reads", () => {
+    const script = readFileSync(join(ROOT, "scripts/mirror-photos.mjs"), "utf8");
+    expect(script).toContain('resolve(ROOT, "..", "vlist-io-photos")');
+    expect(script).not.toContain("vlist.io-photos");
   });
 });
 

@@ -39,7 +39,7 @@ const ROOT = resolve(import.meta.dir, "..");
 const BACKUP_DIR =
   process.env.PHOTOS_BACKUP_DIR || resolve(ROOT, "..", "vlist-io-photos-backup");
 const PHOTOS_DIR =
-  process.env.PHOTOS_DIR || resolve(ROOT, "..", "vlist.io-photos");
+  process.env.PHOTOS_DIR || resolve(ROOT, "..", "vlist-io-photos");
 const BACKUP_MANIFEST = join(BACKUP_DIR, "manifest.json");
 const BACKUP_LONG_SIDE = 2560;
 const BACKUP_QUALITY = 85;

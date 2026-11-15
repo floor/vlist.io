@@ -20,7 +20,7 @@ export const SITE = "https://vlist.io";
  */
 export const PHOTOS_DIR = process.env.PHOTOS_DIR
   ? resolve(process.env.PHOTOS_DIR)
-  : resolve(ROOT, "..", "vlist.io-photos");
+  : resolve(ROOT, "..", "vlist-io-photos");
 
 // =============================================================================
 // Package Resolution

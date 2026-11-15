@@ -318,6 +318,28 @@ for (const [example, helper] of [
       expect(img.listenerCount("load")).toBe(0);
     });
 
+    test("a step reached by an error gets its own full clock", () => {
+      const img = fakeImage({ src: "/photos/29-800x500.webp" });
+      helper.watchPhoto(img, [
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+
+      // Step 0 fails with 3 of its 4 seconds spent.
+      jest.advanceTimersByTime(3000);
+      img.fire("error");
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+
+      // Step 1 must not inherit the 1 s left on step 0's clock.
+      jest.advanceTimersByTime(3999);
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+      jest.advanceTimersByTime(1);
+      expect(img.writes).toEqual([
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+    });
+
     test("an element reused after a fallback is armed again", () => {
       const img = fakeImage();
       helper.watchPhoto(img, "/first.svg");

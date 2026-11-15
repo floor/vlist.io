@@ -71,6 +71,12 @@ export function watchPhoto(img, fallbacks, timeoutMs = PHOTO_TIMEOUT_MS) {
 
   function advance() {
     if (state.stopped) return;
+    // A step reached by an error is still inside the previous step's clock:
+    // clear it, so arm() gives the next source its own full timeout.
+    if (state.timer !== null) {
+      clearTimeout(state.timer);
+      state.timer = null;
+    }
     if (!img.isConnected) {
       // Recycled away from us: never swap whatever it shows now.
       stop();
