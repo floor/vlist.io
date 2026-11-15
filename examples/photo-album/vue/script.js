@@ -5,7 +5,13 @@
 
 import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { createVList, grid, masonry, scrollbar } from "vlist";
-import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
+import {
+  ITEM_COUNT,
+  ASPECT_RATIO,
+  items,
+  itemTemplate,
+  getImageUrl,
+} from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -205,6 +211,7 @@ const App = {
       scrollToFirst,
       scrollToMiddle,
       scrollToLast,
+      getImageUrl,
       ITEM_COUNT,
     };
   },
@@ -214,7 +221,7 @@ const App = {
       <header>
         <h1>Photo Album</h1>
         <p class="description">
-          Virtualized 2D photo gallery with real images from Lorem Picsum.
+          Virtualized 2D photo gallery of generated placeholder photos.
           Toggle between grid and masonry layouts, adjust columns and gap —
           only visible rows are rendered.
         </p>
@@ -313,7 +320,7 @@ const App = {
               <template v-if="selectedPhoto">
                 <img
                   class="detail__img"
-                  :src="'https://picsum.photos/id/' + selectedPhoto.picId + '/400/300'"
+                  :src="getImageUrl(selectedPhoto.picId)"
                   :alt="selectedPhoto.title"
                 />
                 <div class="detail__meta">
