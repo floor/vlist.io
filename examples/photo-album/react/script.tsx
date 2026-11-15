@@ -7,7 +7,14 @@ import { createRoot } from "react-dom/client";
 import { useVList, useVListEvent } from "vlist/react";
 import { grid, masonry, scrollbar } from "vlist";
 import type { ItemConfig } from "vlist";
-import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
+import {
+  ITEM_COUNT,
+  ASPECT_RATIO,
+  items,
+  itemTemplate,
+  watchPhoto,
+  watchPhotosIn,
+} from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -50,6 +57,13 @@ function GridContainer({
       scrollbar: { autoHide: true },
     },
   }, [layout, scrollbar({ autoHide: true })]);
+
+  // Arm the load timeout for every card picture this container renders, now
+  // or later. The container remounts with this component, so does the watch.
+  useEffect(() => {
+    if (!containerRef.current) return;
+    return watchPhotosIn(containerRef.current);
+  }, [containerRef]);
 
   // Wire stats
   useEffect(() => {
@@ -156,9 +170,21 @@ function App() {
   const [columns, setColumns] = useState(4);
   const [gap, setGap] = useState(8);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const detailImgRef = useRef<HTMLImageElement>(null);
 
   // Key forces full remount when layout config changes
   const listKey = `${mode}-${orientation}-${columns}-${gap}`;
+
+  // The detail panel sits outside the list container, so its picture is armed
+  // here, by hand: React mounts the panel on click and swaps it for the next.
+  useEffect(() => {
+    const img = detailImgRef.current;
+    if (!img || !selectedPhoto) return;
+    return watchPhoto(
+      img,
+      `/examples/photo-album/images/${selectedPhoto.picId}.svg`,
+    ).stop;
+  }, [selectedPhoto]);
 
   // Update info bar context
   useEffect(() => {
@@ -314,6 +340,7 @@ function App() {
               {selectedPhoto ? (
                 <>
                   <img
+                    ref={detailImgRef}
                     className="detail__img"
                     src={`https://picsum.photos/id/${selectedPhoto.picId}/400/300`}
                     alt={selectedPhoto.title}

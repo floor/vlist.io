@@ -18,6 +18,8 @@ import {
   list,
   setList,
   setCreateView,
+  watchPhoto,
+  watchPhotosIn,
 } from "../shared.js";
 import "../controls.js";
 
@@ -165,7 +167,10 @@ setCreateView(createView);
 
 const detailEl = document.getElementById("photo-detail");
 
+let detailWatch = null;
+
 function showDetail(item) {
+  detailWatch?.stop();
   detailEl.innerHTML = `
     <img
       class="detail__img"
@@ -178,6 +183,11 @@ function showDetail(item) {
       <span>${item.category} · ♥ ${item.likes}</span>
     </div>
   `;
+  // The detail panel is outside the gallery's container: arm it by hand.
+  const img = detailEl.querySelector(".detail__img");
+  detailWatch = img
+    ? watchPhoto(img, `/examples/photo-album/images/${item.picId}.svg`)
+    : null;
 }
 
 // =============================================================================
@@ -195,5 +205,8 @@ function updateContext() {
 // =============================================================================
 // Initialise
 // =============================================================================
+
+// Arm the load timeout for every card picture vlist renders, now or later.
+watchPhotosIn(document.getElementById("list-container"));
 
 createView();

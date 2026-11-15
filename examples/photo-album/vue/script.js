@@ -3,9 +3,24 @@
 // layout change remounts the list, which plugins read once at mount require
 // Layout mode toggle: Grid ↔ Masonry
 
-import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
+import {
+  createApp,
+  ref,
+  computed,
+  watch,
+  nextTick,
+  onMounted,
+  onUnmounted,
+} from "vue";
 import { createVList, grid, masonry, scrollbar } from "vlist";
-import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
+import {
+  ITEM_COUNT,
+  ASPECT_RATIO,
+  items,
+  itemTemplate,
+  watchPhoto,
+  watchPhotosIn,
+} from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -91,6 +106,8 @@ const App = {
 
     const containerRef = ref(null);
     const instance = ref(null);
+    const detailImgRef = ref(null);
+    let detailWatch = null;
 
     // Manual lifecycle: plugins are read once at mount, so a layout change
     // destroys the list and builds a new one
@@ -185,8 +202,30 @@ const App = {
       mount();
     });
 
-    onMounted(() => mount());
-    onUnmounted(() => unmount());
+    // Arm the load timeout for the card pictures. The container outlives the
+    // list instance this component mounts into it, so one watch covers both.
+    onMounted(() => {
+      mount();
+      if (containerRef.value) watchPhotosIn(containerRef.value);
+    });
+    onUnmounted(() => {
+      detailWatch?.stop();
+      unmount();
+    });
+
+    // The detail panel is outside the list container: Vue renders its picture
+    // after selectedPhoto changes, so arm the one on screen each time.
+    watch(selectedPhoto, async () => {
+      detailWatch?.stop();
+      detailWatch = null;
+      await nextTick();
+      const img = detailImgRef.value;
+      if (!img || !selectedPhoto.value) return;
+      detailWatch = watchPhoto(
+        img,
+        `/examples/photo-album/images/${selectedPhoto.value.picId}.svg`,
+      );
+    });
 
     // Navigation
     const scrollToFirst = () => instance.value?.scrollToIndex(0, "start");
@@ -213,6 +252,7 @@ const App = {
       gap,
       selectedPhoto,
       containerRef,
+      detailImgRef,
       scrollToFirst,
       scrollToMiddle,
       scrollToLast,
@@ -324,6 +364,7 @@ const App = {
             <div class="ui-detail">
               <template v-if="selectedPhoto">
                 <img
+                  ref="detailImgRef"
                   class="detail__img"
                   :src="'https://picsum.photos/id/' + selectedPhoto.picId + '/400/300'"
                   :alt="selectedPhoto.title"
