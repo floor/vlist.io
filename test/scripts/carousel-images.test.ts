@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getItems, getImageUrl } from "../../src/data/carousel.js";
+import { photoSrcSet } from "../../src/data/photos.js";
 
 // The carousel loads its photos from picsum.photos, and every photo falls back
 // to a committed placeholder in examples/carousel/images/ when that request
@@ -28,9 +29,10 @@ const VARIANTS = [
 const items = VARIANTS.flatMap((variant) => getItems(variant));
 
 describe("carousel example images", () => {
-  test("a slide's photo comes from picsum.photos", () => {
-    expect(getImageUrl(29, 800, 500)).toBe(
-      "https://picsum.photos/id/29/800/500",
+  test("a slide's photo comes from the self-hosted set, with its 2x source", () => {
+    expect(getImageUrl(29, 800, 500)).toBe("/photos/29-800x500.webp");
+    expect(photoSrcSet(29, 800, 500)).toBe(
+      "/photos/29-800x500.webp 1x, /photos/29-1600x1000.webp 2x",
     );
   });
 
@@ -67,18 +69,16 @@ describe("carousel example images", () => {
     expect(seen.size).toBe(new Set(items.map((item) => item.picId)).size);
   });
 
-  test("each slide template swaps a failed photo for the committed file", () => {
-    // The preloaded slide, the lazy slide and the detail panel: three pictures,
-    // and each handler removes itself before the swap so a missing fallback
-    // cannot loop.
+  test("each slide template names the chain: picsum, then the committed file", () => {
+    // The preloaded slide and the lazy slide carry both steps as attributes for
+    // watchPhoto; the detail panel, which sits outside the watched container,
+    // names the same two where it arms itself.
     const source = readFileSync(
       join(ROOT, "examples/carousel/vanilla/script.js"),
       "utf8",
     );
-    const swaps =
-      source.match(
-        /onerror="this\.onerror=null;this\.src='\/examples\/carousel\/images\/\$\{item\.picId\}\.svg'/g,
-      ) ?? [];
-    expect(swaps.length).toBe(3);
+    expect(source.match(/data-photo-fallback="\$\{picsum\}"/g)?.length).toBe(2);
+    expect(source.match(/data-photo-svg="\$\{svg\}"/g)?.length).toBe(2);
+    expect(source).toContain("watchPhoto(img, [picsum, svg])");
   });
 });

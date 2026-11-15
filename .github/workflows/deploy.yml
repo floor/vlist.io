@@ -327,6 +327,25 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
+            # The demo photos are their own repository, served from PHOTOS_DIR
+            # (next to this checkout, outside it). Clone it the first time,
+            # fast-forward it after. A failure, or a missing directory, is
+            # logged and the deploy continues: every picture's chain falls back
+            # to the picsum URL and then to its committed SVG.
+            PHOTOS_DIR="/home/floor/vlist-io-photos"
+            echo "🖼  Syncing the photo set into $PHOTOS_DIR..."
+            if [ ! -d "$PHOTOS_DIR" ]; then
+              if git clone --depth 1 https://github.com/floor/vlist-io-photos "$PHOTOS_DIR"; then
+                echo "✅ photo set cloned"
+              else
+                echo "⚠️  photo set clone failed; pages fall back to picsum/SVG"
+              fi
+            elif git -C "$PHOTOS_DIR" fetch --depth 1 origin main && git -C "$PHOTOS_DIR" merge --ff-only FETCH_HEAD; then
+              echo "✅ photo set up to date"
+            else
+              echo "⚠️  photo set update failed; keeping the copy already there"
+            fi
+
             # Replace file: dependencies with npm registry versions BEFORE building
             # (file: paths are for local dev only — they don't exist on the server)
             echo "🔗 Resolving production dependencies (vlist@$VLIST_SPEC)..."

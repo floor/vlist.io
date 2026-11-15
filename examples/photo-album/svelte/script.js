@@ -22,6 +22,12 @@ import {
   watchPhotosIn,
 } from "../shared.js";
 import "../controls.js";
+import {
+  photoUrl,
+  photoSrcSet,
+  photoPicsumUrl,
+  photoCredit,
+} from "../../../src/data/photos.js";
 
 // =============================================================================
 // Stats — shared info bar (progress, velocity, visible/total)
@@ -171,23 +177,28 @@ let detailWatch = null;
 
 function showDetail(item) {
   detailWatch?.stop();
+  const url = photoUrl(item.picId, 400, 300);
+  const srcset = photoSrcSet(item.picId, 400, 300);
+  const picsum = photoPicsumUrl(item.picId, 400, 300);
+  const svg = `/examples/photo-album/images/${item.picId}.svg`;
+  const credit = photoCredit(item.picId);
   detailEl.innerHTML = `
     <img
       class="detail__img"
-      src="https://picsum.photos/id/${item.picId}/400/300"
+      src="${url}"
+      srcset="${srcset}"
       alt="${item.title}"
-      onerror="this.onerror=null;this.src='/examples/photo-album/images/${item.picId}.svg'"
     />
     <div class="detail__meta">
       <strong>${item.title}</strong>
       <span>${item.category} · ♥ ${item.likes}</span>
+      ${credit ? `<a class="photo-credit" href="${credit.url}" target="_blank" rel="noopener">Photo by ${credit.author} on Unsplash</a>` : ""}
     </div>
   `;
-  // The detail panel is outside the gallery's container: arm it by hand.
+  // The detail panel is outside the gallery's container: arm it by hand, with
+  // the same chain the cards carry.
   const img = detailEl.querySelector(".detail__img");
-  detailWatch = img
-    ? watchPhoto(img, `/examples/photo-album/images/${item.picId}.svg`)
-    : null;
+  detailWatch = img ? watchPhoto(img, [picsum, svg]) : null;
 }
 
 // =============================================================================

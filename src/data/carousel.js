@@ -1,8 +1,9 @@
 // Carousel — Curated photo sets by variant
 // Each variant uses a unique set of photos from Lorem Picsum with
 // hand-written titles and locations matching the actual photo content.
+// The pictures themselves are served from the self-hosted set (src/data/photos.js).
 
-import { getPhotoUrl } from "./lorem-picsum.js";
+import { photoUrl } from "./photos.js";
 
 // =============================================================================
 // Per-variant curated photo sets
@@ -227,7 +228,7 @@ export function getItemWidth(index, height, variant) {
   return Math.round(height * (entry.w / entry.h));
 }
 
-export { getPhotoUrl as getImageUrl };
+export { photoUrl as getImageUrl };
 
 export function preloadImages(variant, width, height) {
   const set = SETS[variant] || SETS.hero;
@@ -237,7 +238,7 @@ export function preloadImages(variant, width, height) {
         new Promise((resolve) => {
           const img = new Image();
           img.onload = img.onerror = resolve;
-          img.src = getPhotoUrl(entry.id, width, height);
+          img.src = photoUrl(entry.id, width, height);
         }),
     ),
   );

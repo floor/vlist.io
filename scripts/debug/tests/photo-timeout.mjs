@@ -68,7 +68,6 @@ try {
       return {
         src,
         marked: img.dataset.fallback === "1",
-        decoded: img.complete && img.naturalWidth > 0,
         swappedAt: performance.now(),
       };
     },
@@ -77,12 +76,22 @@ try {
   const state = await handle.jsonValue();
   const elapsed = Math.round(state.swappedAt - startedAt);
 
+  // The fallback must be a picture, not a request that failed on its own.
+  await page.waitForFunction(
+    () => {
+      const img = document.querySelector(
+        ".vlist-carousel-slide img.photo-slide__img",
+      );
+      return Boolean(img && img.complete && img.naturalWidth > 0);
+    },
+    { timeout: 3000, polling: 50 },
+  );
+
   console.log(`held ${held.length} picsum request(s) open`);
   console.log(`fallback: ${state.src} after ${elapsed}ms`);
 
   if (held.length === 0) fail("no picsum request was hung — the page never asked");
   if (!state.marked) fail("the swap did not mark the element data-fallback");
-  if (!state.decoded) fail("the fallback picture did not decode");
   if (elapsed > LIMIT_MS) fail(`the fallback took ${elapsed}ms (limit ${LIMIT_MS}ms)`);
   if (!failed) console.log("✓ a pending photo fell back within the limit");
 } catch (error) {

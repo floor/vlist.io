@@ -3,7 +3,7 @@
 
 import { existsSync, statSync } from "fs";
 import { join, extname, resolve } from "path";
-import { ROOT, VLIST_ROOT, IS_PROD } from "./config";
+import { ROOT, VLIST_ROOT, IS_PROD, PHOTOS_DIR } from "./config";
 import { CACHE_IMMUTABLE, CACHE_STATIC } from "./cache";
 
 
@@ -46,6 +46,7 @@ const MIME_TYPES: Record<string, string> = {
   ".jpeg": "image/jpeg",
   ".gif": "image/gif",
   ".svg": "image/svg+xml",
+  ".webp": "image/webp",
   ".ico": "image/x-icon",
   ".woff": "font/woff",
   ".woff2": "font/woff2",
@@ -72,6 +73,7 @@ export const getMimeType = (filePath: string): string => {
  *
  * "immutable" (1 year, hashed filenames):
  *   - /dist/*            — bundled JS/CSS build output (examples, benchmarks, vlist)
+ *   - /photos/*          — the photo set, named by id and box (id-<w>x<h>.webp)
  *   - Fonts (.woff, .woff2, .ttf)
  *   - /favicon.ico
  *
@@ -85,6 +87,10 @@ export const getMimeType = (filePath: string): string => {
 export function staticCachePolicy(pathname: string): "immutable" | "static" | "no-cache" {
   // Build output directories (contain pre-compressed .br/.gz siblings)
   if (/\/dist\//.test(pathname)) return "immutable";
+
+  // The photo set's file names carry the id and the box, so they never change
+  // in place: a new size is a new file.
+  if (pathname.startsWith("/photos/")) return "immutable";
 
   // Fonts rarely change
   const ext = extname(pathname).toLowerCase();
@@ -204,7 +210,25 @@ export const serveFromPackage = (
  *   4. /docs/*.md          → raw markdown files
  *   5. /*                  → project root (landing, static assets, styles)
  */
+const PHOTO_FILE = /^[0-9]+-[0-9]+x[0-9]+\.webp$/;
+
+/**
+ * /photos/<id>-<w>x<h>.webp → the photo set, from PHOTOS_DIR (its own
+ * repository, next to this one). Only the flat files the mirror writes are
+ * served, so no path here can leave photos/; a missing file or directory is a
+ * 404, which the chain in the pages turns into the picsum URL then the SVG.
+ */
+export const servePhoto = (pathname: string): Response | null => {
+  const name = pathname.slice("/photos/".length);
+  if (!PHOTO_FILE.test(name)) return null;
+  return serveFile(join(PHOTOS_DIR, "photos", name), pathname);
+};
+
 export const resolveStatic = (pathname: string): Response | null => {
+  if (pathname.startsWith("/photos/")) {
+    return servePhoto(pathname);
+  }
+
   // /dist/examples/* → project root dist/examples directory
   if (pathname.startsWith("/dist/examples/")) {
     return serveStatic(pathname);

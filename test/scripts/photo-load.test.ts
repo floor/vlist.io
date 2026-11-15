@@ -45,8 +45,13 @@ function fakeImage(
       writes.push(value);
       src = value;
     },
+    attributes: {} as Record<string, string>,
+    removeAttribute(name: string) {
+      delete img.attributes[name];
+    },
     getAttribute(name: string) {
       if (name === "src") return src;
+      if (name === "srcset" || name === "sizes") return img.attributes[name] ?? null;
       // data-photo-fallback reaches dataset.photoFallback, as it would in a page.
       if (name === "data-photo-fallback") return img.dataset.photoFallback ?? null;
       return null;
@@ -250,6 +255,91 @@ for (const [example, helper] of [
       expect(img.writes).toEqual(["/second.svg"]);
     });
 
+    test("a chain steps down on the timeout, one source at a time", () => {
+      // self-hosted file → picsum → committed SVG, as the pages wire it.
+      const img = fakeImage({ src: "/photos/29-800x500.webp" });
+      img.attributes.srcset =
+        "/photos/29-800x500.webp 1x, /photos/29-1600x1000.webp 2x";
+      helper.watchPhoto(img, [
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+
+      jest.advanceTimersByTime(3999);
+      expect(img.writes).toEqual([]);
+      jest.advanceTimersByTime(1);
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+      // srcset would keep winning over the new src: the step must drop it.
+      expect(img.getAttribute("srcset")).toBeNull();
+
+      // The fallback is a request too: it gets its own clock.
+      jest.advanceTimersByTime(3999);
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+      jest.advanceTimersByTime(1);
+      expect(img.writes).toEqual([
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+
+      jest.advanceTimersByTime(60_000);
+      expect(img.writes.length).toBe(2);
+    });
+
+    test("a chain steps down on errors too, and stops at the end", () => {
+      const img = fakeImage({ src: "/photos/29-800x500.webp" });
+      helper.watchPhoto(img, [
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+
+      img.fire("error");
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+      img.fire("error");
+      expect(img.writes).toEqual([
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+      img.fire("error");
+      expect(img.writes.length).toBe(2);
+      expect(img.listenerCount("error")).toBe(0);
+    });
+
+    test("a chain step that loads ends the watch", () => {
+      const img = fakeImage({ src: "/photos/29-800x500.webp" });
+      helper.watchPhoto(img, [
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+
+      img.fire("error");
+      img.fire("load");
+      jest.advanceTimersByTime(60_000);
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+      expect(img.listenerCount("load")).toBe(0);
+    });
+
+    test("a step reached by an error gets its own full clock", () => {
+      const img = fakeImage({ src: "/photos/29-800x500.webp" });
+      helper.watchPhoto(img, [
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+
+      // Step 0 fails with 3 of its 4 seconds spent.
+      jest.advanceTimersByTime(3000);
+      img.fire("error");
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+
+      // Step 1 must not inherit the 1 s left on step 0's clock.
+      jest.advanceTimersByTime(3999);
+      expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+      jest.advanceTimersByTime(1);
+      expect(img.writes).toEqual([
+        "https://picsum.photos/id/29/800/500",
+        "/examples/carousel/images/29.svg",
+      ]);
+    });
+
     test("an element reused after a fallback is armed again", () => {
       const img = fakeImage();
       helper.watchPhoto(img, "/first.svg");
@@ -401,16 +491,16 @@ for (const [example, helper] of [
 describe("photo fallback wiring", () => {
   const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
 
-  test("every slide and card template names its fallback for the watcher", () => {
-    // Two slide templates (preloaded and lazy) plus the album card template.
-    const carouselSlides =
-      read("examples/carousel/vanilla/script.js").match(
-        /data-photo-fallback="\/examples\/carousel\/images\/\$\{item\.picId\}\.svg"/g,
-      ) ?? [];
-    expect(carouselSlides.length).toBe(2);
-    expect(read("examples/photo-album/shared.js")).toContain(
-      'data-photo-fallback="/examples/photo-album/images/${item.picId}.svg"',
-    );
+  test("every slide and card template names its chain for the watcher", () => {
+    // Two slide templates (preloaded and lazy) plus the album card template,
+    // each naming the second and the last step of the chain.
+    const carousel = read("examples/carousel/vanilla/script.js");
+    expect(carousel.match(/data-photo-fallback="\$\{picsum\}"/g)?.length).toBe(2);
+    expect(carousel.match(/data-photo-svg="\$\{svg\}"/g)?.length).toBe(2);
+
+    const album = read("examples/photo-album/shared.js");
+    expect(album).toContain('data-photo-fallback="${picsum}"');
+    expect(album).toContain('data-photo-svg="${svg}"');
   });
 
   test("every variant arms the watcher for its cards and its detail panel", () => {

@@ -15,12 +15,16 @@ const ROOT = join(import.meta.dir, "../..");
 const IMAGE_DIR = join(ROOT, "examples/photo-album/images");
 
 describe("photo album example images", () => {
-  test("a card's photo comes from picsum.photos", () => {
+  test("a card's photo comes from the self-hosted set, with its 2x source", () => {
     const source = readFileSync(
       join(ROOT, "examples/photo-album/shared.js"),
       "utf8",
     );
-    expect(source).toContain("https://picsum.photos/id/${item.picId}/300/225");
+    expect(source).toContain("photoUrl(item.picId, 300, 225)");
+    expect(source).toContain("photoSrcSet(item.picId, 300, 225)");
+    // And the rest of the chain, for watchPhotosIn to walk.
+    expect(source).toContain('data-photo-fallback="${picsum}"');
+    expect(source).toContain('data-photo-svg="${svg}"');
   });
 
   test("every card has a committed fallback image", () => {

@@ -2,6 +2,11 @@
 // Imported by all framework implementations to avoid duplication
 
 import { rebuild } from "vlist";
+import {
+  photoUrl,
+  photoSrcSet,
+  photoPicsumUrl,
+} from "../../src/data/photos.js";
 
 // =============================================================================
 // Constants
@@ -73,24 +78,29 @@ export const items = Array.from({ length: ITEM_COUNT }, (_, i) => {
 // Template
 // =============================================================================
 
-// The cards' pictures come from picsum.photos. When one fails to load — the
-// host is down, or the browser test harness blocks it — the handler swaps the
-// src once for the committed placeholder in examples/photo-album/images/ and
-// removes itself, so a missing placeholder cannot loop. data-photo-fallback
-// names that file to watchPhotosIn, which also swaps a picture that stays
-// pending without ever firing load or error (see the section at the bottom).
-export const itemTemplate = (item) => `
+// A card's picture comes from the self-hosted set (/photos/<id>-300x225.webp),
+// with its 2x file in srcset. data-photo-fallback and data-photo-svg name the
+// rest of the chain to watchPhotosIn, which walks it when a source is missing,
+// errors, or stays pending without ever firing load or error (see the section
+// at the bottom).
+export const itemTemplate = (item) => {
+  const url = photoUrl(item.picId, 300, 225);
+  const srcset = photoSrcSet(item.picId, 300, 225);
+  const picsum = photoPicsumUrl(item.picId, 300, 225);
+  const svg = `/examples/photo-album/images/${item.picId}.svg`;
+  return `
   <div class="card">
     <img
       class="card__img"
-      src="https://picsum.photos/id/${item.picId}/300/225"
+      src="${url}"
+      srcset="${srcset}"
       alt="${item.title}"
       loading="lazy"
       decoding="async"
-      data-photo-fallback="/examples/photo-album/images/${item.picId}.svg"
+      data-photo-fallback="${picsum}"
+      data-photo-svg="${svg}"
       data-t="${performance.now()}"
       onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('card__img--loaded')"
-      onerror="this.onerror=null;this.src='/examples/photo-album/images/${item.picId}.svg';this.style.transition='none';this.classList.add('card__img--loaded')"
     />
     <div class="card__overlay">
       <span class="card__title">${item.title}</span>
@@ -99,6 +109,7 @@ export const itemTemplate = (item) => `
     <div class="card__likes">♥ ${item.likes}</div>
   </div>
 `;
+};
 
 // =============================================================================
 // State — mutable, shared across script.js and controls.js
@@ -189,7 +200,7 @@ export async function createView() {
 // Photo load timeout
 // =============================================================================
 //
-// A card's picture comes from picsum.photos. When the host accepts the
+// A card's picture comes from the self-hosted set, or from picsum when that file is missing. When the host accepts the
 // connection and never answers, neither `load` nor `error` fires, so the
 // once-only onerror swap the template carries never runs and the card stays
 // blank. Watch each picture and swap a still-pending one for its committed SVG
@@ -202,28 +213,36 @@ export async function createView() {
 export const PHOTO_TIMEOUT_MS = 4000;
 
 const FALLBACK_ATTR = "data-photo-fallback";
+const SVG_ATTR = "data-photo-svg";
 
 // Pictures this module has armed, by element, so a recycled or removed picture
 // is stopped instead of firing a swap at whatever it shows next.
 const watched = new WeakMap();
 
 /**
- * Watch one picture: swap it for `fallbackUrl` once when it errors, or when it
- * is still pending after `timeoutMs`. Returns a handle whose `stop()` clears
- * the timer, the listeners and any IntersectionObserver.
+ * Watch one picture: when it errors, or when it is still pending after
+ * `timeoutMs`, move it to the next URL in `fallbacks` — a single URL or a list,
+ * the chain a page keeps: the self-hosted file, then picsum, then the photo's
+ * committed SVG. Each step gets its own clock; reaching the end stops the watch.
+ * Returns a handle whose `stop()` clears the timer, the listeners and any
+ * IntersectionObserver.
  *
  * Safe to call again on a recycled element — the previous watch is stopped and
  * the new picture gets its own clock.
  */
-export function watchPhoto(img, fallbackUrl, timeoutMs = PHOTO_TIMEOUT_MS) {
+export function watchPhoto(img, fallbacks, timeoutMs = PHOTO_TIMEOUT_MS) {
   watched.get(img)?.stop();
 
-  // An element is reused for the next picture (a pooled item, or a detail
-  // panel that keeps its <img>): a src that is not the fallback means a new
-  // photo, so the marker from the picture before must not block its swap.
-  if (img.getAttribute("src") !== fallbackUrl) delete img.dataset.fallback;
+  const steps = (Array.isArray(fallbacks) ? fallbacks : [fallbacks]).filter(
+    Boolean,
+  );
 
-  const state = { timer: null, observer: null, stopped: false };
+  // An element is reused for the next picture (a pooled item, or a detail panel
+  // that keeps its <img>): a src that is none of the fallbacks means a new
+  // photo, so the marker from the picture before must not block its swap.
+  if (!steps.includes(img.getAttribute("src"))) delete img.dataset.fallback;
+
+  const state = { timer: null, observer: null, stopped: false, step: 0 };
 
   function stop() {
     if (state.stopped) return;
@@ -237,23 +256,46 @@ export function watchPhoto(img, fallbackUrl, timeoutMs = PHOTO_TIMEOUT_MS) {
     if (watched.get(img) === handle) watched.delete(img);
   }
 
-  function swap() {
+  function advance() {
     if (state.stopped) return;
-    stop();
-    // The picture was recycled away from us, already shows the fallback (an
-    // inline onerror got there first), or was swapped once already.
-    if (!img.isConnected) return;
-    if (img.getAttribute("src") === fallbackUrl || img.dataset.fallback) return;
+    // A step reached by an error is still inside the previous step's clock:
+    // clear it, so arm() gives the next source its own full timeout.
+    if (state.timer !== null) {
+      clearTimeout(state.timer);
+      state.timer = null;
+    }
+    if (!img.isConnected) {
+      // Recycled away from us: never swap whatever it shows now.
+      stop();
+      return;
+    }
+    const current = img.getAttribute("src");
+    while (state.step < steps.length && steps[state.step] === current) {
+      state.step++;
+    }
+    if (state.step >= steps.length) {
+      stop();
+      return;
+    }
     img.dataset.fallback = "1";
-    // The templates' inline onerror, where one is still there, must not race a
-    // second swap on the request this one discards.
+    // A template's inline onerror, where a page still carries one, must not
+    // race the step this watch takes.
     img.onerror = null;
-    img.src = fallbackUrl;
+    // srcset wins over src: while a candidate list is there, the browser keeps
+    // asking for the old box instead of the URL this step sets.
+    img.removeAttribute?.("srcset");
+    img.removeAttribute?.("sizes");
+    img.src = steps[state.step++];
+    // The next request is a new one: it gets its own clock.
+    arm();
   }
 
   function arm() {
     if (state.stopped || state.timer !== null) return;
-    state.timer = setTimeout(swap, timeoutMs);
+    state.timer = setTimeout(() => {
+      state.timer = null;
+      advance();
+    }, timeoutMs);
   }
 
   function onLoad() {
@@ -261,7 +303,7 @@ export function watchPhoto(img, fallbackUrl, timeoutMs = PHOTO_TIMEOUT_MS) {
   }
 
   function onError() {
-    swap();
+    advance();
   }
 
   const handle = { stop };
@@ -271,8 +313,8 @@ export function watchPhoto(img, fallbackUrl, timeoutMs = PHOTO_TIMEOUT_MS) {
 
   if (img.complete) {
     // Settled before we got here: a cached picture needs no clock, a broken one
-    // (no pixels, its error already fired) needs the fallback now.
-    if (img.naturalWidth === 0) swap();
+    // (no pixels, its error already fired) moves on now.
+    if (img.naturalWidth === 0) advance();
     else stop();
     return handle;
   }
@@ -311,12 +353,18 @@ export function watchPhotosIn(root, timeoutMs = PHOTO_TIMEOUT_MS) {
   const armed = new Map();
 
   function armImage(img) {
-    const fallbackUrl = img.getAttribute(FALLBACK_ATTR);
-    if (!fallbackUrl) return;
+    // A card names the chain in two attributes: picsum, then the SVG. An image
+    // already showing one of its fallbacks is either mid-chain (its own watch
+    // is running) or done — never re-armed over.
+    const steps = [
+      img.getAttribute(FALLBACK_ATTR),
+      img.getAttribute(SVG_ATTR),
+    ].filter(Boolean);
+    if (steps.length === 0) return;
+    if (steps.includes(img.getAttribute("src"))) return;
     armed.get(img)?.stop();
     armed.delete(img);
-    if (img.getAttribute("src") === fallbackUrl) return;
-    armed.set(img, watchPhoto(img, fallbackUrl, timeoutMs));
+    armed.set(img, watchPhoto(img, steps, timeoutMs));
   }
 
   function stopImage(img) {
