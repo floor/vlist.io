@@ -45,8 +45,13 @@ function fakeImage(
       writes.push(value);
       src = value;
     },
+    attributes: {} as Record<string, string>,
+    removeAttribute(name: string) {
+      delete img.attributes[name];
+    },
     getAttribute(name: string) {
       if (name === "src") return src;
+      if (name === "srcset" || name === "sizes") return img.attributes[name] ?? null;
       // data-photo-fallback reaches dataset.photoFallback, as it would in a page.
       if (name === "data-photo-fallback") return img.dataset.photoFallback ?? null;
       return null;
@@ -253,6 +258,8 @@ for (const [example, helper] of [
     test("a chain steps down on the timeout, one source at a time", () => {
       // self-hosted file → picsum → committed SVG, as the pages wire it.
       const img = fakeImage({ src: "/photos/29-800x500.webp" });
+      img.attributes.srcset =
+        "/photos/29-800x500.webp 1x, /photos/29-1600x1000.webp 2x";
       helper.watchPhoto(img, [
         "https://picsum.photos/id/29/800/500",
         "/examples/carousel/images/29.svg",
@@ -262,6 +269,8 @@ for (const [example, helper] of [
       expect(img.writes).toEqual([]);
       jest.advanceTimersByTime(1);
       expect(img.writes).toEqual(["https://picsum.photos/id/29/800/500"]);
+      // srcset would keep winning over the new src: the step must drop it.
+      expect(img.getAttribute("srcset")).toBeNull();
 
       // The fallback is a request too: it gets its own clock.
       jest.advanceTimersByTime(3999);

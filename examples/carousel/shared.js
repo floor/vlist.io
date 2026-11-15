@@ -88,6 +88,10 @@ export function watchPhoto(img, fallbacks, timeoutMs = PHOTO_TIMEOUT_MS) {
     // A template's inline onerror, where a page still carries one, must not
     // race the step this watch takes.
     img.onerror = null;
+    // srcset wins over src: while a candidate list is there, the browser keeps
+    // asking for the old box instead of the URL this step sets.
+    img.removeAttribute?.("srcset");
+    img.removeAttribute?.("sizes");
     img.src = steps[state.step++];
     // The next request is a new one: it gets its own clock.
     arm();
