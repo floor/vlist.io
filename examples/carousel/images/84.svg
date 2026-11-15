@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" role="img">
+<title>Placeholder photo 84 — Bridge at Night, New York</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(30.7 62% 52%)"/>
+<stop offset="1" stop-color="hsl(72.7 48% 24%)"/>
+</linearGradient></defs>
+<rect width="800" height="500" fill="url(#bg)"/>
+<circle cx="341" cy="253" r="81" fill="#000000" opacity="0.14"/><circle cx="697" cy="215" r="112" fill="#000000" opacity="0.12"/><circle cx="197" cy="330" r="115" fill="#000000" opacity="0.15"/>
+<rect x="375" y="75" width="344" height="210" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(28 547 180)"/>
+<text x="400" y="60" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
+<text x="400" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="100" font-weight="700" fill="rgba(255,255,255,0.9)">84</text>
+</svg>

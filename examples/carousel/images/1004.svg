@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" role="img">
+<title>Placeholder photo 1004 — Rain Silhouette, Night</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(178.0 62% 52%)"/>
+<stop offset="1" stop-color="hsl(220.0 48% 24%)"/>
+</linearGradient></defs>
+<rect width="800" height="500" fill="url(#bg)"/>
+<circle cx="451" cy="75" r="82" fill="#000000" opacity="0.12"/><circle cx="321" cy="131" r="63" fill="#ffffff" opacity="0.08"/><circle cx="369" cy="375" r="66" fill="#000000" opacity="0.10"/>
+<rect x="188" y="6" width="378" height="334" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(-17 377 173)"/>
+<text x="400" y="60" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
+<text x="400" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="100" font-weight="700" fill="rgba(255,255,255,0.9)">1004</text>
+</svg>

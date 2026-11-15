@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" role="img">
+<title>Placeholder photo 271 — Bosphorus Ferry, Istanbul</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="hsl(184.7 62% 52%)"/>
+<stop offset="1" stop-color="hsl(226.7 48% 24%)"/>
+</linearGradient></defs>
+<rect width="800" height="500" fill="url(#bg)"/>
+<circle cx="466" cy="202" r="94" fill="#000000" opacity="0.08"/><circle cx="488" cy="309" r="193" fill="#000000" opacity="0.13"/><circle cx="203" cy="162" r="161" fill="#ffffff" opacity="0.12"/>
+<rect x="29" y="97" width="502" height="312" rx="28" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="2" transform="rotate(1 280 253)"/>
+<text x="400" y="60" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="18" letter-spacing="3" fill="rgba(255,255,255,0.72)">PLACEHOLDER 800×500</text>
+<text x="400" y="290" text-anchor="middle" font-family="ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif" font-size="100" font-weight="700" fill="rgba(255,255,255,0.9)">271</text>
+</svg>
