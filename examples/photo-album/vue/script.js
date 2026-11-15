@@ -5,13 +5,7 @@
 
 import { createApp, ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { createVList, grid, masonry, scrollbar } from "vlist";
-import {
-  ITEM_COUNT,
-  ASPECT_RATIO,
-  items,
-  itemTemplate,
-  getImageUrl,
-} from "../shared.js";
+import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -201,6 +195,17 @@ const App = {
     const scrollToLast = () =>
       instance.value?.scrollToIndex(ITEM_COUNT - 1, "end");
 
+    // The detail panel's picture comes from picsum.photos. When it fails to
+    // load — the host is down, or the browser test harness blocks it — swap it
+    // once for the committed placeholder and never again, so a missing
+    // placeholder cannot loop.
+    function onPhotoError(event, picId) {
+      const img = event.currentTarget;
+      if (img.dataset.fallback) return;
+      img.dataset.fallback = "1";
+      img.src = `/examples/photo-album/images/${picId}.svg`;
+    }
+
     return {
       mode,
       orientation,
@@ -211,7 +216,7 @@ const App = {
       scrollToFirst,
       scrollToMiddle,
       scrollToLast,
-      getImageUrl,
+      onPhotoError,
       ITEM_COUNT,
     };
   },
@@ -221,7 +226,7 @@ const App = {
       <header>
         <h1>Photo Album</h1>
         <p class="description">
-          Virtualized 2D photo gallery of generated placeholder photos.
+          Virtualized 2D photo gallery with real images from Lorem Picsum.
           Toggle between grid and masonry layouts, adjust columns and gap —
           only visible rows are rendered.
         </p>
@@ -320,8 +325,9 @@ const App = {
               <template v-if="selectedPhoto">
                 <img
                   class="detail__img"
-                  :src="getImageUrl(selectedPhoto.picId)"
+                  :src="'https://picsum.photos/id/' + selectedPhoto.picId + '/400/300'"
                   :alt="selectedPhoto.title"
+                  @error="onPhotoError($event, selectedPhoto.picId)"
                 />
                 <div class="detail__meta">
                   <strong>{{ selectedPhoto.title }}</strong>

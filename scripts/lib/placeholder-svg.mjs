@@ -1,10 +1,13 @@
 /**
- * Deterministic placeholder art for the examples' generated images.
+ * Deterministic placeholder art for the examples' fallback images.
  *
- * A photo id decides everything: the gradient hue, the three circles, the
- * rotated frame and — printed on the picture — the id itself. So a slide or a
- * card is visibly distinct from its neighbours, and regenerating produces the
- * same bytes. No download, no licensed photo.
+ * The examples load their pictures from picsum.photos; when that request fails
+ * (the host is down, or the browser suites block third-party hosts) the page
+ * swaps in the committed SVG with the same photo id. A photo id decides
+ * everything here: the gradient hue, the three circles, the rotated frame and
+ * — printed on the picture — the id itself. So a slide or a card is visibly
+ * distinct from its neighbours, and regenerating produces the same bytes. No
+ * download, no licensed photo.
  *
  * Geometry is proportional to the canvas, so one builder covers the sizes the
  * examples ask for (the carousel's 800x500, the photo album's 400x300), and the

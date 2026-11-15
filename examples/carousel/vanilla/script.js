@@ -52,6 +52,10 @@ function isFull() {
   return currentVariant === "full" || currentVariant === "full-h";
 }
 
+// The slides' pictures come from picsum.photos. When one fails to load — the
+// host is down, or the browser test harness blocks it — the handler swaps the
+// src once for the committed placeholder in examples/carousel/images/ and
+// removes itself, so a missing placeholder cannot loop.
 function itemTemplate(item) {
   const isH = !isVertical();
   const isMultiAspect = currentVariant === "multi-aspect";
@@ -76,6 +80,7 @@ function itemTemplate(item) {
           src="${url}"
           alt="${esc(item.title)}"
           decoding="sync"
+          onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg'"
         />
         <div class="vlist-carousel-slide__overlay photo-slide__overlay">
           <span class="vlist-carousel-slide__title photo-slide__title">${esc(item.title)}</span>
@@ -94,7 +99,7 @@ function itemTemplate(item) {
         decoding="async"
         data-t="${performance.now()}"
         onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('photo-slide__img--loaded')"
-        onerror="this.style.transition='none';this.classList.add('photo-slide__img--loaded')"
+        onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg';this.style.transition='none';this.classList.add('photo-slide__img--loaded')"
       />
       <div class="vlist-carousel-slide__overlay photo-slide__overlay">
         <span class="vlist-carousel-slide__title photo-slide__title">${esc(item.title)}</span>
@@ -165,7 +170,12 @@ function updateDetail() {
   detailEl.innerHTML = `
     <div class="photo-detail">
       <div class="photo-detail__frame">
-        <img class="photo-detail__img" src="${url}" alt="${esc(item.title)}" />
+        <img
+          class="photo-detail__img"
+          src="${url}"
+          alt="${esc(item.title)}"
+          onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg'"
+        />
       </div>
       <div class="photo-detail__meta">
         <strong>${esc(item.title)}</strong>

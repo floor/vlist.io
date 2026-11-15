@@ -1,18 +1,17 @@
 /**
- * Generate the placeholder images an example serves from its own directory.
+ * Generate the fallback images an example serves from its own directory.
  *
- * Two examples used to load their pictures from picsum.photos — one request per
- * slide or card, 168 and 900 of them. When that host is slow or down the pages
- * never reach network idle, the pictures stay blank, and the browser suites time
- * out, so each example now ships its own generated pictures under
+ * The examples load their pictures from picsum.photos — one request per slide
+ * or card, 168 and 900 of them — and every photo falls back to a committed
+ * placeholder when that request fails: the host is down, or the browser suites
+ * block third-party hosts. Each photo gets its own generated picture under
  * examples/<slug>/images/<photo-id>.svg, served by the site from the project
- * root.
+ * root, so a failed request always lands on a file with the same id.
  *
- * Each set below takes its photo ids and its URL from the example's own modules
- * (getImageUrl and its data), so the files it writes are exactly the files the
- * page asks for and the two cannot drift apart. The art comes from
- * ./lib/placeholder-svg.mjs, derived from the photo id, so every picture is
- * distinct and a re-run writes the same bytes.
+ * Each set below takes its photo ids from the example's own data, so the files
+ * it writes are exactly the ids the page can show and the two cannot drift
+ * apart. The art comes from ./lib/placeholder-svg.mjs, derived from the photo
+ * id, so every picture is distinct and a re-run writes the same bytes.
  *
  * Run: bun scripts/generate-example-images.mjs             (every set)
  *      bun scripts/generate-example-images.mjs --set=carousel
@@ -29,7 +28,6 @@ const SETS = {
     width: 800,
     height: 500,
     async load() {
-      const { getImageUrl } = await import("../examples/carousel/shared.js");
       const { getItems } = await import("../src/data/carousel.js");
       // Every variant the example page can show; getItems() falls back to the
       // hero set for one without a set of its own.
@@ -50,7 +48,6 @@ const SETS = {
       }
       return {
         photos,
-        getImageUrl,
         describe: (photo) => `${photo.title}, ${photo.location}`,
       };
     },
@@ -60,16 +57,13 @@ const SETS = {
     width: 400,
     height: 300,
     async load() {
-      const { items, getImageUrl } = await import(
-        "../examples/photo-album/shared.js"
-      );
+      const { items } = await import("../examples/photo-album/shared.js");
       const photos = new Map();
       for (const item of items) {
         if (!photos.has(item.picId)) photos.set(item.picId, item);
       }
       return {
         photos,
-        getImageUrl,
         describe: (photo) => `${photo.title}, ${photo.category}`,
       };
     },
@@ -99,19 +93,15 @@ const wanted = wantedSets(process.argv.slice(2));
 
 for (const name of wanted) {
   const set = SETS[name];
-  const { photos, getImageUrl, describe } = await set.load();
-  const pattern = new RegExp(`^/examples/${name}/images/\\d+\\.svg$`);
+  const { photos, describe } = await set.load();
 
   let written = 0;
   let unchanged = 0;
   let bytes = 0;
   for (const photo of photos.values()) {
-    const url = getImageUrl(photo.picId);
-    if (!pattern.test(url)) {
-      throw new Error(
-        `getImageUrl(${photo.picId}) is not a ${name} image path: ${url}`,
-      );
-    }
+    // The page swaps a failed picsum request for this path; the id on the
+    // card and the file name are the same, so one always has the other.
+    const url = `/examples/${name}/images/${photo.picId}.svg`;
     const file = join(ROOT, url.slice(1));
     const svg = placeholderSvg({
       picId: photo.picId,

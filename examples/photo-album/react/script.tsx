@@ -7,7 +7,7 @@ import { createRoot } from "react-dom/client";
 import { useVList, useVListEvent } from "vlist/react";
 import { grid, masonry, scrollbar } from "vlist";
 import type { ItemConfig } from "vlist";
-import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate, getImageUrl } from "../shared.js";
+import { ITEM_COUNT, ASPECT_RATIO, items, itemTemplate } from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -190,7 +190,7 @@ function App() {
       <header>
         <h1>Photo Album</h1>
         <p className="description">
-          Virtualized 2D photo gallery of generated placeholder photos.
+          Virtualized 2D photo gallery with real images from Lorem Picsum.
           Toggle between grid and masonry layouts, adjust columns and gap — only
           visible rows are rendered.
         </p>
@@ -315,8 +315,18 @@ function App() {
                 <>
                   <img
                     className="detail__img"
-                    src={getImageUrl(selectedPhoto.picId)}
+                    src={`https://picsum.photos/id/${selectedPhoto.picId}/400/300`}
                     alt={selectedPhoto.title}
+                    onError={(event) => {
+                      // The picture comes from picsum.photos. When it fails to
+                      // load — the host is down, or the browser test harness
+                      // blocks it — swap it once for the committed placeholder
+                      // and never again, so a missing placeholder cannot loop.
+                      const img = event.currentTarget;
+                      if (img.dataset.fallback) return;
+                      img.dataset.fallback = "1";
+                      img.src = `/examples/photo-album/images/${selectedPhoto.picId}.svg`;
+                    }}
                   />
                   <div className="detail__meta">
                     <strong>{selectedPhoto.title}</strong>
