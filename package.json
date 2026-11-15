@@ -55,6 +55,7 @@
     "babel-preset-solid": "^1.9.10",
     "puppeteer": "^24.43.1",
     "sass": "^1.85.0",
+    "sharp": "0.35.5",
     "typescript": "^5.8.0"
   }
 }
