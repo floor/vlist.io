@@ -168,6 +168,13 @@ export async function runBrowserSuite() {
       args: [`--base=${baseUrl}/experiments/synthetic/`],
     },
     {
+      // Holds picsum open and waits for the slide's fallback: ~8 s, so it is
+      // part of the browser gate rather than a script to run by hand.
+      name: "photo-timeout.mjs",
+      file: join(root, "scripts/debug/tests/photo-timeout.mjs"),
+      args: [],
+    },
+    {
       name: "tree-src-click.mjs",
       file: join(root, "scripts/debug/tests/tree-src-click.mjs"),
       args: [],

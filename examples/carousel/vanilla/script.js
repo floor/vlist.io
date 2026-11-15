@@ -3,7 +3,14 @@
 
 // The example shell picks native or synthetic. Carousel wrap works in both.
 import { carousel, createVList, rebuild, registerPreset, full } from "vlist";
-import { getItems, getImageUrl, getItemWidth, preloadImages } from "../shared.js";
+import {
+  getItems,
+  getImageUrl,
+  getItemWidth,
+  preloadImages,
+  watchPhoto,
+  watchPhotosIn,
+} from "../shared.js";
 import { createStats } from "../../stats.js";
 import { createInfoUpdater } from "../../info.js";
 
@@ -26,6 +33,7 @@ let list = null;
 let imagesPreloaded = false;
 let items = getItems(currentVariant);
 let viewVersion = 0;
+let detailWatch = null;
 
 // =============================================================================
 // DOM references
@@ -36,6 +44,9 @@ const dotsEl = document.getElementById("carousel-dots");
 const detailEl = document.getElementById("photo-detail");
 const infoVariantEl = document.getElementById("info-variant");
 const infoStepEl = document.getElementById("info-step");
+
+// Arm the load timeout for every slide picture vlist renders, now or later.
+watchPhotosIn(listContainerEl);
 
 // =============================================================================
 // Template
@@ -80,6 +91,7 @@ function itemTemplate(item) {
           src="${url}"
           alt="${esc(item.title)}"
           decoding="sync"
+          data-photo-fallback="/examples/carousel/images/${item.picId}.svg"
           onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg'"
         />
         <div class="vlist-carousel-slide__overlay photo-slide__overlay">
@@ -97,6 +109,7 @@ function itemTemplate(item) {
         src="${url}"
         alt="${esc(item.title)}"
         decoding="async"
+        data-photo-fallback="/examples/carousel/images/${item.picId}.svg"
         data-t="${performance.now()}"
         onload="if(performance.now()-this.dataset.t<100){this.style.transition='none';this.offsetHeight}this.classList.add('photo-slide__img--loaded')"
         onerror="this.onerror=null;this.src='/examples/carousel/images/${item.picId}.svg';this.style.transition='none';this.classList.add('photo-slide__img--loaded')"
@@ -167,6 +180,7 @@ function updateDetail() {
   const ph = item.h ?? 300;
   const scale = 300 / Math.max(pw, ph);
   const url = getImageUrl(item.picId, Math.round(pw * scale), Math.round(ph * scale));
+  detailWatch?.stop();
   detailEl.innerHTML = `
     <div class="photo-detail">
       <div class="photo-detail__frame">
@@ -183,6 +197,11 @@ function updateDetail() {
       </div>
     </div>
   `;
+  // The detail panel is outside the carousel's container: arm it by hand.
+  const img = detailEl.querySelector(".photo-detail__img");
+  detailWatch = img
+    ? watchPhoto(img, `/examples/carousel/images/${item.picId}.svg`)
+    : null;
 }
 
 function updateStep() {
