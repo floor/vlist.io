@@ -90,12 +90,12 @@ export function setUseCustomScrollbar(v) {
  * Called by the adapter on every read so sorting/filtering
  * is always handled server-side.
  */
-function buildParams(offset, limit) {
+function buildParams(offset, limit, key = sortKey, direction = sortDirection) {
   const params = new URLSearchParams({
     offset: String(offset),
     limit: String(limit),
-    sort: sortKey || "population",
-    direction: sortDirection || "desc",
+    sort: key,
+    direction,
   });
 
   if (searchQuery) params.set("search", searchQuery);
@@ -104,25 +104,32 @@ function buildParams(offset, limit) {
   return params;
 }
 
+async function fetchCities(params, signal) {
+  loadRequests++;
+  updateContext();
+
+  const res = await fetch(`${API_BASE}/api/cities?${params}`, { signal });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  const page = await res.json();
+  signal?.throwIfAborted();
+  return page;
+}
+
+let prefetchedFirstPage = null;
 const citiesAdapter = {
-  read: async ({ offset, limit }) => {
-    loadRequests++;
+  read: async ({ offset, limit, signal }) => {
+    let page;
+    if (offset === 0 && prefetchedFirstPage) {
+      page = prefetchedFirstPage;
+      prefetchedFirstPage = null;
+    } else {
+      page = await fetchCities(buildParams(offset, limit), signal);
+    }
+
+    totalCities = page.total;
+    loadedCount += page.items.length;
     updateContext();
-
-    const params = buildParams(offset, limit);
-    const res = await fetch(`${API_BASE}/api/cities?${params}`);
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
-    const data = await res.json();
-
-    totalCities = data.total;
-    loadedCount += data.items.length;
-    updateContext();
-
-    return {
-      items: data.items,
-      total: data.total,
-      hasMore: data.hasMore,
-    };
+    return page;
   },
 };
 
@@ -305,23 +312,50 @@ export function getColumns() {
 }
 
 // =============================================================================
-// Sorting — server-side via reload
+// Sorting — keep the current rows until the server returns the first sorted page
 // =============================================================================
 
+let pendingSort = null;
+let filterDebounce = null;
+
 export async function applySort(key, direction) {
-  sortKey = key;
-  sortDirection = direction || "asc";
+  if (!list) return;
+  clearTimeout(filterDebounce);
+  pendingSort?.controller.abort();
+  const request = {
+    key: key ?? "id",
+    direction: key === null ? "asc" : direction || "asc",
+    controller: new AbortController(),
+  };
+  pendingSort = request;
 
-  if (key === null) {
-    sortKey = "id";
-    sortDirection = "asc";
+  let page;
+  try {
+    const params = buildParams(0, CHUNK_SIZE, request.key, request.direction);
+    page = await fetchCities(params, request.controller.signal);
+  } catch (error) {
+    if (request.controller.signal.aborted) return;
+    pendingSort = null;
+    list.setSort(sortKey, sortDirection);
+    console.error("Could not sort cities:", error);
+    return;
   }
 
+  if (pendingSort !== request) return;
+  pendingSort = null;
+  sortKey = request.key;
+  sortDirection = request.direction;
   loadedCount = 0;
-  if (list) {
-    await list.reload();
-  }
 
+  // Reload still resets the old cache and scroll position. Its first read
+  // consumes the prefetched page without waiting on the network.
+  prefetchedFirstPage = page;
+  try {
+    await list.reload();
+  } finally {
+    prefetchedFirstPage = null;
+  }
+  list.setSort(sortKey, sortDirection);
   updateContext();
   updateSortDetail();
 }
@@ -330,11 +364,14 @@ export async function applySort(key, direction) {
 // Apply filters — triggers reload with new server-side params
 // =============================================================================
 
-let filterDebounce = null;
-
 export async function applyFilters() {
   clearTimeout(filterDebounce);
+  pendingSort?.controller.abort();
   filterDebounce = setTimeout(async () => {
+    if (pendingSort) {
+      await applySort(pendingSort.key, pendingSort.direction);
+      return;
+    }
     loadedCount = 0;
     if (list) {
       await list.reload();
@@ -501,14 +538,9 @@ export function createList() {
     updateInfo();
   });
 
-  // Sort event — server-side sorting via reload
-  list.on("column:sort", async ({ key, direction }) => {
-    await applySort(direction === null ? null : key, direction);
-
-    // Update the visual indicator on the header
-    if (list && list.setSort) {
-      list.setSort(sortKey, sortDirection);
-    }
+  // Sort event — server-side sorting
+  list.on("column:sort", ({ key, direction }) => {
+    return applySort(direction === null ? null : key, direction);
   });
 
   // Selection event — show detail panel

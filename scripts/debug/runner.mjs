@@ -179,6 +179,11 @@ export async function runBrowserSuite() {
       file: join(root, "scripts/debug/tests/tree-src-click.mjs"),
       args: [],
     },
+    {
+      name: "data-table-sort.mjs",
+      file: join(root, "scripts/debug/tests/data-table-sort.mjs"),
+      args: [],
+    },
   ];
 
   let passed = 0;
