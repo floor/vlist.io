@@ -35,7 +35,7 @@
       {
         "slug": "placeholders",
         "name": "Placeholders",
-        "desc": "Unloaded rows, skeleton styling, and a directional smear while scrolling fast"
+        "desc": "Unloaded rows, skeleton widths, and the styling that marks them"
       }
     ]
   },
