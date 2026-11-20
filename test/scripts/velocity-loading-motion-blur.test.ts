@@ -23,19 +23,23 @@ const scriptPath = "examples/velocity-loading/vanilla/script.js";
 const cssPath = "examples/velocity-loading/styles.css";
 const htmlPath = "examples/velocity-loading/vanilla/content.html";
 const docsPath = "docs/plugins/data.md";
+const tutorialPath = "tutorials/placeholders.md";
 
-test("the data plugin docs quote the example's directional blur", () => {
+test("the placeholders tutorial quotes the example's directional blur", () => {
   const docs = read(docsPath);
+  const tutorial = read(tutorialPath);
   const script = read(scriptPath);
   const css = read(cssPath);
   const html = read(htmlPath);
-  for (const source of [docs, script, css, html]) {
+  for (const source of [docs, tutorial, script, css, html]) {
     expect(source).not.toContain("blur(2px)");
   }
+  expect(docs).not.toContain("feGaussianBlur");
+  expect(docs).toContain("/tutorials/placeholders#motion-blur");
   expect(html).not.toContain("motion-mode");
   expect(css).not.toMatch(/\.vlist-item--replaced\s*\{/);
   expect(css).toContain("does not restyle .vlist-item--replaced");
-  const blocks = sectionFences(docs, "## Placeholders while scrolling fast");
+  const blocks = sectionFences(tutorial, "## Motion blur");
   expect(blocks).toHaveLength(4);
   const sources = [html, script, css];
   for (const block of blocks) {

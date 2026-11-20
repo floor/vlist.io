@@ -31,6 +31,11 @@
         "slug": "chat-interface",
         "name": "Chat Interface",
         "desc": "Create a messaging UI with reverse mode"
+      },
+      {
+        "slug": "placeholders",
+        "name": "Placeholders",
+        "desc": "Unloaded rows, skeleton styling, and a directional smear while scrolling fast"
       }
     ]
   },
