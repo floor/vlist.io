@@ -1,31 +1,130 @@
 # Placeholders
 
-> Unloaded rows stay visible while data is on its way, and a directional smear while the scroll is fast.
+> Unloaded rows stay on screen, in the same item template, until their data arrives.
 
-`data()` does not leave a hole when a row has not loaded. It renders a placeholder through the same item template, marked so you can style it, and fades the real row in when the item arrives.
+`data()` never leaves a hole. An index that has not loaded yet is still a row, and the same `item.template` runs. On the default list the core pipeline marks that row `.vlist-item--placeholder`, and fades it in when the item arrives.
 
-## When a row is a placeholder
+## What a placeholder is
 
-A placeholder is an item whose id starts with `__placeholder_`. The renderer adds `{classPrefix}-item--placeholder` (`.vlist-item--placeholder` with the default prefix). The first loaded batch is sampled, up to 20 items, and later placeholders cycle through those field lengths, so a skeleton is about as wide as the real text. Before any profile exists, the fallback label is twelve mask characters.
+A placeholder is an ordinary item with three extra fields:
 
-Two speeds decide whether a fetch runs:
+- `id` is `__placeholder_` plus the index (`__placeholder_4` for index 4).
+- `_isPlaceholder` is `true`.
+- `_index` is that same index.
 
-- Above `loading.cancelThreshold` (default `15` px/ms) `data()` skips the chunk fetch. Unloaded rows stay placeholders until the scroll slows or settles.
-- Between the preload threshold (default `2` px/ms) and the cancel threshold, it preloads ahead of the scroll direction.
+Before any real item has been sampled, the only content field is `label`, twelve mask characters. The mask character is `x`, so that label is `xxxxxxxxxxxx`.
 
-When a placeholder is replaced by a loaded item, the row gains `.vlist-item--replaced` for 300 ms. `vlist/styles` fades that class in (`vlist-fade-in`, 0.3s). Failed loads keep the placeholders too, and `reload()` keeps the last total so the list does not collapse while the new data arrives.
+```javascript
+import { createVList, data } from 'vlist'
+import 'vlist/styles'
+
+const list = createVList({
+  container: '#list',
+  item: {
+    height: 48,
+    template: (item) => `<div class="row">${item.name ?? item.label}</div>`,
+  },
+}, [
+  data({
+    total: 1000,
+    adapter: {
+      read: async ({ offset, limit }) => {
+        const items = Array.from({ length: limit }, (_, i) => ({
+          id: offset + i,
+          name: `Row ${offset + i}`,
+        }))
+        return { items, total: 1000 }
+      },
+    },
+  }),
+])
+```
+
+The template does not have to branch. Where the row has `.vlist-item--placeholder`, `vlist/styles` turns the text into a skeleton bar. Branch only when a placeholder must not run the real markup, for example a control or an image request.
+
+`isPlaceholderItem` is not exported from `vlist`. `vlist/internals` exports it and `filterPlaceholders`. The check is the `_isPlaceholder` flag.
+
+```javascript
+import { isPlaceholderItem } from 'vlist/internals'
+
+const template = (item) => isPlaceholderItem(item)
+  ? `<div class="row row--pending">${item.name ?? item.label}</div>`
+  : `<div class="row">${item.name}</div>`
+```
+
+The core pipeline and the table renderer add `.vlist-item--placeholder` when the id starts with `__placeholder_`.
+
+## Widths that match the data
+
+The first loaded batch is sampled once, up to 20 items. For each item, every field whose name does not start with `_` and is not `id` is recorded as a character length (`String(value ?? "").length`). Items with no such field are skipped. Later placeholders cycle through those profiles: index `N` uses profile `N % profiles.length`, and each field is the mask character repeated to that length (at least one character).
+
+`data()` always uses those defaults. `createPlaceholderManager` is exported from `vlist/internals` and, with no config, uses the mask character `x` and a sample of 20. `data()` does not pass a config, and neither field is an option of `data()`.
+
+`reload()` clears the sampled profiles. The next successful batch is sampled again.
 
 ## Styling
 
-Leaf text inside a placeholder is drawn as a skeleton: transparent type, a rounded bar, and a pulse. Heavier elements (headings, `strong`, `b`) use a stronger bar. Override `.vlist-item--placeholder` and `.vlist-item--replaced` in your own stylesheet. The replaced fade is the one shipped in `vlist/styles`; leave it in place if you add the smear below.
+Import `vlist/styles`. A placeholder row is at opacity 0.6 and pulses (`vlist-placeholder-pulse`, 2s, opacity 0.6 → 0.4 → 0.6).
+
+Leaf elements (an element with no element children) lose their text color and become a bar:
+
+- background `--vlist-placeholder-bg`
+- `border-radius: 4px`
+- `width: fit-content`, so the mask length sets the bar width
+- `line-height: 1.2` and `transform: scaleY(0.8)`
+
+`strong`, `b`, and `h1`–`h4`, when they are leaves, use `--vlist-placeholder-bg-strong` instead.
+
+Light defaults are `rgba(0, 0, 0, 0.2)` and `rgba(0, 0, 0, 0.24)`. Dark mode uses `rgba(255, 255, 255, 0.3)` and `rgba(255, 255, 255, 0.35)`, under `[data-theme-mode="dark"]`, under `.dark`, and under `prefers-color-scheme: dark` when the page has not set `data-theme-mode`.
+
+```css
+.vlist {
+  --vlist-placeholder-bg: rgba(0, 0, 0, 0.12);
+  --vlist-placeholder-bg-strong: rgba(0, 0, 0, 0.22);
+}
+```
+
+When the core pipeline replaces a placeholder with a loaded item, the row gains `.vlist-item--replaced` and `vlist/styles` runs `vlist-fade-in` (opacity 0.6 → 1, 0.3s). The class is removed after 300ms, so a longer animation is cut off. Override the animation to change the fade inside that window:
+
+```css
+.vlist-item--replaced {
+  animation: vlist-fade-in 0.15s ease-out;
+}
+```
+
+## Loading
+
+Velocity is in px/ms.
+
+- Above `loading.cancelThreshold` (default 15), `data()` does not fetch. The visible unloaded rows stay placeholders, and the fetch waits until the scroll slows.
+- Above `loading.preloadThreshold` (default 2) and at or under the cancel threshold, the visible range loads, and `loading.preloadAhead` items (default 50) are requested ahead of the scroll direction.
+
+A failed chunk stays placeholders. The list re-renders and schedules a retry; a later success replaces them. `reload()` drops the loaded pages and the sampled profiles, and it keeps the last total, so the rows stay placeholders for the whole list instead of collapsing. The total updates when the first new chunk arrives. If that reload fails, the placeholders remain.
+
+```javascript
+data({
+  adapter,
+  loading: {
+    cancelThreshold: 15,
+    preloadThreshold: 2,
+    preloadAhead: 50,
+  },
+})
+```
+
+## Tables, grids, and groups
+
+`grid()` replaces the core pipeline. A new cell is classed `.vlist-item.vlist-grid-item` and gets `data-index`, `data-id`, and a role (`listitem`, or `option` when the list is interactive). An interactive cell also gets an id, `aria-posinset`, and `aria-setsize`. Selection toggles `.vlist-item--selected` and `.vlist-item--focused` the same way as on a loaded cell. The template still runs for a placeholder item. The grid renderer never adds `.vlist-item--placeholder` or `.vlist-item--replaced`, so the skeleton bars and the fade do not apply.
+
+A table row is drawn by the table renderer, which adds `.vlist-item--placeholder` from the id prefix. Each cell's text is wrapped so it can be a bar, and a cell with no element gets a `.vlist-table-cell-skeleton` span at 60% of the cell width. Those bars use `--vlist-border` and the same pulse. `vlist/styles/table` hides nested children so only the outer bar shows. The replaced class is added for the same 300ms. `rowAttributes()` does not run on a placeholder row; it runs once when the item has loaded. A selection stored on the placeholder id moves to the real item id at that moment.
+
+With `groups()`, an unloaded gap has no group header. The groups renderer sets the row to `.vlist-item` and adds `.vlist-item--placeholder` when `_isPlaceholder` is true, so the skeleton bars apply. Headers appear when the gap fills and the boundaries are computed again.
+
+Placeholders use the row's existing role. A table placeholder row still gets `aria-rowindex`, set to the data index plus 2. Nothing in the placeholder path sets a separate busy state.
 
 ## Motion blur
 
-While the scroll is fast, the [velocity-loading example](/examples/velocity-loading) smears placeholder rows along the scroll axis: a one-axis gaussian, offset in the scroll direction, drawn at 0.7 alpha behind the row. The settle fade on `.vlist-item--replaced` is unchanged.
-
-`N` is `min(12, max(1.5, velocity * 0.28))`. The offset is `sign * min(22, max(4, velocity * 0.55))`, and `sign` follows the scroll direction. A vertical list (the default) uses `stdDeviation` `"0 N"`, `dy` equal to that offset and `dx` 0. A horizontal list uses `"N 0"`, `dx` equal to that offset and `dy` 0, and widens the filter region on x.
-
-Toggle `.vlist--fast` from `velocity:change` when the sample is reliable and velocity is above the same 15 px/ms threshold. Update the shift from the scroll delta, and skip the shift when the delta is 0.
+Optional. The [velocity-loading example](/examples/velocity-loading) smears placeholder rows along the scroll while velocity is above the cancel threshold. The settle fade on `.vlist-item--replaced` is unchanged. `N` is `min(12, max(1.5, velocity * 0.28))`. The offset is `sign * min(22, max(4, velocity * 0.55))`. Vertical lists use `stdDeviation` `"0 N"` and `dy`; horizontal lists use `"N 0"` and `dx`, and widen the filter on x.
 
 ```html
     <svg class="motion-defs" width="0" height="0" aria-hidden="true" focusable="false">
