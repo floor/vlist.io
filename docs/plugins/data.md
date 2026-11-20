@@ -80,21 +80,52 @@ interface VListAdapter<T> {
 
 When scroll velocity exceeds `loading.cancelThreshold` (default `15` px/ms), `data()` skips chunk fetches and renders unloaded rows as repeating placeholders marked with `.vlist-item--placeholder`. Once scrolling slows down or settles, the visible range loads and replaced rows receive `.vlist-item--replaced` (faded in by `vlist/styles`).
 
-To style placeholders differently during high-speed scroll (for example, adding motion blur), toggle a class on `list.element` from the `velocity:change` event:
+While the scroll is fast, blur those placeholders along the scroll axis. Toggle `.vlist--fast` from `velocity:change`, and set the spread `N` from the velocity. A vertical list (axis y, the default `orientation`) sets `stdDeviation` to `"0 N"`. A horizontal list (`orientation: "horizontal"`, axis x) sets it to `"N 0"`. The settle fade on `.vlist-item--replaced` is unchanged.
 
-```ts
-list.on("velocity:change", ({ velocity, reliable }) => {
-  list.element.classList.toggle("vlist--fast", reliable && velocity > 15);
-});
+```html
+    <svg class="motion-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="velocity-motion" x="-70%" y="-70%" width="240%" height="240%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="velocity-motion-blur" in="SourceGraphic" stdDeviation="0 4"></feGaussianBlur>
+        </filter>
+    </svg>
+```
+
+```js
+function motionStdDeviation(velocity, axis) {
+  const n = Math.min(12, Math.max(1.5, velocity * 0.28)).toFixed(1);
+  return axis === "x" ? `${n} 0` : `0 ${n}`;
+}
+
+function updateMotionBlur() {
+  if (!motionBlur || !list) return;
+  const axis = listConfig.orientation === "horizontal" ? "x" : "y";
+  motionBlur.setAttribute("stdDeviation", motionStdDeviation(currentVelocity, axis));
+}
+```
+
+```js
+    list.element.classList.toggle(
+      "vlist--fast",
+      reliable && velocity > LOAD_VELOCITY_THRESHOLD,
+    );
+    updateMotionBlur();
 ```
 
 ```css
+.motion-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
 .vlist .vlist-item--placeholder {
-  transition: filter 0.15s ease;
+    transition: filter 0.15s ease;
 }
 
 .vlist--fast .vlist-item--placeholder {
-  filter: blur(2px);
+    contain: none;
+    overflow: visible;
+    filter: url("#velocity-motion");
 }
 ```
 

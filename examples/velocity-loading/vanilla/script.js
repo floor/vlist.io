@@ -106,6 +106,29 @@ function updateContext() {
 // rows exceed the native element size limit: auto hands them to synthetic input.
 let list = null;
 
+const listConfig = {
+  container: "#list-container",
+  ariaLabel: "Virtual user list with velocity-based loading",
+  orientation: "vertical",
+  item: {
+    height: ITEM_HEIGHT,
+    template: itemTemplate,
+  },
+};
+
+const motionBlur = document.getElementById("velocity-motion-blur");
+
+function motionStdDeviation(velocity, axis) {
+  const n = Math.min(12, Math.max(1.5, velocity * 0.28)).toFixed(1);
+  return axis === "x" ? `${n} 0` : `0 ${n}`;
+}
+
+function updateMotionBlur() {
+  if (!motionBlur || !list) return;
+  const axis = listConfig.orientation === "horizontal" ? "x" : "y";
+  motionBlur.setAttribute("stdDeviation", motionStdDeviation(currentVelocity, axis));
+}
+
 // Build list — snapshots({ autoSave }) handles save/restore automatically.
 // On first visit, autoLoad fetches data. On return visits, the snapshot provides
 // the total and scroll position, and autoLoad is cancelled automatically.
@@ -119,14 +142,7 @@ function createList() {
   }
 
   list = createVList(
-    {
-      container: "#list-container",
-      ariaLabel: "Virtual user list with velocity-based loading",
-      item: {
-        height: ITEM_HEIGHT,
-        template: itemTemplate,
-      },
-    },
+    listConfig,
     [
       selection({ mode: "single" }),
       dataPlugin({
@@ -168,6 +184,7 @@ function createList() {
       "vlist--fast",
       reliable && velocity > LOAD_VELOCITY_THRESHOLD,
     );
+    updateMotionBlur();
     stats.onVelocity(velocity);
     updateInfo();
     updateControls();
