@@ -2,7 +2,7 @@
 
 > Unloaded rows stay on screen, in the same item template, until their data arrives.
 
-`data()` never leaves a hole. An index that has not loaded yet is still a row: the same `item.template` runs, the row is marked `.vlist-item--placeholder`, and when the item arrives the row fades in.
+`data()` never leaves a hole. An index that has not loaded yet is still a row, and the same `item.template` runs. On the default list the core pipeline marks that row `.vlist-item--placeholder`, and fades it in when the item arrives.
 
 ## What a placeholder is
 
@@ -40,9 +40,9 @@ const list = createVList({
 ])
 ```
 
-The template does not have to branch. `vlist/styles` turns the text into a skeleton bar. Branch only when a placeholder must not run the real markup, for example a control or an image request.
+The template does not have to branch. Where the row has `.vlist-item--placeholder`, `vlist/styles` turns the text into a skeleton bar. Branch only when a placeholder must not run the real markup, for example a control or an image request.
 
-`isPlaceholderItem` is not exported from `vlist`. It is on `vlist/internals`, with `filterPlaceholders` and `countRealItems`. The check is the `_isPlaceholder` flag.
+`isPlaceholderItem` is not exported from `vlist`. `vlist/internals` exports it and `filterPlaceholders`. The check is the `_isPlaceholder` flag.
 
 ```javascript
 import { isPlaceholderItem } from 'vlist/internals'
@@ -52,13 +52,13 @@ const template = (item) => isPlaceholderItem(item)
   : `<div class="row">${item.name}</div>`
 ```
 
-An id that starts with `__placeholder_` is the same test the renderer uses when it adds the class.
+The core pipeline and the table renderer add `.vlist-item--placeholder` when the id starts with `__placeholder_`.
 
 ## Widths that match the data
 
 The first loaded batch is sampled once, up to 20 items. For each item, every field whose name does not start with `_` and is not `id` is recorded as a character length (`String(value ?? "").length`). Items with no such field are skipped. Later placeholders cycle through those profiles: index `N` uses profile `N % profiles.length`, and each field is the mask character repeated to that length (at least one character).
 
-`data()` always uses those defaults. The mask character (`x`) and the sample size (20) are `PlaceholderConfig` on the placeholder manager (`createPlaceholderManager` in `vlist/internals`). They are not options of `data()`.
+`data()` always uses those defaults. `createPlaceholderManager` is exported from `vlist/internals` and, with no config, uses the mask character `x` and a sample of 20. `data()` does not pass a config, and neither field is an option of `data()`.
 
 `reload()` clears the sampled profiles. The next successful batch is sampled again.
 
@@ -84,7 +84,7 @@ Light defaults are `rgba(0, 0, 0, 0.2)` and `rgba(0, 0, 0, 0.24)`. Dark mode use
 }
 ```
 
-When a placeholder is replaced by a loaded item, the row gains `.vlist-item--replaced` and `vlist/styles` runs `vlist-fade-in` (opacity 0.6 → 1, 0.3s). The class is removed after 300ms, so a longer animation is cut off. Override the animation to change the fade inside that window:
+When the core pipeline replaces a placeholder with a loaded item, the row gains `.vlist-item--replaced` and `vlist/styles` runs `vlist-fade-in` (opacity 0.6 → 1, 0.3s). The class is removed after 300ms, so a longer animation is cut off. Override the animation to change the fade inside that window:
 
 ```css
 .vlist-item--replaced {
@@ -114,11 +114,11 @@ data({
 
 ## Tables, grids, and groups
 
-A grid row is a core row. The same `.vlist-item--placeholder` class and the same skeleton bars apply.
+`grid()` replaces the core pipeline. A new cell is classed `.vlist-item.vlist-grid-item` and gets `data-index`, `data-id`, and a role (`listitem`, or `option` when the list is interactive). An interactive cell also gets an id, `aria-posinset`, and `aria-setsize`. Selection toggles `.vlist-item--selected` and `.vlist-item--focused` the same way as on a loaded cell. The template still runs for a placeholder item. The grid renderer never adds `.vlist-item--placeholder` or `.vlist-item--replaced`, so the skeleton bars and the fade do not apply.
 
-A table row is drawn by the table renderer. The placeholder class is still added. Each cell's text is wrapped so it can be a bar, and a cell with no element gets a `.vlist-table-cell-skeleton` span at 60% of the cell width. Those bars use `--vlist-border` and the same pulse. `vlist/styles/table` hides nested children so only the outer bar shows. The replaced class is added for the same 300ms. `rowAttributes()` does not run on a placeholder row; it runs once when the item has loaded. A selection stored on the placeholder id moves to the real item id at that moment.
+A table row is drawn by the table renderer, which adds `.vlist-item--placeholder` from the id prefix. Each cell's text is wrapped so it can be a bar, and a cell with no element gets a `.vlist-table-cell-skeleton` span at 60% of the cell width. Those bars use `--vlist-border` and the same pulse. `vlist/styles/table` hides nested children so only the outer bar shows. The replaced class is added for the same 300ms. `rowAttributes()` does not run on a placeholder row; it runs once when the item has loaded. A selection stored on the placeholder id moves to the real item id at that moment.
 
-With `groups()`, an unloaded gap has no group header. Those rows render as ordinary placeholders. Headers appear when the gap fills and the boundaries are computed again.
+With `groups()`, an unloaded gap has no group header. The groups renderer sets the row to `.vlist-item` and adds `.vlist-item--placeholder` when `_isPlaceholder` is true, so the skeleton bars apply. Headers appear when the gap fills and the boundaries are computed again.
 
 Placeholders use the row's existing role. A table placeholder row still gets `aria-rowindex`, set to the data index plus 2. Nothing in the placeholder path sets a separate busy state.
 
