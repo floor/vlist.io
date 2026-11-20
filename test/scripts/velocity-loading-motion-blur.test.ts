@@ -43,23 +43,40 @@ test("the data plugin docs quote the example's directional blur", () => {
   }
 });
 
-test("motion blur stdDeviation follows the scroll axis and the velocity", () => {
-  const script = read(scriptPath);
-  const match = script.match(
-    /function motionStdDeviation\(velocity, axis\) \{\n[\s\S]*?\n\}/,
-  );
+function loadFunction(script: string, name: string): (...args: number[]) => number {
+  const match = script.match(new RegExp(`function ${name}\\([^)]*\\) \\{\\n[\\s\\S]*?\\n\\}`));
   expect(match).not.toBeNull();
-  const motionStdDeviation = new Function(
-    `${match![0]}\nreturn motionStdDeviation;`,
-  )() as (velocity: number, axis: string) => string;
+  return new Function(`${match![0]}\nreturn ${name};`)() as (...args: number[]) => number;
+}
 
-  expect(motionStdDeviation(15, "y")).toBe("0 4.2");
-  expect(motionStdDeviation(15, "x")).toBe("4.2 0");
-  expect(motionStdDeviation(0, "y")).toBe("0 1.5");
-  expect(motionStdDeviation(100, "x")).toBe("12.0 0");
-  expect(motionStdDeviation(100, "y")).toBe("0 12.0");
-  expect(script).toContain(
-    'const axis = listConfig.orientation === "horizontal" ? "x" : "y";',
-  );
+test("the smear uses the trial spread and shift, on the scroll axis", () => {
+  const script = read(scriptPath);
+  const html = read(htmlPath);
+  const motionSpread = loadFunction(script, "motionSpread");
+  const motionShiftAmount = loadFunction(script, "motionShiftAmount");
+
+  expect(motionSpread(15).toFixed(1)).toBe("4.2");
+  expect(motionSpread(0).toFixed(1)).toBe("1.5");
+  expect(motionSpread(100).toFixed(1)).toBe("12.0");
+  expect(motionShiftAmount(20, 1).toFixed(1)).toBe("11.0");
+  expect(motionShiftAmount(20, -1).toFixed(1)).toBe("-11.0");
+  expect(motionShiftAmount(0, 1).toFixed(1)).toBe("4.0");
+  expect(motionShiftAmount(100, 1).toFixed(1)).toBe("22.0");
+
+  expect(script).toContain('axis === "x" ? `${n} 0` : `0 ${n}`');
+  expect(script).toContain('motionShift.setAttribute("dy", shift)');
+  expect(script).toContain('motionShift.setAttribute("dx", "0")');
+  expect(script).toContain('motionShift.setAttribute("dx", shift)');
+  expect(script).toContain('motionShift.setAttribute("dy", "0")');
+  expect(script).toContain('motionFilter.setAttribute("x", "-70%")');
+  expect(script).toContain('motionFilter.setAttribute("width", "240%")');
   expect(script).toContain('orientation: "vertical"');
+
+  const filter = html.slice(html.indexOf("<filter"), html.indexOf("</filter>"));
+  expect(filter).toContain('x="-8%" y="-70%" width="116%" height="240%"');
+  expect(filter).toContain('slope="0.7"');
+  expect(filter.indexOf("feGaussianBlur")).toBeLessThan(filter.indexOf("feOffset"));
+  expect(filter.indexOf("feOffset")).toBeLessThan(filter.indexOf("feComponentTransfer"));
+  expect(filter.indexOf("feComponentTransfer")).toBeLessThan(filter.indexOf("feMerge"));
+  expect(filter.indexOf('in="trail"')).toBeLessThan(filter.lastIndexOf('in="SourceGraphic"'));
 });

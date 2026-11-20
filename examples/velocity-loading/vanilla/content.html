@@ -1,7 +1,15 @@
 <div class="container">
     <svg class="motion-defs" width="0" height="0" aria-hidden="true" focusable="false">
-        <filter id="velocity-motion" x="-70%" y="-70%" width="240%" height="240%" color-interpolation-filters="sRGB">
-            <feGaussianBlur id="velocity-motion-blur" in="SourceGraphic" stdDeviation="0 4"></feGaussianBlur>
+        <filter id="velocity-motion" x="-8%" y="-70%" width="116%" height="240%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="velocity-motion-blur" in="SourceGraphic" stdDeviation="0 4" result="smear"></feGaussianBlur>
+            <feOffset id="velocity-motion-shift" in="smear" dx="0" dy="8" result="shifted"></feOffset>
+            <feComponentTransfer in="shifted" result="trail">
+                <feFuncA type="linear" slope="0.7"></feFuncA>
+            </feComponentTransfer>
+            <feMerge>
+                <feMergeNode in="trail"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
         </filter>
     </svg>
     <header>
@@ -10,7 +18,7 @@
             Pure vanilla JavaScript. Smart data loading that skips fetching when
             scrolling fast (&gt;15 px/ms) and loads immediately when velocity
             drops. Handling 1,000,000 items with adaptive loading. Placeholders
-            blur along the scroll axis while the scroll is fast, then fade in
+            smear along the scroll axis while the scroll is fast, then fade in
             as they load.
         </p>
     </header>
