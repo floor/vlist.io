@@ -80,21 +80,93 @@ interface VListAdapter<T> {
 
 When scroll velocity exceeds `loading.cancelThreshold` (default `15` px/ms), `data()` skips chunk fetches and renders unloaded rows as repeating placeholders marked with `.vlist-item--placeholder`. Once scrolling slows down or settles, the visible range loads and replaced rows receive `.vlist-item--replaced` (faded in by `vlist/styles`).
 
-To style placeholders differently during high-speed scroll (for example, adding motion blur), toggle a class on `list.element` from the `velocity:change` event:
+While the scroll is fast, placeholders take a directional smear: a one-axis gaussian, offset along the scroll, dimmed to 0.7, and drawn behind the row. Toggle `.vlist--fast` from `velocity:change`. `N` is `min(12, max(1.5, velocity * 0.28))`. The offset is `sign * min(22, max(4, velocity * 0.55))`, and `sign` follows the scroll direction. A vertical list (axis y, the default `orientation`) uses `stdDeviation` `"0 N"`, `dy` equal to that offset and `dx` 0, with the filter region below. A horizontal list (`orientation: "horizontal"`, axis x) uses `"N 0"`, `dx` equal to that offset and `dy` 0, and widens the region on x (`x="-70%"`, `width="240%"`). The settle fade on `.vlist-item--replaced` is unchanged.
 
-```ts
-list.on("velocity:change", ({ velocity, reliable }) => {
-  list.element.classList.toggle("vlist--fast", reliable && velocity > 15);
-});
+```html
+    <svg class="motion-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="velocity-motion" x="-8%" y="-70%" width="116%" height="240%" color-interpolation-filters="sRGB">
+            <feGaussianBlur id="velocity-motion-blur" in="SourceGraphic" stdDeviation="0 4" result="smear"></feGaussianBlur>
+            <feOffset id="velocity-motion-shift" in="smear" dx="0" dy="8" result="shifted"></feOffset>
+            <feComponentTransfer in="shifted" result="trail">
+                <feFuncA type="linear" slope="0.7"></feFuncA>
+            </feComponentTransfer>
+            <feMerge>
+                <feMergeNode in="trail"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+    </svg>
+```
+
+```js
+function motionSpread(velocity) {
+  return Math.min(12, Math.max(1.5, velocity * 0.28));
+}
+
+function motionShiftAmount(velocity, direction) {
+  const sign = direction > 0 ? 1 : -1;
+  return sign * Math.min(22, Math.max(4, velocity * 0.55));
+}
+
+function updateTrailSpread() {
+  if (!motionBlur || !list) return;
+  const n = motionSpread(currentVelocity).toFixed(1);
+  const axis = listConfig.orientation === "horizontal" ? "x" : "y";
+  motionBlur.setAttribute("stdDeviation", axis === "x" ? `${n} 0` : `0 ${n}`);
+  if (!motionFilter) return;
+  if (axis === "x") {
+    motionFilter.setAttribute("x", "-70%");
+    motionFilter.setAttribute("y", "-8%");
+    motionFilter.setAttribute("width", "240%");
+    motionFilter.setAttribute("height", "116%");
+  } else {
+    motionFilter.setAttribute("x", "-8%");
+    motionFilter.setAttribute("y", "-70%");
+    motionFilter.setAttribute("width", "116%");
+    motionFilter.setAttribute("height", "240%");
+  }
+}
+
+function updateTrailShift(direction) {
+  if (!motionShift || !list || direction === 0) return;
+  const shift = motionShiftAmount(currentVelocity, direction).toFixed(1);
+  const axis = listConfig.orientation === "horizontal" ? "x" : "y";
+  if (axis === "x") {
+    motionShift.setAttribute("dx", shift);
+    motionShift.setAttribute("dy", "0");
+  } else {
+    motionShift.setAttribute("dx", "0");
+    motionShift.setAttribute("dy", shift);
+  }
+}
+```
+
+```js
+    list.element.classList.toggle(
+      "vlist--fast",
+      reliable && velocity > LOAD_VELOCITY_THRESHOLD,
+    );
+    updateTrailSpread();
 ```
 
 ```css
+.motion-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
 .vlist .vlist-item--placeholder {
-  transition: filter 0.15s ease;
+    transition: filter 0.15s ease;
 }
 
 .vlist--fast .vlist-item--placeholder {
-  filter: blur(2px);
+    contain: none;
+    overflow: visible;
+    z-index: 2;
+    background-color: transparent;
+    filter: url("#velocity-motion");
+    animation: none;
 }
 ```
 

@@ -106,6 +106,62 @@ function updateContext() {
 // rows exceed the native element size limit: auto hands them to synthetic input.
 let list = null;
 
+const listConfig = {
+  container: "#list-container",
+  ariaLabel: "Virtual user list with velocity-based loading",
+  orientation: "vertical",
+  item: {
+    height: ITEM_HEIGHT,
+    template: itemTemplate,
+  },
+};
+
+const motionBlur = document.getElementById("velocity-motion-blur");
+const motionShift = document.getElementById("velocity-motion-shift");
+const motionFilter = document.getElementById("velocity-motion");
+let lastScroll = 0;
+
+function motionSpread(velocity) {
+  return Math.min(12, Math.max(1.5, velocity * 0.28));
+}
+
+function motionShiftAmount(velocity, direction) {
+  const sign = direction > 0 ? 1 : -1;
+  return sign * Math.min(22, Math.max(4, velocity * 0.55));
+}
+
+function updateTrailSpread() {
+  if (!motionBlur || !list) return;
+  const n = motionSpread(currentVelocity).toFixed(1);
+  const axis = listConfig.orientation === "horizontal" ? "x" : "y";
+  motionBlur.setAttribute("stdDeviation", axis === "x" ? `${n} 0` : `0 ${n}`);
+  if (!motionFilter) return;
+  if (axis === "x") {
+    motionFilter.setAttribute("x", "-70%");
+    motionFilter.setAttribute("y", "-8%");
+    motionFilter.setAttribute("width", "240%");
+    motionFilter.setAttribute("height", "116%");
+  } else {
+    motionFilter.setAttribute("x", "-8%");
+    motionFilter.setAttribute("y", "-70%");
+    motionFilter.setAttribute("width", "116%");
+    motionFilter.setAttribute("height", "240%");
+  }
+}
+
+function updateTrailShift(direction) {
+  if (!motionShift || !list || direction === 0) return;
+  const shift = motionShiftAmount(currentVelocity, direction).toFixed(1);
+  const axis = listConfig.orientation === "horizontal" ? "x" : "y";
+  if (axis === "x") {
+    motionShift.setAttribute("dx", shift);
+    motionShift.setAttribute("dy", "0");
+  } else {
+    motionShift.setAttribute("dx", "0");
+    motionShift.setAttribute("dy", shift);
+  }
+}
+
 // Build list — snapshots({ autoSave }) handles save/restore automatically.
 // On first visit, autoLoad fetches data. On return visits, the snapshot provides
 // the total and scroll position, and autoLoad is cancelled automatically.
@@ -119,14 +175,7 @@ function createList() {
   }
 
   list = createVList(
-    {
-      container: "#list-container",
-      ariaLabel: "Virtual user list with velocity-based loading",
-      item: {
-        height: ITEM_HEIGHT,
-        template: itemTemplate,
-      },
-    },
+    listConfig,
     [
       selection({ mode: "single" }),
       dataPlugin({
@@ -154,7 +203,12 @@ function createList() {
     ],
   );
 
+  lastScroll = list.getScrollPosition();
   list.on("scroll", () => {
+    const position = list.getScrollPosition();
+    const delta = position - lastScroll;
+    lastScroll = position;
+    if (delta !== 0) updateTrailShift(delta);
     updateInfo();
   });
 
@@ -168,6 +222,7 @@ function createList() {
       "vlist--fast",
       reliable && velocity > LOAD_VELOCITY_THRESHOLD,
     );
+    updateTrailSpread();
     stats.onVelocity(velocity);
     updateInfo();
     updateControls();
