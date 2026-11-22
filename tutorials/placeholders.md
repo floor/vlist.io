@@ -112,9 +112,11 @@ data({
 })
 ```
 
-## Tables, grids, and groups
+## Tables, grids, masonry, and groups
 
-`grid()` replaces the core pipeline. A new cell is classed `.vlist-item.vlist-grid-item` and gets `data-index`, `data-id`, and a role (`listitem`, or `option` when the list is interactive). An interactive cell also gets an id, `aria-posinset`, and `aria-setsize`. Selection toggles `.vlist-item--selected` and `.vlist-item--focused` the same way as on a loaded cell. The template still runs for a placeholder item. The grid renderer never adds `.vlist-item--placeholder` or `.vlist-item--replaced`, so the skeleton bars and the fade do not apply.
+`grid()` replaces the core pipeline. A new cell is classed `.vlist-item.vlist-grid-item` and gets `data-index`, `data-id`, and a role (`listitem`, or `option` when the list is interactive). An interactive cell also gets an id, `aria-posinset`, and `aria-setsize`. Selection toggles `.vlist-item--selected` and `.vlist-item--focused` the same way as on a loaded cell. The template still runs for a placeholder item. Since vlist 3.8.8 the grid renderer adds `.vlist-item--placeholder` when the id starts with `__placeholder_`. When that id is replaced by a real item, it removes the placeholder class and adds `.vlist-item--replaced` for the fade. The replaced class is removed after 300ms.
+
+`masonry()` draws its own cells. A cell is classed `.vlist-item.vlist-masonry-item`. A group header is `.vlist-group-header` and is not marked as a placeholder. Since vlist 3.8.8 a cell whose id starts with `__placeholder_` gets `.vlist-item--placeholder`. When that id is replaced by a real item, the placeholder class is removed and `.vlist-item--replaced` is added for the same 300ms fade.
 
 A table row is drawn by the table renderer, which adds `.vlist-item--placeholder` from the id prefix. Each cell's text is wrapped so it can be a bar, and a cell with no element gets a `.vlist-table-cell-skeleton` span at 60% of the cell width. Those bars use `--vlist-border` and the same pulse. `vlist/styles/table` hides nested children so only the outer bar shows. The replaced class is added for the same 300ms. `rowAttributes()` does not run on a placeholder row; it runs once when the item has loaded. A selection stored on the placeholder id moves to the real item id at that moment.
 
