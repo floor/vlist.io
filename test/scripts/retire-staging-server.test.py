@@ -670,6 +670,34 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
                 self.assertEqual(before, digest(self.root))
                 self.assertEqual(self.commands(), [])
 
+    def test_non_ascii_pm2_numbers_are_refused(self):
+        # str.isdigit() also accepts Arabic-Indic and superscript digits, which
+        # PM2 never prints; such a table is not one this script can trust.
+        cases = ((2, "id", "\u0661"), (2, "id", "\u00b2"), (0, "restarts", "\u0663"))
+        for index, (row, column, value) in enumerate(cases):
+            with self.subTest(column=column, value=value.encode("unicode_escape").decode()):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["processes"][row][column] = value
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("PM2 inventory refused", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_non_ascii_listener_port_is_unsupported(self):
+        self.vhost.write_text(self.original.replace("listen 80;", "listen \u0668\u0660;"))
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("unsupported staging listener", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--fake":
