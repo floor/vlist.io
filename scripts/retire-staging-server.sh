@@ -12,9 +12,11 @@
 # STAGING_PARENT (ecosystem search root), or explicit STAGING_ECOSYSTEM.
 # staging.vlist.io has no DNS record and this script does not create one.
 # The Cloudflare edge check runs only when that name resolves. A lookup that
-# returns no address prints a skip line and continues. The origin check stays
-# mandatory. Production is the version.json read at the start (released true);
-# every later read must still be that same version.
+# fails because the name does not exist (EAI_NONAME, or EAI_NODATA where that
+# code exists) prints a skip line and continues. Any other lookup error stops
+# the run before changes. The origin check stays mandatory. Production is the
+# version.json read at the start: released true, and a semver once surrounding
+# whitespace is removed. Every later read must still be that same version.
 set -euo pipefail
 umask 077
 
@@ -38,6 +40,7 @@ vhost='' backup='' ecosystem='' rows=''
 rollback_ready=false
 changed=false
 expected_version=''
+dns_absent=false
 
 rollback_commands() {
   [[ "$rollback_ready" == true && -f "$backup" && -n "$vhost" && -n "$ecosystem" ]] || return 0
@@ -305,7 +308,8 @@ port_listening() {
 version_ok() {
   local body version status=0
   body=$("$CURL_BIN" -fsS --connect-timeout 5 --max-time 15 https://vlist.io/dist/version.json 2>/dev/null) || die 'production version request failed'
-  version=$(printf '%s' "$body" | "$PYTHON_BIN" -c 'import json,sys
+  version=$(printf '%s' "$body" | "$PYTHON_BIN" -c 'import json, re, sys
+pattern = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
 try:
     data = json.load(sys.stdin)
 except Exception:
@@ -313,13 +317,19 @@ except Exception:
 if data.get("released") is not True:
     raise SystemExit(3)
 version = data.get("version")
-if not isinstance(version, str) or version == "":
+if not isinstance(version, str):
     raise SystemExit(4)
+version = version.strip()
+if version == "":
+    raise SystemExit(4)
+if pattern.fullmatch(version) is None:
+    raise SystemExit(5)
 sys.stdout.write(version)
 ') || status=$?
   if [[ "$status" -eq 3 ]]; then die 'production release is not marked released'; fi
   if [[ "$status" -eq 4 ]]; then die 'production version is empty'; fi
-  if [[ "$status" -ne 0 ]]; then die 'invalid production version response'; fi
+  if [[ "$status" -eq 5 ]]; then die 'production version is not semver'; fi
+  if [[ "$status" -ne 0 || -z "$version" ]]; then die 'invalid production version response'; fi
   if [[ -z "$expected_version" ]]; then
     expected_version=$version
     echo "production version: $version"
@@ -336,25 +346,29 @@ redirect_ok() {
   [[ "$status" == 301 && "$location" == https://vlist.io/some/path ]] || die "$label redirect failed (expected 301 to https://vlist.io/some/path)"
   echo "$label redirect: 301 https://vlist.io/some/path"
 }
-staging_has_record() {
+classify_dns() {
   local status=0
   "$PYTHON_BIN" -c 'import socket, sys
 host = sys.argv[1]
+missing = {socket.EAI_NONAME}
+nodata = getattr(socket, "EAI_NODATA", None)
+if nodata is not None:
+    missing.add(nodata)
 try:
     found = socket.getaddrinfo(host, 443)
-except socket.gaierror:
-    raise SystemExit(2)
-raise SystemExit(0 if found else 2)
+except socket.gaierror as exc:
+    raise SystemExit(2 if exc.errno in missing else 1)
+raise SystemExit(0 if found else 1)
 ' "$host" || status=$?
-  if [[ "$status" -eq 0 ]]; then return 0; fi
-  if [[ "$status" -eq 2 ]]; then return 1; fi
+  if [[ "$status" -eq 0 ]]; then dns_absent=false; return 0; fi
+  if [[ "$status" -eq 2 ]]; then dns_absent=true; return 0; fi
   die 'DNS lookup failed'
 }
 cloudflare_redirect_ok() {
-  if staging_has_record; then
-    redirect_ok Cloudflare
-  else
+  if [[ "$dns_absent" == true ]]; then
     echo 'Cloudflare: no DNS record for staging.vlist.io, skipped'
+  else
+    redirect_ok Cloudflare
   fi
 }
 
@@ -401,6 +415,7 @@ echo "port 3339: $port3339"
 [[ "$port3338" == listening ]] || die 'production port 3338 is not listening'
 [[ "$staging_count" != 0 || "$port3339" == free ]] || die 'port 3339 is busy despite recorded retirement; owner inventory required'
 version_ok
+classify_dns
 echo 'No DNS record is created for staging.vlist.io. The Cloudflare check runs only when that name resolves.'
 echo 'Cloudflare may serve cached staging pages until the zone is purged; the next vlist.io deploy purges everything.'
 if [[ -z "$backup" ]]; then
@@ -456,10 +471,12 @@ redirect_ok origin --resolve "$host:443:127.0.0.1"
 cloudflare_redirect_ok
 
 # (b) Read-only inventory precedes changes; no PM2 mutation precedes both 301s
-# or a production version that moved during the run.
+# or a production version that moved during the run. The version request can
+# change the process table, so refresh and re-check immediately before stop,
+# delete, and save.
+version_ok
 assert_production
 assert_staging "$staging_id"
-version_ok
 if [[ "$staging_count" == 0 ]]; then
   echo 'already done: pm2 staging entry absent; production unchanged'
 else
