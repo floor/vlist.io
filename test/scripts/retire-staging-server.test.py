@@ -83,7 +83,13 @@ def fake(kind, args):
     elif kind == "dns-run":
         import socket
         source, host = args[0], args[1]
-        if "dns_lookup" in state:
+        counter = Path(os.environ["FAKE_LOG"]).with_name("dns-reads")
+        lookups = (int(counter.read_text()) if counter.exists() else 0) + 1
+        counter.write_text(str(lookups))
+        if "dns_sequence" in state:
+            # Lookup n answers with entry n; the last entry repeats.
+            mode = state["dns_sequence"][min(lookups, len(state["dns_sequence"])) - 1]
+        elif "dns_lookup" in state:
             mode = state["dns_lookup"]
         elif state.get("dns_record", True):
             mode = "record"
@@ -609,6 +615,60 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         self.assertNotIn(["pm2", "stop", HOST], self.commands())
         self.assertNotIn(["pm2", "delete", HOST], self.commands())
         self.assertNotIn(["pm2", "save"], self.commands())
+
+    def dns_lookups(self):
+        counter = self.log.with_name("dns-reads")
+        return int(counter.read_text()) if counter.exists() else 0
+
+    def test_dns_record_added_after_first_lookup_needs_edge_301(self):
+        # Absent at the pre-change lookup, resolving once nginx has reloaded:
+        # the edge check must look again and refuse PM2 without an edge 301.
+        self.state["dns_sequence"] = ["noname", "record"]
+        self.state["edge_ok"] = False
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("Cloudflare redirect failed", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
+        self.assertEqual(self.dns_lookups(), 2)
+        self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
+        print("PM2 MUTATIONS after DNS appeared: " + json.dumps([c for c in self.commands() if c[0] == "pm2"]), flush=True)
+
+    def test_dns_record_added_after_first_lookup_checks_edge(self):
+        self.state["dns_sequence"] = ["noname", "record"]
+        self.save()
+        p = self.run_script("--apply")
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare redirect: 301 https://vlist.io/some/path", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
+        self.assertIn("pm2: stopped/deleted only staging.vlist.io", p.stdout)
+
+    def test_dns_lookup_error_at_edge_check_stops_before_pm2(self):
+        self.state["dns_sequence"] = ["noname", "again"]
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("DNS lookup failed", p.stdout)
+        self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
+
+    def test_non_ascii_digit_version_stops_before_changes(self):
+        # Python's \d matches every Unicode decimal digit; SemVer is ASCII.
+        versions = ("\u0663.\u0668.\u0661\u0662", "\uff13.\uff18.\uff11\uff12",
+                    "3.8.1\u0662", "3.8.12-\u0661a")
+        for index, version in enumerate(versions):
+            with self.subTest(version=version.encode("unicode_escape").decode()):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["version"] = version
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("production version is not semver", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
 
 
 if __name__ == "__main__":
