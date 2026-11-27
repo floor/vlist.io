@@ -65,6 +65,11 @@ def fake(kind, args):
                 version = state["next_version"]
             if count > 1 and "next_released" in state:
                 released = state["next_released"]
+            if count == state.get("swap_staging_id_on_read"):
+                for proc in state["processes"]:
+                    if proc["name"] == HOST:
+                        proc["id"] = int(proc["id"]) + 50
+                state_path.write_text(json.dumps(state))
             print(json.dumps({"version": version, "released": released}))
         else:
             if args[-1] != "https://staging.vlist.io/some/path": raise AssertionError(args)
@@ -75,8 +80,37 @@ def fake(kind, args):
             ok = state["reloaded"] and state["origin_ok" if origin else "edge_ok"]
             print(f"HTTP/2 {301 if ok else 200}\r")
             print("location: https://vlist.io/some/path\r\n")
-    elif kind == "dns":
-        return 0 if state.get("dns_record", True) else 2
+    elif kind == "dns-run":
+        import socket
+        source, host = args[0], args[1]
+        if "dns_lookup" in state:
+            mode = state["dns_lookup"]
+        elif state.get("dns_record", True):
+            mode = "record"
+        else:
+            mode = "noname"
+
+        def getaddrinfo(hostname, port, *a, **k):
+            if mode == "record":
+                return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("203.0.113.1", port or 0))]
+            if mode == "noname":
+                raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
+            if mode == "nodata":
+                raise socket.gaierror(socket.EAI_NODATA, "No address associated with hostname")
+            if mode == "again":
+                raise socket.gaierror(socket.EAI_AGAIN, "Temporary failure in name resolution")
+            if mode == "empty":
+                return []
+            raise AssertionError(mode)
+
+        socket.getaddrinfo = getaddrinfo
+        sys.argv = ["dns", host]
+        try:
+            exec(compile(source, "<dns>", "exec"), {"__name__": "__main__"})
+        except SystemExit as exc:
+            code = 0 if exc.code is None else exc.code
+            return int(code)
+        return 0
     elif kind == "ss":
         if args not in (["-ltn", "sport = :3338"], ["-ltn", "sport = :3339"]): raise AssertionError(args)
         if not state.get("ss_ok", True): return 0
@@ -176,7 +210,7 @@ fake_curl() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake curl "$@"; }
 fake_ss() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake ss "$@"; }
 fake_python() {
   if [[ "${1-}" == -c && "${2-}" == *getaddrinfo* ]]; then
-    "$FAKE_PYTHON" "$FAKE_DRIVER" --fake dns "${3-}"
+    "$FAKE_PYTHON" "$FAKE_DRIVER" --fake dns-run "$2" "${3-}"
     return $?
   fi
   "$FAKE_PYTHON" "$@"
@@ -501,6 +535,80 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         state = json.loads((self.root / "state.json").read_text())
         self.assertNotIn(HOST, [row["name"] for row in state["processes"]])
         self.assertEqual(state["saves"], 1)
+
+    def test_transient_dns_error_stops_before_changes(self):
+        for index, mode in enumerate(("again", "empty")):
+            with self.subTest(mode=mode):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["dns_lookup"] = mode
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("DNS lookup failed", p.stdout)
+                self.assertNotIn("Cloudflare: no DNS record", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_nodata_skips_cloudflare_and_retires_pm2(self):
+        self.state["dns_lookup"] = "nodata"
+        self.state["edge_ok"] = False
+        self.save()
+        p = self.run_script("--apply")
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare: no DNS record for staging.vlist.io, skipped", p.stdout)
+        self.assertIn("pm2: stopped/deleted only staging.vlist.io", p.stdout)
+
+    def test_blank_version_does_not_become_baseline(self):
+        self.state["version"] = "\n"
+        self.state["next_version"] = "3.8.12"
+        self.save()
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("production version is empty", p.stdout)
+        self.assertNotIn("production version: 3.8.12", p.stdout)
+        self.assertIn("nothing was changed", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
+    def test_non_semver_stops_before_changes(self):
+        for index, version in enumerate(("3.8", "v3.8.12")):
+            with self.subTest(version=version):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["version"] = version
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("production version is not semver", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_surrounding_whitespace_semver_is_accepted(self):
+        self.state["version"] = " 3.8.12\n"
+        self.save()
+        p = self.run_script()
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("production version: 3.8.12", p.stdout)
+        self.assertNotIn("production version:  3.8.12", p.stdout)
+        self.assertEqual(self.commands(), [])
+
+    def test_staging_id_swap_during_version_read_stops_before_pm2(self):
+        self.state["swap_staging_id_on_read"] = 2
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("staging PM2 inventory changed", p.stdout)
+        self.assertNotIn(["pm2", "stop", HOST], self.commands())
+        self.assertNotIn(["pm2", "delete", HOST], self.commands())
+        self.assertNotIn(["pm2", "save"], self.commands())
 
 
 if __name__ == "__main__":
