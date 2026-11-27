@@ -186,9 +186,13 @@ if action == "pm2":
             continue
         if not header or len(columns) != len(header): continue
         row = dict(zip(header, columns))
+        # str.isdigit() also accepts other Unicode digits (Arabic-Indic,
+        # superscripts) that PM2 never prints: skip only non-numeric rows and
+        # refuse any numeric id or restart count that is not ASCII.
         if not row.get("id", "").isdigit(): continue
+        if not re.fullmatch(r"[0-9]+", row["id"]): fail("PM2 table has a non-ASCII numeric id")
         restarts = next((row[k] for k in ("↺", "restart", "restarts") if k in row), "")
-        if not restarts.isdigit(): fail("PM2 table lacks numeric restart counts")
+        if not re.fullmatch(r"[0-9]+", restarts): fail("PM2 table lacks numeric restart counts")
         values = [row["id"], row["name"], row["status"], restarts]
         if any(re.search(r"[\x00-\x1f\x7f]", value) for value in values): fail("unsupported PM2 table value")
         found.append(values)
