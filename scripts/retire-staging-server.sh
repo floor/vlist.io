@@ -10,6 +10,11 @@
 # Command overrides are single executable/function names, never shell fragments:
 # NGINX_DIR, NGINX_BIN, PM2_BIN, CURL_BIN, SS_BIN, PYTHON_BIN, PM2_PID_FILE,
 # STAGING_PARENT (ecosystem search root), or explicit STAGING_ECOSYSTEM.
+# staging.vlist.io has no DNS record and this script does not create one.
+# The Cloudflare edge check runs only when that name resolves. A lookup that
+# returns no address prints a skip line and continues. The origin check stays
+# mandatory. Production is the version.json read at the start (released true);
+# every later read must still be that same version.
 set -euo pipefail
 umask 077
 
@@ -32,6 +37,7 @@ host=staging.vlist.io
 vhost='' backup='' ecosystem='' rows=''
 rollback_ready=false
 changed=false
+expected_version=''
 
 rollback_commands() {
   [[ "$rollback_ready" == true && -f "$backup" && -n "$vhost" && -n "$ecosystem" ]] || return 0
@@ -297,11 +303,29 @@ port_listening() {
   printf '%s\n' "$output" | awk 'NR>1 && NF {found=1} END {exit !found}'
 }
 version_ok() {
-  local body version
+  local body version status=0
   body=$("$CURL_BIN" -fsS --connect-timeout 5 --max-time 15 https://vlist.io/dist/version.json 2>/dev/null) || die 'production version request failed'
-  version=$(printf '%s' "$body" | "$PYTHON_BIN" -c 'import json,sys; print(json.load(sys.stdin).get("version", ""))') || die 'invalid production version response'
-  [[ "$version" == 3.3.1 ]] || die 'production version is not the expected 3.3.1'
-  echo 'production version: 3.3.1'
+  version=$(printf '%s' "$body" | "$PYTHON_BIN" -c 'import json,sys
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    raise SystemExit(1)
+if data.get("released") is not True:
+    raise SystemExit(3)
+version = data.get("version")
+if not isinstance(version, str) or version == "":
+    raise SystemExit(4)
+sys.stdout.write(version)
+') || status=$?
+  if [[ "$status" -eq 3 ]]; then die 'production release is not marked released'; fi
+  if [[ "$status" -eq 4 ]]; then die 'production version is empty'; fi
+  if [[ "$status" -ne 0 ]]; then die 'invalid production version response'; fi
+  if [[ -z "$expected_version" ]]; then
+    expected_version=$version
+    echo "production version: $version"
+    return 0
+  fi
+  [[ "$version" == "$expected_version" ]] || die "production version changed from $expected_version to $version"
 }
 redirect_ok() {
   local label=$1 headers status location
@@ -311,6 +335,27 @@ redirect_ok() {
   location=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'tolower($1)=="location:" {$1=""; sub(/^ /, ""); value=$0} END {print value}')
   [[ "$status" == 301 && "$location" == https://vlist.io/some/path ]] || die "$label redirect failed (expected 301 to https://vlist.io/some/path)"
   echo "$label redirect: 301 https://vlist.io/some/path"
+}
+staging_has_record() {
+  local status=0
+  "$PYTHON_BIN" -c 'import socket, sys
+host = sys.argv[1]
+try:
+    found = socket.getaddrinfo(host, 443)
+except socket.gaierror:
+    raise SystemExit(2)
+raise SystemExit(0 if found else 2)
+' "$host" || status=$?
+  if [[ "$status" -eq 0 ]]; then return 0; fi
+  if [[ "$status" -eq 2 ]]; then return 1; fi
+  die 'DNS lookup failed'
+}
+cloudflare_redirect_ok() {
+  if staging_has_record; then
+    redirect_ok Cloudflare
+  else
+    echo 'Cloudflare: no DNS record for staging.vlist.io, skipped'
+  fi
 }
 
 for bin in "$PYTHON_BIN" "$NGINX_BIN" "$PM2_BIN" "$CURL_BIN" "$SS_BIN"; do
@@ -356,7 +401,7 @@ echo "port 3339: $port3339"
 [[ "$port3338" == listening ]] || die 'production port 3338 is not listening'
 [[ "$staging_count" != 0 || "$port3339" == free ]] || die 'port 3339 is busy despite recorded retirement; owner inventory required'
 version_ok
-echo 'DNS is retained; no DNS or Cloudflare settings are changed.'
+echo 'No DNS record is created for staging.vlist.io. The Cloudflare check runs only when that name resolves.'
 echo 'Cloudflare may serve cached staging pages until the zone is purged; the next vlist.io deploy purges everything.'
 if [[ -z "$backup" ]]; then
   backup="${NGINX_DIR%/}/staging-retirement-backups/staging.vlist.io-$(date -u +%Y%m%dT%H%M%SZ)-$$.conf.bak"
@@ -364,14 +409,14 @@ fi
 if [[ "$mode" == --check ]]; then
   if [[ "$state" == retired && "$staging_count" == 0 && "$port3339" == free ]]; then
     redirect_ok origin --resolve "$host:443:127.0.0.1"
-    redirect_ok Cloudflare
+    cloudflare_redirect_ok
     echo 'nothing to do'
   else
     if [[ "$state" != retired ]]; then
       echo "would change: back up $vhost to $backup; replace only its staging server bodies with a TLS-preserving 301; nginx -t then reload"
       echo 'would change: drop other staging body directives/handlers; retain listen/server_name, http2, ssl_* and verified TLS-only includes; add return 301 https://vlist.io$request_uri;'
     fi
-    echo 'would change: only after origin and Cloudflare both return 301, pm2 stop staging.vlist.io; pm2 delete staging.vlist.io; pm2 save; verify production and free port 3339; record a completion comment in the backed-up vhost'
+    echo 'would change: only after the origin returns 301, and the Cloudflare edge returns 301 when the name resolves, pm2 stop staging.vlist.io; pm2 delete staging.vlist.io; pm2 save; verify production and free port 3339; record a completion comment in the backed-up vhost'
   fi
   echo 'nothing was changed by this run'
   rollback_commands
@@ -408,11 +453,13 @@ else
   echo 'nginx: tested and reloaded staging redirect'
 fi
 redirect_ok origin --resolve "$host:443:127.0.0.1"
-redirect_ok Cloudflare
+cloudflare_redirect_ok
 
-# (b) Read-only inventory precedes changes; no PM2 mutation precedes both 301s.
+# (b) Read-only inventory precedes changes; no PM2 mutation precedes both 301s
+# or a production version that moved during the run.
 assert_production
 assert_staging "$staging_id"
+version_ok
 if [[ "$staging_count" == 0 ]]; then
   echo 'already done: pm2 staging entry absent; production unchanged'
 else
@@ -445,5 +492,5 @@ if [[ "$complete" != yes ]]; then
   }
   printf '%s\n' "$completed_content" > "$vhost" || die 'could not record completed retirement'
 fi
-echo 'already done: DNS retained (no action); staging directories, ecosystem file and certificates retained'
+echo 'already done: no DNS record to create or change; staging directories, ecosystem file and certificates retained'
 rollback_commands

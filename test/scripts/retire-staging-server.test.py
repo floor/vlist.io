@@ -390,7 +390,7 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         p = self.run_script("--apply")
         self.assertNotEqual(p.returncode, 0)
         self.assertIn("Cloudflare redirect failed", p.stdout)
-        self.assertNotIn("no DNS record", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
         self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
         print("PM2 MUTATIONS without Cloudflare 301: " + json.dumps([c for c in self.commands() if c[0] == "pm2"]), flush=True)
 
@@ -402,7 +402,7 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         p = self.run_script("--apply")
         self.assertEqual(p.returncode, 0)
         self.assertIn("Cloudflare redirect: 301 https://vlist.io/some/path", p.stdout)
-        self.assertNotIn("no DNS record", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
         self.assertIn("return 301 https://vlist.io$request_uri;", self.vhost.read_text())
         self.assertIn("ssl_certificate_key " + str(self.certs / "privkey.pem") + ";", self.vhost.read_text())
         for path, content in originals.items(): self.assertEqual(path.read_bytes(), content)
