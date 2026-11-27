@@ -55,7 +55,17 @@ def fake(kind, args):
         state_path.write_text(json.dumps(state))
     elif kind == "curl":
         if args[-1] == "https://vlist.io/dist/version.json":
-            print(json.dumps({"version": state["version"]}))
+            counter = Path(os.environ["FAKE_LOG"]).with_name("version-reads")
+            count = int(counter.read_text()) if counter.exists() else 0
+            count += 1
+            counter.write_text(str(count))
+            version = state["version"]
+            released = state.get("released", True)
+            if count > 1 and "next_version" in state:
+                version = state["next_version"]
+            if count > 1 and "next_released" in state:
+                released = state["next_released"]
+            print(json.dumps({"version": version, "released": released}))
         else:
             if args[-1] != "https://staging.vlist.io/some/path": raise AssertionError(args)
             origin = "--resolve" in args
@@ -65,6 +75,8 @@ def fake(kind, args):
             ok = state["reloaded"] and state["origin_ok" if origin else "edge_ok"]
             print(f"HTTP/2 {301 if ok else 200}\r")
             print("location: https://vlist.io/some/path\r\n")
+    elif kind == "dns":
+        return 0 if state.get("dns_record", True) else 2
     elif kind == "ss":
         if args not in (["-ltn", "sport = :3338"], ["-ltn", "sport = :3339"]): raise AssertionError(args)
         if not state.get("ss_ok", True): return 0
@@ -140,7 +152,7 @@ server {
             ],
             "port3338": True, "port3339": True, "nginx_ok": True,
             "origin_ok": True, "edge_ok": True, "reloaded": False,
-            "version": "3.3.1", "saves": 0,
+            "version": "3.3.1", "released": True, "dns_record": True, "saves": 0,
         }
         self.save()
         self.log = self.temp / "calls.jsonl"
@@ -162,13 +174,20 @@ fake_pm2() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake pm2 "$@"; }
 fake_nginx() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake nginx "$@"; }
 fake_curl() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake curl "$@"; }
 fake_ss() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake ss "$@"; }
+fake_python() {
+  if [[ "${1-}" == -c && "${2-}" == *getaddrinfo* ]]; then
+    "$FAKE_PYTHON" "$FAKE_DRIVER" --fake dns "${3-}"
+    return $?
+  fi
+  "$FAKE_PYTHON" "$@"
+}
 if [[ -n "$MODE" ]]; then source "$SCRIPT" "$MODE"; else source "$SCRIPT"; fi
 """
         env = dict(os.environ, FAKE_ROOT=str(self.root), FAKE_LOG=str(self.log),
                    FAKE_PYTHON=sys.executable, FAKE_DRIVER=str(Path(__file__).resolve()),
                    NGINX_DIR=str(self.nginx), PM2_PID_FILE=str(self.root / "pm2.pid"),
                    STAGING_PARENT=str(self.root), NGINX_BIN="fake_nginx", PM2_BIN="fake_pm2",
-                   CURL_BIN="fake_curl", SS_BIN="fake_ss", PYTHON_BIN=sys.executable,
+                   CURL_BIN="fake_curl", SS_BIN="fake_ss", PYTHON_BIN="fake_python",
                    SCRIPT=str(SCRIPT), MODE=mode)
         functions = functions.replace('if [[ -n "$MODE" ]]', setup + '\nif [[ -n "$MODE" ]]', 1)
         p = subprocess.run(["bash", "-c", functions], env=env, text=True,
@@ -210,7 +229,7 @@ if [[ -n "$MODE" ]]; then source "$SCRIPT" "$MODE"; else source "$SCRIPT"; fi
         self.assertEqual(self.commands(), [])
 
     def test_pre_backup_apply_failure_says_nothing_changed(self):
-        self.state["version"] = "0.0.0"
+        self.state["version"] = ""
         self.save()
         before = digest(self.root)
         p = self.run_script("--apply")
@@ -371,6 +390,7 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         p = self.run_script("--apply")
         self.assertNotEqual(p.returncode, 0)
         self.assertIn("Cloudflare redirect failed", p.stdout)
+        self.assertNotIn("no DNS record", p.stdout)
         self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
         print("PM2 MUTATIONS without Cloudflare 301: " + json.dumps([c for c in self.commands() if c[0] == "pm2"]), flush=True)
 
@@ -381,6 +401,8 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         originals = {p: p.read_bytes() for p in protected}
         p = self.run_script("--apply")
         self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare redirect: 301 https://vlist.io/some/path", p.stdout)
+        self.assertNotIn("no DNS record", p.stdout)
         self.assertIn("return 301 https://vlist.io$request_uri;", self.vhost.read_text())
         self.assertIn("ssl_certificate_key " + str(self.certs / "privkey.pem") + ";", self.vhost.read_text())
         for path, content in originals.items(): self.assertEqual(path.read_bytes(), content)
@@ -434,6 +456,51 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         self.assertNotEqual(p.returncode, 0)
         self.assertIn("port 3339 is still listening", p.stdout)
         self.assertNotIn("# staging-retirement-complete: yes", self.vhost.read_text())
+
+    def test_live_version_accepts_any_semver(self):
+        for version in ("3.8.12", "1.2.3"):
+            with self.subTest(version=version):
+                self.state["version"] = version
+                self.state["released"] = True
+                self.save()
+                p = self.run_script()
+                self.assertEqual(p.returncode, 0)
+                self.assertIn("production version: " + version, p.stdout)
+                self.assertNotIn("expected 3.3.1", p.stdout)
+                self.assertEqual(self.commands(), [])
+
+    def test_version_change_stops_before_pm2(self):
+        self.state["next_version"] = "3.8.13"
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("production version changed", p.stdout)
+        self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
+        print("PM2 MUTATIONS after version change: " + json.dumps([c for c in self.commands() if c[0] == "pm2"]), flush=True)
+
+    def test_unreleased_stops_before_changes(self):
+        self.state["released"] = False
+        self.save()
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("not marked released", p.stdout)
+        self.assertIn("nothing was changed", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
+    def test_no_dns_record_skips_cloudflare_and_retires_pm2(self):
+        self.state["dns_record"] = False
+        self.state["edge_ok"] = False
+        self.save()
+        p = self.run_script("--apply")
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare: no DNS record for staging.vlist.io, skipped", p.stdout)
+        self.assertNotIn("Cloudflare redirect failed", p.stdout)
+        self.assertIn("pm2: stopped/deleted only staging.vlist.io", p.stdout)
+        state = json.loads((self.root / "state.json").read_text())
+        self.assertNotIn(HOST, [row["name"] for row in state["processes"]])
+        self.assertEqual(state["saves"], 1)
 
 
 if __name__ == "__main__":
