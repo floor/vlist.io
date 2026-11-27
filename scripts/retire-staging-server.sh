@@ -17,8 +17,8 @@
 # exists) skips that edge check with a printed line. A name that resolves needs
 # the edge 301. Any other lookup error stops the run (before changes when it is
 # the first lookup, before PM2 otherwise). The origin check stays mandatory. Production is the
-# version.json read at the start: released true, and a semver once surrounding
-# whitespace is removed. Every later read must still be that same version.
+# version.json read at the start: released true, and an ASCII semver once
+# surrounding whitespace is removed. Every later read must still be that same version.
 set -euo pipefail
 umask 077
 
@@ -311,7 +311,8 @@ version_ok() {
   local body version status=0
   body=$("$CURL_BIN" -fsS --connect-timeout 5 --max-time 15 https://vlist.io/dist/version.json 2>/dev/null) || die 'production version request failed'
   version=$(printf '%s' "$body" | "$PYTHON_BIN" -c 'import json, re, sys
-pattern = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+# SemVer digits are ASCII; Python 3 \d also matches other Unicode digits.
+pattern = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
 try:
     data = json.load(sys.stdin)
 except Exception:
