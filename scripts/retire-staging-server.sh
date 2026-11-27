@@ -11,10 +11,12 @@
 # NGINX_DIR, NGINX_BIN, PM2_BIN, CURL_BIN, SS_BIN, PYTHON_BIN, PM2_PID_FILE,
 # STAGING_PARENT (ecosystem search root), or explicit STAGING_ECOSYSTEM.
 # staging.vlist.io has no DNS record and this script does not create one.
-# The Cloudflare edge check runs only when that name resolves. A lookup that
-# fails because the name does not exist (EAI_NONAME, or EAI_NODATA where that
-# code exists) prints a skip line and continues. Any other lookup error stops
-# the run before changes. The origin check stays mandatory. Production is the
+# The name is looked up once before any change, and again at the moment of each
+# Cloudflare edge check; no earlier answer is reused. A lookup that fails
+# because the name does not exist (EAI_NONAME, or EAI_NODATA where that code
+# exists) skips that edge check with a printed line. A name that resolves needs
+# the edge 301. Any other lookup error stops the run (before changes when it is
+# the first lookup, before PM2 otherwise). The origin check stays mandatory. Production is the
 # version.json read at the start: released true, and a semver once surrounding
 # whitespace is removed. Every later read must still be that same version.
 set -euo pipefail
@@ -40,7 +42,7 @@ vhost='' backup='' ecosystem='' rows=''
 rollback_ready=false
 changed=false
 expected_version=''
-dns_absent=false
+dns_absent=''
 
 rollback_commands() {
   [[ "$rollback_ready" == true && -f "$backup" && -n "$vhost" && -n "$ecosystem" ]] || return 0
@@ -348,6 +350,7 @@ redirect_ok() {
 }
 classify_dns() {
   local status=0
+  dns_absent=''
   "$PYTHON_BIN" -c 'import socket, sys
 host = sys.argv[1]
 missing = {socket.EAI_NONAME}
@@ -365,6 +368,9 @@ raise SystemExit(0 if found else 1)
   die 'DNS lookup failed'
 }
 cloudflare_redirect_ok() {
+  # Look up again now: a record added since the last lookup (for example while
+  # nginx reloaded) must not be skipped on an earlier absence.
+  classify_dns
   if [[ "$dns_absent" == true ]]; then
     echo 'Cloudflare: no DNS record for staging.vlist.io, skipped'
   else
