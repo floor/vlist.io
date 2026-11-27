@@ -55,7 +55,22 @@ def fake(kind, args):
         state_path.write_text(json.dumps(state))
     elif kind == "curl":
         if args[-1] == "https://vlist.io/dist/version.json":
-            print(json.dumps({"version": state["version"]}))
+            counter = Path(os.environ["FAKE_LOG"]).with_name("version-reads")
+            count = int(counter.read_text()) if counter.exists() else 0
+            count += 1
+            counter.write_text(str(count))
+            version = state["version"]
+            released = state.get("released", True)
+            if count > 1 and "next_version" in state:
+                version = state["next_version"]
+            if count > 1 and "next_released" in state:
+                released = state["next_released"]
+            if count == state.get("swap_staging_id_on_read"):
+                for proc in state["processes"]:
+                    if proc["name"] == HOST:
+                        proc["id"] = int(proc["id"]) + 50
+                state_path.write_text(json.dumps(state))
+            print(json.dumps({"version": version, "released": released}))
         else:
             if args[-1] != "https://staging.vlist.io/some/path": raise AssertionError(args)
             origin = "--resolve" in args
@@ -65,6 +80,43 @@ def fake(kind, args):
             ok = state["reloaded"] and state["origin_ok" if origin else "edge_ok"]
             print(f"HTTP/2 {301 if ok else 200}\r")
             print("location: https://vlist.io/some/path\r\n")
+    elif kind == "dns-run":
+        import socket
+        source, host = args[0], args[1]
+        counter = Path(os.environ["FAKE_LOG"]).with_name("dns-reads")
+        lookups = (int(counter.read_text()) if counter.exists() else 0) + 1
+        counter.write_text(str(lookups))
+        if "dns_sequence" in state:
+            # Lookup n answers with entry n; the last entry repeats.
+            mode = state["dns_sequence"][min(lookups, len(state["dns_sequence"])) - 1]
+        elif "dns_lookup" in state:
+            mode = state["dns_lookup"]
+        elif state.get("dns_record", True):
+            mode = "record"
+        else:
+            mode = "noname"
+
+        def getaddrinfo(hostname, port, *a, **k):
+            if mode == "record":
+                return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("203.0.113.1", port or 0))]
+            if mode == "noname":
+                raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
+            if mode == "nodata":
+                raise socket.gaierror(socket.EAI_NODATA, "No address associated with hostname")
+            if mode == "again":
+                raise socket.gaierror(socket.EAI_AGAIN, "Temporary failure in name resolution")
+            if mode == "empty":
+                return []
+            raise AssertionError(mode)
+
+        socket.getaddrinfo = getaddrinfo
+        sys.argv = ["dns", host]
+        try:
+            exec(compile(source, "<dns>", "exec"), {"__name__": "__main__"})
+        except SystemExit as exc:
+            code = 0 if exc.code is None else exc.code
+            return int(code)
+        return 0
     elif kind == "ss":
         if args not in (["-ltn", "sport = :3338"], ["-ltn", "sport = :3339"]): raise AssertionError(args)
         if not state.get("ss_ok", True): return 0
@@ -140,7 +192,7 @@ server {
             ],
             "port3338": True, "port3339": True, "nginx_ok": True,
             "origin_ok": True, "edge_ok": True, "reloaded": False,
-            "version": "3.3.1", "saves": 0,
+            "version": "3.3.1", "released": True, "dns_record": True, "saves": 0,
         }
         self.save()
         self.log = self.temp / "calls.jsonl"
@@ -162,13 +214,20 @@ fake_pm2() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake pm2 "$@"; }
 fake_nginx() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake nginx "$@"; }
 fake_curl() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake curl "$@"; }
 fake_ss() { "$FAKE_PYTHON" "$FAKE_DRIVER" --fake ss "$@"; }
+fake_python() {
+  if [[ "${1-}" == -c && "${2-}" == *getaddrinfo* ]]; then
+    "$FAKE_PYTHON" "$FAKE_DRIVER" --fake dns-run "$2" "${3-}"
+    return $?
+  fi
+  "$FAKE_PYTHON" "$@"
+}
 if [[ -n "$MODE" ]]; then source "$SCRIPT" "$MODE"; else source "$SCRIPT"; fi
 """
         env = dict(os.environ, FAKE_ROOT=str(self.root), FAKE_LOG=str(self.log),
                    FAKE_PYTHON=sys.executable, FAKE_DRIVER=str(Path(__file__).resolve()),
                    NGINX_DIR=str(self.nginx), PM2_PID_FILE=str(self.root / "pm2.pid"),
                    STAGING_PARENT=str(self.root), NGINX_BIN="fake_nginx", PM2_BIN="fake_pm2",
-                   CURL_BIN="fake_curl", SS_BIN="fake_ss", PYTHON_BIN=sys.executable,
+                   CURL_BIN="fake_curl", SS_BIN="fake_ss", PYTHON_BIN="fake_python",
                    SCRIPT=str(SCRIPT), MODE=mode)
         functions = functions.replace('if [[ -n "$MODE" ]]', setup + '\nif [[ -n "$MODE" ]]', 1)
         p = subprocess.run(["bash", "-c", functions], env=env, text=True,
@@ -210,7 +269,7 @@ if [[ -n "$MODE" ]]; then source "$SCRIPT" "$MODE"; else source "$SCRIPT"; fi
         self.assertEqual(self.commands(), [])
 
     def test_pre_backup_apply_failure_says_nothing_changed(self):
-        self.state["version"] = "0.0.0"
+        self.state["version"] = ""
         self.save()
         before = digest(self.root)
         p = self.run_script("--apply")
@@ -371,6 +430,7 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         p = self.run_script("--apply")
         self.assertNotEqual(p.returncode, 0)
         self.assertIn("Cloudflare redirect failed", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
         self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
         print("PM2 MUTATIONS without Cloudflare 301: " + json.dumps([c for c in self.commands() if c[0] == "pm2"]), flush=True)
 
@@ -381,6 +441,8 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         originals = {p: p.read_bytes() for p in protected}
         p = self.run_script("--apply")
         self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare redirect: 301 https://vlist.io/some/path", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
         self.assertIn("return 301 https://vlist.io$request_uri;", self.vhost.read_text())
         self.assertIn("ssl_certificate_key " + str(self.certs / "privkey.pem") + ";", self.vhost.read_text())
         for path, content in originals.items(): self.assertEqual(path.read_bytes(), content)
@@ -434,6 +496,207 @@ printf '%s\\n' 'UNRELATED BACKUP' > "$collision"
         self.assertNotEqual(p.returncode, 0)
         self.assertIn("port 3339 is still listening", p.stdout)
         self.assertNotIn("# staging-retirement-complete: yes", self.vhost.read_text())
+
+    def test_live_version_accepts_any_semver(self):
+        for version in ("3.8.12", "1.2.3"):
+            with self.subTest(version=version):
+                self.state["version"] = version
+                self.state["released"] = True
+                self.save()
+                p = self.run_script()
+                self.assertEqual(p.returncode, 0)
+                self.assertIn("production version: " + version, p.stdout)
+                self.assertNotIn("expected 3.3.1", p.stdout)
+                self.assertEqual(self.commands(), [])
+
+    def test_version_change_stops_before_pm2(self):
+        self.state["next_version"] = "3.8.13"
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("production version changed", p.stdout)
+        self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
+        print("PM2 MUTATIONS after version change: " + json.dumps([c for c in self.commands() if c[0] == "pm2"]), flush=True)
+
+    def test_unreleased_stops_before_changes(self):
+        self.state["released"] = False
+        self.save()
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("not marked released", p.stdout)
+        self.assertIn("nothing was changed", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
+    def test_no_dns_record_skips_cloudflare_and_retires_pm2(self):
+        self.state["dns_record"] = False
+        self.state["edge_ok"] = False
+        self.save()
+        p = self.run_script("--apply")
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare: no DNS record for staging.vlist.io, skipped", p.stdout)
+        self.assertNotIn("Cloudflare redirect failed", p.stdout)
+        self.assertIn("pm2: stopped/deleted only staging.vlist.io", p.stdout)
+        state = json.loads((self.root / "state.json").read_text())
+        self.assertNotIn(HOST, [row["name"] for row in state["processes"]])
+        self.assertEqual(state["saves"], 1)
+
+    def test_transient_dns_error_stops_before_changes(self):
+        for index, mode in enumerate(("again", "empty")):
+            with self.subTest(mode=mode):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["dns_lookup"] = mode
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("DNS lookup failed", p.stdout)
+                self.assertNotIn("Cloudflare: no DNS record", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_nodata_skips_cloudflare_and_retires_pm2(self):
+        self.state["dns_lookup"] = "nodata"
+        self.state["edge_ok"] = False
+        self.save()
+        p = self.run_script("--apply")
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare: no DNS record for staging.vlist.io, skipped", p.stdout)
+        self.assertIn("pm2: stopped/deleted only staging.vlist.io", p.stdout)
+
+    def test_blank_version_does_not_become_baseline(self):
+        self.state["version"] = "\n"
+        self.state["next_version"] = "3.8.12"
+        self.save()
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("production version is empty", p.stdout)
+        self.assertNotIn("production version: 3.8.12", p.stdout)
+        self.assertIn("nothing was changed", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
+
+    def test_non_semver_stops_before_changes(self):
+        for index, version in enumerate(("3.8", "v3.8.12")):
+            with self.subTest(version=version):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["version"] = version
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("production version is not semver", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_surrounding_whitespace_semver_is_accepted(self):
+        self.state["version"] = " 3.8.12\n"
+        self.save()
+        p = self.run_script()
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("production version: 3.8.12", p.stdout)
+        self.assertNotIn("production version:  3.8.12", p.stdout)
+        self.assertEqual(self.commands(), [])
+
+    def test_staging_id_swap_during_version_read_stops_before_pm2(self):
+        self.state["swap_staging_id_on_read"] = 2
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("staging PM2 inventory changed", p.stdout)
+        self.assertNotIn(["pm2", "stop", HOST], self.commands())
+        self.assertNotIn(["pm2", "delete", HOST], self.commands())
+        self.assertNotIn(["pm2", "save"], self.commands())
+
+    def dns_lookups(self):
+        counter = self.log.with_name("dns-reads")
+        return int(counter.read_text()) if counter.exists() else 0
+
+    def test_dns_record_added_after_first_lookup_needs_edge_301(self):
+        # Absent at the pre-change lookup, resolving once nginx has reloaded:
+        # the edge check must look again and refuse PM2 without an edge 301.
+        self.state["dns_sequence"] = ["noname", "record"]
+        self.state["edge_ok"] = False
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("Cloudflare redirect failed", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
+        self.assertEqual(self.dns_lookups(), 2)
+        self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
+        print("PM2 MUTATIONS after DNS appeared: " + json.dumps([c for c in self.commands() if c[0] == "pm2"]), flush=True)
+
+    def test_dns_record_added_after_first_lookup_checks_edge(self):
+        self.state["dns_sequence"] = ["noname", "record"]
+        self.save()
+        p = self.run_script("--apply")
+        self.assertEqual(p.returncode, 0)
+        self.assertIn("Cloudflare redirect: 301 https://vlist.io/some/path", p.stdout)
+        self.assertNotIn("Cloudflare: no DNS record", p.stdout)
+        self.assertIn("pm2: stopped/deleted only staging.vlist.io", p.stdout)
+
+    def test_dns_lookup_error_at_edge_check_stops_before_pm2(self):
+        self.state["dns_sequence"] = ["noname", "again"]
+        self.save()
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("DNS lookup failed", p.stdout)
+        self.assertFalse(any(c[0] == "pm2" for c in self.commands()))
+
+    def test_non_ascii_digit_version_stops_before_changes(self):
+        # Python's \d matches every Unicode decimal digit; SemVer is ASCII.
+        versions = ("\u0663.\u0668.\u0661\u0662", "\uff13.\uff18.\uff11\uff12",
+                    "3.8.1\u0662", "3.8.12-\u0661a")
+        for index, version in enumerate(versions):
+            with self.subTest(version=version.encode("unicode_escape").decode()):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["version"] = version
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("production version is not semver", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_non_ascii_pm2_numbers_are_refused(self):
+        # str.isdigit() also accepts Arabic-Indic and superscript digits, which
+        # PM2 never prints; such a table is not one this script can trust.
+        cases = ((2, "id", "\u0661"), (2, "id", "\u00b2"), (0, "restarts", "\u0663"))
+        for index, (row, column, value) in enumerate(cases):
+            with self.subTest(column=column, value=value.encode("unicode_escape").decode()):
+                if index:
+                    self.tearDown()
+                    self.setUp()
+                self.state["processes"][row][column] = value
+                self.save()
+                before = digest(self.root)
+                p = self.run_script("--apply")
+                self.assertNotEqual(p.returncode, 0)
+                self.assertIn("PM2 inventory refused", p.stdout)
+                self.assertIn("nothing was changed", p.stdout)
+                self.assertEqual(before, digest(self.root))
+                self.assertEqual(self.commands(), [])
+
+    def test_non_ascii_listener_port_is_unsupported(self):
+        self.vhost.write_text(self.original.replace("listen 80;", "listen \u0668\u0660;"))
+        before = digest(self.root)
+        p = self.run_script("--apply")
+        self.assertNotEqual(p.returncode, 0)
+        self.assertIn("unsupported staging listener", p.stdout)
+        self.assertEqual(before, digest(self.root))
+        self.assertEqual(self.commands(), [])
 
 
 if __name__ == "__main__":

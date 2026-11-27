@@ -10,6 +10,15 @@
 # Command overrides are single executable/function names, never shell fragments:
 # NGINX_DIR, NGINX_BIN, PM2_BIN, CURL_BIN, SS_BIN, PYTHON_BIN, PM2_PID_FILE,
 # STAGING_PARENT (ecosystem search root), or explicit STAGING_ECOSYSTEM.
+# staging.vlist.io has no DNS record and this script does not create one.
+# The name is looked up once before any change, and again at the moment of each
+# Cloudflare edge check; no earlier answer is reused. A lookup that fails
+# because the name does not exist (EAI_NONAME, or EAI_NODATA where that code
+# exists) skips that edge check with a printed line. A name that resolves needs
+# the edge 301. Any other lookup error stops the run (before changes when it is
+# the first lookup, before PM2 otherwise). The origin check stays mandatory. Production is the
+# version.json read at the start: released true, and an ASCII semver once
+# surrounding whitespace is removed. Every later read must still be that same version.
 set -euo pipefail
 umask 077
 
@@ -32,6 +41,8 @@ host=staging.vlist.io
 vhost='' backup='' ecosystem='' rows=''
 rollback_ready=false
 changed=false
+expected_version=''
+dns_absent=''
 
 rollback_commands() {
   [[ "$rollback_ready" == true && -f "$backup" && -n "$vhost" && -n "$ecosystem" ]] || return 0
@@ -133,7 +144,7 @@ def validate(path, text, nodes, root):
         listeners = [x for x in block["body"] if x["key"] == "listen"]
         if not listeners: fail("staging block has no explicit listener")
         for listener in listeners:
-            if not listener["args"] or not re.search(r"(^|:)\d+$", listener["args"][0]):
+            if not listener["args"] or not re.search(r"(^|:)[0-9]+$", listener["args"][0]):
                 fail("unsupported staging listener")
             port = listener["args"][0].split(":")[-1]
             if port not in ("80", "443"): fail("refusing staging listener outside ports 80/443")
@@ -175,9 +186,13 @@ if action == "pm2":
             continue
         if not header or len(columns) != len(header): continue
         row = dict(zip(header, columns))
+        # str.isdigit() also accepts other Unicode digits (Arabic-Indic,
+        # superscripts) that PM2 never prints: skip only non-numeric rows and
+        # refuse any numeric id or restart count that is not ASCII.
         if not row.get("id", "").isdigit(): continue
+        if not re.fullmatch(r"[0-9]+", row["id"]): fail("PM2 table has a non-ASCII numeric id")
         restarts = next((row[k] for k in ("↺", "restart", "restarts") if k in row), "")
-        if not restarts.isdigit(): fail("PM2 table lacks numeric restart counts")
+        if not re.fullmatch(r"[0-9]+", restarts): fail("PM2 table lacks numeric restart counts")
         values = [row["id"], row["name"], row["status"], restarts]
         if any(re.search(r"[\x00-\x1f\x7f]", value) for value in values): fail("unsupported PM2 table value")
         found.append(values)
@@ -297,11 +312,37 @@ port_listening() {
   printf '%s\n' "$output" | awk 'NR>1 && NF {found=1} END {exit !found}'
 }
 version_ok() {
-  local body version
+  local body version status=0
   body=$("$CURL_BIN" -fsS --connect-timeout 5 --max-time 15 https://vlist.io/dist/version.json 2>/dev/null) || die 'production version request failed'
-  version=$(printf '%s' "$body" | "$PYTHON_BIN" -c 'import json,sys; print(json.load(sys.stdin).get("version", ""))') || die 'invalid production version response'
-  [[ "$version" == 3.3.1 ]] || die 'production version is not the expected 3.3.1'
-  echo 'production version: 3.3.1'
+  version=$(printf '%s' "$body" | "$PYTHON_BIN" -c 'import json, re, sys
+# SemVer digits are ASCII; Python 3 \d also matches other Unicode digits.
+pattern = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-((?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$")
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    raise SystemExit(1)
+if data.get("released") is not True:
+    raise SystemExit(3)
+version = data.get("version")
+if not isinstance(version, str):
+    raise SystemExit(4)
+version = version.strip()
+if version == "":
+    raise SystemExit(4)
+if pattern.fullmatch(version) is None:
+    raise SystemExit(5)
+sys.stdout.write(version)
+') || status=$?
+  if [[ "$status" -eq 3 ]]; then die 'production release is not marked released'; fi
+  if [[ "$status" -eq 4 ]]; then die 'production version is empty'; fi
+  if [[ "$status" -eq 5 ]]; then die 'production version is not semver'; fi
+  if [[ "$status" -ne 0 || -z "$version" ]]; then die 'invalid production version response'; fi
+  if [[ -z "$expected_version" ]]; then
+    expected_version=$version
+    echo "production version: $version"
+    return 0
+  fi
+  [[ "$version" == "$expected_version" ]] || die "production version changed from $expected_version to $version"
 }
 redirect_ok() {
   local label=$1 headers status location
@@ -311,6 +352,35 @@ redirect_ok() {
   location=$(printf '%s\n' "$headers" | tr -d '\r' | awk 'tolower($1)=="location:" {$1=""; sub(/^ /, ""); value=$0} END {print value}')
   [[ "$status" == 301 && "$location" == https://vlist.io/some/path ]] || die "$label redirect failed (expected 301 to https://vlist.io/some/path)"
   echo "$label redirect: 301 https://vlist.io/some/path"
+}
+classify_dns() {
+  local status=0
+  dns_absent=''
+  "$PYTHON_BIN" -c 'import socket, sys
+host = sys.argv[1]
+missing = {socket.EAI_NONAME}
+nodata = getattr(socket, "EAI_NODATA", None)
+if nodata is not None:
+    missing.add(nodata)
+try:
+    found = socket.getaddrinfo(host, 443)
+except socket.gaierror as exc:
+    raise SystemExit(2 if exc.errno in missing else 1)
+raise SystemExit(0 if found else 1)
+' "$host" || status=$?
+  if [[ "$status" -eq 0 ]]; then dns_absent=false; return 0; fi
+  if [[ "$status" -eq 2 ]]; then dns_absent=true; return 0; fi
+  die 'DNS lookup failed'
+}
+cloudflare_redirect_ok() {
+  # Look up again now: a record added since the last lookup (for example while
+  # nginx reloaded) must not be skipped on an earlier absence.
+  classify_dns
+  if [[ "$dns_absent" == true ]]; then
+    echo 'Cloudflare: no DNS record for staging.vlist.io, skipped'
+  else
+    redirect_ok Cloudflare
+  fi
 }
 
 for bin in "$PYTHON_BIN" "$NGINX_BIN" "$PM2_BIN" "$CURL_BIN" "$SS_BIN"; do
@@ -356,7 +426,8 @@ echo "port 3339: $port3339"
 [[ "$port3338" == listening ]] || die 'production port 3338 is not listening'
 [[ "$staging_count" != 0 || "$port3339" == free ]] || die 'port 3339 is busy despite recorded retirement; owner inventory required'
 version_ok
-echo 'DNS is retained; no DNS or Cloudflare settings are changed.'
+classify_dns
+echo 'No DNS record is created for staging.vlist.io. The Cloudflare check runs only when that name resolves.'
 echo 'Cloudflare may serve cached staging pages until the zone is purged; the next vlist.io deploy purges everything.'
 if [[ -z "$backup" ]]; then
   backup="${NGINX_DIR%/}/staging-retirement-backups/staging.vlist.io-$(date -u +%Y%m%dT%H%M%SZ)-$$.conf.bak"
@@ -364,14 +435,14 @@ fi
 if [[ "$mode" == --check ]]; then
   if [[ "$state" == retired && "$staging_count" == 0 && "$port3339" == free ]]; then
     redirect_ok origin --resolve "$host:443:127.0.0.1"
-    redirect_ok Cloudflare
+    cloudflare_redirect_ok
     echo 'nothing to do'
   else
     if [[ "$state" != retired ]]; then
       echo "would change: back up $vhost to $backup; replace only its staging server bodies with a TLS-preserving 301; nginx -t then reload"
       echo 'would change: drop other staging body directives/handlers; retain listen/server_name, http2, ssl_* and verified TLS-only includes; add return 301 https://vlist.io$request_uri;'
     fi
-    echo 'would change: only after origin and Cloudflare both return 301, pm2 stop staging.vlist.io; pm2 delete staging.vlist.io; pm2 save; verify production and free port 3339; record a completion comment in the backed-up vhost'
+    echo 'would change: only after the origin returns 301, and the Cloudflare edge returns 301 when the name resolves, pm2 stop staging.vlist.io; pm2 delete staging.vlist.io; pm2 save; verify production and free port 3339; record a completion comment in the backed-up vhost'
   fi
   echo 'nothing was changed by this run'
   rollback_commands
@@ -408,9 +479,13 @@ else
   echo 'nginx: tested and reloaded staging redirect'
 fi
 redirect_ok origin --resolve "$host:443:127.0.0.1"
-redirect_ok Cloudflare
+cloudflare_redirect_ok
 
-# (b) Read-only inventory precedes changes; no PM2 mutation precedes both 301s.
+# (b) Read-only inventory precedes changes; no PM2 mutation precedes both 301s
+# or a production version that moved during the run. The version request can
+# change the process table, so refresh and re-check immediately before stop,
+# delete, and save.
+version_ok
 assert_production
 assert_staging "$staging_id"
 if [[ "$staging_count" == 0 ]]; then
@@ -445,5 +520,5 @@ if [[ "$complete" != yes ]]; then
   }
   printf '%s\n' "$completed_content" > "$vhost" || die 'could not record completed retirement'
 fi
-echo 'already done: DNS retained (no action); staging directories, ecosystem file and certificates retained'
+echo 'already done: no DNS record to create or change; staging directories, ecosystem file and certificates retained'
 rollback_commands
