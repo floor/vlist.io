@@ -144,7 +144,7 @@ def validate(path, text, nodes, root):
         listeners = [x for x in block["body"] if x["key"] == "listen"]
         if not listeners: fail("staging block has no explicit listener")
         for listener in listeners:
-            if not listener["args"] or not re.search(r"(^|:)\d+$", listener["args"][0]):
+            if not listener["args"] or not re.search(r"(^|:)[0-9]+$", listener["args"][0]):
                 fail("unsupported staging listener")
             port = listener["args"][0].split(":")[-1]
             if port not in ("80", "443"): fail("refusing staging listener outside ports 80/443")
